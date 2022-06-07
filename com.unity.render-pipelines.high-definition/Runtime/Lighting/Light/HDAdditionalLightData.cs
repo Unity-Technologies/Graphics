@@ -1988,19 +1988,19 @@ namespace UnityEngine.Rendering.HighDefinition
         // custom begin
         internal
             // custom end
-            unsafe Vector4* frustumPlanes
+            unsafe float4* frustumPlanes
         {
             get
             {
-                Vector4* ptr = null;
+                float4* ptr = null;
 
                 if (lightEntity.valid)
                 {
                     HDLightRenderDatabase lightRenderDatabase = HDLightRenderDatabase.instance;
-                    NativeList<Vector4> frustumPlanesStorage = lightRenderDatabase.frustumPlanesStorage;
+                    NativeList<float4> frustumPlanesStorage = lightRenderDatabase.frustumPlanesStorage;
                     int dataStartIndex = lightRenderDatabase.GetShadowRequestSetHandle(lightEntity).storageIndexForFrustumPlanes;
                     Assert.IsTrue(dataStartIndex >= 0 && dataStartIndex < frustumPlanesStorage.Length);
-                    UnsafeList<Vector4>* unsafeListPtr = frustumPlanesStorage.GetUnsafeList();
+                    UnsafeList<float4>* unsafeListPtr = frustumPlanesStorage.GetUnsafeList();
                     ptr = unsafeListPtr->Ptr + dataStartIndex;
                 }
                 return ptr;
@@ -2677,7 +2677,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public NativeList<HDShadowRequest> requestStorage;
             public NativeList<Vector3> cachedViewPositionsStorage;
-            public NativeList<Vector4> frustumPlanesStorage;
+            public NativeList<float4> frustumPlanesStorage;
 
             [ReadOnly] public Vector3 worldSpaceCameraPos;
             [ReadOnly] public int shaderConfigCameraRelativeRendering;
@@ -2775,7 +2775,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public NativeList<HDShadowRequest> requestStorage;
             public NativeList<Vector3> cachedViewPositionsStorage;
-            public NativeList<Vector4> frustumPlanesStorage;
+            public NativeList<float4> frustumPlanesStorage;
 
             [ReadOnly] public Vector3 worldSpaceCameraPos;
             [ReadOnly] public int shaderConfigCameraRelativeRendering;
@@ -2875,7 +2875,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public NativeList<HDShadowRequest> requestStorage;
             public NativeList<Vector3> cachedViewPositionsStorage;
-            public NativeList<Vector4> frustumPlanesStorage;
+            public NativeList<float4> frustumPlanesStorage;
 
             [ReadOnly] public Vector3 worldSpaceCameraPos;
             [ReadOnly] public int shaderConfigCameraRelativeRendering;
@@ -3281,7 +3281,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 int shaderConfigCameraRelativeRendering = ShaderConfig.s_CameraRelativeRendering;
-                NativeList<Vector4> frustumPlanesStorage = lightEntities.frustumPlanesStorage;
+                NativeList<float4> frustumPlanesStorage = lightEntities.frustumPlanesStorage;
                 HDProcessedVisibleLight* processedLightArrayPtr = (HDProcessedVisibleLight*)visibleLights.processedEntities.GetUnsafePtr<HDProcessedVisibleLight>();
                 VisibleLight* visibleLightsArrayPtr = (VisibleLight*)cullResults.visibleLights.GetUnsafePtr<VisibleLight>();
 
@@ -3507,7 +3507,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static unsafe void SetCommonShadowRequestSettings(ref HDShadowRequest shadowRequest, HDShadowRequestHandle shadowRequestHandle, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality,
-            ref HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering, NativeList<Vector4> frustumPlanesStorage)
+            ref HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering, NativeList<float4> frustumPlanesStorage)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = visibleLight.range;
@@ -3553,12 +3553,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.shadowMapType = ShadowMapType.PunctualAtlas;
             }
 
-            ref UnsafeList<Vector4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
-
             Matrix4x4 finalMatrix = CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.projection, shadowRequest.view, hasOrthoMatrix);
 
+            ref float4 frustumPlanesLeft = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes);
+            ref float4 frustumPlanesRight = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 1);
+            ref float4 frustumPlanesBottom = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 2);
+            ref float4 frustumPlanesTop = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 3);
+            ref float4 frustumPlanesNear = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 4);
+            ref float4 frustumPlanesFar = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 5);
+
             // shadow clip planes (used for tessellation clipping)
-            HDShadowUtils.CalculateFrustumPlanes(ref finalMatrix, frustumPlanesStorageUnsafe.Ptr + shadowRequestHandle.storageIndexForFrustumPlanes);
+            HDShadowUtils.CalculateFrustumPlanes(finalMatrix, out frustumPlanesLeft, out frustumPlanesRight, out frustumPlanesBottom, out frustumPlanesTop, out frustumPlanesNear, out frustumPlanesFar);
 
             float softness = 0.0f;
             if (lightType == HDLightType.Directional)
@@ -3622,13 +3627,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static unsafe void SetCommonShadowRequestSettingsPoint(ref HDShadowRequest shadowRequest, HDShadowRequestHandle shadowRequestHandle, in VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality,
-            ref HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering, NativeList<Vector4> frustumPlanesStorage)
+            ref HDAdditionalLightDataUpdateInfo additionalLightData, int shaderConfigCameraRelativeRendering, NativeList<float4> frustumPlanesStorage)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = visibleLight.range;
             float n = additionalLightData.shadowNearPlane;
-            shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/(n*f), 1.0f/f);
-            shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
+            shadowRequest.zBufferParam = new float4((f-n)/n, 1.0f, (f-n)/(n*f), 1.0f/f);
+            shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * math.sqrt(2.0f);
             shadowRequest.normalBias = additionalLightData.normalBias;
 
             // Make light position camera relative:
@@ -3643,17 +3648,22 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequest.position = (shaderConfigCameraRelativeRendering != 0) ? vlPos - cameraPos : vlPos;
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
-            shadowRequest.zClip = (lightType != HDLightType.Directional);
+            shadowRequest.zClip = true;
             shadowRequest.lightIndex = lightIndex;
 
             shadowRequest.shadowMapType = ShadowMapType.PunctualAtlas;
 
-            ref UnsafeList<Vector4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
+            float4x4 finalMatrix = (float4x4)shadowRequest.projection * (float4x4)shadowRequest.view;
 
-            Matrix4x4 finalMatrix = CoreMatrixUtils.MultiplyPerspectiveMatrix(shadowRequest.projection, shadowRequest.view);
+            ref float4 frustumPlanesLeft = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes);
+            ref float4 frustumPlanesRight = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 1);
+            ref float4 frustumPlanesBottom = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 2);
+            ref float4 frustumPlanesTop = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 3);
+            ref float4 frustumPlanesNear = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 4);
+            ref float4 frustumPlanesFar = ref frustumPlanesStorage.ElementAt(shadowRequestHandle.storageIndexForFrustumPlanes + 5);
 
             // shadow clip planes (used for tessellation clipping)
-            HDShadowUtils.CalculateFrustumPlanes(ref finalMatrix, frustumPlanesStorageUnsafe.Ptr + shadowRequestHandle.storageIndexForFrustumPlanes);
+            HDShadowUtils.CalculateFrustumPlanes(finalMatrix, out frustumPlanesLeft, out frustumPlanesRight, out frustumPlanesBottom, out frustumPlanesTop, out frustumPlanesNear, out frustumPlanesFar);
 
             float softness = 0.0f;
             // This derivation has been fitted with quartic regression checking against raytracing reference and with a resolution of 512

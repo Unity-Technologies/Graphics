@@ -65,13 +65,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix, bool invertY, bool reverseZ)
         {
-            Matrix4x4 gpuProjectionMatrix = projectionMatrix;
+            float4x4 gpuProjectionMatrix = math.transpose(projectionMatrix);
+            //Matrix4x4 gpuProjectionMatrix = projectionMatrix;
             if (invertY)
             {
-                gpuProjectionMatrix.m10 = -gpuProjectionMatrix.m10;
-                gpuProjectionMatrix.m11 = -gpuProjectionMatrix.m11;
-                gpuProjectionMatrix.m12 = -gpuProjectionMatrix.m12;
-                gpuProjectionMatrix.m13 = -gpuProjectionMatrix.m13;
+                gpuProjectionMatrix.c1 = -gpuProjectionMatrix.c1;
+                //gpuProjectionMatrix.m10 = -gpuProjectionMatrix.m10;
+                //gpuProjectionMatrix.m11 = -gpuProjectionMatrix.m11;
+                //gpuProjectionMatrix.m12 = -gpuProjectionMatrix.m12;
+                //gpuProjectionMatrix.m13 = -gpuProjectionMatrix.m13;
             }
 
             // Now scale&bias to get Z range from -1..1 to 0..1 or 1..0
@@ -80,12 +82,15 @@ namespace UnityEngine.Rendering.HighDefinition
             //  0   1   0   0
             //  0   0 0.5 0.5
             //  0   0   0   1
-            gpuProjectionMatrix.m20 = gpuProjectionMatrix.m20 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m30 * 0.5f;
-            gpuProjectionMatrix.m21 = gpuProjectionMatrix.m21 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m31 * 0.5f;
-            gpuProjectionMatrix.m22 = gpuProjectionMatrix.m22 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m32 * 0.5f;
-            gpuProjectionMatrix.m23 = gpuProjectionMatrix.m23 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m33 * 0.5f;
+            float multiplier = reverseZ ? -0.5f : 0.5f;
+            gpuProjectionMatrix.c2 = gpuProjectionMatrix.c2 * multiplier + gpuProjectionMatrix.c3 * 0.5f;
+            //gpuProjectionMatrix.m20 = gpuProjectionMatrix.m20 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m30 * 0.5f;
+            //gpuProjectionMatrix.m21 = gpuProjectionMatrix.m21 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m31 * 0.5f;
+            //gpuProjectionMatrix.m22 = gpuProjectionMatrix.m22 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m32 * 0.5f;
+            //gpuProjectionMatrix.m23 = gpuProjectionMatrix.m23 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m33 * 0.5f;
 
-            return gpuProjectionMatrix;
+            return math.transpose(gpuProjectionMatrix);
+            //return gpuProjectionMatrix;
         }
 
         public static void ExtractDirectionalLightData(VisibleLight visibleLight, Vector2 viewportSize, uint cascadeIndex, int cascadeCount, float[] cascadeRatios, float nearPlaneOffset, CullingResults cullResults, int lightIndex,
@@ -313,28 +318,85 @@ namespace UnityEngine.Rendering.HighDefinition
             view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));
 
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
-            proj = Matrix4x4.Perspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
+            proj = SetPerspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GetGPUProjectionMatrix(proj, false, usesReversedZInfo);
             deviceProjYFlip = GetGPUProjectionMatrix(proj, true, usesReversedZInfo);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
-            Matrix4x4 devProjView = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            float4x4 devProjView = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
 
-            Plane* planes = stackalloc Plane[6];
+            float4 planesLeft;
+            float4 planesRight;
+            float4 planesBottom;
+            float4 planesTop;
+            float4 planesNear;
+            float4 planesFar;
+            CalculateFrustumPlanes(devProjView, out planesLeft, out planesRight, out planesBottom, out planesTop, out planesNear, out planesFar);
             // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes as we should have computed them with proj
-            CalculateFrustumPlanes(ref devProjView, planes);
             if (usesReversedZInfo)
             {
-                var tmpPlane = planes[2];
-                planes[2] = planes[3];
-                planes[3] = tmpPlane;
+                var tmpPlane = planesBottom;
+                planesBottom = planesTop;
+                planesTop = tmpPlane;
             }
             splitData.cullingPlaneCount = 6;
-            for (int i = 0; i < 6; i++)
-                splitData.SetCullingPlane(i, planes[i]);
+
+            Plane leftPlane = new Plane();
+            leftPlane.normal = planesLeft.xyz;
+            leftPlane.distance = planesLeft.w;
+            splitData.SetCullingPlane(0, leftPlane);
+
+            Plane rightPlane = new Plane();
+            rightPlane.normal = planesRight.xyz;
+            rightPlane.distance = planesRight.w;
+            splitData.SetCullingPlane(1, rightPlane);
+            Plane bottomPlane = new Plane();
+            bottomPlane.normal = planesBottom.xyz;
+            bottomPlane.distance = planesBottom.w;
+            splitData.SetCullingPlane(2, bottomPlane);
+            Plane topPlane = new Plane();
+            topPlane.normal = planesTop.xyz;
+            topPlane.distance = planesTop.w;
+            splitData.SetCullingPlane(3, topPlane);
+            Plane planeNear = new Plane();
+            planeNear.normal = planesNear.xyz;
+            planeNear.distance = planesNear.w;
+            splitData.SetCullingPlane(4, planeNear);
+            Plane planeFar = new Plane();
+            planeFar.normal = planesFar.xyz;
+            planeFar.distance = planesFar.w;
+            splitData.SetCullingPlane(5, planeFar);
 
             //return devProjView;
+        }
+
+        static Matrix4x4 SetPerspective(
+            float fovy,
+            float aspect,
+            float zNear,
+            float zFar)
+        {
+            float cotangent, deltaZ;
+            float radians = Deg2Rad(fovy / 2.0f);
+            cotangent = math.cos(radians) / math.sin(radians);
+            deltaZ = zNear - zFar;
+
+            float4x4 mat = default;
+            mat[0] = new float4(cotangent / aspect, 0f, 0f, 0f);
+            mat[1] = new float4(0f, cotangent, 0f, 0f);
+            mat[2] = new float4(0f, 0f, (zFar + zNear) / deltaZ, -1f);
+            mat[3] = new float4(0f, 0f, 2.0F * zNear * zFar / deltaZ, 0f);
+
+            return mat;
+        }
+
+        static float Deg2Rad(float deg)
+        {
+            const float kPI = 3.14159265358979323846264338327950288419716939937510F;
+            // TODO : should be deg * kDeg2Rad, but can't be changed,
+            // because it changes the order of operations and that affects a replay in some RegressionTests
+            return deg / 360.0F * 2.0F * kPI;
         }
 
          public static unsafe void CalculateFrustumPlanes(ref Matrix4x4 finalMatrix, Plane* outPlanes)
@@ -457,118 +519,119 @@ namespace UnityEngine.Rendering.HighDefinition
             outPlanes[kPlaneFrustumFar].distance = farDistance;
         }
 
-         public static unsafe void CalculateFrustumPlanes(ref Matrix4x4 finalMatrix, Vector4* outPlanes)
+         public static unsafe void CalculateFrustumPlanes(float4x4 finalMatrix, out float4 outPlanesLeft, out float4 outPlanesRight, out float4 outPlanesBottom, out float4 outPlanesTop, out float4 outPlanesNear, out float4 outPlanesFar)
          {
-            const int kPlaneFrustumLeft = 0;
-            const int kPlaneFrustumRight = 1;
-            const int kPlaneFrustumBottom = 2;
-            const int kPlaneFrustumTop = 3;
-            const int kPlaneFrustumNear = 4;
-            const int kPlaneFrustumFar = 5;
+            // const int kPlaneFrustumLeft = 0;
+            // const int kPlaneFrustumRight = 1;
+            // const int kPlaneFrustumBottom = 2;
+            // const int kPlaneFrustumTop = 3;
+            // const int kPlaneFrustumNear = 4;
+            // const int kPlaneFrustumFar = 5;
 
-            Vector4 tmpVec = default;
-            Vector4 otherVec = default;
+            finalMatrix = math.transpose(finalMatrix);
 
-            tmpVec[0] = finalMatrix.m30;
-            tmpVec[1] = finalMatrix.m31;
-            tmpVec[2] = finalMatrix.m32;
-            tmpVec[3] = finalMatrix.m33;
-
-            otherVec[0] = finalMatrix.m00;
-            otherVec[1] = finalMatrix.m01;
-            otherVec[2] = finalMatrix.m02;
-            otherVec[3] = finalMatrix.m03;
+            float4 tmpVec = finalMatrix.c3;
+            float4 otherVec = finalMatrix.c0;
+            //
+            // tmpVec[0] = finalMatrix.m30;
+            // tmpVec[1] = finalMatrix.m31;
+            // tmpVec[2] = finalMatrix.m32;
+            // tmpVec[3] = finalMatrix.m33;
+            //
+            // otherVec[0] = finalMatrix.m00;
+            // otherVec[1] = finalMatrix.m01;
+            // otherVec[2] = finalMatrix.m02;
+            // otherVec[3] = finalMatrix.m03;
 
             // left & right
-            float leftNormalX = otherVec[0] + tmpVec[0];
-            float leftNormalY = otherVec[1] + tmpVec[1];
-            float leftNormalZ = otherVec[2] + tmpVec[2];
-            float leftDistance = otherVec[3] + tmpVec[3];
-            float leftDot = leftNormalX * leftNormalX + leftNormalY * leftNormalY + leftNormalZ * leftNormalZ;
-            float leftMagnitude = math.sqrt(leftDot);
+            float4 leftNormalAndDist = otherVec + tmpVec;
+            float4 leftNormalZeroedDist = math.asfloat(math.asuint(leftNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float leftDotProduct = math.dot(leftNormalZeroedDist, leftNormalZeroedDist);
+            float leftMagnitude = math.sqrt(leftDotProduct);
             float leftInvMagnitude = 1.0f / leftMagnitude;
-            leftNormalX *= leftInvMagnitude;
-            leftNormalY *= leftInvMagnitude;
-            leftNormalZ *= leftInvMagnitude;
-            leftDistance *= leftInvMagnitude;
-            outPlanes[kPlaneFrustumLeft] = new Vector4(leftNormalX, leftNormalY, leftNormalZ, leftDistance);
+            leftNormalAndDist *= leftInvMagnitude;
+            outPlanesLeft = leftNormalAndDist;
 
-            float rightNormalX = -otherVec[0] + tmpVec[0];
-            float rightNormalY = -otherVec[1] + tmpVec[1];
-            float rightNormalZ = -otherVec[2] + tmpVec[2];
-            float rightDistance = -otherVec[3] + tmpVec[3];
-            float rightDot = rightNormalX * rightNormalX + rightNormalY * rightNormalY + rightNormalZ * rightNormalZ;
-            float rightMagnitude = math.sqrt(rightDot);
+            float4 rightNormalAndDist = -otherVec + tmpVec;
+            float4 rightNormalZeroedDist = math.asfloat(math.asuint(rightNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float rightDotProduct = math.dot(rightNormalZeroedDist, rightNormalZeroedDist);
+            float rightMagnitude = math.sqrt(rightDotProduct);
             float rightInvMagnitude = 1.0f / rightMagnitude;
-            rightNormalX *= rightInvMagnitude;
-            rightNormalY *= rightInvMagnitude;
-            rightNormalZ *= rightInvMagnitude;
-            rightDistance *= rightInvMagnitude;
-            outPlanes[kPlaneFrustumRight] = new Vector4(rightNormalX, rightNormalY, rightNormalZ, rightDistance);
+            rightNormalAndDist *= rightInvMagnitude;
+            outPlanesRight = rightNormalAndDist;
 
             // bottom & top
-            otherVec[0] = finalMatrix.m10;
-            otherVec[1] = finalMatrix.m11;
-            otherVec[2] = finalMatrix.m12;
-            otherVec[3] = finalMatrix.m13;
+            otherVec = finalMatrix.c1;
+            // otherVec[0] = finalMatrix.m10;
+            // otherVec[1] = finalMatrix.m11;
+            // otherVec[2] = finalMatrix.m12;
+            // otherVec[3] = finalMatrix.m13;
 
-            float bottomNormalX = otherVec[0] + tmpVec[0];
-            float bottomNormalY = otherVec[1] + tmpVec[1];
-            float bottomNormalZ = otherVec[2] + tmpVec[2];
-            float bottomDistance = otherVec[3] + tmpVec[3];
-            float bottomDot = bottomNormalX * bottomNormalX + bottomNormalY * bottomNormalY + bottomNormalZ * bottomNormalZ;
-            float bottomMagnitude = math.sqrt(bottomDot);
-            float bottomInvMagnitude = 1.0f / bottomMagnitude;
-            bottomNormalX *= bottomInvMagnitude;
-            bottomNormalY *= bottomInvMagnitude;
-            bottomNormalZ *= bottomInvMagnitude;
-            bottomDistance *= bottomInvMagnitude;
-            outPlanes[kPlaneFrustumBottom] = new Vector4(bottomNormalX, bottomNormalY, bottomNormalZ, bottomDistance);
+            float4 bottomNormalAndDist = otherVec + tmpVec;
+            float4 bottomNormalZeroedDist = math.asfloat(math.asuint(bottomNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float bottomDotProduct = math.dot(bottomNormalZeroedDist, bottomNormalZeroedDist);
+            float bottomMagnitude = math.sqrt(bottomDotProduct);
+            float bottomInvMagnitude = math.rcp(bottomMagnitude);
+            bottomNormalAndDist *= bottomInvMagnitude;
+            outPlanesBottom = bottomNormalAndDist;
 
-            float topNormalX = -otherVec[0] + tmpVec[0];
-            float topNormalY = -otherVec[1] + tmpVec[1];
-            float topNormalZ = -otherVec[2] + tmpVec[2];
-            float topDistance = -otherVec[3] + tmpVec[3];
-            float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
-            float topMagnitude = math.sqrt(topDot);
-            float topInvMagnitude = 1.0f / topMagnitude;
-            topNormalX *= topInvMagnitude;
-            topNormalY *= topInvMagnitude;
-            topNormalZ *= topInvMagnitude;
-            topDistance *= topInvMagnitude;
-            outPlanes[kPlaneFrustumTop] = new Vector4(topNormalX, topNormalY, topNormalZ, topDistance);
+            float4 topNormalAndDist = -otherVec + tmpVec;
+            float4 topNormalZeroedDist = math.asfloat(math.asuint(topNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float topDotProduct = math.dot(topNormalZeroedDist, topNormalZeroedDist);
+            // float topNormalX = -otherVec[0] + tmpVec[0];
+            // float topNormalY = -otherVec[1] + tmpVec[1];
+            // float topNormalZ = -otherVec[2] + tmpVec[2];
+            // float topDistance = -otherVec[3] + tmpVec[3];
+            //float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
+            float topMagnitude = math.sqrt(topDotProduct);
+            float topInvMagnitude = math.rcp(topMagnitude);
+            topNormalAndDist *= topInvMagnitude;
+            // topNormalX *= topInvMagnitude;
+            // topNormalY *= topInvMagnitude;
+            // topNormalZ *= topInvMagnitude;
+            // topDistance *= topInvMagnitude;
+            outPlanesTop = topNormalAndDist;
 
             // near & far
-            otherVec[0] = finalMatrix.m20;
-            otherVec[1] = finalMatrix.m21;
-            otherVec[2] = finalMatrix.m22;
-            otherVec[3] = finalMatrix.m23;
+            otherVec = finalMatrix.c2;
+            // otherVec[0] = finalMatrix.m20;
+            // otherVec[1] = finalMatrix.m21;
+            // otherVec[2] = finalMatrix.m22;
+            // otherVec[3] = finalMatrix.m23;
 
-            float nearNormalX = otherVec[0] + tmpVec[0];
-            float nearNormalY = otherVec[1] + tmpVec[1];
-            float nearNormalZ = otherVec[2] + tmpVec[2];
-            float nearDistance = otherVec[3] + tmpVec[3];
-            float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
-            float nearMagnitude = math.sqrt(nearDot);
-            float nearInvMagnitude = 1.0f / nearMagnitude;
-            nearNormalX *= nearInvMagnitude;
-            nearNormalY *= nearInvMagnitude;
-            nearNormalZ *= nearInvMagnitude;
-            nearDistance *= nearInvMagnitude;
-            outPlanes[kPlaneFrustumNear] = new Vector4(nearNormalX, nearNormalY, nearNormalZ, nearDistance);
+            float4 nearNormalAndDist = otherVec + tmpVec;
+            float4 nearNormalZeroedDist = math.asfloat(math.asuint(nearNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float nearDotProduct = math.dot(nearNormalZeroedDist, nearNormalZeroedDist);
+            // float nearNormalX = otherVec[0] + tmpVec[0];
+            // float nearNormalY = otherVec[1] + tmpVec[1];
+            // float nearNormalZ = otherVec[2] + tmpVec[2];
+            // float nearDistance = otherVec[3] + tmpVec[3];
+            // float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
+            float nearMagnitude = math.sqrt(nearDotProduct);
+            float nearInvMagnitude = math.rcp(nearMagnitude);
+            nearNormalAndDist *= nearInvMagnitude;
+            // nearNormalX *= nearInvMagnitude;
+            // nearNormalY *= nearInvMagnitude;
+            // nearNormalZ *= nearInvMagnitude;
+            // nearDistance *= nearInvMagnitude;
+            outPlanesNear = nearNormalAndDist;
 
-            float farNormalX = -otherVec[0] + tmpVec[0];
-            float farNormalY = -otherVec[1] + tmpVec[1];
-            float farNormalZ = -otherVec[2] + tmpVec[2];
-            float farDistance = -otherVec[3] + tmpVec[3];
-            float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
-            float farMagnitude = math.sqrt(farDot);
-            float farInvMagnitude = 1.0f / farMagnitude;
-            farNormalX *= farInvMagnitude;
-            farNormalY *= farInvMagnitude;
-            farNormalZ *= farInvMagnitude;
-            farDistance *= farInvMagnitude;
-            outPlanes[kPlaneFrustumFar] = new Vector4(farNormalX, farNormalY, farNormalZ, farDistance);
+            float4 farNormalAndDist = -otherVec + tmpVec;
+            float4 farNormalZeroedDist = math.asfloat(math.asuint(farNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float farDotProduct = math.dot(farNormalZeroedDist, farNormalZeroedDist);
+            // float farNormalX = -otherVec[0] + tmpVec[0];
+            // float farNormalY = -otherVec[1] + tmpVec[1];
+            // float farNormalZ = -otherVec[2] + tmpVec[2];
+            // float farDistance = -otherVec[3] + tmpVec[3];
+            // float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
+            float farMagnitude = math.sqrt(farDotProduct);
+            float farInvMagnitude = math.rcp(farMagnitude);
+            farNormalAndDist *= farInvMagnitude;
+            // farNormalX *= farInvMagnitude;
+            // farNormalY *= farInvMagnitude;
+            // farNormalZ *= farInvMagnitude;
+            // farDistance *= farInvMagnitude;
+            outPlanesFar = farNormalAndDist;
          }
 
         static float CalcGuardAnglePerspective(float angleInDeg, float resolution, float filterWidth, float normalBiasMax, float guardAngleMaxInDeg)

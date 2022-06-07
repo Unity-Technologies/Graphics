@@ -381,7 +381,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private unsafe void AddLightListToRecordList(NativeHashMap<int, HDLightRenderEntity> lightList, HDShadowInitParameters initParams, ref NativeList<CachedShadowRecord> recordList)
         {
-            NativeArray<HDLightRenderDatabase.LightEntityInfo> dataIndices = HDLightRenderDatabase.instance.lightDataIndexRefs;
+            if (HDLightRenderDatabase.instance.lightCount == 0)
+                return;
+            NativeList<HDLightRenderDatabase.LightEntityInfo> dataIndices = HDLightRenderDatabase.instance.lightDataIndexRefs;
             int dataIndicesLength = dataIndices.Length;
             HDLightRenderDatabase.LightEntityInfo* dataIndicesPtr = (HDLightRenderDatabase.LightEntityInfo*)dataIndices.GetUnsafePtr();
             DynamicArray<HDAdditionalLightData> additionalLightDatas = HDLightRenderDatabase.instance.hdAdditionalLightData;

@@ -323,6 +323,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EvictLight(HDAdditionalLightData lightData)
         {
+            if (!m_FlagStorage.IsCreated)
+                return;
             HDLightType lightType = lightData.type;
 
             if (lightType == HDLightType.Directional)

@@ -500,7 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public HDShadowManagerUnmanaged shadowManager;
 
-            [ReadOnly] public NativeBitArray isValidIndex;
+            public NativeBitArray isValidIndex;
             [ReadOnly] public NativeArray<uint> sortKeys;
             [ReadOnly] public NativeArray<int> visibleLightEntityDataIndices;
             [ReadOnly] public NativeArray<HDProcessedVisibleLight> processedEntities;
@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeList<HDShadowResolutionRequest> hdShadowResolutionRequestStorage;
             public NativeList<VisibleLightAndIndices> visibleLightsAndIndicesBuffer; // sized to lightCounts
             public NativeList<VisibleLightAndIndices> splitVisibleLightsAndIndicesBuffer; // sized to lightCounts
-            public NativeList<Vector4> frustumPlanesStorage;
+            public NativeList<float4> frustumPlanesStorage;
             public NativeList<Vector3> cachedViewPositionsStorage;
 
             [WriteOnly] public NativeArray<int> shadowIndices;
@@ -961,7 +961,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowManager.atlas.mixedRequestsPendingBlits, shadowManager.cachedShadowManager.punctualShadowAtlas.transformCaches, shadowManager.cachedShadowManager.punctualShadowAtlas.registeredLightDataPendingPlacement,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.recordsPendingPlacement, shadowManager.cachedShadowManager.punctualShadowAtlas.shadowsPendingRendering,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowsWithValidData, shadowManager.cachedShadowManager.punctualShadowAtlas.placedShadows, cachedPointCount, shadowManagerRequestCount);
-
+                UpdateCachedPointShadowRequestsAndResolutionRequests();
                 //ref UnsafeList<ShadowRequestDataUpdateInfo> spotUpdateDataList = ref *shadowRequestDataLists[(int)HDLightType.Spot];
 
                 // Update cached spot:
@@ -993,6 +993,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynamicPointVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicPointUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicPointCount, shadowManagerRequestCount);
+                UpdateDynamicPointShadowRequestsAndResolutionRequests();
 
                 // Update dynamic point:
                 using (dynamicSpotRequestsMarker.Auto())
@@ -1001,8 +1002,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicSpotCount, shadowManagerRequestCount);
 
-                UpdateCachedPointShadowRequestsAndResolutionRequests();
-                UpdateDynamicPointShadowRequestsAndResolutionRequests();
+
+
 
                 UpdateCachedSpotShadowRequestsAndResolutionRequests();
                 UpdateDynamicSpotShadowRequestsAndResolutionRequests();

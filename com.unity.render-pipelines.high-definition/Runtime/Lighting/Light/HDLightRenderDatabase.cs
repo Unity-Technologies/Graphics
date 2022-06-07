@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -180,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //gets the list of render light data. Use lightCount to iterate over all the world light data.
         public NativeArray<HDLightRenderData> lightData => m_LightData;
 
-        public NativeArray<LightEntityInfo> lightDataIndexRefs => m_LightEntities;
+        public NativeList<LightEntityInfo> lightDataIndexRefs => m_LightEntities;
 
         //gets the list of render light entities handles. Use this entities to access or set light data indirectly.
         public NativeArray<HDLightRenderEntity> lightEntities => m_OwnerEntity;
@@ -191,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public NativeList<HDShadowRequest> hdShadowRequestStorage => m_HDShadowRequestStorage;
         public NativeList<int> hdShadowRequestIndicesStorage => m_HDShadowRequestIndicesStorage;
-        public NativeList<Vector4> frustumPlanesStorage => m_FrustumPlanesStorage;
+        public NativeList<float4> frustumPlanesStorage => m_FrustumPlanesStorage;
         public NativeList<Vector3> cachedViewPositionsStorage => m_CachedViewPositionsStorage;
 
         public NativeList<HDShadowRequestSetHandle> packedShadowRequestSetHandles => m_ShadowRequestSetPackedHandles;
@@ -314,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HDShadowRequestsCreated = true;
                 m_HDShadowRequestStorage = new NativeList<HDShadowRequest>(Allocator.Persistent);
                 m_HDShadowRequestIndicesStorage = new NativeList<int>(Allocator.Persistent);
-                m_FrustumPlanesStorage = new NativeList<Vector4>(Allocator.Persistent);
+                m_FrustumPlanesStorage = new NativeList<float4>(Allocator.Persistent);
                 m_CachedViewPositionsStorage = new NativeList<Vector3>(Allocator.Persistent);
             }
 
@@ -322,6 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_VisibleLightsAndIndicesBuffer = new NativeList<VisibleLightAndIndices>(Allocator.Persistent);
                 m_SplitVisibleLightsAndIndicesBuffer = new NativeList<VisibleLightAndIndices>(Allocator.Persistent);
+                m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
             }
 
             // if (!shadowRequestDataLists[0].IsCreated)
@@ -412,7 +414,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Destroys a light render entity.
         public unsafe void DestroyEntity(HDLightRenderEntity lightEntity)
         {
-            Assert.IsTrue(IsValid(lightEntity));
+            if (!lightEntity.valid)
+                return;
 
             m_FreeIndices.Enqueue(lightEntity.entityIndex);
             LightEntityInfo entityData = m_LightEntities[lightEntity.entityIndex];
@@ -472,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Returns true / false wether the entity has been destroyed or not.
         public bool IsValid(HDLightRenderEntity entity)
         {
-            return entity.valid && entity.entityIndex < m_LightEntities.Length;
+            return entity.valid && m_LightEntities.IsCreated && entity.entityIndex < m_LightEntities.Length;
         }
 
         // Returns the index in data of an entity. Use this index to access lightData.
@@ -622,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_HDShadowRequestCapacity;
         private NativeList<HDShadowRequest> m_HDShadowRequestStorage = new NativeList<HDShadowRequest>(Allocator.Persistent);
         private NativeList<int> m_HDShadowRequestIndicesStorage = new NativeList<int>(Allocator.Persistent);
-        private NativeList<Vector4> m_FrustumPlanesStorage = new NativeList<Vector4>(Allocator.Persistent);
+        private NativeList<float4> m_FrustumPlanesStorage = new NativeList<float4>(Allocator.Persistent);
         private NativeList<Vector3> m_CachedViewPositionsStorage = new NativeList<Vector3>(Allocator.Persistent);
         private bool m_HDShadowRequestsCreated = true;
 
@@ -663,6 +666,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Capacity == 0)
                 return;
 
+            m_HDShadowRequestFreeListIndex = 0;
+            m_HDShadowRequestCapacity = 0;
+            m_HDShadowRequestCapacity = 0;
 
             m_HDAdditionalLightData.Clear();
             m_AOVGameObjects.Clear();
@@ -682,8 +688,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightsAndIndicesBuffer = default;
             m_SplitVisibleLightsAndIndicesBuffer.Dispose();
             m_SplitVisibleLightsAndIndicesBuffer = default;
-            m_IsValidIndexScratchpadArray.Dispose();
-            m_IsValidIndexScratchpadArray = default;
+            if (m_IsValidIndexScratchpadArray.IsCreated)
+            {
+                m_IsValidIndexScratchpadArray.Dispose();
+                m_IsValidIndexScratchpadArray = default;
+            }
+
 
 #if UNITY_EDITOR
             if (m_ShadowRequestCountsScratchpad.IsCreated)

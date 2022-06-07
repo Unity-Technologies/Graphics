@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int storageIndexForShadowRequest => setHandle.storageIndexForShadowRequests + offset;
         public int storageIndexForRequestIndex => setHandle.storageIndexForRequestIndices + offset;
         public int storageIndexForCachedViewPosition => setHandle.storageIndexForCachedViewPositions + offset;
-        public int storageIndexForFrustumPlanes => setHandle.storageIndexForCachedViewPositions  + offset;
+        public int storageIndexForFrustumPlanes => setHandle.storageIndexForCachedViewPositions  + (offset * HDShadowRequest.frustumPlanesCount);
 
         public HDShadowRequestHandle(HDShadowRequestSetHandle setHandle, int offset)
         {

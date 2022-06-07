@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -266,12 +267,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
             ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
-            NativeList<Vector4> frustumPlanesStorage = HDLightRenderDatabase.instance.frustumPlanesStorage;
-            ref UnsafeList<Vector4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
+            NativeList<float4> frustumPlanesStorage = HDLightRenderDatabase.instance.frustumPlanesStorage;
+            ref UnsafeList<float4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
 
             Vector4[] planesScratchpad = frustumPlanesScratchpad;
 
-            int planesMemcpyByteCount = UnsafeUtility.SizeOf<Vector4>() * HDShadowRequest.frustumPlanesCount;
+            int planesMemcpyByteCount = UnsafeUtility.SizeOf<float4>() * HDShadowRequest.frustumPlanesCount;
 
             fixed (Vector4* planesScratchpadPtr = frustumPlanesScratchpad)
             {
