@@ -160,54 +160,36 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorUtility.ClearProgressBar();
                 }
             }
-            else if (dynamicGIBakingStage == DynamicGIBakingStage.MixedLights)
+            else
             {
                 GUI.enabled = !CheckAndWarnNoNeighborhoodBaked(targets);
 
                 var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
-                if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeMixedLightsLabel))
+                if (dynamicGIBakingStage == DynamicGIBakingStage.MixedLights)
                 {
-                    foreach (var target in targets)
+                    if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeMixedLightsLabel))
                     {
-                        var probeVolume = (ProbeVolume)target;
-                        probeVolume.CopyDirectLightingToMixed();
+                        foreach (var target in targets)
+                        {
+                            var probeVolume = (ProbeVolume)target;
+                            probeVolume.CopyDirectLightingToMixed();
+                        }
+                    }
+                }
+                else if (dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance)
+                {
+                    if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeFallbackRadianceLabel))
+                    {
+                        foreach (var target in targets)
+                        {
+                            var probeVolume = (ProbeVolume)target;
+                            probeVolume.CopyDynamicSHToAsset();
+                        }
                     }
                 }
 
                 GUI.enabled = true;
-            }
-            else if (dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance)
-            {
-                GUI.enabled = !CheckAndWarnNoNeighborhoodBaked(targets);
 
-                var someTargetsHaveNoMixedLights = false;
-                foreach (var target in targets)
-                {
-                    var probeVolume = (ProbeVolume)target;
-                    if (probeVolume.probeVolumeAsset != null && !probeVolume.probeVolumeAsset.dynamicGIMixedLightsBaked)
-                    {
-                        someTargetsHaveNoMixedLights = true;
-                        break;
-                    }
-                }
-                if (someTargetsHaveNoMixedLights)
-                    EditorGUILayout.HelpBox(Styles.k_DynamicNoMixedLightsWarning, MessageType.Warning);
-
-                var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
-                if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeFallbackRadianceLabel))
-                {
-                    foreach (var target in targets)
-                    {
-                        var probeVolume = (ProbeVolume)target;
-                        probeVolume.CopyDynamicSHToAsset();
-                    }
-                }
-
-                GUI.enabled = true;
-            }
-
-            if (dynamicGIBakingStage != DynamicGIBakingStage.Neighborhood)
-            {
                 EditorGUILayout.Space();
                 
                 EditorGUILayout.HelpBox(Styles.k_DynamicPipelineOverridesWarning, MessageType.Warning);

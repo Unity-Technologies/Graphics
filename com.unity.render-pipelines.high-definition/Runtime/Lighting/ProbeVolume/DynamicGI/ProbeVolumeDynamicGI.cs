@@ -551,8 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (CleanupPropagation(probeVolume))
                 {
-                    // trigger an update so original bake data gets set since Dynamic GI was disabled
-                    probeVolume.IncrementDataVersion();
+                    // Clear the atlas data so original bake data gets set since Dynamic GI was disabled
+                    if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
+                        hdrp.ReleaseProbeVolumeFromAtlas(probeVolume);
                 }
             }
         }
@@ -629,7 +630,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 if (ProbeVolume.preparingForBake)
                 {
-                    mixedLightMode = ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
+                    mixedLightMode = ProbeVolumeDynamicGIMixedLightMode.ForceRealtime;
                     cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
                     cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
                 }
@@ -1203,8 +1204,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (CleanupPropagation(probeVolume))
                 {
-                    // trigger an update so original bake data gets set since Dynamic GI was disabled
-                    probeVolume.IncrementDataVersion();
+                    // Clear the atlas data so original bake data gets set since Dynamic GI was disabled
+                    if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
+                        hdrp.ReleaseProbeVolumeFromAtlas(probeVolume);
                 }
             }
         }

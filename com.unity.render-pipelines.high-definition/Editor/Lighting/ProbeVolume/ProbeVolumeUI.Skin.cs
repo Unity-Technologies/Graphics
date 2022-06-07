@@ -20,7 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string k_DynamicBakeNeighborhoodLabel = "Bake Neighborhood";
             internal const string k_DynamicBakeMixedLightsLabel = "Bake Mixed Lights";
             internal const string k_DynamicNoNeighborhoodWarning = "Please bake the neighborhood before any other stage.";
-            internal const string k_DynamicNoMixedLightsWarning = "A Probe Volume has no Mixed Lights baked. Baked fallback radiance will only contain sky contribution.";
             internal const string k_DynamicBakeFallbackRadianceLabel = "Bake Fallback Radiance";
             internal const string k_DynamicPipelineOverridesWarning = "Some render pipeline settings are globally overriden for baking purposes. Please reset them after you finish baking.";
             internal const string k_DynamicResetPipelineOverridesLabel = "Reset Pipeline Overrides";

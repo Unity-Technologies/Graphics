@@ -689,6 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (size > s_MaxProbeVolumeProbeCount)
                     {
                         Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
+                        ReleaseProbeVolumeFromAtlas(volume);
                         return false;
                     }
 

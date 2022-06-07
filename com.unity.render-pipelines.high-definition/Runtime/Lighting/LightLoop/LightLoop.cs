@@ -2112,15 +2112,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool processVisibleLights = cullResults.visibleLights.Length != 0;
 
                 bool dynamicGIEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI);
-                bool dynamicGIMixedOnly =
-#if UNITY_EDITOR
-                    ProbeVolume.preparingForBake ||
-#endif
-                    hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
-
+                bool dynamicGIMixedOnly = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
                 bool dynamicGINeedsLights =
 #if UNITY_EDITOR
-                    ProbeVolume.preparingMixedLights ||
+                    ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake ||
 #endif
                     !dynamicGIMixedOnly;
                 

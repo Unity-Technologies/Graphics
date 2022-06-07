@@ -869,7 +869,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public void IncrementDataVersion()
         {
             if (probeVolumeAsset != null)
-                probeVolumeAsset.dataVersion = unchecked(probeVolumeAsset.dataVersion + 1);
+            {
+                // Skip -1 as it represents empty data.
+                if (probeVolumeAsset.dataVersion != -2)
+                    probeVolumeAsset.dataVersion = unchecked(probeVolumeAsset.dataVersion + 1);
+                else
+                    probeVolumeAsset.dataVersion = 0;
+            }
         }
 
         internal ProbeVolumePayload GetPayload()
@@ -1097,8 +1103,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                         parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
                 }
-
-                IncrementDataVersion();
             }
 
             SetupProbePositions();
