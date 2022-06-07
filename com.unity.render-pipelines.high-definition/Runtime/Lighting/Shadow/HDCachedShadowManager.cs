@@ -307,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_IsInitialized)
             {
-                Debug.LogWarning("Registering light to disposed CachedShadowManager.", lightData);
+                Debug.LogWarning("Registering light to disposed HDCachedShadowManager.", lightData);
                 return;
             }
             HDLightType lightType = lightData.type;

@@ -63,6 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private ShadowMapType m_ShadowType;
 
+        private bool m_Initialized;
+
         // ------------------------------------------------------------------------------------------
         //                                      Init Functions
         // ------------------------------------------------------------------------------------------
@@ -74,6 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void InitAtlas(HDShadowAtlasInitParameters atlasInitParams)
         {
             base.InitAtlas(atlasInitParams);
+
+            m_Initialized = true;
 
             if (!m_PlacedShadows.IsCreated)
             {
@@ -273,6 +277,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
+            if (!m_Initialized)
+            {
+                Debug.LogWarning("Registering light to disposed HDCachedShadowAtlas.", lightData);
+                return;
+            }
+
             // If we are trying to register something that we have already placed, we do nothing
             if (lightData.lightIdxForCachedShadows >= 0 && m_PlacedShadows.ContainsKey(lightData.lightIdxForCachedShadows))
                 return;
@@ -836,7 +846,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void Dispose()
         {
             base.Dispose();
-
+            m_Initialized = false;
             if (m_PlacedShadows.IsCreated)
             {
                 m_PlacedShadows.Dispose();
