@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
-{//TODO: define checkings for preview shader
+{
     internal class CustomRenderTextureSizeNode : IStandardNode
     {
         static string Name = "CustomRenderTextureSize";

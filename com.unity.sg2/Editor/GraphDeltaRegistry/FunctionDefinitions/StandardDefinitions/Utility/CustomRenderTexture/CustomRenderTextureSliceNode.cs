@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
-{//TODO: define checkings for preview shader
+{
     internal class CustomRenderTextureSliceNode : IStandardNode
     {
         static string Name = "CustomRenderTextureSlice";
