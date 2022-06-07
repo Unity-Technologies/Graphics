@@ -294,6 +294,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             pastedNodeModel.Position += delta;
             AddNode(pastedNodeModel);
+            pastedNodeModel.OnDuplicateNode(sourceNode);
 
             if (pastedNodeModel is IGraphElementContainer container)
             {

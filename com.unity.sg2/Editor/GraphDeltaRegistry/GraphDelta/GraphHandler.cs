@@ -238,12 +238,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             graphDelta.ReconcretizeNode(copy.ID, registry);
             if(copyExternalEdges)
             {
-                foreach(var port in sourceNode.GetPorts())
+                var ports = sourceNode.GetPorts().ToList();
+                // Use old school for loops because enumerators don't like it when the underlying collection is modified
+                for(var i = 0; i < ports.Count(); i++)
                 {
+                    var port = ports[i];
                     if(port.IsInput)
                     {
-                        foreach(var p in port.GetConnectedPorts())
+                        var connectedPorts = port.GetConnectedPorts().ToList();
+                        for(var j = 0; j < connectedPorts.Count; j++)
                         {
+                            var p = connectedPorts[j];
                             AddEdge(p.ID, $"{copy.ID.FullPath}.{port.ID.LocalPath}");
                         }
                     }
