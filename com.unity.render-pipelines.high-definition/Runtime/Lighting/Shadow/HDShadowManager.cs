@@ -657,69 +657,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return needUpdate;
         }
 
-        public bool PointLightNeedRenderingDueToTransformChange(in VisibleLight lightData, in HDAdditionalLightDataUpdateInfo updateInfo)
-        {
-            bool needUpdate = false;
-
-            if (transformCaches.TryGetValue(updateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
-            {
-                float positionThreshold = updateInfo.cachedShadowTranslationUpdateThreshold;
-                float3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
-                float positionDiff = math.dot(positionDiffVec, positionDiffVec);
-                //Vector3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
-                //float positionDiff = Vector3.Dot(positionDiffVec, positionDiffVec);
-                if (positionDiff > positionThreshold * positionThreshold)
-                {
-                    needUpdate = true;
-                }
-
-                if (needUpdate)
-                {
-                    // Update the record
-                    cachedTransform.position = lightData.GetPosition();
-                    //cachedTransform.angles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
-                    cachedTransform.angles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
-                    transformCaches[updateInfo.lightIdxForCachedShadows] = cachedTransform;
-                }
-            }
-
-            return needUpdate;
-        }
-
-        public bool NonPointLightNeedsRenderingDueToTransformChange(in VisibleLight lightData, in HDAdditionalLightDataUpdateInfo updateInfo)
-        {
-            bool needUpdate = false;
-
-            if (transformCaches.TryGetValue(updateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
-            {
-                float positionThreshold = updateInfo.cachedShadowTranslationUpdateThreshold;
-                float3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
-                float positionDiff = math.dot(positionDiffVec, positionDiffVec);
-                if (positionDiff > positionThreshold * positionThreshold)
-                {
-                    needUpdate = true;
-                }
-                float angleDiffThreshold = updateInfo.cachedShadowAngleUpdateThreshold;
-                float3 cachedAngles = cachedTransform.angles;
-                float3 angleDiff = cachedAngles - HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
-                // Any angle difference
-                if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
-                {
-                    needUpdate = true;
-                }
-
-                if (needUpdate)
-                {
-                    // Update the record
-                    cachedTransform.position = lightData.GetPosition();
-                    cachedTransform.angles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
-                    transformCaches[updateInfo.lightIdxForCachedShadows] = cachedTransform;
-                }
-            }
-
-            return needUpdate;
-        }
-
         public bool ShadowIsPendingRendering(int shadowIdx)
         {
             return shadowsPendingRendering.ContainsKey(shadowIdx);

@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
 
+        private bool m_IsInitialized;
+
         // ------------------------ Debug API -------------------------------
 #if UNITY_EDITOR
         internal void PrintLightStatusInCachedAtlas()
@@ -281,6 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private HDCachedShadowManager()
         {
+            m_IsInitialized = true;
             punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
@@ -302,6 +305,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
+            if (!m_IsInitialized)
+            {
+                Debug.LogWarning("Registering light to disposed CachedShadowManager.", lightData);
+                return;
+            }
             HDLightType lightType = lightData.type;
 
             if (lightType == HDLightType.Directional)
@@ -558,6 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Dispose()
         {
+            m_IsInitialized = false;
             punctualShadowAtlas.Release();
             punctualShadowAtlas.Dispose();
             if (ShaderConfig.s_AreaLights == 1)

@@ -505,7 +505,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicAreaOtherCount, shadowManagerRequestCount);
                 UpdateDynamicAreaShadowRequestsAndResolutionRequests(dynamicAreaOtherUpdateInfos);
             }
-            
+
 
             // Update dynamic point:
             using (dynamicPointRequestsMarker.Auto())
