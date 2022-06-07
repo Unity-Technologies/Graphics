@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if ( /*lightComponent != null && */(processedEntities[lightIndex].shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
                     {
                         shadowRequestCount = 0;
-                        int count = HDAdditionalLightData.GetShadowRequestCount(shadowSettingsCascadeShadowSplitCount, lightType);
+                        int count = HDAdditionalLightData.GetShadowRequestCountForLightType(shadowSettingsCascadeShadowSplitCount, lightType);
                         HDShadowRequestSetHandle shadowRequestSetHandle = packedShadowRequestSetHandles[dataIndex];
 
                         visibleLightsAndIndicesBuffer.Length++;
@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref readonly ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref dynamicDirectionalVisibleLightsAndIndices.ElementAt(i);
 
                     HDShadowRequestSetHandle shadowRequestSetHandle = packedShadowRequestSetHandles[shadowIndicesAndVisibleLightData.dataIndex];
-                    int count = HDAdditionalLightData.GetShadowRequestCount(shadowSettingsCascadeShadowSplitCount, HDLightType.Directional);
+                    int count = HDAdditionalLightData.GetShadowRequestCountForLightType(shadowSettingsCascadeShadowSplitCount, HDLightType.Directional);
                     var updateType = HDAdditionalLightData.GetShadowUpdateType(HDLightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows);
                     bool hasCachedComponent = !HDAdditionalLightData.ShadowIsUpdatedEveryFrame(shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode);
                     bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);

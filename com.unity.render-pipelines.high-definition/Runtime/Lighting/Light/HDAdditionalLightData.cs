@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Unity.Burst;
 using UnityEngine;
@@ -2271,7 +2272,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static int GetShadowRequestCount(HDShadowSettings shadowSettings, HDLightType lightType)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetShadowRequestCount(HDShadowSettings shadowSettings, HDLightType lightType)
+        {
+            return GetShadowRequestCountForLightType(shadowSettings, lightType);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetShadowRequestCount(int shadowSettingsCascadeShadowSplitCount, HDLightType lightType)
+        {
+            return GetShadowRequestCountForLightType(shadowSettingsCascadeShadowSplitCount, lightType);
+        }
+        public static int GetShadowRequestCountForLightType(HDShadowSettings shadowSettings, HDLightType lightType)
         {
             return lightType == HDLightType.Point
                 ? 6
@@ -2280,7 +2292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     : 1;
         }
 
-        public static int GetShadowRequestCount(int shadowSettingsCascadeShadowSplitCount, HDLightType lightType)
+        public static int GetShadowRequestCountForLightType(int shadowSettingsCascadeShadowSplitCount, HDLightType lightType)
         {
             return lightType == HDLightType.Point
                 ? 6
@@ -2419,7 +2431,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
-            int count = GetShadowRequestCount(shadowSettings, lightType);
+            int count = GetShadowRequestCountForLightType(shadowSettings, lightType);
 
             var updateType = GetShadowUpdateType(lightType);
             for (int index = 0; index < count; index++)
