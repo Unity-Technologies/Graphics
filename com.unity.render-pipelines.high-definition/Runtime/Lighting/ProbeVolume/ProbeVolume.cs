@@ -1322,7 +1322,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             var resolution = new Vector3Int(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
-            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+
+            // TODO: Support other encodings based on settings.
+            const int sliceCount = 7;
+            // var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
 
             var rtHandle = RTHandles.Alloc(
                 width: (int)resolution.x,
@@ -1347,7 +1350,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 0, resolution.z * sliceCount
             );
             request.WaitForCompletion();
-            rtHandle.Release();
 
             var dataSHL01 = probeVolumeAsset.payload.dataSHL01;
             var dataSHL2 = probeVolumeAsset.payload.dataSHL2;
@@ -1364,6 +1366,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note we only copy 3 floats from each texel of the last slice.
             // The 4th float is validity we don't need here.
             CopySHTextureSliceToAssetData(request, resolution, 6, dataSHL2, strideSHL2, 3, 3);
+
+            rtHandle.Release();
 
             IncrementDataVersion();
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
