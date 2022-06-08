@@ -147,5 +147,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             base.RemoveDataBranch(element);
         }
+
+        internal void CopyDataBranch(NodeHandler src, NodeHandler dst)
+        {
+            CopyDataBranch(src.Reader, dst.Writer);
+        }
+
+        new internal void CopyDataBranch(DataReader src, DataWriter dst)
+        {
+            base.CopyDataBranch(src, dst);
+        }
     }
 }

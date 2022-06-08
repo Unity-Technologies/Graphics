@@ -255,6 +255,56 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return base.IsCompatiblePort(startPortModel, compatiblePortModel);
         }
 
+        /// <summary>
+        /// Called by PasteSerializedDataCommand to handle node duplication
+        /// </summary>
+        /// <param name="sourceNode"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
+        /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
+        /// <returns></returns>
+        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta)
+        {
+            var pastedNodeModel = sourceNode.Clone();
+            // Set graphmodel BEFORE define node as it is commonly use during Define
+            pastedNodeModel.GraphModel = this;
+            pastedNodeModel.AssignNewGuid();
+
+            switch (pastedNodeModel)
+            {
+                case GraphDataNodeModel newCopiedNode when sourceNode is GraphDataNodeModel sourceGraphDataNode:
+                {
+                    newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
+                    var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
+                    GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
+                    break;
+                }
+                case GraphDataVariableNodeModel newCopiedVariableNode:
+                {
+                    newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
+
+                    var contextName = Registry.ResolveKey<PropertyContext>().Name;
+
+                    // Every time a variable node is added to the graph, add a reference node pointing back
+                    // to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
+
+                    // TODO: (Need the variable declaration model's guid/graphDataName for the contextEntryName parameter)
+                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, contextName, newCopiedVariableNode.DisplayTitle, RegistryInstance.Registry);
+                    break;
+                }
+            }
+
+            pastedNodeModel.Position += delta;
+            AddNode(pastedNodeModel);
+            pastedNodeModel.OnDuplicateNode(sourceNode);
+
+            if (pastedNodeModel is IGraphElementContainer container)
+            {
+                foreach (var element in container.GraphElementModels)
+                    RecursivelyRegisterAndAssignNewGuid(element);
+            }
+
+            return pastedNodeModel;
+        }
+
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
         {
             return this.VariableDeclarations;
@@ -342,7 +392,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         static void ForeachConnectedNode(GraphDataNodeModel sourceNode, PropagationDirection dir, Action<GraphDataNodeModel> action)
         {
-            sourceNode.TryGetNodeReader(out var nodeReader);
+            sourceNode.TryGetNodeHandler(out var nodeReader);
 
             ShaderGraphModel shaderGraphModel = sourceNode.GraphModel as ShaderGraphModel;
 
@@ -361,20 +411,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     action(TryGetNodeModel(shaderGraphModel, connectedNode));
                 }
             }
-
-            /* Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes...
-            if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
-            {
-                foreach (var cin in CustomInterpolatorUtils.GetCustomBlockNodeDependents(bnode))
-                {
-                    action(cin);
-                }
-            }
-            // ... Just as custom Interpolator Nodes have implied connections to their custom interpolator blocks
-            if (dir == PropagationDirection.Upstream && node is CustomInterpolatorNode ciNode && ciNode.e_targetBlockNode != null)
-            {
-                action(ciNode.e_targetBlockNode);
-            } */
         }
 
         public IEnumerable<GraphDataNodeModel> GetNodesInHierarchyFromSources(IEnumerable<GraphDataNodeModel> nodeSources, PropagationDirection propagationDirection)
@@ -387,7 +423,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
             bool nodeRequiresTime = false;
-            if (graphDataNodeModel.TryGetNodeReader(out var _))
+            if (graphDataNodeModel.TryGetNodeHandler(out var _))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
                 // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,

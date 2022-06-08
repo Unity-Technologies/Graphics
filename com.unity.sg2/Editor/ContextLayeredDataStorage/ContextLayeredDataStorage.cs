@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using UnityEngine;
@@ -295,6 +296,25 @@ namespace UnityEditor.ContextLayeredDataStorage
                 RemoveData(elem);
             }
             RemoveData(root);
+        }
+
+        protected void CopyDataBranch(Element src, Element dst)
+        {
+            foreach(var elem in src.Children)
+            {
+                var recurse = elem.MakeCopy();
+                recurse.ID = $"{dst.ID.FullPath}{elem.ID.FullPath.Replace(src.ID.FullPath, "")}";
+                AddChild(dst,recurse);
+                UpdateFlattenedStructureAdd(recurse);
+                CopyDataBranch(elem, recurse);
+            }
+        }
+
+        //Liz:This breaks our contract in having the readers and writers directly acess their elements, but
+        // to unblock work we will allow this for now
+        public void CopyDataBranch(DataReader src, DataWriter dst)
+        {
+            CopyDataBranch(src.Element, dst.Element);
         }
 
         public DataReader Search(ElementID lookup)
@@ -606,6 +626,18 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Debug.LogError("How did we reach this state???");
                 return int.MinValue;
             }
+        }
+
+        internal IEnumerable<Element> GetFlatImmediateChildList(Element root)
+        {
+            foreach (var (key, value) in FlatStructureLookup)
+            {
+                if (root.ID.IsImmediateSubpathOf(key))
+                {
+                    yield return value;
+                }
+            }
+
         }
     }
 }

@@ -63,12 +63,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public FieldHandler AddField(string localID)
         {
             Writer.AddChild(localID).SetHeader(new FieldHeader());
-            return new FieldHandler(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer) ;
+            return new FieldHandler( $"{ID.FullPath}.{localID}", Owner, Registry, DefaultLayer) ;
         }
         public FieldHandler<T> AddField<T>(string localID, T value = default, bool reconcretizeOnDataChange = false)
         {
             Writer.AddChild(localID, value).SetHeader(new FieldHeader<T>());
-            var output = new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer);
+            var output = new FieldHandler<T>( $"{ID.FullPath}.{localID}", Owner, Registry, DefaultLayer);
             if(reconcretizeOnDataChange)
             {
                 output.SetMetadata(FieldHandler.k_dataRecon, true);

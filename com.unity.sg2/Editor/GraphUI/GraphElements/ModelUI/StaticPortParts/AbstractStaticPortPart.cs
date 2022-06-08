@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromModel()
         {
             if (m_Model is not GraphDataNodeModel model) return;
-            if (!model.TryGetNodeReader(out var nodeReader)) return;
+            if (!model.TryGetNodeHandler(out var nodeReader)) return;
             var port = nodeReader.GetPort(m_PortName);
             if (port != null)
                 UpdatePartFromPortReader(port);

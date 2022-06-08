@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
@@ -61,6 +62,18 @@ namespace UnityEditor.ContextLayeredDataStorage
             return new SerializedElementData(ID, Header.GetType().AssemblyQualifiedName, Header.ToJson(), null, null);
         }
 
+        public virtual Element MakeCopy()
+        {
+           return new Element(ID, owner, Header.MakeCopy());
+        }
+
+        public ElementID GetUniqueLocalID(string desiredLocalPath)
+        {
+            return ElementID.CreateUniqueLocalID(Parent != null ? Parent.ID : "",
+                                                 owner.GetFlatImmediateChildList(Parent).Select(e => e.ID.LocalPath),
+                                                 ID.LocalPath);
+
+        }
     }
 
     public class Element<T> : Element
@@ -79,6 +92,10 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             m_Data = data;
         }
+        public Element(ElementID id, T data, ContextLayeredDataStorage owner, DataHeader header) : base(id, owner, header)
+        {
+            m_Data = data;
+        }
 
 
         internal override SerializedElementData ToSerializedFormat()
@@ -92,6 +109,11 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Debug.LogError($"Could not serialize data associated with {ID.FullPath}: {Data}");
                 return new SerializedElementData(ID, Header.GetType().AssemblyQualifiedName, Header.ToJson(), typeof(T).AssemblyQualifiedName, null);
             }
+        }
+
+        public override Element MakeCopy()
+        {
+            return new Element<T>(ID, m_Data, owner, Header.MakeCopy());
         }
     }
 
