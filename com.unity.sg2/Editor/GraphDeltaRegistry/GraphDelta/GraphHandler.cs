@@ -214,22 +214,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges)
         {
-            var copy = graphDelta.DuplicateNode(sourceNode, registry);
-            if(copyExternalEdges)
-            {
-                foreach(var port in sourceNode.GetPorts())
-                {
-                    if(port.IsInput)
-                    {
-                        foreach(var p in port.GetConnectedPorts())
-                        {
-                            AddEdge(p.ID, $"{copy.ID.FullPath}.{port.ID.LocalPath}");
-                        }
-                    }
-                }
-            }
-            graphDelta.ReconcretizeNode(copy.ID, registry);
-            return copy;
+            return DuplicateNode(sourceNode, copyExternalEdges, graphDelta.m_data.GetLayerRoot(GraphDelta.k_user).GetUniqueLocalID(sourceNode.ID.LocalPath));
         }
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges, ElementID duplicatedNodeID)
@@ -257,9 +242,66 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return copy;
         }
 
-        public void DuplicateNodes(List<NodeHandler> sourceNodes, bool copyInternalEdges, bool copyExternalEdges)
+        public void DuplicateNodes(List<(NodeHandler node, ElementID duplicateID)> sourceNodes, bool copyEdges)
         {
-            Debug.Log("GraphHandler.DuplicateNodes: Currently not implemented!");
+            HashSet<ElementID> duplicatedNodes = new HashSet<ElementID>();
+            Dictionary<string, string> renamed = new Dictionary<string, string>();
+            Stack<(NodeHandler node, ElementID duplicateID)> workingSet = new Stack<(NodeHandler node, ElementID duplicateID)>(sourceNodes);
+            while(workingSet.Count > 0)
+            {
+                var tup = workingSet.Pop();
+                if(duplicatedNodes.Contains(tup.node.ID))
+                {
+                    continue;
+                }
+
+                bool anyIncludedUpstream = false;
+                foreach(var connected in graphDelta.GetConnectedIncomingNodes(tup.node.ID, registry))
+                {
+                    var inc = sourceNodes.Where(neid => neid.node.ID.Equals(connected.ID));
+                    if(inc.Any())
+                    {
+                        foreach (var i in inc)
+                        {
+                            if (!duplicatedNodes.Contains(i.node.ID) && workingSet.Any(neid => neid.node.ID.Equals(i.node.ID)))
+                            {
+                                if(!anyIncludedUpstream)
+                                {
+                                    workingSet.Push(tup);
+                                }
+                                workingSet.Push(i);
+                                anyIncludedUpstream = true;
+                            }
+                        }
+                    }
+                }
+
+                if(!anyIncludedUpstream)
+                {
+                    graphDelta.DuplicateNode(tup.node, registry, tup.duplicateID);
+                    duplicatedNodes.Add(tup.node.ID);
+                    renamed.Add(tup.node.ID.FullPath, tup.duplicateID.FullPath);
+                    if (copyEdges)
+                    {
+                        var inputEdges = graphDelta.m_data.edges.Where(e => e.Input.ParentPath.Equals(tup.node.ID.FullPath)).ToList();
+                        foreach (var edge in inputEdges)
+                        {
+                            if (renamed.TryGetValue(edge.Output.ParentPath, out string rename))
+                            {
+                                graphDelta.AddEdge($"{rename}.{edge.Output.LocalPath}",
+                                                   $"{tup.duplicateID.FullPath}.{edge.Input.LocalPath}");
+                            }
+                            else
+                            {
+                                graphDelta.AddEdge(edge.Output,
+                                                   $"{tup.duplicateID.FullPath}.{edge.Input.LocalPath}");
+                            }
+                        }
+                    }
+                }
+            }
+
+
         }
 
         public void DuplicateContextEntry(string existingEntryName)

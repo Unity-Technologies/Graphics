@@ -7,6 +7,9 @@ using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.IContextDescriptor;
+using System.Collections.Generic;
+using UnityEditor.ContextLayeredDataStorage;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Generation.UnitTests
 {
@@ -258,10 +261,67 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         }
 
         [Test]
-        public void FieldTest()
+        public void DuplicateTest()
         {
-            graph.DuplicateNode(graph.GetNode("Add1"), true, "GTF_ID_Add");
+            graph.DuplicateNode(graph.GetNode("Add1"), true, "Add1_Copy");
+            var dup = graph.GetNode("Add1_Copy");
+            var dupVal = dup.GetPort("In1").GetTypeField().GetSubField<float>("c0");
+            Assert.NotNull(dupVal);
+            Assert.AreEqual(1f, dupVal.GetData());
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNode("Add1_Copy"), graph, registry, out _);
+            var shader = MakeShader(shaderString);
+            var rt = DrawToTex(shader);
+            try
+            {
+                var pixelColor = rt.GetPixel(0, 0);
+                Assert.AreEqual(new Color(1,0,0,1),pixelColor);
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureBadDuplicate.jpg", rt.EncodeToJPG());
+                throw e;
+            }
         }
+
+        [Test]
+        public void DuplicateMultiTest()
+        {
+            graph.DuplicateNodes(new List<(NodeHandler node, ElementID duplicateID)>
+            {
+                (graph.GetNode("Add1"), "Add1_Copy"),
+                (graph.GetNode("Add2"), "Add2_Copy"),
+                (graph.GetNode("Add3"), "Add3_Copy")
+            }, true);
+            var dup = graph.GetNode("Add1_Copy");
+            var dupVal = dup.GetPort("In1").GetTypeField().GetSubField<float>("c0");
+            Assert.NotNull(dupVal);
+            Assert.AreEqual(1f, dupVal.GetData());
+            var connected = graph.GetConnectedNodes(dup.ID);
+            Assert.AreEqual(1, connected.Count());
+            Assert.IsTrue(connected.First().ID.Equals("Add3_Copy"));
+            dup = graph.GetNode("Add2_Copy");
+            dupVal = dup.GetPort("In2").GetTypeField().GetSubField<float>("c1");
+            Assert.NotNull(dupVal);
+            Assert.AreEqual(1f, dupVal.GetData());
+            connected = graph.GetConnectedNodes(dup.ID);
+            Assert.AreEqual(1, connected.Count());
+            Assert.IsTrue(connected.First().ID.Equals("Add3_Copy"));
+
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNode("Add3_Copy"), graph, registry, out _);
+            var shader = MakeShader(shaderString);
+            var rt = DrawToTex(shader);
+            try
+            {
+                var pixelColor = rt.GetPixel(0, 0);
+                Assert.AreEqual(new Color(1, 1, 0, 1), pixelColor);
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureBadMultiDuplicate.jpg", rt.EncodeToJPG());
+                throw e;
+            }
+        }
+
     }
 
 }
