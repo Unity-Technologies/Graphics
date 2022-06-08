@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         List<JsonData<Target>> m_GraphTargets;
 
-        ListPropertyField<JsonData<Target>> m_TargetListPropertyField;
+        TargetSettingsListPropertyField<JsonData<Target>> m_TargetListPropertyField;
 
         Dictionary<Target, bool> m_TargetFoldouts = new();
 
@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             propertyFieldList.Add(labelField);
 
             m_TargetListPropertyField =
-                new ListPropertyField<JsonData<Target>>(
+                new TargetSettingsListPropertyField<JsonData<Target>>(
                 m_OwnerElement.RootView,
                 m_GraphTargets,
                 GetTargetDisplayNames,

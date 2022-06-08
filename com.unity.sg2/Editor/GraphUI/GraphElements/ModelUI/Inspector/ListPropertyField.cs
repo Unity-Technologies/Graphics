@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -16,7 +17,43 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    class ListPropertyField<T> : BaseModelPropertyField
+    class ListPropertyField : BaseModelPropertyField
+    {
+        public ListView listView { get; }
+
+        public ListPropertyField(
+            ICommandTarget commandTarget,
+            IList itemsSource,
+            ListViewController controller = null,
+            Func<VisualElement> makeItem = null,
+            Action<VisualElement, int> bindItem = null
+        )
+            : base(commandTarget)
+        {
+            listView = new ListView();
+
+            // Essential configuration
+
+            listView.SetViewController(controller ?? new SGListViewController());
+            listView.itemsSource = itemsSource;
+            listView.makeItem = makeItem;
+            listView.bindItem = bindItem;
+
+            // Tool defaults
+
+            listView.showAddRemoveFooter = true;
+
+            Add(listView);
+        }
+
+        public override bool UpdateDisplayedValue()
+        {
+            listView.RefreshItems();
+            return true;
+        }
+    }
+
+    class TargetSettingsListPropertyField<T> : BaseModelPropertyField
     {
         /// <summary>
         /// ListView this PropertyField wraps around
@@ -55,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         IList<T> m_ListItems;
 
-        public ListPropertyField(
+        public TargetSettingsListPropertyField(
             ICommandTarget commandTarget,
             IList<T> listItems,
             Func<IList<object>> getAddItemData,
@@ -127,7 +164,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 foreach (var item in addItemOptions)
                 {
                     var existsAlready = m_ListItems.Any(existingItem => m_GetAddItemMenuString(existingItem) == m_GetAddItemMenuString(item));
-                    if(!existsAlready)
+                    if (!existsAlready)
                         menu.AddItem(new GUIContent(m_GetAddItemMenuString(item)), false, m_OnAddItemClicked, userData: item);
                     else
                         menu.AddDisabledItem(new GUIContent(m_GetAddItemMenuString(item)), false);
