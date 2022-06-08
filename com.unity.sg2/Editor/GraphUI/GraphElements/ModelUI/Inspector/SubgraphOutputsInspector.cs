@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         TypeHandle[] m_AvailableTypes;
         ShaderGraphStencil m_Stencil;
         List<SubgraphOutputRow> m_OutputRows;
-        ListPropertyField<SubgraphOutputRow> m_OutputRowListField;
+        ListPropertyField m_OutputRowListField;
 
         public SubgraphOutputsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
@@ -45,61 +45,52 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
 
             var typeNames = m_AvailableTypes.Select(GetTypeDisplayName).ToList();
-            m_OutputRowListField = new ListPropertyField<SubgraphOutputRow>(
-                m_OwnerElement.RootView,
-                m_OutputRows,
-                // NOTE: OnAddMenuItemSelected will cast the objects in the collection below back to TypeHandles
-                // TODO (Joe): SG1 doesn't show a menu when pressing the + button
-                getAddItemData: () => m_AvailableTypes.Cast<object>().ToList(),
-                getAddItemMenuString: obj => GetTypeDisplayName((TypeHandle)obj),
-                onAddItemClicked: OnAddMenuItemSelected,
-                onSelectionChanged: _ => { }, // Not used
-                onItemRemoved: () => { }, // Not used, see SubgraphOutputListViewController
-                makeOptionsUnique: false,
-                makeListReorderable: false
-            );
-
-            m_OutputRowListField.listView.name = "sg-subgraph-output-list";
-
             var controller = new SubgraphOutputListViewController();
             controller.beforeItemsRemoved += indices =>
             {
-                foreach (var i in indices)
+                Debug.Assert(indices.Count == 1, "UNIMPLEMENTED: Remove multiple subgraph outputs");
+                m_OwnerElement.RootView.Dispatch(new RemoveContextEntryCommand((GraphDataContextNodeModel)model, m_OutputRows[indices[0]].Name));
+            };
+
+            m_OutputRowListField = new ListPropertyField(
+                m_OwnerElement.RootView,
+                m_OutputRows,
+                controller: controller,
+                makeItem: () =>
                 {
-                    m_OwnerElement.RootView.Dispatch(new RemoveContextEntryCommand((GraphDataContextNodeModel)model, m_OutputRows[i].Name));
+                    var ve = new VisualElement();
+                    GraphElementHelper.LoadTemplateAndStylesheet(ve, "SubgraphOutputRow", "sg-subgraph-output-row");
+                    ve.Q<DropdownField>().choices = typeNames;
+                    return ve;
+                },
+                bindItem: (ve, i) =>
+                {
+                    var textField = ve.Q<TextField>();
+                    textField.SetValueWithoutNotify(m_OutputRows[i].Name);
+                    textField.isDelayed = true;
+                    textField.RegisterValueChangedCallback(evt =>
+                    {
+                        if (evt.newValue == evt.previousValue) return;
+                        var uniqueName = GetUniqueOutputName(evt.newValue);
+                        m_OwnerElement.RootView.Dispatch(new RenameContextEntryCommand(contextNodeModel, m_OutputRows[i].Name, uniqueName));
+                    });
+
+                    var dropdownField = ve.Q<DropdownField>();
+                    dropdownField.SetValueWithoutNotify(dropdownField.choices[m_OutputRows[i].TypeIndex]);
+                    dropdownField.RegisterValueChangedCallback(_ => // Event gives us a string, not the index
+                    {
+                        m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_OutputRows[i].Name, m_AvailableTypes[dropdownField.index]));
+                    });
                 }
-            };
+            );
 
-            m_OutputRowListField.listView.SetViewController(controller);
-
-            m_OutputRowListField.listView.makeItem = () =>
+            m_OutputRowListField.listView.itemsAdded += _ => // SGListViewController doesn't supply indices
             {
-                var ve = new VisualElement();
-                // TODO (Joe): SG1's fields use the style of labels, with no field background.
-                GraphElementHelper.LoadTemplateAndStylesheet(ve, "SubgraphOutputRow", "sg-subgraph-output-row");
-                ve.Q<DropdownField>().choices = typeNames;
-                return ve;
+                var entryName = GetUniqueOutputName("New");
+                m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand(m_ContextNodeModel, entryName, TypeHandle.Float));
             };
 
-            m_OutputRowListField.listView.bindItem = (ve, i) =>
-            {
-                var textField = ve.Q<TextField>();
-                textField.SetValueWithoutNotify(m_OutputRows[i].Name);
-                textField.isDelayed = true;
-                textField.RegisterValueChangedCallback(evt =>
-                {
-                    if (evt.newValue == evt.previousValue) return;
-                    var uniqueName = GetUniqueOutputName(evt.newValue);
-                    m_OwnerElement.RootView.Dispatch(new RenameContextEntryCommand(contextNodeModel, m_OutputRows[i].Name, uniqueName));
-                });
-
-                var dropdownField = ve.Q<DropdownField>();
-                dropdownField.SetValueWithoutNotify(dropdownField.choices[m_OutputRows[i].TypeIndex]);
-                dropdownField.RegisterValueChangedCallback(_ => // Event gives us a string, not the index
-                {
-                    m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_OutputRows[i].Name, m_AvailableTypes[dropdownField.index]));
-                });
-            };
+            m_OutputRowListField.listView.name = "sg-subgraph-output-list";
         }
 
         string GetTypeDisplayName(TypeHandle typeHandle)
@@ -117,12 +108,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var existingNames = nodeHandler.GetPorts().Select(p => p.ID.LocalPath);
             return ObjectNames.GetUniqueName(existingNames.ToArray(), proposedName);
-        }
-
-        void OnAddMenuItemSelected(object selectedTypeData)
-        {
-            var entryName = GetUniqueOutputName("New");
-            m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand(m_ContextNodeModel, entryName, (TypeHandle)selectedTypeData));
         }
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
@@ -145,7 +130,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
                 }
 
-                m_OutputRows.Add(new SubgraphOutputRow {Name = portHandler.ID.LocalPath, TypeIndex = Array.IndexOf(m_AvailableTypes, ShaderGraphExampleTypes.GetGraphType(portHandler))});
+                m_OutputRows.Add(new SubgraphOutputRow
+                {
+                    Name = portHandler.ID.LocalPath,
+                    TypeIndex = Array.IndexOf(m_AvailableTypes, ShaderGraphExampleTypes.GetGraphType(portHandler)),
+                });
             }
 
             m_OutputRowListField.listView.itemsSource = m_OutputRows;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -17,8 +16,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
+    /// <summary>
+    /// ListPropertyField is a thin property field wrapper around a ListView.
+    /// </summary>
     class ListPropertyField : BaseModelPropertyField
     {
+        /// <summary>
+        /// This field's underlying ListView. Directly access this for customization beyond what is exposed in the
+        /// constructor.
+        /// </summary>
         public ListView listView { get; }
 
         public ListPropertyField(
@@ -42,6 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Tool defaults
 
             listView.showAddRemoveFooter = true;
+            listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
 
             Add(listView);
         }
@@ -49,146 +56,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override bool UpdateDisplayedValue()
         {
             listView.RefreshItems();
-            return true;
-        }
-    }
-
-    class TargetSettingsListPropertyField<T> : BaseModelPropertyField
-    {
-        /// <summary>
-        /// ListView this PropertyField wraps around
-        /// </summary>
-        public ListView listView => m_ListView;
-
-        ListView m_ListView = new();
-
-        /// <summary>
-        /// Callback to populate the dropdown menu options when the '+' footer button to add an item is clicked
-        /// </summary>
-        Func<IList<object>> m_GetAddItemData;
-
-        /// <summary>
-        /// Callback to invoke when the list needs to display a string label for a list item
-        /// </summary>
-        Func<object, string> m_GetAddItemMenuString;
-
-        /// <summary>
-        /// Callback to invoke when an item is selected from the dropdown menu, to add to the list
-        /// </summary>
-        GenericMenu.MenuFunction2 m_OnAddItemClicked;
-
-        /// <summary>
-        /// Callback to invoke when an item is removed from the list using the '-' footer button
-        /// </summary>
-        Action m_OnItemRemoved;
-
-        /// <summary>
-        /// Whether the list should allow duplicates
-        /// </summary>
-        bool m_MakeOptionsUnique;
-
-        /// <summary>
-        /// Reference to the actual list itself
-        /// </summary>
-        IList<T> m_ListItems;
-
-        public TargetSettingsListPropertyField(
-            ICommandTarget commandTarget,
-            IList<T> listItems,
-            Func<IList<object>> getAddItemData,
-            Func<object, string> getAddItemMenuString,
-            GenericMenu.MenuFunction2 onAddItemClicked,
-            Action<IEnumerable<object>> onSelectionChanged,
-            Action onItemRemoved,
-            bool makeOptionsUnique,
-            bool makeListReorderable)
-            : base(commandTarget)
-        {
-            /* Setup the ListView */
-
-            m_ListView.SetViewController(new SGListViewController());
-
-            // The "makeItem" function will be called as needed
-            // when the ListView needs more items to render
-            Func<VisualElement> makeItem = () => new Label();
-
-            // As the user scrolls through the list, the ListView object
-            // will recycle elements created by the "makeItem"
-            // and invoke the "bindItem" callback to associate
-            // the element with the matching data item (specified as an index in the list)
-            Action<VisualElement, int> bindItem = (e, i) =>
-            {
-                ((Label)e).text = listItems.Count == 0 ? "Empty" : getAddItemMenuString(listItems[i]);
-            };
-
-            m_ListView.makeItem = makeItem;
-            m_ListView.bindItem = bindItem;
-            m_ListView.itemsSource = listItems.ToList();
-            m_ListView.selectionType = SelectionType.Single;
-            m_ListView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
-            m_ListView.showAddRemoveFooter = true;
-
-            m_ListView.reorderable = makeListReorderable;
-            if (makeListReorderable)
-            {
-                m_ListView.reorderMode = ListViewReorderMode.Animated;
-            }
-
-            m_ListView.selectionChanged += onSelectionChanged;
-            m_ListView.itemsAdded += OnItemsAdded;
-            m_ListView.itemsRemoved += OnItemsRemoved;
-
-            Add(m_ListView);
-
-            /* Store references to callbacks and other info. needed later */
-
-            m_GetAddItemData = getAddItemData;
-            m_GetAddItemMenuString = getAddItemMenuString;
-            m_OnAddItemClicked = onAddItemClicked;
-            m_OnItemRemoved = onItemRemoved;
-
-            m_MakeOptionsUnique = makeOptionsUnique;
-
-            m_ListItems = listItems;
-        }
-
-        void OnItemsAdded(IEnumerable<int> obj)
-        {
-            // Create the dropdown menu, add items and show it
-            GenericMenu menu = new GenericMenu();
-
-            var addItemOptions = m_GetAddItemData();
-
-            if (m_MakeOptionsUnique)
-            {
-                foreach (var item in addItemOptions)
-                {
-                    var existsAlready = m_ListItems.Any(existingItem => m_GetAddItemMenuString(existingItem) == m_GetAddItemMenuString(item));
-                    if (!existsAlready)
-                        menu.AddItem(new GUIContent(m_GetAddItemMenuString(item)), false, m_OnAddItemClicked, userData: item);
-                    else
-                        menu.AddDisabledItem(new GUIContent(m_GetAddItemMenuString(item)), false);
-                }
-            }
-            else
-            {
-                foreach (var item in addItemOptions)
-                {
-                    menu.AddItem(new GUIContent(m_GetAddItemMenuString(item)), false, m_OnAddItemClicked, userData: item);
-                }
-            }
-
-            menu.ShowAsContext();
-        }
-
-        void OnItemsRemoved(IEnumerable<int> obj)
-        {
-            m_OnItemRemoved();
-        }
-
-        public override bool UpdateDisplayedValue()
-        {
-            Debug.Log("Update Displayed Value");
             return true;
         }
     }
