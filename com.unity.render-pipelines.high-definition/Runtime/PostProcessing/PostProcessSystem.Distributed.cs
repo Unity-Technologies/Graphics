@@ -108,73 +108,70 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle nextExposureHandle,
             HDCamera hdCamera)
         {
-            if (Application.isPlaying)
+            if (!Application.isPlaying) return;
+
+            using var builder = renderGraph.AddRenderPass<ReceiveExposureData>("Receive Exposure", out var passData);
+
+            passData.prevExposure = builder.WriteTexture(prevExposureHandle);
+            passData.nextExposure = builder.WriteTexture(nextExposureHandle);
+            passData.exposureDataBuffer = builder.CreateTransientComputeBuffer(
+                new ComputeBufferDesc(2, sizeof(float) * 2, ComputeBufferType.Default));
+            passData.setExposureCS = m_Resources.shaders.setExposureDataCS;
+            passData.kernelID = passData.setExposureCS.FindKernel("SetExposureData");
+            passData.outputPrevTextureID = Shader.PropertyToID("_PrevExposureTexture");
+            passData.outputNextTextureID = Shader.PropertyToID("_NextExposureTexture");
+            passData.inputBufferID = Shader.PropertyToID("_ExposureData");
+
+            passData.additionalData = hdCamera.camera.GetComponent<HDAdditionalCameraData>();
+
+            builder.SetRenderFunc((ReceiveExposureData data, RenderGraphContext ctx) =>
             {
-                using (var builder = renderGraph.AddRenderPass<ReceiveExposureData>("Receive Exposure",
-                           out var passData))
+                using (new ProfilingScope(ctx.cmd, new ProfilingSampler($"Blit Exposure")))
                 {
-                    passData.prevExposure = builder.WriteTexture(prevExposureHandle);
-                    passData.nextExposure = builder.WriteTexture(nextExposureHandle);
-                    passData.exposureDataBuffer = builder.CreateTransientComputeBuffer(
-                        new ComputeBufferDesc(2, sizeof(float) * 2, ComputeBufferType.Default));
-                    passData.setExposureCS = m_Resources.shaders.setExposureDataCS;
-                    passData.kernelID = passData.setExposureCS.FindKernel("SetExposureData");
-                    passData.outputPrevTextureID = Shader.PropertyToID("_PrevExposureTexture");
-                    passData.outputNextTextureID = Shader.PropertyToID("_NextExposureTexture");
-                    passData.inputBufferID = Shader.PropertyToID("_ExposureData");
+                    // if (!TCPTransmissionDatagrams.SocketClient.Instance.IsConnected())
+                    //     return ;
+                    // TCPTransmissionDatagrams.SocketClient.Instance.GetReceivedLastOne(TCPTransmissionDatagrams.Datagram.DatagramType.Exposure, out TCPTransmissionDatagrams.Datagram datagram);
+                    //
+                    // if (datagram == null)
+                    // {
+                    //     Debug.Log("data null");
+                    //     return;
+                    // }
+                    // else
+                    // {
+                    //     Debug.Log($"Exposure {BitConverter.ToSingle(datagram.data, 0)}");
+                    // }
+                    //Debug.Log($"Exposure {data.additionalData.m_ExposureData}");
 
-                    passData.additionalData = hdCamera.camera.GetComponent<HDAdditionalCameraData>();
+                    byte[] exposureBytes = data.additionalData.ExposureAsBytes();
 
-                    builder.SetRenderFunc((ReceiveExposureData data, RenderGraphContext ctx) =>
-                    {
-                        using (new ProfilingScope(ctx.cmd, new ProfilingSampler($"Blit Exposure")))
-                        {
-                            // if (!TCPTransmissionDatagrams.SocketClient.Instance.IsConnected())
-                            //     return ;
-                            // TCPTransmissionDatagrams.SocketClient.Instance.GetReceivedLastOne(TCPTransmissionDatagrams.Datagram.DatagramType.Exposure, out TCPTransmissionDatagrams.Datagram datagram);
-                            //
-                            // if (datagram == null)
-                            // {
-                            //     Debug.Log("data null");
-                            //     return;
-                            // }
-                            // else
-                            // {
-                            //     Debug.Log($"Exposure {BitConverter.ToSingle(datagram.data, 0)}");
-                            // }
-                            //Debug.Log($"Exposure {data.additionalData.m_ExposureData}");
+                    // Set data to compute buffer
+                    ctx.cmd.SetComputeBufferData(data.exposureDataBuffer, exposureBytes,
+                        0, 0, 16);
+                    //TCPTransmissionDatagrams.SocketClient.Instance.AddReceiveRingBuffer(TCPTransmissionDatagrams.Datagram.DatagramType.Exposure, datagram);
 
-                            byte[] exposureBytes = data.additionalData.ExposureAsBytes();
-
-                            // Set data to compute buffer
-                            ctx.cmd.SetComputeBufferData(data.exposureDataBuffer, exposureBytes,
-                                0, 0, 16);
-                            //TCPTransmissionDatagrams.SocketClient.Instance.AddReceiveRingBuffer(TCPTransmissionDatagrams.Datagram.DatagramType.Exposure, datagram);
-
-                            // fill the textures with buffer
-                            ctx.cmd.SetComputeBufferParam(
-                                data.setExposureCS,
-                                data.kernelID,
-                                data.inputBufferID,
-                                data.exposureDataBuffer);
-                            ctx.cmd.SetComputeTextureParam(
-                                data.setExposureCS,
-                                data.kernelID,
-                                data.outputPrevTextureID,
-                                data.prevExposure // <- prev texture
-                            );
-                            ctx.cmd.SetComputeTextureParam(
-                                data.setExposureCS,
-                                data.kernelID,
-                                data.outputNextTextureID,
-                                data.nextExposure // <- prev texture
-                            );
-                            ctx.cmd.DispatchCompute(data.setExposureCS, data.kernelID,
-                                1, 1, 1);
-                        }
-                    });
+                    // fill the textures with buffer
+                    ctx.cmd.SetComputeBufferParam(
+                        data.setExposureCS,
+                        data.kernelID,
+                        data.inputBufferID,
+                        data.exposureDataBuffer);
+                    ctx.cmd.SetComputeTextureParam(
+                        data.setExposureCS,
+                        data.kernelID,
+                        data.outputPrevTextureID,
+                        data.prevExposure // <- prev texture
+                    );
+                    ctx.cmd.SetComputeTextureParam(
+                        data.setExposureCS,
+                        data.kernelID,
+                        data.outputNextTextureID,
+                        data.nextExposure // <- prev texture
+                    );
+                    ctx.cmd.DispatchCompute(data.setExposureCS, data.kernelID,
+                        1, 1, 1);
                 }
-            }
+            });
         }
     }
 }

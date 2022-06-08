@@ -389,7 +389,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // In renderer mode we only blit the current sent color buffer to backbuffer
+                // In renderer mode, even though we don't do post processing, we still need to execute the dynamic
+                // exposure pass because we need to receive the exposure data for the next frame
+                // This is safe because this pass is not treated as a post processing pass
+                colorBuffer = m_PostProcessSystem.DynamicExposurePass(m_RenderGraph, hdCamera, colorBuffer);
+
+                // Instead of doing  we only blit the current sent color buffer to backbuffer
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
                     BlitFinalCameraTexture(m_RenderGraph, hdCamera, colorBuffer, backBuffer, viewIndex);
