@@ -8,7 +8,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     [Overlay(typeof(GraphViewEditorWindow), idValue, "MiniMap",
         defaultDockZone = DockZone.LeftColumn, defaultDockPosition = DockPosition.Bottom,
-        defaultLayout = Layout.Panel/*, defaultWidth = 200, defaultHeight = 150*/)]
+        defaultLayout = Layout.Panel)]
     [Icon( AssetHelper.AssetPath + "UI/Stylesheets/Icons/PanelsToolbar/MiniMap.png")]
     sealed class MiniMapOverlay : Overlay
     {

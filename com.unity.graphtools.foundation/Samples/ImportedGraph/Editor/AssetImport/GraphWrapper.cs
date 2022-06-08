@@ -20,16 +20,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.ImportedGraph
         /// Creates a ".grr" file that contains a JSON-serialized graph asset.
         /// </summary>
         [MenuItem("Assets/Create/GTF Samples/Importable Graph")]
-        static void CreateGrrFile(MenuCommand menuCommand)
+        static void CreateGrrFile()
         {
             const string path = "Assets";
             var template = new GraphTemplate<ImportedGraphStencil>(ImportedGraphStencil.graphName, assetExtension);
-            ICommandTarget target = null;
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ImportedGraphWindow>();
-            if (window != null)
-                target = window.GraphTool;
 
-            GraphAssetCreationHelpers.CreateInProjectWindow<ImportedGraphAsset>(template, target, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<ImportedGraphAsset>(template, null, path,
+                () => GraphViewEditorWindow.FindOrCreateGraphWindow<ImportedGraphWindow>());
         }
 
         public void Export(ImportedGraphAsset graphAsset, string path)

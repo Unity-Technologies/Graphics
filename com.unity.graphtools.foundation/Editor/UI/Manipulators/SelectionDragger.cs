@@ -19,9 +19,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         // selectedElement is used to store a unique selection candidate for cases where user clicks on an item not to
         // drag it but just to reset the selection -- we only know this after the manipulation has ended
-        GraphElement m_SelectedElement => m_SelectedMovingElement.Element;
+        GraphElement SelectedElement => SelectedMovingElement.Element;
 
-        MovingElement m_SelectedMovingElement => m_MovingElements.Count > m_SelectedMovingElementIndex ? m_MovingElements[m_SelectedMovingElementIndex] : default;
+        MovingElement SelectedMovingElement => m_MovingElements.Count > m_SelectedMovingElementIndex ? m_MovingElements[m_SelectedMovingElementIndex] : default;
 
         int m_SelectedMovingElementIndex;
 
@@ -150,18 +150,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
+        /// <summary>
+        /// Adds a snap strategy to the selection dragger. This is in addition to the strategies enabled by the user in the preferences.
+        /// </summary>
+        /// <param name="strategy">The strategy to add.</param>
+        public void AddSnapStrategy(SnapStrategy strategy)
+        {
+            m_Snapper.AddSnapStrategy(strategy);
+        }
+
+        /// <summary>
+        /// Removes a snap strategy to the selection dragger.
+        /// </summary>
+        /// <param name="strategy">The strategy to remove.</param>
+        public void RemoveSnapStrategy(SnapStrategy strategy)
+        {
+            m_Snapper.RemoveSnapStrategy(strategy);
+        }
+
         Vector2 GetViewPositionInGraphSpace(Vector2 localPosition)
         {
             var gvPos = new Vector2(m_GraphView.ViewTransform.position.x, m_GraphView.ViewTransform.position.y);
             var gvScale = m_GraphView.ViewTransform.scale.x;
             return (localPosition - gvPos) / gvScale;
-        }
-
-        Vector2 GetGraphPositionInViewSpace(Vector2 graphPosition)
-        {
-            var gvPos = new Vector2(m_GraphView.ViewTransform.position.x, m_GraphView.ViewTransform.position.y);
-            var gvScale = m_GraphView.ViewTransform.scale.x;
-            return gvPos + gvScale * graphPosition;
         }
 
         /// <summary>
@@ -240,7 +251,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     m_PanSchedule.Pause();
                 }
 
-                m_Snapper.BeginSnap(m_SelectedElement);
+                m_Snapper.BeginSnap(SelectedElement);
 
                 m_Active = true;
                 e.StopPropagation();
@@ -297,7 +308,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 m_PanSchedule.Pause();
             }
 
-            if (m_SelectedElement.parent != null)
+            if (SelectedElement.parent != null)
             {
                 m_TotalMouseDelta = GetDragAndSnapOffset(GetViewPositionInGraphSpace(e.localMousePosition));
 
@@ -326,7 +337,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             if (m_Snapper.IsActive)
             {
-                dragDelta = GetSnapCorrectedDelta(m_SelectedMovingElement, dragDelta);
+                dragDelta = GetSnapCorrectedDelta(SelectedMovingElement, dragDelta);
             }
 
             return dragDelta;
@@ -358,8 +369,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             Rect initialRect = movingElement.Element.layout;
             initialRect.position = movingElement.InitialPosition + delta;
-            var snappedRect = m_Snapper.GetSnappedRect(initialRect, movingElement.Element);
-            return snappedRect.position - movingElement.InitialPosition;
+            var snappedPosition = m_Snapper.GetSnappedPosition(initialRect, movingElement.Element);
+            return snappedPosition - movingElement.InitialPosition;
         }
 
         void Pan(TimerState ts)
@@ -399,7 +410,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             {
                 if (m_Active)
                 {
-                    if (m_Dragging || m_SelectedElement == null)
+                    if (m_Dragging || SelectedElement == null)
                     {
 
                         if (target is GraphView graphView)

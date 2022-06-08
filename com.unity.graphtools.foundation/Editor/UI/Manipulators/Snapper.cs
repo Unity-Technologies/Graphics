@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         List<SnapStrategy> m_SnappingStrategies = new List<SnapStrategy>();
         internal bool IsActive => m_SnappingStrategies.Any(s => s.Enabled);
 
-        internal Snapper()
+        public Snapper()
         {
             InitSnappingStrategies();
         }
@@ -23,7 +23,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        internal void BeginSnap(GraphElement selectedElement)
+        public void AddSnapStrategy(SnapStrategy strategy)
+        {
+            m_SnappingStrategies.Add(strategy);
+        }
+
+        public void RemoveSnapStrategy(SnapStrategy strategy)
+        {
+            m_SnappingStrategies.Remove(strategy);
+        }
+
+        public void BeginSnap(GraphElement selectedElement)
         {
             UpdateSnappingStrategies();
             foreach (var snapStrategy in m_SnappingStrategies.Where(snapStrategy => snapStrategy.Enabled))
@@ -32,19 +42,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        internal Rect GetSnappedRect(Rect sourceRect, GraphElement selectedElement)
+        public Vector2 GetSnappedPosition(Rect sourceRect, GraphElement selectedElement)
         {
-            Rect snappedRect = sourceRect;
+            Vector2 snappedPosition = sourceRect.position;
 
             foreach (var snapStrategy in m_SnappingStrategies.Where(snapStrategy => snapStrategy.Enabled))
             {
-                AdjustSnappedRect(ref snappedRect, sourceRect, selectedElement, snapStrategy);
+                AdjustSnappedPosition(ref snappedPosition, sourceRect, selectedElement, snapStrategy);
             }
 
-            return snappedRect;
+            return snappedPosition;
         }
 
-        internal void EndSnap()
+        public void EndSnap()
         {
             foreach (var snapStrategy in m_SnappingStrategies.Where(snapStrategy => snapStrategy.Enabled))
             {
@@ -52,7 +62,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        internal void PauseSnap(bool isPaused)
+        public void PauseSnap(bool isPaused)
         {
             foreach (var snapStrategy in m_SnappingStrategies.Where(snapStrategy => snapStrategy.Enabled))
             {
@@ -73,26 +83,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_SnappingStrategies.First(s => s.GetType() == strategyType).Enabled = isEnabled;
         }
 
-        static void AdjustSnappedRect(ref Rect snappedRect, Rect sourceRect, GraphElement selectedElement, SnapStrategy snapStrategy)
+        static void AdjustSnappedPosition(ref Vector2 snappedPosition, Rect sourceRect, GraphElement selectedElement, SnapStrategy snapStrategy)
         {
-            // Retrieve the snapping strategy's suggested snapped rect and its snapping offset
-            Vector2 snappingOffset = new Vector2(float.MaxValue, float.MaxValue);
-            Rect suggestedSnappedRect = snapStrategy.GetSnappedRect(ref snappingOffset, sourceRect, selectedElement);
+            // Retrieve the snapping strategy's suggested snapped position and its snapping offset
+            var suggestedSnappedPosition = snapStrategy.GetSnappedPosition(out var snapDirection, sourceRect, selectedElement);
 
-            // Set snapped rect coordinates using the suggested rect's relevant coordinates
-            SetSnappedRect(ref snappedRect, suggestedSnappedRect, snappingOffset);
+            // Set snapped position using the suggested position relevant coordinates
+            SetSnappedRect(ref snappedPosition, suggestedSnappedPosition, snapDirection);
         }
 
-        static void SetSnappedRect(ref Rect snappedRect, Rect suggestedSnappedRect, Vector2 snappingOffset)
+        static void SetSnappedRect(ref Vector2 snappedPosition, Vector2 suggestedSnappedPosition, SnapDirection snapDirection)
         {
-            // If the snapping offset is smaller than float.MaxValue, the coordinate value needs to be considered
-            if (snappingOffset.y < float.MaxValue)
+            if ((snapDirection & SnapDirection.SnapY) == SnapDirection.SnapY)
             {
-                snappedRect.y = suggestedSnappedRect.y;
+                snappedPosition.y = suggestedSnappedPosition.y;
             }
-            if (snappingOffset.x < float.MaxValue)
+            if ((snapDirection & SnapDirection.SnapX) == SnapDirection.SnapX)
             {
-                snappedRect.x = suggestedSnappedRect.x;
+                snappedPosition.x = suggestedSnappedPosition.x;
             }
         }
     }

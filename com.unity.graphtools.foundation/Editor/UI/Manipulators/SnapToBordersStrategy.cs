@@ -8,8 +8,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     class SnapToBordersStrategy : SnapStrategy
     {
-        class SnapToBordersResult : SnapResult
+        class SnapToBordersResult
         {
+            public Rect SnappableRect { get; set; }
+            public float Offset { get; set; }
+            public float Distance => Math.Abs(Offset);
             public SnapReference SourceReference { get; set; }
             public SnapReference SnappableReference { get; set; }
             public Line IndicatorLine;
@@ -41,45 +44,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public override void BeginSnap(GraphElement selectedElement)
         {
-            if (IsActive)
-            {
-                throw new InvalidOperationException("SnapStrategy.BeginSnap: Snap to borders already active. Call EndSnap() first.");
-            }
-            IsActive = true;
+            base.BeginSnap(selectedElement);
 
-            m_GraphView = selectedElement.GraphView;
+            var graphView = selectedElement.GraphView;
             if (m_LineView == null)
             {
-                m_LineView = new LineView(m_GraphView);
+                m_LineView = new LineView(graphView);
             }
 
-            m_GraphView.Add(m_LineView);
+            graphView.Add(m_LineView);
             m_SnappableRects = GetNotSelectedElementRectsInView(selectedElement);
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
+        protected override Vector2 ComputeSnappedPosition(out SnapDirection snapDirection, Rect sourceRect, GraphElement selectedElement)
         {
-            if (!IsActive)
-            {
-                throw new InvalidOperationException("SnapStrategy.GetSnappedRect: Snap to borders not active. Call BeginSnap() first.");
-            }
-
-            if (IsPaused)
-            {
-                // Snapping was paused, we do not return a snapped rect and we clear the snap lines
-                ClearSnapLines();
-                return sourceRect;
-            }
-
             Rect snappedRect = sourceRect;
 
             List<SnapToBordersResult> results = GetClosestSnapElements(sourceRect);
 
             m_LineView.lines.Clear();
 
+            snapDirection = SnapDirection.SnapNone;
             foreach (SnapToBordersResult result in results)
             {
-                ApplySnapToBordersResult(ref snappingOffset, sourceRect, ref snappedRect, result);
+                ApplySnapToBordersResult(ref snapDirection, sourceRect, ref snappedRect, result);
                 result.IndicatorLine = GetSnapLine(snappedRect, result.SourceReference, result.SnappableRect, result.SnappableReference);
                 m_LineView.lines.Add(result.IndicatorLine);
             }
@@ -87,16 +75,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             m_SnappableRects = GetNotSelectedElementRectsInView(selectedElement);
 
-            return snappedRect;
+            return snappedRect.position;
         }
 
         public override void EndSnap()
         {
-            if (!IsActive)
-            {
-                throw new InvalidOperationException("SnapStrategy.EndSnap: Snap to borders already inactive. Call BeginSnap() first.");
-            }
-            IsActive = false;
+            base.EndSnap();
 
             m_SnappableRects.Clear();
             m_LineView.lines.Clear();
@@ -104,16 +88,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_LineView.RemoveFromHierarchy();
         }
 
+        /// <inheritdoc />
+        public override void PauseSnap(bool isPaused)
+        {
+            base.PauseSnap(isPaused);
+
+            if (IsPaused)
+            {
+                ClearSnapLines();
+            }
+        }
+
         static readonly List<ModelView> k_GetNotSelectedElementRectsInViewAllUIs = new List<ModelView>();
         List<Rect> GetNotSelectedElementRectsInView(GraphElement selectedElement)
         {
             var notSelectedElementRects = new List<Rect>();
-            var ignoredModels = m_GraphView.GetSelection().Cast<IModel>().ToList();
+            var graphView = selectedElement.GraphView;
+            var ignoredModels = graphView.GetSelection().Cast<IModel>().ToList();
 
             // Consider only the visible nodes.
-            Rect rectToFit = m_GraphView.layout;
+            Rect rectToFit = graphView.layout;
 
-            m_GraphView.GraphModel.GraphElementModels.GetAllViewsInList(m_GraphView, null, k_GetNotSelectedElementRectsInViewAllUIs);
+            graphView.GraphModel.GraphElementModels.GetAllViewsInList(graphView, null, k_GetNotSelectedElementRectsInViewAllUIs);
             foreach (ModelView element in k_GetNotSelectedElementRectsInViewAllUIs)
             {
                 if (selectedElement is Placemat placemat && element.layout.Overlaps(placemat.layout))
@@ -133,10 +129,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 }
                 else if (element is GraphElement ge && !ge.IsSelected() && !(ignoredModels.Contains(element.Model)))
                 {
-                    var localSelRect = m_GraphView.ChangeCoordinatesTo(element, rectToFit);
+                    var localSelRect = graphView.ChangeCoordinatesTo(element, rectToFit);
                     if (element.Overlaps(localSelRect))
                     {
-                        Rect geometryInContentViewContainerSpace = (element).parent.ChangeCoordinatesTo(m_GraphView.ContentViewContainer, ge.layout);
+                        Rect geometryInContentViewContainerSpace = (element).parent.ChangeCoordinatesTo(graphView.ContentViewContainer, ge.layout);
                         notSelectedElementRects.Add(geometryInContentViewContainerSpace);
                     }
                 }
@@ -282,17 +278,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return new Line(start, end);
         }
 
-        static void ApplySnapToBordersResult(ref Vector2 snappingOffset, Rect sourceRect, ref Rect r1, SnapToBordersResult result)
+        static void ApplySnapToBordersResult(ref SnapDirection snapDirection, Rect sourceRect, ref Rect r1, SnapToBordersResult result)
         {
             if (result.SnappableReference <= SnapReference.RightEdge)
             {
                 r1.x = sourceRect.x - result.Offset;
-                snappingOffset.x = snappingOffset.x < float.MaxValue ? snappingOffset.x + result.Offset : result.Offset;
+                snapDirection |= SnapDirection.SnapX;
             }
             else
             {
                 r1.y = sourceRect.y - result.Offset;
-                snappingOffset.y = snappingOffset.y < float.MaxValue ? snappingOffset.y + result.Offset : result.Offset;
+                snapDirection |= SnapDirection.SnapY;
             }
         }
 

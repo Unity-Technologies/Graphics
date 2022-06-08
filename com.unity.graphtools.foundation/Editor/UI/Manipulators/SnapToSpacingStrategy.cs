@@ -8,8 +8,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     class SnapToSpacingStrategy : SnapStrategy
     {
-        class SnapToSpacingResult : SnapResult
+        class SnapToSpacingResult
         {
+            public float Offset { get; set; }
+            public float Distance => Math.Abs(Offset);
             public ReferenceRects ReferenceRects;
         }
 
@@ -67,48 +69,34 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public override void BeginSnap(GraphElement selectedElement)
         {
-            if (IsActive)
-            {
-                throw new InvalidOperationException("SnapStrategy.BeginSnap: Snap to spacing already active. Call EndSnap() first.");
-            }
-            IsActive = true;
+            base.BeginSnap(selectedElement);
 
-            m_GraphView = selectedElement.GraphView;
+            var graphView = selectedElement.GraphView;
             if (m_LineView == null)
             {
-                m_LineView = new LineView(m_GraphView);
+                m_LineView = new LineView(graphView);
             }
-            m_GraphView.Add(m_LineView);
+            graphView.Add(m_LineView);
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
+        protected override Vector2 ComputeSnappedPosition(out SnapDirection snapDirection, Rect sourceRect, GraphElement selectedElement)
         {
-            if (!IsActive)
-            {
-                throw new InvalidOperationException("SnapStrategy.GetSnappedRect: Snap to spacing not active. Call BeginSnap() first.");
-            }
-            if (IsPaused)
-            {
-                // Snapping was paused, we do not return a snapped rect and we clear the snap lines
-                ClearSnapLines();
-                return sourceRect;
-            }
-
-            Rect selectedElementRect = (selectedElement).parent.ChangeCoordinatesTo(m_GraphView.ContentViewContainer, (selectedElement).layout);
+            Rect selectedElementRect = selectedElement.parent.ChangeCoordinatesTo(selectedElement.GraphView.ContentViewContainer, selectedElement.layout);
             UpdateSpacingPositions(selectedElement, selectedElementRect);
 
-            Rect snappedRect = sourceRect;
+            var snappedPosition = sourceRect.position;
 
             m_LineView.lines.Clear();
 
             List<SnapToSpacingResult> results = GetClosestSpacingPositions(sourceRect);
 
+            snapDirection = SnapDirection.SnapNone;
             foreach (var result in results.Where(result => result != null))
             {
-                ApplySnapToSpacingResult(ref snappingOffset, sourceRect, ref snappedRect, result);
+                ApplySnapToSpacingResult(ref snapDirection, sourceRect.position, ref snappedPosition, result);
 
                 // Make sure the element is snapped before drawing the lines
-                if (IsSnapped(snappedRect, sourceRect, result.ReferenceRects.Orientation))
+                if (IsSnapped(snappedPosition, sourceRect.position, result.ReferenceRects.Orientation))
                 {
                     foreach (SpacingLine spacingLine in GetSpacingLines(result.ReferenceRects.Rects, result.ReferenceRects.Orientation))
                     {
@@ -118,16 +106,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
             m_LineView.MarkDirtyRepaint();
 
-            return snappedRect;
+            return snappedPosition;
         }
 
         public override void EndSnap()
         {
-            if (!IsActive)
-            {
-                throw new InvalidOperationException("SnapStrategy.EndSnap: Snap to spacing already inactive. Call BeginSnap() first.");
-            }
-            IsActive = false;
+            base.EndSnap();
 
             ClearRectsToConsider();
 
@@ -136,9 +120,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_LineView.RemoveFromHierarchy();
         }
 
-        bool IsSnapped(Rect snappedRect, Rect sourceRect, PortOrientation orientation)
+        /// <inheritdoc />
+        public override void PauseSnap(bool isPaused)
         {
-            float draggedDistance = Math.Abs(orientation == PortOrientation.Horizontal ? snappedRect.x - sourceRect.x : snappedRect.y - sourceRect.y);
+            base.PauseSnap(isPaused);
+
+            if (IsPaused)
+            {
+                ClearSnapLines();
+            }
+        }
+
+        bool IsSnapped(Vector2 snappedRect, Vector2 sourcePosition, PortOrientation orientation)
+        {
+            float draggedDistance = Math.Abs(orientation == PortOrientation.Horizontal ? snappedRect.x - sourcePosition.x : snappedRect.y - sourcePosition.y);
 
             return draggedDistance < SnapDistance - 1;
         }
@@ -162,15 +157,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         static readonly List<ModelView> k_GetRectsToConsiderInViewAllUIs = new List<ModelView>();
         void GetRectsToConsiderInView(GraphElement selectedElement)
         {
+            var graphView = selectedElement.GraphView;
             // Consider only the visible nodes.
-            Rect rectToFit = m_GraphView.layout;
+            Rect rectToFit = graphView.layout;
 
-            m_GraphView.GraphModel.GraphElementModels.GetAllViewsInList(m_GraphView, null, k_GetRectsToConsiderInViewAllUIs);
+            graphView.GraphModel.GraphElementModels.GetAllViewsInList(graphView, null, k_GetRectsToConsiderInViewAllUIs);
             foreach (GraphElement element in k_GetRectsToConsiderInViewAllUIs.OfType<GraphElement>())
             {
                 if (!IsIgnoredElement(selectedElement, element, rectToFit))
                 {
-                    Rect geometryInContentViewContainerSpace = element.parent.ChangeCoordinatesTo(m_GraphView.ContentViewContainer, element.layout);
+                    Rect geometryInContentViewContainerSpace = element.parent.ChangeCoordinatesTo(graphView.ContentViewContainer, element.layout);
                     AddReferenceRects(selectedElement, element, geometryInContentViewContainerSpace);
                 }
             }
@@ -186,7 +182,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 return true;
             }
 
-            Rect localSelRect = m_GraphView.ChangeCoordinatesTo(element, rectToFit);
+            Rect localSelRect = selectedElement.GraphView.ChangeCoordinatesTo(element, rectToFit);
             return !element.Overlaps(localSelRect);
         }
 
@@ -436,17 +432,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             };
         }
 
-        static void ApplySnapToSpacingResult(ref Vector2 snappingOffset, Rect sourceRect, ref Rect r1, SnapToSpacingResult result)
+        static void ApplySnapToSpacingResult(ref SnapDirection snapDirection, Vector2 sourceRect, ref Vector2 r1, SnapToSpacingResult result)
         {
             if (result.ReferenceRects.Orientation == PortOrientation.Horizontal)
             {
                 r1.x = sourceRect.x - result.Offset;
-                snappingOffset.x = snappingOffset.x < float.MaxValue ? snappingOffset.x + result.Offset : result.Offset;
+                snapDirection |= SnapDirection.SnapX;
             }
             else
             {
                 r1.y = sourceRect.y - result.Offset;
-                snappingOffset.y = snappingOffset.y < float.MaxValue ? snappingOffset.y + result.Offset : result.Offset;
+                snapDirection |= SnapDirection.SnapY;
             }
         }
 

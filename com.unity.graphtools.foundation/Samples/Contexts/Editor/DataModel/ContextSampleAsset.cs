@@ -11,16 +11,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
         protected override Type GraphModelType => typeof(ContextSample);
 
         [MenuItem("Assets/Create/GTF Samples/Contexts")]
-        public static void CreateGraph(MenuCommand menuCommand)
+        public static void CreateGraph()
         {
             const string path = "Assets";
             var template = new GraphTemplate<ContextSampleStencil>(ContextSampleStencil.GraphName);
-            BaseGraphTool graphTool = null;
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>();
-            if (window != null)
-                graphTool = window.GraphTool;
 
-            GraphAssetCreationHelpers.CreateInProjectWindow<ContextSampleAsset>(template, graphTool, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<ContextSampleAsset>(template, null, path,
+                () => GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>());
         }
 
         [OnOpenAsset(1)]

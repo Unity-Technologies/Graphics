@@ -8,16 +8,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
     public class RecipeGraphAsset : GraphAsset
     {
         [MenuItem("Assets/Create/GTF Samples/Recipe")]
-        public static void CreateGraph(MenuCommand menuCommand)
+        public static void CreateGraph()
         {
             const string path = "Assets";
             var template = new GraphTemplate<RecipeStencil>(RecipeStencil.graphName);
-            ICommandTarget target = null;
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<RecipeGraphWindow>();
-            if (window != null)
-                target = window.GraphTool;
 
-            GraphAssetCreationHelpers.CreateInProjectWindow<RecipeGraphAsset>(template, target, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<RecipeGraphAsset>(template, null, path,
+                () => GraphViewEditorWindow.FindOrCreateGraphWindow<RecipeGraphWindow>());
         }
 
         [OnOpenAsset(1)]

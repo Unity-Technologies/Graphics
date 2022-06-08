@@ -3,50 +3,118 @@ using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
-    abstract class SnapStrategy
+    [Flags]
+    public enum SnapDirection
     {
-        internal class SnapResult
-        {
-            public Rect SnappableRect { get; set; }
-            public float Offset { get; set; }
-            public float Distance => Math.Abs(Offset);
-        }
+        SnapNone = 0,
+        SnapX = 1,
+        SnapY = 2
+    }
 
-        protected enum SnapReference
-        {
-            LeftEdge,
-            HorizontalCenter,
-            RightEdge,
-            TopEdge,
-            VerticalCenter,
-            BottomEdge
-        }
+    /// <summary>
+    /// Class that defines how an element position is constrained when being moved by the <see cref="SelectionDragger"/>.
+    /// </summary>
+    public abstract class SnapStrategy
+    {
+        protected const float k_DefaultSnapDistance = 8.0f;
 
-        public bool Enabled { get; set; }
+        /// <summary>
+        /// Whether this strategy is enabled.
+        /// </summary>
+        /// <remarks>If the strategy is not enabled, it will not get the chance to snap elements.</remarks>
+        public virtual bool Enabled { get; set; }
 
-        protected GraphView m_GraphView;
+        /// <summary>
+        /// The snap distance.
+        /// </summary>
         protected float SnapDistance { get; }
+
+        /// <summary>
+        /// Whether this strategy is temporarily deactivated.
+        /// </summary>
         protected bool IsPaused { get; private set; }
-        protected bool IsActive { get; set; }
 
-        const float k_DefaultSnapDistance = 8.0f;
+        /// <summary>
+        ///  Whether this strategy is active.
+        /// </summary>
+        /// <remarks>The strategy is active if it is currently participating in the snapping of an element.</remarks>
+        protected bool IsActive { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnapStrategy"/> class.
+        /// </summary>
         protected SnapStrategy()
         {
             SnapDistance = k_DefaultSnapDistance;
         }
 
-        public abstract void BeginSnap(GraphElement selectedElement);
+        /// <summary>
+        /// Begins a snapping operation. Called when the <paramref name="selectedElement"/> starts moving.
+        /// </summary>
+        /// <param name="selectedElement">The element to snap.</param>
+        public virtual void BeginSnap(GraphElement selectedElement)
+        {
+            if (IsActive)
+            {
+                throw new InvalidOperationException($"SnapStrategy.BeginSnap: {GetType()} already active. Call EndSnap() first.");
+            }
+            IsActive = true;
+        }
 
-        public abstract Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement);
-
-        public abstract void EndSnap();
-
-        public void PauseSnap(bool isPaused)
+        /// <summary>
+        /// Computes a suggested snapping rectangle and snapping offset.
+        /// </summary>
+        /// <param name="snapDirection">Whether to snap in X and Y directions.</param>
+        /// <param name="sourceRect">The initial position and dimensions of the element to snap.</param>
+        /// <param name="selectedElement">The element to snap.</param>
+        /// <returns>The computed snapped position.</returns>
+        public Vector2 GetSnappedPosition(out SnapDirection snapDirection, Rect sourceRect, GraphElement selectedElement)
         {
             if (!IsActive)
             {
-                throw new InvalidOperationException("SnapStrategy.PauseSnap: Already inactive. Call BeginSnap() first.");
+                throw new InvalidOperationException($"SnapStrategy.GetSnappedRect: {GetType()} not active. Call BeginSnap() first.");
+            }
+
+            if (IsPaused)
+            {
+                snapDirection = SnapDirection.SnapNone;
+                return sourceRect.position;
+            }
+
+            return ComputeSnappedPosition(out snapDirection, sourceRect, selectedElement);
+        }
+
+        /// <summary>
+        /// Computes the suggested snapping rectangle and snapping offset.
+        /// </summary>
+        /// <param name="snapDirection">Whether to snap in X and Y directions.</param>
+        /// <param name="sourceRect">The initial position and dimensions of the element to snap.</param>
+        /// <param name="selectedElement">The element to snap.</param>
+        /// <returns>The computed snapping position.</returns>
+        protected abstract Vector2 ComputeSnappedPosition(out SnapDirection snapDirection, Rect sourceRect, GraphElement selectedElement);
+
+        /// <summary>
+        /// Ends the snapping operation.
+        /// </summary>
+        public virtual void EndSnap()
+        {
+            if (!IsActive)
+            {
+                throw new InvalidOperationException($"SnapStrategy.EndSnap: {GetType()} already inactive. Call BeginSnap() first.");
+            }
+            IsActive = false;
+        }
+
+        /// <summary>
+        /// Temporarily deactivate this strategy.
+        /// </summary>
+        /// <remarks>This is called when the shift key is pressed, indicating that the user wants to move elements without any snapping.</remarks>
+        /// <param name="isPaused">True is the strategy should be paused.</param>
+        public virtual void PauseSnap(bool isPaused)
+        {
+            if (!IsActive)
+            {
+                throw new InvalidOperationException($"SnapStrategy.PauseSnap: {GetType()} is not active. Call BeginSnap() first.");
             }
 
             IsPaused = isPaused;

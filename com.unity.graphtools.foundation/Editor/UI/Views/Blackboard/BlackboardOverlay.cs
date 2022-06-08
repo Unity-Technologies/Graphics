@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     [Overlay(typeof(GraphViewEditorWindow), idValue, "Blackboard", defaultDisplay = true,
-        defaultDockZone = DockZone.LeftColumn, defaultLayout = Layout.Panel/*, defaultWidth = 300, defaultHeight = 400*/)]
+        defaultDockZone = DockZone.LeftColumn, defaultLayout = Layout.Panel)]
     [Icon( AssetHelper.AssetPath + "UI/Stylesheets/Icons/PanelsToolbar/Blackboard.png")]
     sealed class BlackboardOverlay : Overlay
     {

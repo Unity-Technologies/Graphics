@@ -7,16 +7,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
     public class BBGraphAsset : GraphAsset
     {
         [MenuItem("Assets/Create/GTF Samples/Blackboard")]
-        public static void CreateGraph(MenuCommand menuCommand)
+        public static void CreateGraph()
         {
             const string path = "Assets";
             var template = new GraphTemplate<BBStencil>(BBStencil.graphName);
-            BaseGraphTool graphTool = null;
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<BBGraphWindow>();
-            if (window != null)
-                graphTool = window.GraphTool;
 
-            GraphAssetCreationHelpers.CreateInProjectWindow<BBGraphAsset>(template, graphTool, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<BBGraphAsset>(template, null, path,
+                () => GraphViewEditorWindow.FindOrCreateGraphWindow<BBGraphWindow>());
         }
 
         [OnOpenAsset(1)]

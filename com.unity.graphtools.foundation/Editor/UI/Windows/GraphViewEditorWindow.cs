@@ -38,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             if (assetPath != null)
             {
-                window = Resources.FindObjectsOfTypeAll(typeof(TWindow)).OfType<TWindow>().FirstOrDefault(w =>
+                window = Resources.FindObjectsOfTypeAll<TWindow>().FirstOrDefault(w =>
                         w.GraphTool.ToolState.CurrentGraph.GetGraphAssetPath() == assetPath ||
                         w.GraphTool.ToolState.SubGraphStack.FirstOrDefault().GetGraphAssetPath() == assetPath);
             }

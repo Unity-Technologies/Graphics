@@ -130,7 +130,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        public virtual void ActivateRename()
+        public override void ActivateRename()
         {
             if (!((PartList.GetPart(titleContainerPartName) as EditableTitlePart)?.TitleLabel is EditableLabel label))
                 return;
