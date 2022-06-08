@@ -90,10 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 NativeArray<byte> nativeData = request.GetData<byte>();
 
-                                byte[] bytes = nativeData.ToArray();
-
                                 //TCPTransmissionDatagrams.SocketServer.Instance.SendAll(TCPTransmissionDatagrams.Datagram.DatagramType.Exposure, bytes);
-                                data.additionalData.ExposureFromBytes(bytes);
+                                data.additionalData.ExposureFromBytes(nativeData);
                                 //Debug.Log($"Exposure {BitConverter.ToSingle(bytes, 0)}");
                             }
                         );
@@ -143,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // }
                     //Debug.Log($"Exposure {data.additionalData.m_ExposureData}");
 
-                    byte[] exposureBytes = data.additionalData.ExposureAsBytes();
+                    var exposureBytes = data.additionalData.ExposureAsBytes();
 
                     // Set data to compute buffer
                     ctx.cmd.SetComputeBufferData(data.exposureDataBuffer, exposureBytes,
