@@ -3,6 +3,7 @@ using Unity.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using UnityEngine.Experimental.Rendering;
 using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 [assembly: InternalsVisibleTo("Unity.Entities.Hybrid.HybridComponents")]
@@ -868,7 +869,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public void IncrementDataVersion()
         {
             if (probeVolumeAsset != null)
-                probeVolumeAsset.dataVersion = unchecked(probeVolumeAsset.dataVersion + 1);
+            {
+                // Skip -1 as it represents empty data.
+                if (probeVolumeAsset.dataVersion != -2)
+                    probeVolumeAsset.dataVersion = unchecked(probeVolumeAsset.dataVersion + 1);
+                else
+                    probeVolumeAsset.dataVersion = 0;
+            }
         }
 
         internal ProbeVolumePayload GetPayload()
@@ -1096,8 +1103,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                         parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
                 }
-
-                IncrementDataVersion();
             }
 
             SetupProbePositions();
@@ -1311,6 +1316,87 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
         }
 
+        internal void CopyDynamicSHToAsset()
+        {
+            if (propagationPipelineData.buffersDataVersion == -1)
+                return;
+
+            var resolution = new Vector3Int(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
+
+            // TODO: Support other encodings based on settings.
+            const int sliceCount = 7;
+            // var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+
+            var rtHandle = RTHandles.Alloc(
+                width: (int)resolution.x,
+                height: (int)resolution.y,
+                slices: (int)resolution.z * sliceCount,
+                dimension: TextureDimension.Tex3D,
+                colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
+                enableRandomWrite: true,
+                useMipMap: false,
+                name: "ProbeVolumeDynamicGICapture"
+            );
+
+            var cmd = CommandBufferPool.Get();
+            ProbeVolumeDynamicGI.instance.DispatchPropagationOutputDynamicSH(cmd, resolution, pipelineData, propagationPipelineData, rtHandle);
+            Graphics.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+            
+            var request = AsyncGPUReadback.Request(
+                rtHandle, 0,
+                0, resolution.x,
+                0, resolution.y,
+                0, resolution.z * sliceCount
+            );
+            request.WaitForCompletion();
+
+            var dataSHL01 = probeVolumeAsset.payload.dataSHL01;
+            var dataSHL2 = probeVolumeAsset.payload.dataSHL2;
+
+            var strideSHL01 = ProbeVolumePayload.GetDataSHL01Stride();
+            var strideSHL2 = ProbeVolumePayload.GetDataSHL2Stride();
+            
+            CopySHTextureSliceToAssetData(request, resolution, 0, dataSHL01, strideSHL01, 0, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 1, dataSHL01, strideSHL01, 1, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 2, dataSHL01, strideSHL01, 2, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 3, dataSHL2, strideSHL2, 0, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 4, dataSHL2, strideSHL2, 1, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 5, dataSHL2, strideSHL2, 2, 4);
+            // Note we only copy 3 floats from each texel of the last slice.
+            // The 4th float is validity we don't need here.
+            CopySHTextureSliceToAssetData(request, resolution, 6, dataSHL2, strideSHL2, 3, 3);
+
+            rtHandle.Release();
+
+            IncrementDataVersion();
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+        }
+
+        static void CopySHTextureSliceToAssetData(AsyncGPUReadbackRequest request, Vector3Int volumeSize, int slice, float[] targetData, int targetDataStride, int targetOffset, int valueCount)
+        {
+            var layerSize = volumeSize.x * volumeSize.y;
+            var sliceStartLayer = volumeSize.z * slice;
+            for (int z = 0; z < volumeSize.z; z++)
+            {
+                var textureData = request.GetData<float>(sliceStartLayer + z);
+                for (int xy = 0; xy < layerSize; xy++)
+                {
+                    var probeIndex = z * layerSize + xy;
+                    var textureDataStart = xy * 4;
+                    var targetDataStart = probeIndex * targetDataStride + targetOffset * 4;
+                    for (int i = 0; i < valueCount; i++)
+                    {
+                        if (textureDataStart + i >= layerSize * 4)
+                        {
+                            Debug.LogError($"Index: {textureDataStart + i}, slice: {slice}, z: {z}, xy: {xy}, probeIndex: {probeIndex}");
+                        }
+                        targetData[targetDataStart + i] = textureData[textureDataStart + i];
+                    }
+                }
+            }
+        }
+        
         private static ProbeVolumeSettingsKey ComputeProbeVolumeSettingsKeyFromProbeVolume(ProbeVolume probeVolume)
         {
             return new ProbeVolumeSettingsKey

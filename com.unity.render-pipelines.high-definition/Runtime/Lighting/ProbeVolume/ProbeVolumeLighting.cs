@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VisibleProbeVolumeDataBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
         }
 
-        static internal int GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes encodingMode)
+        internal static int GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes encodingMode)
         {
             switch (encodingMode)
             {
@@ -689,6 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (size > s_MaxProbeVolumeProbeCount)
                     {
                         Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
+                        ReleaseProbeVolumeFromAtlas(volume);
                         return false;
                     }
 
@@ -1125,18 +1126,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
-
-                        // basic distance check
-                        var obb = volume.GetPipelineData().BoundingBox;
-                        float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+                        
+                        bool requiresSimulation;
 #if UNITY_EDITOR
-                        if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake || obb.center.magnitude < (maxRange + maxExtent))
-#else
-                        if (obb.center.magnitude < (maxRange + maxExtent))
+                        if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake)
+                        {
+                            // Force simulation at any distance when preparing for baking.
+                            requiresSimulation = true;
+                        }
+                        else
 #endif
                         {
-                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
+                            // basic distance check
+                            var obb = volume.GetPipelineData().BoundingBox;
+                            float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+                            // TODO: obb.center can be a world space position if rendering is not camera relative.
+                            requiresSimulation = obb.center.magnitude < (maxRange + maxExtent);
                         }
+                        
+                        if (requiresSimulation)
+                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
                     }
 
                     // dispatch max number of simulation requests this frame

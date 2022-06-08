@@ -551,8 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (CleanupPropagation(probeVolume))
                 {
-                    // trigger an update so original bake data gets set since Dynamic GI was disabled
-                    probeVolume.IncrementDataVersion();
+                    // Clear the atlas data so original bake data gets set since Dynamic GI was disabled
+                    if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
+                        hdrp.ReleaseProbeVolumeFromAtlas(probeVolume);
                 }
             }
         }
@@ -626,6 +627,20 @@ namespace UnityEngine.Rendering.HighDefinition
             else
 #endif
             {
+#if UNITY_EDITOR
+                if (ProbeVolume.preparingForBake)
+                {
+                    mixedLightMode = ProbeVolumeDynamicGIMixedLightMode.ForceRealtime;
+                    cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
+                    cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
+                }
+                else
+#endif
+                {
+                    cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
+                    cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+                }
+
                 cmd.SetComputeFloatParam(shader, "_IndirectScale", mixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly ? giSettings.indirectMultiplier.value : 0f);
                 cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
 
@@ -634,17 +649,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(shader, "_MixedLightsAsRealtimeEnabled", forceRealtime || !probeVolume.DynamicGIMixedLightsBaked() ? 1 : 0);
 
                 infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
-
-                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
-                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
-
-#if UNITY_EDITOR
-                if (ProbeVolume.preparingForBake)
-                {
-                    cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
-                    cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
-                }
-#endif
             }
 
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", propagationPipelineData.GetReadRadianceCacheAxis());
@@ -700,6 +704,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+#if UNITY_EDITOR
+            if (ProbeVolume.preparingForBake)
+            {
+                propagationQuality = PropagationQuality.High;
+                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
+                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
+            }
+            else
+#endif
+            {
+                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
+                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+            }
+
             int propagationAxisAmount;
             switch (propagationQuality)
             {
@@ -749,9 +767,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.HitNeighborAxisLength);
-
-            cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
-            cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
 
             UpdateAmbientProbe(ambientProbe, giSettings.skyMultiplier.value);
             cmd.SetComputeVectorArrayParam(shader, "_AmbientProbe", s_AmbientProbe);
@@ -857,7 +872,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", dynamicAmount);
 
-            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.bakeAmount.value);
+            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.fallbackAmount.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
@@ -870,6 +885,79 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
+        internal void DispatchPropagationOutputDynamicSH(
+            CommandBuffer cmd,
+            Vector3Int size,
+            ProbeVolumePipelineData pipelineData,
+            ProbeVolumePropagationPipelineData propagationPipelineData,
+            RTHandle probeVolumeAtlasSHRTHandle)
+        {
+            int numProbes = size.x * size.y * size.z;
+            var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
+            var shader = _PropagationCombineShader;
+
+            SetBasisKeywords(
+                ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp,
+                ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft,
+                shader
+            );
+
+            var obb = pipelineData.BoundingBox;
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, (Vector3)size);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
+                1.0f / size.x,
+                1.0f / size.y,
+                1.0f / size.z
+            ));
+
+            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            var resolutionAndSliceCount = new Vector4(
+                size.x,
+                size.y,
+                size.z,
+                sliceCount
+            );
+            var resolutionAndSliceCountInverse = new Vector4(
+                1.0f / size.x,
+                1.0f / size.y,
+                1.0f / size.z,
+                1.0f / sliceCount
+            );
+            
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, resolutionAndSliceCount);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, resolutionAndSliceCountInverse);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, Vector3.right);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, Vector3.up);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, Vector3.forward);
+
+            cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasScale, Vector3.one);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasBias, Vector3.zero);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, pipelineData.SHL01Buffer);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, pipelineData.SHL2Buffer);
+
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, pipelineData.ValidityBuffer);
+            cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasWriteTextureSH, probeVolumeAtlasSHRTHandle);
+
+            cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", propagationPipelineData.GetWriteRadianceCacheAxis());
+            cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
+
+            cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", 1f);
+            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", 0f);
+            cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
+
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
+
+            cmd.SetComputeFloatParam(shader, "_PropagationSharpness", 2f);
+            cmd.SetComputeFloatParam(shader, "_Sharpness", 6f);
+
+            int dispatchX = (numProbes + 63) / 64;
+            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+        }
+        
         internal bool CleanupPropagation(ProbeVolumeHandle probeVolume)
         {
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
@@ -1116,8 +1204,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (CleanupPropagation(probeVolume))
                 {
-                    // trigger an update so original bake data gets set since Dynamic GI was disabled
-                    probeVolume.IncrementDataVersion();
+                    // Clear the atlas data so original bake data gets set since Dynamic GI was disabled
+                    if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
+                        hdrp.ReleaseProbeVolumeFromAtlas(probeVolume);
                 }
             }
         }
