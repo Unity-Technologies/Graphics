@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "TangentVector";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = TangentVector;",
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),

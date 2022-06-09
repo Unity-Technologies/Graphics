@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"Position = _WorldSpaceCameraPos;
 Direction = (-1 * mul((float3x3)UNITY_MATRIX_M, transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V)) [2].xyz));

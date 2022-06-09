@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
             new ParameterDescriptor("Base", TYPE.Vector, Usage.In),

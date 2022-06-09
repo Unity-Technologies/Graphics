@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -10,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  TextureOnly = In;
     TextureOnly.scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);

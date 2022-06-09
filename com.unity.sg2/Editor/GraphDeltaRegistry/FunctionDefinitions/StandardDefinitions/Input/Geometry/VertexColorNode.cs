@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "VertexColor";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = VertexColor;",
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),

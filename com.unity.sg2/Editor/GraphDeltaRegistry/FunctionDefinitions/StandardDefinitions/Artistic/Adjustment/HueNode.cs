@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "HueDegrees",
 @"    temp1.rg = In.bg;
     temp1.ba = K.wz;
@@ -51,7 +50,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                  new(
-                    1,
                     "HueNormalized",
 @"    temp1.rg = In.bg;
     temp1.ba = K.wz;

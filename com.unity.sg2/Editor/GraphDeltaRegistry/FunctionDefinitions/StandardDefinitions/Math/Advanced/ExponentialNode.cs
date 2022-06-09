@@ -12,14 +12,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "ExponentialBaseE",
                     "    Out = exp(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new(
-                    1,
                     "ExponentialBase2",
                     "    Out = exp2(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),

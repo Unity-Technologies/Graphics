@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -13,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "ComparisonEqual",
                     "    Out = A == B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
@@ -21,7 +19,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
-                    1,
                     "ComparisonNotEqual",
                     "    Out = A != B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
@@ -29,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
-                    1,
                     "ComparisonLess",
                     "    Out = A < B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
@@ -37,7 +33,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
-                    1,
                     "ComparisonLessOrEqual",
                     "    Out = A <= B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
@@ -45,7 +40,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
-                    1,
                     "ComparisonGreater",
                     "    Out = A > B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
@@ -53,7 +47,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
-                    1,
                     "ComparisonGreaterOrEqual",
                     "    Out = A >= B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),

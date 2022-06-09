@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -12,7 +11,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "RectangleFastest",
 
 @"    w.x = Width;
@@ -32,7 +30,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                 ),
                 new(
-                    1,
                     "RectangleNicest",
 
 @"    UV = UV * 2.0 - 1.0;

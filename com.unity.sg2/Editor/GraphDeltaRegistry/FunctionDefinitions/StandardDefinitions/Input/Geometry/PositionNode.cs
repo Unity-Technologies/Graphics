@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "Position";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = Position;",
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),

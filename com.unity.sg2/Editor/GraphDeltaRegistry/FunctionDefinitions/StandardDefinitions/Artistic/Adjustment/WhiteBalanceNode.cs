@@ -9,9 +9,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
-
 @"    // Range ~[-1.67;1.67] works best
     t1 = Temperature * 10 / 6;
 

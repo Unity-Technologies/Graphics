@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "SceneColor";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 "    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);",
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),

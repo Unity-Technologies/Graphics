@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "ScreenPosition";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = ScreenPosition;",
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),

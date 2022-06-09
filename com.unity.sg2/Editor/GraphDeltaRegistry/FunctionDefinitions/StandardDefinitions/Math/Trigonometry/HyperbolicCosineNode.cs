@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -13,14 +12,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "Default",
                     "Out = cosh(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new(
-                    1,
                     "Fast",
                     "Out = ((1 + ((In * In) / 2))+((In * In * In * In) / 24)) + ((In * In * In * In * In * In) / 720);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),

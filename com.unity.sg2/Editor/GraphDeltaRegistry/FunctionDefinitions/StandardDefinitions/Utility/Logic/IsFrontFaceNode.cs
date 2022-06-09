@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -9,7 +7,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "IsFrontFace";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 "Out = max(0, FaceSign.x);",
             new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out),

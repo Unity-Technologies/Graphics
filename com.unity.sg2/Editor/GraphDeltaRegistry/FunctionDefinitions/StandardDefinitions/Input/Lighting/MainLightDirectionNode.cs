@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "MainLightDirection";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"#if SHADERGRAPH_PREVIEW
 Direction = half3(-0.5, -0.5, 0);

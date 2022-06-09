@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = fmod(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),

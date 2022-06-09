@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = Matrix2x2;",
             new ParameterDescriptor("Matrix2x2", TYPE.Mat2, Usage.Static),

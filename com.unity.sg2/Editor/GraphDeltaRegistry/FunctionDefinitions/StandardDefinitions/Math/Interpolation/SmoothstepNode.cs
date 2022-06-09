@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -12,7 +11,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "Smooth",
                     "Out = smoothstep(Edge1, Edge2, In);",
                     new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
@@ -21,7 +19,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "Smoother",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = (In*In*In) * (In * (In * 6.0 - 15.0) + 10.0);",
@@ -31,7 +28,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "Smoothest",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = (-20.0 * pow(In, 7)) + (70.0 * pow(In, 6)) - (84.0 * pow(In, 5)) + (35.0 * pow(In, 4));",
@@ -41,7 +37,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "Linear",
                     "Out = saturate((In - Edge1)/(Edge2-Edge1));",
                     new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
@@ -50,7 +45,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "EaseOut",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = In*In;",
@@ -60,7 +54,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "EaseIn",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = 1.0 - pow(In - 1.0, 2);",
@@ -70,7 +63,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "SquareStep",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = step(0.5, In);",

@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "VertexID";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = VertexID;",
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),

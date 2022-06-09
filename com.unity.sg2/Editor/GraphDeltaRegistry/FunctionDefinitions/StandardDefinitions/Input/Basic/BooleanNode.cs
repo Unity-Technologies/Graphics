@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = BoolConst;",
             new ParameterDescriptor("BoolConst", TYPE.Bool, Usage.Static),

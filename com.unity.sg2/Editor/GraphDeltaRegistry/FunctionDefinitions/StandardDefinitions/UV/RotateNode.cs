@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -12,7 +11,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "RotateRadians",
 @"    UV -= Center;
 	sincos(Rotation, s, c);
@@ -32,7 +30,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
                 ),
                 new(
-                    1,
                     "RotateDegrees",
 @"    Rotation = radians(Rotation);
     UV -= Center;

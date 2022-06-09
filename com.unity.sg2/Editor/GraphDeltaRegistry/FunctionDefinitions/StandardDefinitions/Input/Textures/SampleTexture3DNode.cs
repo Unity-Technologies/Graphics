@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "SampleTexture3DStandard",
 @"    RGBA = SAMPLE_TEXTURE3D(Texture.tex, Sampler.samplerstate, UV);
     RGB = RGBA.rgb;
@@ -32,7 +31,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("A", TYPE.Float, Usage.Out)
                 ),
                 new(
-                    1,
                     "SampleTexture3DLOD",
 @"    RGBA = SAMPLE_TEXTURE3D_LOD(Texture.tex, Sampler.samplerstate, UV, LOD);
     RGB = RGBA.rgb;

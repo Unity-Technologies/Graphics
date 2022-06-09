@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalBlendDefault",
 @"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
@@ -23,7 +22,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalBlendReoriented",
 @"    t += A;
     u *= B;
@@ -35,7 +33,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalBlendDefaultO",
 @"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
@@ -46,7 +43,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalBlendReorientedO",
 @"    t += A;
     u *= B;

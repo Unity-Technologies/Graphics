@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"   //based on data by Mitchell Charity http://www.vendian.org/mncharity/dir3/blackbody/
     color.x = 56100000. * pow(Temperature,(-3.0 / 2.0)) + 148.0;

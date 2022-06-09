@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -13,14 +12,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "Default",
                     "Out = sinh(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new(
-                    1,
                     "Fast",
                     "Out = (In + ((In * In * In) / 6)) + ((In * In * In * In * In) / 120);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),

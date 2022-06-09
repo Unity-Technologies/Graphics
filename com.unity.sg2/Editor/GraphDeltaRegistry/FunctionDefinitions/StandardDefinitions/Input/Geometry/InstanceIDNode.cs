@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "InstanceID";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"#if UNITY_ANY_INSTANCING_ENABLED
     Out = InstanceID;

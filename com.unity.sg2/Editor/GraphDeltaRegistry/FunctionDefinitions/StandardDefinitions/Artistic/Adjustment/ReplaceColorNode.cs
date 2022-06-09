@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static string Name = "ReplaceColor";
         public static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  Out = lerp(To, In, saturate((distance(From, In) - Range) / max(Fuzziness, 1e-5f)));",
             new ParameterDescriptor("In", TYPE.Vec3, Usage.In),

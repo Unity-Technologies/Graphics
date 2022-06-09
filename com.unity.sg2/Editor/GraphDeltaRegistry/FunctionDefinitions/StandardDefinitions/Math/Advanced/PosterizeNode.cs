@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = floor(In / (1 / Steps)) * (1 / Steps);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),

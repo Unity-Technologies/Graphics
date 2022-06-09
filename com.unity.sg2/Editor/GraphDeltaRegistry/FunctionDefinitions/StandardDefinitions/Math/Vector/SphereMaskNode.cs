@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -9,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
             "SphereMask",
             "Out = 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));",
             new ParameterDescriptor("Coords", TYPE.Vector, Usage.In),

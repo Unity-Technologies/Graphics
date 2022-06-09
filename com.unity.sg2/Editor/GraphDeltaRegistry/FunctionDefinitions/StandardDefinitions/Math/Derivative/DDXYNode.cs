@@ -12,21 +12,18 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new (
-                    1,
                     "Standard",
                     "Out = abs(ddx(In)) + abs(ddy(In));",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new (
-                    1,
                     "Coarse",
                     "Out = abs(ddx_coarse(In)) + abs(ddy_coarse(In));",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new (
-                    1,
                     "Fine",
                     "Out = abs(ddx_fine(In)) + abs(ddy_fine(In));",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In),

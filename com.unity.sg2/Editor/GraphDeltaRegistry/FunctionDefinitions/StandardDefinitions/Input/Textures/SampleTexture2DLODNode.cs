@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new (
-                    1,
                     "Standard",
 @"#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
     RGBA = temp;
@@ -38,7 +37,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 ),
                 new (
-                    1,
                     "NormalObject",
 @"#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
     RGBA = temp;
@@ -64,7 +62,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 ),
                 new (
-                    1,
                     "NormalTangent",
 @"
 #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)

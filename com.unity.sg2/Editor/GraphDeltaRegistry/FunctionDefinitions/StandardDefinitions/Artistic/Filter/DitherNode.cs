@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  uv = ScreenPosition.xy * _ScreenParams.xy;
     uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;

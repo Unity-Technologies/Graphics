@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "SampleTriplanarDefault",
                     //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call
 @"  Node_UV = Position * Tile;
@@ -41,7 +40,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Node_Z", TYPE.Vec4, Usage.Local)
                 ),
                 new(
-                    1,
                     "SampleTriplanarNormal",
                     //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call
 @"  Node_UV = Position * Tile;
@@ -82,7 +80,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("WorldSpaceBiTangent", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent)
                 ),
                 new(
-                    1,
                     "SampleTriplanar2Samples",
 @"  //Credit Inigo Quilez: https://iquilezles.org/www/articles/biplanar/biplanar.htm
     Position *= Tile;

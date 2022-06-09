@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "ReflectionProbe";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);",
             new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_ViewDirection),

@@ -13,14 +13,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalUnpackTangent",
                     "    Out = UnpackNormal(In);",
                     new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalUnpackObject",
                     "    Out = UnpackNormal(In);",
                     new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),

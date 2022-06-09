@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "SampleTexture2DArrayStandard",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY(TextureArray.tex, Sampler.samplerstate, UV, Index);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -36,7 +35,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("A", TYPE.Float, Usage.Out)
                 ),
                 new(
-                    1,
                     "SampleTexture2DArrayLOD",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY_LOD(TextureArray.tex, Sampler.samplerstate, UV, Index, LOD);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -60,7 +58,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("A", TYPE.Float, Usage.Out)
                 ),
                 new(
-                    1,
                     "SampleTexture2DArrayGradient",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY_GRAD(TextureArray.tex, Sampler.samplerstate, UV, Index, DDX, DDY);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -85,7 +82,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("A", TYPE.Float, Usage.Out)
                 ),
                 new(
-                    1,
                     "SampleTexture2DArrayBias",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY_BIAS(TextureArray.tex, Sampler.samplerstate, UV, Index, Bias);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);

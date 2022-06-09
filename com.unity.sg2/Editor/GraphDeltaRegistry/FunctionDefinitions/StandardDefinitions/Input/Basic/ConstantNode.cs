@@ -13,31 +13,26 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "PI",
                     "    Out = 3.1415926f;",
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "TAU",
                     "    Out = 6.28318530f;",
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "PHI",
                     "    Out = 1.618034f;",
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "E",
                     "    Out = 2.718282f;",
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "SQRT2",
                     "    Out = 1.414214f;",
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)

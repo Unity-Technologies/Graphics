@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalFromHeightTangent",
 @"  worldDerivativeX = ddx(PositionWS);
     crossY = cross(ddy(PositionWS), NormalWS);
@@ -31,7 +30,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalFromHeightWorld",
 @"  TangentMatrix[0] = TangentWS;
     TangentMatrix[1] = BitangentWS;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -12,7 +11,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "Flip",
 @"  Tile = fmod(Tile, Width * Height);
     tileCount = float2(1.0, 1.0) / float2(Width, Height);
@@ -30,7 +28,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
                 ),
                 new(
-                    1,
                     "Blend",
 @"  Blend = frac(Tile);
     tileCount.x = 1.0 / Width;

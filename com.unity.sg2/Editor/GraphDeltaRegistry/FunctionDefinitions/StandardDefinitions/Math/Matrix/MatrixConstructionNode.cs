@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -13,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "MatrixConstructionRow",
 
 @"    Out4x4[0] = M0;
@@ -34,7 +32,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out2x2", TYPE.Mat2, Usage.Out)
                 ),
                 new(
-                    1,
                     "MatrixConstructionColumn",
 
 @"    Out4x4[0].x = M0.x; Out4x4[0].y = M1.x; Out4x4[0].z = M2.x; Out4x4[0].w = M3.x;

@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalFromTexture3Samples",
 @"  //3 sample version - only works on square textures
     UV = Texture.GetTransformedUV(UV);
@@ -50,7 +49,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalFromTexture4Samples",
 @"  //4 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
@@ -91,7 +89,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
-                    1,
                     "NormalFromTexture8Samples",
 @"  //8 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);

@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "BakedGI";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = SHADERGRAPH_BAKED_GI(Position, Normal, StaticUV, DynamicUV, ApplyLightmapScaling);",
             new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.WorldSpace_Position),

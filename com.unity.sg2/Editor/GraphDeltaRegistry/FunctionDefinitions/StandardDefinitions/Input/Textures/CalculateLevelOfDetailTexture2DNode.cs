@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static string Name = "CalculateLevelOfDetailTexture2D";
         public static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"#if (SHADER_TARGET >= 41)
     if (Clamp)

@@ -9,9 +9,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
-
 @"    R = In.r;
     G = In.g;
     B = In.b;

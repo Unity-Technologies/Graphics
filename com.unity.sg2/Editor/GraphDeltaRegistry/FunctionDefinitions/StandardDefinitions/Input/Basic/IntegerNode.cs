@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = IntConst;",
             new ParameterDescriptor("IntConst", TYPE.Int, Usage.Static),

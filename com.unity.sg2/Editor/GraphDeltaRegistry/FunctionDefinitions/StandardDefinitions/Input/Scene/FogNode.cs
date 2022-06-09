@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "Fog";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "SHADERGRAPH_FOG(Position, Color, Density);",
             new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.Object_Position),

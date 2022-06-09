@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "Object";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"temp1.x = UNITY_MATRIX_M[0].x;
 temp1.y = UNITY_MATRIX_M[1].x;

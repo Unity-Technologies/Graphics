@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"#if (SHADER_TARGET >= 41)
     RGBA = Texture.tex.Gather(Sampler.samplerstate, UV, Offset);

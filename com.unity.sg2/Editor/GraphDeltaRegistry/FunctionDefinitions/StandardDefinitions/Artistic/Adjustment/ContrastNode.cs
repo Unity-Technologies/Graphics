@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             new FunctionDescriptor[] {
                 new (
-                    1,
                     "Cheap",
             @"
                 midpoint = pow(0.5, 2.2);
@@ -25,7 +24,6 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("midpoint", TYPE.Float, Usage.Local)
                     ),
                 new (
-                    1,
                     "Quality",
             @"
                 folded = (In > 0.5) ? 1 - In : In;

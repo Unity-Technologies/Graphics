@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -8,7 +7,6 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "RoundedPolygon";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 
 @"    UV = UV * 2. + negone;
