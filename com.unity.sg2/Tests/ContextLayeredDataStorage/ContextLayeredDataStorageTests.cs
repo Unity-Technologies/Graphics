@@ -409,5 +409,26 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         }
 
+        [Test]
+        public void TestCopyPaste()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            clds.AddData("a");
+            clds.AddData("a.b", 13);
+            clds.AddData("a.b.c", 35.4f);
+            clds.SetMetadata("a.b", "foo", new Color(1, 0, 0));
+
+            List<DataReader> elements = new List<DataReader>()
+            {
+                clds.Search("a"),
+                clds.Search("a.b"),
+                clds.Search("a.b.c")
+            };
+
+            var ser = clds.CopyElementCollection(elements);
+            Debug.Log(ser.layer);
+            Debug.Log(ser.metadata);
+        }
+
     }
 }
