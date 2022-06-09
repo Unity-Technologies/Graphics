@@ -251,6 +251,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal Rect pixelRect;
+        internal bool useScreenCoordOverride;
+        internal Vector4 screenSizeOverride;
+        internal Vector4 screenCoordScaleBias;
         internal int pixelWidth;
         internal int pixelHeight;
         internal float aspectRatio;
@@ -556,6 +559,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int screenCoordScaleBias = Shader.PropertyToID("_ScreenCoordScaleBias");
+        public static readonly int screenSizeOverride = Shader.PropertyToID("_ScreenSizeOverride");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
@@ -710,6 +715,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _NORMALMAP = "_NORMALMAP";
 
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
+        public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
     }
 
     public sealed partial class UniversalRenderPipeline

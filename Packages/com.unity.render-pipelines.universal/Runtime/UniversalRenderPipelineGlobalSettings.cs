@@ -371,6 +371,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_EnableRenderGraph = false;
         [SerializeField] bool m_StripUnusedLODCrossFadeVariants = true;
 
+        [SerializeField] bool m_StripScreenCoordOverrideVariants = true;
+
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
@@ -401,6 +403,11 @@ namespace UnityEngine.Rendering.Universal
         /// If this property is true, Unity strips the LOD variants if the LOD cross-fade feature (UniversalRenderingPipelineAsset.enableLODCrossFade) is disabled.
         /// </summary>
         public bool stripUnusedLODCrossFadeVariants { get => m_StripUnusedLODCrossFadeVariants; set { m_StripUnusedLODCrossFadeVariants = value; } }
+
+        /// <summary>
+        /// Controls whether Screen Coordinates Override shader variants are automatically stripped.
+        /// </summary>
+        public bool stripScreenCoordOverrideVariants { get => m_StripScreenCoordOverrideVariants; set => m_StripScreenCoordOverrideVariants = value; }
 
         #endregion
     }

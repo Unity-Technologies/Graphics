@@ -131,6 +131,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapACES;
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
+        LocalKeyword m_ScreenCoordOverride;
 
         Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
         Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
@@ -199,6 +200,8 @@ namespace UnityEditor.Rendering.Universal
             m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
             m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
+
+            m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
         }
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
@@ -365,6 +368,11 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            {
+                return true;
+            }
+
+            if (globalSettings != null && globalSettings.stripScreenCoordOverrideVariants && compilerData.shaderKeywordSet.IsEnabled(m_ScreenCoordOverride))
             {
                 return true;
             }
