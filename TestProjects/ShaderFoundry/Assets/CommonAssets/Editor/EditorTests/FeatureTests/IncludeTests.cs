@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [Test]
-        public void BlockFunctionInclude_ShowsUpInGeneratedShader()
+        public void BlockFunctionWithInclude_GeneratingShader_IncludeIsFound()
         {
             var container = new ShaderContainer();
 

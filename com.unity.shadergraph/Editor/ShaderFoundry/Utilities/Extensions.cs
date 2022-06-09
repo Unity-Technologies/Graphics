@@ -191,11 +191,11 @@ namespace UnityEditor.ShaderFoundry
             foreach (var item in block.ReferencedTypes)
                 builder.AddReferencedType(item);
             foreach (var item in block.Types)
-                builder.AddType(item);          // NOTE: parent block will be wrong...
+                builder.AddReferencedType(item);
             foreach (var item in block.ReferencedFunctions)
                 builder.AddReferencedFunction(item);
             foreach (var item in block.Functions)
-                builder.AddFunction(item);      // NOTE: parent block will be wrong...
+                builder.AddReferencedFunction(item);
         }
 
         internal static void MergeDescriptors(this Block.Builder builder, Block block)

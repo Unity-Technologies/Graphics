@@ -125,7 +125,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return blockBuilder;
         }
 
-        internal static Block.Builder DefineSimpleBlock(ShaderContainer container, string blockName, ShaderType inputType, string inputName, ShaderType outputType, string outputName, string outputValue)
+        // build a block that takes a single input, and produces a single output using the specified output expression
+        internal static Block.Builder DefineSimpleBlock(ShaderContainer container, string blockName, ShaderType inputType, string inputName, ShaderType outputType, string outputName, string outputExpression)
         {
             var blockBuilder = new Block.Builder(container, blockName);
 
@@ -143,7 +144,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var entryPointFnBuilder = new ShaderFunction.Builder(blockBuilder, "Apply", outStruct);
             entryPointFnBuilder.AddInput(inStruct, "inputs");
             entryPointFnBuilder.DeclareVariable(outStruct, "outputs");
-            entryPointFnBuilder.AddLine($"outputs.{outputName} = {outputValue};");
+            entryPointFnBuilder.AddLine($"outputs.{outputName} = {outputExpression};");
             entryPointFnBuilder.AddLine("return outputs;");
             var entryPointFn = entryPointFnBuilder.Build();
 

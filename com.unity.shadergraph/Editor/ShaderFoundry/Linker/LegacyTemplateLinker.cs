@@ -581,6 +581,9 @@ namespace UnityEditor.ShaderFoundry
                     foreach (var f in block.Functions)
                         shaderIncludes.AddRange(f.Includes);
 
+                    foreach (var f in block.ReferencedFunctions)
+                        shaderIncludes.AddRange(f.Includes);
+
                     shaderKeywords.AddRange(block.Keywords);
                     shaderPragmas.AddRange(block.Pragmas);
                     ExtractKeywordDescriptors(block, shaderKeywords);

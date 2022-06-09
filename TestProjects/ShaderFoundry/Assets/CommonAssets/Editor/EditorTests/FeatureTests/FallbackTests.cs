@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
     class FallbackTests // : BlockTestRenderer
     {
         [Test]
-        public void NoFallback_ShowsDefaultInGeneratedShader()
+        public void NoFallbackSet_DefaultFallbackIsUsedInGeneratedShader()
         {
             var container = new ShaderContainer();
             var shaderCode = BlockTestRenderer.BuildSimpleSurfaceShader(container, "TestShader", Enumerable.Empty<Block>());
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [Test]
-        public void Fallback_ShowsUpInGeneratedShader()
+        public void FallbackSet_IsUsedInGeneratedShader()
         {
             var container = new ShaderContainer();
 
