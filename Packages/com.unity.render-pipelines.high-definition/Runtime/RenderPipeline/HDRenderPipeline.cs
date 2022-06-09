@@ -198,16 +198,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetDecalAtlasMipCount()
         {
-            int highestDim = Math.Max(currentPlatformRenderPipelineSettings.decalSettings.atlasWidth, currentPlatformRenderPipelineSettings.decalSettings.atlasHeight);
-            return (int)Math.Log(highestDim, 2);
+            int size = Math.Max(currentPlatformRenderPipelineSettings.decalSettings.atlasWidth, currentPlatformRenderPipelineSettings.decalSettings.atlasHeight);
+            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
         }
 
-        internal int GetCookieAtlasMipCount() => (int)Mathf.Log((int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize, 2);
-
-        internal int GetPlanarReflectionProbeMipCount()
+        internal int GetCookieAtlasMipCount()
         {
-            int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize;
-            return (int)Mathf.Log(size, 2);
+            int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize;
+            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+        }
+
+        internal int GetReflectionProbeMipCount()
+        {
+            int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize;
+            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+        }
+
+        internal int GetReflectionProbeArraySize()
+        {
+            return currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution ? 2 : 1;
         }
 
         internal int GetMaxScreenSpaceShadows()
@@ -1359,7 +1368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (visibleProbe.type)
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
-                    int desiredProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+                    int desiredProbeSize = (int)visibleProbe.cubeResolution;
                     var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
                     if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||
@@ -2011,11 +2020,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
 
                             EndRenderRequest(renderRequest, cmd);
-
-                            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.clearPlanarReflectionProbeAtlas)
-                            {
-                                m_TextureCaches.reflectionPlanarProbeCache.Clear(cmd);
-                            }
 
                             // Render XR mirror view once all render requests have been completed
                             if (isLast && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)

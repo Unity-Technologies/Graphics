@@ -528,6 +528,27 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Blit a cube texture into 2d texture as octahedral quad with padding. (projection)
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source cube texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="mipLevelTex">Mip level to sample.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitCubeToOctahedral2DQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTexture, source);
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 22 : 21);
+        }
+
+        /// <summary>
         /// Blit a cube texture into 2d texture as octahedral quad. (projection)
         /// Conversion between single and multi channel formats.
         /// RGB(A) to YYYY (luminance).

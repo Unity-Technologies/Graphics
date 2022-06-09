@@ -303,6 +303,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void IncrementRealtimeRenderCount()
         {
             m_RealtimeRenderCount += 1;
+
+            texture.IncrementUpdateCount();
         }
 
         internal void RepeatRenderSteps(ProbeRenderSteps renderSteps)
@@ -318,7 +320,6 @@ namespace UnityEngine.Rendering.HighDefinition
             textureHash += (uint)texture.imageContentsHash.GetHashCode();
 #endif
             return textureHash;
-
         }
 
         internal bool requiresRealtimeUpdate
@@ -565,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool timeSlicing { get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
         /// <summary>
-        /// Resolution of the probe.
+        /// Resolution of the planar probe.
         /// </summary>
         public PlanarReflectionAtlasResolution resolution
         {
@@ -574,6 +575,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                 // We return whatever value is in resolution if there is no hdrp pipeline (nothing will work anyway)
                 return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
+            }
+        }
+        /// <summary>
+        /// Resolution of the cube probe.
+        /// </summary>
+        public CubeReflectionResolution cubeResolution
+        {
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                return hdrp != null ? m_ProbeSettings.cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution) : ProbeSettings.k_DefaultCubeResolution;
             }
         }
 

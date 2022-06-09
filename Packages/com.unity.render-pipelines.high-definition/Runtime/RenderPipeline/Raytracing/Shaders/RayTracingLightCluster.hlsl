@@ -101,7 +101,10 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
             float intersectionDistance = EvaluateLight_EnvIntersection(rayOrigin, rayDirection, envLightData, envLightData.influenceShapeType, R, weight);
 
             int index = abs(envLightData.envIndex) - 1;
-            float3 probeResult = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, R, _EnvSliceSize * index, 0).rgb * envLightData.rangeCompressionFactorCompensation;
+
+            float2 atlasCoords = GetReflectionAtlasCoordsCube(_CubeScaleOffset[index], R, 0);
+
+            float3 probeResult = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, 0, 0).rgb * envLightData.rangeCompressionFactorCompensation;
             probeResult = ClampToFloat16Max(probeResult);
 
             UpdateLightingHierarchyWeights(totalWeight, weight);

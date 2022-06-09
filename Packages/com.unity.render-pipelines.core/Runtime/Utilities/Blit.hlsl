@@ -86,7 +86,7 @@ Varyings VertQuadPadding(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     float2 scalePadding = ((_BlitTextureSize + float(_BlitPaddingSize)) / _BlitTextureSize);
-    float2 offsetPaddding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
+    float2 offsetPadding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
 
 #if SHADER_API_GLES
     float4 pos = input.positionOS;
@@ -99,7 +99,7 @@ Varyings VertQuadPadding(Attributes input)
     output.positionCS = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.texcoord = uv;
-    output.texcoord = (output.texcoord - offsetPaddding) * scalePadding;
+    output.texcoord = (output.texcoord - offsetPadding) * scalePadding;
     output.texcoord = output.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw;
     return output;
 }
@@ -141,38 +141,7 @@ float4 FragNearestRepeat(Varyings input) : SV_Target
 float4 FragOctahedralBilinearRepeat(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float u = input.texcoord.x;
-    float v = input.texcoord.y;
-
-    float2 uv;
-    if (u < 0.0f)
-    {
-        if (v < 0.0f)
-            uv = float2(1.0f + u, 1.0f + v);
-        else if (v < 1.0f)
-            uv = float2(-u, 1.0f - v);
-        else
-            uv = float2(1.0f + u, v - 1.0f);
-    }
-    else if (u < 1.0f)
-    {
-        if (v < 0.0f)
-            uv = float2(1.0f - u, -v);
-        else if (v < 1.0f)
-            uv = float2(u, v);
-        else
-            uv = float2(1.0f - u, 2.0f - v);
-    }
-    else
-    {
-        if (v < 0.0f)
-            uv = float2(u - 1.0f, 1.0f + v);
-        else if (v < 1.0f)
-            uv = float2(2.0f - u, 1.0f - v);
-        else
-            uv = float2(u - 1.0f, v - 1.0f);
-    }
-
+    float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
 }
 
@@ -181,6 +150,22 @@ float4 FragOctahedralProject(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 UV = saturate(input.texcoord);
     float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+    return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
+}
+
+float4 FragOctahedralProjectNearestRepeat(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f * uv - 1.0f);
+    return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_PointRepeat, dir, _BlitMipLevel).rgb, 1);
+}
+
+float4 FragOctahedralProjectBilinearRepeat(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f * uv - 1.0f);
     return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
 }
 

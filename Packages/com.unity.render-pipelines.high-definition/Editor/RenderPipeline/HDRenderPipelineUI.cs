@@ -270,67 +270,64 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
-            EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeFormat, Styles.reflectionProbeFormatContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize, Styles.reflectionProbeAtlasSizeContent);
 
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.compressProbeCacheContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize, Styles.cubemapSizeContent);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize, Styles.probeCacheSizeContent);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue, 1, TextureCache.k_MaxSupported);
-            if (serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.hasMultipleDifferentValues)
+            if (serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize.hasMultipleDifferentValues)
+            {
                 EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
+            }
             else
             {
-                long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
-                if (currentCache > HDRenderPipeline.k_MaxCacheSize)
-                {
-                    int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
-                    string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                    EditorGUILayout.HelpBox(message, MessageType.Error);
-                }
-                else
-                {
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
-                }
+                long currentCache = ReflectionProbeTextureCache.GetApproxCacheSizeInByte(
+                    serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1,
+                    serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize.intValue,
+                    (GraphicsFormat)serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeFormat.intValue);
+                string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                EditorGUILayout.HelpBox(message, MessageType.Info);
             }
-
-            EditorGUILayout.Space();
-
-            // Planar reflection probes section
-            {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize, Styles.planarAtlasSizeContent);
-                serialized.renderPipelineSettings.planarReflectionResolution.ValueGUI<PlanarReflectionAtlasResolution>(Styles.planarResolutionTitle);
-                // We need to clamp the values to the resolution
-                int atlasResolution = serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue;
-                int numLevels = serialized.renderPipelineSettings.planarReflectionResolution.values.arraySize;
-                for (int levelIdx = 0; levelIdx < numLevels; ++levelIdx)
-                {
-                    SerializedProperty levelValue = serialized.renderPipelineSettings.planarReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
-                    levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
-                }
-                if (serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.hasMultipleDifferentValues)
-                    EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
-                else
-                {
-                    long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue, GraphicsFormat.R16G16B16A16_UNorm);
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
-                }
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
-                if (EditorGUI.EndChangeCheck())
-                    serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen.intValue, 1, ShaderVariablesGlobal.s_MaxEnv2DLight);
-            }
-
-            EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen, Styles.maxEnvContent);
+            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexLastValidCubeMip, Styles.reflectionProbeAtlasLastValidCubeMipContent);
             if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue, 1, HDRenderPipeline.k_MaxEnvLightsOnScreen);
+                serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexLastValidCubeMip.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexLastValidCubeMip.intValue, 0, (int)EnvConstants.ConvolutionMipCount - 1);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexLastValidPlanarMip, Styles.reflectionProbeAtlasLastValidPlanarMipContent);
+            if (EditorGUI.EndChangeCheck())
+                serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexLastValidPlanarMip.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexLastValidPlanarMip.intValue, 0, (int)EnvConstants.ConvolutionMipCount - 1);
+
+            serialized.renderPipelineSettings.cubeReflectionResolution.ValueGUI<CubeReflectionResolution>(Styles.cubeResolutionTitle);
+            // We need to clamp the values to the resolution
+            int atlasResolution = serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize.intValue;
+            int cubeNumLevels = serialized.renderPipelineSettings.cubeReflectionResolution.values.arraySize;
+            for (int levelIdx = 0; levelIdx < cubeNumLevels; ++levelIdx)
+            {
+                SerializedProperty levelValue = serialized.renderPipelineSettings.cubeReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
+                levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
+            }
+
+            serialized.renderPipelineSettings.planarReflectionResolution.ValueGUI<PlanarReflectionAtlasResolution>(Styles.planarResolutionTitle);
+            // We need to clamp the values to the resolution
+            int numLevels = serialized.renderPipelineSettings.planarReflectionResolution.values.arraySize;
+            for (int levelIdx = 0; levelIdx < numLevels; ++levelIdx)
+            {
+                SerializedProperty levelValue = serialized.renderPipelineSettings.planarReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
+                levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxCubeReflectionsOnScreen, Styles.maxCubeProbesContent);
+            if (EditorGUI.EndChangeCheck())
+                serialized.renderPipelineSettings.lightLoopSettings.maxCubeReflectionsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxCubeReflectionsOnScreen.intValue, 1, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionsOnScreen, Styles.maxPlanarProbesContent);
+            if (EditorGUI.EndChangeCheck())
+                serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionsOnScreen.intValue, 1, HDRenderPipeline.k_MaxPlanarReflectionsOnScreen);
+
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.reflectionProbeCompressCacheContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeDecreaseResToFit, Styles.reflectionProbeDecreaseResToFitContent);
         }
 
         static void Drawer_SectionSky(SerializedHDRenderPipelineAsset serialized, Editor owner)

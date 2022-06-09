@@ -102,8 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case ProbeSettings.ProbeType.ReflectionProbe:
                             target = HDRenderUtilities.CreateReflectionProbeRenderTarget(
-                                (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize,
-                                format
+                                (int)probe.cubeResolution, format
                             );
                             break;
                     }
@@ -124,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case ProbeSettings.ProbeType.ReflectionProbe:
                             target = HDRenderUtilities.CreateReflectionProbeRenderTarget(
-                                (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize, format
+                                (int)probe.cubeResolution, format
                             );
                             break;
                     }
@@ -210,10 +209,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Insert in the array
                         // Grow the arrays
-                        if (m_PlanarProbeCount == m_PlanarProbesArray.Length)
+                        if (m_PlanarProbeCount >= m_PlanarProbesArray.Length)
                         {
-                            Array.Resize(ref m_PlanarProbesArray, m_PlanarProbes.Count * 2);
-                            Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeBounds.Length * 2);
+                            Array.Resize(ref m_PlanarProbesArray, m_PlanarProbeCount * 2);
+                            Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeCount * 2);
                         }
                         m_PlanarProbesArray[m_PlanarProbeCount] = (PlanarReflectionProbe)probe;
                         m_PlanarProbeBounds[m_PlanarProbeCount] = ((PlanarReflectionProbe)probe).boundingSphere;
@@ -288,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Array.Resize(
                 ref m_QueryCullResults_Indices,
-                Parameters.maxActivePlanarReflectionProbe + Parameters.maxActiveReflectionProbe
+                Parameters.maxActivePlanarReflectionProbe + Parameters.maxActiveEnvReflectionProbe
             );
             var indexCount = state.cullingGroup.QueryIndices(true, m_QueryCullResults_Indices, 0);
             for (var i = 0; i < indexCount; ++i)

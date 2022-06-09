@@ -88,7 +88,15 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.planarReflectionResolution;
                 serialized.resolutionScalable.LevelAndEnumGUILayout<PlanarReflectionAtlasResolution>(
-                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), scalableSetting, null
+                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar reflection probe camera."), scalableSetting, null
+                );
+            }
+
+            if (((int)ProbeSettingsFields.cubeResolution & (int)displayedFields.probe) != 0)
+            {
+                var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.cubeReflectionResolution;
+                serialized.cubeResolution.LevelAndEnumGUILayout<CubeReflectionResolution>(
+                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the reflection probe camera."), scalableSetting, null
                 );
             }
 
