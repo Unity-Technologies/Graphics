@@ -8,8 +8,8 @@
 PR_URP_2019.4:
     name: PR URP on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_2019.4
          rerun: on_new_revision
@@ -24,16 +24,16 @@ PR_URP_2019.4:
 Extra_URP_2019.4:
     name: Extra URP on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_2019.4
          rerun: on_new_revision
 URP_2019.4:
     name: URP on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_2019.4
          rerun: on_new_revision
@@ -42,8 +42,8 @@ URP_2019.4:
 Nightly_URP_2019.4:
     name: Nightly URP on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_2019.4
          rerun: on_new_revision
@@ -52,8 +52,8 @@ Nightly_URP_2019.4:
 PR_URP_fast-2019.4:
     name: PR URP on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_fast-2019.4
          rerun: on_new_revision
@@ -68,16 +68,16 @@ PR_URP_fast-2019.4:
 Extra_URP_fast-2019.4:
     name: Extra URP on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_fast-2019.4
          rerun: on_new_revision
 URP_fast-2019.4:
     name: URP on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_fast-2019.4
          rerun: on_new_revision
@@ -86,8 +86,8 @@ URP_fast-2019.4:
 Nightly_URP_fast-2019.4:
     name: Nightly URP on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_fast-2019.4
          rerun: on_new_revision
@@ -97,8 +97,8 @@ PR_URP_CUSTOM-REVISION:
     name: PR URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: on_new_revision
@@ -114,8 +114,8 @@ Extra_URP_CUSTOM-REVISION:
     name: Extra URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_CUSTOM-REVISION
          rerun: on_new_revision
@@ -123,8 +123,8 @@ URP_CUSTOM-REVISION:
     name: URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -134,8 +134,8 @@ Nightly_URP_CUSTOM-REVISION:
     name: Nightly URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_CUSTOM-REVISION
          rerun: on_new_revision

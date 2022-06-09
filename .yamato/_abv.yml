@@ -8,8 +8,8 @@
 all_project_ci_2019.4:
     name: ABV (all PR jobs) on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_2019.4
          rerun: on_new_revision
@@ -24,12 +24,8 @@ all_project_ci_2019.4:
 all_project_ci_weekly_2019.4:
     name: Weekly on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
-    triggers:
-        recurring:
-          -  branch: 7.x.x/release
-             frequency: weekly
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2019.4
          rerun: on_new_revision
@@ -44,8 +40,8 @@ all_project_ci_weekly_2019.4:
 General_Checks_2019.4:
     name: General Checks on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2019.4
          rerun: on_new_revision
@@ -54,8 +50,8 @@ General_Checks_2019.4:
 Trunk_verification_2019.4:
     name: Trunk verification on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on_new_revision
@@ -78,8 +74,8 @@ Trunk_verification_2019.4:
 all_project_ci_fast-2019.4:
     name: ABV (all PR jobs) on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_fast-2019.4
          rerun: on_new_revision
@@ -94,8 +90,8 @@ all_project_ci_fast-2019.4:
 all_project_ci_weekly_fast-2019.4:
     name: Weekly on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_fast-2019.4
          rerun: on_new_revision
@@ -110,8 +106,8 @@ all_project_ci_weekly_fast-2019.4:
 General_Checks_fast-2019.4:
     name: General Checks on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     triggers:
         expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft
     dependencies:
@@ -122,8 +118,8 @@ General_Checks_fast-2019.4:
 Trunk_verification_fast-2019.4:
     name: Trunk verification on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -147,8 +143,8 @@ all_project_ci_CUSTOM-REVISION:
     name: ABV (all PR jobs) on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -164,8 +160,8 @@ all_project_ci_weekly_CUSTOM-REVISION:
     name: Weekly on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -181,8 +177,8 @@ General_Checks_CUSTOM-REVISION:
     name: General Checks on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: on_new_revision
@@ -192,8 +188,8 @@ Trunk_verification_CUSTOM-REVISION:
     name: Trunk verification on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

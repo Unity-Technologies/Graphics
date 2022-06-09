@@ -12,9 +12,9 @@ Universal_Win_DX11_Standalone_mono_Linear_2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -44,9 +44,9 @@ Build_Universal_Win_DX11_Standalone_mono_Linear_2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -81,9 +81,9 @@ Universal_Win_DX11_playmode_mono_Linear_2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -115,9 +115,9 @@ Universal_Win_DX11_editmode_mono_Linear_2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -149,9 +149,9 @@ Universal_Win_DX11_playmode_XR_mono_Linear_2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -183,9 +183,9 @@ Universal_Win_DX11_Standalone_mono_Linear_fast-2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -215,9 +215,9 @@ Build_Universal_Win_DX11_Standalone_mono_Linear_fast-2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -252,9 +252,9 @@ Universal_Win_DX11_playmode_mono_Linear_fast-2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -286,9 +286,9 @@ Universal_Win_DX11_editmode_mono_Linear_fast-2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -320,9 +320,9 @@ Universal_Win_DX11_playmode_XR_mono_Linear_fast-2019.4:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -354,10 +354,10 @@ Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -387,10 +387,10 @@ Build_Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -425,10 +425,10 @@ Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -460,10 +460,10 @@ Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -495,10 +495,10 @@ Universal_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2

@@ -8,8 +8,8 @@
 PR_ShaderGraph_2019.4:
     name: PR ShaderGraph on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
@@ -24,14 +24,14 @@ PR_ShaderGraph_2019.4:
 Extra_ShaderGraph_2019.4:
     name: Extra ShaderGraph on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 ShaderGraph_2019.4:
     name: ShaderGraph on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2019.4
          rerun: on_new_revision
@@ -40,16 +40,16 @@ ShaderGraph_2019.4:
 Nightly_ShaderGraph_2019.4:
     name: Nightly ShaderGraph on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#ShaderGraph_2019.4
          rerun: on_new_revision
 PR_ShaderGraph_fast-2019.4:
     name: PR ShaderGraph on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -64,14 +64,14 @@ PR_ShaderGraph_fast-2019.4:
 Extra_ShaderGraph_fast-2019.4:
     name: Extra ShaderGraph on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 ShaderGraph_fast-2019.4:
     name: ShaderGraph on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_fast-2019.4
          rerun: on_new_revision
@@ -80,8 +80,8 @@ ShaderGraph_fast-2019.4:
 Nightly_ShaderGraph_fast-2019.4:
     name: Nightly ShaderGraph on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#ShaderGraph_fast-2019.4
          rerun: on_new_revision
@@ -89,8 +89,8 @@ PR_ShaderGraph_CUSTOM-REVISION:
     name: PR ShaderGraph on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -106,15 +106,15 @@ Extra_ShaderGraph_CUSTOM-REVISION:
     name: Extra ShaderGraph on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
@@ -124,8 +124,8 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
