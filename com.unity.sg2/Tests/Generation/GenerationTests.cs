@@ -334,6 +334,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
             Debug.Log(copy.layerData);
             Debug.Log(copy.metaData);
+            Debug.Log(copy.edgeData);
         }
 
     }

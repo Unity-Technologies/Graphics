@@ -309,7 +309,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Debug.Log("GraphHandler.DuplicateContextEntry: Currently not implemented!");
         }
 
-        public (string layerData, string metaData) Copy(List<NodeHandler> sourceGraphNodes)
+        public (string layerData, string metaData, string edgeData) Copy(List<NodeHandler> sourceGraphNodes)
         {
             return graphDelta.m_data.CreateCopyLayerData(sourceGraphNodes);
         }
