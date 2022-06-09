@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     case SectionType.Settings:
                     {
                         if (model.GraphModel is not ShaderGraphModel {IsSubGraph: true} ||
-                            !model.TryGetNodeReader(out var reader) ||
+                            !model.TryGetNodeHandler(out var reader) ||
                             reader.ID.LocalPath != Registry.ResolveKey<ShaderGraphContext>().Name)
                         {
                             break;
