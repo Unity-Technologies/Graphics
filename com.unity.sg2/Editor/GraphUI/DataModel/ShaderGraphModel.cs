@@ -60,7 +60,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
-        public Action<IGraphElementModel> OnGraphModelChanged;
+        public Action<IGraphElementModel> OnGraphModelElementChanged;
+        public Action<IGraphElementModel> OnGraphModelElementAdded;
 
         public void Init(GraphHandler graph, bool isSubGraph)
         {
@@ -137,7 +138,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 foreach (var child in toRedir.GetRedirectTree(true))
                 {
                     child.UpdateTypeFrom(fromPort);
-                    OnGraphModelChanged(child);
+                    OnGraphModelElementChanged(child);
                 }
             }
             else
@@ -261,7 +262,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="sourceNode"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
         /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
         /// <returns></returns>
-        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta)
+        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, GraphModelStateComponent.StateUpdater stateUpdater = default)
         {
             var pastedNodeModel = sourceNode.Clone();
             // Set graphmodel BEFORE define node as it is commonly use during Define
@@ -277,17 +278,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
                     break;
                 }
-                case GraphDataVariableNodeModel newCopiedVariableNode:
+                case GraphDataVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
                 {
                     newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
 
-                    var contextName = Registry.ResolveKey<PropertyContext>().Name;
-
-                    // Every time a variable node is added to the graph, add a reference node pointing back
-                    // to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
-
-                    // TODO: (Need the variable declaration model's guid/graphDataName for the contextEntryName parameter)
-                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, contextName, newCopiedVariableNode.DisplayTitle, RegistryInstance.Registry);
+                    // Every time a variable node is duplicated, add a reference node pointing back
+                    // to the property/keyword that is wrapped by the VariableDeclarationModel, on the CLDS level
+                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName, RegistryInstance.Registry);
                     break;
                 }
             }
@@ -295,6 +292,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
             pastedNodeModel.Position += delta;
             AddNode(pastedNodeModel);
             pastedNodeModel.OnDuplicateNode(sourceNode);
+
+            stateUpdater?.MarkNew(sourceNode);
+
+            // TODO: How to mark graph element models as new, for observers? Needed to draw edges, cause GraphView collects stuff from the changeset
+            var originalSourceNode = NodeModels.FirstOrDefault(model => model.Guid == sourceNode.Guid);
+            if (originalSourceNode != null)
+            {
+                foreach (var edge in originalSourceNode.GetConnectedEdges())
+                {
+                    // If this node has any incoming edges, copy them over as well
+                    if (edge.ToPort.NodeModel == originalSourceNode)
+                    {
+                        DuplicateEdge(edge, pastedNodeModel, edge.FromPort.NodeModel);
+                        stateUpdater?.MarkNew(edge);
+                    }
+                }
+            }
 
             if (pastedNodeModel is IGraphElementContainer container)
             {

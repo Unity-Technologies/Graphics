@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
@@ -285,7 +286,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>The newly created node.</returns>
         INodeModel CreateNode(Type nodeTypeToCreate, string nodeName, Vector2 position,
             SerializableGUID guid = default, Action<INodeModel> initializationCallback = null, SpawnFlags spawnFlags = SpawnFlags.Default);
-        INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta);
+
+        // GTF-EDIT: Added parameter to pass state updater in some situations where its needed, can default to null however
+        INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null);
         IReadOnlyCollection<IGraphElementModel> DeleteNodes(IReadOnlyCollection<INodeModel> nodeModels, bool deleteConnections);
 
         /// <summary>

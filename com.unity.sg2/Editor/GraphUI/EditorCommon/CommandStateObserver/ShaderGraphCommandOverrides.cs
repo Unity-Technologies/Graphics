@@ -250,7 +250,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
             {
-                previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
+                // TODO: Switch to using OnGlobalPropertyChanged() when we have property promotion
+                //previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
+                previewManager.OnLocalPropertyChanged( cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
                 return;
             }
 
