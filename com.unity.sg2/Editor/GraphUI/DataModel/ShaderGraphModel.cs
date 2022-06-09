@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -262,7 +263,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="sourceNode"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
         /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
         /// <returns></returns>
-        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, GraphModelStateComponent.StateUpdater stateUpdater = default)
+        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null)
         {
             var pastedNodeModel = sourceNode.Clone();
             // Set graphmodel BEFORE define node as it is commonly use during Define
@@ -293,7 +294,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             AddNode(pastedNodeModel);
             pastedNodeModel.OnDuplicateNode(sourceNode);
 
-            stateUpdater?.MarkNew(sourceNode);
+            var graphModelStateUpdater = stateComponentUpdater as GraphModelStateComponent.StateUpdater;
+            graphModelStateUpdater?.MarkNew(sourceNode);
 
             // TODO: How to mark graph element models as new, for observers? Needed to draw edges, cause GraphView collects stuff from the changeset
             var originalSourceNode = NodeModels.FirstOrDefault(model => model.Guid == sourceNode.Guid);
@@ -305,7 +307,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     if (edge.ToPort.NodeModel == originalSourceNode)
                     {
                         DuplicateEdge(edge, pastedNodeModel, edge.FromPort.NodeModel);
-                        stateUpdater?.MarkNew(edge);
+                        graphModelStateUpdater?.MarkNew(edge);
                     }
                 }
             }
