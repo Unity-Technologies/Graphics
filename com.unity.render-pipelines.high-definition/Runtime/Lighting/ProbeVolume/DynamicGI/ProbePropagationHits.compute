@@ -21,7 +21,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
 
-RWStructuredBuffer<float3> _HitRadianceCacheAxis;
+RWStructuredBuffer<Color64> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
 
 StructuredBuffer<PackedNeighborHit> _ProbeVolumeNeighborHits;
@@ -223,6 +223,6 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         lighting += UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
         lighting += UnpackEmission(neighborData.mixedLighting) * _MixedLightingMultiplier;
 
-        _HitRadianceCacheAxis[hitAxisIndex] = lighting;
+        _HitRadianceCacheAxis[hitAxisIndex] = PackColor64(lighting);
     }
 }

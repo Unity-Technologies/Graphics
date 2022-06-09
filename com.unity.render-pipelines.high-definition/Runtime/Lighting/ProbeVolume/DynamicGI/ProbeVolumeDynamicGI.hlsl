@@ -1,6 +1,8 @@
 #ifndef PROBE_VOLUME_DYNAMIC_GI
 #define PROBE_VOLUME_DYNAMIC_GI
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
 
 #define PROBE_VOLUME_NEIGHBOR_MAX_HIT_AXIS 16777215
@@ -30,6 +32,12 @@ struct NeighborAxisLookup
 struct NeighborAxis
 {
     uint hitIndexValidity;
+};
+
+struct Color64
+{
+    uint rg;
+    uint b;
 };
 
 float4 UnpackAlbedoAndDistance(uint packedVal, float maxNeighborDistance)
@@ -100,6 +108,25 @@ void UnpackIndicesAndValidityOnly(uint packedVal, out uint hitIndex, out float v
 {
     validity = (packedVal & 255) / 255.0f;
     hitIndex = (packedVal >> 8) & PROBE_VOLUME_NEIGHBOR_MAX_HIT_AXIS;
+}
+
+Color64 PackColor64(float3 val)
+{
+    uint r = f32tof16(val.r);
+    uint g = f32tof16(val.g);
+    uint b = f32tof16(val.b);
+    Color64 packedVal;
+    packedVal.rg = r << 16 | g;
+    packedVal.b = b;
+    return packedVal;
+}
+
+float3 UnpackColor64(Color64 packedVal)
+{
+    float r = f16tof32(packedVal.rg >> 16);
+    float g = f16tof32(packedVal.rg);
+    float b = f16tof32(packedVal.b);
+    return float3(r, g, b);
 }
 
 #endif // endof PROBE_VOLUME_DYNAMIC_GI

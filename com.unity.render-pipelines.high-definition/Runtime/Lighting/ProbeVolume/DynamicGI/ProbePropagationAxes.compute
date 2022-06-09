@@ -42,7 +42,7 @@ StructuredBuffer<NeighborAxisLookup> _SortedNeighborAxisLookups;
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
 
-StructuredBuffer<float3> _HitRadianceCacheAxis;
+StructuredBuffer<Color64> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
 
 float _PropagationContribution;
@@ -239,7 +239,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
             #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            _RadianceCacheAxis[index] = 0;
+            _RadianceCacheAxis[index] = (Color64)0;
             #else
             _RadianceCacheAxis[index] = _PreviousRadianceCacheAxis[index];
             #endif
@@ -287,7 +287,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             {
                 // Hit
                 float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
-                incomingHitRadiance += _HitRadianceCacheAxis[hitIndex] * weight;
+                incomingHitRadiance += UnpackColor64(_HitRadianceCacheAxis[hitIndex]) * weight;
             }
             else
             {
@@ -336,6 +336,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             }
         }
 
-        _RadianceCacheAxis[index] = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
+        _RadianceCacheAxis[index] = PackColor64((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
     }
 }

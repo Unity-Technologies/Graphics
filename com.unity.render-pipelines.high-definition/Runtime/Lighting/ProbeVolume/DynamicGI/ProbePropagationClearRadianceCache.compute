@@ -2,10 +2,11 @@
 #define GROUP_SIZE 64
 //#pragma enable_d3d11_debug_symbols
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 
-RWStructuredBuffer<float3> _RadianceCacheAxis0;
-RWStructuredBuffer<float3> _RadianceCacheAxis1;
-RWStructuredBuffer<float3> _HitRadianceCacheAxis;
+RWStructuredBuffer<Color64> _RadianceCacheAxis0;
+RWStructuredBuffer<Color64> _RadianceCacheAxis1;
+RWStructuredBuffer<Color64> _HitRadianceCacheAxis;
 int _RadianceCacheAxisCount;
 int _HitRadianceCacheAxisCount;
 
@@ -15,11 +16,11 @@ void ClearPreviousRadianceCache(uint3 id : SV_DispatchThreadID)
     const int axisIndex = id.x;
     if (axisIndex < _RadianceCacheAxisCount)
     {
-        _RadianceCacheAxis0[axisIndex] = 0;
-        _RadianceCacheAxis1[axisIndex] = 0;
+        _RadianceCacheAxis0[axisIndex] = (Color64)0;
+        _RadianceCacheAxis1[axisIndex] = (Color64)0;
     }
     if (axisIndex < _HitRadianceCacheAxisCount)
     {
-        _HitRadianceCacheAxis[axisIndex] = 0;
+        _HitRadianceCacheAxis[axisIndex] = (Color64)0;
     }
 }
