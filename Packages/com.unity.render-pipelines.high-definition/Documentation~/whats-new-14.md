@@ -85,6 +85,12 @@ Shaders of the fullscreen type can be used in fullscreen custom passes, custom p
 
 For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
 
+### Lens Flare
+
+When using Lens Flare, HDRP allow to remap the result of the occlusion to another value with a curve. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.
+
+![](Images/LensFlare_OcclusionCurve.png)
+
 ### New Eye Shader Subtype
 
 ![](Images/EyeCaustic.gif)
