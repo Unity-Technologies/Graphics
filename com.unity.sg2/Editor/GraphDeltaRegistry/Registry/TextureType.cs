@@ -28,8 +28,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             GraphTypeHelpers.InitGraphType(color);
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             // Need to ignore the sampler if there is no user data on it or if it isn't connected, textures have one they are loaded w/already.
             var samplerPort = node.GetPort(kSampler);
             bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
@@ -73,8 +74,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             node.AddPort<BaseTextureType>(kOutput, false, registry);
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, GetRegistryKey().Name);
             var field = node.GetPort(kInlineStatic).GetTypeField();
             var shaderType = registry.GetShaderType(field, container);

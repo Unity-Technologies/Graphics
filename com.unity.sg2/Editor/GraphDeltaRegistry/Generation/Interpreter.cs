@@ -9,14 +9,17 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
-        public static string GetFunctionCode(NodeHandler node, Registry registry)
+        public static string GetFunctionCode(NodeHandler node, Registry registry) // What is this used for?
         {
             var builder = new ShaderBuilder();
-            List<ShaderFunction> dependencies = new();
-            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry, ref dependencies);
+            //List<ShaderFunction> dependencies = new();
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry, out var dependencies);
             builder.AddDeclarationString(func);
-            foreach (var dep in dependencies)
-                builder.AddDeclarationString(dep);
+            if (dependencies.localFunctions != null)
+            {
+                foreach (var dep in dependencies.localFunctions)
+                    builder.AddDeclarationString(dep);
+            }
             return builder.ConvertToString();
         }
 
@@ -154,6 +157,7 @@ namespace UnityEditor.ShaderGraph.Generation
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.LocalPath}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
+            var includes = new List<ShaderFoundry.IncludeDescriptor>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
                 //if the node is a context node (and not the root node) we recurse
@@ -180,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
                 else
                 {
-                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref defaultTextures, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref defaultTextures, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, ref includes, registry);
                 }
             }
 
@@ -193,6 +197,12 @@ namespace UnityEditor.ShaderGraph.Generation
             foreach(var func in shaderFunctions)
             {
                 blockBuilder.AddFunction(func);
+            }
+            // TODO: https://github.com/Unity-Technologies/Graphics/pull/7079 and following changes in Graphics repo
+            // will allow includes to be added directly to ShaderFunctions instead.
+            foreach (var include in includes)
+            {
+                blockBuilder.AddInclude(include);
             }
 
             var inputType = BuildStructFromVariables(container, $"{BlockName}Input", inputVariables, blockBuilder);
@@ -378,11 +388,18 @@ namespace UnityEditor.ShaderGraph.Generation
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
             ref List<ShaderFunction> shaderFunctions,
+            ref List<ShaderFoundry.IncludeDescriptor> includes,
             Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
             List<ShaderFunction> localDependencies = new();
-            var func = nodeBuilder.GetShaderFunction(node, container, registry, ref localDependencies);
+            var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
+
+            if (dependencies.includes != null)
+                includes.AddRange(dependencies.includes);
+            if (dependencies.localFunctions != null)
+                localDependencies.AddRange(dependencies.localFunctions);
+
             localDependencies.Add(func);
             bool shouldAdd = true;
 
@@ -400,6 +417,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     shaderFunctions.Add(function);
                 }
             }
+
             string arguments = "";
             foreach (var param in func.Parameters)
             {

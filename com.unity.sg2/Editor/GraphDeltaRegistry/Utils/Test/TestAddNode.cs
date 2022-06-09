@@ -19,8 +19,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             NodeHandler node,
             ShaderContainer container,
             Registry registry,
-            ref System.Collections.Generic.List<ShaderFunction> dependencies)
+            out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             return NodeHelpers.MathNodeFunctionBuilder(node.ID.LocalPath + "TestAdd", "+", node, container, registry);
         }
     }

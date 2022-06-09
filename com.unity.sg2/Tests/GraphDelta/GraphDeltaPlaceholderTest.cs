@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     return new RegistryKey() { Name = "TestNode", Version = 1 };
                 }
 
-                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
+                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
                 {
                     throw new System.NotImplementedException();
                 }

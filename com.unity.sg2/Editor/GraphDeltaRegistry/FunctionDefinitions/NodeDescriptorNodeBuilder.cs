@@ -103,8 +103,9 @@ namespace UnityEditor.ShaderGraph.Defs
             NodeHandler node,
             ShaderContainer container,
             Registry registry,
-            ref List<ShaderFunction> dependencies)
+            out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
 
             // check node metadata for a selected function name

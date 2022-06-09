@@ -39,8 +39,10 @@ namespace UnityEditor.ShaderGraph.Defs
             NodeHandler data,
             ShaderContainer container,
             Registry registry,
-            ref List<ShaderFunction> dependencies)
+            out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
+
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
 
