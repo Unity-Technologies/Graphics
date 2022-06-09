@@ -23,9 +23,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void CreateEntry(string entryName, TypeHandle typeHandle)
         {
-            if (!TryGetNodeReader(out var nodeHandler)) return;
+            if (!TryGetNodeHandler(out var nodeHandler)) return;
 
-            var entry = new IContextDescriptor.ContextEntry
+            var entry = new ContextEntry
             {
                 fieldName = entryName,
                 height = ShaderGraphExampleTypes.GetGraphTypeHeight(typeHandle),
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void RemoveEntry(string name)
         {
-            if (!TryGetNodeReader(out var nodeHandler)) return;
+            if (!TryGetNodeHandler(out var nodeHandler)) return;
 
             nodeHandler.RemovePort(name);
             nodeHandler.RemovePort("out_" + name);

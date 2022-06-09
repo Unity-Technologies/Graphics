@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO (Joe): It'd be better to separate the display and data names
             proposedName = proposedName.Replace('.', '_');
 
-            if (!m_ContextNodeModel.TryGetNodeReader(out var nodeHandler)) return proposedName;
+            if (!m_ContextNodeModel.TryGetNodeHandler(out var nodeHandler)) return proposedName;
 
             var existingNames = nodeHandler.GetPorts().Select(p => p.ID.LocalPath);
             return ObjectNames.GetUniqueName(existingNames.ToArray(), proposedName);
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.UpdatePartFromModel();
 
-            if (!m_ContextNodeModel.TryGetNodeReader(out var nodeHandler)) return;
+            if (!m_ContextNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
 
             m_OutputRows.Clear();
             foreach (var portHandler in nodeHandler.GetPorts())
