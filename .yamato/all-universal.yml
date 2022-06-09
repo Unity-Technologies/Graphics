@@ -8,8 +8,8 @@
 PR_Universal_2019.4:
     name: PR Universal on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
@@ -26,14 +26,14 @@ PR_Universal_2019.4:
 Extra_Universal_2019.4:
     name: Extra Universal on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_2019.4:
     name: Universal on 2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_2019.4
          rerun: on_new_revision
@@ -42,8 +42,8 @@ Universal_2019.4:
 PR_Universal_fast-2019.4:
     name: PR Universal on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -60,14 +60,14 @@ PR_Universal_fast-2019.4:
 Extra_Universal_fast-2019.4:
     name: Extra Universal on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_fast-2019.4:
     name: Universal on fast-2019.4
     variables:
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_fast-2019.4
          rerun: on_new_revision
@@ -77,8 +77,8 @@ PR_Universal_CUSTOM-REVISION:
     name: PR Universal on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -96,15 +96,15 @@ Extra_Universal_CUSTOM-REVISION:
     name: Extra Universal on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_CUSTOM-REVISION:
     name: Universal on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: on_new_revision

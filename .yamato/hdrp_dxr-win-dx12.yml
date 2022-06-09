@@ -13,9 +13,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_2019.4:
         flavor: b1.large
         model: rtx2080
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -45,9 +45,9 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_2019.4:
         flavor: b1.large
         model: rtx2080
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -82,9 +82,9 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_2019.4:
         flavor: b1.large
         model: rtx2080
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -116,9 +116,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_fast-2019.4:
         flavor: b1.large
         model: rtx2080
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -148,9 +148,9 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_fast-2019.4:
         flavor: b1.large
         model: rtx2080
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -185,9 +185,9 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_fast-2019.4:
         flavor: b1.large
         model: rtx2080
     variables:
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -219,10 +219,10 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         flavor: b1.large
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -252,10 +252,10 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         flavor: b1.large
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
@@ -290,10 +290,10 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
         flavor: b1.large
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
          retries: 2
