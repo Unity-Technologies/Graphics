@@ -322,6 +322,20 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
         }
 
+        [Test]
+        public void CopyTest()
+        {
+            var copy = graph.Copy(new List<NodeHandler>()
+            {
+                graph.GetNode("Add1"),
+                graph.GetNode("Add2"),
+                graph.GetNode("Add3")
+            });
+
+            Debug.Log(copy.layerData);
+            Debug.Log(copy.metaData);
+        }
+
     }
 
 }

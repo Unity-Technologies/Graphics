@@ -157,5 +157,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             base.CopyDataBranch(src, dst);
         }
+
+        internal (string layerData, string metaData) CreateCopyLayerData(IEnumerable<NodeHandler> nodes)
+        {
+            List<DataReader> readers = new List<DataReader>();
+            foreach(var node in nodes)
+            {
+                readers.Add(node.Reader);
+                GatherAll(node.Reader, out List<DataReader> accumulator);
+                readers.AddRange(accumulator);
+            }
+            return CopyElementCollection(readers);
+        }
     }
 }
