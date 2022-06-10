@@ -75,7 +75,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 
 #if UNITY_2022_2_OR_NEWER
             onItemsChosen += _ => OnItemChosen();
-            selectionChanged += _ => OnSelectionChanged();
+            onSelectionChange += _ => OnSelectionChanged();
 #elif UNITY_2020_1_OR_NEWER
             onItemsChosen += obj => OnItemSelected((obj.FirstOrDefault() as ISearcherItemView)?.SearcherItem);
             onSelectionChange += OnSelectionChanged;
