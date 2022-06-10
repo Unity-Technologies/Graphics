@@ -20,13 +20,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int ArrayCapacity = 100;
 
         //Light GPU ready arrays
-        public NativeArray<LightData> lights => m_Lights;
+        public NativeArray<LightDataCpuSubset> lights => m_LightsCpuSubset;
+        public ComputeBuffer lightsBuffer => m_LightsBuffer;
         public int lightsCount => m_LightCount;
-        public NativeArray<DirectionalLightData> directionalLights => m_DirectionalLights;
+        public NativeArray<DirectionalLightDataCpuSubset> directionalLights => m_DirectionalLightsCpuSubset;
+        public ComputeBuffer directionalLightsBuffer => m_DirectionalLightsBuffer;
         public int directionalLightCount => m_LightTypeCounters.IsCreated ? m_LightTypeCounters[(int)GPULightTypeCountSlots.Directional] : 0;
         public int punctualLightCount => m_LightTypeCounters.IsCreated ? m_LightTypeCounters[(int)GPULightTypeCountSlots.Punctual] : 0;
         public int areaLightCount => m_LightTypeCounters.IsCreated ? m_LightTypeCounters[(int)GPULightTypeCountSlots.Area] : 0;
 
+        public NativeArray<LightDataCpuSubset> dgiLights => m_DGILightsCpuSubset;
         public ComputeBuffer dgiLightsBuffer => m_DGILightsBuffer;
         public int dgiLightsCount => m_DGILightCount;
         public int dgiPunctualLightCount => m_DGILightTypeCounters.IsCreated ? m_DGILightTypeCounters[(int)GPULightTypeCountSlots.Punctual] : 0;
@@ -46,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int currentShadowSortedSunLightIndex => m_CurrentShadowSortedSunLightIndex;
         public HDAdditionalLightData currentSunLightAdditionalLightData => m_CurrentSunLightAdditionalLightData;
         public HDProcessedVisibleLightsBuilder.ShadowMapFlags currentSunShadowMapFlags => m_CurrentSunShadowMapFlags;
-        public DirectionalLightData currentSunLightDirectionalLightData => m_CurrentSunLightDirectionalLightData;
+        public DirectionalLightDataCpuSubset currentSunLightDirectionalLightData => m_CurrentSunLightDirectionalLightData;
         public int contactShadowIndex => m_ContactShadowIndex;
         public int screenSpaceShadowIndex => m_ScreenSpaceShadowIndex;
         public int screenSpaceShadowChannelSlot => m_ScreenSpaceShadowChannelSlot;
@@ -92,6 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //Allocate all the GPU critical buffers, for the case were there are no lights.
             //This ensures we can bind an empty buffer on ComputeBuffer SetData() call
+            m_LightsData = new StructuredFencedComputeBuffer<LightData>(maxPunctualCount + maxAreaCount);
+            m_DirectionalLightsData = new StructuredFencedComputeBuffer<DirectionalLightData>(maxDirectionalCount);
             m_DGILightsData = new StructuredFencedComputeBuffer<LightData>(maxPunctualCount + maxAreaCount);
 
             AllocateLightData(0, 0, 0);
@@ -110,12 +115,16 @@ namespace UnityEngine.Rendering.HighDefinition
         //Cleans up / disposes light info.
         public void Cleanup()
         {
-            if (m_Lights.IsCreated)
-                m_Lights.Dispose();
+            if (m_LightsCpuSubset.IsCreated)
+                m_LightsCpuSubset.Dispose();
+            m_LightsData?.Dispose();
 
-            if (m_DirectionalLights.IsCreated)
-                m_DirectionalLights.Dispose();
+            if (m_DirectionalLightsCpuSubset.IsCreated)
+                m_DirectionalLightsCpuSubset.Dispose();
+            m_DirectionalLightsData?.Dispose();
 
+            if (m_DGILightsCpuSubset.IsCreated)
+                m_DGILightsCpuSubset.Dispose();
             m_DGILightsData?.Dispose();
 
             if (m_LightsPerView.IsCreated)
@@ -153,16 +162,24 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_LightBoundsCapacity = 0;
         private int m_LightBoundsCount = 0;
 
+        private StructuredFencedComputeBuffer<LightData> m_LightsData;
         private NativeArray<LightData> m_Lights;
+        private NativeArray<LightDataCpuSubset> m_LightsCpuSubset;
         private int m_LightCapacity = 0;
         private int m_LightCount = 0;
+        private ComputeBuffer m_LightsBuffer = null;
 
+        private StructuredFencedComputeBuffer<DirectionalLightData> m_DirectionalLightsData;
         private NativeArray<DirectionalLightData> m_DirectionalLights;
+        private NativeArray<DirectionalLightDataCpuSubset> m_DirectionalLightsCpuSubset;
         private int m_DirectionalLightCapacity = 0;
         private int m_DirectionalLightCount = 0;
+        private ComputeBuffer m_DirectionalLightsBuffer = null;
 
         private StructuredFencedComputeBuffer<LightData> m_DGILightsData;
         private NativeArray<LightData> m_DGILights;
+        private NativeArray<LightDataCpuSubset> m_DGILightsCpuSubset;
+        private int m_DGILightCapacity = 0;
         private int m_DGILightCount = 0;
         private ComputeBuffer m_DGILightsBuffer = null;
 
@@ -177,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_CurrentShadowSortedSunLightIndex = -1;
         private HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         private HDProcessedVisibleLightsBuilder.ShadowMapFlags m_CurrentSunShadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
-        private DirectionalLightData m_CurrentSunLightDirectionalLightData;
+        private DirectionalLightDataCpuSubset m_CurrentSunLightDirectionalLightData;
 
         private int m_ContactShadowIndex = 0;
         private int m_ScreenSpaceShadowIndex = 0;
@@ -194,18 +211,24 @@ namespace UnityEngine.Rendering.HighDefinition
             if (requestedLightCount > m_LightCapacity)
             {
                 m_LightCapacity = Math.Max(Math.Max(m_LightCapacity * 2, requestedLightCount), ArrayCapacity);
-                m_Lights.ResizeArray(m_LightCapacity);
+                m_LightsCpuSubset.ResizeArray(m_LightCapacity);
             }
             m_LightCount = lightCount;
-
-            int requestedDurectinalCount = Math.Max(1, directionalLightCount);
-            if (requestedDurectinalCount > m_DirectionalLightCapacity)
+            
+            int requestedDirectionalCount = Math.Max(1, directionalLightCount);
+            if (requestedDirectionalCount > m_DirectionalLightCapacity)
             {
-                m_DirectionalLightCapacity = Math.Max(Math.Max(m_DirectionalLightCapacity * 2, requestedDurectinalCount), ArrayCapacity);
-                m_DirectionalLights.ResizeArray(m_DirectionalLightCapacity);
+                m_DirectionalLightCapacity = Math.Max(Math.Max(m_DirectionalLightCapacity * 2, requestedDirectionalCount), ArrayCapacity);
+                m_DirectionalLightsCpuSubset.ResizeArray(m_DirectionalLightCapacity);
             }
             m_DirectionalLightCount = directionalLightCount;
 
+            int requestedDgiCount = Math.Max(1, dgiLightCount);
+            if (requestedDgiCount > m_DGILightCapacity)
+            {
+                m_DGILightCapacity = Math.Max(Math.Max(m_DGILightCapacity * 2, requestedDgiCount), ArrayCapacity);
+                m_DGILightsCpuSubset.ResizeArray(m_DGILightCapacity);
+            }
             m_DGILightCount = dgiLightCount;
         }
 

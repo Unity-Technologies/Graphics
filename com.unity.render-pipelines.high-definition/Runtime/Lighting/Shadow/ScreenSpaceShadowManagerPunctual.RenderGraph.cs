@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         TextureHandle DenoisePunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-                                                    HDAdditionalLightData additionalLightData, in LightData lightData,
+                                                    HDAdditionalLightData additionalLightData, in LightDataCpuSubset lightData,
                                                     TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer,
                                                     TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBufferI)
         {
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderPunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
-        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
+        , in LightDataCpuSubset lightData, HDAdditionalLightData additionalLightData, int lightIndex,
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             TextureHandle pointShadowBuffer;

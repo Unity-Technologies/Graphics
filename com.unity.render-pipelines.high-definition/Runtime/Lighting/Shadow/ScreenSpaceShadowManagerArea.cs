@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
         }
 
-        RTSAreaRayTraceParameters PrepareRTSAreaRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData, int lightIndex)
+        RTSAreaRayTraceParameters PrepareRTSAreaRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightDataCpuSubset lightData, int lightIndex)
         {
             RTSAreaRayTraceParameters rtsartParams = new RTSAreaRayTraceParameters();
 
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
+        , in LightDataCpuSubset lightData, HDAdditionalLightData additionalLightData, int lightIndex)
         {
             RTHandle intermediateBufferRG0 = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
             RTHandle intermediateBufferRGBA0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderAreaScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
-        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
+        , in LightDataCpuSubset lightData, HDAdditionalLightData additionalLightData, int lightIndex,
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             // Grab the history buffers for shadows

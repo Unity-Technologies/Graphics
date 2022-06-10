@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!m_CurrentScreenSpaceShadowData[lightIdx].valid) continue;
 
                 // Fetch the light data and additional light data
-                LightData currentLight = m_GpuLightsBuilder.lights[m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex];
+                LightDataCpuSubset currentLight = m_GpuLightsBuilder.lights[m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex];
                 HDAdditionalLightData currentAdditionalLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
 
                 // Trigger the right algorithm based on the light type

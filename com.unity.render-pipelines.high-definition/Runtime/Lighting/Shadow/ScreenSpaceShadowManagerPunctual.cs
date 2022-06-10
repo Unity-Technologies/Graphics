@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
         }
 
-        SSSPunctualRayTraceParameters PrepareSSSPunctualRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData, int lightIndex)
+        SSSPunctualRayTraceParameters PrepareSSSPunctualRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightDataCpuSubset lightData, int lightIndex)
         {
             SSSPunctualRayTraceParameters ssprtParams = new SSSPunctualRayTraceParameters();
 
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static float EvaluateHistoryValidityPointShadow(HDCamera hdCamera, LightData lightData, HDAdditionalLightData additionalLightData)
+        static float EvaluateHistoryValidityPointShadow(HDCamera hdCamera, LightDataCpuSubset lightData, HDAdditionalLightData additionalLightData)
         {
             // We need to set the history as invalid if the light has moved (rotated or translated),
             float historyValidity = 1.0f;
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void DenoisePunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera,
-                                                HDAdditionalLightData additionalLightData, in LightData lightData,
+                                                HDAdditionalLightData additionalLightData, in LightDataCpuSubset lightData,
                                                 RTHandle velocityBuffer, RTHandle distanceBufferI, RTHandle shadowBuffer)
         {
             // Request the additional temporary buffers we shall be using
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderPunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
+            , in LightDataCpuSubset lightData, HDAdditionalLightData additionalLightData, int lightIndex)
         {
             // Request the intermediate buffers we shall be using
             RTHandle outputShadowBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);

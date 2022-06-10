@@ -120,6 +120,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 surfaceTextureScaleOffset;     // -1 if unused (TODO: 16 bit)
     };
 
+    struct DirectionalLightDataCpuSubset
+    {
+        public int screenSpaceShadowIndex;
+    };
+
     [GenerateHLSL(PackingRules.Exact, false)]
     // custom-begin:
     public
@@ -183,6 +188,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   isRayTracedContactShadow;
         public float   boxLightSafeExtent;
         public int hierarchicalVarianceScreenSpaceShadowsIndex;
+    };
+
+    struct LightDataCpuSubset
+    {
+        public GPULightType lightType;
+        public float range;
+        public Vector3 right;
+        public Vector3 up;
+        public Vector3 forward;
+        public Vector3 positionRWS;
+        public int screenSpaceShadowIndex;
     };
 
 

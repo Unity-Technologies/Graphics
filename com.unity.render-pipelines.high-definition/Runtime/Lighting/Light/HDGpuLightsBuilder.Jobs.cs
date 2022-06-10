@@ -116,10 +116,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<LightData> lights;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
+            public NativeArray<LightDataCpuSubset> lightsCpuSubset;
+            [WriteOnly]
+            [NativeDisableContainerSafetyRestriction]
             public NativeArray<DirectionalLightData> directionalLights;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
+            public NativeArray<DirectionalLightDataCpuSubset> directionalLightsCpuSubset;
+            [WriteOnly]
+            [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightData> dgiLights;
+            [WriteOnly]
+            [NativeDisableContainerSafetyRestriction]
+            public NativeArray<LightDataCpuSubset> dgiLightsCpuSubset;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightsPerView> lightsPerView;
@@ -407,7 +416,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var counterSet = !isDGI ? gpuLightCounters : dgiGpuLightCounters;
                 int maxLightCount = !isDGI ? outputLightCounts : outputDGILightCounts;
-                var outputArray = !isDGI ? lights : dgiLights;
+                var outputCpuArray = !isDGI ? lightsCpuSubset : dgiLightsCpuSubset;
+                var outputGpuArray = !isDGI ? lights : dgiLights;
 
                 switch (lightCategory)
                 {
@@ -426,7 +436,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (outputIndex < 0 || outputIndex >= maxLightCount)
                     throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + maxLightCount);
 #endif
-                outputArray[outputIndex] = lightData;
+                outputGpuArray[outputIndex] = lightData;
+                outputCpuArray[outputIndex] = new LightDataCpuSubset()
+                {
+                    lightType = lightData.lightType,
+                    range = lightData.range,
+                    right = lightData.right,
+                    up = lightData.up,
+                    forward = lightData.forward,
+                    positionRWS = lightData.positionRWS,
+                    screenSpaceShadowIndex = lightData.screenSpaceShadowIndex,
+                };
             }
 
             private void ComputeLightVolumeDataAndBound(
@@ -715,6 +735,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 directionalLights[outputIndex] = lightData;
+                directionalLightsCpuSubset[outputIndex] = new DirectionalLightDataCpuSubset()
+                {
+                    screenSpaceShadowIndex = lightData.screenSpaceShadowIndex,
+                };
             }
 
             public void Execute(int index)
@@ -729,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (gpuLightType == GPULightType.Directional)
                 {
-                    if (!isDGI) // While we setup output buffers for directional DGI lights, they're never used, so we skip processing them
+                    if (!isDGI)
                     {
                         int outputIndex = localIndex;
                         ConvertDirectionalLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType);
@@ -797,8 +821,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 gpuLightCounters = m_LightTypeCounters,
                 dgiGpuLightCounters = m_DGILightTypeCounters,
                 lights = m_Lights,
+                lightsCpuSubset = m_LightsCpuSubset,
                 directionalLights = m_DirectionalLights,
+                directionalLightsCpuSubset = m_DirectionalLightsCpuSubset,
                 dgiLights = m_DGILights,
+                dgiLightsCpuSubset = m_DGILightsCpuSubset,
                 lightsPerView = m_LightsPerView,
                 lightBounds = m_LightBounds,
                 lightVolumes = m_LightVolumes

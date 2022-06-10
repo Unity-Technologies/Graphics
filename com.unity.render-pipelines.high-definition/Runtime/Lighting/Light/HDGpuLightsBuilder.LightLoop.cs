@@ -50,7 +50,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DGILightTypeCounters.ResizeArray(numLightTypes);
 
             m_LightCount = 0;
+            m_DirectionalLightCount = 0;
             m_DGILightCount = 0;
+            m_LightsBuffer = null;
+            m_DirectionalLightsBuffer = null;
             m_DGILightsBuffer = null;
             m_ContactShadowIndex = 0;
             m_ScreenSpaceShadowIndex = 0;
@@ -99,7 +102,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             AllocateLightData(visibleLightsCount, visibleDirectionalCount, dgiLightsCount);
 
+            using var lightHandle = m_LightsData.BeginWrite(m_LightCount);
+            using var directionalLightHandle = m_DirectionalLightsData.BeginWrite(m_DirectionalLightCount);
             using var dgiHandle = m_DGILightsData.BeginWrite(dgiLightsCount);
+
+            m_Lights = lightHandle.Data;
+            m_DirectionalLights = directionalLightHandle.Data;
             m_DGILights = dgiHandle.Data;
             
             // TODO: Refactor shadow management
@@ -126,6 +134,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings, hierarchicalVarianceScreenSpaceShadowsData);
             }
 
+            m_LightsBuffer = lightHandle.EndWrite(m_LightCount);
+            m_DirectionalLightsBuffer = directionalLightHandle.EndWrite(m_DirectionalLightCount);
             m_DGILightsBuffer = dgiHandle.EndWrite(m_DGILightCount);
 
             //Sanity check
@@ -142,22 +152,23 @@ namespace UnityEngine.Rendering.HighDefinition
             Light lightComponent,
             HDAdditionalLightData additionalLightData,
             int shadowIndex,
-            ref LightData lightData)
+            ref LightDataCpuSubset cpuLightData,
+            ref LightData gpuLightData)
         {
-            if (lightData.lightType == GPULightType.ProjectorBox && shadowIndex >= 0)
+            if (cpuLightData.lightType == GPULightType.ProjectorBox && shadowIndex >= 0)
             {
                 // We subtract a bit from the safe extent depending on shadow resolution
                 float shadowRes = additionalLightData.shadowResolution.Value(shadowInitParams.shadowResolutionPunctual);
                 shadowRes = Mathf.Clamp(shadowRes, 128.0f, 2048.0f); // Clamp in a somewhat plausible range.
                 // The idea is to subtract as much as 0.05 for small resolutions.
                 float shadowResFactor = Mathf.Lerp(0.05f, 0.01f, Mathf.Max(shadowRes / 2048.0f, 0.0f));
-                lightData.boxLightSafeExtent = 1.0f - shadowResFactor;
+                gpuLightData.boxLightSafeExtent = 1.0f - shadowResFactor;
             }
 
             if (lightComponent != null &&
                 (
                     (lightType == HDLightType.Spot && (lightComponent.cookie != null || additionalLightData.IESPoint != null)) ||
-                    ((lightType == HDLightType.Area && lightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
+                    ((lightType == HDLightType.Area && cpuLightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
                     (lightType == HDLightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint != null))
                 )
             )
@@ -165,33 +176,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (lightType)
                 {
                     case HDLightType.Spot:
-                        lightData.cookieMode = (lightComponent.cookie?.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
+                        gpuLightData.cookieMode = (lightComponent.cookie?.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
                         if (additionalLightData.IESSpot != null && lightComponent.cookie != null && additionalLightData.IESSpot != lightComponent.cookie)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie, additionalLightData.IESSpot);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie, additionalLightData.IESSpot);
                         else if (lightComponent.cookie != null)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
                         else if (additionalLightData.IESSpot != null)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.IESSpot);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.IESSpot);
                         else
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
                         break;
                     case HDLightType.Point:
-                        lightData.cookieMode = CookieMode.Repeat;
+                        gpuLightData.cookieMode = CookieMode.Repeat;
                         if (additionalLightData.IESPoint != null && lightComponent.cookie != null && additionalLightData.IESPoint != lightComponent.cookie)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie, additionalLightData.IESPoint);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie, additionalLightData.IESPoint);
                         else if (lightComponent.cookie != null)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
                         else if (additionalLightData.IESPoint != null)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, additionalLightData.IESPoint);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, additionalLightData.IESPoint);
                         break;
                     case HDLightType.Area:
-                        lightData.cookieMode = CookieMode.Clamp;
+                        gpuLightData.cookieMode = CookieMode.Clamp;
                         if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
                         else if (additionalLightData.IESSpot != null)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
                         else if (additionalLightData.areaLightCookie != null)
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
+                            gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
                         break;
                 }
             }
@@ -199,24 +210,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                lightData.cookieMode = CookieMode.Clamp;
-                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
+                gpuLightData.cookieMode = CookieMode.Clamp;
+                gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
             }
-            else if (lightData.lightType == GPULightType.Rectangle)
+            else if (cpuLightData.lightType == GPULightType.Rectangle)
             {
                 if (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null)
                 {
-                    lightData.cookieMode = CookieMode.Clamp;
+                    gpuLightData.cookieMode = CookieMode.Clamp;
                     if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
-                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
+                        gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
                     else if (additionalLightData.IESSpot != null)
-                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
+                        gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
                     else if (additionalLightData.areaLightCookie != null)
-                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
+                        gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
                 }
             }
 
-            lightData.shadowIndex = shadowIndex;
+            gpuLightData.shadowIndex = shadowIndex;
             additionalLightData.shadowIndex = shadowIndex;
         }
 
@@ -258,19 +269,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private void CalculateDirectionalLightDataTextureInfo(
-            ref DirectionalLightData lightData, CommandBuffer cmd, in VisibleLight light, in Light lightComponent, in HDAdditionalLightData additionalLightData,
+            ref DirectionalLightDataCpuSubset cpuLightData, ref DirectionalLightData gpuLightData,
+            CommandBuffer cmd, in VisibleLight light, in Light lightComponent, in HDAdditionalLightData additionalLightData,
             HDCamera hdCamera, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, int lightDataIndex, int shadowIndex)
         {
             if (shadowIndex != -1)
             {
                 if ((shadowFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderScreenSpaceShadow) != 0)
                 {
-                    lightData.screenSpaceShadowIndex = m_ScreenSpaceShadowChannelSlot;
+                    int screenSpaceShadowIndex = m_ScreenSpaceShadowChannelSlot;
                     bool willRenderRtShadows = (shadowFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderRayTracedShadow) != 0;
                     if (additionalLightData.colorShadow && willRenderRtShadows)
                     {
                         m_ScreenSpaceShadowChannelSlot += 3;
-                        lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_ScreenSpaceColorShadowFlag;
+                        screenSpaceShadowIndex |= (int)LightDefinitions.s_ScreenSpaceColorShadowFlag;
                     }
                     else
                     {
@@ -279,43 +291,46 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Raise the ray tracing flag in case the light is ray traced
                     if (willRenderRtShadows)
-                        lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
+                        screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
+
+                    cpuLightData.screenSpaceShadowIndex = gpuLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
 
                     m_ScreenSpaceShadowChannelSlot++;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
-                m_CurrentSunLightDirectionalLightData = lightData;
+                m_CurrentSunLightDirectionalLightData = cpuLightData;
                 m_CurrentShadowSortedSunLightIndex = lightDataIndex;
                 m_CurrentSunShadowMapFlags = shadowFlags;
             }
 
             if (lightComponent != null && lightComponent.cookie != null)
             {
-                lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
-                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
+                gpuLightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
+                gpuLightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
             }
             else
             {
-                lightData.cookieMode = CookieMode.None;
+                gpuLightData.cookieMode = CookieMode.None;
             }
 
             if (additionalLightData.surfaceTexture == null)
             {
-                lightData.surfaceTextureScaleOffset = Vector4.zero;
+                gpuLightData.surfaceTextureScaleOffset = Vector4.zero;
             }
             else
             {
-                lightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
+                gpuLightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
             }
 
-            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref gpuLightData.contactShadowMask, ref gpuLightData.isRayTracedContactShadow);
 
-            lightData.shadowIndex = shadowIndex;
+            gpuLightData.shadowIndex = shadowIndex;
         }
 
         private void CalculateLightDataTextureInfo(
-            ref LightData lightData, CommandBuffer cmd, in Light lightComponent, HDAdditionalLightData additionalLightData, in HDShadowInitParameters shadowInitParams,
+            ref LightDataCpuSubset cpuLightData, ref LightData gpuLightData,
+            CommandBuffer cmd, in Light lightComponent, HDAdditionalLightData additionalLightData, in HDShadowInitParameters shadowInitParams,
             in HDCamera hdCamera, BoolScalableSetting contactShadowScalableSetting,
             HDLightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex, GPULightType gpuLightType, HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData)
         {
@@ -326,16 +341,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightComponent,
                 additionalLightData,
                 shadowIndex,
-                ref lightData);
+                ref cpuLightData,
+                ref gpuLightData);
 
-            GetContactShadowMask(additionalLightData, contactShadowScalableSetting, hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, contactShadowScalableSetting, hdCamera, ref gpuLightData.contactShadowMask, ref gpuLightData.isRayTracedContactShadow);
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (rayTracingEnabled
-                && EnoughScreenSpaceShadowSlots(lightData.lightType, m_ScreenSpaceShadowChannelSlot)
+                && EnoughScreenSpaceShadowSlots(cpuLightData.lightType, m_ScreenSpaceShadowChannelSlot)
                 && (shadowFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderScreenSpaceShadow) != 0)
             {
-                if (lightData.lightType == GPULightType.Rectangle)
+                if (cpuLightData.lightType == GPULightType.Rectangle)
                 {
                     // Rectangle area lights require 2 consecutive slots.
                     // Meaning if (screenSpaceChannelSlot % 4 ==3), we'll need to skip a slot
@@ -347,7 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Bind the next available slot to the light
-                lightData.screenSpaceShadowIndex = m_ScreenSpaceShadowChannelSlot;
+               cpuLightData.screenSpaceShadowIndex = gpuLightData.screenSpaceShadowIndex = m_ScreenSpaceShadowChannelSlot;
 
                 // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[m_ScreenSpaceShadowIndex].additionalLightData = additionalLightData;
@@ -359,21 +375,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ScreenSpaceShadowIndex++;
 
                 // Based on the light type, increment the slot usage
-                if (lightData.lightType == GPULightType.Rectangle)
+                if (cpuLightData.lightType == GPULightType.Rectangle)
                     m_ScreenSpaceShadowChannelSlot += 2;
                 else
                     m_ScreenSpaceShadowChannelSlot++;
             }
 
-            lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
+            gpuLightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
             if ((gpuLightType == GPULightType.Point) || (gpuLightType == GPULightType.Spot))
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.HierarchicalVarianceScreenSpaceShadows)
                     && additionalLightData.useHierarchicalVarianceScreenSpaceShadows
                     && hierarchicalVarianceScreenSpaceShadowsData != null)
                 {
-                    float lightDepthVS = Vector3.Dot(hdCamera.camera.transform.forward, lightData.positionRWS);
-                    lightData.hierarchicalVarianceScreenSpaceShadowsIndex = hierarchicalVarianceScreenSpaceShadowsData.Push(lightData.positionRWS, lightDepthVS, lightData.range);
+                    float lightDepthVS = Vector3.Dot(hdCamera.camera.transform.forward, cpuLightData.positionRWS);
+                    gpuLightData.hierarchicalVarianceScreenSpaceShadowsIndex = hierarchicalVarianceScreenSpaceShadowsData.Push(cpuLightData.positionRWS, lightDepthVS, cpuLightData.range);
                 }
             }
         }
@@ -392,9 +408,12 @@ namespace UnityEngine.Rendering.HighDefinition
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
             bool rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             HDProcessedVisibleLight* processedLightArrayPtr = (HDProcessedVisibleLight*)visibleLights.processedEntities.GetUnsafePtr<HDProcessedVisibleLight>();
-            LightData* lightArrayPtr = (LightData*)m_Lights.GetUnsafePtr<LightData>();
-            DirectionalLightData* directionalLightArrayPtr = (DirectionalLightData*)m_DirectionalLights.GetUnsafePtr<DirectionalLightData>();
-            LightData* dgiLightArrayPtr = (LightData*)m_DGILights.GetUnsafePtr<LightData>();
+            LightDataCpuSubset* cpuLightArrayPtr = (LightDataCpuSubset*)m_LightsCpuSubset.GetUnsafePtr<LightDataCpuSubset>();
+            LightData* gpuLightArrayPtr = (LightData*)m_Lights.GetUnsafePtr<LightData>();
+            DirectionalLightDataCpuSubset* cpuDirectionalLightArrayPtr = (DirectionalLightDataCpuSubset*)m_DirectionalLightsCpuSubset.GetUnsafePtr<DirectionalLightDataCpuSubset>();
+            DirectionalLightData* gpuDirectionalLightArrayPtr = (DirectionalLightData*)m_DirectionalLights.GetUnsafePtr<DirectionalLightData>();
+            LightDataCpuSubset* cpuDgiLightArrayPtr = (LightDataCpuSubset*)m_DGILightsCpuSubset.GetUnsafePtr<LightDataCpuSubset>();
+            LightData* gpuDgiLightArrayPtr = (LightData*)m_DGILights.GetUnsafePtr<LightData>();
             VisibleLight* visibleLightsArrayPtr = (VisibleLight*)cullResults.visibleLights.GetUnsafePtr<VisibleLight>();
             var shadowFilteringQuality = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
 
@@ -449,19 +468,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
                     ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
                     int directionalLightDataIndex = sortKeyIndex;
-                    DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
-                    ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
+                    DirectionalLightDataCpuSubset* cpuLughtDataPtr = cpuDirectionalLightArrayPtr + directionalLightDataIndex;
+                    ref DirectionalLightDataCpuSubset cpuLightData = ref UnsafeUtility.AsRef<DirectionalLightDataCpuSubset>(cpuLughtDataPtr);
+                    DirectionalLightData* gpuLightDataPtr = gpuDirectionalLightArrayPtr + directionalLightDataIndex;
+                    ref DirectionalLightData gpuLightData = ref UnsafeUtility.AsRef<DirectionalLightData>(gpuLightDataPtr);
                     CalculateDirectionalLightDataTextureInfo(
-                        ref lightData, cmd, light, lightComponent, additionalLightData,
+                        ref cpuLightData, ref gpuLightData, cmd, light, lightComponent, additionalLightData,
                         hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
                 }
                 else
                 {
                     int lightDataIndex = sortKeyIndex - directionalLightCount;
-                    LightData* lightDataPtr = lightArrayPtr + lightDataIndex;
-                    ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
+                    LightDataCpuSubset* cpuLightDataPtr = cpuLightArrayPtr + lightDataIndex;
+                    ref LightDataCpuSubset cpuLightData = ref UnsafeUtility.AsRef<LightDataCpuSubset>(cpuLightDataPtr);
+                    LightData* gpuLightDataPtr = gpuLightArrayPtr + lightDataIndex;
+                    ref LightData gpuLightData = ref UnsafeUtility.AsRef<LightData>(gpuLightDataPtr);
                     CalculateLightDataTextureInfo(
-                        ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
+                        ref cpuLightData, ref gpuLightData, cmd, lightComponent, additionalLightData, shadowInitParams,
                         hdCamera, contactShadowScalableSetting,
                         lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
                 }
@@ -494,10 +517,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (gpuLightType != GPULightType.Directional)
                 {
                     int lightDataIndex = sortKeyIndex;
-                    LightData* lightDataPtr = dgiLightArrayPtr + lightDataIndex;
-                    ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
+                    LightDataCpuSubset* cpuLightDataPtr = cpuDgiLightArrayPtr + lightDataIndex;
+                    ref LightDataCpuSubset cpuLightData = ref UnsafeUtility.AsRef<LightDataCpuSubset>(cpuLightDataPtr);
+                    LightData* gpuLightDataPtr = gpuDgiLightArrayPtr + lightDataIndex;
+                    ref LightData gpuLightData = ref UnsafeUtility.AsRef<LightData>(gpuLightDataPtr);
                     CalculateLightDataTextureInfo(
-                        ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
+                        ref cpuLightData, ref gpuLightData, cmd, lightComponent, additionalLightData, shadowInitParams,
                         hdCamera, contactShadowScalableSetting,
                         lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
                 }

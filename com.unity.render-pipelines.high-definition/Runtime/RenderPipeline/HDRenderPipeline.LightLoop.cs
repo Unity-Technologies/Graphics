@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderContactShadowPassData
         {
             public ContactShadowsParameters     parameters;
-            public LightLoopLightData           lightLoopLightData;
+            public HDGpuLightsBuilder           gpuLightsBuilder;
             public TextureHandle                depthTexture;
             public TextureHandle                contactShadowsTexture;
             public ComputeBufferHandle          lightList;
@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
 
                 passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                passData.lightLoopLightData = m_LightLoopLightData;
+                passData.gpuLightsBuilder = m_GpuLightsBuilder;
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderContactShadowPassData data, RenderGraphContext context) =>
                 {
-                    RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightLoopLightData, data.lightList, context.cmd);
+                    RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.gpuLightsBuilder, data.lightList, context.cmd);
                 });
             }
 
