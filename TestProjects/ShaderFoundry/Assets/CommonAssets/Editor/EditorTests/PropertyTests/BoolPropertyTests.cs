@@ -7,28 +7,22 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 {
     class BoolPropertyTests : BlockTestRenderer
     {
-        BoolPropertyBlockBuilder BuildBoolWithoutNameOverrides(string defaultValue)
+        ScalarPropertyBlockBuilder BuildBoolWithoutNameOverrides(string defaultValue)
         {
-            var propBuilder = new BoolPropertyBlockBuilder
+            var propBuilder = new ScalarPropertyBlockBuilder
             {
                 PropertyAttribute = new PropertyAttributeData { DefaultValue = defaultValue },
+                BlockName = "BoolProperty",
                 FieldName = "BoolField",
             };
             return propBuilder;
         }
 
-        BoolPropertyBlockBuilder BuildBoolWithNameOverrides(string defaultValue)
+        ScalarPropertyBlockBuilder BuildBoolWithNameOverrides(string defaultValue)
         {
-            var propBuilder = new BoolPropertyBlockBuilder
-            {
-                PropertyAttribute = new PropertyAttributeData
-                {
-                    UniformName = "_Value",
-                    DisplayName = "Value",
-                    DefaultValue = defaultValue
-                },
-                FieldName = "BoolField",
-            };
+            var propBuilder = BuildBoolWithoutNameOverrides(defaultValue);
+            propBuilder.PropertyAttribute.UniformName = "_Value";
+            propBuilder.PropertyAttribute.DisplayName = "Value";
             return propBuilder;
         }
 
@@ -39,7 +33,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = new ShaderFoundry.ShaderContainer();
 
             var propBuilder = BuildBoolWithNameOverrides("0");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
             yield break;
@@ -52,7 +46,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = new ShaderFoundry.ShaderContainer();
 
             var propBuilder = BuildBoolWithNameOverrides("1");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
             yield break;
@@ -65,7 +59,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = new ShaderFoundry.ShaderContainer();
 
             var propBuilder = BuildBoolWithoutNameOverrides("1");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
             yield break;
@@ -80,7 +74,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = CreateContainer();
 
             var propBuilder = BuildBoolWithNameOverrides("1");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             SetupMaterialDelegate materialSetupDelegate = m => { m.SetInteger(propBuilder.PropertyAttribute.UniformName, inputValue); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
@@ -96,7 +90,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = CreateContainer();
 
             var propBuilder = BuildBoolWithNameOverrides("0");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             SetupMaterialDelegate materialSetupDelegate = m => { m.SetInteger(propBuilder.PropertyAttribute.UniformName, inputValue); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
@@ -112,7 +106,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = CreateContainer();
 
             var propBuilder = BuildBoolWithNameOverrides("0");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             SetupMaterialDelegate materialSetupDelegate = m =>
             {
@@ -132,7 +126,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             var container = CreateContainer();
             var propBuilder = BuildBoolWithoutNameOverrides("0");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             var shader = BuildSimpleSurfaceBlockShaderObject(container, propBuilder.BlockName, block);
 
@@ -153,7 +147,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             var container = CreateContainer();
             var propBuilder = BuildBoolWithNameOverrides("0");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             var shader = BuildSimpleSurfaceBlockShaderObject(container, propBuilder.BlockName, block);
 
@@ -175,7 +169,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var container = CreateContainer();
             var propBuilder = BuildBoolWithNameOverrides("0");
             propBuilder.PropertyAttribute.DataSource = ShaderFoundry.UniformDataSource.None;
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._bool);
 
             // TODO @ SHADERS: This ideally needs to check that there's no uniform...
             var shader = BuildSimpleSurfaceBlockShaderObject(container, propBuilder.BlockName, block);

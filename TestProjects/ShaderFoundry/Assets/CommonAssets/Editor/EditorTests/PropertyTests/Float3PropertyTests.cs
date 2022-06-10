@@ -6,9 +6,9 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 {
     class Float3PropertyTests : BlockTestRenderer
     {
-        Float3PropertyBlockBuilder BuildWithoutNameOverrides(string defaultValue)
+        Vector3PropertyBlockBuilder BuildWithoutNameOverrides(string defaultValue)
         {
-            var propBuilder = new Float3PropertyBlockBuilder
+            var propBuilder = new Vector3PropertyBlockBuilder
             {
                 PropertyAttribute = new PropertyAttributeData { DefaultValue = defaultValue },
                 FieldName = "Float3Field",
@@ -16,18 +16,11 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return propBuilder;
         }
 
-        Float3PropertyBlockBuilder BuildWithNameOverrides(string defaultValue)
+        Vector3PropertyBlockBuilder BuildWithNameOverrides(string defaultValue)
         {
-            var propBuilder = new Float3PropertyBlockBuilder
-            {
-                PropertyAttribute = new PropertyAttributeData
-                {
-                    UniformName = "_Value",
-                    DisplayName = "Value",
-                    DefaultValue = defaultValue
-                },
-                FieldName = "Float3Field",
-            };
+            var propBuilder = BuildWithoutNameOverrides(defaultValue);
+            propBuilder.PropertyAttribute.UniformName = "_Value";
+            propBuilder.PropertyAttribute.DisplayName = "Value";
             return propBuilder;
         }
 
@@ -38,7 +31,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             var container = CreateContainer();
             var propBuilder = BuildWithoutNameOverrides("(1, 1, 1, 0)");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._float3);
 
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
             yield break;
@@ -52,7 +45,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             var container = CreateContainer();
             var propBuilder = BuildWithNameOverrides("(1, 1, 1, 0)");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._float3);
 
             SetupMaterialDelegate materialSetupDelegate = m => { m.SetVector(propBuilder.PropertyAttribute.UniformName, inputValue); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate, errorThreshold: 1);

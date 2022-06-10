@@ -4,11 +4,11 @@ using UnityEngine.TestTools;
 
 namespace UnityEditor.ShaderFoundry.UnitTests
 {
-    class Float2PropertyTests : BlockTestRenderer
+    class Vector2PropertyTests : BlockTestRenderer
     {
-        Float2PropertyBlockBuilder BuildWithoutNameOverrides(string defaultValue)
+        Vector2PropertyBlockBuilder BuildWithoutNameOverrides(string defaultValue)
         {
-            var propBuilder = new Float2PropertyBlockBuilder
+            var propBuilder = new Vector2PropertyBlockBuilder
             {
                 PropertyAttribute = new PropertyAttributeData { DefaultValue = defaultValue },
                 FieldName = "Float2Field",
@@ -16,18 +16,11 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return propBuilder;
         }
 
-        Float2PropertyBlockBuilder BuildWithNameOverrides(string defaultValue)
+        Vector2PropertyBlockBuilder BuildWithNameOverrides(string defaultValue)
         {
-            var propBuilder = new Float2PropertyBlockBuilder
-            {
-                PropertyAttribute = new PropertyAttributeData
-                {
-                    UniformName = "_Value",
-                    DisplayName = "Value",
-                    DefaultValue = defaultValue
-                },
-                FieldName = "Float2Field",
-            };
+            var propBuilder = BuildWithoutNameOverrides(defaultValue);
+            propBuilder.PropertyAttribute.UniformName = "_Value";
+            propBuilder.PropertyAttribute.DisplayName = "Value";
             return propBuilder;
         }
 
@@ -38,7 +31,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             var container = CreateContainer();
             var propBuilder = BuildWithoutNameOverrides("(1, 1, 0, 0)");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._float2);
 
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor);
             yield break;
@@ -52,7 +45,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             var container = CreateContainer();
             var propBuilder = BuildWithNameOverrides("(1, 1, 0, 0)");
-            var block = propBuilder.Build(container);
+            var block = propBuilder.Build(container, container._float2);
 
             SetupMaterialDelegate materialSetupDelegate = m => { m.SetVector(propBuilder.PropertyAttribute.UniformName, inputValue); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);

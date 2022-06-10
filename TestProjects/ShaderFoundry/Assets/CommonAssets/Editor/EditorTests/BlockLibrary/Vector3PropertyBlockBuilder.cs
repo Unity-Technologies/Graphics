@@ -1,23 +1,25 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderFoundry.UnitTests
 {
-    internal class Float3PropertyBlockBuilder : BasePropertyBlockBuilder
+    internal class Vector3PropertyBlockBuilder : BasePropertyBlockBuilder
     {
-        public Float3PropertyBlockBuilder()
+        public Vector3PropertyBlockBuilder()
         {
-            BlockName = "Float3Property";
+            BlockName = "Vector3Property";
             PropertyAttribute = new PropertyAttributeData() { DefaultValue = "(1, 1, 1, 0)" };
         }
 
-        public Block Build(ShaderContainer container)
+        public Block Build(ShaderContainer container, ShaderType fieldType) => BuildWithAttributeOverrides(container, fieldType, null);
+
+        public Block BuildWithAttributeOverrides(ShaderContainer container, ShaderType fieldType, List<ShaderAttribute> attributes)
         {
             var propData = new BlockBuilderUtilities.PropertyDeclarationData
             {
-                FieldType = container._float3,
+                FieldType = fieldType,
                 FieldName = FieldName,
                 PropertyAttribute = PropertyAttribute,
+                ExtraAttributes = attributes,
                 OutputsAssignmentCallback = (builder, propData) =>
                 {
                     builder.AddLine($"outputs.BaseColor = inputs.{FieldName};");

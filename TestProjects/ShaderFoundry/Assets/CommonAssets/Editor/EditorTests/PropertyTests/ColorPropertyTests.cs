@@ -18,16 +18,9 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
         ColorPropertyBlockBuilder BuildWithNameOverrides(string defaultValue)
         {
-            var propBuilder = new ColorPropertyBlockBuilder
-            {
-                PropertyAttribute = new PropertyAttributeData
-                {
-                    UniformName = "_ColorValue",
-                    DisplayName = "ColorValue",
-                    DefaultValue = defaultValue
-                },
-                FieldName = "ColorField",
-            };
+            var propBuilder = BuildWithoutNameOverrides(defaultValue);
+            propBuilder.PropertyAttribute.UniformName = "_ColorValue";
+            propBuilder.PropertyAttribute.DisplayName = "ColorValue";
             return propBuilder;
         }
 

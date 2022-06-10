@@ -9,10 +9,25 @@ namespace UnityEditor.ShaderFoundry
         {
             {"bool", HandleBoolType },
             {"int", HandleIntegerType },
+            {"int1", HandleIntegerType },
+            {"int2", HandleVectorType },
+            {"int3", HandleVectorType },
+            {"int4", HandleVectorType },
+            {"uint", HandleIntegerType },
+            {"uint1", HandleIntegerType },
+            {"uint2", HandleVectorType },
+            {"uint3", HandleVectorType },
+            {"uint4", HandleVectorType },
             {"float", HandleFloatType },
-            {"float2", HandleFloat2Type },
-            {"float3", HandleFloat3Type },
-            {"float4", HandleFloat4Type },
+            {"float1", HandleFloatType },
+            {"float2", HandleVectorType },
+            {"float3", HandleVectorType },
+            {"float4", HandleVectorType },
+            {"half", HandleFloatType },
+            {"half1", HandleFloatType },
+            {"half2", HandleVectorType },
+            {"half3", HandleVectorType },
+            {"half4", HandleVectorType },
             {"UnitySamplerState", HandleUnitySamplerState },
             {"UnityTexture2D", HandleUnityTexture2D },
             {"UnityTexture2DArray", HandleUnityTexture2DArray },
@@ -81,29 +96,8 @@ namespace UnityEditor.ShaderFoundry
 
         static bool HandleFloatType(FieldPropertyContext context, FieldPropertyData result)
         {
-            var displayType = GetDisplayType(context, "Float", new HashSet<string> { "Integer", "Int", "Range" });
+            var displayType = GetDisplayType(context, "Float", new HashSet<string> { "Range" });
             BuildSimpleProperty(context, displayType, "0", result);
-            return true;
-        }
-
-        static bool HandleFloat2Type(FieldPropertyContext context, FieldPropertyData result)
-        {
-            var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
-            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
-            return true;
-        }
-
-        static bool HandleFloat3Type(FieldPropertyContext context, FieldPropertyData result)
-        {
-            var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
-            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
-            return true;
-        }
-
-        static bool HandleFloat4Type(FieldPropertyContext context, FieldPropertyData result)
-        {
-            var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
-            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
             return true;
         }
 
@@ -114,8 +108,15 @@ namespace UnityEditor.ShaderFoundry
             if (enumKeywordAttribute != null)
                 return HandleEnumKeywordType(context, enumKeywordAttribute, result);
 
-            var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float", "Range" });
+            var displayType = GetIntegerDisplayType(context);
             BuildSimpleProperty(context, displayType, "0", result);
+            return true;
+        }
+
+        static bool HandleVectorType(FieldPropertyContext context, FieldPropertyData result)
+        {
+            var displayType = GetDisplayType(context, "Vector", new HashSet<string> { "Color" });
+            BuildSimpleProperty(context, displayType, "(0, 0, 0, 0)", result);
             return true;
         }
 
@@ -129,7 +130,7 @@ namespace UnityEditor.ShaderFoundry
             string defaultValue = "0";
             // Force the uniform type to be an integer. There seems to be a bug with the SRP batcher where using a boolean doesn't work correctly.
             ShaderType uniformType = context.Container._int;
-            var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float" });
+            var displayType = GetDisplayType(context, "Integer", new HashSet<string>());
             context.ExtraAttributes = new List<string> { "[Toggle]" };
 
             UniformReadingData.BuildSimple(context, result);
@@ -141,7 +142,7 @@ namespace UnityEditor.ShaderFoundry
 
         static bool HandleBoolKeywordType(FieldPropertyContext context, BoolKeywordAttribute boolKeywordAttribute, FieldPropertyData result)
         {
-            var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float" });
+            var displayType = GetDisplayType(context, "Integer", new HashSet<string>());
             var uniformName = context.UniformName;
             var keywordName = boolKeywordAttribute.GetKeywordName(uniformName);
             bool usePreProcessor = boolKeywordAttribute.KeywordMode != KeywordMode.DynamicBranch;
@@ -183,7 +184,7 @@ namespace UnityEditor.ShaderFoundry
         {
             var fieldName = context.FieldName;
             var uniformName = context.UniformName;
-            var displayType = GetDisplayType(context, "Integer", new HashSet<string> { "Int", "Float", "Range" });
+            var displayType = GetIntegerDisplayType(context);
 
             bool usePreProcessor = enumKeywordAttribute.KeywordMode != KeywordMode.DynamicBranch;
             var ifString = "if";
@@ -420,12 +421,44 @@ namespace UnityEditor.ShaderFoundry
             MaterialPropertyDeclarationData.BuildSimple(context, displayType, defaultValue, resultProperty);
         }
 
+        static string GetIntegerDisplayType(FieldPropertyContext context)
+        {
+            foreach (var attribute in context.Attributes)
+            {
+                if (attribute.Name == RangeAttribute.AttributeName)
+                {
+                    var rangeAttribute = RangeAttribute.TryParse(attribute);
+                    // If the range attribute wasn't valid, skip it
+                    if (rangeAttribute == null)
+                        continue;
+
+                    // Auto add the IntRange attribute
+                    context.ExtraAttributes = new List<string> { "[IntRange]" };
+
+                    return rangeAttribute.GetDisplayTypeString();
+                }
+            }
+            // If we didn't find any display type override, then this defaults to Integer
+            return "Integer";
+        }
+
         static string GetDisplayType(FieldPropertyContext context, string displayType, HashSet<string> allowedDisplayTypeOverrides)
         {
             foreach (var attribute in context.Attributes)
             {
-                if (allowedDisplayTypeOverrides.Contains(attribute.Name))
-                    return attribute.Name;
+                if (!allowedDisplayTypeOverrides.Contains(attribute.Name))
+                    continue;
+
+                if (attribute.Name == RangeAttribute.AttributeName)
+                {
+                    var rangeAttribute = RangeAttribute.TryParse(attribute);
+                    // If the range attribute wasn't valid, skip it
+                    if (rangeAttribute == null)
+                        continue;
+
+                    return rangeAttribute.GetDisplayTypeString();
+                }
+                return attribute.Name;
             }
             return displayType;
         }
