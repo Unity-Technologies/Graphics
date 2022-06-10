@@ -1436,6 +1436,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 camera.ApplySettings(cameraPositionSettings[j]);
                 camera.cameraType = CameraType.Reflection;
                 camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
+                additionalCameraData.clearDepth = true;
 
                 var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
                 _cullingResults.Reset();
