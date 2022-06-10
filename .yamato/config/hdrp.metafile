@@ -46,22 +46,22 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
       standalone:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
   - name: OSX
     apis:
@@ -98,15 +98,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
       editmode:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
       standalone_build:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
 
 jobs:

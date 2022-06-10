@@ -11,7 +11,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_2022.1:
     name: VikingVillage_URP on OSX_Metal_performance_playmode_runtime_mono_Linear on version 2022.1
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -77,7 +77,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_2022.1:
     name: VikingVillage_URP on OSX_Metal_performance_playmode_editor_mono_Linear on version 2022.1
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -143,7 +143,7 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_2022.1:
     name: VikingVillage_URP on OSX_Metal_performance_build_editmode_mono_Linear on version 2022.1
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -209,7 +209,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
     name: VikingVillage_URP on OSX_Metal_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -275,7 +275,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
     name: VikingVillage_URP on OSX_Metal_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -341,7 +341,7 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
     name: VikingVillage_URP on OSX_Metal_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'

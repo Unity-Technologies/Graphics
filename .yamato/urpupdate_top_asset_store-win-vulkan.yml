@@ -11,7 +11,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_2022.1:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
@@ -53,7 +53,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_2022.1:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
@@ -95,7 +95,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
@@ -137,7 +137,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master

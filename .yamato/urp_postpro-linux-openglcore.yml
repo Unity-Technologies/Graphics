@@ -11,7 +11,7 @@ URP_PostPro_Linux_OpenGLCore_playmode_mono_Linear_2022.1:
     name: URP_PostPro on Linux_OpenGLCore_playmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -49,7 +49,7 @@ URP_PostPro_Linux_OpenGLCore_editmode_mono_Linear_2022.1:
     name: URP_PostPro on Linux_OpenGLCore_editmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -87,7 +87,7 @@ URP_PostPro_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_PostPro on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -125,7 +125,7 @@ URP_PostPro_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_PostPro on Linux_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

@@ -11,7 +11,7 @@ VFX_HDRP_Win_DX12_Standalone_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_Standalone_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -44,7 +44,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_2022.1:
     name: Build VFX_HDRP on Win_DX12_mono_Linear_Standalone_build_Player on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -81,7 +81,7 @@ VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_Standalone_PerformanceTests_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -114,7 +114,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_2022.1:
     name: Build VFX_HDRP on Win_DX12_mono_Linear_Standalone_PerformanceTests_build_Player on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -151,7 +151,7 @@ VFX_HDRP_Win_DX12_playmode_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_playmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -186,7 +186,7 @@ VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_playmode_XR_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -221,7 +221,7 @@ VFX_HDRP_Win_DX12_playmode_PerformanceTests_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_playmode_PerformanceTests_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -256,7 +256,7 @@ VFX_HDRP_Win_DX12_editmode_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_editmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -290,7 +290,7 @@ VFX_HDRP_Win_DX12_editmode_PerformanceTests_mono_Linear_2022.1:
     name: VFX_HDRP on Win_DX12_editmode_PerformanceTests_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -325,7 +325,7 @@ VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -358,7 +358,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -395,7 +395,7 @@ VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -428,7 +428,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX12_mono_Linear_Standalone_PerformanceTests_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -465,7 +465,7 @@ VFX_HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -500,7 +500,7 @@ VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -535,7 +535,7 @@ VFX_HDRP_Win_DX12_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -570,7 +570,7 @@ VFX_HDRP_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -604,7 +604,7 @@ VFX_HDRP_Win_DX12_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:

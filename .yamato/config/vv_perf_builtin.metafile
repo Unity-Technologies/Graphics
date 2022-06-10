@@ -158,16 +158,16 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
       performance_build_editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
   - name: Android
     apis:
@@ -184,15 +184,15 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
   - name: iPhone
     apis:
@@ -207,15 +207,15 @@ platforms:
       # default: package_ci_mac
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM::osx
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.large
   - name: OSX
     apis:
