@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_GPU_DRIVEN_PIPELINE
         HDUtils.PackedMipChainInfo m_hzbMipChainInfo;
         TextureDesc m_hzbDese;
+        bool m_reinitialize = false;
         Vector2Int ComputeHZBMipChainSize(Vector2Int screenSize)
         {
             m_hzbMipChainInfo.ComputePackedMipChainInfo(screenSize);
@@ -49,6 +50,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_GPU_DRIVEN_PIPELINE
             m_hzbDese = new TextureDesc(ComputeHZBMipChainSize, true, true)
                 { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "HZBMipChain" };
+            Debug.Log("InitializePrepass().....");
+            m_reinitialize = true;
 #endif
         }
 
@@ -1211,23 +1214,18 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<CopyDepthPyramidPassData>("Copy the depth pyramid", out var passData, new ProfilingSampler("Copy the depth pyramid for GPU Driven Pipeline")))
             {
                 passData.depth = builder.ReadTexture(output.depthPyramidTexture);
-                passData.depthPyramid = builder.WriteTexture(renderGraph.CreateTexture(m_hzbDese));
+                //passData.depthPyramid = builder.WriteTexture(renderGraph.CreateTexture(m_hzbDese));
                 passData.width = m_hzbMipChainInfo.textureSize.x;
                 passData.height = m_hzbMipChainInfo.textureSize.y;
                 passData.GPUCopy = m_GPUCopy;
                 passData.pipeline = this;
                 //passData.info = m_hzbMipChainInfo;
 
-                output.depthPyramidTexture = passData.depthPyramid;
+                output.depthPyramidTexture = passData.depth;
 
                 builder.SetRenderFunc(
                     (CopyDepthPyramidPassData data, RenderGraphContext context) =>
                 {
-                    passData.GPUCopy.SampleCopyChannel_xyzw2x(context.cmd,
-                        data.depth,
-                        data.depthPyramid,
-                        new RectInt(0, 0, data.width, data.height));
-
                     HDUtils.PackedMipChainInfo info = data.pipeline.m_hzbMipChainInfo;
                     if (info.m_OffsetBufferWillNeedUpdateForHZBOC)
                     {
@@ -1242,8 +1240,21 @@ namespace UnityEngine.Rendering.HighDefinition
                                 info.mipLevelSizes[j].y);
                         }
 
-                        context.renderContext.AssignDepthTexture(hdCamera.camera, passData.depthPyramid, mipmapInfo);
+                        context.renderContext.AssignDepthTexture(hdCamera.camera,
+                            passData.width,
+                            passData.height,
+                            mipmapInfo);
                     }
+
+                    var rt = context.renderContext.GetDepthPyramid(hdCamera.camera);
+                    if (rt == null)
+                        return;
+
+                    RTHandle depthPyramid = RTHandles.Alloc(rt);
+                    passData.GPUCopy.SampleCopyChannel_xyzw2x(context.cmd,
+                        data.depth,
+                        depthPyramid,
+                        new RectInt(0, 0, data.width, data.height));
                 });
             }  
         }
@@ -1288,6 +1299,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             csCulling.SetVector(HDShaderIDs._ZBufferParams, hdCamera.zBufferParams);
                             context.renderContext.SetRenderTargetSize(RTHandles.maxWidth, RTHandles.maxHeight);
+                            if (m_reinitialize)
+                            {
+                                m_reinitialize = false;
+                                //context.renderContext.AssignDepthTexture(hdCamera.camera, null, null);
+                                //context.renderContext.AssignComputeShaders(null,
+                                //    null,
+                                //    null,
+                                //    null,
+                                //    null,
+                                //    null,
+                                //    null,
+                                //    null);
+                            }
                         }
                     });
             }

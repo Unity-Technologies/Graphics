@@ -2807,7 +2807,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         RenderTexture rt = m_SharedRTManager.GetDepthMipmap();
-                        renderContext.AssignDepthTexture(camera, rt, mipmapInfo);
+                        renderContext.AssignDepthTexture(camera, rt.width, rt.height, mipmapInfo);
                     }
                 }
 #endif
