@@ -88,8 +88,8 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     #endif
     #endif
 
-    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
-        builtinData.emissiveColor = SampleGradient(emissiveGradient, SampleTexture(VFX_SAMPLER(negativeAxesLightMap),uvData).a).rgb;
+    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && defined(VFX_VARYING_EMISSIVE_GRADIENT)
+        builtinData.emissiveColor = SampleGradient(i.VFX_VARYING_EMISSIVE_GRADIENT, SampleTexture(VFX_SAMPLER(negativeAxesLightMap),uvData).a).rgb;
         #if defined(VFX_VARYING_EMISSIVE_MULTIPLIER)
             builtinData.emissiveColor *= i.VFX_VARYING_EMISSIVE_MULTIPLIER;
         #endif
@@ -142,8 +142,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
         #endif
         color.a *= SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).a;
         #ifndef IS_OPAQUE_PARTICLE
-            float4 alphaRemap = GetAlphaRemapCurveParameter();
-            color.a = SampleCurve(alphaRemap, color.a);
+            color.a = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, color.a);
         #endif
         #if defined(VFX_VARYING_BAKE_DIFFUSE_LIGHTING) && defined(VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING)
             surfaceData.bakeDiffuseLighting0 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0];

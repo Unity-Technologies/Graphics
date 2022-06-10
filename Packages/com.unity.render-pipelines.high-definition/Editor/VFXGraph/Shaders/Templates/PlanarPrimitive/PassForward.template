@@ -65,6 +65,15 @@ Pass
 		float3 posWS : TEXCOOR9; // Needed for fog
 
         #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+        #if IS_TRANSPARENT_PARTICLE
+        VFX_OPTIONAL_INTERPOLATION float4 alphaRemap : TEXCOORD10;
+        #endif
+        #if VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
+        VFX_OPTIONAL_INTERPOLATION float2 emissiveGradient : TEXCOORD11;
+        #endif
+        #endif
+
+        #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
         ${VFXVertexProbeDeclareVaryings}
         #endif
 
@@ -95,9 +104,16 @@ ${VFXVertexProbeVaryingsMacros}
 #endif
 #define VFX_VARYING_POSWS posWS
 
-#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
-#define VFX_VARYING_EMISSIVE_MULTIPLIER builtInInterpolants.w
+#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+    #if IS_TRANSPARENT_PARTICLE
+        #define VFX_VARYING_ALPHA_REMAP alphaRemap
+    #endif
+    #if VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
+        #define VFX_VARYING_EMISSIVE_MULTIPLIER builtInInterpolants.w
+        #define VFX_VARYING_EMISSIVE_GRADIENT emissiveGradient
+    #endif
 #endif
+
 
 #if VFX_FEATURE_MOTION_VECTORS_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER

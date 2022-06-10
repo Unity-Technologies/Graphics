@@ -1,11 +1,3 @@
-#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && !defined(IS_OPAQUE_PARTICLE)
-    float4 GetAlphaRemapCurveParameter()
-    {
-	    ${VFXLoadParameter:{alphaRemap}} // Loads alpha remap curve parameters
-        return alphaRemap;
-    }
-#endif
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLit.hlsl"
 
 #ifndef VFX_SHADERGRAPH
