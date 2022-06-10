@@ -5,6 +5,7 @@ using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
 using UnityEngine;
 using static UnityEditor.ShaderGraph.Configuration.CPGraphDataProvider;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -314,9 +315,30 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return graphDelta.m_data.CreateCopyLayerData(sourceGraphNodes);
         }
 
-        void Paste(string graphDataJSON)
+        public void Paste(string layerData, string metaData, string edgeData)
         {
-            return;
+            var added = graphDelta.m_data.PasteElementCollection(layerData, metaData, GraphDelta.k_user, out var remappings);
+            foreach(var reader in added)
+            {
+                if(reader.Element.Header is NodeHeader)
+                {
+                    graphDelta.ReconcretizeNode(reader.Element.ID, registry);
+                }
+            }
+            EdgeList edgeList = new EdgeList();
+            EditorJsonUtility.FromJsonOverwrite(edgeData, edgeList);
+            foreach(var edge in edgeList.edges)
+            {
+                ElementID input = edge.Input;
+                ElementID output = edge.Output;
+                foreach(var remap in remappings)
+                {
+                    input = input.Rename(remap.Key, remap.Value);
+                    output = output.Rename(remap.Key, remap.Value);
+                }
+                AddEdge(output, input);
+            }
+
         }
     }
 }
