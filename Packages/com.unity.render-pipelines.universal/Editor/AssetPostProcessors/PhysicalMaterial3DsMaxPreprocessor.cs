@@ -12,8 +12,8 @@ namespace UnityEditor.Rendering.Universal
 {
     class PhysicalMaterial3DsMaxPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 4;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -960;
         static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/PhysicalMaterial3DsMax/PhysicalMaterial3DsMax.shadergraph";
         static readonly string k_ShaderTransparentPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/PhysicalMaterial3DsMax/PhysicalMaterial3DsMaxTransparent.shadergraph";
 

@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering.Universal
 {
     class ThreeDSMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 2;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -980;
 
         public override uint GetVersion()
         {

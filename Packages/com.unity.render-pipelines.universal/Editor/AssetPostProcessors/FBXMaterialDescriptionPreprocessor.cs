@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering.Universal
 {
     class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
     {
-        static readonly uint k_Version = 1;
-        static readonly int k_Order = 2;
+        static readonly uint k_Version = 2;
+        static readonly int k_Order = -980;
         public override uint GetVersion()
         {
             return k_Version;
@@ -155,7 +155,13 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            material.SetFloat("_Glossiness", 0.0f);
+            if (description.TryGetProperty("Shininess", out float shininess))
+            {
+                var glossiness = Mathf.Sqrt(shininess * 0.01f);
+                material.SetFloat("_Smoothness", glossiness);
+            }
+            else
+                material.SetFloat("_Smoothness", 0.0f);
 
             if (PlayerSettings.colorSpace == ColorSpace.Linear)
                 RemapAndTransformColorCurves(description, clips, "DiffuseColor", "_BaseColor", ConvertFloatLinearToGamma);

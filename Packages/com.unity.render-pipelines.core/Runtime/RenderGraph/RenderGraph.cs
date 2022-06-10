@@ -1409,12 +1409,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             PreRenderPassSetRenderTargets(passInfo, rgContext);
 
-            // Flush first the current command buffer on the render context.
-            rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
-            rgContext.cmd.Clear();
-
             if (passInfo.enableAsyncCompute)
             {
+                // Flush current command buffer on the render context before enqueuing async commands.
+                rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
+                rgContext.cmd.Clear();
+
                 CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
                 asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
                 rgContext.cmd = asyncCmd;
