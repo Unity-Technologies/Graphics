@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEditor.ContextLayeredDataStorage;
 using CLDS = UnityEditor.ContextLayeredDataStorage.ContextLayeredDataStorage;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -146,6 +147,60 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         new internal void RemoveDataBranch(Element element)
         {
             base.RemoveDataBranch(element);
+        }
+
+        internal void CopyDataBranch(NodeHandler src, NodeHandler dst)
+        {
+            CopyDataBranch(src.Reader, dst.Writer);
+        }
+
+        new internal void CopyDataBranch(DataReader src, DataWriter dst)
+        {
+            base.CopyDataBranch(src, dst);
+        }
+
+        [Serializable]
+        internal class EdgeList
+        {
+            public List<Edge> edges;
+        }
+        internal (string layerData, string metaData, string edgeData) CreateCopyLayerData(IEnumerable<NodeHandler> nodes)
+        {
+            List<DataReader> readers = new List<DataReader>();
+            EdgeList edgeList = new EdgeList();
+            edgeList.edges = new List<Edge>();
+            foreach(var node in nodes)
+            {
+                readers.Add(node.Reader);
+                foreach(var port in node.GetPorts())
+                {
+                    if(port.IsInput)
+                    {
+                        foreach(var edge in edges.Where(e => e.Input.Equals(port.ID)))
+                        {
+                            if(nodes.Any(n => edge.Output.ParentPath.Equals(n.ID.FullPath)) && !edgeList.edges.Any(e => e.Equals(edge)))
+                            {
+                                edgeList.edges.Add(edge);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var edge in edges.Where(e => e.Output.Equals(port.ID)))
+                        {
+                            if (nodes.Any(n => edge.Input.ParentPath.Equals(n.ID.FullPath)) && !edgeList.edges.Any(e => e.Equals(edge)))
+                            {
+                                edgeList.edges.Add(edge);
+                            }
+                        }
+                    }
+                }
+                GatherAll(node.Reader, out List<DataReader> accumulator);
+                readers.AddRange(accumulator);
+            }
+            var cpy = CopyElementCollection(readers);
+
+            return (cpy.layer, cpy.metadata, EditorJsonUtility.ToJson(edgeList, true));
         }
     }
 }

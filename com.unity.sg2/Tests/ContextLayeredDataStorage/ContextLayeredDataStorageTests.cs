@@ -51,6 +51,19 @@ namespace UnityEditor.ContextLayeredDataStorage
             Assert.AreEqual(expectedParentPath, test.ParentPath);
         }
 
+        [Test]
+        [TestCase("", new string[] { }, "Foo", "Foo")]
+        [TestCase("", new string[] { "Bar" }, "Bar", "Bar_1")]
+        [TestCase("", new string[] { "Bar", "Bar_1" }, "Bar", "Bar_2")]
+        [TestCase("Foo", new string[] { }, "Bar", "Foo.Bar")]
+        [TestCase("Foo", new string[] { "Bar" }, "Bar", "Foo.Bar_1")]
+        [TestCase("Foo", new string[] { "Bar", "Bar_1" }, "Bar", "Foo.Bar_2")]
+        public void CreateUniqueID(string parentID, IEnumerable<string> existingLocalIDs, string desiredLocalID, string expectedID)
+        {
+            var test = ElementID.CreateUniqueLocalID(parentID, existingLocalIDs, desiredLocalID);
+            Assert.AreEqual(expectedID, test.FullPath);
+        }
+
         [Serializable]
         public class TestClass
         {
@@ -316,6 +329,8 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Vector3Int data2 = elem.GetData<Vector3Int>();
                 Assert.AreEqual(data2, new Vector3Int(1,2,3));
             }
+
+            
         }
     }
 
@@ -374,5 +389,46 @@ namespace UnityEditor.ContextLayeredDataStorage
             Assert.IsNull(clds.Search("node.in1"));
             var reader = clds.Search("node");
         }
+
+        [Test]
+        public void TestCopyDataBranch()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            clds.AddData("a");
+            clds.AddData("a.b", 13);
+            clds.AddData("a.b.c", 35.4f);
+            var copy = clds.AddData("a_copy");
+            clds.CopyDataBranch(clds.Search("a"), copy);
+            var child = clds.Search("a_copy");
+            child = child.GetChild("b");
+            Assert.IsNotNull(child);
+            Assert.AreEqual(13, child.GetData<int>());
+            child = child.GetChild("c");
+            Assert.IsNotNull(child);
+            Assert.AreEqual(35.4f, child.GetData<float>());
+
+        }
+
+        [Test]
+        public void TestCopyPaste()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            clds.AddData("a");
+            clds.AddData("a.b", 13);
+            clds.AddData("a.b.c", 35.4f);
+            clds.SetMetadata("a.b", "foo", new Color(1, 0, 0));
+
+            List<DataReader> elements = new List<DataReader>()
+            {
+                clds.Search("a"),
+                clds.Search("a.b"),
+                clds.Search("a.b.c")
+            };
+
+            var ser = clds.CopyElementCollection(elements);
+            Debug.Log(ser.layer);
+            Debug.Log(ser.metadata);
+        }
+
     }
 }

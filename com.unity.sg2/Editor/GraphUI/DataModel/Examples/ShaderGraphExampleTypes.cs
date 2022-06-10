@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
 
             // Try/Catch maybe.
-            ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeReader(out var nodeReader);
+            ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
 
             var length = constant.GetLength();
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;

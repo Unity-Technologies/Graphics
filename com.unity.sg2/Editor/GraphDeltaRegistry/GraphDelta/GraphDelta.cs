@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
@@ -212,19 +213,39 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         }
 
-        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node, Registry registry)
+        private IEnumerable<NodeHandler> GetConnectedNodesInternal(ElementID node, Registry registry, bool includeInputs, bool includeOutputs)
         {
             var nodeHandler = m_data.GetHandler(node, this, registry)?.ToNodeHandler();
             if (nodeHandler != null)
             {
                 foreach (var port in nodeHandler.GetPorts())
                 {
-                    foreach(var connected in GetConnectedPorts(port.ID, registry))
+                    if (includeInputs && port.IsInput)
                     {
-                        yield return connected.GetNode();
+                        foreach (var connected in GetConnectedPorts(port.ID, registry))
+                        {
+                            yield return connected.GetNode();
+                        }
+                    }
+                    else if(includeOutputs && !port.IsInput)
+                    {
+                        foreach (var connected in GetConnectedPorts(port.ID, registry))
+                        {
+                            yield return connected.GetNode();
+                        }
                     }
                 }
             }
+        }
+
+        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node, Registry registry)
+        {
+            return GetConnectedNodesInternal(node, registry, true, true);
+        }
+
+        public IEnumerable<NodeHandler> GetConnectedIncomingNodes(ElementID node, Registry registry)
+        {
+            return GetConnectedNodesInternal(node, registry, true, false);
         }
 
         public IEnumerable<PortHandler> GetConnectedPorts(ElementID port, Registry registry)
@@ -242,6 +263,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
 
             }
+        }
+
+        public NodeHandler DuplicateNode(NodeHandler sourceNode, Registry registry)
+        {
+            return DuplicateNode(sourceNode, registry, m_data.GetLayerRoot(k_user).GetUniqueLocalID(sourceNode.ID.LocalPath));
+        }
+
+        public NodeHandler DuplicateNode(NodeHandler sourceNode, Registry registry, ElementID copiedNodeID)
+        {
+            NodeHandler output = AddNode(sourceNode.GetRegistryKey(), copiedNodeID, registry);
+            m_data.CopyDataBranch(sourceNode, output);
+            return output;
         }
 
         public void RemoveNode(string id)

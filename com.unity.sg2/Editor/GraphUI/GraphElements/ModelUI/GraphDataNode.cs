@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (NodeModel is not GraphDataNodeModel)
                 return;
 
-            if (!m_GraphDataNodeModel.TryGetNodeReader(out var nodeReader))
+            if (!m_GraphDataNodeModel.TryGetNodeHandler(out var nodeReader))
                 return;
 
             // Retrieve the UI information about this node from its

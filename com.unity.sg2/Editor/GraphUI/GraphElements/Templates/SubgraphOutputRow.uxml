@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:sg="UnityEditor.ShaderGraph.GraphUI">
+    <ui:VisualElement class="sg-subgraph-output-row">
+        <ui:TextField/>
+        <ui:DropdownField/>
+    </ui:VisualElement>
+</ui:UXML>

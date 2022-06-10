@@ -17,6 +17,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 return new NodeWriter(element);
             }
+
+            public override DataHeader MakeCopy()
+            {
+                return new NodeHeader();
+            }
         }
 
         public class PortHeader : DataHeader
@@ -33,6 +38,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return new PortWriter(element);
             }
 
+            public override DataHeader MakeCopy()
+            {
+                return new PortHeader();
+            }
+
         }
 
         public class FieldHeader : DataHeader
@@ -47,10 +57,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return new FieldWriter(element);
             }
 
+            public override DataHeader MakeCopy()
+            {
+                return new FieldHeader();
+            }
+
         }
 
         public class FieldHeader<T> : FieldHeader
         {
+            public override DataHeader MakeCopy()
+            {
+                return new FieldHeader<T>();
+            }
         }
 
     }

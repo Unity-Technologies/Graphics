@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         // Use this node's generated guid to bind it to an underlying element in the graph data.
                         var graphDataName = nodeModel.Guid.ToString();
-                        ((ShaderGraphModel)graphModel).GraphHandler.AddNode(registryKey, graphDataName, registry);
+                        ((ShaderGraphModel)graphModel).GraphHandler.AddNode(registryKey, graphDataName);
                         nodeModel.graphDataName = graphDataName;
                     }
                 },

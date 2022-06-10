@@ -1,0 +1,12 @@
+.sg-subgraph-output-row {
+    flex-direction: row;
+}
+
+/* TODO (Joe): SG1 styles text fields to look like labels */
+.sg-subgraph-output-row TextField {
+    width: 50%;
+}
+
+.sg-subgraph-output-row DropdownField {
+    flex-grow: 1;
+}

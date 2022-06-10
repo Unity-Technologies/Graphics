@@ -24,5 +24,10 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
 
         }
+
+        public virtual DataHeader MakeCopy()
+        {
+            return new DataHeader();
+        }
     }
 }

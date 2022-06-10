@@ -38,13 +38,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 this.portName = portName;
             }
         }
+
+        [SerializeField]
+        // TODO: Currently constants when their owning node model is cloned, don't get their values carried over
+        // TODO: (Sai) Is there a way to handle serializing this to its actual/leaf value and then serialize it over?
+        // TODO: In OnBeforeSerialize() call an abstract function that allows for implementor classes to define how to serialize for cloning
+        // TODO: In OnAfterSerialize() call an abstract function that allows for implementor classes to deserialize for cloning
         public object ObjectValue {
             get => IsInitialized ? GetValue() : DefaultValue;
             set {
                 if (IsInitialized)
+                {
                     SetValue(value);
+                    clonedObjectValue = value;
+                }
             }
         }
+
+        [SerializeField]
+        public object clonedObjectValue;
 
         abstract protected object GetValue();
         abstract protected void SetValue(object value);
@@ -53,6 +65,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         abstract public TypeHandle GetTypeHandle();
 
         public void Initialize(TypeHandle constantTypeHandle) { }
-        public IConstant Clone() { return null; }
+
+        public IConstant Clone()
+        {
+            var copy = (GraphTypeConstant)Activator.CreateInstance(GetType());
+            copy.Initialize(graphModel, nodeName, portName);
+            copy.ObjectValue = ObjectValue;
+            return copy;
+        }
     }
 }
