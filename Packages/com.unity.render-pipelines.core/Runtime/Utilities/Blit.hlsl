@@ -104,7 +104,7 @@ Varyings VertQuadPadding(Attributes input)
     return output;
 }
 
-float4 Frag(Varyings input, SamplerState s)
+float4 FragBlit(Varyings input, SamplerState s)
 {
 #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTexture, s, input.texcoord.xy, _BlitTexArraySlice, _BlitMipLevel);
@@ -116,12 +116,12 @@ float4 Frag(Varyings input, SamplerState s)
 
 float4 FragNearest(Varyings input) : SV_Target
 {
-    return Frag(input, sampler_PointClamp);
+    return FragBlit(input, sampler_PointClamp);
 }
 
 float4 FragBilinear(Varyings input) : SV_Target
 {
-    return Frag(input, sampler_LinearClamp);
+    return FragBlit(input, sampler_LinearClamp);
 }
 
 float4 FragBilinearRepeat(Varyings input) : SV_Target

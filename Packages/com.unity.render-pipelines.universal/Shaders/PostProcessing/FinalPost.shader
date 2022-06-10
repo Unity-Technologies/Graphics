@@ -40,7 +40,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #define DitheringScale          _Dithering_Params.xy
         #define DitheringOffset         _Dithering_Params.zw
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragFinalPost(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -115,7 +115,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragFinalPost
                 #pragma target 4.5
             ENDHLSL
         }
@@ -134,7 +134,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragFinalPost
             ENDHLSL
         }
     }

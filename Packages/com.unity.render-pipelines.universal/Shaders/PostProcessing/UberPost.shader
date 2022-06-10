@@ -121,7 +121,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             return uv;
         }
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragUberPost(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -266,7 +266,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragUberPost
             ENDHLSL
         }
     }

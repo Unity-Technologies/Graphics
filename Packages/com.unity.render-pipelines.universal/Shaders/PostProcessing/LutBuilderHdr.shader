@@ -179,7 +179,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             return colorLinear;
         }
 
-        float4 Frag(Varyings input) : SV_Target
+        float4 FragLutBuilderHdr(Varyings input) : SV_Target
         {
             // Lut space
             // We use Alexa LogC (El 1000) to store the LUT as it provides a good enough range
@@ -208,7 +208,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragLutBuilderHdr
             ENDHLSL
         }
     }
