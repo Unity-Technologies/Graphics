@@ -74,7 +74,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
 
 #if UNITY_2022_2_OR_NEWER
-            itemsChosen += _ => OnItemChosen();
+            onItemsChosen += _ => OnItemChosen();
             selectionChanged += _ => OnSelectionChanged();
 #elif UNITY_2020_1_OR_NEWER
             onItemsChosen += obj => OnItemSelected((obj.FirstOrDefault() as ISearcherItemView)?.SearcherItem);
