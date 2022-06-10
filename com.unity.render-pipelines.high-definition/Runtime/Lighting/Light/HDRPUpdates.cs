@@ -1,3 +1,4 @@
+#if XP_CRAZYHUNTER
 namespace UnityEngine.Rendering.HighDefinition
 {
     [ExecuteAlways]
@@ -31,3 +32,4 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
+#endif
