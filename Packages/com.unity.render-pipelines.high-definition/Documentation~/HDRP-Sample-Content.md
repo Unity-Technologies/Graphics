@@ -6,7 +6,7 @@ A Sample is a set of Assets that you can import into your Project and use as a b
 
 To find these Samples:
 
-1. Go to **Windows > Package Manager**, and select **High Definition RP** from the package list.
+1. Go to **Windows** > **Package Manager**, and select **High Definition RP** from the package list.
 2. In the main window that shows the package's details, find the **Samples** section.
 3. To import a Sample into your Project, click the **Import into Project** button. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
 
@@ -34,7 +34,7 @@ This Sample includes various examples of Materials. It includes Materials that u
 
 The Fabric, Hair and Eye Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
 
-In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup at a specific import scale factor. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is contructed and the UVs are setup.
+In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup at a specific import scale factor. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is constructed and the UVs are setup.
 
 ## Lens Flare Samples
 
