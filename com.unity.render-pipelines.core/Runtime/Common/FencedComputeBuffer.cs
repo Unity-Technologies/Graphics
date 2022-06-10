@@ -4,6 +4,51 @@ using UnityEngine;
 
 namespace Unity.Rendering
 {
+    public class FencedComputeBufferHandle<DataType> : IDisposable where DataType : struct
+    {
+        private FencedComputeBufferPool m_BufferPool;
+        private int m_InitialCount;
+        private ComputeBuffer m_Buffer;
+
+        public NativeArray<DataType> Data { get; private set; }
+
+        internal FencedComputeBufferHandle(FencedComputeBufferPool bufferPool, int count)
+        {
+            m_BufferPool = bufferPool;
+            m_InitialCount = count;
+
+            m_BufferPool.BeginFrame();
+            m_Buffer = m_BufferPool.GetCurrentFrameBuffer();
+            Data = m_Buffer.BeginWrite<DataType>(0, count);
+        }
+
+        public void Dispose()
+        {
+            if (m_Buffer != null)
+            {
+                m_Buffer.EndWrite<DataType>(m_InitialCount);
+                m_BufferPool.EndFrame();
+
+                m_Buffer = null;
+            }
+        }
+
+        public ComputeBuffer EndWrite(int writtenCount)
+        {
+            var buffer = m_Buffer;
+
+            if (m_Buffer != null)
+            {
+                m_Buffer.EndWrite<DataType>(writtenCount);
+                m_BufferPool.EndFrame();
+
+                m_Buffer = null;
+            }
+
+            return buffer;
+        }
+    }
+
     public class ConstantFencedComputeBuffer<DataType> : IDisposable where DataType : struct
     {
         private ConstantFencedComputeBufferPool<DataType> m_BufferPool;
@@ -18,18 +63,9 @@ namespace Unity.Rendering
             m_BufferPool?. Dispose();
         }
 
-        public NativeArray<DataType> BeginWrite(int count)
+        public FencedComputeBufferHandle<DataType> BeginWrite(int count)
         {
-            m_BufferPool.BeginFrame();
-            return m_BufferPool.GetCurrentFrameBuffer().BeginWrite<DataType>(0, count);
-        }
-
-        public ComputeBuffer EndWrite(int countWritten)
-        {
-            var buffer = m_BufferPool.GetCurrentFrameBuffer();
-            buffer.EndWrite<DataType>(countWritten);
-            m_BufferPool.EndFrame();
-            return buffer;
+            return new FencedComputeBufferHandle<DataType>(m_BufferPool, count);
         }
     }
     public class StructuredFencedComputeBuffer<DataType> : IDisposable where DataType : struct
@@ -46,18 +82,9 @@ namespace Unity.Rendering
             m_BufferPool?.Dispose();
         }
 
-        public NativeArray<DataType> BeginWrite(int count)
+        public FencedComputeBufferHandle<DataType> BeginWrite(int count)
         {
-            m_BufferPool.BeginFrame();
-            return m_BufferPool.GetCurrentFrameBuffer().BeginWrite<DataType>(0, count);
-        }
-
-        public ComputeBuffer EndWrite(int countWritten)
-        {
-            var buffer = m_BufferPool.GetCurrentFrameBuffer();
-            buffer.EndWrite<DataType>(countWritten);
-            m_BufferPool.EndFrame();
-            return buffer;
+            return new FencedComputeBufferHandle<DataType>(m_BufferPool, count);
         }
     }
 
@@ -75,18 +102,9 @@ namespace Unity.Rendering
             m_BufferPool?.Dispose();
         }
 
-        public NativeArray<DataType> BeginWrite<DataType>(int count) where DataType : struct
+        public FencedComputeBufferHandle<DataType> BeginWrite<DataType>(int count) where DataType : struct
         {
-            m_BufferPool.BeginFrame();
-            return m_BufferPool.GetCurrentFrameBuffer().BeginWrite<DataType>(0, count);
-        }
-
-        public ComputeBuffer EndWrite<DataType>(int countWritten) where DataType : struct
-        {
-            var buffer = m_BufferPool.GetCurrentFrameBuffer();
-            buffer.EndWrite<DataType>(countWritten);
-            m_BufferPool.EndFrame();
-            return buffer;
+            return new FencedComputeBufferHandle<DataType>(m_BufferPool, count);
         }
     }
 }

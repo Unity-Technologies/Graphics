@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             AllocateLightData(visibleLightsCount, visibleDirectionalCount, dgiLightsCount);
 
+            using var dgiHandle = m_DGILightsData.BeginWrite(dgiLightsCount);
+            m_DGILights = dgiHandle.Data;
+            
             // TODO: Refactor shadow management
             // The good way of managing shadow:
             // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
@@ -123,10 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings, hierarchicalVarianceScreenSpaceShadowsData);
             }
 
-            if (dgiLightsCount > 0)
-            {
-                m_DGILightsBuffer = m_DGILightsData.EndWrite(m_DGILightCount);
-            }
+            m_DGILightsBuffer = dgiHandle.EndWrite(m_DGILightCount);
 
             //Sanity check
             Debug.Assert(m_DirectionalLightCount == visibleDirectionalCount, "Mismatch in Directional gpu lights processed. Lights should not be culled in this loop.");

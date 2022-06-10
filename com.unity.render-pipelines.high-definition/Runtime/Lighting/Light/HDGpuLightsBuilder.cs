@@ -206,11 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             m_DirectionalLightCount = directionalLightCount;
 
-            if (dgiLightCount > 0)
-            {
-                m_DGILights = m_DGILightsData.BeginWrite(dgiLightCount);
-                m_DGILightCount = dgiLightCount;
-            }
+            m_DGILightCount = dgiLightCount;
         }
 
         #endregion

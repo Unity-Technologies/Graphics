@@ -18,7 +18,7 @@ namespace Unity.Rendering
 
         public int BufferSize { get; private set; }
 
-        const int k_maxFrames = 16;
+        const int k_maxFrames = 3;
         Queue<FrameData> m_FrameData = new Queue<FrameData>(k_maxFrames);
 
         ComputeBufferPool m_FenceBufferPool;
@@ -107,19 +107,22 @@ namespace Unity.Rendering
 
             bool CanFreeNextBuffer()
             {
+                if (m_FrameData.Count <= 0)
+                    return false;
+
                 // Assume 3 frames in flight if the platform does not support async readbacks.
                 if (SystemInfo.supportsAsyncGPUReadback)
                 {
-                    // Keep buffers around for another frame on Metal (GFXMESH-65).
-                    // hasError is set to true when the Fence is disposed.
-                    if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                    var nextFence = m_FrameData.Peek().Fence;
+                    bool done = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ? nextFence.hasError : nextFence.done;
+
+                    if (!done && m_FrameData.Count >= k_maxFrames)
                     {
-                        return m_FrameData.Count > 0 && m_FrameData.Peek().Fence.hasError;
+                        nextFence.WaitForCompletion();
+                        done = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ? nextFence.hasError : nextFence.done;
                     }
-                    else
-                    {
-                        return m_FrameData.Count > 0 && m_FrameData.Peek().Fence.done;
-                    }
+
+                    return done;
                 }
                 else
                 {
