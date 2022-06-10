@@ -664,7 +664,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/Autodesk Interactive");
+            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/AutodeskInteractive");
         }
 
         /// <inheritdoc/>
