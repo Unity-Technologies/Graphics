@@ -17,10 +17,18 @@ namespace UnityEditor.ShaderGraph.Defs
 @"	p = UV * Scale;
 	ip = floor(p);
 	fp = frac(p);
-	d00 = dot(Unity_GradientNoise_Deterministic_Dir_float(ip), fp);
-	d01 = dot(Unity_GradientNoise_Deterministic_Dir_float(ip + float2(0, 1)), fp - float2(0, 1));
-	d10 = dot(Unity_GradientNoise_Deterministic_Dir_float(ip + float2(1, 0)), fp - float2(1, 0));
-	d11 = dot(Unity_GradientNoise_Deterministic_Dir_float(ip + float2(1, 1)), fp - float2(1, 1));
+    ip2 = ip; ip2.y += 1;
+    ip3 = ip; ip3.x += 1;
+    fp2 = fp; fp2.y -= 1;
+    fp3 = fp; fp2.x -= 1;
+    Unity_GradientNoise_Deterministic_Dir(ip, d00Out);
+	d00 = dot(d00Out, fp);
+    Unity_GradientNoise_Deterministic_Dir(ip2, d01Out);
+	d01 = dot(d01Out, fp2);
+    Unity_GradientNoise_Deterministic_Dir(ip3, d10Out);
+	d10 = dot(d10Out, fp3);
+    Unity_GradientNoise_Deterministic_Dir(ip + 1, d11Out);
+	d11 = dot(d11Out, fp - 1);
 	fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
 	Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;",
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
@@ -29,18 +37,31 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("p", TYPE.Vec2, Usage.Local),
                     new ParameterDescriptor("ip", TYPE.Vec2, Usage.Local),
                     new ParameterDescriptor("fp", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("ip2", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("fp2", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("ip3", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("fp3", TYPE.Vec2, Usage.Local),
                     new ParameterDescriptor("d00", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d11", TYPE.Float, Usage.Local)
+                    new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
 /*
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
 
-float2 Unity_GradientNoise_Deterministic_Dir_float(float2 p)
-{
-	float x; Hash_Tchou_2_1_float(p, x);
-	return normalize(float2(x - floor(x + 0.5), abs(x) - 0.5));
-}
+new ParameterDescriptor("p", TYPE.Vec2, Usage.In)
+new ParameterDescriptor("x", TYPE.Float, Usage.Local)
+new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+
+Unity_GradientNoise_Deterministic_Dir
+
+	Hash_Tchou_2_1_float(p, x);
+    Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
+	Out = normalize(Out);
+
 */
                 ),
                 new(
@@ -49,10 +70,18 @@ float2 Unity_GradientNoise_Deterministic_Dir_float(float2 p)
 @"	p = UV * Scale;
 	ip = floor(p);
 	fp = frac(p);
-	d00 = dot(Unity_GradientNoise_LegacyMod_Dir_float(ip), fp);
-	d01 = dot(Unity_GradientNoise_LegacyMod_Dir_float(ip + float2(0, 1)), fp - float2(0, 1));
-	d10 = dot(Unity_GradientNoise_LegacyMod_Dir_float(ip + float2(1, 0)), fp - float2(1, 0));
-	d11 = dot(Unity_GradientNoise_LegacyMod_Dir_float(ip + float2(1, 1)), fp - float2(1, 1));
+    ip2 = ip; ip2.y += 1;
+    ip3 = ip; ip3.x += 1;
+    fp2 = fp; fp2.y -= 1;
+    fp3 = fp; fp2.x -= 1;
+    Unity_GradientNoise_LegacyMod_Dir(ip, d00Out);
+	d00 = dot(d00Out, fp);
+    Unity_GradientNoise_LegacyMod_Dir(ip2, d01Out);
+	d01 = dot(d01Out, fp2);
+    Unity_GradientNoise_LegacyMod_Dir(ip3, d10Out);
+	d10 = dot(d10Out, fp3);
+    Unity_GradientNoise_LegacyMod_Dir(ip + 1, d11Out);
+	d11 = dot(d11Out, fp - 1);
 	fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
 	Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;",
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
@@ -61,18 +90,30 @@ float2 Unity_GradientNoise_Deterministic_Dir_float(float2 p)
                     new ParameterDescriptor("p", TYPE.Vec2, Usage.Local),
                     new ParameterDescriptor("ip", TYPE.Vec2, Usage.Local),
                     new ParameterDescriptor("fp", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("ip2", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("fp2", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("ip3", TYPE.Vec2, Usage.Local),
+                    new ParameterDescriptor("fp3", TYPE.Vec2, Usage.Local),
                     new ParameterDescriptor("d00", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d11", TYPE.Float, Usage.Local)
+                    new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
 /*
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
 
-float2 Unity_GradientNoise_LegacyMod_Dir_float(float2 p)
-{
-	float x; Hash_LegacyMod_2_1_float(p, x);
-	return normalize(float2(x - floor(x + 0.5), abs(x) - 0.5));
-}
+new ParameterDescriptor("p", TYPE.Vec2, Usage.In)
+new ParameterDescriptor("x", TYPE.Float, Usage.Local)
+new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+
+Unity_GradientNoise_LegacyMod_Dir
+
+	Hash_LegacyMod_2_1_float(p, x);
+    Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
+	Out = normalize(Out);
 */
                 )
             }

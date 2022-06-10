@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
 		for (int x = -1; x <= 1; x++)
 		{
 			lattice.x = x; lattice.y = y;
-			offset = Unity_Voronoi_RandomVector_Deterministic_float(lattice + g, AngleOffset);
+			Unity_Voronoi_RandomVector_Deterministic(lattice + g, AngleOffset, offset);
 			d = distance(lattice + offset, f);
 			if (d < res.x)
 			{
@@ -47,11 +47,17 @@ namespace UnityEditor.ShaderGraph.Defs
 /*
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
 
-float2 Unity_Voronoi_RandomVector_Deterministic_float (float2 UV, float offset)
-{
+Unity_Voronoi_RandomVector_Deterministic
+
 	Hash_Tchou_2_2_float(UV, UV);
-	return float2(sin(UV.y * offset), cos(UV.x * offset)) * 0.5 + 0.5;
-}
+	Out.x = sin(UV.y * offset);
+    Out.y = cos(UV.x * offset);
+    Out = Out * 0.5 + 0.5;
+
+new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+new ParameterDescriptor("offset", TYPE.Float, Usage.In),
+new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+
 */
                 ),
                 new(
@@ -64,7 +70,7 @@ float2 Unity_Voronoi_RandomVector_Deterministic_float (float2 UV, float offset)
 		for (int x = -1; x <= 1; x++)
 		{
 			lattice.x = x; lattice.y = y;
-			offset = Unity_Voronoi_RandomVector_LegacySine_float(lattice + g, AngleOffset);
+			Unity_Voronoi_RandomVector_LegacySine(lattice + g, AngleOffset, offset);
 			d = distance(lattice + offset, f);
 			if (d < res.x)
 			{
@@ -90,11 +96,16 @@ float2 Unity_Voronoi_RandomVector_Deterministic_float (float2 UV, float offset)
 /*
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
 
-float2 Unity_Voronoi_RandomVector_LegacySine_float (float2 UV, float offset)
-{
+Unity_Voronoi_RandomVector_LegacySine
+
     Hash_LegacySine_2_2_float(UV, UV);
-    return float2(sin(UV.y * offset), cos(UV.x * offset)) * 0.5 + 0.5;
-}
+	Out.x = sin(UV.y * offset);
+    Out.y = cos(UV.x * offset);
+    Out = Out * 0.5 + 0.5;
+
+new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+new ParameterDescriptor("offset", TYPE.Float, Usage.In),
+new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
 */
                 )
             }

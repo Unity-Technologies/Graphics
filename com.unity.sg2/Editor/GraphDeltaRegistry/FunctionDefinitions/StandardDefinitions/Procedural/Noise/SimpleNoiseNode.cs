@@ -14,61 +14,92 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "SimpleNoiseDeterministic",
-@"	Out = Unity_SimpleNoise_ValueNoise_Deterministic_float(float2(UV.xy*(Scale)))*0.125;
-	Out += Unity_SimpleNoise_ValueNoise_Deterministic_float(float2(UV.xy*(Scale * 0.5)))*0.25;
-	Out += Unity_SimpleNoise_ValueNoise_Deterministic_float(float2(UV.xy*(Scale * 0.25)))*0.5;",
+@"  Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*Scale, sample1);
+    Out = sample1 * 0.125;
+    Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*(Scale * 0.5), sample2);
+	Out += sample2 * 0.25;
+    Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*(Scale * 0.25), sample3);
+	Out += *0.5;",
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] {500f}),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("sample1", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("sample2", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("sample3", TYPE.Float, Usage.Local)
 /*
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
 
-float Unity_SimpleNoise_ValueNoise_Deterministic_float(float2 uv)
-{
-	float2 i = floor(uv);
-	float2 f = frac(uv);
+Unity_SimpleNoise_ValueNoise_Deterministic
+
+	i = floor(uv);
+	f = frac(uv);
 	f = f * f * (3.0 - 2.0 * f);
 	uv = abs(frac(uv) - 0.5);
-	float2 c0 = i + float2(0.0, 0.0);
-	float2 c1 = i + float2(1.0, 0.0);
-	float2 c2 = i + float2(0.0, 1.0);
-	float2 c3 = i + float2(1.0, 1.0);
-	float r0; Hash_Tchou_2_1_float(c0, r0);
-	float r1; Hash_Tchou_2_1_float(c1, r1);
-	float r2; Hash_Tchou_2_1_float(c2, r2);
-	float r3; Hash_Tchou_2_1_float(c3, r3);
-	return lerp(lerp(r0, r1, f.x), lerp(r2, r3, f.x), f.y);
-}
+	c1 = i; c1.x += 1;
+	c2 = i; c2.y += 1;
+	Hash_Tchou_2_1_float(i, r0);
+	Hash_Tchou_2_1_float(c1, r1);
+	Hash_Tchou_2_1_float(c2, r2);
+	Hash_Tchou_2_1_float(i + 1, r3);
+	Out = lerp(lerp(r0, r1, f.x), lerp(r2, r3, f.x), f.y);
+
+new ParameterDescriptor("uv", TYPE.Vec2, Usage.In),
+new ParameterDescriptor("i", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("f", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("c1", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("c2", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("r0", TYPE.Float, Usage.Local),
+new ParameterDescriptor("r1", TYPE.Float, Usage.Local),
+new ParameterDescriptor("r2", TYPE.Float, Usage.Local),
+new ParameterDescriptor("r3", TYPE.Float, Usage.Local),
+new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+
 */
                 ),
                 new(
                     1,
                     "SimpleNoiseLegacySine",
-@"	Out = Unity_SimpleNoise_ValueNoise_LegacySine_float(float2(UV.xy*(Scale)))*0.125;
-	Out += Unity_SimpleNoise_ValueNoise_LegacySine_float(float2(UV.xy*(Scale * 0.5)))*0.25;
-	Out += Unity_SimpleNoise_ValueNoise_LegacySine_float(float2(UV.xy*(Scale * 0.25)))*0.5;",
+@"  Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*Scale, sample1);
+    Out = sample1 * 0.125;
+    Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*(Scale * 0.5), sample2);
+	Out += sample2 * 0.25;
+    Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*(Scale * 0.25), sample3);
+	Out += *0.5;",
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] {500f}),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("sample1", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("sample2", TYPE.Float, Usage.Local),
+                    new ParameterDescriptor("sample3", TYPE.Float, Usage.Local)
+
 /*
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
 
-float Unity_SimpleNoise_ValueNoise_LegacySine_float(float2 uv)
-{
-	float2 i = floor(uv);
-	float2 f = frac(uv);
+Unity_SimpleNoise_ValueNoise_LegacySine
+
+	i = floor(uv);
+	f = frac(uv);
 	f = f * f * (3.0 - 2.0 * f);
 	uv = abs(frac(uv) - 0.5);
-	float2 c0 = i + float2(0.0, 0.0);
-	float2 c1 = i + float2(1.0, 0.0);
-	float2 c2 = i + float2(0.0, 1.0);
-	float2 c3 = i + float2(1.0, 1.0);
-	float r0; Hash_LegacySine_2_1_float(c0, r0);
-	float r1; Hash_LegacySine_2_1_float(c1, r1);
-	float r2; Hash_LegacySine_2_1_float(c2, r2);
-	float r3; Hash_LegacySine_2_1_float(c3, r3);
-	return lerp(lerp(r0, r1, f.x), lerp(r2, r3, f.x), f.y);
-}
+	c1 = i; c1.x += 1;
+	c2 = i; c2.y += 1;
+	Hash_LegacySine_2_1_float(i, r0);
+	Hash_LegacySine_2_1_float(c1, r1);
+	Hash_LegacySine_2_1_float(c2, r2);
+	Hash_LegacySine_2_1_float(i + 1, r3);
+	Out = lerp(lerp(r0, r1, f.x), lerp(r2, r3, f.x), f.y);
+
+new ParameterDescriptor("uv", TYPE.Vec2, Usage.In),
+new ParameterDescriptor("i", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("f", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("c1", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("c2", TYPE.Vec2, Usage.Local),
+new ParameterDescriptor("r0", TYPE.Float, Usage.Local),
+new ParameterDescriptor("r1", TYPE.Float, Usage.Local),
+new ParameterDescriptor("r2", TYPE.Float, Usage.Local),
+new ParameterDescriptor("r3", TYPE.Float, Usage.Local),
+new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+
 */
                 )
             }
