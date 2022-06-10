@@ -262,7 +262,7 @@ test_all_project_Win_2020.3:
     name: Test all packages [project context] Win 2020.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -282,7 +282,7 @@ test_all_project_OSX_2020.3:
     name: Test all packages [project context] OSX 2020.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -302,7 +302,7 @@ test_all_project_Win_CUSTOM-REVISION:
     name: Test all packages [project context] Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -322,7 +322,7 @@ test_all_project_OSX_CUSTOM-REVISION:
     name: Test all packages [project context] OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -342,7 +342,7 @@ test_all_project_Win_min_editor:
     name: Test minimum editor version - all packages [project context] Win
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -360,7 +360,7 @@ test_all_project_OSX_min_editor:
     name: Test minimum editor version - all packages [project context] OSX
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project

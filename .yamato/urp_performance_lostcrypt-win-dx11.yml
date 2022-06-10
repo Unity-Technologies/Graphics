@@ -11,7 +11,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_2020
     name: URP_Performance_LostCrypt on Win_DX11_performance_playmode_runtime_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -59,7 +59,7 @@ Build_URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linea
     name: Build URP_Performance_LostCrypt on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version 2020.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -135,7 +135,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_2020.
     name: URP_Performance_LostCrypt on Win_DX11_performance_playmode_editor_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -209,7 +209,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_2020.3
     name: URP_Performance_LostCrypt on Win_DX11_performance_build_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -282,7 +282,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_CUST
     name: URP_Performance_LostCrypt on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -330,7 +330,7 @@ Build_URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linea
     name: Build URP_Performance_LostCrypt on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -406,7 +406,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_CUSTO
     name: URP_Performance_LostCrypt on Win_DX11_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -480,7 +480,7 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM
     name: URP_Performance_LostCrypt on Win_DX11_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

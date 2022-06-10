@@ -11,18 +11,18 @@ test_editors:
 test_platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v1.21.0-1103460
     flavor: b1.large
   - name: mac
     type: Unity::VM::osx
-    image: package-ci/mac:stable
+    image: package-ci/mac:v1.20.0-1079282
     flavor: m1.mac
 ---
 {{ name }}_pack:
   name: {{ name }} - Pack
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v1.21.0-1103460
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -56,7 +56,7 @@ test_platforms:
   name: {{ name }} - Tests Trigger
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v1.21.0-1103460
     flavor: b1.large
   commands:
     - dir
@@ -79,7 +79,7 @@ test_platforms:
   name: {{ name }} - Publish to Internal Registry
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v1.21.0-1103460
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -101,7 +101,7 @@ test_platforms:
   name: {{ name }} - Publish to Internal Registry [dry-run]
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v1.21.0-1103460
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
