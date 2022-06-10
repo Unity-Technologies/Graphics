@@ -11,7 +11,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.medium
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -48,7 +48,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
     name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM::osx
-        image: mobile/macos-10.14-testing:stable
+        image: mobile/macos-10.14-testing:v0.1.4-494712
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -113,7 +113,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
     name: URP_Performance_BoatAttack on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -177,7 +177,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.medium
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -214,7 +214,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
     name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: mobile/macos-10.14-testing:stable
+        image: mobile/macos-10.14-testing:v0.1.4-494712
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -279,7 +279,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
     name: URP_Performance_BoatAttack on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master

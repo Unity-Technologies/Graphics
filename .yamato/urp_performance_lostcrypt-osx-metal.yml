@@ -11,7 +11,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_202
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_runtime_mono_Linear on version 2021.3
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -89,7 +89,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_2021
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_editor_mono_Linear on version 2021.3
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -161,7 +161,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_2021.
     name: URP_Performance_LostCrypt on OSX_Metal_performance_build_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -233,7 +233,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -311,7 +311,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -383,7 +383,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
     name: URP_Performance_LostCrypt on OSX_Metal_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'

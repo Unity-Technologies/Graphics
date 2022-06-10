@@ -11,7 +11,7 @@ Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_2021.3:
     name: Lightmapping on Linux_OpenGlCore_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
     variables:
@@ -49,7 +49,7 @@ Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_2021.3:
     name: Lightmapping on Linux_OpenGlCore_Standalone_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
     variables:
@@ -81,7 +81,7 @@ Build_Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_2021.3:
     name: Build Lightmapping on Linux_OpenGlCore_mono_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
     variables:
@@ -122,7 +122,7 @@ Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: Lightmapping on Linux_OpenGlCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
     variables:
@@ -160,7 +160,7 @@ Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Lightmapping on Linux_OpenGlCore_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
     variables:
@@ -192,7 +192,7 @@ Build_Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Lightmapping on Linux_OpenGlCore_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
     variables:

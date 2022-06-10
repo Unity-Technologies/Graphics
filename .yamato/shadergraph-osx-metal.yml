@@ -11,7 +11,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_Linear_2021.3:
     name: ShaderGraph on OSX_Metal_Standalone_mono_Linear on version 2021.3
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -52,7 +52,7 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_2021.3:
     name: ShaderGraph on OSX_Metal_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -93,7 +93,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -134,7 +134,7 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'

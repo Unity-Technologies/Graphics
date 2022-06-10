@@ -11,7 +11,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_2021.3:
     name: URPUpdate on Win_Vulkan_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -53,7 +53,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_2021.3:
     name: URPUpdate on Win_Vulkan_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -95,7 +95,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -137,7 +137,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

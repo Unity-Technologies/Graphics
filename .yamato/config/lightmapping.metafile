@@ -40,7 +40,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
   - name: OSX
@@ -62,7 +62,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         model: rtx2080
         flavor: b1.large
 

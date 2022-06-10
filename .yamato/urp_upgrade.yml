@@ -7,7 +7,7 @@ test_editors:
 test_platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v1.21.0-1103460
     flavor: b1.large
     editor_path: .\.Editor
     editor_cmd: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
