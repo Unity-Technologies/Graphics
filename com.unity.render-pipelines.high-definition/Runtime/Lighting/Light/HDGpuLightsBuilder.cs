@@ -163,21 +163,18 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_LightBoundsCount = 0;
 
         private StructuredFencedComputeBuffer<LightData> m_LightsData;
-        private NativeArray<LightData> m_Lights;
         private NativeArray<LightDataCpuSubset> m_LightsCpuSubset;
         private int m_LightCapacity = 0;
         private int m_LightCount = 0;
         private ComputeBuffer m_LightsBuffer = null;
 
         private StructuredFencedComputeBuffer<DirectionalLightData> m_DirectionalLightsData;
-        private NativeArray<DirectionalLightData> m_DirectionalLights;
         private NativeArray<DirectionalLightDataCpuSubset> m_DirectionalLightsCpuSubset;
         private int m_DirectionalLightCapacity = 0;
         private int m_DirectionalLightCount = 0;
         private ComputeBuffer m_DirectionalLightsBuffer = null;
 
         private StructuredFencedComputeBuffer<LightData> m_DGILightsData;
-        private NativeArray<LightData> m_DGILights;
         private NativeArray<LightDataCpuSubset> m_DGILightsCpuSubset;
         private int m_DGILightCapacity = 0;
         private int m_DGILightCount = 0;

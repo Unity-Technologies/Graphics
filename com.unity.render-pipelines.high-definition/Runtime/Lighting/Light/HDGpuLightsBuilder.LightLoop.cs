@@ -106,10 +106,6 @@ namespace UnityEngine.Rendering.HighDefinition
             using var directionalLightHandle = m_DirectionalLightsData.BeginWrite(m_DirectionalLightCount);
             using var dgiHandle = m_DGILightsData.BeginWrite(dgiLightsCount);
 
-            m_Lights = lightHandle.Data;
-            m_DirectionalLights = directionalLightHandle.Data;
-            m_DGILights = dgiHandle.Data;
-            
             // TODO: Refactor shadow management
             // The good way of managing shadow:
             // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
@@ -129,9 +125,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
-                StartCreateGpuLightDataJob(hdCamera, cullingResult, hdShadowSettings, visibleLights, lightEntities);
+                StartCreateGpuLightDataJob(hdCamera, cullingResult, hdShadowSettings, visibleLights, lightEntities, lightHandle.Data, directionalLightHandle.Data, dgiHandle.Data);
                 CompleteGpuLightDataJob();
-                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings, hierarchicalVarianceScreenSpaceShadowsData);
+                CalculateAllLightDataTextureInfo(
+                    cmd, hdCamera,
+                    cullingResult, visibleLights, lightEntities,
+                    hdShadowSettings, shadowInitParams, debugDisplaySettings,
+                    lightHandle.Data,
+                    directionalLightHandle.Data,
+                    dgiHandle.Data,
+                    hierarchicalVarianceScreenSpaceShadowsData);
             }
 
             m_LightsBuffer = lightHandle.EndWrite(m_LightCount);
@@ -403,17 +406,20 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowSettings hdShadowSettings,
             in HDShadowInitParameters shadowInitParams,
             DebugDisplaySettings debugDisplaySettings,
+            NativeArray<LightData> gpuLightArray,
+            NativeArray<DirectionalLightData> gpuDirectionalLightArray,
+            NativeArray<LightData> gpuDgiLightArray,
             HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData)
         {
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
             bool rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             HDProcessedVisibleLight* processedLightArrayPtr = (HDProcessedVisibleLight*)visibleLights.processedEntities.GetUnsafePtr<HDProcessedVisibleLight>();
             LightDataCpuSubset* cpuLightArrayPtr = (LightDataCpuSubset*)m_LightsCpuSubset.GetUnsafePtr<LightDataCpuSubset>();
-            LightData* gpuLightArrayPtr = (LightData*)m_Lights.GetUnsafePtr<LightData>();
+            LightData* gpuLightArrayPtr = (LightData*)gpuLightArray.GetUnsafePtr<LightData>();
             DirectionalLightDataCpuSubset* cpuDirectionalLightArrayPtr = (DirectionalLightDataCpuSubset*)m_DirectionalLightsCpuSubset.GetUnsafePtr<DirectionalLightDataCpuSubset>();
-            DirectionalLightData* gpuDirectionalLightArrayPtr = (DirectionalLightData*)m_DirectionalLights.GetUnsafePtr<DirectionalLightData>();
+            DirectionalLightData* gpuDirectionalLightArrayPtr = (DirectionalLightData*)gpuDirectionalLightArray.GetUnsafePtr<DirectionalLightData>();
             LightDataCpuSubset* cpuDgiLightArrayPtr = (LightDataCpuSubset*)m_DGILightsCpuSubset.GetUnsafePtr<LightDataCpuSubset>();
-            LightData* gpuDgiLightArrayPtr = (LightData*)m_DGILights.GetUnsafePtr<LightData>();
+            LightData* gpuDgiLightArrayPtr = (LightData*)gpuDgiLightArray.GetUnsafePtr<LightData>();
             VisibleLight* visibleLightsArrayPtr = (VisibleLight*)cullResults.visibleLights.GetUnsafePtr<VisibleLight>();
             var shadowFilteringQuality = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
 

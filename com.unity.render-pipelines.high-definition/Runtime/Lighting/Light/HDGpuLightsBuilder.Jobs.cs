@@ -113,19 +113,19 @@ namespace UnityEngine.Rendering.HighDefinition
             #region output processed lights
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
-            public NativeArray<LightData> lights;
+            public NativeArray<LightData> lightsGpu;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightDataCpuSubset> lightsCpuSubset;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
-            public NativeArray<DirectionalLightData> directionalLights;
+            public NativeArray<DirectionalLightData> directionalLightsGpu;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<DirectionalLightDataCpuSubset> directionalLightsCpuSubset;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
-            public NativeArray<LightData> dgiLights;
+            public NativeArray<LightData> dgiLightsGpu;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightDataCpuSubset> dgiLightsCpuSubset;
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var counterSet = !isDGI ? gpuLightCounters : dgiGpuLightCounters;
                 int maxLightCount = !isDGI ? outputLightCounts : outputDGILightCounts;
                 var outputCpuArray = !isDGI ? lightsCpuSubset : dgiLightsCpuSubset;
-                var outputGpuArray = !isDGI ? lights : dgiLights;
+                var outputGpuArray = !isDGI ? lightsGpu : dgiLightsGpu;
 
                 switch (lightCategory)
                 {
@@ -734,7 +734,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + outputDirectionalLightCounts);
 #endif
 
-                directionalLights[outputIndex] = lightData;
+                directionalLightsGpu[outputIndex] = lightData;
                 directionalLightsCpuSubset[outputIndex] = new DirectionalLightDataCpuSubset()
                 {
                     screenSpaceShadowIndex = lightData.screenSpaceShadowIndex,
@@ -774,7 +774,10 @@ namespace UnityEngine.Rendering.HighDefinition
             in CullingResults cullingResult,
             HDShadowSettings hdShadowSettings,
             HDProcessedVisibleLightsBuilder visibleLights,
-            HDLightRenderDatabase lightEntities)
+            HDLightRenderDatabase lightEntities,
+            NativeArray<LightData> gpuLightArray,
+            NativeArray<DirectionalLightData> gpuDirectionalLightArray,
+            NativeArray<LightData> gpuDgiLightArray)
         {
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             var skySettings = hdCamera.volumeStack.GetComponent<PhysicallyBasedSky>();
@@ -820,11 +823,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 //outputs
                 gpuLightCounters = m_LightTypeCounters,
                 dgiGpuLightCounters = m_DGILightTypeCounters,
-                lights = m_Lights,
+                lightsGpu = gpuLightArray,
                 lightsCpuSubset = m_LightsCpuSubset,
-                directionalLights = m_DirectionalLights,
+                directionalLightsGpu = gpuDirectionalLightArray,
                 directionalLightsCpuSubset = m_DirectionalLightsCpuSubset,
-                dgiLights = m_DGILights,
+                dgiLightsGpu = gpuDgiLightArray,
                 dgiLightsCpuSubset = m_DGILightsCpuSubset,
                 lightsPerView = m_LightsPerView,
                 lightBounds = m_LightBounds,
