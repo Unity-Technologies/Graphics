@@ -1,4 +1,4 @@
-# Upgrading HDRP from 6.x to 7.x
+# Upgrading from HDRP 6.x to 7.x
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 6.x to 7.x.
 
