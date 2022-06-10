@@ -114,6 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         bool m_IsRecording = false;
 
+        public float shutterInterval { get => m_ShutterInterval; }
+
         // Resets the sub-frame sequence
         internal void Reset(int camID)
         {
@@ -399,6 +401,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 foreach (var aov in AOVs)
                 {
+                    // If shutter interval is zero, then we only want the motion vectors of the first sub-frame, otherwise accumulate as usual
+                    if (m_SubFrameManager.isRecording && m_SubFrameManager.shutterInterval == 0 && aov.Item2 == HDCameraFrameHistoryType.MotionVectorAOV && m_SubFrameManager.GetCameraData(camID).currentIteration > 0)
+                        continue;
+
                     RenderAccumulation(renderGraph, hdCamera, aov.Item1, TextureHandle.nullHandle, aov.Item2, frameWeights, needExposure);
                 }
             }
