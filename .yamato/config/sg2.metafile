@@ -1,0 +1,25 @@
+project:
+  name: Sg2
+  folder: Sg2
+test_platforms:
+  - type: editmode
+    allow_cache: False
+
+platforms:
+  - name: Win
+    apis:
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+jobs:
+  - name: <PROJECT_NAME>
+    # triggers:
+    #   expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.sg2/**/*", "TestProjects/Sg2/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    dependencies:
+      - platform: Win
+        api: ''
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
