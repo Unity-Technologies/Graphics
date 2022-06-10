@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
     class CustomTextureSlice : AbstractMaterialNode, IGeneratesFunction
     {
         private const string kOutputSlotCubeFaceName = "Texture Cube Face";
-        private const string kOutputSlot3DSliceName = "Texture 3D Slice";
+        private const string kOutputSlot3DSliceName = "Texture Depth Slice";
 
         public const int OutputSlotCubeFaceId = 3;
         public const int OutputSlot3DSliceId = 4;

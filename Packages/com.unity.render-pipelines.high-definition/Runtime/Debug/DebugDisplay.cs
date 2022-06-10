@@ -1277,10 +1277,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip CookieAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the cookie atlas." };
             public static readonly NameAndTooltip ClearCookieAtlas = new() { name = "Clear Cookie Atlas", tooltip = "Enable to clear the cookie atlas at each frame." };
 
-            // Planar reflection atlas
-            public static readonly NameAndTooltip DisplayPlanarReflectionAtlas = new() { name = "Display Planar Reflection Atlas", tooltip = "Enable the checkbox to display an overlay of the planar reflection atlas." };
-            public static readonly NameAndTooltip PlanarAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the planar reflection atlas." };
-            public static readonly NameAndTooltip ClearPlanarAtlas = new() { name = "Clear Planar Atlas", tooltip = "Enable to clear the planar reflection atlas at each frame." };
+            // Reflection probe atlas
+            public static readonly NameAndTooltip DisplayReflectionProbeAtlas = new() { name = "Display Reflection Probe Atlas", tooltip = "Enable the checkbox to display an overlay of the reflection probe atlas." };
+            public static readonly NameAndTooltip ReflectionProbeAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the reflection probe atlas." };
+            public static readonly NameAndTooltip ReflectionProbeAtlasSlice = new() { name = "Slice", tooltip = "Use the slider to set the slice of the reflection probe atlas." };
+            public static readonly NameAndTooltip ReflectionProbeApplyExposure = new() { name = "Apply Exposure", tooltip = "Apply exposure to displayed atlas." };
+            public static readonly NameAndTooltip ClearReflectionProbeAtlas = new() { name = "Clear Reflection Probe Atlas", tooltip = "Enable to clear the reflection probe atlas each frame." };
 
             // Volumetric fog atlas
             public static readonly NameAndTooltip DisplayLocalVolumetricFogAtlas = new() { name = "Display Local Volumetric Fog Atlas", tooltip = "Enable to display the 3D texture atlas used for the local volumetric fog masks." };
@@ -1691,15 +1693,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayPlanarReflectionAtlas, getter = () => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas = value });
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayReflectionProbeAtlas, getter = () => data.lightingDebugSettings.displayReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayReflectionProbeAtlas = value, onValueChanged = RefreshLightingDebug });
             {
                 list.Add(new DebugUI.Container
                 {
-                    isHiddenCallback = () => !data.lightingDebugSettings.displayPlanarReflectionProbeAtlas,
+                    isHiddenCallback = () => !data.lightingDebugSettings.displayReflectionProbeAtlas,
                     children =
                     {
-                        new DebugUI.UIntField { nameAndTooltip = LightingStrings.PlanarAtlasMipLevel, getter = () => data.lightingDebugSettings.planarReflectionProbeMipLevel, setter = value => data.lightingDebugSettings.planarReflectionProbeMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetPlanarReflectionProbeMipCount()},
-                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.ClearPlanarAtlas, getter = () => data.lightingDebugSettings.clearPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.clearPlanarReflectionProbeAtlas = value},
+                        new DebugUI.UIntField { nameAndTooltip = LightingStrings.ReflectionProbeAtlasSlice,
+                            getter = () => data.lightingDebugSettings.reflectionProbeSlice,
+                            setter = value => data.lightingDebugSettings.reflectionProbeSlice = value,
+                            min = () => 0,
+                            max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetReflectionProbeArraySize() - 1,
+                            isHiddenCallback = () => (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetReflectionProbeArraySize() == 1},
+                        new DebugUI.UIntField { nameAndTooltip = LightingStrings.ReflectionProbeAtlasMipLevel, getter = () => data.lightingDebugSettings.reflectionProbeMipLevel, setter = value => data.lightingDebugSettings.reflectionProbeMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetReflectionProbeMipCount()},
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.ClearReflectionProbeAtlas, getter = () => data.lightingDebugSettings.clearReflectionProbeAtlas, setter = value => data.lightingDebugSettings.clearReflectionProbeAtlas = value},
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.ReflectionProbeApplyExposure, getter = () => data.lightingDebugSettings.reflectionProbeApplyExposure, setter = value => data.lightingDebugSettings.reflectionProbeApplyExposure = value},
                     }
                 });
             }

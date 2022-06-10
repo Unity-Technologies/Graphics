@@ -10,7 +10,7 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 
         float4 _SourceSize;
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragScalingSetup(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -59,7 +59,7 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragScalingSetup
             ENDHLSL
         }
     }

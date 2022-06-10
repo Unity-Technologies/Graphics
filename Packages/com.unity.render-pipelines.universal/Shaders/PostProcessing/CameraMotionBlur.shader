@@ -125,9 +125,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             HLSLPROGRAM
 
                 #pragma vertex VertCMB
-                #pragma fragment Frag
+                #pragma fragment FragCMB
 
-                half4 Frag(VaryingsCMB input) : SV_Target
+                half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 2);
                 }
@@ -142,9 +142,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             HLSLPROGRAM
 
                 #pragma vertex VertCMB
-                #pragma fragment Frag
+                #pragma fragment FragCMB
 
-                half4 Frag(VaryingsCMB input) : SV_Target
+                half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 3);
                 }
@@ -159,9 +159,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             HLSLPROGRAM
 
                 #pragma vertex VertCMB
-                #pragma fragment Frag
+                #pragma fragment FragCMB
 
-                half4 Frag(VaryingsCMB input) : SV_Target
+                half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 4);
                 }

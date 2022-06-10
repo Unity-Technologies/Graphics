@@ -18,6 +18,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Physical
         }
 
+        public enum DirectionalFractionMode
+        {
+            StrandProbe,
+            Shadowmap
+        }
+
         public enum ColorParameterization
         {
             BaseColor,
@@ -46,6 +52,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_ScatteringMode;
             set => m_ScatteringMode = value;
+        }
+
+        [SerializeField]
+        DirectionalFractionMode m_DirectionalFractionMode;
+
+        public DirectionalFractionMode directionalFractionMode
+        {
+            get => m_DirectionalFractionMode;
+            set => m_DirectionalFractionMode = value;
         }
 
         [SerializeField]

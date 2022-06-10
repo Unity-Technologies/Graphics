@@ -463,6 +463,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
 
+            // Precalculated eye caustic LUT
+            [Reload("Runtime/RenderPipelineResources/Texture/EyeCausticLUT16R.exr")]
+            public Texture3D eyeCausticLUT;
+
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
             public Texture2D cloudLutRainAO;

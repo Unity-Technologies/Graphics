@@ -9,7 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public enum MaterialType
         {
             Eye,
-            EyeCinematic
+            EyeCinematic,
+            EyeCinematicWithCaustic
         }
 
         [SerializeField]

@@ -1,0 +1,14 @@
+{
+	"name": "com.unity.testing.brg",
+	"displayName":"BRG graphic tests common library",
+	"version": "1.0.0",
+	"unity": "2022.2",
+	"unityRelease": "0b4",
+	"description": "Common assets library for BRG test projects.",
+	"keywords": ["qa", "test", "testing", "tests", "graphics", "BRG"],
+	"dependencies": {
+    "com.unity.mathematics": "1.2.1",
+    "com.unity.collections": "0.17.0-preview.18",
+	  "com.unity.render-pipelines.core": "file:./com.unity.render-pipelines.core"
+	}
+}

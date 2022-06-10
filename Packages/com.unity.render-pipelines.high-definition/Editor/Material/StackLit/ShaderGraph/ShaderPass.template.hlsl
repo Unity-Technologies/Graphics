@@ -28,6 +28,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
     $CoatMaskOne: surfaceData.coatMask = 1.0;
+    $UseProfileIor: surfaceData.useProfileIor = true;
 
     // Copy graph values to surfaceData, if defined
     $SurfaceDescription.BaseColor:                 surfaceData.baseColor =                surfaceDescription.BaseColor;

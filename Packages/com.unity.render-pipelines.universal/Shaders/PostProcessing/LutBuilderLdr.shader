@@ -41,7 +41,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             return saturate(x);
         }
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragLutBuilderLdr(Varyings input) : SV_Target
         {
             float3 colorLinear = GetLutStripValue(input.texcoord, _Lut_Params);
 
@@ -157,7 +157,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragLutBuilderLdr
             ENDHLSL
         }
     }

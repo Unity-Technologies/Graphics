@@ -22,11 +22,22 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// High Shadow Filtering Quality
         /// </summary>
-        High = 2,
+        High = 2
+    }
+
+    /// <summary>
+    /// Area Shadow Filtering Quality
+    /// </summary>
+    public enum HDAreaShadowFilteringQuality
+    {
         /// <summary>
-        /// Very High Shadow Filtering Quality
+        /// Area Medium Shadow Filtering Quality
         /// </summary>
-        VeryHigh = 3,
+        Medium = 0,
+        /// <summary>
+        /// Area High Shadow Filtering Quality
+        /// </summary>
+        High = 1
     }
 
     enum ShadowMapType
@@ -206,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionArea = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionPunctual = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowFilteringQuality = HDShadowFilteringQuality.Medium,
+            areaShadowFilteringQuality = HDAreaShadowFilteringQuality.Medium,
             supportScreenSpaceShadows = false,
             maxScreenSpaceShadowSlots = 4,
             screenSpaceShadowBufferFormat = ScreenSpaceShadowFormat.R16G16B16A16,
@@ -226,6 +238,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Shadow filtering quality.</summary>
         [FormerlySerializedAs("shadowQuality")]
         public HDShadowFilteringQuality shadowFilteringQuality;
+
+        /// <summary>Area Shadow filtering quality.</summary>
+        public HDAreaShadowFilteringQuality areaShadowFilteringQuality;
 
         /// <summary>Initialization parameters for punctual shadows atlas.</summary>
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
@@ -376,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaAtlasInitParams.width = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.height = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapAreaAtlas;
-                areaAtlasInitParams.blurAlgorithm = HDShadowAtlas.BlurAlgorithm.EVSM;
+                areaAtlasInitParams.blurAlgorithm = GetAreaLightShadowBlurAlgorithm();
                 areaAtlasInitParams.depthBufferBits = initParams.areaLightShadowAtlas.shadowAtlasDepthBits;
                 areaAtlasInitParams.name = "Area Light Shadow Map Atlas";
 
@@ -445,13 +460,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     return DirectionalShadowAlgorithm.PCSS;
                 }
-                case HDShadowFilteringQuality.VeryHigh:
-                {
-                    return DirectionalShadowAlgorithm.PCSS;
-                }
             }
             ;
             return DirectionalShadowAlgorithm.PCF5x5;
+        }
+
+        public static HDShadowAtlas.BlurAlgorithm GetAreaLightShadowBlurAlgorithm()
+        {
+            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality == HDAreaShadowFilteringQuality.High ?
+                HDShadowAtlas.BlurAlgorithm.None : HDShadowAtlas.BlurAlgorithm.EVSM;
         }
 
         public void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)

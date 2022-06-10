@@ -338,6 +338,62 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     return blockerFound ? PCSS(tcs, filterSize, scale, offset, sampleJitter, tex, compSamp, filterSampleCount) : 1.0f;
 }
 
+
+// TODO: This PCSS variant works for other types of lights as well, but is not well tested there, so we're introducing it only for area lights for now.
+float SampleShadow_PCSS_Area(float3 posTCAtlas, float2 posSS, float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias, float4 zParams, bool isPerspective, float2 shadowAtlasInfo)
+{
+#if SHADOW_USE_DEPTH_BIAS == 1
+    posTCAtlas.z += depthBias;
+#endif
+
+    // This is a modified PCSS. Instead of performing both the blocker search and filtering phases using a flat disc of samples centered around
+    // the shaded point, it adds a z offset to sample points extruding them in a cone shape - pyramid, actually - towards the light. The base of the pyramid
+    // is the near plane of the area light (surface of the area light when near plane is at 0), the apex at the shaded point, and samples lie on the 4 sides
+    // of the pyramid.
+    //
+    // The idea is that only casters within the volume of that pyramid would contribute to the shadow. In other words any casters caught by a sample with
+    // z further away from the light than z of that sample don't contribute to the shadow.
+    //
+    // The maximum heigh of the pyramid is the z distance between the shaded point and the near plane. Lowering that height is necessary to keep
+    // the sampling kernel sizes reasonable and is controlled by maxSampleZDistance. Higher maxSampleZDistance values result in wider penumbras.
+
+    // Rescale the softness param so that the default 1 gives a very soft shadow without pushing it to edge, where artifacts start to show up.
+    // This way setting softness to slightly more than 1 will get the shadow close to the raytraced reference, but with a more stable default.
+    float maxSampleZDistance = shadowSoftness * 65.0;
+
+    // Undo shadowmap-in-atlas scaling of this value, since we don't interpret it here as the size of the sampling kernel, but z distance
+    float shadowmapWidth = shadowmapInAtlasScale.x * shadowAtlasInfo.x;
+    // The 4096 literal is here for historical reasons
+    maxSampleZDistance *= 4096.0 / shadowmapWidth;
+    // TODO: move all the softness aka max distance rescaling to c#
+
+    uint taaFrameIndex = _TaaFrameInfo.z;
+    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
+    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+
+    // TODO: should maybe pass it from an earlier stage instead of calculating it again
+    float3 posTCShadowmap = float3((posTCAtlas.xy - shadowmapInAtlasOffset) / shadowmapInAtlasScale, posTCAtlas.z);
+
+    real2 minCoord = shadowmapInAtlasOffset;
+    real2 maxCoord = shadowmapInAtlasOffset + shadowmapInAtlasScale;
+
+    //1) Blocker Search
+    float blocker = 0.0;
+    bool blockerFound = BlockerSearch_Area(blocker, maxSampleZDistance, shadowmapInAtlasScale, posTCAtlas.xy, posTCShadowmap, minCoord, maxCoord, sampleJitter, tex, samp, blockerSampleCount);
+
+    //2) Penumbra Estimation
+    maxSampleZDistance *= isPerspective ? PenumbraSizePunctual(posTCAtlas.z, blocker) : PenumbraSizeDirectional(posTCAtlas.z, blocker, zParams.x);
+    // Extend the sampling cone only up to a certain margin before the blocker. Extending it past that distance will make samples miss the blocker and the shadow will fade.
+    maxSampleZDistance = min(maxSampleZDistance, (blocker - posTCAtlas.z) * 0.9);
+    // minFilterRadius can extend the cone past the above, so min&max instead of clamp.
+    maxSampleZDistance = max(maxSampleZDistance, minFilterRadius * 10);
+
+    //3) Filter
+    // We can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise
+    bool withinShadowmap = all(posTCShadowmap.xy > 0 && posTCShadowmap.xy < 1);
+    return blockerFound && withinShadowmap ? PCSS_Area(posTCAtlas.xy, posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale, shadowmapInAtlasOffset, minCoord, maxCoord, sampleJitter, tex, compSamp, filterSampleCount) : 1.0f;
+}
+
 // Note this is currently not available as an option, but is left here to show what needs including if IMS is to be used.
 // Also, please note that the UI for the IMS parameters has been deleted, but the parameters are still in the relevant data structures.
 // To make use of IMS, please make sure GetDirectionalShadowAlgorithm returns DirectionalShadowAlgorithm.IMS and that there is a UI for the parameters kernelSize, lightAngle and maxDepthBias

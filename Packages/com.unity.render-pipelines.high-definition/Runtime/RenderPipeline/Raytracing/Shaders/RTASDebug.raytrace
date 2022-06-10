@@ -48,6 +48,9 @@ void RTASDebug()
     rayDescriptor.Origin = GetPrimaryCameraPosition();
     rayDescriptor.Direction = -normalize(mul(float4(currentPixelCoord, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
 
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
     // Create and init the RayIntersection structure for this
     RayIntersectionDebug rayIntersection;
     rayIntersection.t = 0.0f;

@@ -47,6 +47,27 @@ namespace UnityEditor.VFX.Operator
             return m_targetSpace;
         }
 
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (m_targetSpace == inputSlots[0].space)
+            {
+                manager.RegisterError("ChangeSpace_Input_Target_Are_Equals", VFXErrorType.Warning, "The input space and target space are identical. This operator won't do anything.");
+            }
+
+            base.GenerateErrors(manager);
+        }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+
+            //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
+            if (cause == InvalidationCause.kExpressionInvalidated)
+            {
+                model.RefreshErrors(GetGraph());
+            }
+        }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             /* Actually, it's automatic because actualOutputSpace return target space

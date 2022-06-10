@@ -1441,12 +1441,29 @@ namespace UnityEngine.Rendering
     public class TextureParameter : VolumeParameter<Texture>
     {
         /// <summary>
+        /// The accepted dimension of textures.
+        /// </summary>
+        public TextureDimension dimension;
+
+        /// <summary>
         /// Creates a new <seealso cref="TextureParameter"/> instance.
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : this(value, TextureDimension.Any, overrideState) { }
+
+        /// <summary>
+        /// Creates a new <seealso cref="TextureParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="dimension">The accepted dimension of textures.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public TextureParameter(Texture value, TextureDimension dimension, bool overrideState = false)
+            : base(value, overrideState)
+        {
+            this.dimension = dimension;
+        }
 
         // TODO: Texture interpolation
 

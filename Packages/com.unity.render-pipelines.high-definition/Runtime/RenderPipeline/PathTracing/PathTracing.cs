@@ -134,13 +134,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter useAOVs = new BoolParameter(true);
 
         /// <summary>
-        /// Enables temporally stable denoising (not all denosing backends support this option)
+        /// Enables temporally stable denoising when recording animation sequences (only affects recording / multi-frame accumulation when using the Optix denoiser)
         /// </summary>
-        [Tooltip("Enables temporally-stable denoising")]
+        [Tooltip("Enables temporally-stable denoising when recording animation sequences (only affects recording / multi-frame accumulation)")]
         public BoolParameter temporal = new BoolParameter(false);
 
         /// <summary>
-        /// Controls whether denoising will be asynchronus (non-blocking) for the scene view camera.
+        /// Controls whether denoising will be asynchronous (non-blocking) for the scene view camera.
         /// </summary>
         public BoolParameter asyncDenoising = new BoolParameter(true);
 #endif
@@ -336,9 +336,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we just change the denoiser type, we don't necessarily want to reset iteration
             if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
             {
+                if (m_PathTracingSettings.denoising.value == HDDenoiserType.None && m_PathTracingSettings.useAOVs == true)
+                {
+                    // When denoising is off we don't accumulate AOVs. For this reason, if we re-enable denoising and AOVs are enabled, we need to always re-accumulate
+                    // Note: this is called from the undo callback, so m_PathTracingSettings is the one that is going to be replaced/updated.
+                    doPathTracingReset = true;
+                }
+                else
+                {
+                    doPathTracingReset = false;
+                    m_SubFrameManager.ResetDenoisingStatus();
+                }
                 m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
-                m_SubFrameManager.ResetDenoisingStatus();
-                doPathTracingReset = false;
             }
 #endif
 

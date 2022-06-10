@@ -25,6 +25,14 @@ namespace UnityEditor.Rendering
         SerializedProperty m_SamplesCount;
         SerializedProperty m_OcclusionOffset;
         SerializedProperty m_AllowOffScreen;
+        SerializedProperty m_OcclusionRemapTextureCurve;
+        SerializedProperty m_OcclusionRemapCurve;
+
+        void MakeTextureDirtyCallback()
+        {
+            LensFlareComponentSRP comp = target as LensFlareComponentSRP;
+            comp.occlusionRemapCurve.SetDirty();
+        }
 
         void OnEnable()
         {
@@ -43,6 +51,15 @@ namespace UnityEditor.Rendering
             m_SamplesCount = entryPoint.Find(x => x.sampleCount);
             m_OcclusionOffset = entryPoint.Find(x => x.occlusionOffset);
             m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
+            m_OcclusionRemapTextureCurve = entryPoint.Find(x => x.occlusionRemapCurve);
+            m_OcclusionRemapCurve = m_OcclusionRemapTextureCurve.FindPropertyRelative("m_Curve");
+
+            Undo.undoRedoPerformed += MakeTextureDirtyCallback;
+        }
+
+        void OnDisable()
+        {
+            Undo.undoRedoPerformed -= MakeTextureDirtyCallback;
         }
 
         /// <summary>
@@ -125,11 +142,18 @@ namespace UnityEditor.Rendering
             EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
             if (m_UseOcclusion.boolValue)
             {
-                EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
-                --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_OcclusionRemapCurve, Styles.occlusionRemapCurve);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    LensFlareComponentSRP comp = target as LensFlareComponentSRP;
+                    comp.occlusionRemapCurve.SetDirty();
+                }
+                --EditorGUI.indentLevel;
             }
             EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
 
@@ -159,6 +183,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent occlusionRadius = EditorGUIUtility.TrTextContent("Occlusion Radius", "Sets the radius, in meters, around the light used to compute the occlusion of the lens flare. If this area is half occluded by geometry (or half off-screen), the intensity of the lens flare is cut by half.");
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Sets the number of random samples used inside the Occlusion Radius area. A higher sample count gives a smoother attenuation when occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Sets the offset of the occlusion area in meters between the GameObject this asset is attached to, and the Camera. A positive value moves the occlusion area closer to the Camera.");
+            static public readonly GUIContent occlusionRemapCurve = EditorGUIUtility.TrTextContent("Occlusion Remap Curve", "Specifies the curve used to remap the occlusion of the flare. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.");
             static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow Off Screen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
         }
     }

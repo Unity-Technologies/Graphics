@@ -1,6 +1,10 @@
 #ifndef VOLUMETRIC_CLOUDS_DENOISING_H
 #define VOLUMETRIC_CLOUDS_DENOISING_H
 
+// Half resolution volumetric cloud texture
+TEXTURE2D_X(_VolumetricCloudsTexture);
+TEXTURE2D_X(_DepthStatusTexture);
+
 // Clouds data
 TEXTURE2D_X(_CloudsLightingTexture);
 TEXTURE2D_X(_CloudsDepthTexture);
@@ -359,4 +363,193 @@ void FillCloudUpscaleNeighborhoodData(int2 groupThreadId, int subRegionIdx, out 
     neighborhoodData.lowWeightC = _DistanceBasedWeights[subRegionIdx * 3 + 2].x;
 }
 
+// Function that fills the struct as we cannot use arrays
+void FillCloudUpscaleNeighborhoodData_NOLDS(int2 traceCoord, int subRegionIdx, out NeighborhoodUpsampleData3x3 neighborhoodData)
+{
+    // Fill the sample data (TOP LEFT)
+    float4 lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(-1, -1));
+    float3 depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(-1, -1)).xyz;
+    neighborhoodData.lowValue0 = lightingVal;
+    neighborhoodData.lowDepthA.x = depthStatusValue.y;
+    neighborhoodData.lowMasksA.x = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightA.x = _DistanceBasedWeights[subRegionIdx * 3 + 0].x;
+
+    // Fill the sample data (TOP CENTER)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(0, -1));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(0, -1)).xyz;
+    neighborhoodData.lowValue1 = lightingVal;
+    neighborhoodData.lowDepthA.y = depthStatusValue.y;
+    neighborhoodData.lowMasksA.y = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightA.y = _DistanceBasedWeights[subRegionIdx * 3 + 0].y;
+
+    // Fill the sample data (TOP RIGHT)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(1, -1));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(1, -1)).xyz;
+    neighborhoodData.lowValue2 = lightingVal;
+    neighborhoodData.lowDepthA.z = depthStatusValue.y;
+    neighborhoodData.lowMasksA.z = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightA.z = depthStatusValue.z;
+    neighborhoodData.lowWeightA.z = _DistanceBasedWeights[subRegionIdx * 3 + 0].z;
+
+    // Fill the sample data (MID LEFT)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(-1, 0));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(-1, 0)).xyz;
+    neighborhoodData.lowValue3 = lightingVal;
+    neighborhoodData.lowDepthA.w = depthStatusValue.y;
+    neighborhoodData.lowMasksA.w = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightA.w = _DistanceBasedWeights[subRegionIdx * 3 + 0].w;
+
+    // Fill the sample data (MID CENTER)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(0, 0));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(0, 0)).xyz;
+    neighborhoodData.lowValue4 = lightingVal;
+    neighborhoodData.lowDepthB.x = depthStatusValue.y;
+    neighborhoodData.lowMasksB.x = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightB.x = _DistanceBasedWeights[subRegionIdx * 3 + 1].x;
+
+    // Fill the sample data (MID RIGHT)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(1, 0));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(1, 0)).xyz;
+    neighborhoodData.lowValue5 = lightingVal;
+    neighborhoodData.lowDepthB.y = depthStatusValue.y;
+    neighborhoodData.lowMasksB.y = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightB.y = _DistanceBasedWeights[subRegionIdx * 3 + 1].y;
+
+    // Fill the sample data (BOTTOM LEFT)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(-1, 1));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(-1, 1)).xyz;
+    neighborhoodData.lowValue6 = lightingVal;
+    neighborhoodData.lowDepthB.z = depthStatusValue.y;
+    neighborhoodData.lowMasksB.z = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightB.z = depthStatusValue.z;
+    neighborhoodData.lowWeightB.z = _DistanceBasedWeights[subRegionIdx * 3 + 1].z;
+
+    // Fill the sample data (BOTTOM CENTER)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(0, 1));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(0, 1)).xyz;
+    neighborhoodData.lowValue7 = lightingVal;
+    neighborhoodData.lowDepthB.w = depthStatusValue.y;
+    neighborhoodData.lowMasksB.w = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightB.w = depthStatusValue.z;
+    neighborhoodData.lowWeightB.w = _DistanceBasedWeights[subRegionIdx * 3 + 1].w;
+
+    // Fill the sample data (BOTTOM CENTER)
+    lightingVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, traceCoord + int2(1, 1));
+    depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, traceCoord + int2(1, 1)).xyz;
+    neighborhoodData.lowValue8 = lightingVal;
+    neighborhoodData.lowDepthC = depthStatusValue.y;
+    neighborhoodData.lowMasksC = saturate(depthStatusValue.x);
+    neighborhoodData.lowWeightC = _DistanceBasedWeights[subRegionIdx * 3 + 2].x;
+}
+
+float EvaluateUpscaledCloudDepth(int2 groupThreadId, NeighborhoodUpsampleData3x3 nhd)
+{
+    // There are some cases where we need to provide a depth value for the volumetric clouds (mainly for the fog now, but this may change in the future)
+    // Given that the cloud value for a final pixel doesn't come from a single half resolution pixel (it is interpolated), we also need to interpolate
+    // the depth. That said, we cannot interpolate cloud values with non-cloudy pixels values and we need to exclude them from the evaluation
+    // Also, we should be doing the interpolation in linear space to be accurate, but it becomes more expensive and experimentally I didn't find
+    // any artifact of doing it in logarithmic space.
+    float finalDepth = 0.0f;
+    float sumWeight = 0.0f;
+
+    // Top left
+    float weight = (nhd.lowValue0.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.x;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(-1, -1));
+    sumWeight += weight;
+
+    // Top center
+    weight = (nhd.lowValue1.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.y;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(0, -1));
+    sumWeight += weight;
+
+    // Top right
+    weight = (nhd.lowValue2.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.z;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(1, -1));
+    sumWeight += weight;
+
+    // Mid left
+    weight = (nhd.lowValue3.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.w;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(-1, 0));
+    sumWeight += weight;
+
+    // Mid center
+    weight = (nhd.lowValue4.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.x;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(0, 0));
+    sumWeight += weight;
+
+    // Mid right
+    weight = (nhd.lowValue5.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.y;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(1, 0));
+    sumWeight += weight;
+
+    // Bottom left
+    weight = (nhd.lowValue6.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.z;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(-1, 1));
+    sumWeight += weight;
+
+    // Bottom mid
+    weight = (nhd.lowValue7.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.w;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(0, 1));
+    sumWeight += weight;
+
+    // Bottom mid
+    weight = (nhd.lowValue8.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksC;
+    finalDepth += weight * GetCloudDepth_LDS(groupThreadId, int2(1, 1));
+    sumWeight += weight;
+
+    return finalDepth / sumWeight;
+}
+
+float EvaluateUpscaledCloudDepth_NOLDS(int2 halfResCoord, NeighborhoodUpsampleData3x3 nhd)
+{
+    float finalDepth = 0.0f;
+    float sumWeight = 0.0f;
+
+    // Top left
+    float weight = (nhd.lowValue0.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.x;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(-1, -1)).z;
+    sumWeight += weight;
+
+    // Top center
+    weight = (nhd.lowValue1.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.y;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(0, -1)).z;
+    sumWeight += weight;
+
+    // Top right
+    weight = (nhd.lowValue2.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.z;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(1, -1)).z;
+    sumWeight += weight;
+
+    // Mid left
+    weight = (nhd.lowValue3.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksA.w;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(-1, 0)).z;
+    sumWeight += weight;
+
+    // Mid center
+    weight = (nhd.lowValue4.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.x;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(0, 0)).z;
+    sumWeight += weight;
+
+    // Mid right
+    weight = (nhd.lowValue5.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.y;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(1, 0)).z;
+    sumWeight += weight;
+
+    // Bottom left
+    weight = (nhd.lowValue6.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.z;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(-1, 1)).z;
+    sumWeight += weight;
+
+    // Bottom mid
+    weight = (nhd.lowValue7.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksB.w;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(0, 1)).z;
+    sumWeight += weight;
+
+    // Bottom mid
+    weight = (nhd.lowValue8.w != 1.0 ? 1.0 : 0.0) * nhd.lowMasksC;
+    finalDepth += weight * LOAD_TEXTURE2D_X(_DepthStatusTexture, halfResCoord + int2(1, 1)).z;
+    sumWeight += weight;
+
+    return finalDepth / sumWeight;
+}
 #endif // VOLUMETRIC_CLOUDS_DENOISING_H

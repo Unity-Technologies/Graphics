@@ -17,11 +17,11 @@ void WriteAOVData(AOVData aovData, float3 positionWS, inout PathPayload payload)
 
     // Compute motion vector (from pixel coordinates and world position passed as inputs)
     float3 positionOS = TransformWorldToObject(positionWS);
-    float3 prevPosWS = mul(GetPrevObjectToWorldMatrix(), float4(positionOS, 1.0)).xyz;
+    float4 prevPosWS = mul(GetPrevObjectToWorldMatrix(), float4(positionOS, 1.0));
     float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPosWS);
     prevClipPos.xy /= prevClipPos.w;
     prevClipPos.y = -prevClipPos.y;
-    float2 viewportSize = _ScreenSize.xy *_RTHandleScale.xy;
+    float2 viewportSize = _ScreenSize.xy;
     float2 prevPixelCoord = (prevClipPos.xy * 0.5 + 0.5) * viewportSize;
 
     // Write final AOV values to the payload

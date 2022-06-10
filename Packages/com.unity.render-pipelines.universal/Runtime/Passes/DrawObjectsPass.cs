@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 DrawingSettings drawSettings = RenderingUtils.CreateDrawingSettings(data.m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,

@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.maxZMask = settings.localClouds.value ? renderGraph.defaultResources.blackTextureXR : builder.ReadTexture(maxZMask);
-                passData.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsProbeBuffer));
+                passData.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsDynamicProbeBuffer));
 
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;

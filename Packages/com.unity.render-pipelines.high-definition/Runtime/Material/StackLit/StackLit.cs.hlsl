@@ -119,6 +119,7 @@ struct SurfaceData
     float ambientOcclusion;
     float metallic;
     float dielectricIor;
+    bool useProfileIor;
     float3 specularColor;
     float3 normalWS;
     float3 geomNormalWS;

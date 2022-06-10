@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
         public SerializedProperty stripUnusedLODCrossFadeVariants;
+        public SerializedProperty stripScreenCoordOverrideVariants;
 
         public SerializedProperty enableRenderGraph;
 
@@ -76,6 +77,7 @@ namespace UnityEditor.Rendering.Universal
             stripUnusedLODCrossFadeVariants = serializedObject.FindProperty("m_StripUnusedLODCrossFadeVariants");
             shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
+            stripScreenCoordOverrideVariants = serializedObject.FindProperty("m_StripScreenCoordOverrideVariants");
 
             enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
         }

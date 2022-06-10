@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
             RemovalOfUpscaleFilter,
+            CombinedPlanarAndCubemapReflectionAtlases
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -119,7 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
                 float cookieAtlasSize = Mathf.Sqrt((int)lightLoopSettings.cookieAtlasSize * (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize);
                 float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
-#pragma warning restore 618
 
                 // The atlas only supports power of two sizes
                 cookieAtlasSize = (float)Mathf.NextPowerOfTwo((int)cookieAtlasSize);
@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightLoopSettings.cookieAtlasSize = (CookieAtlasResolution)cookieAtlasSize;
                 lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)planarSize;
+#pragma warning restore 618
             }),
             MigrationStep.New(Version.AddedAdaptiveSSS, (HDRenderPipelineAsset data) =>
             {
@@ -217,8 +218,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter = DynamicResUpscaleFilter.CatmullRom;
                 if (data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter == DynamicResUpscaleFilter.Lanczos)
                     data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter = DynamicResUpscaleFilter.ContrastAdaptiveSharpen;
-            })
+            }),
 #pragma warning restore 618
+            MigrationStep.New(Version.CombinedPlanarAndCubemapReflectionAtlases, (HDRenderPipelineAsset data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
+
+                CubeReflectionResolution cubeResolution = lightLoopSettings.reflectionCubemapSize;
+                CubeReflectionResolution[] enumValues = (CubeReflectionResolution[])Enum.GetValues(typeof(CubeReflectionResolution));
+                int index = Mathf.Max(Array.IndexOf(enumValues, cubeResolution), 0);
+                CubeReflectionResolution[] cubeResolutions = new CubeReflectionResolution[]
+                {
+                    enumValues[Mathf.Min(index,     enumValues.Length - 1)],
+                    enumValues[Mathf.Min(index + 1, enumValues.Length - 1)],
+                    enumValues[Mathf.Min(index + 2, enumValues.Length - 1)]
+                };
+                data.m_RenderPipelineSettings.cubeReflectionResolution = new RenderPipelineSettings.ReflectionProbeResolutionScalableSetting(cubeResolutions, ScalableSettingSchemaId.With3Levels);
+
+                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize;
+                int planarReflectionAtlasArea = (int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize;
+                int reflectionProbeTexCacheSize = Mathf.NextPowerOfTwo((int)Mathf.Sqrt(cubeReflectionAtlasArea + planarReflectionAtlasArea));
+                lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512, (int)ReflectionProbeTextureCacheResolution.Resolution16384);
+
+                lightLoopSettings.maxCubeReflectionOnScreen = Mathf.Clamp(lightLoopSettings.maxEnvLightsOnScreen - lightLoopSettings.maxPlanarReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
+#pragma warning restore 618
+            })
             );
         #endregion
 

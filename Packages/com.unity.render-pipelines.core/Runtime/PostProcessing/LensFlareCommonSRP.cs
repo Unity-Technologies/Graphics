@@ -49,6 +49,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         static public void Initialize()
         {
+            frameIdx = 0;
             if (occlusionRT == null && mergeNeeded > 0)
                 occlusionRT = RTHandles.Alloc(width: maxLensFlareWithOcclusion, height: maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded, colorFormat: Experimental.Rendering.GraphicsFormat.R16_SFloat, enableRandomWrite: true, dimension: TextureXR.dimension);
         }
@@ -430,9 +431,9 @@ namespace UnityEngine.Rendering
             }
 
             float dx = 1.0f / ((float)maxLensFlareWithOcclusion);
-            float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+            float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + mergeNeeded));
             float halfx = 0.5f / ((float)maxLensFlareWithOcclusion);
-            float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+            float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + mergeNeeded));
 
             int taaValue = taaEnabled ? 1 : 0;
 
@@ -513,9 +514,9 @@ namespace UnityEngine.Rendering
                 float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                 float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
-                float currentIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
+                float compIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
 
-                if (currentIntensity <= 0.0f)
+                if (compIntensity <= 0.0f)
                     continue;
 
                 cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4(((float)(occlusionIndex)) * dx + halfx, halfy, 0, frameIdx + 1));
@@ -535,10 +536,17 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData0, flareData0);
                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
 
-                cmd.SetViewport(new Rect() { x = occlusionIndex, y = (frameIdx + 1 * mergeNeeded) * taaValue, width = 1, height = 1 });
+                cmd.SetViewport(new Rect() { x = occlusionIndex, y = (frameIdx + mergeNeeded) * taaValue, width = 1, height = 1 });
 
                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 4);
                 ++occlusionIndex;
+            }
+
+            // Clear the remaining buffer
+            {
+                cmd.SetRenderTarget(occlusionRT);
+                cmd.SetViewport(new Rect() { x = occlusionIndex, y = 0, width = (maxLensFlareWithOcclusion - occlusionIndex), height = (maxLensFlareWithOcclusionTemporalSample + mergeNeeded) });
+                cmd.ClearRenderTarget(false, true, Color.black);
             }
 
             ++frameIdx;
@@ -564,6 +572,7 @@ namespace UnityEngine.Rendering
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
+        /// <param name="_FlareOcclusionRemapTex">ShaderID for the OcclusionRemap</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
@@ -580,12 +589,12 @@ namespace UnityEngine.Rendering
             Rendering.CommandBuffer cmd,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
+            int _FlareOcclusionRemapTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
             Vector2 vScreenRatio;
 
-            if (lensFlares.IsEmpty())
+            if (lensFlares.IsEmpty() || occlusionRT == null)
                 return;
 
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
@@ -686,6 +695,16 @@ namespace UnityEngine.Rendering
                         globalColorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
                 }
 
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
+                float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+
+                float compIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
+
+                if (compIntensity <= 0.0f)
+                    continue;
+
                 globalColorModulation *= distanceAttenuation;
 
                 Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
@@ -709,10 +728,9 @@ namespace UnityEngine.Rendering
                 if (occlusionRT != null)
                     cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
 
-                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion + 0.5f / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion, 0.5f, 0, 0));
+                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex, 0.0f, 0.0f, 0.0f));
 
-                if (comp.useOcclusion && comp.sampleCount > 0)
-                    ++occlusionIndex;
+                cmd.SetGlobalTexture(_FlareOcclusionRemapTex, comp.occlusionRemapCurve.GetTexture());
 
                 foreach (LensFlareDataElementSRP element in data.elements)
                 {
@@ -734,12 +752,8 @@ namespace UnityEngine.Rendering
                     }
 
                     Color curColor = colorModulation;
-                    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
-                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
-                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
-                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
-                    float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
+                    float currentIntensity = element.localIntensity * compIntensity;
 
                     if (currentIntensity <= 0.0f)
                         continue;
@@ -1002,6 +1016,9 @@ namespace UnityEngine.Rendering
                         }
                     }
                 }
+
+                if (comp.useOcclusion && comp.sampleCount > 0)
+                    ++occlusionIndex;
             }
         }
 

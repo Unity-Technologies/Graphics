@@ -168,12 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
 
-        public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
-        public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
+        public static readonly int _ReflectionAtlas = Shader.PropertyToID("_ReflectionAtlas");
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _AmbientProbeData = Shader.PropertyToID("_AmbientProbeData");
+        public static readonly int _EnvLightReflectionData = Shader.PropertyToID("EnvLightReflectionData");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -460,6 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
         public static readonly int _ApplyExposure = Shader.PropertyToID("_ApplyExposure");
+        public static readonly int _ArrayIndex = Shader.PropertyToID("_ArrayIndex");
 
         public static readonly int _DiffusionProfileHash = Shader.PropertyToID("_DiffusionProfileHash");
         public static readonly int _DiffusionProfileAsset = Shader.PropertyToID("_DiffusionProfileAsset");
@@ -862,6 +863,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProceduralMaskParams2 = Shader.PropertyToID("_ProceduralMaskParams2");
         public static readonly int _Variants = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture = Shader.PropertyToID("_InputTexture");
+        public static readonly int _InputTextureArray = Shader.PropertyToID("_InputTextureArray");
         public static readonly int _InputTextureMSAA = Shader.PropertyToID("_InputTextureMSAA");
         public static readonly int _OutputTexture = Shader.PropertyToID("_OutputTexture");
         public static readonly int _SourceTexture = Shader.PropertyToID("_SourceTexture");
@@ -907,6 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DepthMinMaxAvg = Shader.PropertyToID("_DepthMinMaxAvg");
 
         public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+        public static readonly int _FlareOcclusionRemapTex = Shader.PropertyToID("_FlareOcclusionRemapTex");
         public static readonly int _LensFlareOcclusion = Shader.PropertyToID("_LensFlareOcclusion");
         public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
         public static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");

@@ -630,9 +630,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(m_RenderGraph, renderGraph.ImportTexture(currentHandle), FullScreenDebugMode.VolumetricCloudsShadow, xrTexture: false);
             }
 
-            // Compute the ambient probe that will be used for clouds
-            PreRenderVolumetricClouds_AmbientProbe(renderGraph, hdCamera);
-
             // Evaluate the cloud map
             PreRenderVolumetricCloudMap(renderGraph, hdCamera, in settings);
         }

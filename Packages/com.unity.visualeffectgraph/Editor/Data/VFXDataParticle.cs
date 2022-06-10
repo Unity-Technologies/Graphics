@@ -276,6 +276,8 @@ namespace UnityEditor.VFX
                     var graph = GetGraph();
                     graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
                 }
+                else
+                    needsComputeBounds = false;
             }
             if (hasStrip)
             {
@@ -1381,6 +1383,18 @@ namespace UnityEditor.VFX
 
             m_GraphValuesLayout.SetUniformBlocks(orderedUniforms);
             m_GraphValuesLayout.SetPaddedSize(m_SystemUniformMapper);
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            if (boundsMode == BoundsSettingMode.Automatic)
+            {
+                if (CanBeCompiled())
+                    manager.RegisterError("WarningAutomaticBoundsFlagChange", VFXErrorType.Warning,
+                        $"Changing the bounds mode to Automatic modifies the Culling Flags on the Visual Effect Asset to Always recompute bounds and simulate.");
+            }
         }
     }
 }

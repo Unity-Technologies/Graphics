@@ -437,9 +437,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         probe, ProbeSettings.Mode.Custom
                     );
 
-
                     HDBakedReflectionSystem.RenderAndWriteToFile(
-                        probe, assetPath, target, null,
+                        probe, assetPath, target,
                         out var cameraSettings, out var cameraPositionSettings
                     );
                     AssetDatabase.ImportAsset(assetPath);

@@ -104,6 +104,10 @@ half4 _AdditionalLightsCount;
 uint _RenderingLayerMaxInt;
 float _RenderingLayerRcpMaxInt;
 
+// Screen coord override.
+float4 _ScreenCoordScaleBias;
+float4 _ScreenSizeOverride;
+
 #if USE_FORWARD_PLUS
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.

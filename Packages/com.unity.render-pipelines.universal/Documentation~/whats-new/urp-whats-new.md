@@ -8,6 +8,12 @@ For a complete list of changes made in URP 12, refer to the [Changelog](../../ch
 
 This section contains the overview of the new features in this release.
 
+### Lens Flare
+
+When using Lens Flare, URP allow to remap the result of the occlusion to another value with a curve. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.
+
+![](../Images/LensFlare_OcclusionCurve.png)
+
 ### Scene Debug View Modes
 
 ![Rendering Debugger](../Images/whats-new/urp-12/rendering-debugger.png)

@@ -233,9 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (positionChanged)
                     positions[index] = transform.position;
 
-                bool scaleChanged = math.distancesq(transform.localScale, rawScales[index]) > minDistance;
+                bool scaleChanged = math.distancesq(transform.localToWorldMatrix.lossyScale, rawScales[index]) > minDistance;
                 if (scaleChanged)
-                    rawScales[index] = transform.localScale;
+                    rawScales[index] = transform.localToWorldMatrix.lossyScale;
 
                 if (scaleChanged || isDirty)
                     resolvedScales[index] = effectiveScale(index, transform);
