@@ -34,12 +34,6 @@ struct NeighborAxis
     uint hitIndexValidity;
 };
 
-struct Color64
-{
-    uint rg;
-    uint b;
-};
-
 float4 UnpackAlbedoAndDistance(uint packedVal, float maxNeighborDistance)
 {
     float4 outVal;
@@ -51,6 +45,27 @@ float4 UnpackAlbedoAndDistance(uint packedVal, float maxNeighborDistance)
     outVal.a *= maxNeighborDistance * sqrt(3.0f);
 
     return outVal;
+}
+
+uint PackEmission(float3 color)
+{
+    float maxChannel = color.x > color.y ? color.x : color.y;
+    maxChannel = maxChannel > color.z ? maxChannel : color.z;
+
+    // This byte value in M will result in the color range [0, 1].
+    const float multiplierToByteScale = 32;
+
+    uint m = ceil(maxChannel * multiplierToByteScale);
+    color *= 255 * multiplierToByteScale / m;
+
+    uint packedOutput = 0;
+
+    packedOutput |= (uint)min(255, color.x) << 0;
+    packedOutput |= (uint)min(255, color.y) << 8;
+    packedOutput |= (uint)min(255, color.z) << 16;
+    packedOutput |= (uint)m << 24;
+
+    return packedOutput;
 }
 
 float3 UnpackEmission(uint packedVal)
@@ -108,25 +123,6 @@ void UnpackIndicesAndValidityOnly(uint packedVal, out uint hitIndex, out float v
 {
     validity = (packedVal & 255) / 255.0f;
     hitIndex = (packedVal >> 8) & PROBE_VOLUME_NEIGHBOR_MAX_HIT_AXIS;
-}
-
-Color64 PackColor64(float3 val)
-{
-    uint r = f32tof16(val.r);
-    uint g = f32tof16(val.g);
-    uint b = f32tof16(val.b);
-    Color64 packedVal;
-    packedVal.rg = r << 16 | g;
-    packedVal.b = b;
-    return packedVal;
-}
-
-float3 UnpackColor64(Color64 packedVal)
-{
-    float r = f16tof32(packedVal.rg >> 16);
-    float g = f16tof32(packedVal.rg);
-    float b = f16tof32(packedVal.b);
-    return float3(r, g, b);
 }
 
 #endif // endof PROBE_VOLUME_DYNAMIC_GI

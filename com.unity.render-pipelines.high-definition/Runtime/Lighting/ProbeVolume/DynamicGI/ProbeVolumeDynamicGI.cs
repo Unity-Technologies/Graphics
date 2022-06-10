@@ -975,15 +975,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return didDispose;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        struct Color64
-        {
-            ushort r;
-            ushort g;
-            ushort b;
-            ushort unused;
-        }
-
         private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
             probeVolume.EnsureVolumeBuffers();
@@ -1005,10 +996,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
                 int numAxis = numProbes * s_NeighborAxis.Length;
 
-                ProbeVolume.EnsureBuffer<Color64>(ref propagationPipelineData.hitRadianceCache, hitNeighborAxisLengthOrOne);
-                if (ProbeVolume.EnsureBuffer<Color64>(ref propagationPipelineData.radianceCacheAxis0, numAxis))
+                ProbeVolume.EnsureBuffer<uint>(ref propagationPipelineData.hitRadianceCache, hitNeighborAxisLengthOrOne);
+                if (ProbeVolume.EnsureBuffer<uint>(ref propagationPipelineData.radianceCacheAxis0, numAxis))
                 {
-                    ProbeVolume.EnsureBuffer<Color64>(ref propagationPipelineData.radianceCacheAxis1, numAxis);
+                    ProbeVolume.EnsureBuffer<uint>(ref propagationPipelineData.radianceCacheAxis1, numAxis);
                     propagationPipelineData.radianceReadIndex = 0;
                 }
 

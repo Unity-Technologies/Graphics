@@ -7,8 +7,8 @@
 
 int _ProbeVolumeProbeCount;
 
-RWStructuredBuffer<Color64> _RadianceCacheAxis;
-StructuredBuffer<Color64> _PreviousRadianceCacheAxis;
+RWStructuredBuffer<uint> _RadianceCacheAxis;
+StructuredBuffer<uint> _PreviousRadianceCacheAxis;
 
 int _ProbeVolumeIndex;
 float _LeakMitigation;
@@ -23,7 +23,7 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
 float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
 {
     const uint index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
-    return UnpackColor64(_PreviousRadianceCacheAxis[index]);
+    return UnpackEmission(_PreviousRadianceCacheAxis[index]);
 }
 
 float InvalidScale(float probeValidity)
