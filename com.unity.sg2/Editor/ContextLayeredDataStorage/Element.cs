@@ -69,9 +69,16 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID GetUniqueLocalID(string desiredLocalPath)
         {
-            return ElementID.CreateUniqueLocalID(Parent != null ? Parent.ID : "",
-                                                 owner.GetFlatImmediateChildList(Parent).Select(e => e.ID.LocalPath),
-                                                 ID.LocalPath);
+            return GetUniqueLocalID(desiredLocalPath, Parent);
+        }
+
+        public ElementID GetUniqueLocalID(string desiredLocalPath, Element parent)
+        {
+            if (parent == null)
+                return "";
+            return ElementID.CreateUniqueLocalID(parent.ID,
+                                                 owner.GetFlatImmediateChildList(parent).Select(e => e.ID.LocalPath),
+                                                 desiredLocalPath);
 
         }
     }
