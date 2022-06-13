@@ -99,17 +99,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static readonly TypeHandle[] k_SupportedBlackboardTypes = {
-            TypeHandle.Int,
             TypeHandle.Float,
-            TypeHandle.Bool,
             TypeHandle.Vector2,
             TypeHandle.Vector3,
             TypeHandle.Vector4,
             ShaderGraphExampleTypes.Color,
+            TypeHandle.Bool,
+            ShaderGraphExampleTypes.GradientTypeHandle,
+            ShaderGraphExampleTypes.Texture2DTypeHandle,
+            ShaderGraphExampleTypes.Texture2DArrayTypeHandle,
+            ShaderGraphExampleTypes.Texture3DTypeHandle,
+            ShaderGraphExampleTypes.CubemapTypeHandle,
             ShaderGraphExampleTypes.Matrix2,
             ShaderGraphExampleTypes.Matrix3,
             ShaderGraphExampleTypes.Matrix4,
-            // ShaderGraphExampleTypes.GradientTypeHandle,  TODO: Awaiting GradientType support
+            ShaderGraphExampleTypes.SamplerStateTypeHandle,
         };
 
         public override void PopulateBlackboardCreateMenu(
@@ -130,44 +134,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     action = () =>
                     {
                         var command = new CreateGraphVariableDeclarationCommand(displayName, true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
-                        command.InitializationCallback = InitVariableDeclarationModel;
+                        command.InitializationCallback = (decl, constant) =>
+                        {
+                            if (decl is not GraphDataVariableDeclarationModel graphDataVar) return;
+
+                            var graphModel = (ShaderGraphModel)decl.GraphModel;
+
+                            // Use this variables' generated guid to bind it to an underlying element in the graph data.
+                            var registry = graphModel.RegistryInstance;
+                            var graphHandler = graphModel.GraphHandler;
+
+                            // If the guid starts with a number, it will produce an invalid identifier in HLSL.
+                            var variableDeclarationName = "_" + graphDataVar.Guid;
+
+                            var propertyContext = graphHandler.GetNode(graphModel.BlackboardContextName);
+                            Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
+
+                            ContextBuilder.AddReferableEntry(
+                                propertyContext,
+                                type.ToDescriptor(),
+                                variableDeclarationName,
+                                registry.Registry,
+                                ContextEntryEnumTags.PropertyBlockUsage.Included,
+                                displayName: variableDeclarationName);
+                            graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
+
+                            graphDataVar.contextNodeName = graphModel.BlackboardContextName;
+                            graphDataVar.graphDataName = variableDeclarationName;
+                        };
                         view.Dispatch(command);
                     }
                 });
-            }
-
-            void InitVariableDeclarationModel(IVariableDeclarationModel model, IConstant constant)
-            {
-                if (model is not GraphDataVariableDeclarationModel graphDataVar) return;
-
-                var graphModel = (ShaderGraphModel)model.GraphModel;
-
-                // Use this variables' generated guid to bind it to an underlying element in the graph data.
-                var registry = graphModel.RegistryInstance;
-                var graphHandler = graphModel.GraphHandler;
-
-                // If the guid starts with a number, it will produce an invalid identifier in HLSL.
-                var variableDeclarationName = "_" + graphDataVar.Guid;
-                var contextName = graphModel.BlackboardContextName;
-
-                var propertyContext = graphHandler.GetNode(contextName);
-                Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
-
-                var entry = new ContextEntry
-                {
-                    fieldName = variableDeclarationName,
-                    height = ShaderGraphExampleTypes.GetGraphTypeHeight(model.DataType),
-                    length = ShaderGraphExampleTypes.GetGraphTypeLength(model.DataType),
-                    primitive = ShaderGraphExampleTypes.GetGraphTypePrimitive(model.DataType),
-                    precision = GraphType.Precision.Any,
-                    initialValue = Matrix4x4.zero,
-                };
-
-                ContextBuilder.AddReferableEntry(propertyContext, entry, registry.Registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
-                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry.Registry);
-
-                graphDataVar.contextNodeName = contextName;
-                graphDataVar.graphDataName = variableDeclarationName;
             }
         }
 
