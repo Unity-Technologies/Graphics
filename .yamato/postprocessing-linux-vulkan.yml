@@ -11,7 +11,7 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk:
     name: PostProcessing on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -49,7 +49,7 @@ PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk:
     name: PostProcessing on Linux_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -87,7 +87,7 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: PostProcessing on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -119,7 +119,7 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -160,7 +160,7 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -198,7 +198,7 @@ PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -236,7 +236,7 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -268,7 +268,7 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
