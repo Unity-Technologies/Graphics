@@ -59,6 +59,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
 
+        Dictionary<INodeModel, INodeModel> m_DuplicatedNodesMap = new();
+
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
         public Action<IGraphElementModel> OnGraphModelElementChanged;
@@ -182,8 +184,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             return GraphHandler.TryConnect(
                 src.owner.graphDataName, src.graphDataName,
-                dst.owner.graphDataName, dst.graphDataName,
-                RegistryInstance.Registry);
+                dst.owner.graphDataName, dst.graphDataName);
         }
 
         /// <summary>
@@ -195,8 +196,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphHandler.Disconnect(
                 src.owner.graphDataName, src.graphDataName,
-                dst.owner.graphDataName, dst.graphDataName,
-                RegistryInstance.Registry);
+                dst.owner.graphDataName, dst.graphDataName);
         }
 
         static bool PortsFormCycle(IPortModel fromPort, IPortModel toPort)
@@ -285,7 +285,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     // Every time a variable node is duplicated, add a reference node pointing back
                     // to the property/keyword that is wrapped by the VariableDeclarationModel, on the CLDS level
-                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName, RegistryInstance.Registry);
+                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
                     break;
                 }
             }
@@ -297,19 +297,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var graphModelStateUpdater = stateComponentUpdater as GraphModelStateComponent.StateUpdater;
             graphModelStateUpdater?.MarkNew(sourceNode);
 
-            // TODO: How to mark graph element models as new, for observers? Needed to draw edges, cause GraphView collects stuff from the changeset
+            // Need to get a reference to the original node model to get edge info., the serialized copy in 'sourceNode' doesn't have that
             var originalSourceNode = NodeModels.FirstOrDefault(model => model.Guid == sourceNode.Guid);
             if (originalSourceNode != null)
             {
-                foreach (var edge in originalSourceNode.GetConnectedEdges())
-                {
-                    // If this node has any incoming edges, copy them over as well
-                    if (edge.ToPort.NodeModel == originalSourceNode)
-                    {
-                        DuplicateEdge(edge, pastedNodeModel, edge.FromPort.NodeModel);
-                        graphModelStateUpdater?.MarkNew(edge);
-                    }
-                }
+                m_DuplicatedNodesMap.Add(originalSourceNode, pastedNodeModel);
             }
 
             if (pastedNodeModel is IGraphElementContainer container)
@@ -319,6 +311,69 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             return pastedNodeModel;
+        }
+
+        public void HandlePostDuplicationEdgeFixup()
+        {
+            if (m_DuplicatedNodesMap.Count != 0)
+            {
+                try
+                {
+                    // Key is the original node, Value is the duplicated node
+                    foreach (var (key, value) in m_DuplicatedNodesMap)
+                    {
+                        var originalNodeConnections = key.GetConnectedEdges();
+                        foreach (var originalNodeEdge in originalNodeConnections)
+                        {
+                            var incomingEdgeSourceNode = originalNodeEdge.FromPort.NodeModel;
+                            // This is an output edge, we can skip it
+                            if (key == incomingEdgeSourceNode)
+                                continue;
+
+                            m_DuplicatedNodesMap.TryGetValue(incomingEdgeSourceNode, out var duplicatedIncomingNode);
+
+                            // If any node that was copied has an incoming edge from a node that was ALSO
+                            // copied, then we need to find the duplicated copy of the incoming node
+                            // and create the edge between these new duplicated nodes instead
+                            if (duplicatedIncomingNode is NodeModel duplicatedIncomingNodeModel)
+                            {
+                                var fromPort = FindOutputPortByName(duplicatedIncomingNodeModel, originalNodeEdge.FromPortId);
+                                var toPort = FindInputPortByName((NodeModel)value, originalNodeEdge.ToPortId);
+                                Assert.IsNotNull(fromPort);
+                                Assert.IsNotNull(toPort);
+                                CreateEdge(toPort, fromPort);
+                            }
+                            else // Just copy that connection over to the new duplicated node
+                            {
+                                var toPort = FindInputPortByName((NodeModel)value, originalNodeEdge.ToPortId);
+                                var fromPort = originalNodeEdge.FromPort;
+                                Assert.IsNotNull(fromPort);
+                                Assert.IsNotNull(toPort);
+                                CreateEdge(toPort, fromPort);
+                            }
+                        }
+                    }
+                }
+                catch (Exception edgeFixupException)
+                {
+                    Debug.Log("Exception Thrown while trying to handle post copy-paste edge fixup." + edgeFixupException);
+                }
+                finally
+                {
+                    // We always want to make sure that the dictionary is cleared to prevent this from endless looping
+                    m_DuplicatedNodesMap.Clear();
+                }
+            }
+        }
+
+        static IPortModel FindInputPortByName(NodeModel nodeModel, string portID)
+        {
+            return nodeModel.InputsById.FirstOrDefault(input => input.Key == portID).Value;
+        }
+
+        static IPortModel FindOutputPortByName(NodeModel nodeModel, string portID)
+        {
+            return nodeModel.OutputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
@@ -479,7 +534,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     variableNodeModel.VariableDeclarationModel = model;
 
                     // Every time a variable node is added to the graph, add a reference node pointing back to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
-                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance.Registry);
+                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName);
 
                     // Currently using GTF guid of the variable node as its graph data name
                     graphDataVariable.graphDataName = guid.ToString();

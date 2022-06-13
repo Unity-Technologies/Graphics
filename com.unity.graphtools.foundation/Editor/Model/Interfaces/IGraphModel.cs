@@ -289,6 +289,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         // GTF-EDIT: Added parameter to pass state updater in some situations where its needed, can default to null however
         INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null);
+
         IReadOnlyCollection<IGraphElementModel> DeleteNodes(IReadOnlyCollection<INodeModel> nodeModels, bool deleteConnections);
 
         /// <summary>

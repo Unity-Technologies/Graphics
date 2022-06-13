@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -135,6 +136,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return true;
             }
             var nodeHandler = m_data.GetHandler(id, this, registry).ToNodeHandler();
+            if (nodeHandler == null)
+            {
+                Debug.LogError("Failed to reconcretize node with ID: " + id.FullPath);
+                return false;
+            }
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
             if (!nodeHandler.HasMetadata("_CustomizationPointName"))

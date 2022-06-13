@@ -28,17 +28,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return field.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static void AddReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName, Registry registry)
+        public static void AddReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName)
         {
-            var node = handler.AddNode<ReferenceNodeBuilder>(nodeName, registry);
+            var node = handler.AddNode<ReferenceNodeBuilder>(nodeName);
             var inPort = node.GetPort(ReferenceNodeBuilder.kContextEntry);
             var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}"); // TODO: Not this.
             handler.AddEdge(outPort.ID, inPort.ID);
 
-            handler.ReconcretizeNode(node.ID.FullPath, registry);
+            handler.ReconcretizeNode(node.ID.FullPath);
 
             // node.SetMetadata("_referenceName", contextEntryName);
-
 
             // reference nodes have some weird rules, in that they can't really fetch or achieve any sort of identity until they are connected downstream to a context node.
             // We need stronger rules around references-- namely that a reference type must be consistent across all instances of that reference within however many context nodes.
@@ -47,7 +46,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // all of their downstream nodes get propogated-- and then upstream node connections can be disrupted if the type every changes.
         }
 
-        internal static void SetupContext(this GraphHandler handler, IEnumerable<IContextDescriptor> contexts, Registry registry)
+        public static void RemoveReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName)
+        {
+            var node = handler.GetNode(nodeName);
+            var inPort = node.GetPort(ReferenceNodeBuilder.kContextEntry);
+            var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}");
+            handler.RemoveEdge(outPort.ID, inPort.ID);
+            handler.RemoveNode(nodeName);
+        }
+
+        internal static void SetupContext(this GraphHandler handler, IEnumerable<IContextDescriptor> contexts)
         {
             // only safe to call right now.
             NodeHandler previousContextNode = null;
@@ -55,7 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 // Initialize the Context Node with information from the ContextDescriptor
                 var name = context.GetRegistryKey().Name + "_Context"; // Not like this...
-                var currentContextNode = handler.AddNode<ContextBuilder>(name, registry);
+                var currentContextNode = handler.AddNode<ContextBuilder>(name);
                 currentContextNode.SetMetadata("_contextDescriptor", context.GetRegistryKey()); // initialize the node w/a reference to the context descriptor (so it can build itself).
                 if(previousContextNode != null)
                 {
@@ -64,15 +72,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     var inPort  = currentContextNode.AddPort("In", true, false);
                     handler.AddEdge(outPort.ID, inPort.ID);
                 }
-                handler.ReconcretizeNode(name, registry);
+                handler.ReconcretizeNode(name);
                 previousContextNode = currentContextNode;
             }
 
-            var entryPoint = handler.AddNode<ContextBuilder>("EntryPoint", registry);
+            var entryPoint = handler.AddNode<ContextBuilder>("EntryPoint");
             var toEntry = previousContextNode.AddPort("Out", false, false);
             var inEntry = entryPoint.AddPort("In", true, false);
             handler.AddEdge(toEntry.ID, inEntry.ID);
-            handler.ReconcretizeNode("EntryPoint", registry);
+            handler.ReconcretizeNode("EntryPoint");
         }
 
 
@@ -84,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return registry.CastExists(dstPortHandler.GetTypeField().GetRegistryKey(), srcPortHandler.GetTypeField().GetRegistryKey());
         }
 
-        public static bool TryConnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        public static bool TryConnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort)
         {
             var dstNodeHandler = handler.GetNode(dstNode);
             var dstPortHandler = dstNodeHandler.GetPort(dstPort);
@@ -92,7 +100,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return handler.AddEdge(srcPortHandler.ID, dstPortHandler.ID) != null;
         }
 
-        public static void Disconnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        public static void Disconnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort)
         {
             var dstNodeHandler = handler.GetNode(dstNode);
             var dstPortHandler = dstNodeHandler.GetPort(dstPort);

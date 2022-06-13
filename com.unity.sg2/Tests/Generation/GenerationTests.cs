@@ -50,8 +50,8 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.AddNode<TestAddNode>("Add1").SetPortField("In1", "c0", 1f); //(1,0,0,0)
             graph.AddNode<TestAddNode>("Add2").SetPortField("In2", "c1", 1f); //(0,1,0,0)
             graph.AddNode<TestAddNode>("Add3");
-            graph.TryConnect("Add1", "Out", "Add3", "In1", registry);
-            graph.TryConnect("Add2", "Out", "Add3", "In2", registry); //should be (1,1,0,0)
+            graph.TryConnect("Add1", "Out", "Add3", "In1");
+            graph.TryConnect("Add2", "Out", "Add3", "In2"); //should be (1,1,0,0)
         }
 
         private static Shader MakeShader(string input)
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             propContext.SetPortField("Foo", "c1", .5f);
             propContext.SetPortField("Foo", "c2", .5f);
             propContext.AddPort<GraphType>("out_Foo", false, registry);
-            graph.AddReferenceNode("FooReference", propertyKey.Name, "Foo", registry);
+            graph.AddReferenceNode("FooReference", propertyKey.Name, "Foo");
             graph.AddEdge("FooReference.Output", "Add1.In2");
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader("Add1"), graph, registry, out _);
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             ContextBuilder.AddReferableEntry(propContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: "Foo_Var");
 
-            graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName, registry);
+            graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName);
             graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
 
@@ -235,7 +235,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             var propContext = graph.GetNode(propertyKey.Name);
             var contextKey = Registry.ResolveKey<ShaderGraphContext>();
-            graph.AddReferenceNode("UV_Ref", propertyKey.Name, "uv0", registry);
+            graph.AddReferenceNode("UV_Ref", propertyKey.Name, "uv0");
             graph.AddEdge("UV_Ref.Output", contextKey.Name + ".BaseColor");
 
             var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);

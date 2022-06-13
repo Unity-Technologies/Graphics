@@ -10,55 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class ShaderGraphCommandOverrides
     {
-        public static void HandleCreateEdge(
-            BaseGraphTool graphTool,
-            GraphViewModel graphView,
-            PreviewManager previewManager,
-            CreateEdgeCommand command)
-        {
-            var undoState = graphTool.UndoStateComponent;
-            var graphModelState = graphView.GraphModelState;
-            var selectionState = graphView.SelectionState;
-            var preferences = graphTool.Preferences;
-
-            CreateEdgeCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, preferences, command);
-
-            var resolvedSource = command.FromPortModel;
-            var resolvedDestinations = new List<IPortModel>();
-
-            if (command.ToPortModel.NodeModel is RedirectNodeModel toRedir)
-            {
-                resolvedDestinations = toRedir.ResolveDestinations().ToList();
-
-                // Update types of descendant redirect nodes.
-                using var graphUpdater = graphModelState.UpdateScope;
-                foreach (var child in toRedir.GetRedirectTree(true))
-                {
-                    child.UpdateTypeFrom(command.FromPortModel);
-                    graphUpdater.MarkChanged(child);
-                }
-            }
-            else
-            {
-                resolvedDestinations.Add(command.ToPortModel);
-            }
-
-            if (command.FromPortModel.NodeModel is RedirectNodeModel fromRedir)
-            {
-                resolvedSource = fromRedir.ResolveSource();
-            }
-
-            if (resolvedSource is not GraphDataPortModel fromDataPort) return;
-
-            // Make the corresponding connections in Shader Graph's data model.
-            var shaderGraphModel = (ShaderGraphModel) graphModelState.GraphModel;
-            foreach (var toDataPort in resolvedDestinations.OfType<GraphDataPortModel>())
-            {
-                // Validation should have already happened in GraphModel.IsCompatiblePort.
-                Assert.IsTrue(shaderGraphModel.TryConnect(fromDataPort, toDataPort));
-            }
-        }
-
         public static void HandleBypassNodes(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
@@ -167,6 +118,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         case GraphDataNodeModel graphDataNode:
                             graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
                             break;
+                        // Delete backing data for variable nodes.
+                        case GraphDataVariableNodeModel variableNode:
+                            var declarationModel = variableNode.DeclarationModel as GraphDataVariableDeclarationModel;
+                            graphModel.GraphHandler.RemoveReferenceNode(variableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
+                            break;
                     }
                 }
 
@@ -181,6 +137,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             break;
                         case GraphDataNodeModel deletedNode:
                             previewManager.OnNodeFlowChanged(deletedNode.graphDataName, true);
+                            break;
+                        case GraphDataVariableNodeModel variableNode:
+                            previewManager.OnNodeFlowChanged(variableNode.graphDataName, true);
                             break;
                     }
                 }
@@ -250,9 +209,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
             {
-                // TODO: Switch to using OnGlobalPropertyChanged() when we have property promotion
-                //previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
-                previewManager.OnLocalPropertyChanged( cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
+                previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
                 return;
             }
 
