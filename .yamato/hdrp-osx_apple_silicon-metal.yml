@@ -11,7 +11,7 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_2022.1:
     name: HDRP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version 2022.1
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-11-base:stable
+        image: slough-ops/macos-11-base:v11.5.4-1077566
         model: M1
         flavor: m1.mac
     variables:
@@ -49,7 +49,7 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Apple_Silicon_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-11-base:stable
+        image: slough-ops/macos-11-base:v11.5.4-1077566
         model: M1
         flavor: m1.mac
     variables:

@@ -11,7 +11,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_2022.1:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -43,7 +43,7 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_2022.1:
     name: HDRP_PerformanceTests on Win_DX11_performance_counters_il2cpp_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -75,7 +75,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_2022.1:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -107,7 +107,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -139,7 +139,7 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_CUSTOM-REVISIO
     name: HDRP_PerformanceTests on Win_DX11_performance_counters_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -171,7 +171,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'

@@ -11,7 +11,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear on version 2022.1
     agent:
         type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -62,7 +62,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
     name: Build URP_Performance_LostCrypt on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -133,7 +133,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version 2022.1
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -204,7 +204,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -255,7 +255,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
     name: Build URP_Performance_LostCrypt on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -326,7 +326,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

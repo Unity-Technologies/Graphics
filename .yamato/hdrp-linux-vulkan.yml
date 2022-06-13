@@ -11,7 +11,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_2022.1:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -49,7 +49,7 @@ HDRP_Linux_Vulkan_playmode_XR_mono_Linear_2022.1:
     name: HDRP on Linux_Vulkan_playmode_XR_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -87,7 +87,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_2022.1:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -125,7 +125,7 @@ HDRP_Linux_Vulkan_editmode_XR_mono_Linear_2022.1:
     name: HDRP on Linux_Vulkan_editmode_XR_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -163,7 +163,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_2022.1:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -195,7 +195,7 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_2022.1:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_build_Player on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -236,7 +236,7 @@ HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_2022.1:
     name: HDRP on Linux_Vulkan_Standalone_XR_mono_Linear on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -268,7 +268,7 @@ Build_HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_2022.1:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_XR_build_Player on version 2022.1
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -309,7 +309,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -347,7 +347,7 @@ HDRP_Linux_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -385,7 +385,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -423,7 +423,7 @@ HDRP_Linux_Vulkan_editmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_editmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -461,7 +461,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -493,7 +493,7 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -534,7 +534,7 @@ HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_Standalone_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -566,7 +566,7 @@ Build_HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
