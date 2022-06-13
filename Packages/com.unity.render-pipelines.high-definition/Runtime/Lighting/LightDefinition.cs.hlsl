@@ -43,6 +43,12 @@
 #define ENVCONSTANTS_CONVOLUTION_MIP_COUNT (7)
 
 //
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
+//
+#define MAX_PLANAR_REFLECTIONS (16)
+#define MAX_CUBE_REFLECTIONS (64)
+
+//
 // UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
 //
 #define ENVCACHETYPE_TEXTURE2D (0)
@@ -165,6 +171,15 @@ struct EnvLightData
     int normalizeWithAPV;
     float2 padding;
 };
+
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionData
+// PackingRules = Exact
+CBUFFER_START(EnvLightReflectionData)
+    float4x4 _PlanarCaptureVP[16];
+    float4 _PlanarCaptureForward[16];
+    float4 _PlanarScaleOffset[16];
+    float4 _CubeScaleOffset[64];
+CBUFFER_END
 
 
 #endif

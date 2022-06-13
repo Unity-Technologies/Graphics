@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent enableRenderGraphLabel = EditorGUIUtility.TrTextContent("Use Render Graph", "");
             public static readonly GUIContent stripUnusedLODCrossFadeVariantsLabel = EditorGUIUtility.TrTextContent("Strip Unused LOD Cross Fade Variants", "Controls whether strip off variants if the LOD Cross Fade feature is disabled. It strips based on the UniversalRenderingPipelineAsset.enableLODCrossFade property.");
+            public static readonly GUIContent stripScreenCoordOverrideVariants = EditorGUIUtility.TrTextContent("Strip Screen Coord Override Variants", "Controls whether Screen Coordinates Override shader variants are stripped.");
         }
     }
 }

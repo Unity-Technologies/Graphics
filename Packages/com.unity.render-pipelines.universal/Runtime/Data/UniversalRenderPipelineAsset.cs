@@ -346,23 +346,27 @@ namespace UnityEngine.Rendering.Universal
     public enum UpscalingFilterSelection
     {
         /// <summary>
-        /// Indicates that URP will select an appropriate upscaling filter automatically.
+        /// Unity selects a filtering option automatically based on the Render Scale value and the current screen resolution.
         /// </summary>
-        [InspectorName("Automatic")]
+        [InspectorName("Automatic"), Tooltip("Unity selects a filtering option automatically based on the Render Scale value and the current screen resolution.")]
         Auto,
 
         /// <summary>
-        /// Indicates that Bilinear filtering will be used when performing upscaling.
+        /// Unity uses Bilinear filtering to perform upscaling.
         /// </summary>
         [InspectorName("Bilinear")]
         Linear,
 
         /// <summary>
-        /// Indicates that Nearest-Neighbour filtering will be used when performing upscaling.
+        /// Unity uses Nearest-Neighbour filtering to perform upscaling.
         /// </summary>
         [InspectorName("Nearest-Neighbor")]
         Point,
-        [InspectorName("FidelityFX Super Resolution 1.0")]
+
+        /// <summary>
+        /// Unity uses the AMD FSR 1.0 technique to perform upscaling.
+        /// </summary>
+        [InspectorName("FidelityFX Super Resolution 1.0"), Tooltip("If the target device does not support Unity shader model 4.5, Unity falls back to the Automatic option.")]
         FSR
     }
 

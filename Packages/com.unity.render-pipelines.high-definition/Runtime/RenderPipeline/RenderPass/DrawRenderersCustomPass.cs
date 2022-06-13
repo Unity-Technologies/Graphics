@@ -41,7 +41,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public SortingCriteria sortingCriteria = SortingCriteria.CommonOpaque;
 
-        public enum OverrideMaterialMode { None, Material, Shader };
+        /// <summary>
+        /// Select which type of override to apply on the DrawRenderers pass.
+        /// </summary>
+        public enum OverrideMaterialMode
+        {
+            /// <summary> Disable the material override </summary>
+            None,
+            /// <summary> Override the material for all renderers </summary>
+            Material,
+            /// <summary> Override the shader for all renderers. This option keeps the material properties of the renderer and can be used like a replacement shader. </summary>
+            Shader
+        };
+
         /// <summary>
         /// Controls how the material on each renderer will be replaced. Material mode uses overrideMaterial. Shader mode uses overrideShader.
         /// </summary>

@@ -202,6 +202,10 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
             if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !payload.segmentID))
             {
+                // If the ray goes straight forward, set alpha accordingly
+                if (dot(WorldRayDirection(), ray.Direction) > 0.999)
+                    payload.alpha = 1.0 - rrFactor;
+
                 bool isSampleBelow = IsBelow(mtlData, ray.Direction);
 
                 ray.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RaytracingRayBias, isSampleBelow);
@@ -318,6 +322,9 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
             payload.throughput *= 1.0 - builtinData.opacity;
             SetContinuationRay(ray.Origin, ray.Direction, shadowPayload.rayTHit, payload);
         }
+
+        // Set alpha to the opacity value
+        payload.alpha = builtinData.opacity;
     }
     #endif
 
@@ -330,8 +337,9 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 [shader("closesthit")]
 void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // Always set the new t value
+    // Always set the new t and initial alpha value
     payload.rayTHit = RayTCurrent();
+    payload.alpha = 1.0;
 
     bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
     bool sampleVolume = false;
@@ -366,10 +374,11 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 
     // Apply volumetric attenuation (beware of passing the right distance to the shading point)
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), sampleVolume ? payload.rayTHit : RayTCurrent(),
-                        payload.value, payload.throughput, computeDirect);
+                        payload.value, payload.alpha, payload.throughput, computeDirect);
 
     // Apply the volume/surface PDF
     payload.value /= volSurfPdf;
+    payload.alpha /= volSurfPdf;
     payload.throughput /= volSurfPdf;
 }
 

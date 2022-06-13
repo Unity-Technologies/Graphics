@@ -7,7 +7,7 @@ The tables that follow provide an overview of the Features that the High Definit
 | **Feature**                 | **Built-in Render Pipeline**                                     | **High Definition Render Pipeline (HDRP)**                      |
 | ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | **HDR rendering**       | Yes. The Built-in Renderer uses an HDR Texture Format.       | Yes |
-| **HDR output** | Yes | No, however this feature is in research for HDRP. For more information, see [High dynamic range](https://docs.unity3d.com/Manual/HDR.html). |
+| **HDR output** | Yes | Yes |
 | **Anti-Aliasing**       | Yes. The Built-in Renderer supports multi-sample anti-aliasing (MSAA) for the Forward Renderer.<br/><br/>If you use the Post-processing v2 package, this Render Pipeline also supports:<br/>&#8226; Temporal anti-aliasing (TAA).<br/>&#8226; Fast approximate anti-aliasing(FXAA).<br/>&#8226; Subpixel morphological anti-aliasing (SMAA). | Yes. HDRP supports:<br/>&#8226; MSAA, for the Forward Renderer.<br/>&#8226; TAA.<br/>&#8226; FXAA.<br/>&#8226; SMAA. |
 | **Physical Camera**     | Yes. The **Built-in Render Pipeline** only uses physical camera properties to calculate the Camera's field of view. | Yes. HDRP uses physical camera properties to:<br/>&#8226; Calculate the Camera's field of view.<br/>&#8226; Calculate the exposure of the Scene.<br/>&#8226; Calculate the result of certain post-processing effects.. |
 | **Multi Display**       | Yes                                                          | Yes                                                          |

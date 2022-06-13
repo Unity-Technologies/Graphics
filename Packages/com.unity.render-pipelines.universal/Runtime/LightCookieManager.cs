@@ -685,7 +685,8 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                Light light = lightData.visibleLights[i].light;
+                ref var visLight = ref lightData.visibleLights.UnsafeElementAtMutable(i);
+                Light light = visLight.light;
 
                 // Skip lights without a cookie texture
                 if (light.cookie == null)
@@ -695,7 +696,7 @@ namespace UnityEngine.Rendering.Universal
                 // Directional lights are not currently supported,
                 // they have very few use cases for multiple global cookies.
                 // Warn on dropped lights
-                var lightType = lightData.visibleLights[i].lightType;
+                var lightType = visLight.lightType;
                 if (!(lightType == LightType.Spot ||
                       lightType == LightType.Point))
                 {
@@ -995,7 +996,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update the mapping
                 m_VisibleLightIndexToShaderDataIndex[visIndex] = bufIndex;
 
-                var visLight = lightData.visibleLights[visIndex];
+                ref var visLight = ref lightData.visibleLights.UnsafeElementAtMutable(visIndex);
 
                 // Update the (cpu) data
                 lightTypes[bufIndex] = (int)visLight.lightType;

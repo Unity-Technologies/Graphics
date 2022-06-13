@@ -66,11 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return new ReflectionSystemParameters
                 {
-                    maxPlanarReflectionProbePerCamera = currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen,
                     maxActivePlanarReflectionProbe = 512,
-                    planarReflectionProbeSize = (int)PlanarReflectionAtlasResolution.Resolution512,
-                    maxActiveReflectionProbe = 512,
-                    reflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
+                    maxActiveEnvReflectionProbe = 512
                 };
             }
         }

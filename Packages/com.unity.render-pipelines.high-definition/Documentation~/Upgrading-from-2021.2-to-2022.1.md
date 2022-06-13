@@ -1,4 +1,4 @@
-# Upgrading HDRP from 2021.1 to 2021.2
+# Upgrading from HDRP 12.x to 13.x
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 12.x to 13.x.
 

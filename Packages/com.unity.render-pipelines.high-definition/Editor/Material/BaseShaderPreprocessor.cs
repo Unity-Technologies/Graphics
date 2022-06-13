@@ -12,23 +12,33 @@ namespace UnityEditor.Rendering.HighDefinition
         ShaderKeyword ShadowLow;
         ShaderKeyword ShadowMedium;
         ShaderKeyword ShadowHigh;
-        ShaderKeyword ShadowVeryHigh;
+
+        ShaderKeyword AreaShadowMedium;
+        ShaderKeyword AreaShadowHigh;
 
         public Dictionary<HDShadowFilteringQuality, ShaderKeyword> ShadowVariants;
+        public Dictionary<HDAreaShadowFilteringQuality, ShaderKeyword> AreaShadowVariants;
 
         public ShadowKeywords()
         {
             ShadowLow = new ShaderKeyword("SHADOW_LOW");
             ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
             ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
-            ShadowVeryHigh = new ShaderKeyword("SHADOW_VERY_HIGH");
+
+            AreaShadowMedium = new ShaderKeyword("AREA_SHADOW_MEDIUM");
+            AreaShadowHigh = new ShaderKeyword("AREA_SHADOW_HIGH");
 
             ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
             {
                 {HDShadowFilteringQuality.Low, ShadowLow},
                 {HDShadowFilteringQuality.Medium, ShadowMedium},
                 {HDShadowFilteringQuality.High, ShadowHigh},
-                {HDShadowFilteringQuality.VeryHigh, ShadowVeryHigh},
+            };
+
+            AreaShadowVariants = new Dictionary<HDAreaShadowFilteringQuality, ShaderKeyword>
+            {
+                {HDAreaShadowFilteringQuality.Medium, AreaShadowMedium},
+                {HDAreaShadowFilteringQuality.High, AreaShadowHigh},
             };
         }
     }

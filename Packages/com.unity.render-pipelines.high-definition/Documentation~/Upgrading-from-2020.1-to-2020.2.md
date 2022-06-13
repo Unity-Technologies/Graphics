@@ -1,4 +1,4 @@
-# Upgrading HDRP from 8.x to 10.x
+# Upgrading from HDRP 8.x to 10.x
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 8.x to 10.x.
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_UseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
-        Matrix4x4[] m_PrevViewProjM = new Matrix4x4[2];
+        private Dictionary<int, Matrix4x4[]> m_PrevVPMatricesMap = new Dictionary<int, Matrix4x4[]>();
         bool m_ResetHistory;
         int m_DitheringTextureIndex;
         RenderTargetIdentifier[] m_MRT2;
@@ -361,7 +362,7 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        bool RequireSRGBConversionBlitToBackBuffer(CameraData cameraData)
+        bool RequireSRGBConversionBlitToBackBuffer(ref CameraData cameraData)
         {
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
@@ -475,7 +476,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -537,10 +538,10 @@ namespace UnityEngine.Rendering.Universal
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
-                SetupGrain(cameraData, m_Materials.uber);
-                SetupDithering(cameraData, m_Materials.uber);
+                SetupGrain(ref cameraData, m_Materials.uber);
+                SetupDithering(ref cameraData, m_Materials.uber);
 
-                if (RequireSRGBConversionBlitToBackBuffer(cameraData))
+                if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // When we're running FSR upscaling and there's no passes after this (including the FXAA pass), we can safely perform color conversion as part of uber post
@@ -564,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
+                GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
@@ -607,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CameraTargetHandle?.Release();
                         m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
                     }
-                    RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                    RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                 }
             }
         }
@@ -891,7 +892,7 @@ namespace UnityEngine.Rendering.Universal
                 gpuVP,
                 cmd, source,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
-                ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
+                ShaderConstants._FlareOcclusionRemapTex, ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);
@@ -904,9 +905,19 @@ namespace UnityEngine.Rendering.Universal
         // Hold the stereo matrices to avoid allocating arrays every frame
         internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
 #endif
-        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
+        void DoMotionBlur(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            const int PREV_VP_MATRIX_SIZE = 2;
+#else
+            const int PREV_VP_MATRIX_SIZE = 1;
+#endif
             var material = m_Materials.cameraMotionBlur;
+            if (!m_PrevVPMatricesMap.TryGetValue(cameraData.camera.GetInstanceID(), out var prevVPMatricies))
+                m_PrevVPMatricesMap.Add(cameraData.camera.GetInstanceID(), new Matrix4x4[PREV_VP_MATRIX_SIZE]);
+
+            if (prevVPMatricies?.Length != PREV_VP_MATRIX_SIZE)
+                prevVPMatricies = new Matrix4x4[PREV_VP_MATRIX_SIZE];
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
@@ -920,10 +931,10 @@ namespace UnityEngine.Rendering.Universal
                     material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
                 }
                 else
-                    material.SetMatrixArray("_PrevViewProjMStereo", m_PrevViewProjM);
+                    material.SetMatrixArray("_PrevViewProjMStereo", prevVPMatricies);
 
-                m_PrevViewProjM[0] = viewProj0;
-                m_PrevViewProjM[1] = viewProj1;
+                prevVPMatricies[0] = viewProj0;
+                prevVPMatricies[1] = viewProj1;
             }
             else
 #endif
@@ -945,9 +956,9 @@ namespace UnityEngine.Rendering.Universal
                 if (m_ResetHistory)
                     material.SetMatrix("_PrevViewProjM", viewProj);
                 else
-                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
+                    material.SetMatrix("_PrevViewProjM", prevVPMatricies[prevViewProjMIdx]);
 
-                m_PrevViewProjM[prevViewProjMIdx] = viewProj;
+                prevVPMatricies[prevViewProjMIdx] = viewProj;
             }
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
@@ -958,9 +969,9 @@ namespace UnityEngine.Rendering.Universal
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, (int)m_MotionBlur.quality.value);
         }
 
-        #endregion
+#endregion
 
-        #region Panini Projection
+#region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
         void DoPaniniProjection(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination)
@@ -1032,9 +1043,9 @@ namespace UnityEngine.Rendering.Universal
             return cylPos * (viewDist / cylDist);
         }
 
-        #endregion
+#endregion
 
-        #region Bloom
+#region Bloom
 
         void SetupBloom(CommandBuffer cmd, RTHandle source, Material uberMaterial)
         {
@@ -1149,9 +1160,9 @@ namespace UnityEngine.Rendering.Universal
                 uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
         }
 
-        #endregion
+#endregion
 
-        #region Lens Distortion
+#region Lens Distortion
 
         void SetupLensDistortion(Material material, bool isSceneView)
         {
@@ -1179,9 +1190,9 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.Distortion);
         }
 
-        #endregion
+#endregion
 
-        #region Chromatic Aberration
+#region Chromatic Aberration
 
         void SetupChromaticAberration(Material material)
         {
@@ -1191,9 +1202,9 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.ChromaticAberration);
         }
 
-        #endregion
+#endregion
 
-        #region Vignette
+#region Vignette
 
         void SetupVignette(Material material, XRPass xrPass)
         {
@@ -1228,9 +1239,9 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
         }
 
-        #endregion
+#endregion
 
-        #region Color Grading
+#region Color Grading
 
         void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material material)
         {
@@ -1267,11 +1278,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Film Grain
+#region Film Grain
 
-        void SetupGrain(in CameraData cameraData, Material material)
+        void SetupGrain(ref CameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
@@ -1285,11 +1296,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #endregion
+#endregion
 
-        #region 8-bit Dithering
+#region 8-bit Dithering
 
-        void SetupDithering(in CameraData cameraData, Material material)
+        void SetupDithering(ref CameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
@@ -1303,9 +1314,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Final pass
+#region Final pass
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -1315,13 +1326,13 @@ namespace UnityEngine.Rendering.Universal
 
             PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
 
-            SetupGrain(cameraData, material);
-            SetupDithering(cameraData, material);
+            SetupGrain(ref cameraData, material);
+            SetupDithering(ref cameraData, material);
 
-            if (RequireSRGBConversionBlitToBackBuffer(cameraData))
+            if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
+            GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
 
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
@@ -1460,12 +1471,12 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle?.Release();
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
-            RenderingUtils.FinalBlit(cmd, cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+            RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
         }
 
-        #endregion
+#endregion
 
-        #region Internal utilities
+#region Internal utilities
 
         class MaterialLibrary
         {
@@ -1574,6 +1585,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
+            public static readonly int _FlareOcclusionRemapTex = Shader.PropertyToID("_FlareOcclusionRemapTex");
             public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
             public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
             public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
@@ -1591,6 +1603,6 @@ namespace UnityEngine.Rendering.Universal
             public static int[] _BloomMipDown;
         }
 
-        #endregion
+#endregion
     }
 }

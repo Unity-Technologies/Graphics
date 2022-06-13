@@ -6,7 +6,11 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ### Material Samples Transparency Scenes
 
+Transparent Shadows
 ![](Images/HDRP-MaterialSample-ShadowsTransparency.png)
+
+Transparent Stacking
+![](Images/HDRP-MaterialSample-StackingTransparency.png)
 
 These new scenes include examples and informations on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of the sample, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
@@ -80,6 +84,18 @@ HDRP 14.0 introduces a new material type in ShaderGraph to create fullscreen eff
 Shaders of the fullscreen type can be used in fullscreen custom passes, custom post processes and C# scripting.
 
 For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
+
+### Lens Flare
+
+When using Lens Flare, HDRP allow to remap the result of the occlusion to another value with a curve. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.
+
+![](Images/LensFlare_OcclusionCurve.png)
+
+### New Eye Shader Subtype
+
+![](Images/EyeCaustic.gif)
+
+HDRP 14.0 includes a new Eye Shader type called **Eye Cinematic with Caustic**. This Eye Shader uses caustics to give a more realistic effect. This makes it more resource-intensive than other HDRP Eye Shaders.
 
 ### Renderer bounds access in ShaderGraph
 

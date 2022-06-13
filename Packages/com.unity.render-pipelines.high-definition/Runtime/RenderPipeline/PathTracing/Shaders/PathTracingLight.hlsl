@@ -15,6 +15,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 
+// Define this to use the Ray Tracing light cluster
+//#define USE_LIGHT_CLUSTER
+
+#ifdef USE_LIGHT_CLUSTER
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
+#endif
+
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
 #define MAX_LOCAL_LIGHT_COUNT 16

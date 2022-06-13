@@ -38,6 +38,9 @@ struct VaryingsLensFlare
 TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
 
+TEXTURE2D(_FlareOcclusionRemapTex);
+SAMPLER(sampler_FlareOcclusionRemapTex);
+
 #if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
 TEXTURE2D_X(_FlareOcclusionTex);
 SAMPLER(sampler_FlareOcclusionTex);
@@ -136,6 +139,9 @@ float GetOcclusion(float ratio)
             contrib += sample_Contrib;
         }
     }
+
+    contrib = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionRemapTex, sampler_FlareOcclusionRemapTex, float2(saturate(contrib), 0.0f), 0).x;
+    contrib = saturate(contrib);
 
     return contrib;
 }
@@ -313,7 +319,7 @@ float4 frag(VaryingsLensFlare input) : SV_Target
     float4 col = GetFlareShape(input.texcoord);
 
 #if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
-    float occ = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionTex, sampler_FlareOcclusionTex, float2(_FlareOcclusionIndex.x, 0.0f), 0).x;
+    float occ = LOAD_TEXTURE2D_X_LOD(_FlareOcclusionTex, uint2(_FlareOcclusionIndex.x, 0), 0).x;
 
     return col * _FlareColor * occ;
 #elif !defined(FLARE_OCCLUSION)

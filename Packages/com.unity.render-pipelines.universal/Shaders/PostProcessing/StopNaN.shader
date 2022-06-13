@@ -10,7 +10,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
 
         #define NAN_COLOR half3(0.0, 0.0, 0.0)
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragStopNaN(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
@@ -36,7 +36,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragStopNaN
             ENDHLSL
         }
     }

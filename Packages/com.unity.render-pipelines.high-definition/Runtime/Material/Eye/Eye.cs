@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             EyeCinematic = 1 << 0,
             EyeSubsurfaceScattering = 1 << 1,
+            EyeCausticFromLUT = 1 << 2
         };
 
         //-----------------------------------------------------------------------------
@@ -64,6 +65,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
+
+            [SurfaceDataAttributes("Iris Plane Offset")]
+            public float irisPlaneOffset;
+
+            [SurfaceDataAttributes("Iris Radius")]
+            public float irisRadius;
+
+            [SurfaceDataAttributes("Caustic intensity multiplier")]
+            public float causticIntensity;
+
+            [SurfaceDataAttributes("Blending factor between caustic and cinematic diffuse")]
+            public float causticBlend;
         };
 
         //-----------------------------------------------------------------------------
@@ -97,6 +110,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2 mask; // cornea, pupil
 
             // MaterialFeature dependent attribute
+            public float irisPlaneOffset;
+            public float irisRadius;
+            public float causticIntensity;
+            public float causticBlend;
 
             // SSS
             public uint diffusionProfileIndex;
@@ -109,7 +126,31 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed textures
         //-----------------------------------------------------------------------------
 
+        private Texture3D m_EyeCausticLUT;
+
+        public static readonly int _PreIntegratedEyeCaustic = Shader.PropertyToID("_PreIntegratedEyeCaustic");
+
         public Eye() { }
+
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
+        {
+            m_EyeCausticLUT = defaultResources.textures.eyeCausticLUT;
+        }
+
+        public override void Cleanup()
+        {
+            m_EyeCausticLUT = null;
+        }
+
+        public override void RenderInit(CommandBuffer cmd)
+        {
+
+        }
+
+        public override void Bind(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(_PreIntegratedEyeCaustic, m_EyeCausticLUT);
+        }
 
         // Reuse GGX textures
     }

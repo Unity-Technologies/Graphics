@@ -378,7 +378,10 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
         #endif
         previousSampleCount = sampleCount;
         previousDepth = currentDepth;
-        previousCloudDepth = currentCloudDepth;
+
+        // If there are no clouds in the new pixel, we force the depth to zero. Otherwise, we are likely on a pixel
+        // which state is not stable and we take the maximum of both frames as we cannot interpolate between the depths.
+        previousCloudDepth = previousResult.w == 1.0 ? UNITY_RAW_FAR_CLIP_VALUE : max(previousCloudDepth, currentCloudDepth);
     }
     else
     {
@@ -427,6 +430,10 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Make sure this doesn't go outside of the [0, 1] interval
     previousResult.w = saturate(previousResult.w);
+
+    // If the transmittance is above a certain threshold, we reject the sample
+    if (previousResult.w > TRANSMITTANCE_DISCARD_THRESHOLD)
+        previousResult = float4(0, 0, 0, 1);
 
     // Accumulate the result with the previous frame
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = previousResult;
@@ -495,7 +502,7 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         int closestNeighbor = 4;
         OverrideMaskValues(currentDepth, upsampleData, rejectNeighborhood, closestNeighbor);
 
-        // 1.0  if we were able to produce a value 0.0 if we failed to
+        // 1.0 if we were able to produce a value 0.0 if we failed to
         if (rejectNeighborhood == 1.0f)
         {
             // We don't have any valid history and there is no neighbor that is usable
@@ -515,6 +522,10 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Make sure this doesn't go outside of the [0, 1] interval
     cloudLighting.w = saturate(cloudLighting.w);
+
+    // If the transmittance is above a certain threshold, we reject
+    if (cloudLighting.w > TRANSMITTANCE_DISCARD_THRESHOLD)
+        cloudLighting = float4(0, 0, 0, 1);
 
     // Accumulate the result with the previous frame
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = cloudLighting;
@@ -564,10 +575,6 @@ CBUFFER_START(VolumetricCloudsUpscaleConstantBuffer)
     float2 _UpperScreenSize;
 CBUFFER_END
 
-// Half resolution volumetric cloud texture
-TEXTURE2D_X(_VolumetricCloudsTexture);
-TEXTURE2D_X(_DepthStatusTexture);
-
 // Input output camera color buffer
 #ifndef CAN_RW_ON_COLOR_BUFFER
 TEXTURE2D_X(_CameraColorTexture);
@@ -610,7 +617,9 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
                             uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
+    int2 halfResCoord = finalCoord.xy / 2;
 
+#ifndef WITHOUT_LDS
     // Only 36 workers of the 64 do the pre-fetching
     if (groupIndex < 36)
     {
@@ -620,6 +629,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 
     // Make sure all values are loaded in LDS by now.
     GroupMemoryBarrierWithGroupSync();
+#endif
 
     // If out of bounds, leave right away
     if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
@@ -634,8 +644,13 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // Structure that will hold everything
     NeighborhoodUpsampleData3x3 upsampleData;
 
+#ifndef WITHOUT_LDS
     // Fill the sample data
     FillCloudUpscaleNeighborhoodData(groupThreadId.xy, subRegionIndex, upsampleData);
+#else
+    // Fill the sample data
+    FillCloudUpscaleNeighborhoodData_NOLDS(halfResCoord, subRegionIndex, upsampleData);
+#endif
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Flag that tells us which pixel holds valid information
@@ -645,6 +660,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 
     // Do the bilateral upscale
     float4 currentClouds = BilUpColor3x3(highDepth, upsampleData);
+
     // Read the fallback value and use it if we defined that it was impossible for us to do something about it
     if (rejectedNeighborhood == 1.0f)
         currentClouds = float4(0.0, 0.0, 0.0, 1.0);
@@ -660,10 +676,21 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
     // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
-    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
+    if (currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD)
+        currentClouds = float4(0, 0, 0, 1);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float cloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
+    // We cannot simply pick the low res depth that ressembles the most the full resolution pixel
+    // Two cases are possible:
+    // - The final pixel doesn't have any clouds. In this case, we don't care about the depth.
+    // - The final pixel has some amount of clouds (which doesn't neccesarly map to any specific pixel in the neighborhood as it has been interpolated).
+    // In the second this case we need to take the average depth (in linear space) of the contributing pixels (the one that have some clouds in them).
+    #ifdef WITHOUT_LDS
+        float cloudDepth = currentClouds.w != 1.0 ? EvaluateUpscaledCloudDepth_NOLDS(halfResCoord, upsampleData) : UNITY_RAW_FAR_CLIP_VALUE;
+    #else
+        //float cloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
+        float cloudDepth = currentClouds.w != 1.0 ? EvaluateUpscaledCloudDepth(groupThreadId, upsampleData) : UNITY_RAW_FAR_CLIP_VALUE;
+    #endif
 #else
     float cloudDepth = UNITY_RAW_FAR_CLIP_VALUE;
 #endif
@@ -676,15 +703,19 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 
     // If the clouds are distant clouds, we need to adjust the position world space as the far plane is probably too close for the fog to be correct
 #if defined(DISTANT_VOLUMETRIC_CLOUDS)
-    float cloudDistance = GetCloudDepth_LDS(groupThreadId, 0);
+    #ifdef WITHOUT_LDS
+        float cloudDistance = currentClouds.w != 1.0 ? EvaluateUpscaledCloudDepth_NOLDS(halfResCoord, upsampleData) : UNITY_RAW_FAR_CLIP_VALUE;
+    #else
+        float cloudDistance = currentClouds.w != 1.0 ? EvaluateUpscaledCloudDepth(groupThreadId, upsampleData) : UNITY_RAW_FAR_CLIP_VALUE;
+    #endif
     cloudPosInput.positionWS = -viewDir * cloudDistance;
 #endif
 
-#ifdef USE_INTERMEDIATE_BUFFER
     // Compute the fog attenuation of the clouds
     float3 fogColor;
     float3 fogOpacity;
     EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
+#ifdef USE_INTERMEDIATE_BUFFER
     currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - (_CubicTransmittance ? currentClouds.a * currentClouds.a : currentClouds.a));
 
     // Store the upscaled result only, composite in later pass.
@@ -699,11 +730,6 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 
     // Estimate the transmittance that shall be used
     float finalTransmittance = EvaluateFinalTransmittance(currentColor.rgb, currentClouds.w);
-
-    // Compute the fog attenuation of the clouds
-    float3 fogColor;
-    float3 fogOpacity;
-    EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
     currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - finalTransmittance);
 
     // Apply the transmittance

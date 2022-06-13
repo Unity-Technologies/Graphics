@@ -15,8 +15,8 @@ Returns the result of transforming the input value (**In**) from one coordinate 
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| From      | Dropdown | Object, View, World, Tangent, Absolute World | Selects the space to convert from |
-| To      | Dropdown | Object, View, World, Tangent, Absolute World | Selects the space to convert to |
+| From      | Dropdown | Object, View, World, Tangent, Absolute World, Screen | Selects the space to convert from |
+| To      | Dropdown | Object, View, World, Tangent, Absolute World, Screen | Selects the space to convert to |
 
 ## World and Absolute World
 Use the **World** and **Absolute World** space options to transform the coordinate space of [position](Position-Node.md) values. The **World** space option uses the Scriptable Render Pipeline default world space to convert position values. The **Absolute World** space option uses absolute world space to convert position values in all Scriptable Render Pipelines.
@@ -49,13 +49,22 @@ float3 _Transform_Out = TransformWorldToTangent(In, tangentTransform_World);
 **World > View**
 
 ```
-float3 _Transform_Out = TransformWorldToView(In)
+float3 _Transform_Out = TransformWorldToView(In);
 ```
 **World > Absolute World**
 
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(In);
 ```
+
+**World > Screen**
+
+```
+float4 hclipPosition = TransformWorldToHClipDir(In);
+float3 screenPos = hclipPosition.xyz / hclipPosition.w;
+float3 _Transform_Out = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
+```
+
 **Object > World**
 
 ```
@@ -84,6 +93,13 @@ float3 _Transform_Out = TransformWorldToView(TransformObjectToWorld(In));
 
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(TransformObjectToWorld(In));
+```
+**Object > Screen**
+
+```
+float4 hclipPosition = TransformObjectToHClip(In);
+float3 screenPos = hclipPosition.xyz / hclipPosition.w;
+float3 _Transform_Out = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
 ```
 **Tangent > World**
 
@@ -117,6 +133,16 @@ float3 _Transform_Out = TransformWorldToView(mul(In, transposeTangent).xyz);
 float3x3 transposeTangent = transpose(float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal));
 float3 _Transform_Out = GetAbsolutePositionWS(mul(In, transposeTangent)).xyz;
 ```
+
+**Tangent > Screen**
+
+```
+float3x3 transposeTangent = transpose(float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal));
+float4 hclipPosition = TransformWorldToHClipDir(mul(In, transposeTangent).xyz);
+float3 screenPos = hclipPosition.xyz / hclipPosition.w;
+float3 _Transform_Out = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
+```
+
 **View > World**
 
 ```
@@ -146,6 +172,15 @@ float3 _Transform_Out = In;
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(mul(UNITY_MATRIX_I_V, float4(In, 1))).xyz;
 ```
+
+**View > Screen**
+
+```
+float4 hclipPosition = TransformWViewToHClip(In);
+float3 screenPos = hclipPosition.xyz / hclipPosition.w;
+float3 _Transform_Out = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
+```
+
 **Absolute World > World**
 
 ```
@@ -168,10 +203,49 @@ float3 _Transform_Out = TransformWorldToTangent(In, tangentTransform_World);
 **Absolute World > View**
 
 ```
-float3 _Transform_Out = TransformWorldToView(In)
+float3 _Transform_Out = GetCameraRelativePositionWS(In)
 ```
 **Absolute World > Absolute World**
 
 ```
 float3 _Transform_Out = In;
+```
+
+**Absolute World > Screen**
+
+```
+float4 hclipPosition = TransformWorldToHClip(GetCameraRelativePositionWS(In));
+float3 screenPos = hclipPosition.xyz / hclipPosition.w;
+float3 _Transform_Out = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
+```
+**Screen > World**
+
+```
+float3 _Transform_Out = ComputeWorldSpacePosition(In.xy, In.z, UNITY_MATRIX_I_VP);
+```
+
+**Screen > Object**
+```
+float3 worldPos = ComputeWorldSpacePosition(In.xy, In.z, UNITY_MATRIX_I_VP);
+float3 _Transform_Out = TransformWorldToObject(worldPos);
+```
+
+**Screen > Tangent**
+```
+float3 worldPos = ComputeWorldSpacePosition(In.xy, In.z, UNITY_MATRIX_I_VP);
+float3x3 tangentTransform_World = float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal);
+float3 _Transform_Out = TransformWorldToTangent(worldPos, tangentTransform_World);
+```
+
+**Screen > View**
+```
+float4 positionCS  = ComputeClipSpacePosition(In.xy, In.z);
+float4 result = mul(UNITY_MATRIX_I_V, positionCS);
+float3 _Transform_Out = result.xyz / result.w;
+```
+
+**Screen > Absolute World**
+
+```
+float3 _Transform_Out = GetAbsolutePositionWS(ComputeWorldSpacePosition(In.xy, In.z, UNITY_MATRIX_I_VP));
 ```

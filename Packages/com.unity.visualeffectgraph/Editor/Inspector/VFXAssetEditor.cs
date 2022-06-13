@@ -156,6 +156,14 @@ class VisualEffectAssetEditor : Editor
         {
             m_OutputContexts[i].vfxSystemSortPriority = i;
         }
+
+        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
+        {
+            using var reporter = new VFXCompileErrorReporter(m_CurrentGraph.errorManager);
+            VFXGraph.compileReporter = reporter;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
+            VFXGraph.compileReporter = null;
+        }
     }
 
     private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)

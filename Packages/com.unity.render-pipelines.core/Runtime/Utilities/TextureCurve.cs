@@ -35,6 +35,9 @@ namespace UnityEngine.Rendering
         [SerializeField]
         float m_Range;
 
+        /// <summary>
+        /// Internal curve used to generate the Texture
+        /// </summary>
         [SerializeField]
         AnimationCurve m_Curve;
 

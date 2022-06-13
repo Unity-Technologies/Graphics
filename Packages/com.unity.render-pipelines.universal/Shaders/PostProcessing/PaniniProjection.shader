@@ -94,7 +94,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             return cyl_pos / (cyl_dist - d);
         }
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragPaniniProjection(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -125,7 +125,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment Frag
+                #pragma fragment FragPaniniProjection
             ENDHLSL
         }
     }

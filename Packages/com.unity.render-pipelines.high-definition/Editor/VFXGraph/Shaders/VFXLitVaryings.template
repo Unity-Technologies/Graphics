@@ -116,6 +116,14 @@ o.VFX_VARYING_COLOR = baseColor;
 ${VFXLoadParameter:{emissiveMultiplier}}
 o.VFX_VARYING_EMISSIVE_MULTIPLIER = emissiveMultiplier;
 #endif
+#if defined(VFX_VARYING_ALPHA_REMAP)
+${VFXLoadParameter:{alphaRemap}}
+o.VFX_VARYING_ALPHA_REMAP = alphaRemap;
+#endif
+#if defined(VFX_VARYING_EMISSIVE_GRADIENT)
+${VFXLoadParameter:{emissiveGradient}}
+o.VFX_VARYING_EMISSIVE_GRADIENT = emissiveGradient;
+#endif
 #endif
 
 ${VFXEnd}

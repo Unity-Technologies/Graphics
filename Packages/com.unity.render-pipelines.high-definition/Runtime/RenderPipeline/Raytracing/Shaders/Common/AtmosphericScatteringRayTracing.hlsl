@@ -14,7 +14,7 @@ float3 GetHeightFogColor(float3 direction, float t)
 }
 
 // Used on continuation rays
-void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, inout float3 throughput, bool useFogColor = true)
+void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, inout float alpha, inout float3 throughput, bool useFogColor = true)
 {
     if (_FogEnabled)
     {
@@ -22,6 +22,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
         float3 fogColor = useFogColor? GetHeightFogColor(direction, t) : 0.0;
 
         value = lerp(fogColor, value, fogTransmittance);
+        alpha = saturate(1.0 - fogTransmittance) + fogTransmittance * alpha;
         throughput *= fogTransmittance;
     }
 }
@@ -59,7 +60,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value, in
         float3 fogColor = GetHeightFogColor(direction, _MipFogFar);
 
         value = lerp(fogColor, value, fogTransmittance);
-        alpha = saturate(1.0 - fogTransmittance);
+        alpha = saturate(1.0 - fogTransmittance) + fogTransmittance * alpha;
     }
 }
 

@@ -1839,7 +1839,10 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // regardless of what we consumed for the coat. In turn, in EvaluateBSDF_Env(), we need to track what weight we already used up for the coat lobe via the
     // current SSR callback to avoid double coat lighting contributions (which would otherwise come from both the SSR and from reflection probes called to
     // contribute mainly to the bottom lobe). We use a separate coatReflectionWeight for that which we hold in preLightData
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    //
+    // Note that the SSR with clear coat is a binary state, which means we should never enter the if condition if we don't have an active
+    // clear coat (which is not guaranteed by the HasFlag condition in deferred mode in some cases). We then need to make sure that coatMask is actually non zero.
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) && bsdfData.coatMask > 0.0)
     {
         // We use the coat-traced light according to how similar the base lobe roughness is to the coat roughness
         // (we can assume the coat is always smoother):

@@ -17,7 +17,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
         inputData.normalWS = input.normalWS;
     #endif
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(input.positionWS));
+    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);

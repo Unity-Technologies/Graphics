@@ -130,6 +130,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
             }
 
+            foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
+            {
+                if (areaShadowVariant.Key != shadowInitParams.areaShadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
+                        return true;
+            }
+
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
             // either we have a variant that don't support at all. We can't have both at the same time.
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)

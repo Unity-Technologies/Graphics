@@ -115,23 +115,28 @@ Use the Cookie settings to configure the maximum resolution of the atlas and it'
 
 ### Reflections
 
-Use the Reflection settings to configure the max number and resolution of the probes and whether Unity should compress the Reflection Probe caches or not. The Reflection Probe cache refers to runtime memory that HDRP reserves for Reflection Probes. The cache is a first in, first out list that stores the currently visible Reflection Probes.
+Use the Reflection settings to configure the max number and resolution of the probes and whether Unity should compress the Reflection Probe cache or not. The Reflection Probe cache is runtime memory that HDRP reserves for Reflection Probes. The cache is a first in, first out list that stores the currently visible Reflection Probes.
 
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Reflection**              | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
 | **- Transparent**                        | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html) on transparent materials. This feature requires the transparent depth render prepasses to be enabled on the HDRP asset.|
 | **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes.          |
-| **Compress Reflection Probe Cache**      | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.md) cache in order to save space on disk. |
-| **Reflection Cubemap Size**              | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
-| **Probe Cache Size**                     | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
-| **Planar Reflection Atlas Size**         | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution. |
+| **Compress Baked Reflection Probes**      | Compress baked [Reflection Probe](Reflection-Probe.md) data, which conserves disk space. |
+| **Reflection 2D Atlas Size**         | Select a resolution for the cube and planar probe atlases to define the quantity of reflection probes you can render simultaneously, and their resolution. |
+| **Reflection 2D Atlas Last Valid Cube Mip** | Add padding to hide sharp seams in Reflection Probe cube mip data. Values above 3 can blur the probe texture too much. |
+| **Reflection 2D Atlas Last Valid Planar Mip** | Add padding to hide sharp seams in Reflection Probe planar mip data. Values above 0 can blur the probe texture too much. |
+| ***Cube Resolution Tiers***            |                                                              |
+| **- L**                                  | Define the lowest possible resolution for cube Reflection Probes in this project. |
+| **- M**                                  | Define the medium resolution for cube Reflection Probes in this project. |
+| **- H**                                  | Define the highest possible resolution for cube Reflection Probes in this project. |
 | ***Planar Resolution Tiers***            |                                                              |
-| **- L**                                  | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Low** use this resolution for their planar reflection. |
-| **- M**                                  | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Medium** use this resolution for their planar reflection. |
-| **- H**                                  | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **High** use this resolution for their planar reflection. |
+| **- L**                                  | Define the lowest possible resolution for planar Reflection Probes in this project. |
+| **- M**                                  | Define the medium resolution for planar Reflection Probes in this project. |
+| **- H**                                  | Define the highest possible resolution for planar Reflection Probes in this project. |
+| **Max Cube Reflection On Screen**      | The maximum number of cube reflections on screen at once.  |
 | **Max Planar Reflection On Screen**      | The maximum number of planar reflections on screen at once.  |
-| **Maximum Environment Lights on Screen** | The maximum number of environment Lights HDRP can manage on screen at once. |
+| **Decrease Reflection Probe Resolution To Fit**      | Decrease the Planar and Reflection Probe resolution in the reflection 2D atlas if this texture doesn't fit in the atlas.  |
 
 <a name="SkyLighting"></a>
 
@@ -152,7 +157,8 @@ These settings adjust the size of the shadowmask. Smaller values causes Unity to
 | -------------------------------- | ------------------------------------------------------------ |
 | **Shadowmask**                  | Enable the checkbox to make HDRP support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.md) in your Unity Project. |
 | **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.md) override. |
-| **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. For information on each filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
+| **Shadow Filtering Quality**     | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. For information on each filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
+| **Area Shadow Filtering Quality**| Use the drop-down to select the filtering quality for area shadows. Higher values increase the area shadow quality in HDRP as better filtering improves the shape of the penumbra of very soft shadows and reduces light leaking. For information on each area filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
 | **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
 | - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
 | - **Buffer Format**              | Defines the format (R11G11B10 or R16G16B16A16) of the buffer used for screen space shadows.|
@@ -185,15 +191,29 @@ They all share the same properties, except **Directional Light Shadows** which d
 | **Maximum Shadow Resolution**      | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
 | **Cached Shadow Atlas Resolution** | Use the drop-down to select the resolution of the shadow atlas used for cached shadows (Update mode set to OnEnable or OnDemand). |
 
-#### Filtering Qualities
+#### Filtering Quality
 
-| **Filtering Quality** | **Algorithm**                                                |
-| --------------------- | ------------------------------------------------------------ |
-| **Low**               | &#8226; **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps).<br />&#8226; **Area Lights**: EVSM. |
-| **Medium**            | &#8226; **Point/Spot Lights**: PCF 5x5 (9 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps).<br />&#8226; **Area Lights**: EVSM. |
-| **High**              | &#8226;**Point/Spot/Directional Lights**: Percentage Closer Soft Shadow (PCSS). You can change the sample count to decrease the quality of these shadows. This decreases the resource intensity of this algorithm. To change the sample count for shadows cast by that Light, set the **Filter Sample Count** in the Inspector of each Light component.<br /><br />**Note**: The softness of PCSS shadows is defined by the shape radius of Point and Spot Lights, and by the angular diameter of Directional Lights.<br />&#8226; **Area Lights**: EVSM. |
+| **Shadow Filtering Quality** | **Algorithm**                                                |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Low**                      | &#8226; **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps). |
+| **Medium**                   | &#8226; **Point/Spot Lights**: PCF 5x5 (9 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps). |
+| **High**                     | &#8226;**Point/Spot/Directional Lights**: Percentage Closer Soft Shadows (PCSS). |
 
-The PCF algorithm applies a fixed size blur. PCSS applies a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
+| **Area Shadow Filtering Quality** | **Algorithm**                                                |
+| --------------------------------- | ------------------------------------------------------------ |
+| **Medium**                        | &#8226; **Area Lights**: EVSM. |
+| **High**                          | &#8226; **Area Lights**: Percentage Closer Soft Shadows (PCSS). |
+
+The PCF algorithm applies a fixed size blur. PCSS applies a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow that is also more resource intensive to compute.
+
+PCSS: You can change the sample count to decrease the resource intensity of this algorithm, which decreases the quality of these shadows. To change the sample count, set the **Filter Sample Count** and **Blocker Sample Count** in the Inspector of each Light component.
+
+The following factors determine the softness of PCSS shadows:
+- Point and Spot Lights: The **Shape** property **Radius**.
+- Directional Lights: **Angular Diameter**.
+- Area Lights: The position and size of the shadow's near plane, determined by the dimensions of the Light and its **Near Plane** distance setting.
+
+Use **Radius Scale for Softness** or **Angular Diameter Scale for Softness** for additional shadow softness adjustments.
 
 ### Lights
 

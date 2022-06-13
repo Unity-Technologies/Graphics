@@ -837,7 +837,7 @@ float EvaluateFinalTransmittance(float3 color, float transmittance)
     resultLuminance = resultLuminance / (1.0 - resultLuminance);
 
     // This approach only makes sense if the color is not black
-    return (luminance > 0.0 && _ImprovedTransmittanceBlend == 1) ? resultLuminance / luminance : transmittance;
+    return luminance > 0.0 ? lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend) : transmittance;
 }
 
 float3 ApplyFastTonemapping(float3 input)

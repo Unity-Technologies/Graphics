@@ -358,12 +358,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Clear cookie atlas each frame.</summary>
         public bool clearCookieAtlas = false;
 
-        /// <summary>Display the planar reflection atlas.</summary>
-        public bool displayPlanarReflectionProbeAtlas = false;
-        /// <summary>Mip level of the planar reflection atlas display.</summary>
-        public uint planarReflectionProbeMipLevel = 0;
-        /// <summary>Clear planar reflection atlas each frame.</summary>
-        public bool clearPlanarReflectionProbeAtlas = false;
+        /// <summary>Display the reflection probe atlas.</summary>
+        public bool displayReflectionProbeAtlas = false;
+        /// <summary>Mip level of the reflection probe atlas display.</summary>
+        public uint reflectionProbeMipLevel = 0;
+        /// <summary>Slice of the reflection probe atlas display.</summary>
+        public uint reflectionProbeSlice = 0;
+        /// <summary>Apply exposure to displayed atlas.</summary>
+        public bool reflectionProbeApplyExposure = false;
+        /// <summary>Clear reflection probe atlas each frame.</summary>
+        public bool clearReflectionProbeAtlas = false;
 
         /// <summary>True if punctual lights should be displayed in the scene.</summary>
         public bool showPunctualLight = true;

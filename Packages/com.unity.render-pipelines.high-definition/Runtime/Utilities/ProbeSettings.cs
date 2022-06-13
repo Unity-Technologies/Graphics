@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
         resolution = 1 << 16,
         /// <summary>Rough reflections.</summary>
         roughReflections = 1 << 17,
+        /// <summary>cube resolution.</summary>
+        cubeResolution = 1 << 18,
     }
 
     /// <summary>
@@ -222,6 +224,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public float viewerScale;
         }
 
+        /// <summary> CubeReflectionResolution scalable setting value.</summary>
+        [Serializable]
+        public class CubeReflectionResolutionScalableSettingValue : ScalableSettingValue<CubeReflectionResolution>
+        {
+        }
+
+        internal const CubeReflectionResolution k_DefaultCubeResolution = CubeReflectionResolution.CubeReflectionResolution128;
+
         /// <summary>Default value.</summary>
         [Obsolete("Since 2019.3, use ProbeSettings.NewDefault() instead.")]
         public static ProbeSettings @default = default;
@@ -242,10 +252,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 proxySettings = ProxySettings.NewDefault(),
                 frustum = Frustum.NewDefault(),
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
+                cubeResolution = new CubeReflectionResolutionScalableSettingValue(),
                 roughReflections = true,
                 distanceBasedRoughness = false,
             };
             probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
+            probeSettings.cubeResolution.@override = k_DefaultCubeResolution;
 
             return probeSettings;
         }
@@ -271,10 +283,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> An int scalable setting value</summary>
         [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> { }
         /// <summary>Camera settings to use when capturing data.</summary>
-        /// <summary>The resolution of the probe.</summary>
+        /// <summary>The resolution of the planar probe.</summary>
         public PlanarReflectionAtlasResolutionScalableSettingValue resolutionScalable;
         [SerializeField]
         internal PlanarReflectionAtlasResolution resolution;
+        [SerializeField]
+        internal CubeReflectionResolutionScalableSettingValue cubeResolution;
         /// <summary>Probe camera settings.</summary>
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
@@ -301,6 +315,13 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.ComputeHash128(ref proxySettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
             h2 = cameraSettings.GetHash();
+            HashUtilities.AppendHash(ref h2, ref h);
+
+            CubeReflectionResolution cubeReflectionRes = k_DefaultCubeResolution;
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdrp != null)
+                cubeReflectionRes = cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution);
+            HashUtilities.ComputeHash128(ref cubeReflectionRes, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
 
             if (influence != null)

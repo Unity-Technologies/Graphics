@@ -153,21 +153,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
         public float _VBufferLastSliceDist;          // The distance to the middle of the last slice
 
-        // Light Loop
-        public const int s_MaxEnv2DLight = 32;
-
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
         public Vector4 _AreaShadowAtlasSize;
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
-
-        [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
-        public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
-        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
-        public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 4];
-        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
-        public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 4];
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
@@ -203,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CookieAtlasSize;
         public Vector4 _CookieAtlasData;
-        public Vector4 _PlanarAtlasData;
+        public Vector4 _ReflectionAtlasData;
 
         // Tile/Cluster
         public uint _NumTileFtplX;
@@ -263,5 +253,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _GlobalTessellationFactorMultiplier;
         public float _SpecularOcclusionBlend;
         public float _DeExposureMultiplier;
+
+        // See ScreenCoordOverride.hlsl for details.
+        public Vector4 _ScreenSizeOverride;
+        public Vector4 _ScreenCoordScaleBias;
     }
 }
