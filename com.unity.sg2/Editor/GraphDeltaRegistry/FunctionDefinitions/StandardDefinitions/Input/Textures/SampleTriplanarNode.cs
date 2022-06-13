@@ -24,20 +24,23 @@ namespace UnityEditor.ShaderGraph.Defs
     Y = Node_Y * Node_Blend.y;
     XZ = (Node_X * Node_Blend.x) + (Node_Z * Node_Blend.z);
     XYZ = XZ + Y;",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("Tile", TYPE.Float, Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("Blend", TYPE.Float, Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("XYZ", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("XZ", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("Y", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("Node_UV", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_Blend", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_X", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("Node_Y", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("Node_Z", TYPE.Vec4, Usage.Local)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("Tile", TYPE.Float, Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("Blend", TYPE.Float, Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("XYZ", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("XZ", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("Y", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("Node_UV", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_Blend", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_X", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("Node_Y", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("Node_Z", TYPE.Vec4, Usage.Local)
+                    }
                 ),
                 new(
                     "SampleTriplanarNormal",
@@ -61,23 +64,26 @@ namespace UnityEditor.ShaderGraph.Defs
     XYZ.rgb = TransformWorldToTangent(XYZ.rgb, tangentTransform, true);
     XZ.rgb = TransformWorldToTangent(XZ.rgb, tangentTransform, true);
     Y.rgb = TransformWorldToTangent(Y.rgb, tangentTransform, true);",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("Tile", TYPE.Float, Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("Blend", TYPE.Float, Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("XYZ", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("XZ", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("Y", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("Node_UV", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_Blend", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_X", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_Y", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_Z", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("tangentTransform", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("WorldSpaceTangent", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("WorldSpaceBiTangent", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("Tile", TYPE.Float, Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("Blend", TYPE.Float, Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("XYZ", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("XZ", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("Y", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("Node_UV", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_Blend", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_X", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_Y", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_Z", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("tangentTransform", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("WorldSpaceTangent", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                        new ParameterDescriptor("WorldSpaceBiTangent", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent)
+                    }
                 ),
                 new(
                     "SampleTriplanar2Samples",
@@ -110,25 +116,28 @@ namespace UnityEditor.ShaderGraph.Defs
 	w = pow( w, float2(contrast/8.0, contrast/8.0) );
 	// blend and return
 	XYZ = (Node_X*w.x + Node_Y*w.y) / (w.x + w.y);",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("Tile", TYPE.Float, Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("XYZ", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("n", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("dpdx", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("dpdy", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("Node_X", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("Node_Y", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("xCoords", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("xDDX", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("xDDY", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("yCoords", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("yDDX", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("yDDY", TYPE.Vec2, Usage.Local)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("Tile", TYPE.Float, Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("XYZ", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("n", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("dpdx", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("dpdy", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("Node_X", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("Node_Y", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("xCoords", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("xDDX", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("xDDY", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("yCoords", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("yDDX", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("yDDY", TYPE.Vec2, Usage.Local)
+                    }
                 )
             }
         );

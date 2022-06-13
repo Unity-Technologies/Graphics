@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 "    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

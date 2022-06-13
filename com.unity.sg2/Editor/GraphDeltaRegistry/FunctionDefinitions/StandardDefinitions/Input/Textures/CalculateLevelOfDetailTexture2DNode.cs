@@ -24,11 +24,14 @@ namespace UnityEditor.ShaderGraph.Defs
 		LOD = min(LOD, GetMipCount(TEXTURE2D_ARGS(Texture.tex, Sampler.samplerstate))-1);
 	#endif
 #endif",
-            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-            new ParameterDescriptor("Clamp", TYPE.Bool, Usage.Static, new float[] { 1 }),
-            new ParameterDescriptor("LOD", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                new ParameterDescriptor("Clamp", TYPE.Bool, Usage.Static, new float[] { 1 }),
+                new ParameterDescriptor("LOD", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

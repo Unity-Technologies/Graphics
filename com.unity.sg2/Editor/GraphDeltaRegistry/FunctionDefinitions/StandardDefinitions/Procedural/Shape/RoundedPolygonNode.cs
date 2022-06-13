@@ -47,24 +47,27 @@ namespace UnityEditor.ShaderGraph.Defs
 #else
     Out = saturate((1 - Out) / fwidth(Out));
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
-            new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
-            new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 5f }),
-            new ParameterDescriptor("Roundness", TYPE.Float, Usage.In, new float[] { 0.3f }),
-            new ParameterDescriptor("negone", TYPE.Vec2, Usage.Local, new float[] { -1.0f, -1.0f }),
-            new ParameterDescriptor("fullAngle", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("halfAngle", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("diagonal", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("chamferAngle", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("remainingAngle", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("sinecosine", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("chamferCenter", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("polaruv", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("distA", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("distB", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("distC", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
+                new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
+                new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 5f }),
+                new ParameterDescriptor("Roundness", TYPE.Float, Usage.In, new float[] { 0.3f }),
+                new ParameterDescriptor("negone", TYPE.Vec2, Usage.Local, new float[] { -1.0f, -1.0f }),
+                new ParameterDescriptor("fullAngle", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("halfAngle", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("diagonal", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("chamferAngle", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("remainingAngle", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("sinecosine", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("chamferCenter", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("polaruv", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("distA", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("distB", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("distC", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

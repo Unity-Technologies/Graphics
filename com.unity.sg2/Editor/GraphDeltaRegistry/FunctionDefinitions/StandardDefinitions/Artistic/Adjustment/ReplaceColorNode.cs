@@ -7,15 +7,18 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public static string Name = "ReplaceColor";
         public static int Version = 1;
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static FunctionDescriptor FunctionDescriptor => new (
             Name,
 @"  Out = lerp(To, In, saturate((distance(From, In) - Range) / max(Fuzziness, 1e-5f)));",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("From", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("To", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Range", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("From", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("To", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("Range", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

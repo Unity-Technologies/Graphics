@@ -17,15 +17,18 @@ namespace UnityEditor.ShaderGraph.Defs
     tileXY.x = InvertY * Height - (floor(Tile * tileCount.x) + InvertY * 1);
     tileXY.y = InvertX * Width - ((Tile - Width * floor(Tile * tileCount.x)) + InvertX * 1);
     Out = (UV + abs(tileXY)) * tileCount;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
-                    new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
-                    new ParameterDescriptor("Tile", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("InvertX", TYPE.Bool, Usage.Static, new float[] { 0.0f}),
-                    new ParameterDescriptor("InvertY", TYPE.Bool, Usage.Static, new float[] { 1.0f}),
-                    new ParameterDescriptor("tileCount", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("tileXY", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
+                        new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
+                        new ParameterDescriptor("Tile", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("InvertX", TYPE.Bool, Usage.Static, new float[] { 0.0f}),
+                        new ParameterDescriptor("InvertY", TYPE.Bool, Usage.Static, new float[] { 1.0f}),
+                        new ParameterDescriptor("tileCount", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("tileXY", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    }
                 ),
                 new(
                     "Blend",
@@ -45,21 +48,24 @@ namespace UnityEditor.ShaderGraph.Defs
     tileXY.x = IHeight - (floor(Tile2 * tileCount.x) + InvertY);
     tileXY.y = IWidth - ((Tile2 - Width * floor(Tile2 * tileCount.x)) + InvertX);
     UV1 = (UV + abs(tileXY)) * tileCount;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
-                    new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
-                    new ParameterDescriptor("IWidth", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("IHeight", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("Tile", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Tile1", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("Tile2", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("InvertX", TYPE.Bool, Usage.Static, new float[] { 0.0f}),
-                    new ParameterDescriptor("InvertY", TYPE.Bool, Usage.Static, new float[] { 1.0f}),
-                    new ParameterDescriptor("tileCount", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("tileXY", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("UV0", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("UV1", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("Blend", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
+                        new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
+                        new ParameterDescriptor("IWidth", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("IHeight", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Tile", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Tile1", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Tile2", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("InvertX", TYPE.Bool, Usage.Static, new float[] { 0.0f}),
+                        new ParameterDescriptor("InvertY", TYPE.Bool, Usage.Static, new float[] { 1.0f}),
+                        new ParameterDescriptor("tileCount", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("tileXY", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("UV0", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("UV1", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("Blend", TYPE.Float, Usage.Out)
+                    }
                 )
             }
         );

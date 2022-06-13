@@ -14,9 +14,12 @@ namespace UnityEditor.ShaderGraph.Defs
     Out.x = X;
     Out.y = Y;
 ",
-            new ParameterDescriptor("X", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Y", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("X", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Y", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

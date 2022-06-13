@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -12,9 +10,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"Width = ScreenParams.x;
 Height = ScreenParams.y;",
-            new ParameterDescriptor("Width", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("Height", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("ScreenParams", TYPE.Vec2, GraphType.Usage.Static, REF.ScreenParams)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Width", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("Height", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("ScreenParams", TYPE.Vec2, GraphType.Usage.Static, REF.ScreenParams)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

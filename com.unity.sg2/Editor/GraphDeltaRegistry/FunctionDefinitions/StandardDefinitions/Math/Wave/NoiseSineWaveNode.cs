@@ -11,11 +11,14 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"    sinIn = sin(In);
     Out = sinIn + lerp(Min, Max, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Min", TYPE.Float, Usage.In, new float[] { -0.5f }),
-            new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
-            new ParameterDescriptor("sinIn", TYPE.Float, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("Min", TYPE.Float, Usage.In, new float[] { -0.5f }),
+                new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
+                new ParameterDescriptor("sinIn", TYPE.Float, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

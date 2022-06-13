@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 "Out = UV;",
-            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.Static, REF.UV0)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
+                new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.Static, REF.UV0)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

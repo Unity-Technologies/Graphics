@@ -13,63 +13,84 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "Smooth",
                     "Out = smoothstep(Edge1, Edge2, In);",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "Smoother",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = (In*In*In) * (In * (In * 6.0 - 15.0) + 10.0);",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "Smoothest",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = (-20.0 * pow(In, 7)) + (70.0 * pow(In, 6)) - (84.0 * pow(In, 5)) + (35.0 * pow(In, 4));",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "Linear",
                     "Out = saturate((In - Edge1)/(Edge2-Edge1));",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "EaseOut",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = In*In;",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "EaseIn",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = 1.0 - pow(In - 1.0, 2);",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "SquareStep",
 @"	In = saturate((In - Edge1)/(Edge2-Edge1));
 	Out = step(0.5, In);",
-                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 )
             }
         );

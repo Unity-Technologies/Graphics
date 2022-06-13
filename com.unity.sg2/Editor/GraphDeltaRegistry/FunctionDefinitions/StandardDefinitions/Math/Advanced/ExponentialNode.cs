@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -14,14 +13,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "ExponentialBaseE",
                     "    Out = exp(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new(
                     "ExponentialBase2",
                     "    Out = exp2(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

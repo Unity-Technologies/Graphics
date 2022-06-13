@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = TangentVector;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("TangentVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Tangent)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("TangentVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Tangent)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

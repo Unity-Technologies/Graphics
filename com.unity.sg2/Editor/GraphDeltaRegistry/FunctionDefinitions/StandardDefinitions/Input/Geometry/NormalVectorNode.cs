@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = NormalVector;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("NormalVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Normal)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("NormalVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Normal)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

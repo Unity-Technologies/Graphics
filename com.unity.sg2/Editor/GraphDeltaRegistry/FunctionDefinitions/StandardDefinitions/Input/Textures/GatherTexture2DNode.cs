@@ -29,20 +29,23 @@ namespace UnityEditor.ShaderGraph.Defs
     RGBA.a = A;
     RGB = RGBA.rgb;
 #endif",
-            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-            new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-            new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-            new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("A", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("temp1", TYPE.Vec2, Usage.Local, new float[] { -0.5f, 0.5f }),
-            new ParameterDescriptor("temp2", TYPE.Vec2, Usage.Local, new float[] { 0.5f, 0.5f }),
-            new ParameterDescriptor("temp3", TYPE.Vec2, Usage.Local, new float[] { 0.5f, -0.5f }),
-            new ParameterDescriptor("temp4", TYPE.Vec2, Usage.Local, new float[] { -0.5f, -0.5f })
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("temp1", TYPE.Vec2, Usage.Local, new float[] { -0.5f, 0.5f }),
+                new ParameterDescriptor("temp2", TYPE.Vec2, Usage.Local, new float[] { 0.5f, 0.5f }),
+                new ParameterDescriptor("temp3", TYPE.Vec2, Usage.Local, new float[] { 0.5f, -0.5f }),
+                new ParameterDescriptor("temp4", TYPE.Vec2, Usage.Local, new float[] { -0.5f, -0.5f })
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = VertexID;",
-            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("VertexID", TYPE.Float, GraphType.Usage.Local, REF.VertexID)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("VertexID", TYPE.Float, GraphType.Usage.Local, REF.VertexID)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

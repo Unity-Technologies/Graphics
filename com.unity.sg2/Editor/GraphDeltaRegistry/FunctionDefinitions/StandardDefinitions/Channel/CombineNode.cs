@@ -21,13 +21,16 @@ namespace UnityEditor.ShaderGraph.Defs
     RG.r = R;
     RG.g = G;
 ",
-            new ParameterDescriptor("R", TYPE.Float, Usage.In),
-            new ParameterDescriptor("G", TYPE.Float, Usage.In),
-            new ParameterDescriptor("B", TYPE.Float, Usage.In),
-            new ParameterDescriptor("A", TYPE.Float, Usage.In),
-            new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-            new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("RG", TYPE.Vec2, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("R", TYPE.Float, Usage.In),
+                new ParameterDescriptor("G", TYPE.Float, Usage.In),
+                new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("RG", TYPE.Vec2, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

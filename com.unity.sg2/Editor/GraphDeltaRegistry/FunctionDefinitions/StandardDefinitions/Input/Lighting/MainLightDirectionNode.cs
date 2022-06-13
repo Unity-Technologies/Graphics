@@ -16,7 +16,10 @@ Direction = half3(-0.5, -0.5, 0);
 Direction = SHADERGRAPH_MAIN_LIGHT_DIRECTION();
 #endif
 ",
-            new ParameterDescriptor("Direction", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Direction", TYPE.Vec3, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

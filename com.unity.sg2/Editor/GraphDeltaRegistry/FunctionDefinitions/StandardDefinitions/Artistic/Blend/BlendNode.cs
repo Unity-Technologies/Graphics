@@ -16,187 +16,241 @@ namespace UnityEditor.ShaderGraph.Defs
                     "BlendBurn",
 @"    Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendDarken",
 @"    Out = min(Blend, Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendDifference",
 @"    Out = abs(Blend - Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendDodge",
 @"    Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendDivide",
 @"    Out = Base / (Blend + 0.000000000001);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendExclusion",
 @"    Out = Blend + Base - (2.0 * Blend * Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendHardLight",
 @"    zeroOrOne = step(Blend, 0.5);
     Out = (2.0 * Base * Blend) * zeroOrOne + (1 - zeroOrOne) * (1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendHardMix",
 @"    Out = step(1 - Base, Blend);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendLighten",
 @"    Out = max(Blend, Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendLinearBurn",
 @"    Out = Base + Blend - 1.0;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendLinearDodge",
 @"    Out = Base + Blend;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendLinearLight",
 @"    Out = Blend < 0.5 ? max(Base + (2 * Blend) - 1, 0) : min(Base + 2 * (Blend - 0.5), 1);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendLinearLightAddSub",
 @"    Out = Blend + 2.0 * Base - 1.0;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendMultiply",
 @"    Out = Base * Blend;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendNegation",
 @"    Out = 1.0 - abs(1.0 - Blend - Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendOverlay",
 @"    zeroOrOne = step(Base, 0.5);
     Out = (2.0 * Base * Blend) * zeroOrOne + (1 - zeroOrOne) * (1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);	",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendPinLight",
 @"    check = step (0.5, Blend);
     Out = (check * max(2.0 * (Base - 0.5), Blend)) + (1.0 - check) * min(2.0 * Base, Blend);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);	",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("check", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("check", TYPE.Vector, GraphType.Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendScreen",
 @"    Out = 1.0 - (1.0 - Blend) * (1.0 - Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendSoftLight",
@@ -204,23 +258,29 @@ namespace UnityEditor.ShaderGraph.Defs
 @"    zeroOrOne = step(0.5, Blend);
     Out = (sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend)) * zeroOrOne + (1 - zeroOrOne) * (2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendSubtract",
 
 @"    Out = Base - Blend;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendVividLight",
@@ -228,21 +288,27 @@ namespace UnityEditor.ShaderGraph.Defs
     zeroOrOne = step(0.5, Base);
     Out = (Blend / (2.0 * (1.0 - Base))) * zeroOrOne + (1 - zeroOrOne) * (1.0 - (1.0 - Blend) / (2.0 * Base));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "BlendOverwrite",
                     "    Out = lerp(Base, Blend, Opacity);",
-                    new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                    }
                 )
             }
         );

@@ -24,11 +24,14 @@ Scale.y = length(temp2);
 Scale.z = length(temp3);
 Position = SHADERGRAPH_OBJECT_POSITION;
 ",
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("temp1", TYPE.Vec3, GraphType.Usage.Local),
-            new ParameterDescriptor("temp2", TYPE.Vec3, GraphType.Usage.Local),
-            new ParameterDescriptor("temp3", TYPE.Vec3, GraphType.Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("temp1", TYPE.Vec3, GraphType.Usage.Local),
+                new ParameterDescriptor("temp2", TYPE.Vec3, GraphType.Usage.Local),
+                new ParameterDescriptor("temp3", TYPE.Vec3, GraphType.Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

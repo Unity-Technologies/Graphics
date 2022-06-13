@@ -14,44 +14,62 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "ComparisonEqual",
                     "    Out = A == B;",
-                    new ParameterDescriptor("A", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    }
                 ),
                 new(
                     "ComparisonNotEqual",
                     "    Out = A != B;",
-                    new ParameterDescriptor("A", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    }
                 ),
                 new(
                     "ComparisonLess",
                     "    Out = A < B;",
-                    new ParameterDescriptor("A", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    }
                 ),
                 new(
                     "ComparisonLessOrEqual",
                     "    Out = A <= B;",
-                    new ParameterDescriptor("A", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    }
                 ),
                 new(
                     "ComparisonGreater",
                     "    Out = A > B;",
-                    new ParameterDescriptor("A", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    }
                 ),
                 new(
                     "ComparisonGreaterOrEqual",
                     "    Out = A >= B;",
-                    new ParameterDescriptor("A", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+                    }
                 )
             }
         );

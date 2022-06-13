@@ -25,14 +25,17 @@ namespace UnityEditor.ShaderGraph.Defs
 	rot_mat[2].y = one_minus_c * Axis.y * Axis.z + Axis.x * s;
 	rot_mat[2].z = 	one_minus_c * Axis.z * Axis.z + c;
     Out = mul(rot_mat,  In);",
-                    new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 ),
                 new(
                     "RotateAboutAxisDegrees",
@@ -50,14 +53,17 @@ namespace UnityEditor.ShaderGraph.Defs
 	rot_mat[2].y = one_minus_c * Axis.y * Axis.z + Axis.x * s;
 	rot_mat[2].z = 	one_minus_c * Axis.z * Axis.z + c;
     Out = mul(rot_mat,  In);",
-                    new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 )
             }
         );

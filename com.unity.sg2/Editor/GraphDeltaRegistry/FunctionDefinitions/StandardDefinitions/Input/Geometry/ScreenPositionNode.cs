@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = ScreenPosition;",
-            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("ScreenPosition", TYPE.Vec4, GraphType.Usage.Static, REF.ScreenPosition_Default)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
+                new ParameterDescriptor("ScreenPosition", TYPE.Vec4, GraphType.Usage.Static, REF.ScreenPosition_Default)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

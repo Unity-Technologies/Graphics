@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = BitangentVector;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("BitangentVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Bitangent)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("BitangentVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Bitangent)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -21,13 +21,16 @@ namespace UnityEditor.ShaderGraph.Defs
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
     Out = UV;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    }
                 ),
                 new(
                     "RotateDegrees",
@@ -41,13 +44,16 @@ namespace UnityEditor.ShaderGraph.Defs
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
     Out = UV;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    }
                 ),
             }
         );

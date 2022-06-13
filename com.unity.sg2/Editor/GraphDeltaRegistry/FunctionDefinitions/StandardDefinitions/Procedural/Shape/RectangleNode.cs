@@ -22,12 +22,15 @@ namespace UnityEditor.ShaderGraph.Defs
     d = saturate(1 - d / fwidth(d));
 #endif
     Out = min(d.x, d.y);",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
                     "RectangleNicest",
@@ -44,14 +47,17 @@ namespace UnityEditor.ShaderGraph.Defs
     o = min(o, k * w * 2.0f);
 #endif
     Out = o.x * o.y;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("o", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("k", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("o", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("k", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    }
                 )
             }
         );

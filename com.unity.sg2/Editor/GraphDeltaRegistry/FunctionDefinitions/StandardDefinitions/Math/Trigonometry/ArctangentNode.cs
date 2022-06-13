@@ -14,14 +14,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "Default",
                     "Out = atan(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new(
                     "Fast",
                     "Out = In * (-0.1784 * abs(x) - 0.0663 * x * x + 1.0301);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

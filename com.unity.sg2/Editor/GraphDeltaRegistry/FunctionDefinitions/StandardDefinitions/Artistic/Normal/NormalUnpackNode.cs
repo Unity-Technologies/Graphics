@@ -15,14 +15,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "NormalUnpackTangent",
                     "    Out = UnpackNormal(In);",
-                    new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "NormalUnpackObject",
                     "    Out = UnpackNormal(In);",
-                    new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 )
             }
         );

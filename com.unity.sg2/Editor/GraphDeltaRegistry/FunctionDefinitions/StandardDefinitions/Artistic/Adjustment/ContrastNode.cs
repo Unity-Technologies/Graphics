@@ -18,11 +18,15 @@ namespace UnityEditor.ShaderGraph.Defs
                 midpoint = pow(0.5, 2.2);
                 Out =  (In - midpoint) * Contrast + midpoint;
             ",
+                    new ParameterDescriptor[]
+                    {
+
                         new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                         new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                         new ParameterDescriptor("midpoint", TYPE.Float, Usage.Local)
-                    ),
+                    }
+                ),
                 new (
                     "Quality",
             @"
@@ -30,12 +34,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 curved = pow(folded * 2, (Contrast + 1.0)) / 2;
                 Out = (In > 0.5) ? 1 - curved : curved;
             ",
+                    new ParameterDescriptor[]
+                    {
+
                         new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                         new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                         new ParameterDescriptor("folded", TYPE.Vec3, Usage.Local),
                         new ParameterDescriptor("curved", TYPE.Vec3, Usage.Local)
-                    )
+                    }
+                )
             }
 
         );

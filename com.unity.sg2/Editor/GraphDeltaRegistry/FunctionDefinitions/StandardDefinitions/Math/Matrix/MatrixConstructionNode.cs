@@ -23,17 +23,19 @@ namespace UnityEditor.ShaderGraph.Defs
     Out3x3[2] = M2.xyz;
     Out2x2[0] = M0.xy;
     Out2x2[1] = M1.xy;",
-                    new ParameterDescriptor("M0", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("M1", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("M2", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("M3", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("Out4x4", TYPE.Mat4, Usage.Out),
-                    new ParameterDescriptor("Out3x3", TYPE.Mat3, Usage.Out),
-                    new ParameterDescriptor("Out2x2", TYPE.Mat2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("M0", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("M1", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("M2", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("M3", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("Out4x4", TYPE.Mat4, Usage.Out),
+                        new ParameterDescriptor("Out3x3", TYPE.Mat3, Usage.Out),
+                        new ParameterDescriptor("Out2x2", TYPE.Mat2, Usage.Out)
+                    }
                 ),
                 new(
                     "MatrixConstructionColumn",
-
 @"    Out4x4[0].x = M0.x; Out4x4[0].y = M1.x; Out4x4[0].z = M2.x; Out4x4[0].w = M3.x;
     Out4x4[1].x = M0.y; Out4x4[1].y = M1.y; Out4x4[1].z = M2.y; Out4x4[1].w = M3.y;
     Out4x4[2].x = M0.z; Out4x4[2].y = M1.z; Out4x4[2].z = M2.z; Out4x4[2].w = M3.z;
@@ -43,13 +45,16 @@ namespace UnityEditor.ShaderGraph.Defs
     Out3x3[2].x = M0.z; Out3x3[2].y = M1.z; Out3x3[2].z = M2.z;
     Out2x2[0].x = M0.x; Out2x2[0].y = M1.x;
     Out2x2[1].x = M0.x; Out2x2[1].y = M1.y;",
-                    new ParameterDescriptor("M0", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("M1", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("M2", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("M3", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("Out4x4", TYPE.Mat4, Usage.Out),
-                    new ParameterDescriptor("Out3x3", TYPE.Mat3, Usage.Out),
-                    new ParameterDescriptor("Out2x2", TYPE.Mat2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("M0", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("M1", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("M2", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("M3", TYPE.Vec4, Usage.In),
+                        new ParameterDescriptor("Out4x4", TYPE.Mat4, Usage.Out),
+                        new ParameterDescriptor("Out3x3", TYPE.Mat3, Usage.Out),
+                        new ParameterDescriptor("Out2x2", TYPE.Mat2, Usage.Out)
+                    }
                 )
             }
         );

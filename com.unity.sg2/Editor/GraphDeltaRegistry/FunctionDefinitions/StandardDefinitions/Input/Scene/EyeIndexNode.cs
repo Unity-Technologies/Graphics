@@ -17,8 +17,11 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = 0;
 #endif
 ",
-            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("EyeIndex", TYPE.Float, GraphType.Usage.Local, REF.StereoEyeIndex)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("EyeIndex", TYPE.Float, GraphType.Usage.Local, REF.StereoEyeIndex)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

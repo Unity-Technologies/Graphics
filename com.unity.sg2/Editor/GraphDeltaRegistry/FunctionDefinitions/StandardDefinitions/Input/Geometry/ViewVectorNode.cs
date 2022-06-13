@@ -18,9 +18,12 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
     }",
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-                    new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
-                    new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                        new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
+                        new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
+                    }
                 ),
                 new(
                     "ViewVectorObject",
@@ -30,9 +33,12 @@ namespace UnityEditor.ShaderGraph.Defs
         Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
     }
     Out = TransformWorldToObjectDir(Out, false);",
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-                    new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
-                    new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                        new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
+                        new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
+                    }
                 ),
                 new(
                     "ViewVectoView",
@@ -46,8 +52,11 @@ namespace UnityEditor.ShaderGraph.Defs
         Out.y = 0.0f;
         Out.z = PositionVS.z;
     }",
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-                    new ParameterDescriptor("PositionVS", TYPE.Vec3, Usage.Local, REF.ViewSpace_Position)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                        new ParameterDescriptor("PositionVS", TYPE.Vec3, Usage.Local, REF.ViewSpace_Position)
+                    }
                 ),
                 new(
                     "ViewVectorTangent",
@@ -60,13 +69,16 @@ namespace UnityEditor.ShaderGraph.Defs
         Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
     }
     Out = length(Out) * TransformWorldToTangent(Out, basisTransform);",
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-                    new ParameterDescriptor("basisTransform", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
-                    new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
-                    new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                        new ParameterDescriptor("basisTransform", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                        new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
+                        new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
+                        new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
+                    }
                 )
             }
         );

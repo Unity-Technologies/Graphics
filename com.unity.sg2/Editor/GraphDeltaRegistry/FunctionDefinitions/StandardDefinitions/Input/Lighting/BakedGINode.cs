@@ -11,12 +11,15 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = SHADERGRAPH_BAKED_GI(Position, Normal, StaticUV, DynamicUV, ApplyLightmapScaling);",
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.WorldSpace_Position),
-            new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.WorldSpace_Normal),
-            new ParameterDescriptor("StaticUV", TYPE.Vec2, GraphType.Usage.In, REF.UV1),
-            new ParameterDescriptor("DynamicUV", TYPE.Vec2, GraphType.Usage.In, REF.UV2),
-            new ParameterDescriptor("ApplyLightmapScaling", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.WorldSpace_Position),
+                new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.WorldSpace_Normal),
+                new ParameterDescriptor("StaticUV", TYPE.Vec2, GraphType.Usage.In, REF.UV1),
+                new ParameterDescriptor("DynamicUV", TYPE.Vec2, GraphType.Usage.In, REF.UV2),
+                new ParameterDescriptor("ApplyLightmapScaling", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

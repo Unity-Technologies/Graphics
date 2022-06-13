@@ -16,14 +16,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "SceneDepthLinear01",
                     "Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "SceneDepthRaw",
                     "Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "SceneDepthEye",
@@ -35,8 +41,11 @@ else
 {
 Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 )
             }
         );

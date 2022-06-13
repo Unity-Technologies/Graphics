@@ -10,10 +10,13 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = pow((1.0 - saturate(dot(normalize(Normal), normalize(ViewDir)))), Power);",
-            new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
-            new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.WorldSpace_ViewDirection),
-            new ParameterDescriptor("Power", TYPE.Float, Usage.In, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.WorldSpace_ViewDirection),
+                new ParameterDescriptor("Power", TYPE.Float, Usage.In, new float[] { 1f }),
+                new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

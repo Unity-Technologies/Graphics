@@ -14,20 +14,29 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     "Standard",
                     "Out = ddx(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new (
                     "Coarse",
                     "Out = ddx_coarse(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new (
                     "Fine",
                     "Out = ddx_fine(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

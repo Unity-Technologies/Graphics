@@ -16,15 +16,18 @@ namespace UnityEditor.ShaderGraph.Defs
     temp.x = delta.y;
     temp.y = -delta.x;
     Out = UV + temp * delta_offset + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
-            new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
-            new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out),
-            new ParameterDescriptor("delta", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("delta2", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("delta_offset", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
+                new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
+                new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out),
+                new ParameterDescriptor("delta", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("delta2", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("delta_offset", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

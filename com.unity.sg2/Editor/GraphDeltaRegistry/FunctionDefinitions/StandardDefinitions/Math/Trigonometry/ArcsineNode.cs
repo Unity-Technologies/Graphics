@@ -14,8 +14,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "Default",
                     "Out = asin(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new(
                     "Fast",
@@ -24,9 +27,12 @@ namespace UnityEditor.ShaderGraph.Defs
     a = In * In;
     Out = In * (1 + a * (0.166667 + a * (0.075 + a * 0.04464)));
 }",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("a", TYPE.Vector, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("a", TYPE.Vector, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

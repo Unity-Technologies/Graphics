@@ -14,8 +14,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "Default",
                     "Out = tan(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new(
                     "Fast",
@@ -25,9 +28,12 @@ namespace UnityEditor.ShaderGraph.Defs
     a = In + 0.25;
     Out = ((8.0 - 16.0 * abs(In)) * In) / ((8.0 - 16.0 * abs(a)) * a);
 }",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("a", TYPE.Vector, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("a", TYPE.Vector, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

@@ -20,17 +20,20 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.ObjectSpace_ViewDirection),
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.ObjectSpace_Normal),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.ObjectSpace_ViewDirection),
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.ObjectSpace_Normal),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
                     "SampleReflectedCubemapStandard",
@@ -40,16 +43,19 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
                     "SampleReflectedCubemapBias",
@@ -59,17 +65,20 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 )
             }
         );

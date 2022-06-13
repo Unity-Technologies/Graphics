@@ -491,8 +491,11 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             FunctionDescriptor passThroughFD = new(
                 "PassThrough",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In)
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In)
+                }
             );
 
             var registry = new Registry();
@@ -528,22 +531,33 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             FunctionDescriptor truncate = new(
                 "Truncate",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In)
+                }
+            );
 
             FunctionDescriptor make = new(
                 "Make",
                 "Out.x = X; Out.y = Y;",
-                new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
-                new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
-                new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In));
-
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
+                    new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
+                    new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In)
+                }
+            );
             FunctionDescriptor append = new(
                 "Append",
                 "Out.xy = In; Out.z = Z;",
-                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
-                new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
+                    new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In)
+                }
+            );
 
             var registry = new Registry();
             var graphHandler = new GraphHandler(registry);

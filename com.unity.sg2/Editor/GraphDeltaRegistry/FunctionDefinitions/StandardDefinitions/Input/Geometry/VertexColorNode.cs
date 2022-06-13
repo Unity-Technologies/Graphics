@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = VertexColor;",
-            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("VertexColor", TYPE.Vec4, GraphType.Usage.Local, REF.Vertex_Color)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
+                new ParameterDescriptor("VertexColor", TYPE.Vec4, GraphType.Usage.Local, REF.Vertex_Color)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -17,14 +17,17 @@ FarPlane = _ProjectionParams.z;
 ZBufferSign = _ProjectionParams.x;
 Width = unity_OrthoParams.x;
 Height = unity_OrthoParams.y;",
-            new ParameterDescriptor("Position", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("Direction", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("Orthographic", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("NearPlane", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("FarPlane", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("ZBufferSign", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("Height", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("Direction", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("Orthographic", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("NearPlane", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("FarPlane", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("ZBufferSign", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("Height", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

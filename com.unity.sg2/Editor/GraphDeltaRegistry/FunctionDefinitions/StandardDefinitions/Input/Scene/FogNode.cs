@@ -11,9 +11,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "SHADERGRAPH_FOG(Position, Color, Density);",
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.Object_Position),
-            new ParameterDescriptor("Color", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("Density", TYPE.Float, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.Object_Position),
+                new ParameterDescriptor("Color", TYPE.Vec4, GraphType.Usage.Out),
+                new ParameterDescriptor("Density", TYPE.Float, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -10,8 +10,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "    Out = Matrix4x4;",
-            new ParameterDescriptor("Matrix4x4", TYPE.Mat4, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Mat4, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Matrix4x4", TYPE.Mat4, Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Mat4, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

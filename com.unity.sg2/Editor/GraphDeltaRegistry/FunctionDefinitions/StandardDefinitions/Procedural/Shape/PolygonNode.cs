@@ -24,18 +24,21 @@ namespace UnityEditor.ShaderGraph.Defs
 #else
     Out = saturate((1 - dist) / fwidth(dist));
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 6f }),
-            new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out),//should be fragmant stage only
-            new ParameterDescriptor("pi", TYPE.Float, Usage.Local, new float[] { 3.14159265359f }),
-            new ParameterDescriptor("uv", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("pCoord", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("dist", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("r", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("temp1", TYPE.Vec2, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 6f }),
+                new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                new ParameterDescriptor("Out", TYPE.Float, Usage.Out),//should be fragmant stage only
+                new ParameterDescriptor("pi", TYPE.Float, Usage.Local, new float[] { 3.14159265359f }),
+                new ParameterDescriptor("uv", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("pCoord", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("dist", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("r", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("temp1", TYPE.Vec2, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

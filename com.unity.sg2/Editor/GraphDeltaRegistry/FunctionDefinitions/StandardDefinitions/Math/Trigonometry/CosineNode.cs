@@ -14,8 +14,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "Default",
                     "Out = cos(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new(
                     "Fast",
@@ -24,8 +27,11 @@ namespace UnityEditor.ShaderGraph.Defs
     In = (In + 1.57) * 0.1592;
     Out = (8.0 - 16.0 * abs(In * 0.1592)) * (In * 0.1592);
 }",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

@@ -28,8 +28,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             FunctionDescriptor fd = new(
                 "Test",
                 "Out = In;",
-                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                }
             );
             RegistryKey registryKey = m_registry.Register(fd);
 

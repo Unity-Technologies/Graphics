@@ -15,98 +15,146 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "MetalReflectanceIron",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.560f, 0.570f, 0.580f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.560f, 0.570f, 0.580f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceSilver",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.972f, 0.960f, 0.915f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.972f, 0.960f, 0.915f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceAluminium",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.913f, 0.921f, 0.925f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.913f, 0.921f, 0.925f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceGold",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 1.000f, 0.766f, 0.336f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 1.000f, 0.766f, 0.336f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceCopper",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.955f, 0.637f, 0.538f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.955f, 0.637f, 0.538f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceChromium",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.550f, 0.556f, 0.554f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.550f, 0.556f, 0.554f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceNickel",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.660f, 0.609f, 0.526f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.660f, 0.609f, 0.526f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceTitanium",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.542f, 0.497f, 0.449f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.542f, 0.497f, 0.449f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceCobalt",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.662f, 0.655f, 0.634f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.662f, 0.655f, 0.634f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectancePlatinum",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.672f, 0.637f, 0.585f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.672f, 0.637f, 0.585f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceBrass",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.888f, 0.745f, 0.451f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.888f, 0.745f, 0.451f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceLead",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.491f, 0.558f, 0.591f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.491f, 0.558f, 0.591f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceTin",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.723f, 0.584f, 0.479f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.723f, 0.584f, 0.479f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceSteel",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.61f, 0.546f, 0.509f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.61f, 0.546f, 0.509f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceBronze",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.88f, 0.591f, 0.558f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.88f, 0.591f, 0.558f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
                     "MetalReflectanceTungsten",
                     "    Out = metal;",
-                    new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.503f, 0.491f, 0.479f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("metal", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.503f, 0.491f, 0.479f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 )
             }
         );

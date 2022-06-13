@@ -9,8 +9,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 "Out = max(0, FaceSign.x);",
-            new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out),
-            new ParameterDescriptor("FaceSign", TYPE.Bool, GraphType.Usage.Local, REF.FaceSign)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out),
+                new ParameterDescriptor("FaceSign", TYPE.Bool, GraphType.Usage.Local, REF.FaceSign)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

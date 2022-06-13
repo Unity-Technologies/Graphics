@@ -11,8 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = Position;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Position)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Position)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

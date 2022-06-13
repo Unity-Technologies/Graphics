@@ -28,18 +28,21 @@ namespace UnityEditor.ShaderGraph.Defs
     alpha = saturate(0.5f + 0.5f * vector_alpha.x * vector_alpha.y * freqLimiter);
     Out = lerp(ColorA, ColorB, alpha.xxx);
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In, new float[] { 0.2f, 0.2f, 0.2f }),
-            new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In, new float[] { 0.7f, 0.7f, 0.7f }),
-            new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.In, new float[] { 1f, 1f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),//should be fragmant stage only
-            new ParameterDescriptor("distance3", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("derivatives", TYPE.Vec4, Usage.Local),
-            new ParameterDescriptor("duv_length", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("scale", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("freqLimiter", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("vector_alpha", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("alpha", TYPE.Float, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In, new float[] { 0.2f, 0.2f, 0.2f }),
+                new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In, new float[] { 0.7f, 0.7f, 0.7f }),
+                new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.In, new float[] { 1f, 1f }),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),//should be fragmant stage only
+                new ParameterDescriptor("distance3", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("derivatives", TYPE.Vec4, Usage.Local),
+                new ParameterDescriptor("duv_length", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("scale", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("freqLimiter", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("vector_alpha", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("alpha", TYPE.Float, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

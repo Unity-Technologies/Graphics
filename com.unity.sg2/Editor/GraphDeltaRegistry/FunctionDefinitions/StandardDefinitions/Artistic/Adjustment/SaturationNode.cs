@@ -15,11 +15,14 @@ namespace UnityEditor.ShaderGraph.Defs
     Out =  luma.xxx + Saturation.xxx * (In - luma.xxx);
 }
 ",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Saturation", TYPE.Float, Usage.In, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("luma", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("sRGBD65", TYPE.Vec3, Usage.Local, new float[] { 0.2126729f, 0.7151522f, 0.0721750f })
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("Saturation", TYPE.Float, Usage.In, new float[] { 1f }),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("luma", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("sRGBD65", TYPE.Vec3, Usage.Local, new float[] { 0.2126729f, 0.7151522f, 0.0721750f })
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

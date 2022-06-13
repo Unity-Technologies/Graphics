@@ -10,9 +10,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "    Out = !A && !B;",
-            new ParameterDescriptor("A", TYPE.Bool, Usage.In),
-            new ParameterDescriptor("B", TYPE.Bool, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("A", TYPE.Bool, Usage.In),
+                new ParameterDescriptor("B", TYPE.Bool, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

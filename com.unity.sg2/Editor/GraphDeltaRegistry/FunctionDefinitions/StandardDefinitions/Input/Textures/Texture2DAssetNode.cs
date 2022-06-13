@@ -10,8 +10,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "    Out = Asset;",
-            new ParameterDescriptor("Asset", TYPE.Texture2D, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Texture2D, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Asset", TYPE.Texture2D, Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Texture2D, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

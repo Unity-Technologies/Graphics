@@ -11,10 +11,13 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "    Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);",
-            new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_ViewDirection),
-            new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
-            new ParameterDescriptor("LOD", TYPE.Float, GraphType.Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_ViewDirection),
+                new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
+                new ParameterDescriptor("LOD", TYPE.Float, GraphType.Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

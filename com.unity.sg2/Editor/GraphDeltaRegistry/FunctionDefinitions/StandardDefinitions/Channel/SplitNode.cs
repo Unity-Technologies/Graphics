@@ -14,11 +14,14 @@ namespace UnityEditor.ShaderGraph.Defs
     G = In.g;
     B = In.b;
     A = In.a;",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
