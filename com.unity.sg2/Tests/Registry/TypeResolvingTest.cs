@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             // make a FunctionDescriptor and register it
             FunctionDescriptor fd = new(
-                1,
                 "Test",
                 "Out = In;",
                 new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),

@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         )
                     }
                 )
-            },
+            }
             //mainFunction: "TestIncludeFunction"
         );
 

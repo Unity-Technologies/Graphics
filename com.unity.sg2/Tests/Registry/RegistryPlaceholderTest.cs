@@ -75,7 +75,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             // create the graph
             var graph = new GraphHandler();
             FunctionDescriptor fd = new(
-                1,
                 "Test",
                 "Out = In;",
                 new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
@@ -111,7 +110,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             // define a function with an in field that has defaults
             FunctionDescriptor fd = new(
-                1,
                 "Test",
                 "Out = In;",
                 new ParameterDescriptor(

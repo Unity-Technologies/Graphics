@@ -488,10 +488,12 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void NodePreview_GetFuncAndBlockShaderCode()
         {
-            FunctionDescriptor passThroughFD = new(1, "PassThrough",
+            FunctionDescriptor passThroughFD = new(
+                "PassThrough",
                 "Out = In.x;",
                 new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In));
+                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In)
+            );
 
             var registry = new Registry();
             var graphHandler = new GraphHandler(registry);
@@ -523,18 +525,21 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void FunctionDescriptor_PreviewOutputTypes()
         {
-            FunctionDescriptor truncate = new(1, "Truncate",
+            FunctionDescriptor truncate = new(
+                "Truncate",
                 "Out = In.x;",
                 new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
 
-            FunctionDescriptor make = new(1, "Make",
+            FunctionDescriptor make = new(
+                "Make",
                 "Out.x = X; Out.y = Y;",
                 new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
                 new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
                 new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In));
 
-            FunctionDescriptor append = new(1, "Append",
+            FunctionDescriptor append = new(
+                "Append",
                 "Out.xy = In; Out.z = Z;",
                 new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),

@@ -139,7 +139,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var registryFlags = contextNodeBuilder.GetRegistryFlags();
             if(registryFlags == RegistryFlags.Base)
                 return (IContextDescriptor)contextNodeBuilder;
-
             return null;
         }
 

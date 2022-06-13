@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Defs
             return new RegistryKey
             {
                 Name = m_functionDescriptor.Name,
-                Version = m_functionDescriptor.Version
+                Version = 1, // TODO (Brett) This should be removed.
             };
         }
 
