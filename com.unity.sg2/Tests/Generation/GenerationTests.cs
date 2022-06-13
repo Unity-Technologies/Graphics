@@ -332,9 +332,36 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                 graph.GetNode("Add3")
             });
 
-            Debug.Log(copy.layerData);
-            Debug.Log(copy.metaData);
-            Debug.Log(copy.edgeData);
+            graph.Paste(copy.layerData, copy.metaData, copy.edgeData);
+            var dup = graph.GetNode("Add1_1");
+            var dupVal = dup.GetPort("In1").GetTypeField().GetSubField<float>("c0");
+            Assert.NotNull(dupVal);
+            Assert.AreEqual(1f, dupVal.GetData());
+            var connected = graph.GetConnectedNodes(dup.ID);
+            Assert.AreEqual(1, connected.Count());
+            Assert.IsTrue(connected.First().ID.Equals("Add3_1"));
+            dup = graph.GetNode("Add2_1");
+            dupVal = dup.GetPort("In2").GetTypeField().GetSubField<float>("c1");
+            Assert.NotNull(dupVal);
+            Assert.AreEqual(1f, dupVal.GetData());
+            connected = graph.GetConnectedNodes(dup.ID);
+            Assert.AreEqual(1, connected.Count());
+            Assert.IsTrue(connected.First().ID.Equals("Add3_1"));
+
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNode("Add3_1"), graph, registry, out _);
+            var shader = MakeShader(shaderString);
+            var rt = DrawToTex(shader);
+            try
+            {
+                var pixelColor = rt.GetPixel(0, 0);
+                Assert.AreEqual(new Color(1, 1, 0, 1), pixelColor);
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureBadCopyPaste.jpg", rt.EncodeToJPG());
+                throw e;
+            }
+
         }
 
     }

@@ -212,6 +212,12 @@ namespace UnityEditor.ContextLayeredDataStorage
             child.Parent = parent;
         }
 
+        private void AddChildUnique(Element parent, ref Element child)
+        {
+            child.ID = child.GetUniqueLocalID(child.ID.FullPath.Replace($"{parent.ID.FullPath}.", ""), parent);
+            AddChild(parent, child);
+        }
+
         private void RemoveChild(Element parent, Element child)
         {
             parent.Children.Remove(child);
@@ -540,11 +546,42 @@ namespace UnityEditor.ContextLayeredDataStorage
             return (EditorJsonUtility.ToJson(serializedLayer, true), EditorJsonUtility.ToJson(meta, true));
         }
 
-        public virtual void PasteElementCollection(string serializedLayer, string serializedMetadata)
+        public virtual IEnumerable<DataReader> PasteElementCollection(string serializedLayer, string serializedMetadata, string layerToPasteTo, out Dictionary<string, string> remappings)
         {
             //WIP, need to work through the logic of pasting into an existing layer
             var pasteLayer = new SerializedLayerData();
             EditorJsonUtility.FromJsonOverwrite(serializedLayer, pasteLayer);
+
+            var meta = new MetadataCollection();
+            EditorJsonUtility.FromJsonOverwrite(serializedMetadata, meta);
+
+            var root = m_layerList.GetLayerRoot(layerToPasteTo);
+            remappings = new Dictionary<string, string>();
+            List<DataReader> addedElements = new List<DataReader>();
+            foreach (var elemData in pasteLayer.layerData)
+            {
+                var elem = DeserializeElement(elemData);
+                MetadataBlock block = null;
+                meta.TryGetValue(elem.ID.FullPath, out block);
+                foreach (var remap in remappings)
+                {
+                    elem.ID = elem.ID.Rename(remap.Key, remap.Value);
+                }
+                var initialID = elem.ID.LocalPath;
+                EvaluateParent(in root, elem.ID, out var parent);
+                AddChildUnique(parent, ref elem);
+                if(elem.ID.LocalPath != initialID)
+                {
+                    remappings.Add(initialID, elem.ID.LocalPath);
+                }
+                UpdateFlattenedStructureAdd(elem);
+                if(block != null)
+                {
+                    m_metadata.Add(elem.ID.FullPath, block);
+                }
+                addedElements.Add(elem.GetReader());
+            }
+            return addedElements;
         }
 
         public virtual void OnAfterDeserialize()

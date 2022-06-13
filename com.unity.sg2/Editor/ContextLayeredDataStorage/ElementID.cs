@@ -84,6 +84,12 @@ namespace UnityEditor.ContextLayeredDataStorage
         /// <returns></returns>
         public bool IsSubpathOf(ElementID other)
         {
+            //special case for root, empty string is always a subpath
+            if(m_path.Count == 1 && m_path[0].Length == 0)
+            {
+                return true;
+            }
+
             if (m_path.Count >= other.m_path.Count)
             {
                 return false;
@@ -102,7 +108,18 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public bool IsImmediateSubpathOf(ElementID other)
         {
-            return m_path.Count + 1 == other.m_path.Count && IsSubpathOf(other);
+            if(m_path.Count == 1 && m_path[0].Length == 0)
+            {
+                if (other.m_path.Count > 1)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            return (m_path.Count + 1 == other.m_path.Count) && IsSubpathOf(other);
         }
 
         public static ElementID FromString(string path)
@@ -112,7 +129,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public static ElementID CreateUniqueLocalID(ElementID parentID, IEnumerable<string> existingLocalChildIDs, string desiredLocalID)
         {
-            string uniqueName = SanitizeName(existingLocalChildIDs, "{0}_{1}", desiredLocalID, "\".");
+            string uniqueName = SanitizeName(existingLocalChildIDs, "{0}_{1}", desiredLocalID, "\"");
             return $"{parentID.FullPath}{(parentID.FullPath.Length > 0 ? "." : "")}{uniqueName}";
         }
 
@@ -162,7 +179,22 @@ namespace UnityEditor.ContextLayeredDataStorage
             return string.Format(duplicateFormat, name, duplicateNumber);
         }
 
-
+        public ElementID Rename(string toRename, string newName)
+        {
+            string[] newPath = new string[m_path.Count];
+            for (int i = 0; i < m_path.Count; i++)
+            {
+                if (m_path[i].Equals(toRename))
+                {
+                    newPath[i] = newName;
+                }
+                else
+                {
+                    newPath[i] = m_path[i];
+                }
+            }
+            return newPath;
+        }
 
         public static implicit operator ElementID(List<string> path) => new ElementID(path);
         public static implicit operator ElementID(string[] path) => new ElementID(path);
