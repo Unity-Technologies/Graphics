@@ -223,6 +223,6 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         lighting += UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
         lighting += UnpackEmission(neighborData.mixedLighting) * _MixedLightingMultiplier;
 
-        _HitRadianceCacheAxis[hitAxisIndex] = PackEmission(lighting);
+        _HitRadianceCacheAxis[hitAxisIndex] = PackRadiance(lighting);
     }
 }

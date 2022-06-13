@@ -287,7 +287,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             {
                 // Hit
                 float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
-                incomingHitRadiance += UnpackEmission(_HitRadianceCacheAxis[hitIndex]) * weight;
+                incomingHitRadiance += UnpackRadiance(_HitRadianceCacheAxis[hitIndex]) * weight;
             }
             else
             {
@@ -336,6 +336,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             }
         }
 
-        _RadianceCacheAxis[index] = PackEmission((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
+        _RadianceCacheAxis[index] = PackRadiance((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
     }
 }

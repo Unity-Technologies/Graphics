@@ -23,7 +23,7 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
 float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
 {
     const uint index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
-    return UnpackEmission(_PreviousRadianceCacheAxis[index]);
+    return UnpackRadiance(_PreviousRadianceCacheAxis[index]);
 }
 
 float InvalidScale(float probeValidity)

@@ -47,27 +47,6 @@ float4 UnpackAlbedoAndDistance(uint packedVal, float maxNeighborDistance)
     return outVal;
 }
 
-uint PackEmission(float3 color)
-{
-    float maxChannel = color.x > color.y ? color.x : color.y;
-    maxChannel = maxChannel > color.z ? maxChannel : color.z;
-
-    // This byte value in M will result in the color range [0, 1].
-    const float multiplierToByteScale = 32;
-
-    uint m = ceil(maxChannel * multiplierToByteScale);
-    color *= 255 * multiplierToByteScale / m;
-
-    uint packedOutput = 0;
-
-    packedOutput |= (uint)min(255, color.x) << 0;
-    packedOutput |= (uint)min(255, color.y) << 8;
-    packedOutput |= (uint)min(255, color.z) << 16;
-    packedOutput |= (uint)m << 24;
-
-    return packedOutput;
-}
-
 float3 UnpackEmission(uint packedVal)
 {
     float3 outVal;
@@ -123,6 +102,39 @@ void UnpackIndicesAndValidityOnly(uint packedVal, out uint hitIndex, out float v
 {
     validity = (packedVal & 255) / 255.0f;
     hitIndex = (packedVal >> 8) & PROBE_VOLUME_NEIGHBOR_MAX_HIT_AXIS;
+}
+
+uint PackRadiance(float3 color)
+{
+    float maxChannel = color.x > color.y ? color.x : color.y;
+    maxChannel = maxChannel > color.z ? maxChannel : color.z;
+
+    // This byte value in M will result in the color range [0, 1].
+    const float multiplierToByteScale = 32;
+
+    uint m = ceil(maxChannel * multiplierToByteScale);
+    color *= 255 * multiplierToByteScale / m;
+
+    uint packedOutput = 0;
+
+    packedOutput |= (uint)min(255, color.x) << 0;
+    packedOutput |= (uint)min(255, color.y) << 8;
+    packedOutput |= (uint)min(255, color.z) << 16;
+    packedOutput |= (uint)m << 24;
+
+    return packedOutput;
+}
+
+float3 UnpackRadiance(uint packedVal)
+{
+    float3 outVal;
+    outVal.r = ((packedVal >> 0) & 255) / 255.0f;
+    outVal.g = ((packedVal >> 8) & 255) / 255.0f;
+    outVal.b = ((packedVal >> 16) & 255) / 255.0f;
+
+    float multiplier = ((packedVal >> 24) & 255) / 32.0f;
+
+    return outVal * multiplier;
 }
 
 #endif // endof PROBE_VOLUME_DYNAMIC_GI
