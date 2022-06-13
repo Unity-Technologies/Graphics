@@ -9,9 +9,9 @@ namespace UnityEditor.ShaderFoundry
     {
         internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst);
 
-        internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
+        internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder, UnityEditor.Rendering.Foundry.ModifySubShaderCallback modifySubShaderCallback = null)
         {
-            var target = GetTarget();
+            var target = GetTarget(modifySubShaderCallback);
             Build(container, target, shaderName, buildCallback, shaderBuilder);
         }
 
@@ -34,8 +34,10 @@ namespace UnityEditor.ShaderFoundry
                 // Build the descriptors for the two customization points. These define the blocks we're adding
                 buildCallback(container, vertexCP, surfaceCP, out var vertexCPInst, out var surfaceCPInst);
 
-                templateInstanceBuilder.AddCustomizationPointInstance(vertexCPInst);
-                templateInstanceBuilder.AddCustomizationPointInstance(surfaceCPInst);
+                if (vertexCPInst.IsValid)
+                    templateInstanceBuilder.AddCustomizationPointInstance(vertexCPInst);
+                if (surfaceCPInst.IsValid)
+                    templateInstanceBuilder.AddCustomizationPointInstance(surfaceCPInst);
 
                 var templateInstance = templateInstanceBuilder.Build();
                 shaderInstBuilder.TemplateInstances.Add(templateInstance);
@@ -52,9 +54,10 @@ namespace UnityEditor.ShaderFoundry
         }
 
         // This is a custom unlit target for our custom SRP.
-        static internal Target GetTarget()
+        static internal Target GetTarget(UnityEditor.Rendering.Foundry.ModifySubShaderCallback modifySubShaderCallback = null)
         {
             var target = new Rendering.Foundry.FoundryTestTarget();
+            target.modifySubShaderCallback = modifySubShaderCallback;
             return target;
         }
     }

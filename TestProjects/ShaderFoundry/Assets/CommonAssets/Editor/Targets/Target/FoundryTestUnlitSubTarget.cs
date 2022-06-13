@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
@@ -19,8 +20,13 @@ namespace UnityEditor.Rendering.Foundry
         public override void Setup(ref TargetSetupContext context)
         {
             base.Setup(ref context);
+
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
+
+            var subShaderDescriptor = SubShaders.Unlit(target, target.renderType, target.renderQueue);
+            if (modifySubShaderCallback != null)
+                subShaderDescriptor = modifySubShaderCallback(subShaderDescriptor);
+            context.AddSubShader(subShaderDescriptor);
         }
 
         public override void ProcessPreviewMaterial(Material material) {}

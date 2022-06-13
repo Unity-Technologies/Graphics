@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderFoundry
         public string shaderName;
         public bool isPrimaryShader;
         public string codeString;
-        // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO: needed for populating compiled shader
+        // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO @ SHADERS: needed for populating compiled shader
         public string errorMessage;
     }
 
@@ -21,8 +21,9 @@ namespace UnityEditor.ShaderFoundry
             {
                 GenerateProperties(builder, container, shaderInst);
                 GenerateSubShaders(builder, container, shaderInst);
-                if (!string.IsNullOrEmpty(shaderInst.FallbackShader))
-                    builder.AddLine(shaderInst.FallbackShader);
+                GenerateDependencies(builder, container, shaderInst);
+                GenerateCustomEditors(builder, container, shaderInst);
+                GenerateFallback(builder, container, shaderInst);
             }
 
             GeneratedShader result = new GeneratedShader()
@@ -101,6 +102,26 @@ namespace UnityEditor.ShaderFoundry
                 var linker = template.Linker;
                 linker.Link(builder, container, templateInst);
             }
+        }
+
+        static void GenerateDependencies(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        {
+            foreach (var dependency in shaderInst.Dependencies)
+                builder.AppendLine($"Dependency \"{dependency.DependencyName}\" = \"{dependency.ShaderName}\"");
+        }
+
+        static void GenerateCustomEditors(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        {
+            foreach (var customEditor in shaderInst.CustomEditors)
+                builder.AppendLine($"CustomEditorForRenderPipeline \"{customEditor.CustomEditorClassName}\" \"{customEditor.RenderPipelineAssetClassName}\"");
+        }
+
+        static void GenerateFallback(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        {
+            if (string.IsNullOrEmpty(shaderInst.FallbackShader))
+                builder.AppendLine("FallBack off");
+            else
+                builder.AppendLine($"FallBack \"{shaderInst.FallbackShader}\"");
         }
     }
 }

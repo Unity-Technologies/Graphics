@@ -49,6 +49,7 @@ namespace UnityEditor.ShaderFoundry
 
             TargetSetupContext context = new TargetSetupContext(m_assetCollection);
             LegacyTarget.Setup(ref context);
+            context.SetupFinalize();
 
             var subShaderIndex = 0;
             foreach (var subShader in context.subShaders)
@@ -86,16 +87,48 @@ namespace UnityEditor.ShaderFoundry
             foreach (var pass in subShaderDescriptor.passes)
             {
                 var legacyPassDescriptor = pass.descriptor;
-                var passBuilder = new TemplatePass.Builder(Container);
-                passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
-                passBuilder.DisplayName = legacyPassDescriptor.displayName;
-                passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
-                ++subPassIndex;
-
-                BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
-
-                builder.AddPass(passBuilder.Build());
+                var templatePass = BuildTemplatePass(legacyPassDescriptor, subShaderIndex, subPassIndex, vertexCustomizationPoint, surfaceCustomizationPoint);
+                subPassIndex++;
+                builder.AddPass(templatePass);
             }
+
+            builder.AdditionalShaderID = subShaderDescriptor.additionalShaderID;
+            builder.ShaderFallback = subShaderDescriptor.shaderFallback ?? "Hidden/Shader Graph/FallbackError";
+
+            if (subShaderDescriptor.usePassList != null)
+            {
+                foreach (var usePass in subShaderDescriptor.usePassList)
+                    builder.AddUsePass(usePass);
+            }
+
+            if (subShaderDescriptor.shaderDependencies != null)
+            {
+                foreach (var dependency in subShaderDescriptor.shaderDependencies)
+                    builder.AddShaderDependency(dependency.dependencyName, dependency.shaderName);
+            }
+
+            string shaderGUI = null;
+            string rpAssetType = null;
+
+            // TODO: we might just be able to get rid of subShaderDescriptor.shaderCustomEditor,
+            // I don't believe anyone is still using it...
+            if (!string.IsNullOrWhiteSpace(subShaderDescriptor.shaderCustomEditor))
+            {
+                shaderGUI = subShaderDescriptor.shaderCustomEditor;
+                rpAssetType = null;
+            }
+
+            if (subShaderDescriptor.shaderCustomEditors != null)
+            {
+                foreach (var customEditor in subShaderDescriptor.shaderCustomEditors)
+                {
+                    shaderGUI = customEditor.shaderGUI;
+                    rpAssetType = customEditor.renderPipelineAssetType;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(shaderGUI))
+                builder.SetCustomEditor(shaderGUI, rpAssetType);
 
             return builder.Build();
         }
@@ -155,6 +188,18 @@ namespace UnityEditor.ShaderFoundry
 
             ExtractVertex(passBuilder, vertexCustomizationPoint, vertexContext.Fields);
             ExtractFragment(passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
+        }
+
+        TemplatePass BuildTemplatePass(PassDescriptor legacyPassDescriptor, int subShaderIndex, int subPassIndex, CustomizationPoint vertexCustomizationPoint, CustomizationPoint fragmentCustomizationPoint)
+        {
+            var passBuilder = new TemplatePass.Builder(Container);
+            passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
+            passBuilder.DisplayName = legacyPassDescriptor.displayName;
+
+            passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
+
+            BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, fragmentCustomizationPoint);
+            return passBuilder.Build();
         }
 
         // Context object for collecting the "post fields" from a pass.
