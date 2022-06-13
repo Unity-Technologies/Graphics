@@ -11,7 +11,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Linux_Vulkan_performance_memory_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -50,7 +50,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Linux_Vulkan_performance_counters_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -89,7 +89,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Linux_Vulkan_performance_run_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -128,7 +128,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_CUSTOM-REVIS
     name: HDRP_PerformanceTests on Linux_Vulkan_performance_memory_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -167,7 +167,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_CUSTOM-REV
     name: HDRP_PerformanceTests on Linux_Vulkan_performance_counters_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -206,7 +206,7 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_CUSTOM-RE
     name: HDRP_PerformanceTests on Linux_Vulkan_performance_run_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
