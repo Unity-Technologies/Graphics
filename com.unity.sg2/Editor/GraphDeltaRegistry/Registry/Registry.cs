@@ -133,6 +133,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return true;
         }
 
+        internal bool Unregister(RegistryKey key)
+        {
+            return builders.Remove(key);
+        }
+
         internal IContextDescriptor GetContextDescriptor(RegistryKey key)
         {
             var contextNodeBuilder = GetBuilder(key);

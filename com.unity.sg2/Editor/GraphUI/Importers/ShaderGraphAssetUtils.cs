@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -81,8 +82,33 @@ namespace UnityEditor.ShaderGraph
             {
                 Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
 
-                ctx.AddObjectToAsset("AssetHelper", asset, texture);
+                ctx.AddObjectToAsset("Asset", asset, texture);
                 ctx.SetMainObject(asset);
+
+                var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
+                var key = new RegistryKey { Name = AssetDatabase.AssetPathToGUID(ctx.assetPath), Version = 1 };
+
+                List<ParameterUIDescriptor> paramDesc = new();
+                foreach (var dec in asset.ShaderGraphModel.VariableDeclarations)
+                {
+                    var displayName = dec.GetVariableName();
+                    var identifierName = ((BaseShaderGraphConstant)dec.InitializationModel).PortName;
+                    paramDesc.Add(new ParameterUIDescriptor(identifierName, displayName));
+                }
+
+                var desc = new NodeUIDescriptor(
+                    key.Version,
+                    key.Name,
+                    "DEFAULT_TOOLTIP",
+                    new string[] { "SubGraph" },
+                    new string[] { "SubGraph" },
+                    name,
+                    true,
+                    new Dictionary<string, string> { },
+                    paramDesc.ToArray()
+                );
+
+                ShaderGraphRegistry.Instance.RefreshSubGraph(key, asset.ShaderGraphModel.GraphHandler, desc);
             }
         }
     }
