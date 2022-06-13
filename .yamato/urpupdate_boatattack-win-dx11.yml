@@ -11,7 +11,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_2020.3:
     name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         BA_UPDATE_PROJECT_BRANCH: master
@@ -54,7 +54,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_2020.3:
     name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         BA_UPDATE_PROJECT_BRANCH: master
@@ -97,7 +97,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         BA_UPDATE_PROJECT_BRANCH: master
@@ -140,7 +140,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         BA_UPDATE_PROJECT_BRANCH: master

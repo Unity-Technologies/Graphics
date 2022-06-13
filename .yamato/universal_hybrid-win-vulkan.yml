@@ -11,7 +11,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
     name: Universal_Hybrid on Win_Vulkan_Standalone_DOTS_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -44,7 +44,7 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
     name: Build Universal_Hybrid on Win_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version 2020.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -82,7 +82,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_2020.3:
     name: Universal_Hybrid on Win_Vulkan_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -117,7 +117,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Win_Vulkan_Standalone_DOTS_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -150,7 +150,7 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Win_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -188,7 +188,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

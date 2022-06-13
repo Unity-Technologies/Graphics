@@ -11,7 +11,7 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_2020.3:
     name: ShaderGraph on Win_DX11_Standalone_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -44,7 +44,7 @@ Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_2020.3:
     name: Build ShaderGraph on Win_DX11_mono_Linear_Standalone_build_Player on version 2020.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -82,7 +82,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_2020.3:
     name: ShaderGraph on Win_DX11_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -118,7 +118,7 @@ ShaderGraph_Win_DX11_editmode_mono_Linear_2020.3:
     name: ShaderGraph on Win_DX11_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -153,7 +153,7 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -186,7 +186,7 @@ Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -224,7 +224,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -260,7 +260,7 @@ ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
