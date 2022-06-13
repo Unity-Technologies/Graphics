@@ -12,7 +12,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.3:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -51,7 +51,7 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.3:
     name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -89,7 +89,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.3:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -128,7 +128,7 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.3:
     name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Standalone_XR_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -166,7 +166,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -205,7 +205,7 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -243,7 +243,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -282,7 +282,7 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISI
     name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

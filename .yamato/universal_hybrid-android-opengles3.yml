@@ -12,7 +12,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.3:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -51,7 +51,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.3:
     name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -89,7 +89,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -128,7 +128,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

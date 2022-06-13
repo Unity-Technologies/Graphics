@@ -11,7 +11,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -45,7 +45,7 @@ Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_
     name: Build URP_Performance_BoatAttack on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.xlarge
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -114,7 +114,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_editor_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -179,7 +179,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_2
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_build_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -244,7 +244,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -278,7 +278,7 @@ Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_
     name: Build URP_Performance_BoatAttack on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.xlarge
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -347,7 +347,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -412,7 +412,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_C
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master

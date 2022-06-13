@@ -11,7 +11,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_2021.3:
     name: VikingVillage_BuiltIn on Win_DX12_performance_playmode_runtime_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -46,7 +46,7 @@ Build_VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_20
     name: Build VikingVillage_BuiltIn on Win_DX12_mono_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -106,7 +106,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_editor_mono_Linear_2021.3:
     name: VikingVillage_BuiltIn on Win_DX12_performance_playmode_editor_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -164,7 +164,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_build_editmode_mono_Linear_2021.3:
     name: VikingVillage_BuiltIn on Win_DX12_performance_build_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -221,7 +221,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-R
     name: VikingVillage_BuiltIn on Win_DX12_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -256,7 +256,7 @@ Build_VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_CU
     name: Build VikingVillage_BuiltIn on Win_DX12_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -316,7 +316,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-RE
     name: VikingVillage_BuiltIn on Win_DX12_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.large
         model: rtx2080
     variables:
@@ -374,7 +374,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REV
     name: VikingVillage_BuiltIn on Win_DX12_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:v0.5.0-453553
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'

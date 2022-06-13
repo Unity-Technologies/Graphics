@@ -11,7 +11,7 @@ PostProcessing_Win_DX12_playmode_mono_Linear_2021.3:
     name: PostProcessing on Win_DX12_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -46,7 +46,7 @@ PostProcessing_Win_DX12_editmode_mono_Linear_2021.3:
     name: PostProcessing on Win_DX12_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -80,7 +80,7 @@ PostProcessing_Win_DX12_Standalone_mono_Linear_2021.3:
     name: PostProcessing on Win_DX12_Standalone_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -113,7 +113,7 @@ Build_PostProcessing_Win_DX12_Standalone_mono_Linear_2021.3:
     name: Build PostProcessing on Win_DX12_mono_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -150,7 +150,7 @@ PostProcessing_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -185,7 +185,7 @@ PostProcessing_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX12_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -219,7 +219,7 @@ PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -252,7 +252,7 @@ Build_PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-foundation/win10-dxr:v1.0.0-526721
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'

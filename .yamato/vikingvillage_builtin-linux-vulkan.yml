@@ -11,7 +11,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2021
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -43,7 +43,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
     name: Build VikingVillage_BuiltIn on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -108,7 +108,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_2021.
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_playmode_editor_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -170,7 +170,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_2021.3
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_build_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -232,7 +232,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUST
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -264,7 +264,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
     name: Build VikingVillage_BuiltIn on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -329,7 +329,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTO
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -391,7 +391,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.5.0-1088620
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
