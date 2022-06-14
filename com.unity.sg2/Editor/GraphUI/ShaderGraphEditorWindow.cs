@@ -229,8 +229,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
                 var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
                 shaderGraphModel.graphModelStateComponent = GraphView.GraphViewModel.GraphModelState;
-                shaderGraphModel.OnGraphModelElementChanged = (model) => shaderGraphModel.graphModelStateComponent.UpdateScope.MarkChanged(model);
-                shaderGraphModel.OnGraphModelElementAdded = (model) => shaderGraphModel.graphModelStateComponent.UpdateScope.MarkNew(model);
                 ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
             }
 

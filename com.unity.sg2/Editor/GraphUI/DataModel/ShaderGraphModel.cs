@@ -63,8 +63,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
-        public Action<IGraphElementModel> OnGraphModelElementChanged;
-        public Action<IGraphElementModel> OnGraphModelElementAdded;
 
         public void Init(GraphHandler graph, bool isSubGraph)
         {

@@ -22,11 +22,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphMainToolbarProvider();
         }
 
-        protected override void InitDispatcher()
-        {
-            base.InitDispatcher();
-        }
-
         protected override IOverlayToolbarProvider CreateToolbarProvider(string toolbarId)
         {
             switch (toolbarId)
