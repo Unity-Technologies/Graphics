@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightRenderData.affectDynamicGI;
 
 #if UNITY_EDITOR
-                if (dynamicGIPreparingMixedLights)
+                if (dynamicGIPreparingMixedLights || dynamicGIPreparingForBake)
                     affectsDynamicGI &= lightRenderData.mixedDynamicGI;
 #endif
 
