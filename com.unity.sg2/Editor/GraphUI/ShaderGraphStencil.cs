@@ -162,7 +162,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 };
 
                 ContextBuilder.AddReferableEntry(propertyContext, entry, registry.Registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
-                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry.Registry);
+                try
+                {
+                    graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
 
                 graphDataVar.contextNodeName = contextName;
                 graphDataVar.graphDataName = variableDeclarationName;

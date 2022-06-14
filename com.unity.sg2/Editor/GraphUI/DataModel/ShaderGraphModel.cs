@@ -79,7 +79,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var localPath in contextNames)
             {
-                GraphHandler.ReconcretizeNode(localPath);
+                try
+                {
+                    GraphHandler.ReconcretizeNode(localPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
 
                 if (!NodeModels.Any(nodeModel =>
                         nodeModel is GraphDataContextNodeModel contextNodeModel &&

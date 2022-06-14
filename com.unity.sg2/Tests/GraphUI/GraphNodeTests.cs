@@ -230,6 +230,27 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNull(addNode, "Node should be null after delete operation");
         }
 
+        [UnityTest]
+        public IEnumerator TestNodeCanBeCopied()
+        {
+            yield return AddNodeFromSearcherAndValidate("Add");
+
+            var nodeModel = GetNodeModelFromGraphByName("Add");
+            Assert.IsNotNull(nodeModel);
+
+            // Select element programmatically because it might be behind another one
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeModel));
+            yield return null;
+
+            m_ShaderGraphWindowTestHelper.SimulateKeyPress("C", modifiers: EventModifiers.Control);
+            yield return null;
+
+            m_ShaderGraphWindowTestHelper.SimulateKeyPress("V", modifiers: EventModifiers.Control);
+            yield return null;
+
+            Assert.IsTrue(CheckIfNodesWithNameExist("Add", 2));
+        }
+
         /*
         /* This test needs the ability to distinguish between nodes and non-node graph elements like the Sticky Note
         /* When we have categories for the searcher items we can distinguish between them

@@ -207,7 +207,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var newKey = new RegistryKey {Name = registryKey.Name, Version = latestAvailableVersion};
             nodeHandler.SetMetadata(GraphDelta.GraphDelta.kRegistryKeyName, newKey);
-            graphHandler.ReconcretizeNode(graphDataName);
+            try
+            {
+                graphHandler.ReconcretizeNode(graphDataName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
             DefineNode();
         }
 
@@ -226,7 +234,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeHandler.SetMetadata(
                 NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
                 newFunctionName);
-            graphHandler.ReconcretizeNode(graphDataName, registry.Registry);
+            try
+            {
+                graphHandler.ReconcretizeNode(graphDataName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
             DefineNode();
         }
 

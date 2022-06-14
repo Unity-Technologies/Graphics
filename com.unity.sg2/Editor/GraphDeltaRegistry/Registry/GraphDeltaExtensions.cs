@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -34,7 +36,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var inPort = node.GetPort(ReferenceNodeBuilder.kContextEntry);
             var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}"); // TODO: Not this.
             handler.AddEdge(outPort.ID, inPort.ID);
-
             handler.ReconcretizeNode(node.ID.FullPath);
 
             // node.SetMetadata("_referenceName", contextEntryName);
@@ -59,19 +60,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             // only safe to call right now.
             NodeHandler previousContextNode = null;
-            foreach(var context in contexts)
+            foreach (var context in contexts)
             {
                 // Initialize the Context Node with information from the ContextDescriptor
                 var name = context.GetRegistryKey().Name + "_Context"; // Not like this...
                 var currentContextNode = handler.AddNode<ContextBuilder>(name);
                 currentContextNode.SetMetadata("_contextDescriptor", context.GetRegistryKey()); // initialize the node w/a reference to the context descriptor (so it can build itself).
-                if(previousContextNode != null)
+                if (previousContextNode != null)
                 {
                     // Create the monadic connection if it should exist.
                     var outPort = previousContextNode.AddPort("Out", false, false);
-                    var inPort  = currentContextNode.AddPort("In", true, false);
+                    var inPort = currentContextNode.AddPort("In", true, false);
                     handler.AddEdge(outPort.ID, inPort.ID);
                 }
+
                 handler.ReconcretizeNode(name);
                 previousContextNode = currentContextNode;
             }

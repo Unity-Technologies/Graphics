@@ -166,6 +166,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return null;
         }
 
+        public bool CheckIfNodesWithNameExist(string nodeName, int nodeCount)
+        {
+            var countCheck = 0;
+            var nodeModels = m_Window.GraphView.GraphModel.NodeModels;
+            foreach (var nodeModel in nodeModels)
+            {
+                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName)
+                {
+                    countCheck++;
+                }
+            }
+
+            return countCheck == nodeCount;
+        }
+
         public IEdgeModel GetEdgeModelFromGraphByName(string sourceNodeName, string destinationNodeName)
         {
             var edgeModels = m_Window.GraphView.GraphModel.EdgeModels;
