@@ -958,7 +958,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
         
-        internal bool CleanupPropagation(ProbeVolumeHandle probeVolume)
+        internal static bool CleanupPropagation(ProbeVolumeHandle probeVolume)
         {
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
@@ -969,6 +969,7 @@ namespace UnityEngine.Rendering.HighDefinition
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
 
             propagationPipelineData.buffersDataVersion = -1;
+            propagationPipelineData.simulationFrameTick = -1;
 
             return didDispose;
         }
