@@ -139,7 +139,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 foreach (var child in toRedir.GetRedirectTree(true))
                 {
                     child.UpdateTypeFrom(fromPort);
-                    OnGraphModelElementChanged(child);
                 }
             }
             else
