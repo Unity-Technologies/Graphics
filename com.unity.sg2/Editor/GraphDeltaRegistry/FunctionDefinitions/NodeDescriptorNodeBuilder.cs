@@ -176,10 +176,10 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 case ParametricTypeDescriptor paramType:
                     ParametricTypeDescriptor resolvedType = new(
-                        paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
-                        paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
-                        paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,
-                        paramType.Height == GraphType.Height.Any ? fallbackType.Height : paramType.Height
+                        paramType.Precision == Precision.Any ? fallbackType.Precision : paramType.Precision,
+                        paramType.Primitive == Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
+                        paramType.Length == Length.Any ? fallbackType.Length : paramType.Length,
+                        paramType.Height == Height.Any ? fallbackType.Height : paramType.Height
                     );
                     return GetShaderTypeForParametricTypeDescriptor(container, resolvedType);
                 case SamplerStateTypeDescriptor:
@@ -255,12 +255,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Registry registry,
             out INodeDefinitionBuilder.Dependencies deps)
         {
-            // create the dependencies object that is returned
-            deps = new();
-
-            FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
-
             // find the selected function
+            FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
             if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
             {
                 string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
@@ -279,6 +275,24 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 ShaderFunction shaderFunction = BuildShaderFunction(container, fd, fallbackType);
                 nameToShaderFunction[fd.Name] = shaderFunction;
+            }
+
+            // create the dependencies object that is returned
+            deps = new();
+
+            // put all non-main functions in deps
+            deps.localFunctions = new List<ShaderFunction>();
+            foreach (string functionName in nameToShaderFunction.Keys)
+            {
+                if (!functionName.Equals(selectedFunction.Name))
+                    deps.localFunctions.Add(nameToShaderFunction[functionName]);
+            }
+
+            // put all includes in deps
+            deps.includes = new List<ShaderFoundry.IncludeDescriptor>();
+            foreach (FunctionDescriptor fd in m_nodeDescriptor.Functions)
+            {
+                AddIncludesFromFunctionDescriptor(container, fd, deps.includes);
             }
 
             return nameToShaderFunction[selectedFunction.Name];

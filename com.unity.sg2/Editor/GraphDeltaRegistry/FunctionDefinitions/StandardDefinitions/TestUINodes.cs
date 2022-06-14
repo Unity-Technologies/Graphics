@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            mainFunction: Name,
             new FunctionDescriptor[] {
                 new(
                     Name,
@@ -84,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 )
             },
-            main: "TestIncludeFunction"
+            mainFunction: "TestIncludeFunction"
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
