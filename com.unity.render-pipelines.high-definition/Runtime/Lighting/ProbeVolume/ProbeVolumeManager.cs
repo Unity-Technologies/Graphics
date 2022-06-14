@@ -71,17 +71,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             var handle = new ProbeVolumeHandle(this, index);
-            ReleaseVolumeFromAtlas(handle);
-            volume.CleanupBuffers();
-            ProbeVolumeDynamicGI.instance.CleanupPropagation(handle);
+            ProbeVolume.ReleaseVolumeFromAtlas(handle);
+            ProbeVolume.CleanupBuffers(handle);
+            ProbeVolumeDynamicGI.CleanupPropagation(handle);
 
             m_Volumes.RemoveAt(index);
-        }
-
-        public void ReleaseVolumeFromAtlas(ProbeVolumeHandle volume)
-        {
-            if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
-                hdrp.ReleaseProbeVolumeFromAtlas(volume);
         }
 
         public void AddProbeList(IProbeVolumeList list)
@@ -142,8 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // cleanup buffers
                 var handle = new ProbeVolumeHandle(this, index);
-                volume.CleanupBuffers();
-                ProbeVolumeDynamicGI.instance.CleanupPropagation(handle);
+                ProbeVolume.CleanupBuffers(handle);
+                ProbeVolumeDynamicGI.CleanupPropagation(handle);
             }
 
             if (volumesSelected.Count > 0)
