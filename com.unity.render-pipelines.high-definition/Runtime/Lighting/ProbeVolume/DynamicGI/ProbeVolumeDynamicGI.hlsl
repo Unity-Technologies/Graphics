@@ -104,37 +104,58 @@ void UnpackIndicesAndValidityOnly(uint packedVal, out uint hitIndex, out float v
     hitIndex = (packedVal >> 8) & PROBE_VOLUME_NEIGHBOR_MAX_HIT_AXIS;
 }
 
+const static float3x3 LOG_LUV_ENCODE_MAT = float3x3(
+  0.2209, 0.3390, 0.4184,
+  0.1138, 0.6780, 0.7319,
+  0.0102, 0.1130, 0.2969);
+
+const static float3x3 LOG_LUV_DECODE_MAT = float3x3(
+  6.0014, -2.7008, -1.7996,
+  -1.3320,  3.1029, -5.7721,
+  0.3008, -1.0882,  5.6268);
+
+float4 LogLuvEncode(in float3 vRGB)  {
+    float4 vResult;
+    float3 Xp_Y_XYZp = mul(vRGB, LOG_LUV_ENCODE_MAT);
+    Xp_Y_XYZp = max(Xp_Y_XYZp, float3(1e-6, 1e-6, 1e-6));
+    vResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;
+    float Le = 2 * log2(Xp_Y_XYZp.y) + 127;
+    vResult.w = frac(Le);
+    vResult.z = (Le - (floor(vResult.w*255.0f))/255.0f)/255.0f;
+    return vResult;
+}
+
+float3 LogLuvDecode(in float4 vLogLuv) {
+    float Le = vLogLuv.z * 255 + vLogLuv.w;
+    float3 Xp_Y_XYZp;
+    Xp_Y_XYZp.y = exp2((Le - 127) / 2);
+    Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
+    Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
+    float3 vRGB = mul(Xp_Y_XYZp, LOG_LUV_DECODE_MAT);
+    return max(vRGB, 0);
+}
+
 uint PackRadiance(float3 color)
 {
-    float maxChannel = color.x > color.y ? color.x : color.y;
-    maxChannel = maxChannel > color.z ? maxChannel : color.z;
-
-    // This byte value in M will result in the color range [0, 1].
-    const float multiplierToByteScale = 32;
-
-    uint m = ceil(maxChannel * multiplierToByteScale);
-    color *= 255 * multiplierToByteScale / m;
+    float4 logLuv = LogLuvEncode(color);
 
     uint packedOutput = 0;
-
-    packedOutput |= (uint)min(255, color.x) << 0;
-    packedOutput |= (uint)min(255, color.y) << 8;
-    packedOutput |= (uint)min(255, color.z) << 16;
-    packedOutput |= (uint)m << 24;
+    packedOutput |= min(255, (uint)round(logLuv.x * 255)) << 0;
+    packedOutput |= min(255, (uint)round(logLuv.y * 255)) << 8;
+    packedOutput |= min(255, (uint)round(logLuv.z * 255)) << 16;
+    packedOutput |= min(255, (uint)round(logLuv.w * 255)) << 24;
 
     return packedOutput;
 }
 
 float3 UnpackRadiance(uint packedVal)
 {
-    float3 outVal;
-    outVal.r = ((packedVal >> 0) & 255) / 255.0f;
-    outVal.g = ((packedVal >> 8) & 255) / 255.0f;
-    outVal.b = ((packedVal >> 16) & 255) / 255.0f;
-
-    float multiplier = ((packedVal >> 24) & 255) / 32.0f;
-
-    return outVal * multiplier;
+    float4 outVal;
+    outVal.x = ((packedVal >> 0) & 255) / 255.0f;
+    outVal.y = ((packedVal >> 8) & 255) / 255.0f;
+    outVal.z = ((packedVal >> 16) & 255) / 255.0f;
+    outVal.w = ((packedVal >> 24) & 255) / 255.0f;
+    return LogLuvDecode(outVal);
 }
 
 #endif // endof PROBE_VOLUME_DYNAMIC_GI
