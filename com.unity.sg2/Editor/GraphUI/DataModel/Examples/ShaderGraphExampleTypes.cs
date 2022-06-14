@@ -54,20 +54,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return k_UnderlyingTypes[typeHandle];
         }
 
-        internal static bool IsExposable(this TypeHandle typeHandle)
-        {
-            var descriptor = typeHandle.ToDescriptor();
-            switch (descriptor)
-            {
-                case ParametricTypeDescriptor {Height: GraphType.Height.One}:
-                case TextureTypeDescriptor:
-                case SamplerStateTypeDescriptor:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         // This is a sister function used with ShaderGraphStencil.GetConstantNodeValueType--
         // TypeHandles are primarily used to setup the icon that GTF will use,
         // but the TypeHandle then gets routed through GetConstantNodeValueType where a type handle is

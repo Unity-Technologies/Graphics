@@ -116,6 +116,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ShaderGraphExampleTypes.SamplerStateTypeHandle,
         };
 
+        /// <summary>
+        /// Returns true if a blackboard property with the given TypeHandle can be included in the property block for
+        /// the current model. Use this to avoid exporting invalid properties like matrices.
+        /// </summary>
+        bool IsExposable(TypeHandle typeHandle)
+        {
+            var descriptor = typeHandle.ToDescriptor();
+            switch (descriptor)
+            {
+                case ParametricTypeDescriptor {Height: GraphType.Height.One}:
+                case TextureTypeDescriptor:
+                case SamplerStateTypeDescriptor:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public override void PopulateBlackboardCreateMenu(
             string sectionName,
             List<MenuItem> menu,
@@ -155,7 +173,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 type.ToDescriptor(),
                                 variableDeclarationName,
                                 registry.Registry,
-                                type.IsExposable() ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
+                                IsExposable(type) ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
                                 displayName: variableDeclarationName);
 
                             graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
