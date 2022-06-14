@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public List<ShaderFoundry.IncludeDescriptor> includes;
         }
 
-
         void BuildNode(NodeHandler node, Registry registry);
+
         ShaderFunction GetShaderFunction(
             NodeHandler node,
             ShaderContainer container,

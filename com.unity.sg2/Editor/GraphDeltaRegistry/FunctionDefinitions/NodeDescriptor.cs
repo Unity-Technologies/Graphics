@@ -11,15 +11,18 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public int Version { get; }
         public string Name { get; }
+        public string Main { get; }
         public IReadOnlyCollection<FunctionDescriptor> Functions { get; }
 
         public NodeDescriptor(
             int version,
             string name,
+            string main = null,
             params FunctionDescriptor[] functions)
         {
             Version = version;
             Name = name;
+            Main = main;
             Functions = functions.ToList().AsReadOnly();
         }
     }

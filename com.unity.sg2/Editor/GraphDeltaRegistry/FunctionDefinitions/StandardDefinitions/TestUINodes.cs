@@ -64,10 +64,10 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     name: "TestIncludeFunction",
-                    //includes: new string[]
-                    //{
-                    //    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
-                    //},
+                    includes: new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                    },
                     body: "Out = In;",
                     parameters: new ParameterDescriptor[] {
                         new ParameterDescriptor(
@@ -83,8 +83,8 @@ namespace UnityEditor.ShaderGraph.Defs
                         )
                     }
                 )
-            }
-            //mainFunction: "TestIncludeFunction"
+            },
+            main: "TestIncludeFunction"
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
