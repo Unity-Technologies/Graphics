@@ -80,11 +80,12 @@ CBUFFER_START(CB1)
     float4 gInvThicknessTable[3];
     float4 gSampleWeightTable[3];
     float4 gInvSliceDimension;
-    float2 AdditionalParams;
+    float3 AdditionalParams;
 CBUFFER_END
 
 #define gRejectFadeoff AdditionalParams.x
 #define gIntensity AdditionalParams.y
+#define zBias AdditionalParams.z
 
 #ifdef MSAA
 float2 TestSamplePair(float frontDepth, float2 invRange, uint base, int offset)
@@ -92,8 +93,8 @@ float2 TestSamplePair(float frontDepth, float2 invRange, uint base, int offset)
     // "Disocclusion" measures the penetration distance of the depth sample within the sphere.
     // Disocclusion < 0 (full occlusion) -> the sample fell in front of the sphere
     // Disocclusion > 1 (no occlusion) -> the sample fell behind the sphere
-    float2 disocclusion1 = DepthSamples[base + offset] * invRange - frontDepth;
-    float2 disocclusion2 = DepthSamples[base - offset] * invRange - frontDepth;
+    float2 disocclusion1 = DepthSamples[base + offset] * invRange - (frontDepth - zBias);
+    float2 disocclusion2 = DepthSamples[base - offset] * invRange - (frontDepth - zBias);
 
     float2 pseudoDisocclusion1 = saturate(gRejectFadeoff * disocclusion1);
     float2 pseudoDisocclusion2 = saturate(gRejectFadeoff * disocclusion2);
@@ -147,8 +148,8 @@ float TestSamplePair(float frontDepth, float invRange, uint base, int offset)
     // "Disocclusion" measures the penetration distance of the depth sample within the sphere.
     // Disocclusion < 0 (full occlusion) -> the sample fell in front of the sphere
     // Disocclusion > 1 (no occlusion) -> the sample fell behind the sphere
-    float disocclusion1 = DepthSamples[base + offset] * invRange - frontDepth;
-    float disocclusion2 = DepthSamples[base - offset] * invRange - frontDepth;
+    float disocclusion1 = DepthSamples[base + offset] * invRange - (frontDepth - zBias);
+    float disocclusion2 = DepthSamples[base - offset] * invRange - (frontDepth - zBias);
 
     float pseudoDisocclusion1 = saturate(gRejectFadeoff * disocclusion1);
     float pseudoDisocclusion2 = saturate(gRejectFadeoff * disocclusion2);
