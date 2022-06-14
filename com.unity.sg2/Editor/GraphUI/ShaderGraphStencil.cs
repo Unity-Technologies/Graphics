@@ -98,31 +98,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
-        public static readonly TypeHandle[] k_SupportedBlackboardTypes = {
-            TypeHandle.Float,
-            TypeHandle.Vector2,
-            TypeHandle.Vector3,
-            TypeHandle.Vector4,
-            ShaderGraphExampleTypes.Color,
-            TypeHandle.Bool,
-            ShaderGraphExampleTypes.GradientTypeHandle,
-            ShaderGraphExampleTypes.Texture2DTypeHandle,
-            ShaderGraphExampleTypes.Texture2DArrayTypeHandle,
-            ShaderGraphExampleTypes.Texture3DTypeHandle,
-            ShaderGraphExampleTypes.CubemapTypeHandle,
-            ShaderGraphExampleTypes.Matrix2,
-            ShaderGraphExampleTypes.Matrix3,
-            ShaderGraphExampleTypes.Matrix4,
-            ShaderGraphExampleTypes.SamplerStateTypeHandle,
-        };
-
         /// <summary>
         /// Returns true if a blackboard property with the given TypeHandle can be included in the property block for
         /// the current model. Use this to avoid exporting invalid properties like matrices.
         /// </summary>
         bool IsExposable(TypeHandle typeHandle)
         {
-            var descriptor = typeHandle.ToDescriptor();
+            var descriptor = typeHandle.GetBackingDescriptor();
             switch (descriptor)
             {
                 case ParametricTypeDescriptor {Height: GraphType.Height.One}:
@@ -143,7 +125,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Only populate the Properties section for now. Will change in the future.
             if (sectionName != sections[0]) return;
 
-            foreach (var type in k_SupportedBlackboardTypes)
+            foreach (var type in ShaderGraphExampleTypes.BlackboardTypes)
             {
                 var displayName = TypeMetadataResolver.Resolve(type)?.FriendlyName ?? type.Name;
                 menu.Add(new MenuItem
@@ -170,7 +152,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                             ContextBuilder.AddReferableEntry(
                                 propertyContext,
-                                type.ToDescriptor(),
+                                type.GetBackingDescriptor(),
                                 variableDeclarationName,
                                 registry.Registry,
                                 IsExposable(type) ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,

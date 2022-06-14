@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -25,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Matrix3 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 3");
         public static readonly TypeHandle Matrix4 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 4");
 
-        static readonly IReadOnlyDictionary<TypeHandle, ITypeDescriptor> k_UnderlyingTypes =
+        static readonly IReadOnlyDictionary<TypeHandle, ITypeDescriptor> k_BackingTypeDescriptors =
             new Dictionary<TypeHandle, ITypeDescriptor>
             {
                 {TypeHandle.Int, TYPE.Int},
@@ -46,12 +47,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {SamplerStateTypeHandle, TYPE.SamplerState},
             };
 
+        public static IEnumerable<TypeHandle> AllUiTypes => k_BackingTypeDescriptors.Keys;
+
+        // TODO: Should eventually exclude virtual textures
+        public static IEnumerable<TypeHandle> SubgraphOutputTypes => AllUiTypes.Where(t => t != Color);
+
+        public static IEnumerable<TypeHandle> BlackboardTypes => AllUiTypes;
+
         /// <summary>
         /// Maps this TypeHandle to the best existing ITypeDescriptor to represent its data.
         /// </summary>
-        internal static ITypeDescriptor ToDescriptor(this TypeHandle typeHandle)
+        internal static ITypeDescriptor GetBackingDescriptor(this TypeHandle typeHandle)
         {
-            return k_UnderlyingTypes[typeHandle];
+            return k_BackingTypeDescriptors[typeHandle];
         }
 
         // This is a sister function used with ShaderGraphStencil.GetConstantNodeValueType--

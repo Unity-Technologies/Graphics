@@ -28,24 +28,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public int TypeIndex;
         }
 
-        static readonly TypeHandle[] k_AvailableTypes = {
-            TypeHandle.Float,
-            TypeHandle.Vector2,
-            TypeHandle.Vector3,
-            TypeHandle.Vector4,
-            TypeHandle.Bool,
-            ShaderGraphExampleTypes.GradientTypeHandle,
-            ShaderGraphExampleTypes.Texture2DTypeHandle,
-            ShaderGraphExampleTypes.Texture2DArrayTypeHandle,
-            ShaderGraphExampleTypes.Texture3DTypeHandle,
-            ShaderGraphExampleTypes.CubemapTypeHandle,
-            ShaderGraphExampleTypes.Matrix2,
-            ShaderGraphExampleTypes.Matrix3,
-            ShaderGraphExampleTypes.Matrix4,
-            ShaderGraphExampleTypes.SamplerStateTypeHandle,
-        };
-
         GraphDataContextNodeModel m_ContextNodeModel;
+        TypeHandle[] m_AvailableTypes;
         ShaderGraphStencil m_Stencil;
         List<SubgraphOutputRow> m_OutputRows;
         ListPropertyField m_OutputRowListField;
@@ -54,12 +38,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             : base(name, model, ownerElement, parentClassName)
         {
             m_OutputRows = new List<SubgraphOutputRow>();
+            m_AvailableTypes = ShaderGraphExampleTypes.SubgraphOutputTypes.ToArray();
 
             if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
             m_ContextNodeModel = contextNodeModel;
             m_Stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
 
-            var typeNames = k_AvailableTypes.Select(GetTypeDisplayName).ToList();
+            var typeNames = m_AvailableTypes.Select(GetTypeDisplayName).ToList();
             var controller = new SubgraphOutputListViewController();
             controller.beforeItemsRemoved += indices =>
             {
@@ -94,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     dropdownField.SetValueWithoutNotify(dropdownField.choices[m_OutputRows[i].TypeIndex]);
                     dropdownField.RegisterValueChangedCallback(_ => // Event gives us a string, not the index
                     {
-                        m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_OutputRows[i].Name, k_AvailableTypes[dropdownField.index]));
+                        m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_OutputRows[i].Name, m_AvailableTypes[dropdownField.index]));
                     });
                 }
             );
@@ -148,7 +133,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_OutputRows.Add(new SubgraphOutputRow
                 {
                     Name = portHandler.ID.LocalPath,
-                    TypeIndex = Array.IndexOf(k_AvailableTypes, ShaderGraphExampleTypes.GetGraphType(portHandler)),
+                    TypeIndex = Array.IndexOf(m_AvailableTypes, ShaderGraphExampleTypes.GetGraphType(portHandler)),
                 });
             }
 

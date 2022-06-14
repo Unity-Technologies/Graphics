@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (!TryGetNodeHandler(out var nodeHandler)) return;
 
-            ContextBuilder.AddContextEntry(nodeHandler, typeHandle.ToDescriptor(), entryName, nodeHandler.Registry);
+            ContextBuilder.AddContextEntry(nodeHandler, typeHandle.GetBackingDescriptor(), entryName, nodeHandler.Registry);
             graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
             DefineNode();
         }
