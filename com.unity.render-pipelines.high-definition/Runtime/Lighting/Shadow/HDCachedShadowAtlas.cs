@@ -279,7 +279,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_Initialized)
             {
-                Debug.LogWarning("Registering light to disposed HDCachedShadowAtlas.", lightData);
                 return;
             }
 
