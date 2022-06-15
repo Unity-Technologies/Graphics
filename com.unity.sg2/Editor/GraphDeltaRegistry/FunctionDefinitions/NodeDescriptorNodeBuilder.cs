@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Defs
             FunctionDescriptor functionDescriptor)
         {
             var oldName = functionDescriptor.Name;
-            var newBody = Regex.Replace(oldName, functionNameToCodeName[oldName], functionDescriptor.Body);
+            var newBody = Regex.Replace(functionDescriptor.Body, oldName, functionNameToCodeName[oldName]);
             return newBody;
         }
 
@@ -236,6 +236,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
             // Add the shader function body.
             shaderFunctionBuilder.AddLine(m_functionNameToModifiedBody[functionDescriptor.Name]);
+
 
             // Return the results of ShaderFoundry's build.
             return shaderFunctionBuilder.Build();
