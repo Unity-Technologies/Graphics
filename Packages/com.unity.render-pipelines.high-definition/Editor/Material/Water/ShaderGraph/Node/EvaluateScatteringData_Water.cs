@@ -128,11 +128,11 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // Output zeros
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kRefractionColorOutputSlotId));
-                sb.AppendLine("$precision {0} = 1.0f;",
+                sb.AppendLine("$precision {0} = 1.0;",
                     GetVariableNameForSlot(kTipThicknessOutputSlotId));
             }
         }

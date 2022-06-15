@@ -141,6 +141,24 @@ MonoBehaviour:
     Reason: Error on lightmapper side
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: fa0d54c5ccbc8b143a8db100374e0f5e, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Bug 1425481
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 642f1a1637886b84bbebc5374aa46f6f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Bug 1425481
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
     ColorSpace: 1
     BuildPlatform: -2

@@ -53,7 +53,6 @@ Shader "Hidden/HDRP/WaterCaustics"
             // Resolution of the caustics geometry
             int _CausticGeometryResolution;
             int _CausticsNormalsMipOffset;
-            int _CausticsBandIndex;
             float _CausticsVirtualPlane;
 
             bool IntersectPlane(float3 ray_originWS, float3 ray_dir, float3 pos, float3 normal, out float t)
