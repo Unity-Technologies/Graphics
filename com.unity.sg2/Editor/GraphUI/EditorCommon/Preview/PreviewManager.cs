@@ -248,5 +248,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_DirtyNodes.Add(downstreamNode);
             }
         }
+
+        /// <summary>
+        /// Used by UI tests to validate preview results after UI driven changes
+        /// </summary>
+        /// <param name="nodeName"></param>
+        internal Material GetPreviewMaterialForNode(string nodeName)
+        {
+            return m_PreviewHandlerInstance.RequestNodePreviewMaterial(nodeName);
+        }
     }
 }

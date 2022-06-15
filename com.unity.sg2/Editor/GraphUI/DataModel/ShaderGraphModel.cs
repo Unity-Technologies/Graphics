@@ -276,6 +276,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             switch (pastedNodeModel)
             {
+                // We don't want to be able to duplicate context nodes,
+                // also they subclass from GraphDataNodeModel so need to handle first
+                case GraphDataContextNodeModel:
+                    return null;
                 case GraphDataNodeModel newCopiedNode when sourceNode is GraphDataNodeModel sourceGraphDataNode:
                 {
                     newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
@@ -342,14 +346,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             if (duplicatedIncomingNode is NodeModel duplicatedIncomingNodeModel)
                             {
                                 var fromPort = FindOutputPortByName(duplicatedIncomingNodeModel, originalNodeEdge.FromPortId);
-                                var toPort = FindInputPortByName((NodeModel)value, originalNodeEdge.ToPortId);
+                                var toPort = FindInputPortByName(value, originalNodeEdge.ToPortId);
                                 Assert.IsNotNull(fromPort);
                                 Assert.IsNotNull(toPort);
                                 CreateEdge(toPort, fromPort);
                             }
                             else // Just copy that connection over to the new duplicated node
                             {
-                                var toPort = FindInputPortByName((NodeModel)value, originalNodeEdge.ToPortId);
+                                var toPort = FindInputPortByName(value, originalNodeEdge.ToPortId);
                                 var fromPort = originalNodeEdge.FromPort;
                                 Assert.IsNotNull(fromPort);
                                 Assert.IsNotNull(toPort);
@@ -370,14 +374,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        static IPortModel FindInputPortByName(NodeModel nodeModel, string portID)
+        public static IPortModel FindInputPortByName(INodeModel nodeModel, string portID)
         {
-            return nodeModel.InputsById.FirstOrDefault(input => input.Key == portID).Value;
+            return ((NodeModel)nodeModel).InputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
-        static IPortModel FindOutputPortByName(NodeModel nodeModel, string portID)
+        public static IPortModel FindOutputPortByName(INodeModel nodeModel, string portID)
         {
-            return nodeModel.OutputsById.FirstOrDefault(input => input.Key == portID).Value;
+            return ((NodeModel)nodeModel).OutputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()

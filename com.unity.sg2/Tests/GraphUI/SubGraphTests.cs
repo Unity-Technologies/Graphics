@@ -38,19 +38,19 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestCanAddNodeToSubGraph()
         {
-            return AddNodeFromSearcherAndValidate("Add");
+            return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
         }
 
         [UnityTest]
         public IEnumerator TestSaveSubGraph()
         {
-            yield return AddNodeFromSearcherAndValidate("Add");
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
             yield return SaveAndReopenGraph();
             // Wait till the graph model is loaded back up
             while (m_Window.GraphView.GraphModel == null)
                 yield return null;
 
-            Assert.IsTrue(FindNodeOnGraphByName("Add"));
+            Assert.IsNotNull(m_Window.GetNodeModelFromGraphByName("Add"));
         }
     }
 }

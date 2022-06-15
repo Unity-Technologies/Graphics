@@ -2,6 +2,7 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
@@ -16,19 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             const string toNodeName = "Preview", toPortName = "In";
 
             // Set up the graph
-            {
-                yield return AddNodeFromSearcherAndValidate(fromNodeName);
-                yield return AddNodeFromSearcherAndValidate(toNodeName);
-
-                var nodeModels = m_GraphView.GraphModel.NodeModels;
-                var addNode = (GraphDataNodeModel)nodeModels.First(n => n is GraphDataNodeModel {Title: fromNodeName});
-                var addOut = addNode.GetOutputPorts().First(p => p.UniqueName == fromPortName);
-
-                var previewNode = (GraphDataNodeModel)nodeModels.First(n => n is GraphDataNodeModel {Title: toNodeName});
-                var previewIn = previewNode.GetInputPorts().First(p => p.UniqueName == toPortName);
-
-                m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
-            }
+            yield return m_TestInteractionHelper.CreateNodesAndConnect(fromNodeName, toNodeName, fromPortName, toPortName);
 
             yield return SaveAndReopenGraph();
 
@@ -40,13 +29,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsTrue(edge.FromPort is
                 {
                     UniqueName: fromPortName,
-                    NodeModel: GraphDataNodeModel {Title: fromNodeName}
+                    NodeModel: GraphDataNodeModel { Title: fromNodeName }
                 }, $"Edge should begin at port {fromPortName} on node {fromNodeName}");
 
                 Assert.IsTrue(edge.ToPort is
                 {
                     UniqueName: toPortName,
-                    NodeModel: GraphDataNodeModel {Title: toNodeName}
+                    NodeModel: GraphDataNodeModel { Title: toNodeName }
                 }, $"Edge should end at port {toPortName} on node {toNodeName}");
             }
         }
@@ -54,33 +43,34 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestEdgeCanBeDeleted()
         {
-            const string fromNodeName = "Add", fromPortName = "Out";
-            const string toNodeName = "Preview", toPortName = "In";
-
             // Set up the graph
-            yield return AddNodeFromSearcherAndValidate(fromNodeName);
-            yield return AddNodeFromSearcherAndValidate(toNodeName);
+            yield return m_TestInteractionHelper.CreateNodesAndConnect();
 
-            var nodeModels = m_GraphView.GraphModel.NodeModels;
-            var addNode = (GraphDataNodeModel)nodeModels.First(n => n is GraphDataNodeModel { Title: fromNodeName });
-            var addOut = addNode.GetOutputPorts().First(p => p.UniqueName == fromPortName);
-
-            var previewNode = (GraphDataNodeModel)nodeModels.First(n => n is GraphDataNodeModel { Title: toNodeName });
-            var previewIn = previewNode.GetInputPorts().First(p => p.UniqueName == toPortName);
-
-            m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
-
-            var edgeModel = GetEdgeModelFromGraphByName("Add", "Preview");
+            var edgeModel = m_Window.GetEdgeModelFromGraphByName("Add", "Preview");
 
             // Select element programmatically because it might be behind another one
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, edgeModel));
             yield return null;
 
-            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
+            Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            edgeModel = GetEdgeModelFromGraphByName("Add", "Preview");
+            edgeModel = m_Window.GetEdgeModelFromGraphByName("Add", "Preview");
             Assert.IsNull(edgeModel, "Edge should be null after delete operation");
+        }
+
+        [UnityTest]
+        public IEnumerator TestEdgeCanBeCopied()
+        {
+            // Set up the graph
+            yield return m_TestInteractionHelper.CreateNodesAndConnect();
+
+            var modelsToCopy = m_GraphView.GraphModel.NodeModels.Where(model => model is not GraphDataContextNodeModel);
+
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(modelsToCopy.ToList());
+
+            var edgeModels = m_Window.GetEdgeModelsFromGraphByName("Add", "Preview");
+            Assert.IsTrue(edgeModels.Count == 2);
         }
     }
 }
