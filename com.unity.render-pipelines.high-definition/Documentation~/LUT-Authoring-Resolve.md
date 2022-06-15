@@ -2,13 +2,24 @@
 
 The following process uses DaVinci Resolve, but you can apply it for other digital content creation tools such as [Photoshop](LUT-Authoring-Photoshop.md) or Nuke.
 
-## Step 1: Set up the HDRP Asset
+To author lookup textures in resolve: 
+
+1. [Set up the HDRP Asset](#set-up-hdrp-asset)
+2. [Render the Camera view to an EXR file](#camera-to-exr)
+3. [Set up Resolve for color grading](#set-up-resolve)
+4. [Apply color grading](#apply-color-grading)
+5. [Export your work as a CUBE file](#export-cube)
+6. [Import and use the CUBE file in your Scene](#import-cube)
+
+<a name="set-up-hdrp-asset"></a>
+## Set up the HDRP Asset
 
 Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.md). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
 
 Resolve only exports LUTs of size 33 so set **Grading LUT Size** to **33** for it to work correctly. 
 
-## Step 2: Render the Camera view to an EXR file
+<a name="camera-to-exr"></a>
+## Render the Camera view to an EXR file
 
 Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
 
@@ -25,20 +36,21 @@ After you export the EXR file, transform the data from the format that Unity use
 3. In the **Samples** section, select **Import into Project** next to **Additional Post-processing Data**.
 4. This imports the LUTs into *Assets/HDRP Sample Content/Post-processing/Cube LUTs/*.
 
-## Step 3: Setting up Resolve
+<a name="set-up-resolve"></a>
+## Setting up Resolve
 
 Before you can start color grading in Resolve, you need to set up Resolve to work with the EXR file from Unity. To do this:
 
 1. Create an empty project in Resolve.
 2. Open **File > Project Settings** and go to the **Color Management** panel.
 3. In the **Lookup Table** section, click the **Open Lut Folder** button. This opens your platform's file explorer at the location that stores LUTs for Resolve.
-4. In the file explorer, create a new **Unity** folder and copy all the previously imported LUTs you exported from Unity (see **Step 2)** into it.
+4. In the file explorer, create a new **Unity** folder and copy all the previously imported LUTs you exported from Unity (see [Render the Camera view to an EXR file](#camera-to-exr)) into it.
 5. Back in Resolve, click the **Update Lists** button.
-6. Set the **3D Video Monitor Lookup Table** to **Linear to sRGB r1**.
+6. Set the **Video Monitor Lookup Table** to **Linear to sRGB r1**.
 
-**Note**: You only need to do step 1-5 once for Resolve in general, and step 6 per-project.
+**Note**: You only need to do step 1 to 5 once for Resolve in general, and step 6 for each project.
 
-Now import the EXR into Resolve and then apply the **Unity Log To Linear r1** LUT to it. To apply the LUT:
+Import the EXR into Resolve and apply the **Unity Log To Linear r1** LUT to it. To apply the LUT:
 
 1. Right-click on the EXR file in Resolve.
 2. In the context menu, select **3D Lut**.
@@ -46,19 +58,24 @@ Now import the EXR into Resolve and then apply the **Unity Log To Linear r1** LU
 
 ![](Images/LUTAuthoringResolve2.png)
 
-## Step 4: Apply color grading
+<a name="apply-color-grading"></a>
+## Apply color grading
 
 You can now start grading your image. Make sure you only do global color operations because LUTs cannot store local operators or any filters that affect neighboring pixels (such as blur or sharpen).
 
 ![](Images/LUTAuthoringResolve3.png)
 
-## Step 5: Export your work as a CUBE file
+<a name="export-cube"></a>
+
+## Export your work as a CUBE file
 
 When you finish grading, export your work as a CUBE file. To do this in Resolve, right click on the graded clip and select **Generate 3D LUT (CUBE)** in the menu.
 
 Save the CUBE file in your Unity Project's *Assets* folder.
 
-## Step 6: Import and use the CUBE file in your Scene
+<a name="import-cube"></a>
+
+## Import and use the CUBE file in your Scene
 
 Unity automatically interprets the CUBE file as a usable Texture3D Asset. You can use this CUBE file in a **Tonemapping** override inside a Volume. To do this:
 
