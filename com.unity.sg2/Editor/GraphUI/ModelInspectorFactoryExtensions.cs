@@ -9,6 +9,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [GraphElementsExtensionMethodsCache(typeof(ModelInspectorView))]
     public static class ModelInspectorViewFactoryExtensions
     {
+        public static IModelView CreateVariableDeclarationInspector(this ElementBuilder elementBuilder, GraphDataVariableDeclarationModel model)
+        {
+            var ui = new ShaderGraphModelInspector();
+            ui.Setup(model, elementBuilder.View, elementBuilder.Context);
+
+            if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
+            {
+                switch (inspectorSectionContext.Section.SectionType)
+                {
+                    case SectionType.Settings:
+                    {
+                        var variableInspector = new VariableDeclarationInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(variableInspector);
+                        break;
+                    }
+
+                    case SectionType.Advanced:
+                    {
+                        // (TODO: not showing?)
+                        var inspectorFields = VariableFieldsInspector.Create(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(inspectorFields);
+                        break;
+                    }
+                }
+            }
+
+            ui.BuildUI();
+            ui.UpdateFromModel();
+            return ui;
+        }
+
         public static IModelView CreateContextSectionInspector(this ElementBuilder elementBuilder, GraphDataContextNodeModel model)
         {
             var ui = new ShaderGraphModelInspector();
@@ -63,7 +94,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(inspectorFields);
                         break;
-
                     }
 
                     // Uncomment to enable "properties" section - shows inline port editors
