@@ -156,15 +156,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     // has FunctionDescriptor
                     else if (fdMethod != null)
                     {
+                        int version = 8;
+                        if (versionMethod != null)
+                        {
+                            version = (int)versionMethod.Invoke(null, null);
+                        }
                         var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
                         if (!fd.Equals(default(NodeDescriptor)))
                         {
-                            int version = 1;
-                            if (versionMethod != null)
-                            {
-                                version = (int)versionMethod.Invoke(null, null);
-                            }
-
                             if (uidMethod != null)
                             {
                                 var ui = (NodeUIDescriptor)uidMethod.Invoke(null, null);
