@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     {
                         "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
                     },
-                    body: "Out = In;",
+                    body: "Hash_Tchou_2_1_float(In, Out);",
                     parameters: new ParameterDescriptor[] {
                         new ParameterDescriptor(
                             name: "In",
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         ),
                         new ParameterDescriptor(
                             name: "Out",
-                            type: TYPE.Vec2,
+                            type: TYPE.Float,
                             usage: GraphType.Usage.Out
                         )
                     }
