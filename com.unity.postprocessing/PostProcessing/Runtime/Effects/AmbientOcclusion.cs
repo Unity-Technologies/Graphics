@@ -130,8 +130,8 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <summary>
         /// Modifies the z-bias to the depth buffer. This eliminates the banding aliasing artifact for MSVO.
         /// </summary>
-        [Range(0f, 0.5f), Tooltip("Modifies the bias to the depth buffer for reducing aliasing artifact.")]
-        public FloatParameter zBias = new FloatParameter { value = 0.01f };
+        [Range(0f, 0.001f), Tooltip("Modifies the bias to the depth buffer for reducing aliasing artifact.")]
+        public FloatParameter zBias = new FloatParameter { value = 0.0001f };
 
         // HDRP-only parameters
 
