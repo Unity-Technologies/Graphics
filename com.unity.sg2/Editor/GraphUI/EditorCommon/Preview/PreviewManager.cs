@@ -220,7 +220,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)
         {
-            Debug.LogWarning("UNIMPLEMENTED: Preview manager OnGlobalPropertyChanged");
+            // TODO: (Sai) Would it be better to have a way to gather any variable nodes linked to a blackboard item at a GraphHandler level instead of here?
+            var linkedVariableNodes = m_GraphModelStateComponent.GraphModel.NodeModels.Where(
+                node => node is GraphDataVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
+                                                                                                                    && variableDeclarationModel.graphDataName == propertyName);
+
+            var variableNodeNames = new List<string>();
+            foreach(var node in linkedVariableNodes)
+            {
+                var nodeModel = node as GraphDataVariableNodeModel;
+                variableNodeNames.Add(nodeModel.graphDataName);
+            }
+
+            var impactedNodes = m_PreviewHandlerInstance.SetGlobalProperty(propertyName, newValue, variableNodeNames);
+            foreach (var downstreamNode in impactedNodes)
+            {
+                m_DirtyNodes.Add(downstreamNode);
+            }
         }
 
         public void OnLocalPropertyChanged(string nodeName, string propertyName, object newValue)
@@ -231,6 +247,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_DirtyNodes.Add(downstreamNode);
             }
+        }
+
+        /// <summary>
+        /// Used by UI tests to validate preview results after UI driven changes
+        /// </summary>
+        /// <param name="nodeName"></param>
+        internal Material GetPreviewMaterialForNode(string nodeName)
+        {
+            return m_PreviewHandlerInstance.RequestNodePreviewMaterial(nodeName);
         }
     }
 }

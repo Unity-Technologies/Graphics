@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using UnityEngine;
@@ -17,8 +19,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected TestEditorWindow m_Window;
         protected TestGraphView m_GraphView;
 
+        protected ShaderGraphModel GraphModel => m_GraphView.GraphModel as ShaderGraphModel;
+
         // Used to send events to the highest shader graph editor window
-        protected TestEventHelpers m_ShaderGraphWindowTestHelper;
+        protected TestEventHelpers m_TestEventHelper;
+
+        // Used to simulate interactions within the shader graph editor window
+        protected TestInteractionHelpers m_TestInteractionHelper;
 
         protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
         protected virtual bool hideOverlayWindows => true;
@@ -64,7 +71,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_Window = EditorWindow.CreateWindow<TestEditorWindow>(typeof(SceneView), typeof(TestEditorWindow));
             m_Window.shouldCloseWindowNoPrompt = true;
 
-            m_ShaderGraphWindowTestHelper = new TestEventHelpers(m_Window);
+            m_TestEventHelper = new TestEventHelpers(m_Window);
+
+            m_TestInteractionHelper = new TestInteractionHelpers(m_Window, m_TestEventHelper);
         }
 
         public void CloseWindow()
@@ -99,89 +108,31 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
         }
 
-        public SearcherWindow SummonSearcher()
+        static Texture2D DrawMaterialToTexture(Material material)
         {
-            m_GraphView.DisplaySmartSearch(new Vector2());
-
-            // TODO: (Sai) This throws an exception on some occasions in DisplaySmartSearch, ask Vlad for help figuring out why?
-            //TestEventHelpers.SendKeyDownEvent(m_Window, KeyCode.Space);
-            //TestEventHelpers.SendKeyUpEvent(m_Window, KeyCode.Space);
-
-            var searcherWindow = (SearcherWindow)EditorWindow.GetWindow(typeof(SearcherWindow));
-            return searcherWindow;
+            var rt = RenderTexture.GetTemporary(4, 4, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            var prevActive = RenderTexture.active;
+            RenderTexture.active = rt;
+            Graphics.Blit(null, rt, material);
+            Texture2D output = new(4, 4, TextureFormat.ARGB32, false);
+            output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
+            RenderTexture.active = prevActive;
+            rt.Release();
+            return output;
         }
 
-        public IEnumerator AddNodeFromSearcherAndValidate(string nodeName)
+        protected static Color SampleMaterialColor(Material material)
         {
-            var searcherWindow = SummonSearcher();
-            var searcherWindowTestHelper = new TestEventHelpers(searcherWindow);
-
-            yield return null;
-
-            searcherWindow.Focus();
-            yield return null;
-            yield return null;
-
-            foreach (char c in nodeName)
+            var outputTexture = DrawMaterialToTexture(material);
+            try
             {
-                searcherWindowTestHelper.SimulateKeyPress(c.ToString());
-                yield return null;
+                return outputTexture.GetPixel(0, 0);
             }
-
-            // Sending two key-down events followed by a key-up for the Return as we normally do causes an exception
-            // it seems like the searcher is waiting for that first Return event and closes immediately after,
-            // any further key events sent cause a MissingReferenceException as the searcher window is now invalid
-            searcherWindowTestHelper.SimulateKeyPress(KeyCode.Return, false, false);
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-
-            Assert.IsTrue(FindNodeOnGraphByName(nodeName));
-        }
-
-        public bool FindNodeOnGraphByName(string nodeName)
-        {
-            var nodeModels = m_Window.GraphView.GraphModel.NodeModels;
-            foreach (var nodeModel in nodeModels)
+            catch (Exception e)
             {
-                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName && !concreteNodeModel.Destroyed)
-                    return true;
+                Console.WriteLine(e);
+                throw;
             }
-
-            return false;
-        }
-
-        public INodeModel GetNodeModelFromGraphByName(string nodeName)
-        {
-            var nodeModels = m_Window.GraphView.GraphModel.NodeModels;
-            foreach (var nodeModel in nodeModels)
-            {
-                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName)
-                {
-                    return concreteNodeModel;
-                }
-            }
-
-            return null;
-        }
-
-        public IEdgeModel GetEdgeModelFromGraphByName(string sourceNodeName, string destinationNodeName)
-        {
-            var edgeModels = m_Window.GraphView.GraphModel.EdgeModels;
-            foreach (var edgeModel in edgeModels)
-            {
-                var fromPortNodeModel = (NodeModel)edgeModel.FromPort.NodeModel;
-                var toPortNodeModel = (NodeModel)edgeModel.ToPort.NodeModel;
-
-                if (fromPortNodeModel.DisplayTitle == sourceNodeName
-                    && toPortNodeModel.DisplayTitle == destinationNodeName)
-                {
-                    return edgeModel;
-                }
-            }
-
-            return null;
         }
     }
 }

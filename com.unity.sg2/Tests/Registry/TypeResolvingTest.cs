@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.AreEqual(GraphType.Length.Four, outlen);
 
             // reconcretize the node
-            bool didReconcretize = m_graph.ReconcretizeNode(nodeName, m_registry);
+            bool didReconcretize = m_graph.ReconcretizeNode(nodeName);
             Assert.IsTrue(didReconcretize);
 
             // EXPECT that In is still a Vec3

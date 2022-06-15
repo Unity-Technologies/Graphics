@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -59,9 +60,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal bool IsSubGraph => CanBeSubgraph();
         internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
 
+        Dictionary<INodeModel, INodeModel> m_DuplicatedNodesMap = new();
+
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
-        public Action<IGraphElementModel> OnGraphModelChanged;
 
         public void Init(GraphHandler graph, bool isSubGraph)
         {
@@ -78,7 +80,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var localPath in contextNames)
             {
-                GraphHandler.ReconcretizeNode(localPath);
+                try
+                {
+                    GraphHandler.ReconcretizeNode(localPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
 
                 if (!NodeModels.Any(nodeModel =>
                         nodeModel is GraphDataContextNodeModel contextNodeModel &&
@@ -138,7 +147,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 foreach (var child in toRedir.GetRedirectTree(true))
                 {
                     child.UpdateTypeFrom(fromPort);
-                    OnGraphModelChanged(child);
                 }
             }
             else
@@ -181,8 +189,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             return GraphHandler.TryConnect(
                 src.owner.graphDataName, src.graphDataName,
-                dst.owner.graphDataName, dst.graphDataName,
-                RegistryInstance.Registry);
+                dst.owner.graphDataName, dst.graphDataName);
         }
 
         /// <summary>
@@ -194,8 +201,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphHandler.Disconnect(
                 src.owner.graphDataName, src.graphDataName,
-                dst.owner.graphDataName, dst.graphDataName,
-                RegistryInstance.Registry);
+                dst.owner.graphDataName, dst.graphDataName);
         }
 
         static bool PortsFormCycle(IPortModel fromPort, IPortModel toPort)
@@ -262,7 +268,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="sourceNode"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
         /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
         /// <returns></returns>
-        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta)
+        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null)
         {
             var pastedNodeModel = sourceNode.Clone();
             // Set graphmodel BEFORE define node as it is commonly use during Define
@@ -271,6 +277,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             switch (pastedNodeModel)
             {
+                // We don't want to be able to duplicate context nodes,
+                // also they subclass from GraphDataNodeModel so need to handle first
+                case GraphDataContextNodeModel:
+                    return null;
                 case GraphDataNodeModel newCopiedNode when sourceNode is GraphDataNodeModel sourceGraphDataNode:
                 {
                     newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
@@ -278,17 +288,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
                     break;
                 }
-                case GraphDataVariableNodeModel newCopiedVariableNode:
+                case GraphDataVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
                 {
                     newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
 
-                    var contextName = Registry.ResolveKey<PropertyContext>().Name;
-
-                    // Every time a variable node is added to the graph, add a reference node pointing back
-                    // to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
-
-                    // TODO: (Need the variable declaration model's guid/graphDataName for the contextEntryName parameter)
-                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, contextName, newCopiedVariableNode.DisplayTitle, RegistryInstance.Registry);
+                    // Every time a variable node is duplicated, add a reference node pointing back
+                    // to the property/keyword that is wrapped by the VariableDeclarationModel, on the CLDS level
+                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
                     break;
                 }
             }
@@ -297,6 +303,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             AddNode(pastedNodeModel);
             pastedNodeModel.OnDuplicateNode(sourceNode);
 
+            var graphModelStateUpdater = stateComponentUpdater as GraphModelStateComponent.StateUpdater;
+            graphModelStateUpdater?.MarkNew(sourceNode);
+
+            // Need to get a reference to the original node model to get edge info., the serialized copy in 'sourceNode' doesn't have that
+            var originalSourceNode = NodeModels.FirstOrDefault(model => model.Guid == sourceNode.Guid);
+            if (originalSourceNode != null)
+            {
+                m_DuplicatedNodesMap.Add(originalSourceNode, pastedNodeModel);
+            }
+
             if (pastedNodeModel is IGraphElementContainer container)
             {
                 foreach (var element in container.GraphElementModels)
@@ -304,6 +320,69 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             return pastedNodeModel;
+        }
+
+        public void HandlePostDuplicationEdgeFixup()
+        {
+            if (m_DuplicatedNodesMap.Count != 0)
+            {
+                try
+                {
+                    // Key is the original node, Value is the duplicated node
+                    foreach (var (key, value) in m_DuplicatedNodesMap)
+                    {
+                        var originalNodeConnections = key.GetConnectedEdges();
+                        foreach (var originalNodeEdge in originalNodeConnections)
+                        {
+                            var incomingEdgeSourceNode = originalNodeEdge.FromPort.NodeModel;
+                            // This is an output edge, we can skip it
+                            if (key == incomingEdgeSourceNode)
+                                continue;
+
+                            m_DuplicatedNodesMap.TryGetValue(incomingEdgeSourceNode, out var duplicatedIncomingNode);
+
+                            // If any node that was copied has an incoming edge from a node that was ALSO
+                            // copied, then we need to find the duplicated copy of the incoming node
+                            // and create the edge between these new duplicated nodes instead
+                            if (duplicatedIncomingNode is NodeModel duplicatedIncomingNodeModel)
+                            {
+                                var fromPort = FindOutputPortByName(duplicatedIncomingNodeModel, originalNodeEdge.FromPortId);
+                                var toPort = FindInputPortByName(value, originalNodeEdge.ToPortId);
+                                Assert.IsNotNull(fromPort);
+                                Assert.IsNotNull(toPort);
+                                CreateEdge(toPort, fromPort);
+                            }
+                            else // Just copy that connection over to the new duplicated node
+                            {
+                                var toPort = FindInputPortByName(value, originalNodeEdge.ToPortId);
+                                var fromPort = originalNodeEdge.FromPort;
+                                Assert.IsNotNull(fromPort);
+                                Assert.IsNotNull(toPort);
+                                CreateEdge(toPort, fromPort);
+                            }
+                        }
+                    }
+                }
+                catch (Exception edgeFixupException)
+                {
+                    Debug.Log("Exception Thrown while trying to handle post copy-paste edge fixup." + edgeFixupException);
+                }
+                finally
+                {
+                    // We always want to make sure that the dictionary is cleared to prevent this from endless looping
+                    m_DuplicatedNodesMap.Clear();
+                }
+            }
+        }
+
+        public static IPortModel FindInputPortByName(INodeModel nodeModel, string portID)
+        {
+            return ((NodeModel)nodeModel).InputsById.FirstOrDefault(input => input.Key == portID).Value;
+        }
+
+        public static IPortModel FindOutputPortByName(INodeModel nodeModel, string portID)
+        {
+            return ((NodeModel)nodeModel).OutputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
@@ -464,7 +543,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     variableNodeModel.VariableDeclarationModel = model;
 
                     // Every time a variable node is added to the graph, add a reference node pointing back to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
-                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance.Registry);
+                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName);
 
                     // Currently using GTF guid of the variable node as its graph data name
                     graphDataVariable.graphDataName = guid.ToString();

@@ -20,7 +20,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            base.BuildContextualMenu(evt);
+            // TODO: (Sai) Revisit this other functionality that GTF
+            // TODO: exposes once we've achieved feature parity with old SG
+            //base.BuildContextualMenu(evt);
+
             evt.menu.AppendAction("Add Redirect Node", action =>
             {
                 if (Model is not EdgeModel edgeModel) return;
