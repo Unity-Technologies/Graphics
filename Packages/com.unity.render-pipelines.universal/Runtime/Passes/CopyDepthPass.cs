@@ -97,8 +97,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.msaaSamples = MssaSamples;
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
             m_PassData.copyToDepth = CopyToDepth;
-            ExecutePass(context, m_PassData, ref renderingData.commandBuffer, ref renderingData.cameraData, source, destination, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
             renderingData.commandBuffer.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
+            ExecutePass(context, m_PassData, ref renderingData.commandBuffer, ref renderingData.cameraData, source, destination, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
         }
 
         private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref CommandBuffer cmd, ref CameraData cameraData, RTHandle source, RTHandle destination, bool isSourceYflipped)
@@ -161,7 +161,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
 
-                copyDepthMaterial.SetTexture("_CameraDepthAttachment", source.rt);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
@@ -192,7 +191,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
+            // TODO RENDERGRAPH: should refactor this as utility method for other passes to set Global textures
+            using (var builder = renderGraph.AddRenderPass<PassData>("Setup Global Depth", out var passData, base.profilingSampler))
+            {
+                passData.source = builder.ReadTexture(source);
+                builder.AllowPassCulling(false);
 
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    context.cmd.SetGlobalTexture("_CameraDepthAttachment", data.source);
+                });
+            }
             using (var builder = renderGraph.AddRenderPass<PassData>("Copy Depth", out var passData, base.profilingSampler))
             {
                 var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -218,7 +227,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     bool isSourceYflipped = data.cameraData.IsRenderTargetProjectionMatrixFlipped(data.source);
                     ExecutePass(context.renderContext, data, ref data.cmd, ref data.cameraData, data.source, data.destination, isSourceYflipped);
-                    data.cmd.SetGlobalTexture("_CameraDepthTexture", data.destination);
                 });
             }
 
