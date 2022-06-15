@@ -2587,17 +2587,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
-
-#if XP_CRAZYHUNTER
-        internal void DoLateUpdate()
-        {
-#else
-        internal void LateUpdate()
+        void LateUpdate()
         {
             // Prevent any unwanted sync when not in HDRP (case 1217575)
             if (HDRenderPipeline.currentPipeline == null)
                 return;
-#endif
 
             // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
@@ -2947,8 +2941,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Awake()
         {
-            HDRPUpdates.LazyInit();
-
             Migrate();
 
             // We need to reconstruct the emissive mesh at Light creation if needed due to not beeing able to change hierarchy in prefab asset.
@@ -3698,7 +3690,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Tell if the light is overlapping for the light overlap debug mode</summary>
         internal bool IsOverlapping()
         {
-            var baking = legacyLight.bakingOutput;
+            var baking = GetComponent<Light>().bakingOutput;
             bool isOcclusionSeparatelyBaked = baking.occlusionMaskChannel != -1;
             bool isDirectUsingBakedOcclusion = baking.mixedLightingMode == MixedLightingMode.Shadowmask || baking.mixedLightingMode == MixedLightingMode.Subtractive;
             return isDirectUsingBakedOcclusion && !isOcclusionSeparatelyBaked;
