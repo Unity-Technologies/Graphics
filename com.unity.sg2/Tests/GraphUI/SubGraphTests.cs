@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             const string outputNodeName = "DefaultContextDescriptor";
             const string outputInspectorListName = "sg-subgraph-output-list";
 
-            var output = GetNodeModelFromGraphByName(outputNodeName);
+            var output = m_Window.GetNodeModelFromGraphByName(outputNodeName);
             Assert.IsNotNull(output);
 
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, output));
