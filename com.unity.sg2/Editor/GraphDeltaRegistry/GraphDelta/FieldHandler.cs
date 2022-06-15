@@ -117,14 +117,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Writer.SetData(value);
             if(DefaultLayer.Equals(GraphDelta.k_user) && !prev.Equals(value) && HasMetadata(k_dataRecon))
             {
-                //Go up until we find an owning node, and trigger reconcretization 
+                //Go up until we find an owning node, and trigger reconcretization
                 ElementID parentID = ID.ParentPath;
                 while (parentID.FullPath.Length > 0)
                 {
                     if (Owner.m_data.Search(parentID).Element.Header is NodeHeader)
                     {
-                        Owner.ReconcretizeNode(parentID, Registry);
-                        return;
+                        try
+                        {
+                            Owner.ReconcretizeNode(parentID, Registry);
+                            return;
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                        }
                     }
                     parentID = parentID.ParentPath;
                 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -17,15 +18,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
-            return AddNodeFromSearcherAndValidate("Add");
+            return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
         }
 
         [UnityTest]
         public IEnumerator NodeCollapseExpandTest()
         {
-            yield return AddNodeFromSearcherAndValidate("Add");
+            yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModel)
@@ -38,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsNotNull(collapseButton);
 
                 var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, collapseButton, true);
-                m_ShaderGraphWindowTestHelper.SimulateMouseClick(collapseButtonPosition);
+                m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
                 yield return null;
                 yield return null;
                 yield return null;
@@ -51,7 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsNotNull(expandButton);
 
                 var expandButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, expandButton, true);
-                m_ShaderGraphWindowTestHelper.SimulateMouseClick(expandButtonPosition);
+                m_TestEventHelper.SimulateMouseClick(expandButtonPosition);
                 yield return null;
                 yield return null;
                 yield return null;
@@ -64,9 +65,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator NodeCollapseStateSerializationTest()
         {
-            yield return AddNodeFromSearcherAndValidate("Add");
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModel)
@@ -79,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsNotNull(collapseButton);
 
                 var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, collapseButton, true);
-                m_ShaderGraphWindowTestHelper.SimulateMouseClick(collapseButtonPosition);
+                m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
                 yield return null;
                 yield return null;
                 yield return null;
@@ -90,7 +91,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return SaveAndReopenGraph();
 
-            nodeModel = GetNodeModelFromGraphByName("Add");
+            nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModelReloaded)
@@ -107,10 +108,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContext));
             yield return null;
 
-            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
+            Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            var afterContext = GetNodeModelFromGraphByName(beforeContext.Title);
+            var afterContext = m_Window.GetNodeModelFromGraphByName(beforeContext.Title);
             Assert.AreEqual(beforeContext, afterContext, "Context node should be unaffected by delete operation");
         }
 
@@ -122,10 +123,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
 
             // Arbitrary node so that something other than a context exists in our graph.
-            yield return AddNodeFromSearcherAndValidate("Add");
+            yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
 
-            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
-            Assert.IsFalse(FindNodeOnGraphByName("Add"), "Non-context node should be deleted from selection");
+            // Select the context nodes and the add node
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContexts.Append(nodeModel).ToList()));
+
+            Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
+            Assert.IsNull(m_Window.GetNodeModelFromGraphByName("Add"), "Non-context node should be deleted from selection");
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context nodes should not be deleted from selection");
@@ -138,15 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var beforeContextCount = beforeContexts.Count;
             Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
 
-            // Select element programmatically because it might be behind another one
-            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContexts[0]));
-            yield return null;
-
-            m_ShaderGraphWindowTestHelper.SimulateKeyPress("C", modifiers: EventModifiers.Control);
-            yield return null;
-
-            m_ShaderGraphWindowTestHelper.SimulateKeyPress("V", modifiers: EventModifiers.Control);
-            yield return null;
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<INodeModel>() { beforeContexts[0] });
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
@@ -214,20 +211,51 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestNodeCanBeDeleted()
         {
-            yield return AddNodeFromSearcherAndValidate("Add");
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             // Select element programmatically because it might be behind another one
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeModel));
             yield return null;
 
-            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
+            Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            var addNode = GetNodeModelFromGraphByName("Add");
+            var addNode = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNull(addNode, "Node should be null after delete operation");
+
+            var graphDataNodeModel = nodeModel as GraphDataNodeModel;
+            var addNodeHandler = GraphModel.GraphHandler.GetNode(graphDataNodeModel.graphDataName);
+            Assert.IsNull(addNodeHandler, "Node should also be removed from CLDS after delete operation");
+        }
+
+        [UnityTest]
+        public IEnumerator TestNodeCanBeCopied()
+        {
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+
+            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            Assert.IsNotNull(nodeModel);
+
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<INodeModel>() { nodeModel });
+
+            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 2);
+        }
+
+        [UnityTest]
+        public IEnumerator TestMultipleNodesCanBeCopied()
+        {
+            // Create two Add nodes
+            yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+            yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+
+            var nodeModels = m_Window.GetNodeModelsFromGraphByName("Add");
+
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(nodeModels);
+
+            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 4);
         }
 
         /*

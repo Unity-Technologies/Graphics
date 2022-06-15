@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -130,11 +131,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public bool ReconcretizeNode(ElementID id, Registry registry)
         {
             //temporary workaround for old code
-            if(registry == null)
+            if (registry == null)
             {
                 return true;
             }
+
             var nodeHandler = m_data.GetHandler(id, this, registry).ToNodeHandler();
+            if (nodeHandler == null)
+                throw new InvalidOperationException("Failed to retrieve node handle with name: " + id.FullPath);
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
             if (!nodeHandler.HasMetadata("_CustomizationPointName"))
@@ -144,10 +148,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 builder.BuildNode(nodeHandler, registry);
                 nodeHandler.DefaultLayer = k_user;
             }
-            foreach(var downstream in GetConnectedDownstreamNodes(id, registry).ToList())//we are modifying the collection, hence .ToList
+
+            foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
             {
                 ReconcretizeNode(downstream.ID, registry);
             }
+
             return builder != null;
         }
 
@@ -177,7 +183,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             m_data.edges.Add(new Edge(output, input));
             PortHandler port = new PortHandler(input, this, registry);
-            ReconcretizeNode(port.GetNode().ID, registry);
+            try
+            {
+                ReconcretizeNode(port.GetNode().ID, registry);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                Debug.LogError("Failed to add edge.");
+            }
+
             return new EdgeHandler(output, input, this, registry);
         }
 
@@ -191,7 +206,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             m_data.edges.RemoveAll(e => e.Output.Equals(output) && e.Input.Equals(input));
             PortHandler port = new PortHandler(input, this, registry);
-            ReconcretizeNode(port.GetNode().ID, registry);
+            try
+            {
+                ReconcretizeNode(port.GetNode().ID, registry);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                Debug.LogError("Failed to remove edge.");
+            }
         }
 
         internal IEnumerable<NodeHandler> GetConnectedDownstreamNodes(ElementID node, Registry registry)

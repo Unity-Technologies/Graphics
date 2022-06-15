@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 using Assert = UnityEngine.Assertions.Assert;
@@ -793,7 +794,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         /// GTF-EDIT: Added virtual modifier
         /// <inheritdoc />
-        public virtual INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta)
+        public virtual INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null)
         {
             var pastedNodeModel = sourceNode.Clone();
 

@@ -212,6 +212,12 @@ namespace UnityEditor.ContextLayeredDataStorage
             child.Parent = parent;
         }
 
+        private void AddChildUnique(Element parent, ref Element child)
+        {
+            child.ID = child.GetUniqueLocalID(child.ID.FullPath.Replace($"{parent.ID.FullPath}.", ""), parent);
+            AddChild(parent, child);
+        }
+
         private void RemoveChild(Element parent, Element child)
         {
             parent.Children.Remove(child);
@@ -409,6 +415,18 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
+        protected void GatherAll(DataReader root, out List<DataReader> readers)
+        {
+            readers = new List<DataReader>();
+            foreach(var element in root.Element.Children)
+            {
+                var reader = element.GetReader();
+                readers.Add(reader);
+                GatherAll(reader, out var accumulatedReaders);
+                readers.AddRange(accumulatedReaders);
+            }
+        }
+
         /// <summary>
         /// A recursive function that takes in a root element, and any elements that have that root as a parent/ancestor.
         /// The function figures out and hooks up the direct children of the root, then recurses on each child with a list of
@@ -493,34 +511,102 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if(layer.Value.descriptor.isSerialized)
                 {
-                    var serializedLayer = new SerializedLayerData(layer.Value.descriptor.layerName, new List<SerializedElementData>());
-                    GatherAll(layer.Value.element, out var elements);
-                    foreach(var elem in elements)
-                    {
-                        serializedLayer.layerData.Add(elem.ToSerializedFormat());
-                    }
-                    serializedLayer.layerData.Sort(new SerializedDataComparer());
+                    var serializedLayer = SerializeLayer(layer.Value.descriptor, layer.Value.element);
                     m_serializedData.Add(serializedLayer);
                 }
             }
+        }
+
+        internal SerializedLayerData SerializeLayer(LayerDescriptor layerDescriptor, Element root)
+        {
+            var serializedLayer = new SerializedLayerData(layerDescriptor.layerName, new List<SerializedElementData>());
+            GatherAll(root, out var elements);
+            foreach (var elem in elements)
+            {
+                serializedLayer.layerData.Add(elem.ToSerializedFormat());
+            }
+            serializedLayer.layerData.Sort(new SerializedDataComparer());
+            return serializedLayer;
+        }
+
+        public virtual (string layer, string metadata) CopyElementCollection(IEnumerable<DataReader> readers)
+        {
+            var serializedLayer = new SerializedLayerData("CopyLayer", new List<SerializedElementData>());
+            var meta = new MetadataCollection();
+            foreach (var reader in readers)
+            {
+                var elem = reader.Element;
+                serializedLayer.layerData.Add(elem.ToSerializedFormat());
+                if(m_metadata.TryGetValue(elem.ID.FullPath, out var block))
+                {
+                    meta.Add(elem.ID.FullPath, block);
+                }
+            }
+            serializedLayer.layerData.Sort(new SerializedDataComparer());
+            return (EditorJsonUtility.ToJson(serializedLayer, true), EditorJsonUtility.ToJson(meta, true));
+        }
+
+        public virtual IEnumerable<DataReader> PasteElementCollection(string serializedLayer, string serializedMetadata, string layerToPasteTo, out Dictionary<string, string> remappings)
+        {
+            //WIP, need to work through the logic of pasting into an existing layer
+            var pasteLayer = new SerializedLayerData();
+            EditorJsonUtility.FromJsonOverwrite(serializedLayer, pasteLayer);
+
+            var meta = new MetadataCollection();
+            EditorJsonUtility.FromJsonOverwrite(serializedMetadata, meta);
+
+            var root = m_layerList.GetLayerRoot(layerToPasteTo);
+            remappings = new Dictionary<string, string>();
+            List<DataReader> addedElements = new List<DataReader>();
+            foreach (var elemData in pasteLayer.layerData)
+            {
+                var elem = DeserializeElement(elemData);
+                MetadataBlock block = null;
+                meta.TryGetValue(elem.ID.FullPath, out block);
+                foreach (var remap in remappings)
+                {
+                    elem.ID = elem.ID.Rename(remap.Key, remap.Value);
+                }
+                var initialID = elem.ID.LocalPath;
+                EvaluateParent(in root, elem.ID, out var parent);
+                AddChildUnique(parent, ref elem);
+                if(elem.ID.LocalPath != initialID)
+                {
+                    remappings.Add(initialID, elem.ID.LocalPath);
+                }
+                UpdateFlattenedStructureAdd(elem);
+                if(block != null)
+                {
+                    m_metadata.Add(elem.ID.FullPath, block);
+                }
+                addedElements.Add(elem.GetReader());
+            }
+            return addedElements;
         }
 
         public virtual void OnAfterDeserialize()
         {
             foreach(var serializedLayer in m_serializedData)
             {
-                var root = m_layerList.GetLayerRoot(serializedLayer.layerName);
-                List<Element> elems = new List<Element>();
-                foreach (var data in serializedLayer.layerData)
-                {
-                    elems.Add(DeserializeElement(data));
-                }
-                Rebalance(root, elems);
-                foreach(var elem in elems)
-                {
-                    UpdateFlattenedStructureAdd(elem);
-                }
+                DeserializeLayer(serializedLayer);
             }
+        }
+
+        //This version expects a layer in the layerlist to have a matching name to the serializedLayerData
+        private void DeserializeLayer(SerializedLayerData data)
+        {
+            var root = m_layerList.GetLayerRoot(data.layerName);
+            List<Element> elems = new List<Element>();
+            foreach (var elemData in data.layerData)
+            {
+                elems.Add(DeserializeElement(elemData));
+            }
+            Rebalance(root, elems);
+            foreach (var elem in elems)
+            {
+                UpdateFlattenedStructureAdd(elem);
+            }
+
         }
 
         private Element DeserializeElement(SerializedElementData data)

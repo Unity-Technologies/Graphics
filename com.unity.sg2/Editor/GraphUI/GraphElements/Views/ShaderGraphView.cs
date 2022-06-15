@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -14,18 +15,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
             : base(window, graphTool, graphViewName, displayMode)
         {
-        }
-
-        protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            base.BuildContextualMenu(evt);
-            for (var i = 0; i < evt.menu.MenuItems().Count; ++i)
-            {
-                var menuItem = evt.menu.MenuItems()[i];
-                if (menuItem is DropdownMenuAction { name: "Disable Nodes" })
-                    evt.menu.RemoveItemAt(i);
-            }
-            evt.menu.AppendSeparator();
+            // This can be called by the searcher and if so, all of these dependencies will be null, need to guard against that
+            if(window != null)
+                ViewSelection = new ShaderGraphViewSelection(this, GraphViewModel.GraphModelState, GraphViewModel.SelectionState);
         }
 
     //    protected override void CollectCopyableGraphElements(

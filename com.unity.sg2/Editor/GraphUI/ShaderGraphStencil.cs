@@ -158,7 +158,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 IsExposable(type) ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
                                 displayName: variableDeclarationName);
 
-                            graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
+                            try
+                            {
+                                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                            }
 
                             graphDataVar.contextNodeName = graphModel.BlackboardContextName;
                             graphDataVar.graphDataName = variableDeclarationName;

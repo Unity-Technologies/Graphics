@@ -61,11 +61,16 @@ namespace UnityEditor.ContextLayeredDataStorage
 
     //Stores a layers data
     [Serializable]
-    internal struct SerializedLayerData
+    internal class SerializedLayerData
     {
         public string layerName;
         public List<SerializedElementData> layerData;
 
+        public SerializedLayerData()
+        {
+            this.layerData = null;
+            this.layerData = null;
+        }
         public SerializedLayerData(string layerName, List<SerializedElementData> layerData)
         {
             this.layerName = layerName;

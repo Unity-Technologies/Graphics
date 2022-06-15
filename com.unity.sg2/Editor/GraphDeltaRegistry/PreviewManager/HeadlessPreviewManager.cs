@@ -186,22 +186,27 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview render state of all nodes downstream of any references to the changed property </remarks>
-        public List<string> SetGlobalProperty(string propertyName, object newPropertyValue)
+        public List<string> SetGlobalProperty(string propertyName, object newPropertyValue, IEnumerable<string> variableNodeList)
         {
             var hlslName = Mock_GetHLSLNameForGlobalProperty(propertyName);
             SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, propertyName, newPropertyValue);
 
-            // We're assuming that global properties/referrables will also be mapped to nodes and can be retrieved as such
-            var globalPropertyNode = m_GraphHandle.GetNode(propertyName);
-
             var impactedNodes = new List<string>();
-            foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(globalPropertyNode))
-            {
-                var downStreamNodeName = downStreamNode.ID.LocalPath;
-                var nodePreviewData = m_CachedPreviewData[downStreamNodeName];
-                nodePreviewData.isShaderOutOfDate = true;
 
-                impactedNodes.Add(downStreamNode.ID.LocalPath);
+            // Property nodes/referrables are mapped to nodes and can be retrieved as such
+            foreach (var variableNode in variableNodeList)
+            {
+                var propertyNode = m_GraphHandle.GetNode(variableNode);
+
+                foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(propertyNode))
+                {
+                    var downStreamNodeName = downStreamNode.ID.LocalPath;
+                    if (m_CachedPreviewData.TryGetValue(downStreamNodeName, out var nodePreviewData))
+                    {
+                        nodePreviewData.isShaderOutOfDate = true;
+                        impactedNodes.Add(downStreamNode.ID.LocalPath);
+                    }
+                }
             }
 
             return impactedNodes;
