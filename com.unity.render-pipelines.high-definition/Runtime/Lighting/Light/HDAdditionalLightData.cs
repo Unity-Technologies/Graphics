@@ -1950,11 +1950,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // custom begin
         internal
             // custom end
-            unsafe HDShadowRequest* shadowRequests
+            unsafe UnsafeList<HDShadowRequest> shadowRequests
         {
             get
             {
-                HDShadowRequest* ptr = null;
+                UnsafeList<HDShadowRequest> retValue = default;
 
                 if (lightEntity.valid)
                 {
@@ -1963,17 +1963,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     int dataStartIndex = lightRenderDatabase.GetShadowRequestSetHandle(lightEntity).storageIndexForShadowRequests;
                     Assert.IsTrue(dataStartIndex >= 0 && dataStartIndex < hdShadowRequestStorage.Length);
                     UnsafeList<HDShadowRequest>* unsafeListPtr = hdShadowRequestStorage.GetUnsafeList();
-                    ptr = unsafeListPtr->Ptr + dataStartIndex;
+                    retValue = new UnsafeList<HDShadowRequest>(unsafeListPtr->Ptr + dataStartIndex, HDShadowRequest.maxLightShadowRequestsCount);
                 }
-                return ptr;
+                return retValue;
             }
         }
 
-        unsafe int* shadowRequestIndices
+        unsafe UnsafeList<int> shadowRequestIndices
         {
             get
             {
-                int* ptr = null;
+                UnsafeList<int> retValue = default;
 
                 if (lightEntity.valid)
                 {
@@ -1982,31 +1982,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     int dataStartIndex = lightRenderDatabase.GetShadowRequestSetHandle(lightEntity).storageIndexForRequestIndices;
                     Assert.IsTrue(dataStartIndex >= 0 && dataStartIndex < hdShadowIndicesStorage.Length);
                     UnsafeList<int>* unsafeListPtr = hdShadowIndicesStorage.GetUnsafeList();
-                    ptr = unsafeListPtr->Ptr + dataStartIndex;
+                    retValue = new UnsafeList<int>(unsafeListPtr->Ptr + dataStartIndex, HDShadowRequest.maxLightShadowRequestsCount);
                 }
-                return ptr;
-            }
-        }
-
-        // custom begin
-        internal
-            // custom end
-            unsafe float4* frustumPlanes
-        {
-            get
-            {
-                float4* ptr = null;
-
-                if (lightEntity.valid)
-                {
-                    HDLightRenderDatabase lightRenderDatabase = HDLightRenderDatabase.instance;
-                    NativeList<float4> frustumPlanesStorage = lightRenderDatabase.frustumPlanesStorage;
-                    int dataStartIndex = lightRenderDatabase.GetShadowRequestSetHandle(lightEntity).storageIndexForFrustumPlanes;
-                    Assert.IsTrue(dataStartIndex >= 0 && dataStartIndex < frustumPlanesStorage.Length);
-                    UnsafeList<float4>* unsafeListPtr = frustumPlanesStorage.GetUnsafeList();
-                    ptr = unsafeListPtr->Ptr + dataStartIndex;
-                }
-                return ptr;
+                return retValue;
             }
         }
 
@@ -2434,9 +2412,10 @@ namespace UnityEngine.Rendering.HighDefinition
             int count = GetShadowRequestCountForLightType(shadowSettings, lightType);
 
             var updateType = GetShadowUpdateType(lightType);
+            var requestIndices = shadowRequestIndices;
             for (int index = 0; index < count; index++)
             {
-                shadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, updateType);
+                requestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, updateType);
             }
         }
 
