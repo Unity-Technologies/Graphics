@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.IO;
 using UnityEngine;
+using UnityEditor.Build;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
@@ -467,7 +468,10 @@ namespace UnityEditor.ShaderGraph
 
             // Get scripting symbols
             BuildTargetGroup buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+            if (buildTargetGroup == BuildTargetGroup.Standalone && EditorUserBuildSettings.standaloneBuildSubtarget == StandaloneBuildSubtarget.Server)
+                namedBuildTarget = NamedBuildTarget.Server;
+            string defines = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
 
             bool isDebug = defines.Contains(kDebugSymbol);
 
