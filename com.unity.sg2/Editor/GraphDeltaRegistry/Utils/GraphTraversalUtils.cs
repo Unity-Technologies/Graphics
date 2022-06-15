@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Utils
 {

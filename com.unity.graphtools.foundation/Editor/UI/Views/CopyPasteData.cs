@@ -386,7 +386,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         continue;
                 }
 
-                var pastedNode = graphModel.DuplicateNode(originalModel, delta);
+                var pastedNode = graphModel.DuplicateNode(originalModel, delta, graphViewUpdater);
 
                 if (variableNode != null)
                 {

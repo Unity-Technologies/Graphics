@@ -70,13 +70,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public NodeHandler AddContextNode(string name) =>
             graphDelta.AddContextNode(name, registry);
 
-        [Obsolete("ReconcretizeNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
-            "Use ReconcretizeNode(string name) for updated behavior")]
-        public bool ReconcretizeNode(string name, Registry registry) =>
-            graphDelta.ReconcretizeNode(name, registry);
-
-        public bool ReconcretizeNode(string name) =>
-            graphDelta.ReconcretizeNode(name, registry);
+        public bool ReconcretizeNode(string name)
+            => graphDelta.ReconcretizeNode(name, registry);
 
         [Obsolete("GetNodeReader is obsolete - Use GetNode now", false)]
         public NodeHandler GetNodeReader(string name) =>
@@ -117,38 +112,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (node != null)
                 {
                     var builder = registry.GetNodeBuilder(node.GetRegistryKey());
-                    if (builder != null)
+                    try
                     {
-                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                        if (builder != null)
                         {
-                            ReconcretizeNode(node.ID.FullPath);
-                        }
-                        if (builder.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name)
-                        {
-                            ReconcretizeNode(node.ID.FullPath);
+                            if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                            {
+                                ReconcretizeNode(node.ID.FullPath);
+                            }
+
+                            if (builder.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name)
+                            {
+                                ReconcretizeNode(node.ID.FullPath);
+                            }
                         }
                     }
-
-                }
-            }
-        }
-
-        [Obsolete("ReconcretizeAll with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
-            "Use ReconcretizeAll() for updated behavior")]
-        public void ReconcretizeAll(Registry registry)
-        {
-            foreach (var name in GetNodes().Select(e => e.ID.LocalPath).ToList())
-            {
-                var node = graphDelta.GetNode(name, registry);
-                if (node != null)
-                {
-                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
-                    if (builder != null)
+                    catch (Exception e)
                     {
-                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
-                        {
-                            ReconcretizeNode(node.ID.FullPath, registry);
-                        }
+                        Debug.LogException(e);
                     }
                 }
             }
@@ -221,7 +202,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges, ElementID duplicatedNodeID)
         {
             var copy = graphDelta.DuplicateNode(sourceNode, registry, duplicatedNodeID);
-            graphDelta.ReconcretizeNode(copy.ID, registry);
+            try
+            {
+                graphDelta.ReconcretizeNode(copy.ID, registry);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                Debug.LogError("Failed to Duplicate Node.");
+            }
+
             if(copyExternalEdges)
             {
                 var ports = sourceNode.GetPorts().ToList();
