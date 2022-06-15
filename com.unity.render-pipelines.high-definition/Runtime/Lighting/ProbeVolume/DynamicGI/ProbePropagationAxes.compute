@@ -239,7 +239,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
             #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            _RadianceCacheAxis[index] = 0;
+            _RadianceCacheAxis[index] = ZeroRadiance();
             #else
             _RadianceCacheAxis[index] = _PreviousRadianceCacheAxis[index];
             #endif

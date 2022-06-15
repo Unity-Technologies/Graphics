@@ -16,11 +16,11 @@ void ClearPreviousRadianceCache(uint3 id : SV_DispatchThreadID)
     const int axisIndex = id.x;
     if (axisIndex < _RadianceCacheAxisCount)
     {
-        _RadianceCacheAxis0[axisIndex] = 0;
-        _RadianceCacheAxis1[axisIndex] = 0;
+        _RadianceCacheAxis0[axisIndex] = ZeroRadiance();
+        _RadianceCacheAxis1[axisIndex] = ZeroRadiance();
     }
     if (axisIndex < _HitRadianceCacheAxisCount)
     {
-        _HitRadianceCacheAxis[axisIndex] = 0;
+        _HitRadianceCacheAxis[axisIndex] = ZeroRadiance();
     }
 }
