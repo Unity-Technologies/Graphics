@@ -337,6 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderInstanceIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderTriangleIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderMaterialIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
+            RenderMaterialRangeFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
 #endif
         }
 
@@ -844,6 +845,34 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.debugParameters.debugMaterialID.SetFloat("_MaxRange", data.debugParameters.debugDisplaySettings.data.gdrpDebugSettings.maxRange);
                     data.debugParameters.debugMaterialID.SetTexture("_MaterialDepth", depth);
                     CoreUtils.DrawFullScreen(ctx.cmd, data.debugParameters.debugMaterialID, data.colorBuffer);
+                });
+            }
+        }
+
+        void RenderMaterialRangeFullScreen(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.MaterialRange
+                || debugParameters.hdCamera.camera.cameraType != CameraType.Game)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("MaterialRange FullScreen", out var passData))
+            {
+                passData.debugParameters = debugParameters;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+
+                builder.SetRenderFunc(
+                (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                {
+                    var buffer = ctx.renderContext.GetMaterialRangeBuffer();
+                    ctx.cmd.SetViewport(data.debugParameters.hdCamera.finalViewport);
+                    Vector2 tileSize = new Vector2(0, 0);
+                    tileSize.x = (int)(data.debugParameters.hdCamera.finalViewport.width) / 64 + 1;
+                    tileSize.y = (int)(data.debugParameters.hdCamera.finalViewport.height) / 64 + 1;
+                    data.debugParameters.debugMaterialID.SetBuffer("_MaterialRangeBuffer", buffer);
+                    data.debugParameters.debugMaterialID.SetVector("_Viewport", data.debugParameters.hdCamera.finalViewport.size);
+                    data.debugParameters.debugMaterialID.SetVector("_TileSize", tileSize);
+                    CoreUtils.DrawFullScreen(ctx.cmd, data.debugParameters.debugMaterialID, data.colorBuffer, null, 1);
                 });
             }
         }
