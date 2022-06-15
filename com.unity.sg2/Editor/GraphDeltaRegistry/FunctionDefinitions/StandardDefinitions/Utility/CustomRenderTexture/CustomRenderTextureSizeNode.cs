@@ -9,19 +9,21 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "CustomRenderTextureSize";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
 TextureWidth = CustomRenderTextureWidthRef;
 TextureHeight = CustomRenderTextureHeightRef;
 TextureDepth = CustomRenderTextureDepthRef;
 ",
-            new ParameterDescriptor("CustomRenderTextureHeightRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("CustomRenderTextureWidthRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("CustomRenderTextureDepthRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("TextureWidth", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("TextureHeight", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("TextureDepth", TYPE.Float, GraphType.Usage.Out)
+            parameters: new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("CustomRenderTextureHeightRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("CustomRenderTextureWidthRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("CustomRenderTextureDepthRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("TextureWidth", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("TextureHeight", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("TextureDepth", TYPE.Float, GraphType.Usage.Out)
+            }
         );
         //TODO: this is a target speciic node, need a validation message
         public static NodeUIDescriptor NodeUIDescriptor => new(

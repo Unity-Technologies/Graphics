@@ -9,19 +9,21 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "CustomRenderTextureSelf";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
 SelfTexture2D = SelfTexture2DRef;
 SelfTextureCube = SelfTextureCubeRef;
 SelfTexture3D = SelfTexture3DRef;
 ",//TODO: need to specify that this node is a fragmant only node
-            new ParameterDescriptor("SelfTexture2DRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("SelfTextureCubeRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("SelfTexture3DRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("SelfTexture2D", TYPE.Texture2D, GraphType.Usage.Out),
-            new ParameterDescriptor("SelfTextureCube", TYPE.TextureCube, GraphType.Usage.Out),
-            new ParameterDescriptor("SelfTexture3D", TYPE.Texture3D, GraphType.Usage.Out)
+            parameters: new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("SelfTexture2DRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("SelfTextureCubeRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("SelfTexture3DRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("SelfTexture2D", TYPE.Texture2D, GraphType.Usage.Out),
+                new ParameterDescriptor("SelfTextureCube", TYPE.TextureCube, GraphType.Usage.Out),
+                new ParameterDescriptor("SelfTexture3D", TYPE.Texture3D, GraphType.Usage.Out)
+            }
         );
         //TODO: this is a target speciic node, need a validation message
         public static NodeUIDescriptor NodeUIDescriptor => new(

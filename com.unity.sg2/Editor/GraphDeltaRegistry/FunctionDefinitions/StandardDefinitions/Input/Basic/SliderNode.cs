@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -9,11 +8,13 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "Slider";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = In;",
-            new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)//TODO: need to show slider value and min and max input text boxes 
+            parameters: new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)//TODO: need to show slider value and min and max input text boxes 
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
