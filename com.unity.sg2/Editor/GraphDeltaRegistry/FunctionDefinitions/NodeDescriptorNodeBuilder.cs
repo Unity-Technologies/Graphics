@@ -30,8 +30,8 @@ namespace UnityEditor.ShaderGraph.Defs
             m_nodeDescriptor = nodeDescriptor; // copy
 
             // If there are no functions in nodeDescriptor
-            //   leave m_defaultFunction == null
-            //   leave m_nameToFunction == null
+            // leave m_defaultFunction == null
+            // leave m_nameToFunction == null
             if (m_nodeDescriptor.Functions.Count < 1)
             {
                 var msg = $"BuildNode called for NodeDescriptor with no defined functions: {m_nodeDescriptor.Name}";
@@ -75,8 +75,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Dictionary<string, string> functionNameToCodeName,
             FunctionDescriptor functionDescriptor)
         {
-            var oldName = functionDescriptor.Name;
-            var newBody = Regex.Replace(functionDescriptor.Body, oldName, functionNameToCodeName[oldName]);
+            var newBody = functionDescriptor.Body;
+            foreach (var nameBinding in functionNameToCodeName)
+            {
+                newBody = Regex.Replace(newBody, nameBinding.Key, nameBinding.Value);
+
+            }
             return newBody;
         }
 

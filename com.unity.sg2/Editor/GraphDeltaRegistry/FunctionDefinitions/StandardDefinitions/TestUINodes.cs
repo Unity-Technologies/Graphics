@@ -55,6 +55,91 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
+    internal class TestNodeWithDependentFunction : IStandardNode
+    {
+        static readonly string Name = "TestDepsNode";
+        static readonly int Version = 1;
+        public static NodeDescriptor NodeDescriptor => new(
+            name: Name,
+            version: Version,
+            functions: new FunctionDescriptor[] {
+                new(
+                    name: "TestDepsSecond",
+                    body: "Out = In;",
+                    parameters: new ParameterDescriptor[] {
+                        new ParameterDescriptor(
+                            name: "In",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Static,
+                            defaultValue: REF.WorldSpace_Normal
+                        ),
+                        new ParameterDescriptor(
+                            name: "Out",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Out
+                        )
+                    }
+                ),
+                new(
+                    name: "TestDepsFirst",
+                    body: "TestDepsSecond(In, Out);",
+                    parameters: new ParameterDescriptor[] {
+                        new ParameterDescriptor(
+                            name: "In",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Static,
+                            defaultValue: REF.WorldSpace_Normal
+                        ),
+                        new ParameterDescriptor(
+                            name: "Out",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Out
+                        )
+                    }
+                ),
+                new(
+                    name: "TestDepsMain",
+                    body: "TestDepsFirst(In, Out);",
+                    parameters: new ParameterDescriptor[] {
+                        new ParameterDescriptor(
+                            name: "In",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Static,
+                            defaultValue: REF.WorldSpace_Normal
+                        ),
+                        new ParameterDescriptor(
+                            name: "Out",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Out
+                        )
+                    }
+                ),
+            },
+            mainFunction: "TestDepsMain"
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            name: Name,
+            version: Version,
+            tooltip: String.Empty,
+            categories: new string[] { "Test" },
+            synonyms: Array.Empty<string>(),
+            displayName: "Test Node with Inner Deps",
+            hasPreview: false,
+            parameters: new ParameterUIDescriptor[]
+            {
+                new (
+                    name: "In",
+                    options: REF.OptionList.Normals
+                ),
+                new (
+                    name: "Out"
+                )
+            }
+        );
+
+    }
+
     internal class TestNodeWithInclude : IStandardNode
     {
         static readonly string Name = "TestIncludeNode";
