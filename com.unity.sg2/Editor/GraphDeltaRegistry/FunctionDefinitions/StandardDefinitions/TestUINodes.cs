@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
                     "Function1",
                     "Local = In + Static; Out = Local;",
@@ -601,7 +601,7 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class TestUpgrade_V1 : IStandardNode
     {
         public static string Name = "TestUpgrade";
-        public static int Version = 1;
+        public static int Version = 2;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -625,7 +625,7 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class TestUpgrade_V2 : IStandardNode
     {
         public static string Name = "TestUpgrade";
-        public static int Version = 2;
+        public static int Version = 3;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

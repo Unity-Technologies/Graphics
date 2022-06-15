@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
                     "BlendBurn",
 @"    Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);

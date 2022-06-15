@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
                     "SampleTriplanarDefault",
                     //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call

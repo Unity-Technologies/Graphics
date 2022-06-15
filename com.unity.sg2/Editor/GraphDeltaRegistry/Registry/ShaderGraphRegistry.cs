@@ -1,6 +1,4 @@
 using System;
-using System.Runtime.Serialization;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEngine;
@@ -12,6 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
         private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";
         private static readonly string GET_UD_METHOD_NAME = "get_NodeUIDescriptor";
+        private static readonly string GET_VERSION_METHOD_NAME = "get_Version";
 
         internal static ShaderGraphRegistry Instance
         {
@@ -39,29 +38,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal NodeUIInfo NodeUIInfo;
         internal GraphHandler DefaultTopologies;
 
-        internal void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor) => NodeUIInfo.Register(key, descriptor);
+        internal void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor) =>
+            NodeUIInfo.Register(key, descriptor);
+
         internal void Register(NodeDescriptor node, NodeUIDescriptor descriptor)
         {
             var key = Registry.Register(node);
             NodeUIInfo.Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
             DefaultTopologies.AddNode(key, key.ToString());
         }
-        internal void Register(FunctionDescriptor function, NodeUIDescriptor descriptor)
+
+        internal void Register(FunctionDescriptor function, NodeUIDescriptor descriptor, int version)
         {
-            var key = Registry.Register(function);
+            var key = Registry.Register(function, version);
             NodeUIInfo.Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
             DefaultTopologies.AddNode(key, key.ToString());
         }
-        internal void Register(FunctionDescriptor func)
+
+        internal void Register(FunctionDescriptor func, int version)
         {
-            var key = Registry.Register(func);
+            var key = Registry.Register(func, version);
             DefaultTopologies.AddNode(key, key.ToString());
         }
+
         internal void Register(NodeDescriptor node)
         {
             var key = Registry.Register(node);
             DefaultTopologies.AddNode(key, key.ToString());
         }
+
         internal void Register(INodeDefinitionBuilder builder, INodeUIDescriptorBuilder descriptor = null)
         {
             var key = builder.GetRegistryKey();
@@ -70,17 +75,30 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 NodeUIInfo.Register(key, descriptor);
             DefaultTopologies.AddNode(key, key.ToString());
         }
-        internal void Register<T>() where T : IRegistryEntry => Registry.Register<T>();
 
+        internal void Register<T>() where T : IRegistryEntry =>
+            Registry.Register<T>();
 
-        internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) => NodeUIInfo.GetNodeUIDescriptor(key, node);
-        internal NodeHandler GetDefaultTopology(RegistryKey key) => DefaultTopologies.GetNode(key.ToString());
-        internal INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => Registry.GetNodeBuilder(key);
-        internal ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => Registry.GetTypeBuilder(key);
-        internal ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => Registry.GetCastBuilder(key);
-        internal IContextDescriptor GetContextDescriptor(RegistryKey key) => Registry.GetContextDescriptor(key);
+        internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) =>
+            NodeUIInfo.GetNodeUIDescriptor(key, node);
 
-        internal RegistryKey ResolveKey<T>() where T : IRegistryEntry => Registry.ResolveKey<T>();
+        internal NodeHandler GetDefaultTopology(RegistryKey key) =>
+            DefaultTopologies.GetNode(key.ToString());
+
+        internal INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) =>
+            Registry.GetNodeBuilder(key);
+
+        internal ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) =>
+            Registry.GetTypeBuilder(key);
+
+        internal ICastDefinitionBuilder GetCastBuilder(RegistryKey key) =>
+            Registry.GetCastBuilder(key);
+
+        internal IContextDescriptor GetContextDescriptor(RegistryKey key) =>
+            Registry.GetContextDescriptor(key);
+
+        internal RegistryKey ResolveKey<T>() where T : IRegistryEntry =>
+            Registry.ResolveKey<T>();
 
         internal void InitializeDefaults()
         {
@@ -117,34 +135,46 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 {
                     var ndMethod = t.GetMethod(GET_ND_METHOD_NAME);
                     var fdMethod = t.GetMethod(GET_FD_METHOD_NAME);
-                    var udMethod = t.GetMethod(GET_UD_METHOD_NAME);
+                    var uidMethod = t.GetMethod(GET_UD_METHOD_NAME);
+                    var versionMethod = t.GetMethod(GET_VERSION_METHOD_NAME);
 
+                    // has NodeDescriptor
                     if (ndMethod != null)
                     {
                         var nd = (NodeDescriptor)ndMethod.Invoke(null, null);
                         if (!nd.Equals(default(NodeDescriptor)))
-                        { // use the NodeDescriptor
-                            if (udMethod != null)
+                        {
+                            if (uidMethod != null)
                             {
-                                var ui = (NodeUIDescriptor)udMethod.Invoke(null, null);
+                                var ui = (NodeUIDescriptor)uidMethod.Invoke(null, null);
                                 Register(nd, ui);
                             }
-                            else Register(nd);
+                            else
+                                Register(nd);
                         }
                     }
+                    // has FunctionDescriptor
                     else if (fdMethod != null)
                     {
                         var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
                         if (!fd.Equals(default(NodeDescriptor)))
-                        {  // use the FunctionDescriptor
-                            if (udMethod != null)
+                        {
+                            int version = 1;
+                            if (versionMethod != null)
                             {
-                                var ui = (NodeUIDescriptor)udMethod.Invoke(null, null);
-                                Register(fd, ui);
+                                version = (int)versionMethod.Invoke(null, null);
                             }
-                            else Register(fd);
+
+                            if (uidMethod != null)
+                            {
+                                var ui = (NodeUIDescriptor)uidMethod.Invoke(null, null);
+                                Register(fd, ui, version);
+                            }
+                            else
+                                Register(fd, version);
                         }
                     }
+                    // cannot create node
                     else
                     {
                         var msg = $"IStandard node {t} has no node or function descriptor. It was not registered.";

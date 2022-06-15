@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     m_defaultFunction = fd;
                 }
                 // if the FD is the specified main, set it as the default
-                if (fd.Name.Equals(m_nodeDescriptor.Main))
+                if (fd.Name.Equals(m_nodeDescriptor.MainFunction))
                 {
                     m_defaultFunction = fd;
                 }
@@ -63,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Defs
             foreach (FunctionDescriptor fd in nodeDescriptor.Functions)
             {
                 string newBody = UpdateBodyCode(functionNameToCodeName, fd);
+                functionNameToModifiedBody[fd.Name] = newBody;
             }
 
             m_nameToFunction = nameToFunction;
@@ -130,7 +131,9 @@ namespace UnityEditor.ShaderGraph.Defs
             }
         }
 
-        private static ShaderType GetShaderTypeForParametricTypeDescriptor(ShaderContainer container, ParametricTypeDescriptor resolvedType)
+        private static ShaderType GetShaderTypeForParametricTypeDescriptor(
+            ShaderContainer container,
+            ParametricTypeDescriptor resolvedType)
         {
             var height = resolvedType.Height;
             var length = resolvedType.Length;
@@ -207,7 +210,9 @@ namespace UnityEditor.ShaderGraph.Defs
             ParametricTypeDescriptor fallbackType)
         {
             // Get a shader function builder
-            var shaderFunctionBuilder = new ShaderFunction.Builder(container, functionDescriptor.Name);
+            var shaderFunctionBuilder = new ShaderFunction.Builder(
+                container,
+                m_functionNameToShaderFunctionName[functionDescriptor.Name]);
 
             // Set up the vars in the shader function.
             foreach (var param in functionDescriptor.Parameters)
@@ -230,7 +235,7 @@ namespace UnityEditor.ShaderGraph.Defs
             }
 
             // Add the shader function body.
-            shaderFunctionBuilder.AddLine(functionDescriptor.Body);
+            shaderFunctionBuilder.AddLine(m_functionNameToModifiedBody[functionDescriptor.Name]);
 
             // Return the results of ShaderFoundry's build.
             return shaderFunctionBuilder.Build();

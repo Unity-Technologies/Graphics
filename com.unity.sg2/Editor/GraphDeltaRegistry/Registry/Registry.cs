@@ -97,10 +97,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// NOTE: Registering just a function is a special case.
         ///       Generally nodes should be registered using Register(NodeDescriptor).
         /// </summary>
-        [Obsolete("FunctionDescriptors will be going away. Please wrap functions in NodeDescritpors.", false)]
-        internal RegistryKey Register(FunctionDescriptor functionDescriptor)
+        internal RegistryKey Register(FunctionDescriptor functionDescriptor, int version = 1)
         {
-            var builder = new FunctionDescriptorNodeBuilder(functionDescriptor);
+            var builder = new FunctionDescriptorNodeBuilder(functionDescriptor, version);
             bool wasSuccess = Register(builder);
             if (!wasSuccess)
             {

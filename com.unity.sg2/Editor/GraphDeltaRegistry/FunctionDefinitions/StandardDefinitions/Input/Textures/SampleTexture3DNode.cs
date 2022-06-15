@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
                     "SampleTexture3DStandard",
 @"    RGBA = SAMPLE_TEXTURE3D(Texture.tex, Sampler.samplerstate, UV);

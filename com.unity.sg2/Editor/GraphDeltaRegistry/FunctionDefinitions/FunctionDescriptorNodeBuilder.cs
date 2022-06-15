@@ -16,10 +16,12 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class FunctionDescriptorNodeBuilder : INodeDefinitionBuilder
     {
         private readonly FunctionDescriptor m_functionDescriptor;
+        private readonly int m_Version;
 
-        internal FunctionDescriptorNodeBuilder(FunctionDescriptor fd)
+        internal FunctionDescriptorNodeBuilder(FunctionDescriptor fd, int version)
         {
             m_functionDescriptor = fd; // copy
+            m_Version = version;
         }
 
         public void BuildNode(NodeHandler node, Registry registry)
@@ -102,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Defs
             return new RegistryKey
             {
                 Name = m_functionDescriptor.Name,
-                Version = 1, // TODO (Brett) This should be removed.
+                Version = m_Version
             };
         }
 
