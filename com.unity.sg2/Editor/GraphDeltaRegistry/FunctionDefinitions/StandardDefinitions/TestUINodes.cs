@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     name: "TestIncludeFunction",
                     includes: new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
                     },
                     body: "Out = In;",
                     parameters: new ParameterDescriptor[] {
