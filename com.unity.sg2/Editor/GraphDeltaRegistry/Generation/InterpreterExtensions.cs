@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     var init = builder.GetInitializerList(port.GetTypeField(), registry);
                     return init.Substring(init.IndexOf('('));
                 case BaseTextureType _:
-                    return "white";
+                    return "\"white\" {}";
                 default:
                     break;
             }

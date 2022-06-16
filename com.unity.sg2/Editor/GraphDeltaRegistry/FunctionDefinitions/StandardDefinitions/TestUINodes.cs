@@ -526,6 +526,29 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
+    internal class TestTruncate : IStandardNode
+    {
+        static string Name = "TestTruncate";
+        static int Version => 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version, // Version
+            Name, // Name
+            "Out = In.xyz;",
+            new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string[1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
+    }
+
     internal class TestUIColorRGBNode : IStandardNode
     {
         public static string Name => "TestUIColorRGB";
