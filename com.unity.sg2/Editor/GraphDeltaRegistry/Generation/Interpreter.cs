@@ -408,28 +408,47 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
             List<ShaderFunction> localDependencies = new();
+            List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
             var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
 
-            if (dependencies.includes != null)
-                includes.AddRange(dependencies.includes);
+            // Process functions and prevent from adding duplicates
             if (dependencies.localFunctions != null)
                 localDependencies.AddRange(dependencies.localFunctions);
-
             localDependencies.Add(func);
-            bool shouldAdd = true;
-
             foreach (var function in localDependencies)
             {
+                bool shouldAdd = true;
                 foreach (var existing in shaderFunctions)
                 {
                     if (FunctionsAreEqual(existing, function))
                     {
                         shouldAdd = false;
+                        break;
                     }
                 }
                 if (shouldAdd)
                 {
                     shaderFunctions.Add(function);
+                }
+            }
+
+            // Process includes and prevent from adding duplicates
+            if (dependencies.includes != null)
+                localIncludes.AddRange(dependencies.includes);
+            foreach (var include in localIncludes)
+            {
+                bool shouldAdd = true;
+                foreach (var existing in includes)
+                {
+                    if (existing.Value == include.Value)
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd)
+                {
+                    includes.Add(include);
                 }
             }
 
