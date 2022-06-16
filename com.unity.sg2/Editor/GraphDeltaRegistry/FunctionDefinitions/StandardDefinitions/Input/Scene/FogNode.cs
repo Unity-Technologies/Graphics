@@ -1,20 +1,20 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class FogNode : IStandardNode
     {
-        static string Name = "Fog";
-        static int Version = 1;
+        public static string Name => "Fog";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "SHADERGRAPH_FOG(Position, Color, Density);",
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.Object_Position),
-            new ParameterDescriptor("Color", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("Density", TYPE.Float, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.Object_Position),
+                new ParameterDescriptor("Color", TYPE.Vec4, GraphType.Usage.Out),
+                new ParameterDescriptor("Density", TYPE.Float, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

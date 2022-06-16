@@ -1,10 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEditor;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.StyleSheets;
@@ -108,6 +110,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             SendMouseDragEvent(start.worldBound.center, end.worldBound.center, mouseButton, eventModifiers);
         }
 
+        public void SendDragEnterEvent(VisualElement enteredElement, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.DragUpdated,
+                    mousePosition = enteredElement.worldBound.position,
+                    button = (int)mouseButton,
+                    modifiers = eventModifiers
+                });
+        }
+
+        public void SendDragPerformEvent(Vector2 mousePosition, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.DragPerform,
+                    mousePosition = mousePosition,
+                    button = (int)mouseButton,
+                    modifiers = eventModifiers
+                });
+        }
+
         //-----------------------------------------------------------
         // MouseMove Event Helpers
         //-----------------------------------------------------------
@@ -120,6 +146,33 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                     mousePosition = end,
                     button = (int)mouseButton,
                     delta = end - start,
+                    modifiers = eventModifiers
+                });
+        }
+
+        //-----------------------------------------------------------
+        // MouseEnter Event Helpers
+        //-----------------------------------------------------------
+        public void SendMouseEnterEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseMove,
+                    mousePosition = element.worldBound.position,
+                    button = (int)mouseButton,
+                    modifiers = eventModifiers
+                });
+        }
+
+        public void SendMouseEnterWindowEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseEnterWindow,
+                    mousePosition = element.worldBound.position,
+                    button = (int)mouseButton,
                     modifiers = eventModifiers
                 });
         }
@@ -224,6 +277,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public bool SendDeleteCommand()
         {
             return ExecuteCommand("Delete");
+        }
+
+        public bool SendDuplicateCommand()
+        {
+            return ExecuteCommand("Duplicate");
         }
 
         bool ExecuteCommand(string command)

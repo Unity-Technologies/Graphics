@@ -21,7 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Note: These using statements are necessary to increment last observed version
             using (var graphViewObservation = this.ObserveState(m_graphModelStateComponent))
             {
-                if (graphViewObservation.UpdateType != UpdateType.None)
+                if (graphViewObservation.UpdateType != UpdateType.None
+                    && m_graphModelStateComponent.GraphModel is ShaderGraphModel shaderGraphModel)
                 {
                     var changeset = m_graphModelStateComponent.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
                     var addedModels = changeset.NewModels;
@@ -41,6 +42,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             m_PreviewManagerInstance.OnNodeFlowChanged(nodeModel.graphDataName);
                         }
                     }
+
+                    shaderGraphModel.HandlePostDuplicationEdgeFixup();
 
                     // TODO: (Sai) This is currently handled by `ShaderGraphCommandOverrides.HandleDeleteElements
                     // I think we want it to live here in the long run

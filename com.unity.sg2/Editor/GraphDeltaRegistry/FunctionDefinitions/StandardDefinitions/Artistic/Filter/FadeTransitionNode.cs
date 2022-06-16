@@ -5,17 +5,19 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class FadeTransitionNode : IStandardNode
     {
-        public static string Name = "FadeTransition";
-        public static int Version = 1;
+        public static string Name => "FadeTransition";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Fade = saturate(FadeValue*(FadeContrast+1)+(NoiseValue-1)*FadeContrast);",
-            new ParameterDescriptor("NoiseValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("FadeValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("FadeContrast", TYPE.Float, Usage.In, new float[] { 1f }), 
-            new ParameterDescriptor("Fade", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("NoiseValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                    new ParameterDescriptor("FadeValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                    new ParameterDescriptor("FadeContrast", TYPE.Float, Usage.In, new float[] { 1f }),
+                    new ParameterDescriptor("Fade", TYPE.Float, Usage.Out)
+                }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

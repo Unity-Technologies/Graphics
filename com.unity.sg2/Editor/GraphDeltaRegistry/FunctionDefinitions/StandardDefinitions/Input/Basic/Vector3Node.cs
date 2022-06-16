@@ -5,21 +5,23 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class Vector3Node : IStandardNode
     {
-        public static string Name = "Vector3";
-        public static int Version = 1;
+        public static string Name => "Vector3";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
     Out.x = X;
     Out.y = Y;
     Out.z = Z;
 ",
-            new ParameterDescriptor("X", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Y", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Z", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("X", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Y", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Z", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

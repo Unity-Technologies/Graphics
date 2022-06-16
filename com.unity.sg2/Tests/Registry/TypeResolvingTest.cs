@@ -26,11 +26,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             // make a FunctionDescriptor and register it
             FunctionDescriptor fd = new(
-                1,
                 "Test",
                 "Out = In;",
-                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                }
             );
             RegistryKey registryKey = m_registry.Register(fd);
 
@@ -53,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.AreEqual(GraphType.Length.Four, outlen);
 
             // reconcretize the node
-            bool didReconcretize = m_graph.ReconcretizeNode(nodeName, m_registry);
+            bool didReconcretize = m_graph.ReconcretizeNode(nodeName);
             Assert.IsTrue(didReconcretize);
 
             // EXPECT that In is still a Vec3

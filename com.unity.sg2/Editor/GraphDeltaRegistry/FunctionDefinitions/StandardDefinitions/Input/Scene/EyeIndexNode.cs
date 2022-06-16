@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class EyeIndexNode : IStandardNode
     {
-        static string Name = "EyeIndex";
-        static int Version = 1;
+        public static string Name => "EyeIndex";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
 #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
@@ -18,8 +15,11 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = 0;
 #endif
 ",
-            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("EyeIndex", TYPE.Float, GraphType.Usage.Local, REF.StereoEyeIndex)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("EyeIndex", TYPE.Float, GraphType.Usage.Local, REF.StereoEyeIndex)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

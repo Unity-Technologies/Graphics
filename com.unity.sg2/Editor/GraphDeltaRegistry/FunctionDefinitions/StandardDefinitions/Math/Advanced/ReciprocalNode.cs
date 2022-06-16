@@ -1,29 +1,32 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ReciprocalNode : IStandardNode
     {
-        static string Name = "Reciprocal";
-        static int Version = 1;
+        public static string Name => "Reciprocal";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "ReciprocalDefault",
                     "    Out = 1.0/In;",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "ReciprocalFast",
                     "    Out = rcp(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

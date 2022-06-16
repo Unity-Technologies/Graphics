@@ -1,19 +1,20 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class Texture2DAssetNode : IStandardNode
     {
-        public static string Name = "Texture2DAsset";
-        public static int Version = 1;
+        public static string Name => "Texture2DAsset";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = Asset;",
-            new ParameterDescriptor("Asset", TYPE.Texture2D, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Texture2D, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Asset", TYPE.Texture2D, Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Texture2D, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

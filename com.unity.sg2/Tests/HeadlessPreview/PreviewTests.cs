@@ -74,8 +74,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             c0.SetData(1f); //(1,0,0,0)
             m_InterpreterTestsGraph.AddNode<TestAddNode>("Add2").GetPort("In2").GetTypeField().GetSubField<float>("c1").SetData(1f); //(0,1,0,0)
             m_InterpreterTestsGraph.AddNode<TestAddNode>("Add3");
-            m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1", m_RegistryInstance);
-            m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2", m_RegistryInstance); //should be (1,1,0,0)
+            m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1");
+            m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2"); //should be (1,1,0,0)
         }
 
         [TearDown]
@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.IsNotNull(contextNode);
 
             // Connect output of the Add node to the context node
-            graphHandler.TryConnect("Add1", "Out", contextNodeName, "BaseColor", registryInstance);
+            graphHandler.TryConnect("Add1", "Out", contextNodeName, "BaseColor");
             previewManager.NotifyNodeFlowChanged(contextNodeName);
 
             return graphHandler;
@@ -488,10 +488,15 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void NodePreview_GetFuncAndBlockShaderCode()
         {
-            FunctionDescriptor passThroughFD = new(1, "PassThrough",
+            FunctionDescriptor passThroughFD = new(
+                "PassThrough",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In)
+                }
+            );
 
             var registry = new Registry();
             var graphHandler = new GraphHandler(registry);
@@ -523,22 +528,36 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void FunctionDescriptor_PreviewOutputTypes()
         {
-            FunctionDescriptor truncate = new(1, "Truncate",
+            FunctionDescriptor truncate = new(
+                "Truncate",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In)
+                }
+            );
 
-            FunctionDescriptor make = new(1, "Make",
+            FunctionDescriptor make = new(
+                "Make",
                 "Out.x = X; Out.y = Y;",
-                new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
-                new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
-                new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In));
-
-            FunctionDescriptor append = new(1, "Append",
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
+                    new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
+                    new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In)
+                }
+            );
+            FunctionDescriptor append = new(
+                "Append",
                 "Out.xy = In; Out.z = Z;",
-                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
-                new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
+                    new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In)
+                }
+            );
 
             var registry = new Registry();
             var graphHandler = new GraphHandler(registry);
@@ -567,7 +586,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Yellow, X set to 1, Y comes from the output of the truncate node.
             makeWriter.SetPortField("X", "c0", 1f);
             previewMgr.SetLocalProperty("MakeNodeInstance", "X", 1f);
-            graphHandler.TryConnect("TruncateNodeInstance", "Out", "MakeNodeInstance", "Y", registry);
+            graphHandler.TryConnect("TruncateNodeInstance", "Out", "MakeNodeInstance", "Y");
             previewMgr.NotifyNodeFlowChanged("AppendNodeInstance");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("MakeNodeInstance");
             Assert.AreEqual(new Color(1,1,0,1), SampleMaterialColor(nodePreviewMaterial));
@@ -575,7 +594,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // White, Z is set to 1, XY comes from the vec2 output of the make node.
             appendWriter.SetPortField("Z", "c0", 1f);
             previewMgr.SetLocalProperty("AppendNodeInstance", "Z", 1f);
-            graphHandler.TryConnect("MakeNodeInstance","Out","AppendNodeInstance", "In", registry);
+            graphHandler.TryConnect("MakeNodeInstance","Out","AppendNodeInstance", "In");
             previewMgr.NotifyNodeFlowChanged("AppendNodeInstance");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("AppendNodeInstance");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
@@ -633,7 +652,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             GradientTypeHelpers.SetGradient(portField, gradient);
 
-            graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
+            graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient");
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
 
@@ -665,7 +684,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             var texNode = graphHandler.AddNode<SimpleTextureNode>("Tex");
             graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex");
-            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input", registry));
+            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input"));
             graphHandler.ReconcretizeAll();
             previewMgr.NotifyNodeFlowChanged("SampleTex");
 
@@ -708,7 +727,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var texNode = graphHandler.AddNode<SimpleTextureNode>("Tex");
             var texField = texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField();
             graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex");
-            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input", registry));
+            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input"));
 
             //set to a red texture and test.
             BaseTextureType.SetTextureAsset(texField, Texture2D.redTexture);
@@ -751,8 +770,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var texField = texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField();
             graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex");
             graphHandler.AddNode<SamplerStateExampleNode>("Sampler");
-            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input", registry));
-            Assert.IsTrue(graphHandler.TryConnect("Sampler", "Out", "SampleTex", SimpleSampleTexture2DNode.kSampler, registry));
+            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input"));
+            Assert.IsTrue(graphHandler.TryConnect("Sampler", "Out", "SampleTex", SimpleSampleTexture2DNode.kSampler));
 
             //set to a red texture and test.
             BaseTextureType.SetTextureAsset(texField, Texture2D.redTexture);

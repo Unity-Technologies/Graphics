@@ -4,23 +4,25 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TimeNode : IStandardNode
     {
-        public static string Name = "Time";
-        public static int Version = 1;
+        public static string Name => "Time";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"Time = TimeParameters.x;
 SineTime = TimeParameters.y;
 CosineTime = TimeParameters.z;
 DeltaTime = unity_DeltaTime.x;
 SmoothDelta = unity_DeltaTime.z;",
-            new ParameterDescriptor("TimeParameters", TYPE.Vec4, Usage.Local, REF.TimeParameters),
-            new ParameterDescriptor("Time", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("SineTime", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("CosineTime", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("DeltaTime", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("SmoothDelta", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("TimeParameters", TYPE.Vec4, Usage.Local, REF.TimeParameters),
+                new ParameterDescriptor("Time", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("SineTime", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("CosineTime", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("DeltaTime", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("SmoothDelta", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

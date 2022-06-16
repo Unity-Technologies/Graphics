@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -6,26 +5,28 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class SpherizeNode : IStandardNode
     {
-        public static string Name = "Spherize";
-        public static int Version = 1;
+        public static string Name => "Spherize";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  delta = UV - Center;
     delta2 = dot(delta.xy, delta.xy);
     delta4 = delta2 * delta2;
     delta_offset = delta4 * Strength;
     Out = UV + delta * delta_offset + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
-            new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
-            new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out),
-            new ParameterDescriptor("delta", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("delta2", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("delta_offset", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("delta4", TYPE.Float, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
+                new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
+                new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out),
+                new ParameterDescriptor("delta", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("delta2", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("delta_offset", TYPE.Vec2, Usage.Local),
+                new ParameterDescriptor("delta4", TYPE.Float, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -5,15 +5,17 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class IntegerNode : IStandardNode
     {
-        public static string Name = "Integer";
-        public static int Version = 1;
+        public static string Name => "Integer";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = IntConst;",
-            new ParameterDescriptor("IntConst", TYPE.Int, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Int, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("IntConst", TYPE.Int, Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Int, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

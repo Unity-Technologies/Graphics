@@ -55,20 +55,20 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestCanAddNodeToSubGraph()
         {
-            return AddNodeFromSearcherAndValidate("Add");
+            return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
         }
 
         [UnityTest]
         public IEnumerator TestSaveSubGraph()
         {
-            yield return AddNodeFromSearcherAndValidate("Add");
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
             yield return SaveAndReopenGraph();
 
             // Wait till the graph model is loaded back up
             while (m_Window.GraphView.GraphModel == null)
                 yield return null;
 
-            Assert.IsTrue(FindNodeOnGraphByName("Add"));
+            Assert.IsNotNull(m_Window.GetNodeModelFromGraphByName("Add"));
         }
 
         [UnityTest]
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             const string outputNodeName = "DefaultContextDescriptor";
             const string outputInspectorListName = "sg-subgraph-output-list";
 
-            var output = GetNodeModelFromGraphByName(outputNodeName);
+            var output = m_Window.GetNodeModelFromGraphByName(outputNodeName);
             Assert.IsNotNull(output);
 
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, output));

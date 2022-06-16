@@ -4,15 +4,17 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ReciprocalSquareRootNode : IStandardNode
     {
-        public static string Name = "ReciprocalSquareRoot";
-        public static int Version = 1;
+        public static string Name => "ReciprocalSquareRoot";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = rsqrt(In);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] {1f, 1f, 1f, 1f}),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] {1f, 1f, 1f, 1f}),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

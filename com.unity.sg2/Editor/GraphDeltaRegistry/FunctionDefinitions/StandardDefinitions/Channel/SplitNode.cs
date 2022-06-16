@@ -5,22 +5,23 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class SplitNode : IStandardNode
     {
-        public static string Name = "Split";
-        public static int Version = 1;
+        public static string Name => "Split";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
-
 @"    R = In.r;
     G = In.g;
     B = In.b;
     A = In.a;",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

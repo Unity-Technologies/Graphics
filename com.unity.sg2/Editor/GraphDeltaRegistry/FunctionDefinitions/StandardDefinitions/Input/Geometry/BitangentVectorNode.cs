@@ -6,14 +6,16 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class BitangentVectorNode : IStandardNode
     {
-        static string Name = "BitangentVector";
-        static int Version = 1;
+        public static string Name => "BitangentVector";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = BitangentVector;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("BitangentVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Bitangent)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("BitangentVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Bitangent)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

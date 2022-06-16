@@ -25,17 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (!TryGetNodeHandler(out var nodeHandler)) return;
 
-            var entry = new ContextEntry
-            {
-                fieldName = entryName,
-                height = ShaderGraphExampleTypes.GetGraphTypeHeight(typeHandle),
-                length = ShaderGraphExampleTypes.GetGraphTypeLength(typeHandle),
-                primitive = ShaderGraphExampleTypes.GetGraphTypePrimitive(typeHandle),
-                precision = GraphType.Precision.Any,
-                initialValue = Matrix4x4.zero,
-            };
-
-            ContextBuilder.AddContextEntry(nodeHandler, entry, nodeHandler.Registry);
+            ContextBuilder.AddContextEntry(nodeHandler, typeHandle.GetBackingDescriptor(), entryName, nodeHandler.Registry);
             graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
             DefineNode();
         }

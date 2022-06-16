@@ -5,17 +5,19 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class NormalStrengthNode : IStandardNode
     {
-        public static string Name = "NormalStrength";
-        public static int Version = 1;
+        public static string Name => "NormalStrength";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"    Out.xy = In.rg * Strength;
     Out.z = lerp(1, In.b, saturate(Strength));",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In, new float[] { 0f, 0f, 1f }),
-            new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vec3, Usage.In, new float[] { 0f, 0f, 1f }),
+                new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 1f }),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
