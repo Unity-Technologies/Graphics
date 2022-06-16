@@ -411,9 +411,6 @@ namespace UnityEditor.ShaderGraph.Generation
             List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
             var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
 
-
-
-
             // Process functions and prevent from adding duplicates
             if (dependencies.localFunctions != null)
                 localDependencies.AddRange(dependencies.localFunctions);
