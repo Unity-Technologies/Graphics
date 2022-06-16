@@ -2118,8 +2118,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake ||
 #endif
                     !dynamicGIMixedOnly;
-                
+
                 bool processDynamicGI = dynamicGIEnabled && dynamicGINeedsLights;
+
+                var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                if (hdrp != null)
+                {
+                    processDynamicGI &= hdrp.SupportDynamicGI;
+                }
 
                 PreprocessLights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest, processDynamicGI);
 

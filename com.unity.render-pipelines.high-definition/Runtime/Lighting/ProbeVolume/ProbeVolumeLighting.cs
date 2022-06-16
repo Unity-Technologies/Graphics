@@ -155,7 +155,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Is the feature globally disabled?
         bool m_SupportProbeVolume = false;
         bool m_SupportDynamicGI = false;
+        bool m_ForceDisableDynamicGI = false;
         private bool m_WasProbeVolumeDynamicGIEnabled;
+
+        public bool SupportDynamicGI
+        {
+            get { return m_SupportDynamicGI && !m_ForceDisableDynamicGI; }
+            set { m_ForceDisableDynamicGI = !value; }
+        }
 
         // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
         uint[] m_ProbeVolumeSortKeys = new uint[k_MaxVisibleProbeVolumeCount];
@@ -612,21 +619,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportProbeVolume)
                 return;
 
-            ref ProbeVolume.ProbeVolumeAtlasKey usedKey = ref volume.GetPipelineData().UsedAtlasKey;
+            ref var pipelineData = ref volume.GetPipelineData();
 
             // TODO: Currently, this means that if there are multiple probe volumes that point to the same payload,
             // if any of them are disabled, that payload will be evicted from the atlas.
             // If will get added back to the atlas the next frame any of the remaining enabled probe volumes are seen,
             // so functionally, this is fine. It does however put additional pressure on the atlas allocator + blitting.
             // Could add reference counting to atlas keys, or could track key use timestamps and evict based on least recently used as needed.
-            if (probeVolumeAtlas.IsTextureSlotAllocated(usedKey)) { probeVolumeAtlas.ReleaseTextureSlot(usedKey); }
+            if (probeVolumeAtlas.IsTextureSlotAllocated(pipelineData.UsedAtlasKey)) { probeVolumeAtlas.ReleaseTextureSlot(pipelineData.UsedAtlasKey); }
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
-                if (probeVolumeAtlasOctahedralDepth.IsTextureSlotAllocated(usedKey)) { probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(usedKey); }
+                if (probeVolumeAtlasOctahedralDepth.IsTextureSlotAllocated(pipelineData.UsedAtlasKey)) { probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(pipelineData.UsedAtlasKey); }
             }
 
-            usedKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
+            pipelineData.UsedAtlasKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
+            pipelineData.EngineDataIndex = -1;
         }
 
         internal void EnsureStaleDataIsFlushedFromAtlases(ProbeVolumeHandle volume, bool isOctahedralDepthAtlasEnabled)
@@ -1085,7 +1093,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.globalCB = m_ShaderVariablesGlobalCB;
             data.ambientProbe = m_SkyManager.GetAmbientProbe(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && SupportDynamicGI)
             {
                 data.infiniteBounces = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces);
                 data.propagationQuality = hdCamera.frameSettings.probeVolumeDynamicGIPropagationQuality;
@@ -1111,7 +1119,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.mode == ProbeVolumeDynamicGIMode.Dispatch)
                 {
                     // Update Probe Volume Data via Dynamic GI Propagation
-                    ProbeVolumeDynamicGI.instance.ResetSimulationRequests();
                     float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
                     int maxSimulationsPerFrame = data.maxSimulationsPerFrameOverride;
 
@@ -1126,7 +1133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
-                        
+
                         bool requiresSimulation;
 #if UNITY_EDITOR
                         if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake)
@@ -1143,7 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TODO: obb.center can be a world space position if rendering is not camera relative.
                             requiresSimulation = obb.center.magnitude < (maxRange + maxExtent);
                         }
-                        
+
                         if (requiresSimulation)
                             ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
                     }
@@ -1182,7 +1189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
 
             float offscreenUploadDistance = 0.0f;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && SupportDynamicGI)
             {
                 var dynamicGISettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
                 offscreenUploadDistance = (dynamicGISettings.neighborVolumePropagationMode.value == ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled)
