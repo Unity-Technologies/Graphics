@@ -4,12 +4,12 @@ The following process uses DaVinci Resolve, but you can apply it for other digit
 
 To author lookup textures in resolve: 
 
-1. [Set up the HDRP Asset](#set-up-hdrp-asset)
-2. [Render the Camera view to an EXR file](#camera-to-exr)
-3. [Set up Resolve for color grading](#set-up-resolve)
-4. [Apply color grading](#apply-color-grading)
-5. [Export your work as a CUBE file](#export-cube)
-6. [Import and use the CUBE file in your Scene](#import-cube)
+1. [Set up the HDRP Asset](#set-up-hdrp-asset).
+2. [Render the Camera view to an EXR file](#camera-to-exr).
+3. [Set up Resolve for color grading](#set-up-resolve).
+4. [Apply color grading.](#apply-color-grading)
+5. [Export your work as a CUBE file](#export-cube).
+6. [Import and use the CUBE file in your Scene](#import-cube).
 
 <a name="set-up-hdrp-asset"></a>
 ## Set up the HDRP Asset
