@@ -134,6 +134,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return edgeModel;
         }
 
+        public override IReadOnlyCollection<IGraphElementModel> DeleteEdges(IReadOnlyCollection<IEdgeModel> edgeModels)
+        {
+            // Remove CLDS edges as well
+            foreach (var edge in edgeModels)
+            {
+                if (edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
+                    Disconnect(sourcePort, destPort);
+            }
+
+            return base.DeleteEdges(edgeModels);
+        }
+
         IPortModel HandleRedirectNodesCreation(IPortModel toPort, IPortModel fromPort, out List<IPortModel> resolvedDestinations)
         {
             var resolvedSource = fromPort;
@@ -322,6 +334,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return pastedNodeModel;
         }
 
+        public override TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel, bool keepGuid = false)
+        {
+            var uniqueName = sourceModel.Title;
+            var copiedVariable = sourceModel.Clone();
+            copiedVariable.GraphModel = this;
+            if (keepGuid)
+                copiedVariable.Guid = sourceModel.Guid;
+            copiedVariable.Title = GenerateGraphVariableDeclarationUniqueName(uniqueName);
+
+            if (copiedVariable is GraphDataVariableDeclarationModel graphDataVariableDeclaration)
+            {
+                // Initialize CLDS data prior to initializing the constant
+                ShaderGraphStencil.InitVariableDeclarationModel(copiedVariable, copiedVariable.InitializationModel);
+                copiedVariable.CreateInitializationValue();
+            }
+
+            AddVariableDeclaration(copiedVariable);
+
+            if (sourceModel.ParentGroup != null && sourceModel.ParentGroup.GraphModel == this)
+                sourceModel.ParentGroup.InsertItem(copiedVariable, -1);
+            else
+            {
+                var section = GetSectionModel(Stencil.GetVariableSection(copiedVariable));
+                section.InsertItem(copiedVariable, -1);
+            }
+
+            return copiedVariable;
+        }
+
         public void HandlePostDuplicationEdgeFixup()
         {
             if (m_DuplicatedNodesMap.Count != 0)
@@ -385,119 +426,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ((NodeModel)nodeModel).OutputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
-        public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
+        // TODO: (Sai) Would it be better to have a way to gather any variable nodes
+        // linked to a blackboard item at a GraphHandler level instead of here?
+        public IEnumerable<INodeModel> GetLinkedVariableNodes(string variableName)
         {
-            return this.VariableDeclarations;
-        }
-
-        public void GetTimeDependentNodesOnGraph(PooledHashSet<GraphDataNodeModel> timeDependentNodes)
-        {
-            var nodesOnGraph = NodeModels;
-            foreach (var nodeModel in nodesOnGraph)
-            {
-                if (nodeModel is GraphDataNodeModel graphDataNodeModel && DoesNodeRequireTime(graphDataNodeModel))
-                    timeDependentNodes.Add(graphDataNodeModel);
-            }
-
-            PropagateNodes(timeDependentNodes, PropagationDirection.Downstream, timeDependentNodes);
-        }
-
-        // cache the Action to avoid GC
-        static readonly Action<GraphDataNodeModel> AddNextLevelNodesToWave =
-            nextLevelNode =>
-            {
-                if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
-                {
-                    m_TempNodeWave.Push(nextLevelNode);
-                    m_TempAddedToNodeWave.Add(nextLevelNode);
-                }
-            };
-
-        // Temp structures that are kept around statically to avoid GC churn (not thread safe)
-        static Stack<GraphDataNodeModel> m_TempNodeWave = new();
-        static HashSet<GraphDataNodeModel> m_TempAddedToNodeWave = new();
-
-        // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
-        // sources and result can be the same HashSet
-        private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
-
-        static void PropagateNodes(HashSet<GraphDataNodeModel> sources, PropagationDirection dir, HashSet<GraphDataNodeModel> result)
-        {
-            using (PropagateNodesMarker.Auto())
-                if (sources.Count > 0)
-                {
-                    // NodeWave represents the list of nodes we still have to process and add to result
-                    m_TempNodeWave.Clear();
-                    m_TempAddedToNodeWave.Clear();
-                    foreach (var node in sources)
-                    {
-                        m_TempNodeWave.Push(node);
-                        m_TempAddedToNodeWave.Add(node);
-                    }
-
-                    while (m_TempNodeWave.Count > 0)
-                    {
-                        var node = m_TempNodeWave.Pop();
-                        if (node == null)
-                            continue;
-
-                        result.Add(node);
-
-                        // grab connected nodes in propagation direction, add them to the node wave
-                        ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
-                    }
-
-                    // clean up any temp data
-                    m_TempNodeWave.Clear();
-                    m_TempAddedToNodeWave.Clear();
-                }
-        }
-
-        static IEnumerable<NodeHandler> GetUpstreamNodes(NodeHandler startingNode)
-        {
-            return Utils.GraphTraversalUtils.GetUpstreamNodes(startingNode);
-        }
-
-        static IEnumerable<NodeHandler> GetDownstreamNodes(NodeHandler startingNode)
-        {
-            return Utils.GraphTraversalUtils.GetDownstreamNodes(startingNode);
-        }
-
-        static GraphDataNodeModel TryGetNodeModel(ShaderGraphModel shaderGraphModel, NodeHandler inputNodeReader)
-        {
-            // TODO: Make a mapping between every node model and node reader so we can also do lookup
-            // from NodeReaders to NodeModels, as is needed below for instance
-            return null;
-        }
-
-        static void ForeachConnectedNode(GraphDataNodeModel sourceNode, PropagationDirection dir, Action<GraphDataNodeModel> action)
-        {
-            sourceNode.TryGetNodeHandler(out var nodeReader);
-
-            ShaderGraphModel shaderGraphModel = sourceNode.GraphModel as ShaderGraphModel;
-
-            // Enumerate through all nodes that the node feeds into and add them to the list of nodes to inspect
-            if (dir == PropagationDirection.Downstream)
-            {
-                foreach (var connectedNode in GetDownstreamNodes(nodeReader))
-                {
-                    action(TryGetNodeModel(shaderGraphModel, connectedNode));
-                }
-            }
-            else
-            {
-                foreach (var connectedNode in GetUpstreamNodes(nodeReader))
-                {
-                    action(TryGetNodeModel(shaderGraphModel, connectedNode));
-                }
-            }
-        }
-
-        public IEnumerable<GraphDataNodeModel> GetNodesInHierarchyFromSources(IEnumerable<GraphDataNodeModel> nodeSources, PropagationDirection propagationDirection)
-        {
-            var nodesInHierarchy = new HashSet<GraphDataNodeModel>();
-            PropagateNodes(new HashSet<GraphDataNodeModel>(nodeSources), propagationDirection, nodesInHierarchy);
-            return nodesInHierarchy;
+            return NodeModels.Where(
+                node => node is GraphDataVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
+                    && variableDeclarationModel.graphDataName == variableName);
         }
 
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
@@ -506,11 +441,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (graphDataNodeModel.TryGetNodeHandler(out var _))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
-                // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,
-                // which are other INodeReaders/IPortReaders that exist as hidden/internal connections on a node
-                //nodeReader.TryGetField("requiresTime", out var fieldReader);
-                //if(fieldReader != null)
-                //    fieldReader.TryGetValue(out nodeRequiresTime);
             }
 
             return nodeRequiresTime;

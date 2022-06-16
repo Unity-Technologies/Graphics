@@ -70,18 +70,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
         override public TypeHandle GetTypeHandle()
         {
-            switch (GetLength())
+            try
             {
-                case GraphType.Length.Two: return TypeHandle.Vector2;
-                case GraphType.Length.Three: return TypeHandle.Vector3;
-                case GraphType.Length.Four: return TypeHandle.Vector4;
-                default:
-                    switch (GetPrimitive())
-                    {
-                        case GraphType.Primitive.Int: return TypeHandle.Int;
-                        case GraphType.Primitive.Bool: return TypeHandle.Bool;
-                        default: return TypeHandle.Float;
-                    }
+                switch (GetLength())
+                {
+                    case GraphType.Length.Two: return TypeHandle.Vector2;
+                    case GraphType.Length.Three: return TypeHandle.Vector3;
+                    case GraphType.Length.Four: return TypeHandle.Vector4;
+                    default:
+                        switch (GetPrimitive())
+                        {
+                            case GraphType.Primitive.Int: return TypeHandle.Int;
+                            case GraphType.Primitive.Bool: return TypeHandle.Bool;
+                            default: return TypeHandle.Float;
+                        }
+                }
+            }
+            catch(Exception e)
+            {
+                // TODO: (Sai) Currently, when a blackboard item is deleted, the inspector still tries to draw it after
+                // this causes exceptions due to missing graph data, need to investigate more
+                Debug.LogException(e);
+                return TypeHandle.Unknown;
             }
         }
     }

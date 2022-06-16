@@ -20,6 +20,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         MainPreviewView m_MainPreviewView;
 
+        BlackboardView m_BlackboardView;
+
         // We setup a reference to the MainPreview when the overlay containing it is created
         // We do this because the resources needed to initialize the preview are not available at overlay creation time
         internal void SetMainPreviewReference(MainPreviewView mainPreviewView)
@@ -205,6 +207,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return shaderGraphView;
         }
 
+        public override BlackboardView CreateBlackboardView()
+        {
+            if(GraphView != null)
+                m_BlackboardView = new BlackboardView(this, GraphView);
+            return m_BlackboardView;
+        }
+
         protected override BlankPage CreateBlankPage()
         {
             var onboardingProviders = new List<OnboardingProvider>();
@@ -229,7 +238,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
                 var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
                 shaderGraphModel.graphModelStateComponent = GraphView.GraphViewModel.GraphModelState;
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_BlackboardView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
             }
 
             m_PreviewManager?.Update();

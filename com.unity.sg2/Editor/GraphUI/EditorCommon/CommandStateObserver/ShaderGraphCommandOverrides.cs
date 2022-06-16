@@ -35,18 +35,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // TODO: (Sai) Move this stuff into ShaderGraphModel as much as possible
         // there are things that GTF is doing in the base command handler that we shouldn't be disabling or affecting at all
-        public static void HandleDeleteElements(
+        public static void HandleDeleteNodesAndEdges(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
             SelectionStateComponent selectionState,
             PreviewManager previewManager,
             DeleteElementsCommand command)
         {
-            // Don't want to call base command handler as doing so wipes command from info. of objects being deleted
-            //DeleteElementsCommand.DefaultCommandHandler(undoState, graphViewState, selectionState, command);
-
-            if (!command.Models.Any())
-                return;
+            var modelsToDelete = command.Models.ToList();
+            // We want to override base handling here
+            // DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
 
             using (var undoStateUpdater = undoState.UpdateScope)
             {
@@ -59,12 +57,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var redirects = new List<RedirectNodeModel>();
             var nonRedirects = new List<IGraphElementModel>();
 
-            foreach (var model in command.Models)
+            foreach (var model in modelsToDelete)
             {
                 switch (model)
                 {
                     case RedirectNodeModel redirectModel:
                         redirects.Add(redirectModel);
+                        break;
+                    case GraphDataVariableDeclarationModel:
+                        // We handle variables in HandleDeleteBlackboardItems so can be skipped here
                         break;
                     default:
                         nonRedirects.Add(model);
@@ -108,12 +109,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     switch (model)
                     {
-                        case IEdgeModel edge:
-                            // If its an actual edge, remove from CLDS
-                            if(edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
-                                graphModel.Disconnect(sourcePort, destPort);
-                            break;
-
                         // Delete backing data for graph data nodes.
                         case GraphDataNodeModel graphDataNode:
                             graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
@@ -145,6 +140,59 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
 
                 graphUpdater.MarkDeleted(deletedModels);
+            }
+        }
+
+        public static void HandleDeleteBlackboardItems(
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphModelState,
+            SelectionStateComponent selectionState,
+            PreviewManager previewManager,
+            DeleteElementsCommand command)
+        {
+            var modelsToDelete = command.Models.ToList();
+
+            if (!modelsToDelete.Any())
+                return;
+
+            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
+
+            // Update previews
+            foreach (var model in modelsToDelete)
+            {
+                switch (model)
+                {
+                    case GraphDataVariableDeclarationModel variableDeclarationModel:
+
+                        // Gather all variable nodes linked to this blackboard item
+                        var linkedVariableNodes = graphModel.GetLinkedVariableNodes(variableDeclarationModel.graphDataName);
+                        foreach (var linkedVariableNode in linkedVariableNodes)
+                        {
+                            var graphDataVariableNode = linkedVariableNode as GraphDataVariableNodeModel;
+                            // Notify downstream nodes to update previews
+                            previewManager.OnNodeFlowChanged(graphDataVariableNode.graphDataName);
+                        }
+                        break;
+                }
+            }
+
+            // Delete GTF data and linked edges, variable nodes
+            DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
+
+            using (var selectionStateUpdater = selectionState.UpdateScope)
+            {
+                selectionStateUpdater.SelectElements(modelsToDelete, false);
+            }
+
+            // Remove CLDS data
+            foreach (var model in modelsToDelete)
+            {
+                switch (model)
+                {
+                    case GraphDataVariableDeclarationModel variableDeclarationModel:
+                        graphModel.GraphHandler.RemoveReferableEntry(variableDeclarationModel.contextNodeName, variableDeclarationModel.graphDataName);
+                        break;
+                }
             }
         }
 
