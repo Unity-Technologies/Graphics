@@ -48,7 +48,7 @@ Before you can start color grading in Resolve, you need to set up Resolve to wor
 5. Back in Resolve, click the **Update Lists** button.
 6. Set the **Video Monitor Lookup Table** to **Linear to sRGB r1**.
 
-**Note**: You only need to do step 1 to 5 once for Resolve in general, and step 6 for each project.
+**Note**: You only need to do steps 1 to 5 once for Resolve in general, and step 6 for each project.
 
 Import the EXR into Resolve and apply the **Unity Log To Linear r1** LUT to it. To apply the LUT:
 
