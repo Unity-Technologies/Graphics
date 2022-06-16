@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            "ParallaxOcclusionMappingRed",
             new FunctionDescriptor[] {
 /* TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
 struct PerPixelHeightDisplacementParam

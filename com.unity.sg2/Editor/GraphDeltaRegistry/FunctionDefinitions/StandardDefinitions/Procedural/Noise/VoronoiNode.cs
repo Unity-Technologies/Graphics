@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            "VoronoiDeterministic",
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_Voronoi_RandomVector_Deterministic",
@@ -78,7 +79,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
                     }
                 ),
                 new(

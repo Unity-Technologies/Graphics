@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl\""
                     }
                 ),
                 new(
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl\""
                     }
                 ),
                 new(
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl\""
                     }
                 ),
                 new(
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl\""
                     }
                 )
             }

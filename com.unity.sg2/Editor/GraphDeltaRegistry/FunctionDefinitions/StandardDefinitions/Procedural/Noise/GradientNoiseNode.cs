@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
                     }
                 ),
                 new(
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     },
                     new string[]
                     {
-                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
                     }
                 ),
                 new(
