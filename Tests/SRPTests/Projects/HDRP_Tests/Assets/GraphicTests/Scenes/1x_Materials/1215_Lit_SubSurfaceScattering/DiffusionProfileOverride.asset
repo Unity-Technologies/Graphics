@@ -27,14 +27,9 @@ MonoBehaviour:
   m_Name: DiffusionProfileOverride
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   diffusionProfiles:
     m_OverrideState: 1
     m_Value:
-    - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
-    - {fileID: 11400000, guid: 09c63d8f96a14884e8efd2f01004f491, type: 2}
-    - {fileID: 11400000, guid: 8471a5bfcdb8fff4f9406cd8079b8554, type: 2}
-    - {fileID: 11400000, guid: 968a3176000311d42af174756ece7f4d, type: 2}
     - {fileID: 11400000, guid: 768484f758b6f7b4daf53a7d9949f5af, type: 2}
     - {fileID: 11400000, guid: fcb8f92518ca5d14bbd7e6751b28cd24, type: 2}
     - {fileID: 11400000, guid: 64ca25f51b132ea4093511f7456ea220, type: 2}

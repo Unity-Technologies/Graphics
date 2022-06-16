@@ -40,7 +40,7 @@
       * [Screen Space Reflection](Override-Screen-Space-Reflection.md)
       * [Screen Space Refraction](Override-Screen-Space-Refraction.md)
     * Material
-      * [Diffusion Profile](Override-Diffusion-Profile.md)
+      * [Diffusion Profile List](Override-Diffusion-Profile.md)
     * Post-processing
       * [Bloom](Post-Processing-Bloom.md)
       * [Channel Mixer](Post-Processing-Channel-Mixer.md)

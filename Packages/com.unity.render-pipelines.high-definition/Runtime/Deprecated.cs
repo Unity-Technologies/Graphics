@@ -69,4 +69,10 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed class AmbientOcclusion
     {
     }
+
+    /// <summary>Deprecated DiffusionProfileOverride</summary>
+    [Obsolete("DiffusionProfileOverride has been deprecated @from(2022.2) (UnityUpgradable) -> DiffusionProfileList", false)]
+    public sealed class DiffusionProfileOverride
+    {
+    }
 }

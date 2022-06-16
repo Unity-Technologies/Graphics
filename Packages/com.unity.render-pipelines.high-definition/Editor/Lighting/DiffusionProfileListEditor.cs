@@ -1,17 +1,17 @@
-using UnityEditor.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditorInternal;
-using UnityEngine;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using System.Linq;
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph;
+using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditor(typeof(DiffusionProfileOverride))]
-    sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
+    [CustomEditor(typeof(DiffusionProfileList))]
+    sealed class DiffusionProfileListEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
 
@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<DiffusionProfileOverride>(serializedObject);
+            var o = new PropertyFetcher<DiffusionProfileList>(serializedObject);
             m_DiffusionProfiles = Unpack(o.Find(x => x.diffusionProfiles));
         }
 
@@ -64,13 +64,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     foreach (var mat in meshRenderer.sharedMaterials)
                     {
-                        var profile = GetMaterialDiffusionProfile(mat);
+                        foreach (var nameID in HDMaterial.GetShaderDiffusionProfileProperties(mat.shader))
+                        {
+                            if (profiles.Count == DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
+                                break;
 
-                        if (profiles.Count == DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
-                            break;
-
-                        if (profile != null)
-                            profiles.Add(profile);
+                            var profile = HDMaterial.GetDiffusionProfileAsset(mat, nameID);
+                            if (profile != null)
+                                profiles.Add(profile);
+                        }
                     }
                 }
             }
@@ -82,19 +84,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_DiffusionProfiles.value.GetArrayElementAtIndex(i).objectReferenceValue = profile;
                 i++;
             }
-        }
-
-        DiffusionProfileSettings GetMaterialDiffusionProfile(Material mat)
-        {
-            if (!mat.HasProperty(HDShaderIDs._DiffusionProfileAsset))
-                return null;
-
-            string guid = HDUtils.ConvertVector4ToGUID(mat.GetVector(HDShaderIDs._DiffusionProfileAsset));
-
-            if (String.IsNullOrEmpty(guid))
-                return null;
-
-            return AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
         }
     }
 }

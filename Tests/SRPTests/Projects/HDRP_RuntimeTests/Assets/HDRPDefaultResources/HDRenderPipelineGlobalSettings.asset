@@ -87,22 +87,6 @@ MonoBehaviour:
   decalLayerName7: 
   lensAttenuationMode: 0
   colorGradingSpace: 1
-  diffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
-  - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
-  - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
-  - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
-  - {fileID: 11400000, guid: 968a3176000311d42af174756ece7f4d, type: 2}
-  - {fileID: 11400000, guid: 64ca25f51b132ea4093511f7456ea220, type: 2}
-  - {fileID: 11400000, guid: fd29a6d903d5eae4d94833c2048bfd9d, type: 2}
-  - {fileID: 11400000, guid: 76f34276e6d50dc4bb0762b87af8931e, type: 2}
-  - {fileID: 11400000, guid: cd1cd5a7c0527844dbca2b7d562b9049, type: 2}
-  - {fileID: 11400000, guid: 385fff18b5c61754188b49a485ecb84a, type: 2}
-  - {fileID: 11400000, guid: d3dd41407c183554ca54bded902d4b7b, type: 2}
-  - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
-  - {fileID: 11400000, guid: 8471a5bfcdb8fff4f9406cd8079b8554, type: 2}
-  - {fileID: 11400000, guid: fcb8f92518ca5d14bbd7e6751b28cd24, type: 2}
-  - {fileID: 11400000, guid: 768484f758b6f7b4daf53a7d9949f5af, type: 2}
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
@@ -210,6 +194,6 @@ MonoBehaviour:
       - Scenario 1
       - Scenario 2
     m_LightingScenario: Scenario 1
-  m_Version: 4
+  m_Version: 5
   m_ShaderVariantLogLevel: 0
   m_ExportShaderVariants: 1
