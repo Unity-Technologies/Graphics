@@ -2,7 +2,7 @@
 
 The following process uses DaVinci Resolve, but you can apply it for other digital content creation tools such as [Photoshop](LUT-Authoring-Photoshop.md) or Nuke.
 
-To author lookup textures in resolve: 
+To author lookup textures in Resolve: 
 
 1. [Set up the HDRP Asset](#set-up-hdrp-asset)
 2. [Render the Camera view to an EXR file](#camera-to-exr)
