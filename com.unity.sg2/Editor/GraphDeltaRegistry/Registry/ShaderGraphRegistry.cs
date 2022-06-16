@@ -116,10 +116,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             #endregion
 
             // TODO: remove these, but keep until equivalents are working correctly.
-            Register<SampleGradientNode>();
-            Register<SamplerStateExampleNode>();
-            Register<SimpleTextureNode>();
-            Register<SimpleSampleTexture2DNode>();
+            Register(new SampleGradientNode());
+            Register(new SamplerStateExampleNode());
+            Register(new SimpleTextureNode());
+            Register(new SimpleSampleTexture2DNode());
             Register<ShaderGraphContext>();
 
 
