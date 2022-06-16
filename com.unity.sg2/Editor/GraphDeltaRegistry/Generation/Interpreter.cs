@@ -423,6 +423,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (FunctionsAreEqual(existing, function))
                     {
                         shouldAdd = false;
+                        break;
                     }
                 }
                 if (shouldAdd)
@@ -442,6 +443,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (existing.Value == include.Value)
                     {
                         shouldAdd = false;
+                        break;
                     }
                 }
                 if (shouldAdd)
