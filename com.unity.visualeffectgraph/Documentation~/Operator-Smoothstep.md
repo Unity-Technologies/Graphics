@@ -6,7 +6,7 @@ The **Smoothstep** Operator calculates the linear interpolation of a value betwe
 
 This Operator returns a value between **X** and **Y**. Where this value is between **X** and **Y** depends on the value of **S**:
 
-- If **S** is less than 1, the result is **Y**.
+- If **S** is greater than 1, the result is **Y**.
 - If **S** is less than 0 the result is **X.**
 
 - If **S** is between 0 and 1 then the result is a smooth transition between **X** and **Y**.
