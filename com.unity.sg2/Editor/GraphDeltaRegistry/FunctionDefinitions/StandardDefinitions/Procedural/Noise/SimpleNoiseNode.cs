@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            "SimpleNoiseDeterministic",
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_SimpleNoise_ValueNoise_Deterministic",

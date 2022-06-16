@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            "GradientNoiseDeterministic",
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_GradientNoise_Deterministic_Dir",

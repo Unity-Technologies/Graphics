@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            "ParallaxMappingRed",
             functions: new FunctionDescriptor[] {
                 new(
                     "ParallaxMappingRed",
