@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering
             {
                 LOD lod = lods[l];
                 bool isBillboard = stImporter.hasBillboard && (l == lods.Length - 1);
-                int wq = Mathf.Min(stImporter.windQualities[l], stImporter.bestWindQuality);
+                int wq = Mathf.Min(stImporter.windQualities[l], stImporter.windQuality);
                 foreach (Renderer r in lod.renderers)
                 {
                     // Override default motion vector generation mode pending
