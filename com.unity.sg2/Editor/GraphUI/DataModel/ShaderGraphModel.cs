@@ -343,11 +343,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 copiedVariable.Guid = sourceModel.Guid;
             copiedVariable.Title = GenerateGraphVariableDeclarationUniqueName(uniqueName);
 
-            if (copiedVariable is GraphDataVariableDeclarationModel graphDataVariableDeclaration)
+            // Need to get a reference to the original variable declaration model
+            // to get stored default value of the constant
+            var originalVariable = VariableDeclarations.FirstOrDefault(model => model.Guid == sourceModel.Guid);
+            if (originalVariable != null)
             {
                 // Initialize CLDS data prior to initializing the constant
                 ShaderGraphStencil.InitVariableDeclarationModel(copiedVariable, copiedVariable.InitializationModel);
                 copiedVariable.CreateInitializationValue();
+                copiedVariable.InitializationModel.ObjectValue = originalVariable.InitializationModel.ObjectValue;
             }
 
             AddVariableDeclaration(copiedVariable);
