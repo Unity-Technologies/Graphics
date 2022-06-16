@@ -10,9 +10,25 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
+                    "Unity_Voronoi_RandomVector_Deterministic",
+@"	Hash_Tchou_2_2_float(UV, UV);
+	Out.x = sin(UV.y * offset);
+    Out.y = cos(UV.x * offset);
+    Out = Out * 0.5 + 0.5;",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("offset", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    },
+                    new string[]
+                    {
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
+                    }
+                ),
+                new(
                     "VoronoiDeterministic",
 @"	g = floor(UV * CellDensity);
 	f = frac(UV * CellDensity);
@@ -33,35 +49,39 @@ namespace UnityEditor.ShaderGraph.Defs
 			}
 		}
 	}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("AngleOffset", TYPE.Float, Usage.In, new float[] {2f}),
-                    new ParameterDescriptor("CellDensity", TYPE.Float, Usage.In, new float[] {5f}),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("Cells", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("g", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("f", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("res", TYPE.Vec3, Usage.Local, new float[] {8.0f, 0.0f, 0.0f}),
-                    new ParameterDescriptor("lattice", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("offset", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d", TYPE.Float, Usage.Local)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
-
-Unity_Voronoi_RandomVector_Deterministic
-
-	Hash_Tchou_2_2_float(UV, UV);
-	Out.x = sin(UV.y * offset);
-    Out.y = cos(UV.x * offset);
-    Out = Out * 0.5 + 0.5;
-
-new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
-new ParameterDescriptor("offset", TYPE.Float, Usage.In),
-new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
-
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("AngleOffset", TYPE.Float, Usage.In, new float[] {2f}),
+                        new ParameterDescriptor("CellDensity", TYPE.Float, Usage.In, new float[] {5f}),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("Cells", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("g", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("f", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("res", TYPE.Vec3, Usage.Local, new float[] {8.0f, 0.0f, 0.0f}),
+                        new ParameterDescriptor("lattice", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("offset", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Float, Usage.Local)
+                    }
                 ),
                 new(
-                    1,
+                    "Unity_Voronoi_RandomVector_LegacySine",
+@"  Hash_LegacySine_2_2_float(UV, UV);
+	Out.x = sin(UV.y * offset);
+    Out.y = cos(UV.x * offset);
+    Out = Out * 0.5 + 0.5;",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("offset", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                    }
+                ),
+                new(
                     "VoronoiLegacySine",
 @"	g = floor(UV * CellDensity);
 	f = frac(UV * CellDensity);
@@ -82,31 +102,20 @@ new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
 			}
 		}
 	}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("AngleOffset", TYPE.Float, Usage.In, new float[] {2f}),
-                    new ParameterDescriptor("CellDensity", TYPE.Float, Usage.In, new float[] {5f}),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("Cells", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("g", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("f", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("res", TYPE.Vec3, Usage.Local, new float[] {8.0f, 0.0f, 0.0f}),
-                    new ParameterDescriptor("lattice", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("offset", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d", TYPE.Float, Usage.Local)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
-
-Unity_Voronoi_RandomVector_LegacySine
-
-    Hash_LegacySine_2_2_float(UV, UV);
-	Out.x = sin(UV.y * offset);
-    Out.y = cos(UV.x * offset);
-    Out = Out * 0.5 + 0.5;
-
-new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
-new ParameterDescriptor("offset", TYPE.Float, Usage.In),
-new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("AngleOffset", TYPE.Float, Usage.In, new float[] {2f}),
+                        new ParameterDescriptor("CellDensity", TYPE.Float, Usage.In, new float[] {5f}),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("Cells", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("g", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("f", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("res", TYPE.Vec3, Usage.Local, new float[] {8.0f, 0.0f, 0.0f}),
+                        new ParameterDescriptor("lattice", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("offset", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Float, Usage.Local)
+                    }
                 )
             }
         );

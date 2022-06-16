@@ -11,44 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             new FunctionDescriptor[] {
-                new(
-                    1,
-                    "ParallaxOcclusionMappingRed",
-                    //TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
-@"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
-    ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
-    MaxHeight = Amplitude * 0.01; // cm in the interface
-    MaxHeight *= 2.0 / ( abs(Tiling.x) + abs(Tiling.y) ); // reduce height based on the tiling values
-    // Transform the view vector into the UV space.
-    ViewDirUV.xy = ViewDir.xy * (MaxHeight * Tiling / PrimitiveSize);
-    ViewDirUV.z = ViewDir.z;
-    ViewDirUV = normalize(ViewDirUV); // TODO: skip normalize
-    PerPixelHeightDisplacementParam POM;
-    TransformedUVS = UVs * Tiling + Offset;
-    POM.uv = Heightmap.GetTransformedUV(TransformedUVS);
-    ParallaxUVs = POM.uv + ParallaxOcclusionMapping(LOD, LODThreshold, max(min(Steps, 256), 1), ViewDirUV, POM, OutHeight, Heightmap.tex, HeightmapSampler.samplerstate));
-    PixelDepthOffset = (MaxHeight - OutHeight * MaxHeight) / max(ViewDir.z, 0.0001);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {0}),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
-                    new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
-/*
-// Required struct and function for the ParallaxOcclusionMapping function:
+/* TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
 struct PerPixelHeightDisplacementParam
 {
     float2 uv;
@@ -77,10 +40,8 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_PARAMETERS
 #undef POM_USER_DATA_ARGUMENTS
 */
-                ),
                 new(
-                    1,
-                    "ParallaxOcclusionMappingGreen",
+                    "ParallaxOcclusionMappingRed",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -94,27 +55,30 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
     POM.uv = Heightmap.GetTransformedUV(TransformedUVS);
     ParallaxUVs = POM.uv + ParallaxOcclusionMapping(LOD, LODThreshold, max(min(Steps, 256), 1), ViewDirUV, POM, OutHeight, Heightmap.tex, HeightmapSampler.samplerstate));
     PixelDepthOffset = (MaxHeight - OutHeight * MaxHeight) / max(ViewDir.z, 0.0001);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {1}),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
-                    new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
-/*
-// Required struct and function for the ParallaxOcclusionMapping function:
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {0}),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                        new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
+                    }
+                ),
+/*  TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
 struct PerPixelHeightDisplacementParam
 {
     float2 uv;
@@ -143,10 +107,8 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_PARAMETERS
 #undef POM_USER_DATA_ARGUMENTS
 */
-                ),
                 new(
-                    1,
-                    "ParallaxOcclusionMappingBlue",
+                    "ParallaxOcclusionMappingGreen",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -160,27 +122,30 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
     POM.uv = Heightmap.GetTransformedUV(TransformedUVS);
     ParallaxUVs = POM.uv + ParallaxOcclusionMapping(LOD, LODThreshold, max(min(Steps, 256), 1), ViewDirUV, POM, OutHeight, Heightmap.tex, HeightmapSampler.samplerstate));
     PixelDepthOffset = (MaxHeight - OutHeight * MaxHeight) / max(ViewDir.z, 0.0001);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {2}),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
-                    new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
-/*
-// Required struct and function for the ParallaxOcclusionMapping function:
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {1}),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                        new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
+                    }
+                ),
+/*  TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
 struct PerPixelHeightDisplacementParam
 {
     float2 uv;
@@ -209,10 +174,8 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_PARAMETERS
 #undef POM_USER_DATA_ARGUMENTS
 */
-                ),
                 new(
-                    1,
-                    "ParallaxOcclusionMappingAlpha",
+                    "ParallaxOcclusionMappingBlue",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -226,27 +189,30 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
     POM.uv = Heightmap.GetTransformedUV(TransformedUVS);
     ParallaxUVs = POM.uv + ParallaxOcclusionMapping(LOD, LODThreshold, max(min(Steps, 256), 1), ViewDirUV, POM, OutHeight, Heightmap.tex, HeightmapSampler.samplerstate));
     PixelDepthOffset = (MaxHeight - OutHeight * MaxHeight) / max(ViewDir.z, 0.0001);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
-                    new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {3}),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
-                    new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
-/*
-// Required struct and function for the ParallaxOcclusionMapping function:
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {2}),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                        new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
+                    }
+                ),
+/*  TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
 struct PerPixelHeightDisplacementParam
 {
     float2 uv;
@@ -275,6 +241,43 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_PARAMETERS
 #undef POM_USER_DATA_ARGUMENTS
 */
+                new(
+                    "ParallaxOcclusionMappingAlpha",
+@"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
+    ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
+    MaxHeight = Amplitude * 0.01; // cm in the interface
+    MaxHeight *= 2.0 / ( abs(Tiling.x) + abs(Tiling.y) ); // reduce height based on the tiling values
+    // Transform the view vector into the UV space.
+    ViewDirUV.xy = ViewDir.xy * (MaxHeight * Tiling / PrimitiveSize);
+    ViewDirUV.z = ViewDir.z;
+    ViewDirUV = normalize(ViewDirUV); // TODO: skip normalize
+    PerPixelHeightDisplacementParam POM;
+    TransformedUVS = UVs * Tiling + Offset;
+    POM.uv = Heightmap.GetTransformedUV(TransformedUVS);
+    ParallaxUVs = POM.uv + ParallaxOcclusionMapping(LOD, LODThreshold, max(min(Steps, 256), 1), ViewDirUV, POM, OutHeight, Heightmap.tex, HeightmapSampler.samplerstate));
+    PixelDepthOffset = (MaxHeight - OutHeight * MaxHeight) / max(ViewDir.z, 0.0001);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("Steps", TYPE.Float, Usage.In, new float[] {5}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("LODThreshold", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("PrimitiveSize", TYPE.Vec2, Usage.In, new float[] {1, 1}),
+                        new ParameterDescriptor("PixelDepthOffset", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {3}),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("ViewDirTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                        new ParameterDescriptor("MaxHeight", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("TransformedUVS", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ViewDirUV", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("OutHeight", TYPE.Float, Usage.Local)
+                    }
                 )
             }
         );

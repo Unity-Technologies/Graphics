@@ -7,70 +7,81 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public static string Name = "ParallaxMapping";
         public static int Version = 1;
-        //TODO: where to include ParallaxMapping.hlsl?
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "ParallaxMappingRed",
                     "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {0}),
-                    new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {0}),
+                        new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                    }
                 ),
                 new(
-                    1,
                     "ParallaxMappingGreen",
                     "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {1f}),
-                    new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {1f}),
+                        new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                    }
                 ),
                 new(
-                    1,
                     "ParallaxMappingBlue",
                     "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {2f}),
-                    new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {2f}),
+                        new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                    }
                 ),
                 new(
-                    1,
                     "ParallaxMappingAlpha",
                     "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
-                    new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
-                    new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
-                    new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {3f}),
-                    new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("HeightmapSampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Amplitude", TYPE.Float, Usage.In, new float[] {1}),
+                        new ParameterDescriptor("UVs", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("ParallaxUVs", TYPE.Vec2, Usage.Out),
+                        new ParameterDescriptor("channel", TYPE.Int, Usage.Local, new float[] {3f}),
+                        new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
+                    }
                 )
             }
         );

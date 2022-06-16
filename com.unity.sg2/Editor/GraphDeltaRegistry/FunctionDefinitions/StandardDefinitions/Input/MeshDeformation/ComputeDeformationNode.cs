@@ -9,25 +9,8 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "ComputeDeformation";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
-//TODO: Add all of the code that needs to exist outside this main body function in order for this to work.
-@"#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-	//TODO: this line only gets added if GenerationMode is set to ForReals
-    Unity_ComputeDeformedVertex(VertexID, DeformedPosition, DeformedNormal, DeformedTangent);
-#else
-    DeformedPosition = PositionOS;
-	DeformedNormal = NormalOS;
-	DeformedTangent = TangentOS;
-#endif",
-            new ParameterDescriptor("PositionOS", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Position),
-            new ParameterDescriptor("NormalOS", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Normal),
-            new ParameterDescriptor("TangentOS", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Tangent),
-            new ParameterDescriptor("VertexID", TYPE.Vec3, GraphType.Usage.Local, REF.VertexID),
-            new ParameterDescriptor("DeformedPosition", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("DeformedNormal", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("DeformedTangent", TYPE.Vec3, GraphType.Usage.Out)
-/*
+/* TODO: Add all of the code that needs to exist outside the main body function in order for this to work.
 struct DeformedVertexData
 {
 	float3 Position;
@@ -45,7 +28,25 @@ void Unity_ComputeDeformedVertex(uint vertexID, out float3 positionOut, out floa
 	tangentOut = vertexData.Tangent;
 }
 */
-            );
+@"#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+	//TODO: this line only gets added if GenerationMode is set to ForReals
+    Unity_ComputeDeformedVertex(VertexID, DeformedPosition, DeformedNormal, DeformedTangent);
+#else
+    DeformedPosition = PositionOS;
+	DeformedNormal = NormalOS;
+	DeformedTangent = TangentOS;
+#endif",
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("PositionOS", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Position),
+                new ParameterDescriptor("NormalOS", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Normal),
+                new ParameterDescriptor("TangentOS", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Tangent),
+                new ParameterDescriptor("VertexID", TYPE.Vec3, GraphType.Usage.Local, REF.VertexID),
+                new ParameterDescriptor("DeformedPosition", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("DeformedNormal", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("DeformedTangent", TYPE.Vec3, GraphType.Usage.Out)
+            }
+        );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,

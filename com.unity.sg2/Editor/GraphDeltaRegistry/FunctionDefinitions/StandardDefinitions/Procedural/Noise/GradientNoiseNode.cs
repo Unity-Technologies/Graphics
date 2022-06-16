@@ -10,9 +10,24 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
+                    "Unity_GradientNoise_Deterministic_Dir",
+@"	Hash_Tchou_2_1_float(p, x);
+    Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
+	Out = normalize(Out);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("p", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("x", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                    }
+                ),
+                new(
                     "GradientNoiseDeterministic",
 @"	p = UV * Scale;
 	ip = floor(p);
@@ -31,41 +46,45 @@ namespace UnityEditor.ShaderGraph.Defs
 	d11 = dot(d11Out, fp - 1);
 	fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
 	Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] {10f}),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("p", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ip", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("fp", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ip2", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("fp2", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ip3", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("fp3", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d00", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
-
-new ParameterDescriptor("p", TYPE.Vec2, Usage.In)
-new ParameterDescriptor("x", TYPE.Float, Usage.Local)
-new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
-
-Unity_GradientNoise_Deterministic_Dir
-
-	Hash_Tchou_2_1_float(p, x);
-    Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
-	Out = normalize(Out);
-
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] {10f}),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("p", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ip", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("fp", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ip2", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("fp2", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ip3", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("fp3", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d00", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
+                    },
+                    new string[]
+                    {
+                        "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+                    }
                 ),
                 new(
-                    1,
+                    "Unity_GradientNoise_LegacyMod_Dir",
+@"	Hash_LegacyMod_2_1_float(p, x);
+    Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
+	Out = normalize(Out);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("p", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("x", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    }
+                ),
+                new(
                     "GradientNoiseLegacyMod",
 @"	p = UV * Scale;
 	ip = floor(p);
@@ -84,37 +103,27 @@ Unity_GradientNoise_Deterministic_Dir
 	d11 = dot(d11Out, fp - 1);
 	fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
 	Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] {10f}),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("p", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ip", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("fp", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ip2", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("fp2", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("ip3", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("fp3", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d00", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
-/*
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
-
-new ParameterDescriptor("p", TYPE.Vec2, Usage.In)
-new ParameterDescriptor("x", TYPE.Float, Usage.Local)
-new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
-
-Unity_GradientNoise_LegacyMod_Dir
-
-	Hash_LegacyMod_2_1_float(p, x);
-    Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
-	Out = normalize(Out);
-*/
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] {10f}),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("p", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ip", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("fp", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ip2", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("fp2", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("ip3", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("fp3", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d00", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
+                    }
                 )
             }
         );

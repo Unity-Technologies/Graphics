@@ -9,31 +9,12 @@ namespace UnityEditor.ShaderGraph.Defs
         static string Name = "LinearBlendSkinning";
         static int Version = 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 //TODO: How to handle Unity_LinearBlendSkinning_float being float or half
 //TODO: This node only works in the vertex shader - so the outputs can only be connected to the vertex shader inputs
 //TODO: Need to define the Unity_LinearBlendSkinning_float function
-@"#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-	Unity_LinearBlendSkinning_float(BoneIndices, BoneWeights, VertexPosition, VertexNormal, VertexTangent, SkinnedPosition, SkinnedNormal, SkinnedTangent);
-#else
-	SkinnedPosition = VertexPosition;
-	SkinnedNormal = VertexNormal;
-	SkinnedTangent = VertexTangent;
-#endif	
-	description.Position = SkinnedPosition;
-	description.Normal = SkinnedNormal;
-	description.Tangent = SkinnedTangent;
-	return description;",
-            new ParameterDescriptor("VertexPosition", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Position),
-            new ParameterDescriptor("VertexNormal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
-            new ParameterDescriptor("VertexTangent", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Tangent),
-            new ParameterDescriptor("SkinnedPosition", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("SkinnedNormal", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("SkinnedTangent", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("BoneIndices", TYPE.Int4, GraphType.Usage.Local, REF.BoneIndices),
-            new ParameterDescriptor("BoneWeights", TYPE.Vec4, GraphType.Usage.Local, REF.BoneWeights1)
-/*
+
+/* the body code depends on this code existing
 uniform StructuredBuffer<float3x4> _SkinMatrices;
         
 void Unity_LinearBlendSkinning_float(uint4 indices, float4 weights, float3 positionIn, float3 normalIn, float3 tangentIn, out float3 positionOut, out float3 normalOut, out float3 tangentOut)
@@ -54,7 +35,30 @@ void Unity_LinearBlendSkinning_float(uint4 indices, float4 weights, float3 posit
         }
 }
 */
-            );
+
+@"#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+	Unity_LinearBlendSkinning_float(BoneIndices, BoneWeights, VertexPosition, VertexNormal, VertexTangent, SkinnedPosition, SkinnedNormal, SkinnedTangent);
+#else
+	SkinnedPosition = VertexPosition;
+	SkinnedNormal = VertexNormal;
+	SkinnedTangent = VertexTangent;
+#endif	
+	description.Position = SkinnedPosition;
+	description.Normal = SkinnedNormal;
+	description.Tangent = SkinnedTangent;
+	return description;",
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("VertexPosition", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Position),
+                new ParameterDescriptor("VertexNormal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
+                new ParameterDescriptor("VertexTangent", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Tangent),
+                new ParameterDescriptor("SkinnedPosition", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("SkinnedNormal", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("SkinnedTangent", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("BoneIndices", TYPE.Int4, GraphType.Usage.Local, REF.BoneIndices),
+                new ParameterDescriptor("BoneWeights", TYPE.Vec4, GraphType.Usage.Local, REF.BoneWeights1)
+            }
+        );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
