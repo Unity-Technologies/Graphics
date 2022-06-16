@@ -5,11 +5,10 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class Vector4Node : IStandardNode
     {
-        public static string Name = "Vector4";
-        public static int Version = 1;
+        public static string Name => "Vector4";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
     Out.x = X;
@@ -17,11 +16,14 @@ namespace UnityEditor.ShaderGraph.Defs
     Out.z = Z;
     Out.w = W;
 ",
-            new ParameterDescriptor("X", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Y", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Z", TYPE.Float, Usage.In),
-            new ParameterDescriptor("W", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("X", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Y", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Z", TYPE.Float, Usage.In),
+                new ParameterDescriptor("W", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

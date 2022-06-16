@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -6,11 +5,10 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class EllipseNode : IStandardNode
     {
-        public static string Name = "Ellipse";
-        public static int Version = 1;
+        public static string Name => "Ellipse";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  temp.x = Width;
     temp.y = Height;
@@ -20,12 +18,15 @@ namespace UnityEditor.ShaderGraph.Defs
     d = length((UV * 2 - 1) / temp);
     Out = saturate((1 - d) / fwidth(d));
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("d", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("d", TYPE.Float, Usage.Local),
+                new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

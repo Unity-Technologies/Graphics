@@ -5,14 +5,13 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class HueNode : IStandardNode
     {
-        static string Name = "Hue";
-        static int Version = 1;
+        public static string Name => "Hue";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "HueDegrees",
 @"    temp1.rg = In.bg;
     temp1.ba = K.wz;
@@ -36,22 +35,24 @@ namespace UnityEditor.ShaderGraph.Defs
                 : hue;
     // HSV to RGB
     Out = hsv.z * lerp(K2.xxx, saturate((abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www)) - K2.xxx), hsv.y);",
-                    new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("temp1", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("temp2", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("K", TYPE.Vec4, Usage.Local, new float[] { 0.0f, (float)(-1.0 / 3.0), (float)(2.0 / 3.0), -1f }),
-                    new ParameterDescriptor("K2", TYPE.Vec4, Usage.Local, new float[] { 1.0f, (float)(2.0 / 3.0), (float)(1.0 / 3.0), 3f }),
-                    new ParameterDescriptor("P", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("Q", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("D", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("E", TYPE.Float, Usage.Local, new float[] { 0.0000000001f }),
-                    new ParameterDescriptor("hsv", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("hue", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("temp1", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("temp2", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("K", TYPE.Vec4, Usage.Local, new float[] { 0.0f, (float)(-1.0 / 3.0), (float)(2.0 / 3.0), -1f }),
+                        new ParameterDescriptor("K2", TYPE.Vec4, Usage.Local, new float[] { 1.0f, (float)(2.0 / 3.0), (float)(1.0 / 3.0), 3f }),
+                        new ParameterDescriptor("P", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("Q", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("D", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("E", TYPE.Float, Usage.Local, new float[] { 0.0000000001f }),
+                        new ParameterDescriptor("hsv", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("hue", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 ),
                  new(
-                    1,
                     "HueNormalized",
 @"    temp1.rg = In.bg;
     temp1.ba = K.wz;
@@ -75,19 +76,22 @@ namespace UnityEditor.ShaderGraph.Defs
                 : hue;
     // HSV to RGB
     Out = hsv.z * lerp(K2.xxx, saturate((abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www)) - K2.xxx), hsv.y);",
-                    new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
-                    new ParameterDescriptor("temp1", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("temp2", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("K", TYPE.Vec4, Usage.Local, new float[] { 0.0f, -0.333333f, 0.666667f, -1f }),
-                    new ParameterDescriptor("K2", TYPE.Vec4, Usage.Local, new float[] { 1.0f, 0.666667f, 0.333333f, 3f }),
-                    new ParameterDescriptor("P", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("Q", TYPE.Vec4, Usage.Local),
-                    new ParameterDescriptor("D", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("E", TYPE.Float, Usage.Local, new float[] { 0.0000000001f }),
-                    new ParameterDescriptor("hsv", TYPE.Vec3, Usage.Local),
-                    new ParameterDescriptor("hue", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                        new ParameterDescriptor("temp1", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("temp2", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("K", TYPE.Vec4, Usage.Local, new float[] { 0.0f, -0.333333f, 0.666667f, -1f }),
+                        new ParameterDescriptor("K2", TYPE.Vec4, Usage.Local, new float[] { 1.0f, 0.666667f, 0.333333f, 3f }),
+                        new ParameterDescriptor("P", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("Q", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("D", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("E", TYPE.Float, Usage.Local, new float[] { 0.0000000001f }),
+                        new ParameterDescriptor("hsv", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("hue", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 )
             }
         );

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -15,10 +16,12 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class FunctionDescriptorNodeBuilder : INodeDefinitionBuilder
     {
         private readonly FunctionDescriptor m_functionDescriptor;
+        private readonly int m_Version;
 
-        internal FunctionDescriptorNodeBuilder(FunctionDescriptor fd)
+        internal FunctionDescriptorNodeBuilder(FunctionDescriptor fd, int version)
         {
             m_functionDescriptor = fd; // copy
+            m_Version = version;
         }
 
         public void BuildNode(NodeHandler node, Registry registry)
@@ -37,8 +40,11 @@ namespace UnityEditor.ShaderGraph.Defs
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
             NodeHandler data,
             ShaderContainer container,
-            Registry registry)
+            Registry registry,
+            out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
+
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
 
@@ -98,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Defs
             return new RegistryKey
             {
                 Name = m_functionDescriptor.Name,
-                Version = m_functionDescriptor.Version
+                Version = m_Version
             };
         }
 

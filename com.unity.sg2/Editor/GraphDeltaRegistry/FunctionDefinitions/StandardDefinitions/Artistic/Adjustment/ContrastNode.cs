@@ -5,39 +5,45 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class ContrastNode : IStandardNode
     {
-        public static string Name = "Contrast";
-        public static int Version = 1;
+        public static string Name => "Contrast";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new (
-                    1,
                     "Cheap",
             @"
                 midpoint = pow(0.5, 2.2);
                 Out =  (In - midpoint) * Contrast + midpoint;
             ",
+                    new ParameterDescriptor[]
+                    {
+
                         new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                         new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                         new ParameterDescriptor("midpoint", TYPE.Float, Usage.Local)
-                    ),
+                    }
+                ),
                 new (
-                    1,
                     "Quality",
             @"
                 folded = (In > 0.5) ? 1 - In : In;
                 curved = pow(folded * 2, (Contrast + 1.0)) / 2;
                 Out = (In > 0.5) ? 1 - curved : curved;
             ",
+                    new ParameterDescriptor[]
+                    {
+
                         new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                         new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                         new ParameterDescriptor("folded", TYPE.Vec3, Usage.Local),
                         new ParameterDescriptor("curved", TYPE.Vec3, Usage.Local)
-                    )
+                    }
+                )
             }
 
         );

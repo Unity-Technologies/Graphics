@@ -5,19 +5,21 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class NormalReconstructZNode : IStandardNode
     {
-        public static string Name = "NormalReconstructZ";
-        public static int Version = 1;
+        public static string Name => "NormalReconstructZ";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  normalVector.x = In.x;
     normalVector.y = In.y;
     normalVector.z = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
     Out = normalize(normalVector);",
-            new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("normalVector", TYPE.Vec3, Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("normalVector", TYPE.Vec3, Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

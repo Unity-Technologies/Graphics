@@ -5,19 +5,21 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class Vector2Node : IStandardNode
     {
-        public static string Name = "Vector2";
-        public static int Version = 1;
+        public static string Name => "Vector2";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
     Out.x = X;
     Out.y = Y;
 ",
-            new ParameterDescriptor("X", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Y", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("X", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Y", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

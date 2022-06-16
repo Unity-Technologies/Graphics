@@ -4,34 +4,41 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class DDXYNode : IStandardNode
     {
-        public static string Name = "DDXY";
-        public static int Version = 1;
+        public static string Name => "DDXY";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new (
-                    1,
                     "Standard",
                     "Out = abs(ddx(In)) + abs(ddy(In));",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new (
-                    1,
                     "Coarse",
                     "Out = abs(ddx_coarse(In)) + abs(ddy_coarse(In));",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new (
-                    1,
                     "Fine",
                     "Out = abs(ddx_fine(In)) + abs(ddy_fine(In));",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
-                ),            }
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
+                ),
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

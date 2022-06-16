@@ -1,24 +1,24 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class CustomRenderTextureSliceNode : IStandardNode
     {
-        static string Name = "CustomRenderTextureSlice";
-        static int Version = 1;
+        public static string Name => "CustomRenderTextureSlice";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"
 TextureCubeFace = CustomRenderTextureCubeFaceRef;
 Texture3DSlice = CustomRenderTexture3DSliceRef;
 ",
-            new ParameterDescriptor("CustomRenderTextureCubeFaceRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("CustomRenderTexture3DSliceRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
-            new ParameterDescriptor("TextureCubeFace", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("Texture3DSlice", TYPE.Float, GraphType.Usage.Out)
+            parameters: new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("CustomRenderTextureCubeFaceRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("CustomRenderTexture3DSliceRef", TYPE.Float, GraphType.Usage.Local),//TODO: need to be a ref texture type
+                new ParameterDescriptor("TextureCubeFace", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("Texture3DSlice", TYPE.Float, GraphType.Usage.Out)
+            }
         );
         //TODO: this is a target speciic node, need a validation message
         public static NodeUIDescriptor NodeUIDescriptor => new(

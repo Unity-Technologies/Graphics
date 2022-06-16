@@ -1,19 +1,17 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SampleTexture2DNode : IStandardNode
     {
-        public static string Name = "SampleTexture2D";
-        public static int Version = 1;
+        public static string Name => "SampleTexture2D";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "SampleTexture2DStandard",
 @"  RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -23,19 +21,21 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SampleTexture2DLOD",
 @"  RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -45,20 +45,22 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SampleTexture2DGradient",
 @"  RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -68,21 +70,23 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("DDY", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                        new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("DDY", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SampleTexture2DBias",
 @"  RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
@@ -92,17 +96,20 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                        new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 )
             }
         );

@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SceneColorNode : IStandardNode
     {
-        static string Name = "SceneColor";
-        static int Version = 1;
+        public static string Name => "SceneColor";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 "    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

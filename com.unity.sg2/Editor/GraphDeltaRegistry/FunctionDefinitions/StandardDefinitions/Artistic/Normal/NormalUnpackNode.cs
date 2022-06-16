@@ -1,30 +1,32 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class NormalUnpackNode : IStandardNode
     {
-        static string Name = "NormalUnpack";
-        static int Version = 1;
+        public static string Name => "NormalUnpack";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalUnpackTangent",
                     "    Out = UnpackNormal(In);",
-                    new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "NormalUnpackObject",
                     "    Out = UnpackNormal(In);",
-                    new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 )
             }
         );

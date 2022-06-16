@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class IsFrontFaceNode : IStandardNode
     {
-        static string Name = "IsFrontFace";
-        static int Version = 1;
+        public static string Name => "IsFrontFace";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 "Out = max(0, FaceSign.x);",
-            new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out),
-            new ParameterDescriptor("FaceSign", TYPE.Bool, GraphType.Usage.Local, REF.FaceSign)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out),
+                new ParameterDescriptor("FaceSign", TYPE.Bool, GraphType.Usage.Local, REF.FaceSign)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

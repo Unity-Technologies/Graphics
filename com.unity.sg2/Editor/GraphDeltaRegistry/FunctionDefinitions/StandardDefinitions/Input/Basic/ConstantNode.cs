@@ -1,46 +1,54 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ConstantNode : IStandardNode
     {
-        static string Name = "Constant";
+        static string Name => "Constant";
         static int Version = 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "PI",
                     "    Out = 3.1415926f;",
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "TAU",
                     "    Out = 6.28318530f;",
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "PHI",
                     "    Out = 1.618034f;",
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "E",
                     "    Out = 2.718282f;",
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SQRT2",
                     "    Out = 1.414214f;",
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 )
             }
         );

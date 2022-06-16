@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 
@@ -32,8 +33,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             var port = node.GetPort(kContextEntry);
             var field = port.GetTypeField();
             var shaderType = registry.GetShaderType(field, container);

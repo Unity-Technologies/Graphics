@@ -6,57 +6,65 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class NormalBlendNode : IStandardNode
     {
-        static string Name = "NormalBlend";
-        static int Version = 1;
+        public static string Name => "NormalBlend";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalBlendDefault",
 @"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
 	Out = SafeNormalize(Out);",
-                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "NormalBlendReoriented",
 @"    t += A;
     u *= B;
     Out = (t / t.z) * dot(t, u) - u;",
-                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("t", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("u", TYPE.Vec3, GraphType.Usage.Local, new float[] { -1.0f, -1.0f, 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("t", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("u", TYPE.Vec3, GraphType.Usage.Local, new float[] { -1.0f, -1.0f, 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "NormalBlendDefaultO",
 @"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
 	Out = lerp(A, SafeNormalize(Out), Opacity);",
-                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "NormalBlendReorientedO",
 @"    t += A;
     u *= B;
     Out = lerp( A, ((t / t.z) * dot(t, u) - u), Opacity);",
-                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
-                    new ParameterDescriptor("t", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
-                    new ParameterDescriptor("u", TYPE.Vec3, GraphType.Usage.Local, new float[] { -1.0f, -1.0f, 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
+                        new ParameterDescriptor("t", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
+                        new ParameterDescriptor("u", TYPE.Vec3, GraphType.Usage.Local, new float[] { -1.0f, -1.0f, 1.0f }),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
                 )
             }
         );

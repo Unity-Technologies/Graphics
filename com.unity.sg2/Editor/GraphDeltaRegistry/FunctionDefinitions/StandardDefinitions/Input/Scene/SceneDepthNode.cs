@@ -1,34 +1,35 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SceneDepthNode : IStandardNode
     {
-        public static string Name = "SceneDepth";
-        public static int Version = 1;
+        public static string Name => "SceneDepth";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "SceneDepthLinear01",
                     "Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SceneDepthRaw",
                     "Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SceneDepthEye",
 @"if (unity_OrthoParams.w == 1.0)
 {
@@ -38,8 +39,11 @@ else
 {
 Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
-                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                    }
                 )
             }
         );

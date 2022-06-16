@@ -5,15 +5,17 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class CubemapAssetNode : IStandardNode
     {
-        public static string Name = "CubemapAsset";
-        public static int Version = 1;
+        public static string Name => "CubemapAsset";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = Asset;",
-            new ParameterDescriptor("Asset", TYPE.TextureCube, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.TextureCube, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Asset", TYPE.TextureCube, Usage.Static),
+                new ParameterDescriptor("Out", TYPE.TextureCube, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
