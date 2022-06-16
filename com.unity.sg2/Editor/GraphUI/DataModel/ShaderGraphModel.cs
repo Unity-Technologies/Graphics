@@ -274,6 +274,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return base.IsCompatiblePort(startPortModel, compatiblePortModel);
         }
 
+
+        Dictionary<string, IGraphElementModel> m_CopiedNodeToModelClipboard;
+        Dictionary<string, IEnumerable<IEdgeModel>> m_CopiedNodeToEdgesClipboard;
+
+        public bool isCutOperation;
+
+        public void SetClipboard(
+            Dictionary<string, IGraphElementModel> nodeToModelClipboard,
+            Dictionary<string, IEnumerable<IEdgeModel>> nodeToEdgesClipboard)
+        {
+            m_CopiedNodeToModelClipboard = nodeToModelClipboard;
+            m_CopiedNodeToEdgesClipboard = nodeToEdgesClipboard;
+        }
+
+        // GTF tries to copy edges over on its own, we don't want to do that,
+        // we mostly handle edge duplication on our side of things
+        public override IEdgeModel DuplicateEdge(IEdgeModel sourceEdge, INodeModel targetInputNode, INodeModel targetOutputNode)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Called by PasteSerializedDataCommand to handle node duplication
         /// </summary>
@@ -282,7 +303,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns></returns>
         public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null)
         {
-            var pastedNodeModel = sourceNode.Clone();
+            INodeModel sourceNodeModel = null;
+            // Need to get a reference to the original node model to get edge info.,
+            // the serialized copy in 'sourceNode' doesn't have that
+            if (m_CopiedNodeToModelClipboard.TryGetValue(sourceNode.Guid.ToString(), out var originalSourceNode))
+                sourceNodeModel = originalSourceNode as INodeModel;
+
+            Assert.IsNotNull(sourceNodeModel);
+
+            var pastedNodeModel = sourceNodeModel.Clone();
             // Set graphmodel BEFORE define node as it is commonly use during Define
             pastedNodeModel.GraphModel = this;
             pastedNodeModel.AssignNewGuid();
@@ -293,11 +322,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // also they subclass from GraphDataNodeModel so need to handle first
                 case GraphDataContextNodeModel:
                     return null;
-                case GraphDataNodeModel newCopiedNode when sourceNode is GraphDataNodeModel sourceGraphDataNode:
+                case GraphDataNodeModel newCopiedNode when sourceNodeModel is GraphDataNodeModel sourceGraphDataNode:
                 {
                     newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
-                    var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
-                    GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
+
+                    // In a cut operation the original node handlers have since been deleted, so we need to add from scratch
+                    if (isCutOperation)
+                    {
+                        GraphHandler.AddNode(sourceGraphDataNode.duplicationRegistryKey, newCopiedNode.graphDataName);
+                    }
+                    else
+                    {
+                        var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
+                        GraphHandler.DuplicateNode(sourceNodeHandler, false, newCopiedNode.graphDataName);
+                    }
+
                     break;
                 }
                 case GraphDataVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
@@ -313,17 +352,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             pastedNodeModel.Position += delta;
             AddNode(pastedNodeModel);
-            pastedNodeModel.OnDuplicateNode(sourceNode);
+            pastedNodeModel.OnDuplicateNode(sourceNodeModel);
+
+            // In a cut operation, the original constant values are lost so we need to copy them over
+            if (isCutOperation && pastedNodeModel is GraphDataNodeModel graphDataNodeModel)
+                graphDataNodeModel.HandleCutOperation(sourceNodeModel);
 
             var graphModelStateUpdater = stateComponentUpdater as GraphModelStateComponent.StateUpdater;
-            graphModelStateUpdater?.MarkNew(sourceNode);
+            graphModelStateUpdater?.MarkNew(pastedNodeModel);
 
-            // Need to get a reference to the original node model to get edge info., the serialized copy in 'sourceNode' doesn't have that
-            var originalSourceNode = NodeModels.FirstOrDefault(model => model.Guid == sourceNode.Guid);
-            if (originalSourceNode != null)
-            {
-                m_DuplicatedNodesMap.Add(originalSourceNode, pastedNodeModel);
-            }
+            // Add to mapping so we can perform edge fixup after
+            m_DuplicatedNodesMap.Add(sourceNodeModel, pastedNodeModel);
 
             if (pastedNodeModel is IGraphElementContainer container)
             {
@@ -376,7 +415,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // Key is the original node, Value is the duplicated node
                     foreach (var (key, value) in m_DuplicatedNodesMap)
                     {
-                        var originalNodeConnections = key.GetConnectedEdges();
+                        var originalNodeConnections = m_CopiedNodeToEdgesClipboard[key.Guid.ToString()];
                         foreach (var originalNodeEdge in originalNodeConnections)
                         {
                             var incomingEdgeSourceNode = originalNodeEdge.FromPort.NodeModel;

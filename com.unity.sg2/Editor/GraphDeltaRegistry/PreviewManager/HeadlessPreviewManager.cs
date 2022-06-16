@@ -256,14 +256,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview compile & render state of all nodes downstream of the changed node </remarks>
-        public List<string> NotifyNodeFlowChanged(string nodeName)
+        public List<string> NotifyNodeFlowChanged(string nodeName, bool wasNodeDeleted = false)
         {
             var impactedNodes = new List<string>();
 
             var sourceNode = m_GraphHandle.GetNode(nodeName);
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
-                if (sourceNode == null)
+                if (wasNodeDeleted)
                 {
                     // Node was deleted, get rid of the preview data associated with it
                     m_CachedPreviewData.Remove(nodeName);

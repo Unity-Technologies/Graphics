@@ -146,6 +146,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_NodePreviewMode = value;
         }
 
+        // In case of a cut, we need to handle copying the constant values over due to the original constants being null
+        public void HandleCutOperation(INodeModel sourceNode)
+        {
+            if (sourceNode is NodeModel nodeModel)
+            {
+                var sourceNodeConstants = nodeModel.InputConstantsById.Values.ToList();
+                var ourConstants = InputConstantsById.Values.ToList();
+                for (var index = 0; index < sourceNodeConstants.Count(); index++)
+                {
+                    var matchingConstant = sourceNodeConstants[index] as BaseShaderGraphConstant;
+                    var ourConstant = ourConstants[index];
+                    if(matchingConstant.clonedObjectValue != null)
+                        ourConstant.ObjectValue = matchingConstant.clonedObjectValue;
+                }
+            }
+        }
 
         public Texture PreviewTexture { get; private set; }
 

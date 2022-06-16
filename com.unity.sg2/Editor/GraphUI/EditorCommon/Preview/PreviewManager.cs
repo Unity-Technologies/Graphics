@@ -187,7 +187,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (wasNodeDeleted)
             {
                 OnNodeRemoved(nodeName);
-                m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
+                m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName, true);
             }
             else
             {

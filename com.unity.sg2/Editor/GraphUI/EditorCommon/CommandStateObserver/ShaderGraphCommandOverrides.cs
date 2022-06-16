@@ -105,23 +105,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     selectionUpdater.SelectElements(selectedModels, false);
                 }
 
-                foreach (var model in deletedModels)
-                {
-                    switch (model)
-                    {
-                        // Delete backing data for graph data nodes.
-                        case GraphDataNodeModel graphDataNode:
-                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
-                            break;
-                        // Delete backing data for variable nodes.
-                        case GraphDataVariableNodeModel variableNode:
-                            var declarationModel = variableNode.DeclarationModel as GraphDataVariableDeclarationModel;
-                            graphModel.GraphHandler.RemoveReferenceNode(variableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
-                            break;
-                    }
-                }
-
-                // After all redirect nodes handling and deletion has been handled above, then process the new graph flow
+                // Update previews
                 foreach (var model in deletedModels)
                 {
                     switch (model)
@@ -135,6 +119,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             break;
                         case GraphDataVariableNodeModel variableNode:
                             previewManager.OnNodeFlowChanged(variableNode.graphDataName, true);
+                            break;
+                    }
+                }
+
+                // Remove CLDS data
+                foreach (var model in deletedModels)
+                {
+                    switch (model)
+                    {
+                        // Delete backing data for graph data nodes.
+                        case GraphDataNodeModel graphDataNode:
+                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
+                            break;
+                        // Delete backing data for variable nodes.
+                        case GraphDataVariableNodeModel variableNode:
+                            var declarationModel = variableNode.DeclarationModel as GraphDataVariableDeclarationModel;
+                            graphModel.GraphHandler.RemoveReferenceNode(variableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
                             break;
                     }
                 }
