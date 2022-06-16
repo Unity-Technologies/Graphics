@@ -156,6 +156,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 variableDeclarationName,
                                 registry.Registry,
                                 IsExposable(type) ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
+                                source: IsExposable(type) ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
                                 displayName: variableDeclarationName);
 
                             try
