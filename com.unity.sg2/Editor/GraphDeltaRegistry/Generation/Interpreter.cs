@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
-        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables)
+        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var name = port.ID.LocalPath;
             var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
@@ -110,6 +110,15 @@ namespace UnityEditor.ShaderGraph.Generation
                     break;
             }
 
+            if (port.GetTypeField().GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
+            {
+                var fieldHandler = port.GetTypeField();
+                var tex = BaseTextureType.GetTextureAsset(fieldHandler);
+                if (tex != null && !defaultTextures.Contains((name, tex)))
+                    defaultTextures.Add((name, tex));
+            }
+
+
             outputVariables.Add(varOutBuilder.Build());
         }
 
@@ -141,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
                 {
-                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables);
+                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
                 }
             }
             //Create output type from evaluated root node outputs
