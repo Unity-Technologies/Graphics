@@ -6,8 +6,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TestUIReferrablesNode : IStandardNode
     {
-        static string Name = "TestUIReferrablesNode";
-        static int Version = 1;
+        public static string Name => "TestUIReferrablesNode";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
@@ -57,8 +57,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestNodeWithDependentFunction : IStandardNode
     {
-        static readonly string Name = "TestDepsNode";
-        static readonly int Version = 1;
+        static string Name => "TestDepsNode";
+        static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             name: Name,
             version: Version,
@@ -142,8 +142,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestNodeWithInclude : IStandardNode
     {
-        static readonly string Name = "TestIncludeNode";
-        static readonly int Version = 1;
+        static string Name => "TestIncludeNode";
+        static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             name: Name,
             version: Version,
@@ -196,7 +196,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUINodeWithDefault : IStandardNode
     {
-        static readonly string Name = "TestUINodeWithDefault";
+        static string Name => "TestUINodeWithDefault";
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -220,8 +220,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestMultiFunctionNode : IStandardNode
     {
-        static readonly string Name = "TestMultiFuctionNode";
-        static readonly int Version = 1;
+        public static string Name => "TestMultiFuctionNode";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
@@ -267,7 +267,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUITexture2DNode : IStandardNode
     {
-        static readonly string Name = "TestUITexture2DNode";
+        public static string Name => "TestUITexture2DNode";
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUITexture2DStaticNode : IStandardNode
     {
-        static readonly string Name = "TestUITexture2DSaticNode";
+        public static string Name => "TestUITexture2DSaticNode";
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -299,7 +299,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUITexture3DNode : IStandardNode
     {
-        static readonly string Name = "TestUITexture3DNode";
+        public static string Name => "TestUITexture3DNode";
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -316,8 +316,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIMat3Node : IStandardNode
     {
-        static readonly string Name = "TestUIMat3";
-        static readonly int Version = 1;
+        public static string Name => "TestUIMat3";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -341,8 +341,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIMat4Node : IStandardNode
     {
-        static readonly string Name = "TestUIMat4";
-        static readonly int Version = 1;
+        public static string Name => "TestUIMat4";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -366,8 +366,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIIntNode : IStandardNode
     {
-        static readonly string Name = "TestUIInt";
-        static readonly int Version = 1;
+        public static string Name => "TestUIInt";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -393,8 +393,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIFloatNode : IStandardNode
     {
-        static readonly string Name = "TestUIFloat";
-        static readonly int Version = 1;
+        public static string Name => "TestUIFloat";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -420,8 +420,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIBoolNode : IStandardNode
     {
-        static readonly string Name = "TestUIBool";
-        static readonly int Version = 1;
+        public static string Name => "TestUIBool";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -447,8 +447,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIVec2Node : IStandardNode
     {
-        static readonly string Name = "TestUIVec2";
-        static readonly int Version = 1;
+        public static string Name => "TestUIVec2";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -474,8 +474,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIVec3Node : IStandardNode
     {
-        static readonly string Name = "TestUIVec3";
-        static readonly int Version = 1;
+        public static string Name => "TestUIVec3";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -501,8 +501,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIVec4Node : IStandardNode
     {
-        static readonly string Name = "TestUIVec4";
-        static readonly int Version = 1;
+        public static string Name => "TestUIVec4";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name, // Name
@@ -528,8 +528,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIColorRGBNode : IStandardNode
     {
-        public static string Name = "TestUIColorRGB";
-        public static int Version = 1;
+        public static string Name => "TestUIColorRGB";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             "TestUIColorRGB", // Name
@@ -571,8 +571,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIColorRGBANode : IStandardNode
     {
-        public static string Name = "TestUIColorRGBA";
-        public static int Version = 1;
+        public static string Name => "TestUIColorRGBA";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             "TestUIColorRGBA", // Name
@@ -614,8 +614,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUISliderNode : IStandardNode
     {
-        public static string Name = "TestUISlider";
-        public static int Version = 1;
+        public static string Name => "TestUISlider";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             "TestUISlider", // Name
@@ -648,8 +648,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIPropertyNode : IStandardNode
     {
-        public static string Name = "TestUIProperties";
-        public static int Version = 1;
+        public static string Name => "TestUIProperties";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -685,7 +685,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUpgrade_V1 : IStandardNode
     {
-        public static string Name = "TestUpgrade";
+        public static string Name => "TestUpgrade";
         public static int Version => 2;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -709,7 +709,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUpgrade_V2 : IStandardNode
     {
-        public static string Name = "TestUpgrade";
+        public static string Name => "TestUpgrade";
         public static int Version => 3;
 
         public static FunctionDescriptor FunctionDescriptor => new(

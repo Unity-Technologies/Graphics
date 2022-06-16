@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ScreenNode : IStandardNode
     {
-        static string Name = "Screen";
-        static int Version = 1;
+        public static string Name => "Screen";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 @"Width = ScreenParams.x;

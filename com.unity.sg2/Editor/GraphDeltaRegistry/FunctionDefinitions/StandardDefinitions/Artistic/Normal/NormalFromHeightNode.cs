@@ -6,8 +6,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class NormalFromHeightNode : IStandardNode
     {
-        static string Name = "NormalFromHeight";
-        static int Version = 1;
+        public static string Name => "NormalFromHeight";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

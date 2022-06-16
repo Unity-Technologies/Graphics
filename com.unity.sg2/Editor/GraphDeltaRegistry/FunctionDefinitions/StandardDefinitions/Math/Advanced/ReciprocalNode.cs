@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ReciprocalNode : IStandardNode
     {
-        static string Name = "Reciprocal";
-        static int Version = 1;
+        public static string Name => "Reciprocal";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class Texture3DAssetNode : IStandardNode
     {
-        public static string Name = "Texture3DAsset";
-        public static int Version = 1;
+        public static string Name => "Texture3DAsset";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

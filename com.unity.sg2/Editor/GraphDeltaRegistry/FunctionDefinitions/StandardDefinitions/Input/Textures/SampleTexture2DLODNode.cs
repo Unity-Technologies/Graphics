@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class SampleTexture2DLODNode : IStandardNode
     {
-        public static string Name = "SampleTexture2DLOD";
-        public static int Version = 1;
+        public static string Name => "SampleTexture2DLOD";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

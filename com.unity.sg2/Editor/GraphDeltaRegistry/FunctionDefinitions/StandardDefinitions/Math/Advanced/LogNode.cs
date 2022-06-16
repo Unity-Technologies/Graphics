@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class LogNode : IStandardNode
     {
-        static string Name = "Log";
-        static int Version = 1;
+        public static string Name => "Log";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

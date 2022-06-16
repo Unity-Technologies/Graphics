@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class LengthNode : IStandardNode
     {
-        public static string Name = "Length";
-        public static int Version = 1;
+        public static string Name => "Length";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

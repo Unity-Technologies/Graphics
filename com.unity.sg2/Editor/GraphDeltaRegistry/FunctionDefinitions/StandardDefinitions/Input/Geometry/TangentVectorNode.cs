@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TangentVectorNode : IStandardNode
     {
-        static string Name = "TangentVector";
-        static int Version = 1;
+        public static string Name => "TangentVector";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = TangentVector;",

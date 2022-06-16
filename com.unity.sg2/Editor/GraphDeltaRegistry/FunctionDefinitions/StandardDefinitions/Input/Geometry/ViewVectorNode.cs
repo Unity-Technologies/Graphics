@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ViewVectorNode : IStandardNode
     {
-        static string Name = "ViewVector";
-        static int Version = 1;
+        public static string Name => "ViewVector";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

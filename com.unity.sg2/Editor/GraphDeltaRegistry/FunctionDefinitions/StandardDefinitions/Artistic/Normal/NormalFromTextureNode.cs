@@ -6,8 +6,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class NormalFromTextureNode : IStandardNode
     {
-        static string Name = "NormalFromTexture";
-        static int Version = 1;
+        public static string Name => "NormalFromTexture";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

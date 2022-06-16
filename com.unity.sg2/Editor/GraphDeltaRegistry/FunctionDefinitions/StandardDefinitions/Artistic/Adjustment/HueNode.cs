@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class HueNode : IStandardNode
     {
-        static string Name = "Hue";
-        static int Version = 1;
+        public static string Name => "Hue";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

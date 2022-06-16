@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class IsFrontFaceNode : IStandardNode
     {
-        static string Name = "IsFrontFace";
-        static int Version = 1;
+        public static string Name => "IsFrontFace";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 "Out = max(0, FaceSign.x);",

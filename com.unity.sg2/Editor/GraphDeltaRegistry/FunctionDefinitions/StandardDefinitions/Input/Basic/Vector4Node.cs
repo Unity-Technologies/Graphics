@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class Vector4Node : IStandardNode
     {
-        public static string Name = "Vector4";
-        public static int Version = 1;
+        public static string Name => "Vector4";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

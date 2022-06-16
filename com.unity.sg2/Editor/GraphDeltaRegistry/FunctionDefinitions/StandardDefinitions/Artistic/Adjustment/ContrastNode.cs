@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class ContrastNode : IStandardNode
     {
-        public static string Name = "Contrast";
-        public static int Version = 1;
+        public static string Name => "Contrast";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,

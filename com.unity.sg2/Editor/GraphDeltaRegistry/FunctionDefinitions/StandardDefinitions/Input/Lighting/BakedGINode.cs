@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class BakedGINode : IStandardNode
     {
-        static string Name = "BakedGI";
-        static int Version = 1;
+        public static string Name => "BakedGI";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = SHADERGRAPH_BAKED_GI(Position, Normal, StaticUV, DynamicUV, ApplyLightmapScaling);",

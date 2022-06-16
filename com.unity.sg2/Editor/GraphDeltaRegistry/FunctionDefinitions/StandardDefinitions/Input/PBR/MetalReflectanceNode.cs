@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class MetalReflectanceNode : IStandardNode
     {
-        static string Name = "MetalReflectance";
-        static int Version = 1;
+        static string Name => "MetalReflectance";
+        static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

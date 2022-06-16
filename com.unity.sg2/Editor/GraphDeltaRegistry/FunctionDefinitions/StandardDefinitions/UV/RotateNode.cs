@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RotateNode : IStandardNode
     {
-        static string Name = "Rotate";
-        static int Version = 1;
+        public static string Name => "Rotate";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

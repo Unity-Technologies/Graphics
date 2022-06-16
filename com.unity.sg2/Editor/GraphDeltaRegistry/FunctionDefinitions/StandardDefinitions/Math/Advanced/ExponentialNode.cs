@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ExponentialNode : IStandardNode
     {
-        static string Name = "Exponential";
-        static int Version = 1;
+        public static string Name => "Exponential";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

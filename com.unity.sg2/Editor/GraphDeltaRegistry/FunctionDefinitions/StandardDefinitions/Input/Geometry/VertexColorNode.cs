@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class VertexColorNode : IStandardNode
     {
-        static string Name = "VertexColor";
-        static int Version = 1;
+        public static string Name => "VertexColor";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = VertexColor;",

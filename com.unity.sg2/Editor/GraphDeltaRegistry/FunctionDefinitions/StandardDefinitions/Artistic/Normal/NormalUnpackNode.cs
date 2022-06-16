@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class NormalUnpackNode : IStandardNode
     {
-        static string Name = "NormalUnpack";
-        static int Version = 1;
+        public static string Name => "NormalUnpack";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

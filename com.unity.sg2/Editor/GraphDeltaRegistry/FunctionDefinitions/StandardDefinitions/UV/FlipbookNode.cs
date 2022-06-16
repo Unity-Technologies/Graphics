@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class FlipbookNode : IStandardNode
     {
-        static string Name = "Flipbook";
-        static int Version = 1;
+        public static string Name => "Flipbook";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SampleTexture3DNode : IStandardNode
     {
-        public static string Name = "SampleTexture3D";
-        public static int Version = 1;
+        public static string Name => "SampleTexture3D";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,

@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SampleTriplanarNode : IStandardNode
     {
-        public static string Name = "SampleTriplanar";
-        public static int Version = 1;
+        public static string Name => "SampleTriplanar";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,

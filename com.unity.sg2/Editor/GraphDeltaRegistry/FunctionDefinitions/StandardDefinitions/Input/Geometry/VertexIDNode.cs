@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class VertexIDNode : IStandardNode
     {
-        static string Name = "VertexID";
-        static int Version = 1;
+        public static string Name => "VertexID";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = VertexID;",

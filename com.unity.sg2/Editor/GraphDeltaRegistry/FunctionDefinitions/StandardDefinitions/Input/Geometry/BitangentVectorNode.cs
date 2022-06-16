@@ -6,8 +6,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class BitangentVectorNode : IStandardNode
     {
-        static string Name = "BitangentVector";
-        static int Version = 1;
+        public static string Name => "BitangentVector";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = BitangentVector;",

@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class ReplaceColorNode : IStandardNode
     {
-        public static string Name = "ReplaceColor";
-        public static int Version = 1;
+        public static string Name => "ReplaceColor";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new (
             Name,
 @"  Out = lerp(To, In, saturate((distance(From, In) - Range) / max(Fuzziness, 1e-5f)));",

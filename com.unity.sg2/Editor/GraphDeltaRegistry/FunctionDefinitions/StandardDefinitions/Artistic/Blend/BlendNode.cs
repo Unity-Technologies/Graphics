@@ -6,8 +6,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class BlendNode : IStandardNode
     {
-        static string Name = "Blend";
-        static int Version = 1;
+        public static string Name => "Blend";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

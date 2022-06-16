@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class BranchNode : IStandardNode
     {
-        public static string Name = "Branch";
-        public static int Version = 1;
+        public static string Name => "Branch";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

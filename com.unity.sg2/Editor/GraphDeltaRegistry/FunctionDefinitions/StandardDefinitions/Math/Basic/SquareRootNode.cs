@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SquareRootNode : IStandardNode
     {
-        public static string Name = "SquareRoot";
-        public static int Version = 1;
+        public static string Name => "SquareRoot";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             "SquareRoot",

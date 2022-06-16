@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class ColorMaskNode : IStandardNode
     {
-        public static string Name = "ColorMask";
-        public static int Version = 1;
+        public static string Name => "ColorMask";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

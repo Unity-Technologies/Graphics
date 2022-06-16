@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TangentNode : IStandardNode
     {
-        public static string Name = "Tangent";
-        public static int Version = 1;
+        public static string Name => "Tangent";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,

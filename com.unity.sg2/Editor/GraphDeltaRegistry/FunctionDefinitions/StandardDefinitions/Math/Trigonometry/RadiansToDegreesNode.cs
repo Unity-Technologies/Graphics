@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RadiansToDegreesNode : IStandardNode
     {
-        public static string Name = "RadiansToDegrees";
-        public static int Version = 1;
+        public static string Name => "RadiansToDegrees";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

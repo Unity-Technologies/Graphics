@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RectangleNode : IStandardNode
     {
-        static string Name = "Rectangle";
-        static int Version = 1;
+        public static string Name => "Rectangle";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

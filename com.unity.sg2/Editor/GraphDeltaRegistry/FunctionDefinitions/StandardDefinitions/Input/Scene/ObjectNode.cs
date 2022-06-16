@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ObjectNode : IStandardNode
     {
-        static string Name = "Object";
-        static int Version = 1;
+        public static string Name => "Object";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 @"temp1.x = UNITY_MATRIX_M[0].x;

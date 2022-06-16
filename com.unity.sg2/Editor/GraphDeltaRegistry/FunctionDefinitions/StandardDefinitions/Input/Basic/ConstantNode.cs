@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ConstantNode : IStandardNode
     {
-        static string Name = "Constant";
+        static string Name => "Constant";
         static int Version = 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,

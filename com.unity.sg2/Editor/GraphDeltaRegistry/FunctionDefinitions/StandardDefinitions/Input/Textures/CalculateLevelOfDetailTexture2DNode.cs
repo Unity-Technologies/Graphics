@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class CalculateLevelOfDetailTexture2DNode : IStandardNode
     {
-        public static string Name = "CalculateLevelOfDetailTexture2D";
-        public static int Version = 1;
+        public static string Name => "CalculateLevelOfDetailTexture2D";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 @"#if (SHADER_TARGET >= 41)

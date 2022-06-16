@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SampleCubemapNode : IStandardNode
     {
-        public static string Name = "SampleReflectedCubemap";
-        public static int Version = 1;
+        public static string Name => "SampleReflectedCubemap";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,

@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class Matrix3Node : IStandardNode
     {
-        public static string Name = "Matrix3x3";
-        public static int Version = 1;
+        public static string Name => "Matrix3x3";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

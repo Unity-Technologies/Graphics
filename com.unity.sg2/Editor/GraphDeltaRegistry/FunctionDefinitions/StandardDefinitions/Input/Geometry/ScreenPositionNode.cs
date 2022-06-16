@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ScreenPositionNode : IStandardNode
     {
-        static string Name = "ScreenPosition";
-        static int Version = 1;
+        public static string Name => "ScreenPosition";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = ScreenPosition;",

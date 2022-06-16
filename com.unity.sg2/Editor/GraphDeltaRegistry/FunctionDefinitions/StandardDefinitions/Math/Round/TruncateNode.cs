@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TruncateNode : IStandardNode
     {
-        public static string Name = "Truncate";
-        public static int Version = 1;
+        public static string Name => "Truncate";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

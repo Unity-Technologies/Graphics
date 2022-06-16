@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class NormalReconstructZNode : IStandardNode
     {
-        public static string Name = "NormalReconstructZ";
-        public static int Version = 1;
+        public static string Name => "NormalReconstructZ";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

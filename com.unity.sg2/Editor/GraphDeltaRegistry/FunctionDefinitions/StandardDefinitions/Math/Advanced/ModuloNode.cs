@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ModuloNode : IStandardNode
     {
-        public static string Name = "Modulo";
-        public static int Version = 1;
+        public static string Name => "Modulo";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

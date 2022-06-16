@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class NormalVectorNode : IStandardNode
     {
-        static string Name = "NormalVector";
-        static int Version = 1;
+        public static string Name => "NormalVector";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
             "Out = NormalVector;",

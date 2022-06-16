@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class CubemapAssetNode : IStandardNode
     {
-        public static string Name = "CubemapAsset";
-        public static int Version = 1;
+        public static string Name => "CubemapAsset";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SmoothstepNode : IStandardNode
     {
-        public static string Name = "Smoothstep";
-        public static int Version = 1;
+        public static string Name => "Smoothstep";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,

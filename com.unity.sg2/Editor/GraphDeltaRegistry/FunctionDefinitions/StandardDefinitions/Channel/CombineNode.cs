@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class CombineNode : IStandardNode
     {
-        public static string Name = "Combine";
-        public static int Version = 1;
+        public static string Name => "Combine";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,

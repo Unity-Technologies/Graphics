@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class Arctangent2Node : IStandardNode
     {
-        public static string Name = "Arctangent2";
-        public static int Version = 1;
+        public static string Name => "Arctangent2";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
