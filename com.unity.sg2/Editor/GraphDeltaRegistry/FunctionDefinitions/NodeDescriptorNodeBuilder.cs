@@ -119,8 +119,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 }
             }
 
-            // TODO (Brett) THIS MIGHT BE WRONG!
-            // TODO (Brett) Should the fallback type should be determined with the currently selected FD?
             // determine a fallback type
             ParametricTypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
 

@@ -9,7 +9,13 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
-        public static string GetFunctionCode(NodeHandler node, Registry registry) // What is this used for?
+        /// <summary>
+        /// There's a collection of required and potentially useful pieces of data
+        /// that are cached as a part of the preview management.
+        /// Things like the compiled shader, material, the shader code, etc. This
+        /// function caches the code local only to the node, whereas the subsequent
+        /// function GetBlockCode provides the code for all upstream nodes.
+        public static string GetFunctionCode(NodeHandler node, Registry registry)
         {
             var builder = new ShaderBuilder();
             //List<ShaderFunction> dependencies = new();
