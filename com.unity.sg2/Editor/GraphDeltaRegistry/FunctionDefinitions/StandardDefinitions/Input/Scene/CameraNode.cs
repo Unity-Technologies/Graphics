@@ -4,11 +4,10 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class CameraNode : IStandardNode
     {
-        public static string Name = "Camera";
-        public static int Version = 1;
+        public static string Name => "Camera";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"Position = _WorldSpaceCameraPos;
 Direction = (-1 * mul((float3x3)UNITY_MATRIX_M, transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V)) [2].xyz));
@@ -18,14 +17,17 @@ FarPlane = _ProjectionParams.z;
 ZBufferSign = _ProjectionParams.x;
 Width = unity_OrthoParams.x;
 Height = unity_OrthoParams.y;",
-            new ParameterDescriptor("Position", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("Direction", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("Orthographic", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("NearPlane", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("FarPlane", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("ZBufferSign", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("Height", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("Direction", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("Orthographic", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("NearPlane", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("FarPlane", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("ZBufferSign", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("Height", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

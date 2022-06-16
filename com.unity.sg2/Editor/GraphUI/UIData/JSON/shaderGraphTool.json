@@ -1,0 +1,35 @@
+{
+    "window": {
+        "toolbar": {}
+    },
+    "subwindows": {
+        "inspector": {},
+        "blackboard": {},
+        "globalPreview": {}
+    },
+    "nodes": [
+        {
+            "name": "TestStringOverrideNode",
+            "version": 1,
+            "displayName": "Test String Override",
+            "tooltip": "Overridden Tooltip",
+            "hasPreview": false,
+            "parameters": [
+                {
+                    "name": "In",
+                    "displayName": "In",
+                    "tooltip": "In",
+                    "useColor": true,
+                    "useSlider": false
+                },
+                {
+                    "name": "Out",
+                    "displayName": "Out",
+                    "tooltip": "",
+                    "useColor": true,
+                    "useSlider": false
+                }
+            ]
+        }
+    ]
+}

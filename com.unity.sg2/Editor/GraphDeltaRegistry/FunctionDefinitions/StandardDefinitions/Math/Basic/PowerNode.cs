@@ -4,17 +4,19 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class PowerNode : IStandardNode
     {
-        public static string Name = "Power";
-        public static int Version = 1;
+        public static string Name => "Power";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
-            new ParameterDescriptor("Base", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Exp", TYPE.Vector, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
-            new ParameterDescriptor("UnsignedBase", TYPE.Bool, Usage.Static, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Base", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("Exp", TYPE.Vector, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
+                new ParameterDescriptor("UnsignedBase", TYPE.Bool, Usage.Static, new float[] { 1f }),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

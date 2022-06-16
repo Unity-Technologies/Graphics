@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq;
 using UnityEditor.ShaderGraph.GraphDelta;
 namespace UnityEditor.ShaderGraph.Defs
 {
@@ -179,7 +178,6 @@ namespace UnityEditor.ShaderGraph.Defs
             NodeHandler node,
             Registry registry)
         {
-
             return param.TypeDescriptor switch
             {
                 ParametricTypeDescriptor => ParametricToField(param, fallbackType, node, registry),

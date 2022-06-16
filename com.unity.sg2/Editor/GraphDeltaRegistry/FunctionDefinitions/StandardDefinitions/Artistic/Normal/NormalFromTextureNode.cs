@@ -6,14 +6,13 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class NormalFromTextureNode : IStandardNode
     {
-        static string Name = "NormalFromTexture";
-        static int Version = 1;
+        public static string Name => "NormalFromTexture";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "NormalFromTexture3Samples",
 @"  //3 sample version - only works on square textures
     UV = Texture.GetTransformedUV(UV);
@@ -32,25 +31,27 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[2] = NormalWS;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
-                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
-                    new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
-                    new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
-                    new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                    new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                    new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
-                    new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                        new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
+                        new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
+                        new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
+                        new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
+                        new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                        new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "NormalFromTexture4Samples",
 @"  //4 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
@@ -73,25 +74,27 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[2] = NormalWS;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
-                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
-                    new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
-                    new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
-                    new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                    new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                    new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
-                    new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                        new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
+                        new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
+                        new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
+                        new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
+                        new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                        new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "NormalFromTexture8Samples",
 @"  //8 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
@@ -121,22 +124,25 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[2] = NormalWS;
         Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
-                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
-                    new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
-                    new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
-                    new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                    new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                    new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
-                    new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                        new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
+                        new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
+                        new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
+                        new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
+                        new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                        new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 )
             }
         );

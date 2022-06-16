@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -6,21 +5,23 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class SplitTextureTransformNode : IStandardNode
     {
-        public static string Name = "SplitTextureTransform";
-        public static int Version = 1;
+        public static string Name => "SplitTextureTransform";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"  TextureOnly = In;
     TextureOnly.scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);
     Tiling = In.scaleTranslate.xy;
     Offset = In.scaleTranslate.zw;
 ",
-            new ParameterDescriptor("In", TYPE.Texture2D, Usage.In),
-            new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.Out),
-            new ParameterDescriptor("Offset", TYPE.Vec2, Usage.Out),
-            new ParameterDescriptor("TextureOnly", TYPE.Texture2D, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.Out),
+                new ParameterDescriptor("Offset", TYPE.Vec2, Usage.Out),
+                new ParameterDescriptor("TextureOnly", TYPE.Texture2D, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

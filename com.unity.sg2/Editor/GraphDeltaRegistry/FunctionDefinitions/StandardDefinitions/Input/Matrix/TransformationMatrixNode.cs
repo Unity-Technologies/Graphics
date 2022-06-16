@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TransformationMatrixNode : IStandardNode
     {
-        static string Name = "TransformationMatrix";
-        static int Version = 1;
+        public static string Name => "TransformationMatrix";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = Matrix;",
-            new ParameterDescriptor("Out", TYPE.Mat4, GraphType.Usage.Out),
-            new ParameterDescriptor("Matrix", TYPE.Mat4, GraphType.Usage.Static, REF.M)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Mat4, GraphType.Usage.Out),
+                new ParameterDescriptor("Matrix", TYPE.Mat4, GraphType.Usage.Static, REF.M)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

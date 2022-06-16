@@ -1,5 +1,6 @@
 using UnityEditor.ShaderFoundry;
 
+
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     class TestAddNode : INodeDefinitionBuilder
@@ -17,8 +18,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public ShaderFunction GetShaderFunction(
             NodeHandler node,
             ShaderContainer container,
-            Registry registry)
+            Registry registry,
+            out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             return NodeHelpers.MathNodeFunctionBuilder(node.ID.LocalPath + "TestAdd", "+", node, container, registry);
         }
     }

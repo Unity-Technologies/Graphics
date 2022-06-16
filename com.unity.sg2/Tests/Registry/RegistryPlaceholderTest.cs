@@ -75,11 +75,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             // create the graph
             var graph = new GraphHandler();
             FunctionDescriptor fd = new(
-                1,
                 "Test",
                 "Out = In;",
-                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                }
             );
             RegistryKey registryKey = registry.Register(fd);
 
@@ -111,16 +113,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             // define a function with an in field that has defaults
             FunctionDescriptor fd = new(
-                1,
                 "Test",
                 "Out = In;",
-                new ParameterDescriptor(
-                    "In",
-                    TYPE.Vector,
-                    GraphType.Usage.In,
-                    new float[] { 1F, 1F, 3F, 1F }
-                ),
-                new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor(
+                        "In",
+                        TYPE.Vector,
+                        GraphType.Usage.In,
+                        new float[] { 1F, 1F, 3F, 1F }
+                    ),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                }
             );
             RegistryKey registryKey = registry.Register(fd);
 

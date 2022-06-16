@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class InstanceIDNode : IStandardNode
     {
-        static string Name = "InstanceID";
-        static int Version = 1;
+        public static string Name => "InstanceID";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"#if UNITY_ANY_INSTANCING_ENABLED
     Out = InstanceID;
@@ -17,8 +14,11 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = 0;
 #endif
 ",
-            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("InstanceID", TYPE.Float, GraphType.Usage.Local, REF.InstanceID)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("InstanceID", TYPE.Float, GraphType.Usage.Local, REF.InstanceID)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

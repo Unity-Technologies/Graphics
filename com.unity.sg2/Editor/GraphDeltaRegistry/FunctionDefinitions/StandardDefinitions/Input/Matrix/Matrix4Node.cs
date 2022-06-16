@@ -4,15 +4,17 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class Matrix4Node : IStandardNode
     {
-        public static string Name = "Matrix4x4";
-        public static int Version = 1;
+        public static string Name => "Matrix4x4";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = Matrix4x4;",
-            new ParameterDescriptor("Matrix4x4", TYPE.Mat4, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Mat4, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Matrix4x4", TYPE.Mat4, Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Mat4, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

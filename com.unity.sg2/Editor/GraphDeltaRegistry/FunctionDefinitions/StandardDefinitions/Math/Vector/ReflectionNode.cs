@@ -1,20 +1,21 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ReflectionNode : IStandardNode
     {
-        public static string Name = "Reflection";
-        public static int Version = 1;
+        public static string Name => "Reflection";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,     // Version
-            "Reflection", // Name
+            "Reflection",
             "    Out = reflect(In, Normal);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Normal", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("Normal", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

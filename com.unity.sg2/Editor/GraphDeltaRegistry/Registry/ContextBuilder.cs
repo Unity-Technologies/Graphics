@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderFoundry;
 using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
+using static UnityEditor.ShaderGraph.GraphDelta.INodeDefinitionBuilder;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -60,11 +62,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out Dependencies deps)
         {
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.
             // It's also pointless unless a similar strategy is taken for Reference nodes- who also need a fair amount of graph processing to function.
+            deps = new();
             return ShaderFunction.Invalid;
         }
     }

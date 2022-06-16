@@ -5,15 +5,14 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SampleCubemapNode : IStandardNode
     {
-        public static string Name = "SampleReflectedCubemap";
-        public static int Version = 1;
+        public static string Name => "SampleReflectedCubemap";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "SampleReflectedCubemapLOD",
 @"    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), LOD);
     RGB = RGBA.rgb;
@@ -21,20 +20,22 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.ObjectSpace_ViewDirection),
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.ObjectSpace_Normal),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.ObjectSpace_ViewDirection),
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.ObjectSpace_Normal),
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SampleReflectedCubemapStandard",
 @"    RGBA = SAMPLE_TEXTURECUBE(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal));
     RGB = RGBA.rgb;
@@ -42,19 +43,21 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "SampleReflectedCubemapBias",
 @"    RGBA = SAMPLE_TEXTURECUBE_BIAS(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), Bias);
     RGB = RGBA.rgb;
@@ -62,17 +65,20 @@ namespace UnityEditor.ShaderGraph.Defs
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;",
-                    new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
+                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                        new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                        new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                        new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                        new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    }
                 )
             }
         );
