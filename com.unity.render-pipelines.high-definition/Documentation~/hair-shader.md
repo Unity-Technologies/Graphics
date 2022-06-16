@@ -11,9 +11,9 @@ HDRP includes the Hair sample scene to help you get started. To find this Sample
 
 1. Go to **Window** > **Package Manager**, and select **High Definition RP** from the package list.
 2. In the main window that shows the package's details, open the **Samples** drop down.
-3. Find **Material Samples** and select the **Import** button. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
+3. Find **Material Samples** and select **Import**. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
 4. In the Asset window, go to **Samples** > **High Definition RP** and select the folder that corresponds with your HDRP version. 
-5. Open **Material Samples** > **Scenes** and select the the **Hair** scene. Here you will see the hair sample material set up in-context with a scene, and available for you to use.
+5. Open **Material Samples** > **Scenes** and select the **Hair** scene. Here you will see the hair sample material set up in-context with a scene, and available for you to use.
 ## Creating a Hair Material
 
 New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create a Hair Material from scratch, create a Material and then make it use the Hair shader. To do this:
