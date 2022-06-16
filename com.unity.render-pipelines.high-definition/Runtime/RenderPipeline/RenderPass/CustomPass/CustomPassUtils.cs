@@ -459,7 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new DisableSinglePassRendering(ctx))
             {
-                using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
+                using (new CustomPassUtils.OverrideCameraRendering(ctx.cmd, view))
                 {
                     using (new ProfilingScope(ctx.cmd, renderFromCameraSampler))
                         DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
