@@ -14,9 +14,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public static void AddContextEntry(NodeHandler contextNode, ITypeDescriptor type, string fieldName, Registry registry)
+        public static PortHandler AddContextEntry(NodeHandler contextNode, ITypeDescriptor type, string fieldName, Registry registry)
         {
-            NodeBuilderUtils.ParameterDescriptorToField(
+            var inputPort = NodeBuilderUtils.ParameterDescriptorToField(
                 new ParameterDescriptor(fieldName, type, GraphType.Usage.In),
                 TYPE.Vec4,
                 contextNode,
@@ -27,8 +27,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 TYPE.Vec4,
                 contextNode,
                 registry);
+
+            return inputPort;
         }
 
+        [Obsolete("Use AddContextEntry with an ITypeDescriptor")]
         public static void AddContextEntry(NodeHandler contextNode, ContextEntry entry, Registry registry)
         {
             // TODO/Problem: Only good for GraphType
@@ -56,6 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 port.AddField(kDefaultValue, defaultValue);
         }
 
+        [Obsolete("Use AddReferableEntry with an ITypeDescriptor")]
         public static void AddReferableEntry(NodeHandler contextNode,
             ContextEntry entry,
             Registry registry,
@@ -77,8 +81,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string displayName = null,
             string defaultValue = null)
         {
-            AddContextEntry(contextNode, type, fieldName, registry);
-            SetUpReferableEntry(contextNode.GetPort(fieldName), usage, source, displayName, defaultValue);
+            SetUpReferableEntry(AddContextEntry(contextNode, type, fieldName, registry), usage, source, displayName, defaultValue);
         }
 
         public void BuildNode(NodeHandler node, Registry registry)
