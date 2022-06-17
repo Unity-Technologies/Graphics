@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -10,7 +12,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
-            yield return new LabelPropertyField("WIP", m_OwnerElement.RootView);
+            if (m_Model is not GraphDataVariableDeclarationModel variableDeclarationModel) yield break;
+
+            yield return new SGModelPropertyField<string>(m_OwnerElement.RootView,
+                m_Model,
+                nameof(GraphDataVariableDeclarationModel.Title),
+                "Name",
+                null);
+
+            yield return InlineValueEditor.CreateEditorForConstant(m_OwnerElement.RootView, variableDeclarationModel,
+                        variableDeclarationModel.InitializationModel, false,"Value");
+
+            yield return new SGModelPropertyField<ContextEntryEnumTags.DataSource>(m_OwnerElement.RootView,
+                m_Model,
+                nameof(GraphDataVariableDeclarationModel.ShaderDeclaration),
+                "Shader Declaration",
+                null);
         }
 
         public override bool IsEmpty() => false;

@@ -24,14 +24,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         ui.PartList.AppendPart(variableInspector);
                         break;
                     }
-
-                    case SectionType.Advanced:
-                    {
-                        // (TODO: not showing?)
-                        var inspectorFields = VariableFieldsInspector.Create(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
-                        ui.PartList.AppendPart(inspectorFields);
-                        break;
-                    }
                 }
             }
 

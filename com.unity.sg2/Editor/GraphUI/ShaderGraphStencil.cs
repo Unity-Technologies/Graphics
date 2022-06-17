@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Returns true if a blackboard property with the given TypeHandle can be included in the property block for
         /// the current model. Use this to avoid exporting invalid properties like matrices.
         /// </summary>
-        bool IsExposable(TypeHandle typeHandle)
+        public bool IsExposable(TypeHandle typeHandle)
         {
             var descriptor = typeHandle.GetBackingDescriptor();
             switch (descriptor)

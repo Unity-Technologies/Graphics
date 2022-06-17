@@ -102,8 +102,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
         }
 
+        // GTF-EDIT  Added virtual modifier so this can be routed through the context node.
         /// <inheritdoc />
-        public bool IsExposed
+        public virtual bool IsExposed
         {
             get => m_IsExposed;
             set => m_IsExposed = value;

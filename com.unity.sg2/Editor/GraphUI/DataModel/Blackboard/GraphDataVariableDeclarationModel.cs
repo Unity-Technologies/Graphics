@@ -1,4 +1,6 @@
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -31,11 +33,51 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
-        public GraphDataVariableDeclarationModel()
+        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+
+        PortHandler contextEntry => shaderGraphModel.GraphHandler
+            .GetNode(contextNodeName)
+            .GetPort(graphDataName);
+
+        public ContextEntryEnumTags.DataSource ShaderDeclaration
         {
+            // TODO: Actual data
+            get => ContextEntryEnumTags.DataSource.PerMaterial;
+            set { }
         }
 
-        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+        public override bool IsExposed
+        {
+            // TODO: Maybe this is a bit too direct. This seems to get used during initialization, which breaks things.
+            get
+            {
+                try
+                {
+                    return contextEntry
+                        .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
+                        .GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
+                }
+                catch (NullReferenceException)
+                {
+                    return true;
+                }
+            }
+            set
+            {
+                try
+                {
+                    contextEntry
+                        .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
+                        .SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
+                }
+                catch (NullReferenceException)
+                {
+                    // no-op
+                }
+            }
+        }
+
+        public GraphDataVariableDeclarationModel() { }
 
         public override void CreateInitializationValue()
         {
