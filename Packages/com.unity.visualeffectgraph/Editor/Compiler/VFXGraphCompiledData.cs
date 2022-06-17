@@ -347,8 +347,6 @@ namespace UnityEditor.VFX
 
                 List<List<int>> newEventPaths = new List<List<int>>();
 
-                var usedContexts = new List<VFXContext>();
-
                 for (int j = 0; j < subgraphAncestors.Count; ++j)
                 {
                     var sg = subgraphAncestors[j];
@@ -358,15 +356,8 @@ namespace UnityEditor.VFX
                     {
                         int currentFlowIndex = path.Last();
                         var eventSlot = sg.inputFlowSlot[currentFlowIndex];
-                        var eventSlotSpawners = eventSlot.link.Where(t => !(t.context is VFXBasicEvent));
-
-                        if (eventSlotSpawners.Any())
-                        {
-                            foreach (var evt in eventSlotSpawners)
-                            {
-                                result[i].Add(evt);
-                            }
-                        }
+                        var eventSlotSpawners = eventSlot.link.Where(t => t.context.contextType == VFXContextType.Spawner);
+                        result[i].AddRange(eventSlotSpawners);
 
                         var eventSlotEvents = eventSlot.link.Where(t => t.context is VFXBasicEvent);
 
