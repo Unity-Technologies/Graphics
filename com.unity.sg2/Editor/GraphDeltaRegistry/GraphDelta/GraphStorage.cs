@@ -57,10 +57,39 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     }
 
     [Serializable]
+    internal class ContextConnection
+    {
+        [SerializeField]
+        private string m_context;
+        public string Context { get => m_context; }
+        [SerializeField]
+        private ElementID m_input;
+        public ElementID Input { get => m_input; }
+
+        public ContextConnection()
+        {
+        }
+        public ContextConnection(string context, ElementID input)
+        {
+            this.m_context = context;
+            this.m_input = input;
+        }
+
+        public bool Equals(ContextConnection obj)
+        {
+            return Context.Equals(obj.Context) && Input.Equals(obj.Input);
+        }
+    }
+
+
+    [Serializable]
     internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
         [SerializeField]
         internal List<Edge> edges = new List<Edge>();
+
+        [SerializeField]
+        internal List<ContextConnection> defaultConnections = new List<ContextConnection>();
 
         protected override void AddDefaultLayers()
         {
@@ -163,12 +192,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal class EdgeList
         {
             public List<Edge> edges;
+            public List<ContextConnection> defaultConnections;
         }
         internal (string layerData, string metaData, string edgeData) CreateCopyLayerData(IEnumerable<NodeHandler> nodes)
         {
             List<DataReader> readers = new List<DataReader>();
             EdgeList edgeList = new EdgeList();
             edgeList.edges = new List<Edge>();
+            edgeList.defaultConnections = new List<ContextConnection>();
             foreach(var node in nodes)
             {
                 readers.Add(node.Reader);
@@ -183,6 +214,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 edgeList.edges.Add(edge);
                             }
                         }
+                        foreach(var def in defaultConnections.Where(e => e.Input.Equals(port.ID)))
+                        {
+                            edgeList.defaultConnections.Add(def);
+                        }
+
                     }
                     else
                     {
