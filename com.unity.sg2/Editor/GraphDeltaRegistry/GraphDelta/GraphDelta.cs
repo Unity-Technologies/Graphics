@@ -60,6 +60,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             builder.BuildNode(nodeHandler, registry);
             nodeHandler.DefaultLayer = k_user;
 
+            foreach(var port in nodeHandler.GetPorts())
+            {
+                if (!port.IsInput || port.IsHorizontal)
+                    continue;
+
+                if(port.HasMetadata(PortHandler.kDefaultConnection))
+                {
+                    m_data.defaultConnections.Add(new ContextConnection(port.GetMetadata<string>(PortHandler.kDefaultConnection), port.ID));
+                }
+            }
+
             return nodeHandler;
         }
 
@@ -217,6 +228,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
+        public void AddDefaultConnection(string contextEntryName, ElementID input, Registry registry)
+        {
+
+        }
+
         internal IEnumerable<NodeHandler> GetConnectedDownstreamNodes(ElementID node, Registry registry)
         {
             var nodeHandler = m_data.GetHandler(node, this, registry)?.ToNodeHandler();
@@ -279,13 +295,51 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if(isInput && edge.Input.Equals(port))
                 {
                     yield return new PortHandler(edge.Output, this, registry);
+                    yield break; // only one input connection is allowed - break on the first input
                 }
                 else if (!isInput && edge.Output.Equals(port))
                 {
                     yield return new PortHandler(edge.Input, this, registry);
                 }
-
             }
+
+            foreach(var defConnection in m_data.defaultConnections)
+            {
+                PortHandler def = GetDefaultConnection(defConnection.Context, registry);
+                if(isInput && defConnection.Input.Equals(port))
+                {
+                    yield return def;
+                    yield break; // only one input connection is allowed - break on the first input
+                }
+
+                if(!isInput && def.Equals(port))
+                {
+                    //only valid if no other connection exists to this port
+                    if(!m_data.edges.Any(e => e.Input.Equals(defConnection.Input)))
+                    {
+                        yield return new PortHandler(defConnection.Input, this, registry);
+                    }
+                }
+            }
+        }
+
+        private PortHandler GetDefaultConnection(string contextEntryName, Registry registry)
+        {
+            foreach(var context in contextNodes)
+            {
+                var node = GetNode(context, registry);
+                foreach(var port in node.GetPorts())
+                {
+                    if(port.IsInput && port.IsHorizontal)
+                    {
+                        if(port.ID.LocalPath.Equals(contextEntryName))
+                        {
+                            return port;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, Registry registry)

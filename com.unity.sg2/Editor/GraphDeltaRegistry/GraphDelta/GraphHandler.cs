@@ -288,6 +288,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                                    $"{tup.duplicateID.FullPath}.{edge.Input.LocalPath}");
                             }
                         }
+                        var defConnections = graphDelta.m_data.defaultConnections.Where(e => e.Input.ParentPath.Equals(tup.node.ID.FullPath)).ToList();
+                        foreach (var def in defConnections)
+                        {
+                                graphDelta.AddDefaultConnection(def.Context,
+                                                   $"{tup.duplicateID.FullPath}.{def.Input.LocalPath}", registry);
+                        }
+
                     }
                 }
             }
@@ -327,6 +334,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     output = output.Rename(remap.Key, remap.Value);
                 }
                 AddEdge(output, input);
+            }
+            foreach (var def in edgeList.defaultConnections)
+            {
+                ElementID input = def.Input;
+                foreach (var remap in remappings)
+                {
+                    input = input.Rename(remap.Key, remap.Value);
+                }
+                graphDelta.m_data.defaultConnections.Add(new ContextConnection(def.Context, input));
             }
 
         }
