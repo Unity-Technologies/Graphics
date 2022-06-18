@@ -67,7 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
-        LocalVolumetricFog, // WARNING: Currently lightlistbuild.compute assumes Local Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after LocalVolumetricFog. TODO: Fix .compute code.
         Count
     }
 
@@ -235,9 +234,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Decals.</summary>
         Decal = (1 << LightCategory.Decal),
         /// <summary>Local Volumetric Fog.</summary>
-        LocalVolumetricFog = (1 << LightCategory.LocalVolumetricFog),
+        [Obsolete("Unused")]
+        LocalVolumetricFog = 0,
         /// <summary>Local Volumetric Fog.</summary>
-        [Obsolete("Use LocalVolumetricFog", false)]
+        [Obsolete("Unused", true)]
         [InspectorName("Local Volumetric Fog")]
         DensityVolumes = LocalVolumetricFog
     };
@@ -264,11 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int g_iNumSamplesMSAA;
         public uint _EnvLightIndexShift;
         public uint _DecalIndexShift;
-
-        public uint _LocalVolumetricFogIndexShift;
-        public uint _Pad0_SVLL;
-        public uint _Pad1_SVLL;
-        public uint _Pad2_SVLL;
     }
 
     internal struct ProcessedProbeData
@@ -493,7 +488,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDGpuLightsBuilder gpuLightList => m_GpuLightsBuilder;
 
         int m_TotalLightCount = 0;
-        int m_LocalVolumetricFogCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -1843,7 +1837,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults,
-            LocalVolumetricFogList localVolumetricFogList,
             DebugDisplaySettings debugDisplaySettings,
             AOVRequestData aovRequest)
         {
@@ -1885,13 +1878,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CurrentScreenSpaceShadowData[i].valid = false;
                 }
 
-                // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
-                m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
-
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
                     cullResults.visibleLights.Length + cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count
-                    + decalDatasCount + m_LocalVolumetricFogCount);
+                    + decalDatasCount);
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
@@ -1940,18 +1930,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // The OBBs are camera-relative, the matrix is not. Fix it.
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
-
-                    for (int i = 0, n = m_LocalVolumetricFogCount; i < n; i++)
-                    {
-                        // Local Volumetric Fog are not lights and therefore should not affect light classification.
-                        LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(localVolumetricFogList.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
-
-                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
-                    }
                 }
 
-                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount;
+                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount;
 
                 Debug.Assert(m_TotalLightCount == m_GpuLightsBuilder.lightsPerView[0].boundsCount);
 

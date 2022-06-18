@@ -108,6 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricLightingCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLightingFiltering.compute")]
             public ComputeShader volumetricLightingFilteringCS;
+
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
@@ -214,7 +215,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_MarschnerPS;
             [Reload("Runtime/Material/Hair/MultipleScattering/HairMultipleScatteringPreIntegration.compute")]
             public ComputeShader preIntegratedFiberScatteringCS;
-
+            [Reload("Runtime/Material/VolumetricMaterial/VolumetricMaterial.compute")]
+            public ComputeShader volumetricMaterialCS;
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
             public ComputeShader encodeBC6HCS;
@@ -513,6 +515,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/ShaderLibrary/SolidColor.shadergraph")]
             public Shader objectIDPS;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/DefaultFogVolume.shadergraph")]
+            public Shader defaultFogVolumeShader;
         }
 
         [Serializable, ReloadGroup]

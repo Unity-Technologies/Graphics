@@ -19,8 +19,7 @@
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
 #define LIGHTCATEGORY_DECAL (3)
-#define LIGHTCATEGORY_LOCAL_VOLUMETRIC_FOG (4)
-#define LIGHTCATEGORY_COUNT (5)
+#define LIGHTCATEGORY_COUNT (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
@@ -118,10 +117,6 @@ CBUFFER_START(ShaderVariablesLightList)
     int g_iNumSamplesMSAA;
     uint _EnvLightIndexShift;
     uint _DecalIndexShift;
-    uint _LocalVolumetricFogIndexShift;
-    uint _Pad0_SVLL;
-    uint _Pad1_SVLL;
-    uint _Pad2_SVLL;
 CBUFFER_END
 
 //

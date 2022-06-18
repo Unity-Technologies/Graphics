@@ -5,24 +5,9 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel VolumeVoxelizationBruteforceOptimal VolumeVoxelization=VolumeVoxelizationBruteforceOptimal LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_OPTIMAL
-#pragma kernel VolumeVoxelizationTiledOptimal      VolumeVoxelization=VolumeVoxelizationTiledOptimal                                         VL_PRESET_OPTIMAL
-#pragma kernel VolumeVoxelizationBruteforce        VolumeVoxelization=VolumeVoxelizationBruteforce        LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-#pragma kernel VolumeVoxelizationTiled             VolumeVoxelization=VolumeVoxelizationTiled
-
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    #define USE_BIG_TILE_LIGHTLIST
-#endif
-
-#ifdef VL_PRESET_OPTIMAL
-    // E.g. for 1080p: (1920/8)x(1080/8)x(64) = 2,073,600 voxels
-    #define VBUFFER_VOXEL_SIZE 8
-#endif
+#pragma kernel VolumeVoxelization
 
 #define GROUP_SIZE_1D     8
-#define SOFT_VOXELIZATION 1 // Hack which attempts to determine partial coverage of the voxel
-
-#define EXPONENTIAL_FALLOFF_EXPONENT 2.2
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -43,8 +28,6 @@
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
 StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
 
-TEXTURE3D(_VolumeMaskAtlas);
-
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
 //--------------------------------------------------------------------------------------------------
@@ -61,104 +44,14 @@ struct JitteredRay
     float3 yDirDerivWS;
 };
 
-float ComputeFadeFactor(float3 coordNDC, float dist,
-                        float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
-                        float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
+void FillVolumetricDensityBuffer(uint2 voxelCoord2D, JitteredRay ray)
 {
-    float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
-    float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
-    float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
-    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
-
-    // We only apply exponential falloff on the Blend Distance and not Distance Fade
-    if (falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
-        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
-
-    fade = dstF * (invertFade ? (1 - fade) : fade);
-
-    return fade;
-}
-
-float4 SampleVolumeMask(LocalVolumetricFogEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
-{
-    float maxLod         = log2(volumeData.maskSize.w);
-    // TODO: expose the LoD bias parameter.
-    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, volumeData.maskSize.w);
-    lod = clamp(lod, 0, maxLod);
-
-    // TODO: bugfix.
-    // Note that this clamping to edge doesn't quite work.
-    // First of all, the distance to the edge should depend on the LoD.
-    // Secondly, for trilinear filtering, which of the two LoDs should you choose to compute the distance to the edge?
-    // If you use floor(lod), the lower LoD may cause a leak across the edge from the neighbor texture.
-    // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tileable textures.
-    // For now, we choose the second option.
-    // We support texture filtering across the wrap in Z in neither case.
-    int   textureSize   = (int)volumeData.maskSize.w;
-    int   mipSize       = textureSize >> (int)ceil(lod);
-    float halfTexelSize = 0.5f * rcp(mipSize);
-
-    // Scale and bias the UVWs and then take fractional part, will be in [0,1] range.
-    float3 voxelCenterUVW = frac(voxelCenterNDC * volumeData.textureTiling + volumeData.textureScroll);
-    voxelCenterUVW = clamp(voxelCenterUVW, halfTexelSize, 1 - halfTexelSize);
-
-    // And then a scale depending on the atlas resolution.
-    // Note that the z coordinate is never scaled or offseted because we don't store textures in thsi direction.
-    voxelCenterUVW = voxelCenterUVW * volumeData.maskSize.xyz + volumeData.atlasOffset;
-
-    // Reminder: still no filtering across the the wrap in Z.
-    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod);
-}
-
-void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
-{
-    uint volumeCount, volumeStart;
-
-#ifdef USE_BIG_TILE_LIGHTLIST
-    // Offset for stereo rendering
-    tileIndex += unity_StereoEyeIndex * _NumTileBigTileX * _NumTileBigTileY;
-
-    // The "big tile" list contains the number of objects contained within the tile followed by the
-    // list of object indices. Note that while objects are already sorted by type, we don't know the
-    // number of each type of objects (e.g. lights), so we should remember to break out of the loop.
-    volumeCount = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex];
-    // On Metal for unknow reasons it seems we have bad value sometimes causing freeze / crash. This min here prevent it.
-    volumeCount = min(volumeCount, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE);
-    volumeStart = MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex + 1;
-
-    // For now, iterate through all the objects to determine the correct range.
-    // TODO: precompute this, of course.
-    {
-        uint offset = 0;
-
-        for (; offset < volumeCount; offset++)
-        {
-            uint objectIndex = FetchIndex(volumeStart, offset);
-
-            if (objectIndex >= _LocalVolumetricFogIndexShift)
-            {
-                // We have found the first Local Volumetric Fog.
-                break;
-            }
-        }
-
-        volumeStart += offset;
-        volumeCount -= offset;
-    }
-
-#else  // USE_BIG_TILE_LIGHTLIST
-
-    volumeCount = _NumVisibleLocalVolumetricFog;
-    volumeStart = 0;
-
-#endif // USE_BIG_TILE_LIGHTLIST
-
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
     {
-        uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
+        uint3 voxelCoord = uint3(voxelCoord2D, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
         float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
@@ -176,129 +69,6 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         float3 voxelScattering = _HeightFogBaseScattering.xyz * heightMultiplier;
         float  voxelExtinction = _HeightFogBaseExtinction * heightMultiplier;
 
-        for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
-        {
-        #ifdef USE_BIG_TILE_LIGHTLIST
-            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _LocalVolumetricFogIndexShift;
-        #else
-            uint volumeIndex = FetchIndex(volumeStart, volumeOffset);
-        #endif
-
-            const OrientedBBox obb = _VolumeBounds[volumeIndex];
-
-            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
-            const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
-
-            // Express the voxel center in the local coordinate system of the box.
-            const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
-            const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
-
-            const float3 voxelAxisRightBS   = mul(ray.xDirDerivWS, transpose(obbFrame));
-            const float3 voxelAxisUpBS      = mul(ray.yDirDerivWS, transpose(obbFrame));
-            const float3 voxelAxisForwardBS = mul(ray.centerDirWS, transpose(obbFrame));
-
-        #if SOFT_VOXELIZATION
-            // We need to determine which is the face closest to 'voxelCenterBS'.
-            float minFaceDist = abs(obbExtents.x - abs(voxelCenterBS.x));
-
-            // TODO: use v_cubeid_f32.
-            uint axisIndex; float faceDist;
-
-            faceDist    = abs(obbExtents.y - abs(voxelCenterBS.y));
-            axisIndex   = (faceDist < minFaceDist) ? 1 : 0;
-            minFaceDist = min(faceDist, minFaceDist);
-
-            faceDist    = abs(obbExtents.z - abs(voxelCenterBS.z));
-            axisIndex   = (faceDist < minFaceDist) ? 2 : axisIndex;
-
-            float3 N = float3(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 : 0);
-
-            // We have determined the normal of the closest face.
-            // We now have to construct the diagonal of the voxel with the longest extent along this normal.
-            float3 minDiagPointBS, maxDiagPointBS;
-
-            // Start at the center of the voxel.
-            minDiagPointBS = maxDiagPointBS = voxelCenterBS;
-
-            bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
-            float mulForward = 0.5 * (normalFwd ? dt : -dt);
-            float mulMin     = 0.5 * (normalFwd ? t0 : t1);
-            float mulMax     = 0.5 * (normalFwd ? t1 : t0);
-
-            minDiagPointBS -= mulForward * voxelAxisForwardBS;
-            maxDiagPointBS += mulForward * voxelAxisForwardBS;
-
-            float mulUp = dot(voxelAxisUpBS, N) >= 0 ? 1 : -1;
-
-            minDiagPointBS -= (mulMin * mulUp) * voxelAxisUpBS;
-            maxDiagPointBS += (mulMax * mulUp) * voxelAxisUpBS;
-
-            float mulRight = dot(voxelAxisRightBS, N) >= 0 ? 1 : -1;
-
-            minDiagPointBS -= (mulMin * mulRight) * voxelAxisRightBS;
-            maxDiagPointBS += (mulMax * mulRight) * voxelAxisRightBS;
-
-            // We want to determine the fractional overlap of the diagonal and the box.
-            float3 diagOriginBS = minDiagPointBS;
-            float3 diagUnDirBS  = maxDiagPointBS - minDiagPointBS;
-
-            float tEntr, tExit;
-
-            IntersectRayAABB(diagOriginBS, diagUnDirBS,
-                             -obbExtents, obbExtents,
-                             0, 1,
-                             tEntr, tExit);
-
-            // TODO: currently, soft voxelization does not account for the distance fade.
-            // Therefore, instead of a smooth transition, you may see a discrete pop between slices.
-            // How to make the distance fade affect the volume volume coverage?
-            float overlapFraction = tExit - tEntr;
-
-        #else  // SOFT_VOXELIZATION
-
-            bool overlap = Max3(abs(voxelCenterCS.x), abs(voxelCenterCS.y), abs(voxelCenterCS.z)) <= 1;
-
-            float overlapFraction = overlap ? 1 : 0;
-
-        #endif // SOFT_VOXELIZATION
-
-            if (overlapFraction > 0)
-            {
-                // We must clamp here, otherwise, with soft voxelization enabled,
-                // the center of the voxel can be slightly outside the box.
-                float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
-
-                // Due to clamping above, 't' may not exactly correspond to the distance
-                // to the sample point. We ignore it for performance and simplicity.
-                float dist = t;
-
-                overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
-                                                     _VolumeData[volumeIndex].rcpPosFaceFade,
-                                                     _VolumeData[volumeIndex].rcpNegFaceFade,
-                                                     _VolumeData[volumeIndex].invertFade,
-                                                     _VolumeData[volumeIndex].rcpDistFadeLen,
-                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen,
-                                                     _VolumeData[volumeIndex].falloffMode);
-
-                float3 scatteringMultiplier = 1;
-                // Sample the volume Mask + Scattering color.
-                if (_VolumeData[volumeIndex].useVolumeMask > 0)
-                {
-                    float3 xDerivUVW = (0.5 *  t) * voxelAxisRightBS   * rcp(obbExtents);
-                    float3 yDerivUVW = (0.5 *  t) * voxelAxisUpBS      * rcp(obbExtents);
-                    float3 zDerivUVW = (0.5 * dt) * voxelAxisForwardBS * rcp(obbExtents);
-
-                    float4 volumeMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
-                    overlapFraction *= volumeMask.a;
-                    scatteringMultiplier *= volumeMask.rgb;
-                }
-
-                // There is an overlap. Sample the 3D texture, or load the constant value.
-                voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringMultiplier;
-                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
-            }
-        }
-
         _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 
         t0 = t1;
@@ -312,22 +82,6 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 groupOffset = groupId * GROUP_SIZE_1D;
-    uint2 voxelCoord  = groupOffset + groupThreadId;
-#ifdef VL_PRESET_OPTIMAL
-    // The entire thread group is within the same light tile.
-    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
-#else
-    // No compile-time optimizations, no scalarization.
-    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
-    // a tile boundary. This means different voxel subsamples may belong to different tiles.
-    // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize) / TILE_SIZE_BIG_TILE;
-#endif
-    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
-    // This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
-    tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
-
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use
     // the right frustum approximation (thus the front and the back faces are squares).
@@ -339,6 +93,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 F = GetViewForwardDir();
     float3 U = GetViewUpDir();
 
+    uint2 voxelCoord = dispatchThreadId.xy;
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 
     // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
@@ -358,9 +113,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
-
     ApplyCameraRelativeXR(ray.originWS);
 
-    FillVolumetricDensityBuffer(posInput, tileIndex, ray);
+    FillVolumetricDensityBuffer(voxelCoord, ray);
 }

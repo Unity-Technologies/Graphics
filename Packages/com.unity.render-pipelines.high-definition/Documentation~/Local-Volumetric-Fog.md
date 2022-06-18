@@ -1,6 +1,6 @@
 ## Local Volumetric Fog
 
-You may want to have fog effects in your Scene that global fog can not produce by itself. In these cases you can use local fog. To add localized fog, use a Local Volumetric Fog component. Local Volumetric Fog is a an additive Volume of fog represented as an oriented bounding box. By default, fog is constant (homogeneous), but you can alter it by assigning a Density Mask 3D texture to the __Texture__ field under the __Density Mask Texture__ section. Currently, HDRP supports 3D textures at a resolution of 32x32x32.
+You may want to have fog effects in your Scene that global fog can not produce by itself. In these cases you can use local fog. To add localized fog, use a Local Volumetric Fog component. Local Volumetric Fog is a volume of fog represented as an oriented bounding box. By default, fog is constant (homogeneous), but you can alter it by assigning a Density Mask 3D texture to the __Texture__ field under the __Density Mask Texture__ section.
 
 HDRP voxelizes Local Volumetric Fog to enhance performance. This results in two limitations:
 
@@ -20,6 +20,9 @@ To create Local Volumetric Fog, right click in the Hierarchy and select __Volume
 | :--------------------------- | :----------------------------------------------------------- |
 | **Single Scattering Albedo** | Sets the fog color.<br/>Volumetric Fog tints lighting as the light scatters to appear this color. It only tints lighting emitted by Lights behind or within the fog. This means that it does not tint lighting that reflects off GameObjects behind or within the fog. Reflected lighting gets dimmer (fades to black) as fog density increases.<br/>For example, if you shine a Light at a white wall behind fog with red Single Scattering Albedo, the fog looks red. If you shine a Light at a white wall and view it from the other side of the fog, the fog darkens the light but doesn’t tint it red. |
 | **Fog Distance**             | Controls the density at the base of the fog and determines how far you can see through the fog in meters. At this distance, the fog has absorbed and out-scattered 63% of background light. |
+| **Mask Mode**                | Select which kind of mask to apply to the fog. You can either choose a texture mask or a material mask. A texture mask will show a 3D texture applied in the fog volume. The material mask will be evaluated every frame allowing the creation of dynamic fog effects. |
+| **Blending Mode**            | Select how the fog volume will be blended with the rest of the fog. The default value is Additive and adds the fog color and density to the scene fog. Overwrite completely replace the fog in the volume area. The Multiply mode multiplies the fog and can be used to do effects relative to a certain fog density. The Min and Max blending mode also do the min/max operation in the fog. |
+| **Priority**                 | The priority is used to sort the volumes when blending them together. A higher priority means that the volume will be rendered after thus taking over the other fogs visually. |
 | **Size**                     | Controls the dimensions of the Volume.                       |
 | **Per Axis Control**         | Enable this to control blend distance per axis instead of globally. |
 | **Blend Distance**           | Blend Distance creates a fade from the fog level in the Volume to the fog level outside it. <br/>This value indicates the absolute distance from the edge of the Volume bounds, defined by the Size property, where the fade starts.<br/>Unity clamps this value between 0 and half of the lowest axis value in the Size property.<br/>If you use the **Normal** tab, you can alter a single float value named Blend Distance, which gives a uniform fade in every direction. If you open the **Advanced** tab, you can use two fades per axis, one for each direction. For example, on the X-axis you could have one for left-to-right and one for right-to-left.<br/>A value of 0 hides the fade, and a value of 1 creates a fade. |
@@ -30,6 +33,7 @@ To create Local Volumetric Fog, right click in the Hierarchy and select __Volume
 | **Density Mask Texture**     | Specifies a 3D texture mapped to the interior of the Volume. Local Volumetric Fog only uses the RGB channels of the texture for the fog color and A for the fog density multiplier. A value of 0 in the Texture alpha channel results in a Volume of 0 density, and the value of 1 results in the original constant (homogeneous) volume. |
 | **Scroll Speed**             | Specifies the speed (per-axis) at which the Local Volumetric Fog scrolls the texture. If you set every axis to 0, the Local Volumetric Fog does not scroll the texture and the fog is static. |
 | **Tiling**                   | Specifies the per-axis tiling rate of the texture. For example, setting the x-axis component to 2 means that the texture repeats 2 times on the x-axis within the interior of the volume. |
+| **Material**                 | The volumetric material mask, this material needs to have a Shader Graph with the material type **Fog Volume**. |
 
 ## Related Settings in the HDRP Asset
 
@@ -37,12 +41,9 @@ The [HDRP Asset](HDRP-Asset.md) contains the following settings that relate to L
 
 | Property   | Description  |
 |---|---|
-| **Max Local Volumetric Fog Size**  | Controls the maximum resolution you can use for the **Density Mask Texture**.<br/>This setting can have a high impact on performance. The information box (highlighted in the image below) describes how much memory HDRP allocates for the Local Volumetric Fog system. |
 | **Max Local Volumetric Fog On Screen**  | Controls how many Local Volumetric Fog components can appear on-screen at once. This setting has an impact on performance, especially at high values. |
 
 To change these settings, open the HDRP Asset's **Lighting** section and expand the **Volumetrics** drop down.
-
-![](Images/HDRPAsset_VolumetricSettings.png)
 
 ## Built in Density Mask Texture
 

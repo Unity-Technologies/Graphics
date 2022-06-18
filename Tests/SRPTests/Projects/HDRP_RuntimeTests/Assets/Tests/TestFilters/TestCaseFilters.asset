@@ -58,3 +58,39 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Failing on PS5
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 33
+    GraphicsDevice: 14
+    XrSdk: 
+    StereoModes: 0
+    Reason: Need to update scene
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 43
+    GraphicsDevice: 24
+    XrSdk: 
+    StereoModes: 0
+    Reason: Need to update scene
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 42
+    GraphicsDevice: 25
+    XrSdk: 
+    StereoModes: 0
+    Reason: Need to update scene
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 5
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Need to update scene

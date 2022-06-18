@@ -9,6 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty albedo;
         public SerializedProperty meanFreePath;
 
+        public SerializedProperty blendingMode;
+        public SerializedProperty priority;
+
         public SerializedProperty volumeTexture;
         public SerializedProperty textureScroll;
         public SerializedProperty textureTile;
@@ -27,6 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty distanceFadeEnd;
 
         public SerializedProperty falloffMode;
+        public SerializedProperty maskMode;
+        public SerializedProperty materialMask;
+
+        public bool isMaterialMaskCompatible;
+        public bool isTextureMaskCompatible;
 
         SerializedObject m_SerializedObject;
 
@@ -38,6 +46,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             albedo = densityParams.FindPropertyRelative("albedo");
             meanFreePath = densityParams.FindPropertyRelative("meanFreePath");
+
+            blendingMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.blendingMode));
+            priority = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.priority));
 
             volumeTexture = densityParams.FindPropertyRelative("volumeMask");
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
@@ -59,6 +70,27 @@ namespace UnityEditor.Rendering.HighDefinition
             distanceFadeEnd = densityParams.FindPropertyRelative("distanceFadeEnd");
 
             falloffMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.falloffMode));
+            maskMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.maskMode));
+            materialMask = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.materialMask));
+
+            UpdateMaterialMaskCompatibility();
+            UpdateTextureMaskCompatibility();
+        }
+
+        public void UpdateMaterialMaskCompatibility()
+        {
+            if (materialMask.objectReferenceValue is Material mat)
+                isMaterialMaskCompatible = HDShaderUtils.IsFogVolumeShader(mat.shader);
+            else
+                isMaterialMaskCompatible = false;
+        }
+
+        public void UpdateTextureMaskCompatibility()
+        {
+            if (volumeTexture.objectReferenceValue is Texture t)
+                isTextureMaskCompatible = t.dimension == UnityEngine.Rendering.TextureDimension.Tex3D;
+            else
+                isTextureMaskCompatible = false;
         }
 
         public void Apply()

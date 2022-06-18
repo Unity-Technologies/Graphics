@@ -75,7 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
         FilterCubemapCharlie,
         FilterCubemapGGX,
         AreaLightCookieConvolution,
-        DisplayLocalVolumetricFogAtlas,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
