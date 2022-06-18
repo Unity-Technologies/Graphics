@@ -8,6 +8,8 @@ namespace UnityEditor.ShaderGraph
     internal class TargetSetupContext
     {
         public List<SubShaderDescriptor> subShaders { get; private set; }
+
+        public KernelCollection kernels { get; private set; }
         public AssetCollection assetCollection { get; private set; }
 
         // these are data that are now stored in the subshaders.
@@ -23,6 +25,7 @@ namespace UnityEditor.ShaderGraph
         public TargetSetupContext(AssetCollection assetCollection = null)
         {
             subShaders = new List<SubShaderDescriptor>();
+            kernels = new KernelCollection();
             this.assetCollection = assetCollection;
         }
 
@@ -49,6 +52,11 @@ namespace UnityEditor.ShaderGraph
         public void AddSubShader(SubShaderDescriptor subShader)
         {
             subShaders.Add(subShader);
+        }
+
+        public void AddKernel(KernelDescriptor kernel)
+        {
+            kernels.Add(kernel);
         }
 
         public void AddAssetDependency(GUID guid, AssetCollection.Flags flags)
