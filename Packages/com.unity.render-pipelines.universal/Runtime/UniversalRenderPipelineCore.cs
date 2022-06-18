@@ -716,6 +716,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
         public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
+
+        // XR
+        public static readonly string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
     }
 
     public sealed partial class UniversalRenderPipeline

@@ -10,6 +10,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
+        #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
 
@@ -19,6 +20,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
@@ -159,10 +161,15 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             #if defined(BLOOM)
             {
+                float2 uvBloom = uvDistorted;
+                #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                    uvBloom = RemapFoveatedRenderingDistort(uvBloom);
+                #endif
+
                 #if _BLOOM_HQ && !defined(SHADER_API_GLES)
-                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted), _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
+                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom), _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
                 #else
-                half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted));
+                half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom));
                 #endif
 
                 #if UNITY_COLORSPACE_GAMMA

@@ -352,6 +352,9 @@ namespace UnityEngine.Rendering.Universal
                     Vector4 scaleBiasRt = new Vector4(-1, 1.0f, -1.0f, 1.0f);
                     cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
 
+                    if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+
                     // Execute the SSAO
                     RenderAndSetBaseMap(cmd, cameraData.renderer.cameraDepthTargetHandle, m_AOPassTexture, ShaderPasses.AO);
 

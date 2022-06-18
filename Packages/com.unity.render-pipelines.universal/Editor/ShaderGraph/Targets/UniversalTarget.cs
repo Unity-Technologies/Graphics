@@ -1960,6 +1960,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor FoveatedRendering = new KeywordDescriptor()
+        {
+            displayName = "Foveated Rendering Non Uniform Raster",
+            referenceName = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
         {
             displayName = "Scene Selection Pass",

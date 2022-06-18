@@ -31,6 +31,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
     struct Attributes
     {
@@ -237,6 +238,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+
+#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        float2 undistorted_screen_uv = screen_uv;
+        screen_uv = input.positionCS.xy * _ScreenSize.zw;
+#endif
+
         #if _RENDER_PASS_ENABLED
         float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
         half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
@@ -266,6 +273,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         // If both lights and geometry are static, then no realtime lighting to perform for this combination.
         [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
             return half4(color, alpha); // Cannot discard because stencil must be updated.
+        #endif
+
+        #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
         #endif
 
         #if defined(USING_STEREO_MATRICES)
@@ -433,6 +444,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -480,6 +492,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -529,6 +542,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -578,6 +592,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
