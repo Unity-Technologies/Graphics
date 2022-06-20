@@ -308,6 +308,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             foreach(var defConnection in m_data.defaultConnections)
             {
                 PortHandler def = GetDefaultConnection(defConnection.Context, registry);
+                if (def == null)
+                    continue;
                 if(isInput && defConnection.Input.Equals(port))
                 {
                     yield return def;
@@ -332,9 +334,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var node = GetNode(context, registry);
                 foreach(var port in node.GetPorts())
                 {
-                    if(port.IsInput && port.IsHorizontal)
+                    if (!port.IsInput && port.IsHorizontal)
                     {
-                        if(port.ID.LocalPath.Equals(contextEntryName))
+                        if (port.ID.LocalPath.Equals($"out_{contextEntryName}"))
                         {
                             return port;
                         }
