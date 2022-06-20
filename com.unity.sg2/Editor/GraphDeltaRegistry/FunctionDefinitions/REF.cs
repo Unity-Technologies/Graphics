@@ -122,14 +122,14 @@ namespace UnityEditor.ShaderGraph.Defs
         public static readonly ReferenceValueDescriptor TangentSpace_ViewDirection = new("");
         public static readonly ReferenceValueDescriptor TangentSpace_Position = new("");
 
-        public static readonly ReferenceValueDescriptor UV0 = new("");
-        public static readonly ReferenceValueDescriptor UV1 = new("");
-        public static readonly ReferenceValueDescriptor UV2 = new("");
-        public static readonly ReferenceValueDescriptor UV3 = new("");
-        public static readonly ReferenceValueDescriptor UV4 = new("");
-        public static readonly ReferenceValueDescriptor UV5 = new("");
-        public static readonly ReferenceValueDescriptor UV6 = new("");
-        public static readonly ReferenceValueDescriptor UV7 = new("");
+        public static readonly ReferenceValueDescriptor UV0 = new("uv0");
+        public static readonly ReferenceValueDescriptor UV1 = new("uv1");
+        public static readonly ReferenceValueDescriptor UV2 = new("uv2");
+        public static readonly ReferenceValueDescriptor UV3 = new("uv3");
+        public static readonly ReferenceValueDescriptor UV4 = new("uv4");
+        public static readonly ReferenceValueDescriptor UV5 = new("uv5");
+        public static readonly ReferenceValueDescriptor UV6 = new("uv6");
+        public static readonly ReferenceValueDescriptor UV7 = new("uv7");
 
         public static readonly ReferenceValueDescriptor M = new("");  // model
         public static readonly ReferenceValueDescriptor I_M = new("");

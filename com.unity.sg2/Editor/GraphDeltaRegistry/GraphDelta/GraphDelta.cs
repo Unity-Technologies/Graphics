@@ -62,12 +62,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             foreach(var port in nodeHandler.GetPorts())
             {
-                if (!port.IsInput || port.IsHorizontal)
+                if (!port.IsInput || !port.IsHorizontal)
                     continue;
 
                 if(port.HasMetadata(PortHandler.kDefaultConnection))
                 {
-                    m_data.defaultConnections.Add(new ContextConnection(port.GetMetadata<string>(PortHandler.kDefaultConnection), port.ID));
+                    var contextName = port.GetMetadata<string>(PortHandler.kDefaultConnection);
+                    var contextConnection = new ContextConnection(contextName, port.ID);
+                    m_data.defaultConnections.Add(contextConnection);
                 }
             }
 
