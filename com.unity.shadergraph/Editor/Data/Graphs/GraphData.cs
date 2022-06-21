@@ -126,7 +126,9 @@ namespace UnityEditor.ShaderGraph
 
         public IEnumerable<T> GetNodes<T>()
         {
-            return m_Nodes.SelectValue().OfType<T>();
+            var defaultValueEnumerable = m_Nodes.SelectValue().ToList();
+            var ofType = defaultValueEnumerable.OfType<T>().ToList();
+            return ofType;
         }
 
         [NonSerialized]

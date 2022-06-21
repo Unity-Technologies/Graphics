@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Utils
         /// <param name="graphData"></param>
         internal static void Upgrade(string newAssetPath, GraphData graphData)
         {
-            Debug.LogError($"GraphData : {graphData}");
+            Debug.Log($"GraphData : {graphData}");
             // create a SG2 ShaderGraphAsset
             var asset = ShaderGraphAssetUtils.CreateNewAssetGraph(isSubGraph: false);
 
@@ -25,10 +25,8 @@ namespace UnityEditor.ShaderGraph.Utils
             var nodes = graphData.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodes)
             {
-                nodeConverter.Convert(node);
+                nodeConverter.Convert(node, node.GetType());
             }
-
-            // add the result to the SG2
 
             // save
             ShaderGraphAssetUtils.HandleSave(newAssetPath, asset);

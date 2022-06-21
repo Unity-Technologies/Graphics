@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using System.Text;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -119,11 +120,23 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 Debug.Assert(importer != null, "importer != null");
-                var graphDataWrapper = AssetDatabase.LoadAssetAtPath<GraphDataScriptableObject>(importer.assetPath);
+
+                var path = importer.assetPath;
+                var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                var graph = new GraphData
+                {
+                    messageManager = new MessageManager(),
+                    assetGuid = AssetDatabase.AssetPathToGUID(path)
+                };
+                MultiJson.Deserialize(graph, textGraph);
+                graph.OnEnable();
+                graph.ValidateGraph();
+
+                //var graphDataWrapper = AssetDatabase.LoadAssetAtPath<GraphDataScriptableObject>(importer.assetPath);
                 Type t = Type.GetType("UnityEditor.ShaderGraph.Utils.ShaderGraphUpgrader,Unity.ShaderGraph.Upgrader");
                 var method = t.GetMethod("Upgrade", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-                var newAssetPath = $"{importer.assetPath.Substring(0, importer.assetPath.Length - 12)}.sg2";
-                method.Invoke(null, new object[] { newAssetPath, graphDataWrapper.GraphData });
+                var newAssetPath = $"{importer.assetPath.Substring(0, path.Length - 12)}.sg2";
+                method.Invoke(null, new object[] { newAssetPath, graph });
             }
 
             ApplyRevertGUI();
