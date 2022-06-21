@@ -67,6 +67,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     primitive = GraphType.Primitive.Float,
                     length = GraphType.Length.Three,
                     height = GraphType.Height.One
+                },
+                new ContextEntry {
+                    fieldName = "ObjectSpaceNormal",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Three,
+                    height = GraphType.Height.One
+                },
+                new ContextEntry {
+                    fieldName = "ObjectSpaceTangent",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Three,
+                    height = GraphType.Height.One
                 }
             };
 
