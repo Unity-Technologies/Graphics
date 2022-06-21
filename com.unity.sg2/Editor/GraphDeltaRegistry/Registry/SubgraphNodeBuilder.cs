@@ -35,7 +35,13 @@ namespace UnityEditor.ShaderGraph.Defs
             }
             foreach (var port in output.GetPorts())
             {
-                if (!port.IsInput && !port.LocalID.StartsWith("out_")) //temp: Filter context outputs.
+                // temp; context nodes haven't been fixed yet, so filter out these defaults for now.
+                bool shouldExclude = port.LocalID.Contains("Emission")
+                    || port.LocalID.Contains("NormalTS")
+                    || port.LocalID.Contains("BaseColor");
+
+                //, "NormalTS", "BaseColor"
+                if (!port.IsInput && !shouldExclude) //temp: Filter context outputs.
                     INodeDefinitionBuilder.CopyPort(port, node, registry);
             }
 
