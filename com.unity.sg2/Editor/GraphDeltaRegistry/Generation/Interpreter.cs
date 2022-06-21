@@ -572,5 +572,80 @@ namespace UnityEditor.ShaderGraph.Generation
                 yield return connected.GetNode();
             }
         }
+
+
+        internal static void GenerateSubgraphBody(
+            NodeHandler root,
+            ShaderContainer container,
+            ref ShaderFunction.Builder builder,
+            ref List<ShaderFunction> shaderFunctions,
+            ref List<ShaderFoundry.IncludeDescriptor> includes)
+        {
+            var registry = root.Registry;
+
+            // For each node, we need to add a function call to the body.
+            foreach (var node in GatherTreeLeafFirst(root))
+            {
+                if (node.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name
+                || node.GetRegistryKey().Name == ReferenceNodeBuilder.kRegistryKey.Name)
+                    continue;
+
+                var nodeBuilder = registry.GetNodeBuilder(root.GetRegistryKey());
+                var func = nodeBuilder.GetShaderFunction(node, container, root.Registry, out var dependencies);
+
+                // build up our dependencies...
+                if (dependencies.includes != null)
+                    includes.Union(dependencies.includes);
+                if (dependencies.localFunctions != null)
+                    shaderFunctions.Union(dependencies.localFunctions);
+                if (!shaderFunctions.Contains(func))
+                    shaderFunctions.Add(func);
+
+                // gather up the arguments for this subnode
+                List<string> arguments = new();
+                foreach (var parameter in func.Parameters)
+                {
+                    var port = node.GetPort(parameter.Name);
+
+                    var argument = $"local_{node.ID.LocalPath}_{port.ID.LocalPath}";
+                    string initializer = null;
+                    var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                    var connectedNode = connectedPort?.GetNode() ?? null;
+                    bool addLocalVariable = true;
+
+                    bool isReference = connectedNode?.GetRegistryKey().Name == ReferenceNodeBuilder.kRegistryKey.Name;
+                    bool isContextOut = connectedNode?.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name;
+
+                    // if it's a reference node, we can use the name of the contextEntry port, which is the name of the input port on the rootnode.
+                    if (port.IsInput && isReference)
+                    {
+                        //root is providing the argument, but still goes through a reference node.
+                        argument = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID;
+                        addLocalVariable = false;
+                    }
+                    // a normal connect-- we just use the normally generated argument name, but from the connected node/port.
+                    else if (port.IsInput && connectedPort != null)
+                    {
+                        argument = $"local_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+                    }
+                    // not connected, so we need an initializer to setup the default value.
+                    else if (port.IsInput)
+                    {
+                        initializer = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
+                    }
+                    // we are connected to a subgraph output, which means we can just use the connected ports name directly as the argument.
+                    else if (!port.IsInput && isContextOut)
+                    {
+                        argument = connectedPort.LocalID;
+                        addLocalVariable = false;
+                    }
+
+                    arguments.Add(argument);
+                    if (addLocalVariable)
+                        builder.AddVariableDeclarationStatement(parameter.Type, argument, initializer);
+                }
+                builder.CallFunction(func, arguments.ToArray());
+            }
+        }
     }
 }

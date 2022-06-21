@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor.ShaderFoundry;
+using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
@@ -58,13 +60,57 @@ namespace UnityEditor.ShaderGraph.Defs
             out INodeDefinitionBuilder.Dependencies outputs)
         {
             outputs = new();
-            var shaderFunctionBuilder = new ShaderFunction.Builder(container, key.Name);
+            outputs.includes = new();
+            outputs.localFunctions = new();
 
+            var func = new ShaderFunction.Builder(container, "SomeName");
 
-            // TODO: Need a Subgraph -> Function helper.
-            // This should maybe live in the interpreter.
+            foreach (var port in data.GetPorts())
+            {
+                if (port.IsInput && port.IsHorizontal)
+                {
+                    var type = port.GetShaderType(registry, container);
+                    func.AddInput(type, port.LocalID);
+                }
+            }
 
-            return shaderFunctionBuilder.Build();
+            var outputContextName = Registry.ResolveKey<ShaderGraphContext>().Name;
+            var output = subgraph.GetNode(outputContextName);
+
+            Interpreter.GenerateSubgraphBody(output, container, ref func, ref outputs.localFunctions, ref outputs.includes);
+
+            foreach (var port in data.GetPorts())
+            {
+                if (!port.IsInput && port.IsHorizontal)
+                {
+                    var name = port.LocalID;
+                    var inName = port.LocalID.TrimStart("out_".ToCharArray());
+                    var inPort = output.GetPort(inName);
+                    var type = port.GetShaderType(registry, container);
+                    func.AddOutput(type, name);
+
+                    var connectedPort = inPort.GetConnectedPorts().FirstOrDefault();
+                    var connectedNode = connectedPort?.GetNode() ?? null;
+                    bool isReference = connectedNode?.GetRegistryKey().Name == ReferenceNodeBuilder.kRegistryKey.Name;
+
+                    if (isReference)
+                    {
+                        var connectedName = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID.Replace("out__", "_");
+                        func.AddLine($"{name} = {connectedName};");
+                    }
+                    else if (connectedPort != null)
+                    {
+                        func.AddLine($"{name} = local_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
+                    }
+                    else
+                    {
+                        var typeBuilder = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey());
+                        func.AddLine($"{name} = {typeBuilder.GetInitializerList(port.GetTypeField(), registry)};");
+                    }
+                }
+            }
+
+            return func.Build();
         }
 
         public RegistryKey GetRegistryKey() => key;
