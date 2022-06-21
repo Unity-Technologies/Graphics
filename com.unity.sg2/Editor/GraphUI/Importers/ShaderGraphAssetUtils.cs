@@ -107,23 +107,31 @@ namespace UnityEditor.ShaderGraph
                 ShaderGraphRegistry.Instance.Registry.Unregister(key);
                 ShaderGraphRegistry.Instance.Register(nodeBuilder, nodeUI);
             }
-
-
         }
 
-        //public static string[] GatherDependencies(ShaderGraphAsset asset)
-        //{
-        //    ctx.DependsOnArtifact()
-        //    SortedSet<string> deps = new();
-        //    var graph = asset.ShaderGraphModel.GraphHandler;
+        public static string[] GatherDependenciesForShaderGraphAsset(string assetPath)
+        {
+            string json = File.ReadAllText(assetPath, Encoding.UTF8);
+            var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
+            EditorJsonUtility.FromJsonOverwrite(json, asset);
+            asset.ShaderGraphModel.OnEnable();
 
-        //    // <for each asset>:
-        //        // var path = AssetDatabase.GUIDToAssetPath("");
-        //        // if (!String.IsEmptyOrNull(path))
-        //            // deps.Add(path);
 
-        //    return deps.ToArray();
-        //}
+
+            SortedSet<string> deps = new();
+            var graph = asset.ShaderGraphModel.GraphHandler;
+
+            foreach(var node in graph.GetNodes())
+            {
+                // Subgraphs use their assetID as a registryKey for now-> this is bad and should be handled gracefully in the UI for a user to set in a safe way.
+                // TODO: make it so any node can be asked about its asset dependencies (Either through the builder, or through a field).
+                var depPath = AssetDatabase.GUIDToAssetPath(node.GetRegistryKey().Name);
+                if (!String.IsNullOrEmpty(depPath))
+                    deps.Add(depPath);
+            }
+
+            return deps.ToArray();
+        }
 
 
         //static string[] GatherDependenciesFromSourceFile(string assetPath)
