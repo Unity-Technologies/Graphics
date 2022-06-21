@@ -1356,7 +1356,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Render the deferred water lighting
-            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid, volumetricLighting, waterGBuffer);
+            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid, volumetricLighting, waterGBuffer, lightLists);
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);

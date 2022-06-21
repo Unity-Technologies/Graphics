@@ -118,6 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 );
             }
         }
+
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             return channel == UVChannel.UV0;

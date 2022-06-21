@@ -104,7 +104,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -117,7 +117,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -369,19 +369,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f6fd535518f5540b4bcc3099582f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  infinite: 1
-  highFrequencyBands: 1
-  geometryType: 0
-  geometry: {fileID: 0}
+  surfaceType: 0
+  geometryType: 2
+  mesh: {fileID: 0}
   cpuSimulation: 0
   cpuFullResolution: 0
-  cpuEvaluateAllBands: 0
-  waterMaxPatchSize: 500
-  amplitude: {x: 1, y: 1, z: 1, w: 1}
-  choppiness: 1
+  cpuEvaluateRipples: 0
   timeMultiplier: 0
+  repetitionSize: 500
+  largeWindSpeed: 30
+  largeWindOrientationValue: 0
+  largeCurrentSpeedValue: 0
+  largeCurrentOrientationValue: 0
+  largeChaos: 0.8
+  largeBand0Multiplier: 1
+  largeBand0FadeToggle: 1
+  largeBand0FadeStart: 1500
+  largeBand0FadeDistance: 3000
+  largeBand1Multiplier: 1
+  largeBand1FadeToggle: 1
+  largeBand1FadeStart: 300
+  largeBand1FadeDistance: 800
+  ripples: 1
+  ripplesWindSpeed: 8
+  ripplesWindOrientationMode: 0
+  ripplesWindOrientationValue: 0
+  ripplesCurrentMode: 0
+  ripplesCurrentSpeedValue: 0
+  ripplesCurrentOrientationValue: 0
+  ripplesChaos: 0.8
+  ripplesFadeToggle: 1
+  ripplesFadeStart: 50
+  ripplesFadeDistance: 200
   customMaterial: {fileID: 0}
-  waterSmoothness: 0.95
+  startSmoothness: 0.95
+  endSmoothness: 0.85
+  smoothnessFadeStart: 100
+  smoothnessFadeDistance: 500
   refractionColor: {r: 0.6509804, g: 0.06226745, b: 0, a: 1}
   maxRefractionDistance: 1
   absorptionDistance: 5
@@ -393,24 +417,16 @@ MonoBehaviour:
   caustics: 1
   causticsIntensity: 1
   causticsPlaneBlendDistance: 1
-  causticsAlgorithm: 0
   causticsResolution: 512
   causticsBand: 2
-  virtualPlaneDistance: 10
-  causticsTiling: 1.5
-  causticsSpeed: 0
+  virtualPlaneDistance: 5
+  foam: 1
   simulationFoamAmount: 0
   simulationFoamDrag: 0.5
   simulationFoamSmoothness: 0
   foamMask: {fileID: 0}
   foamMaskExtent: {x: 100, y: 100}
   foamMaskOffset: {x: 0, y: 0}
-  waterMask: {fileID: 0}
-  waterMaskExtent: {x: 100, y: 100}
-  waterMaskOffset: {x: 0, y: 0}
-  windOrientation: 0
-  windSpeed: 80
-  windAffectCurrent: 0.2
   windFoamCurve:
     serializedVersion: 2
     m_Curve:
@@ -453,6 +469,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  foamTexture: {fileID: 0}
+  foamTextureTiling: 0.2
+  waterMask: {fileID: 0}
+  waterMaskExtent: {x: 100, y: 100}
+  waterMaskOffset: {x: 0, y: 0}
   decalLayerMask: 1
   lightLayerMask: 1
   underWater: 1
@@ -540,7 +561,7 @@ PrefabInstance:
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
-      value: 8
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}

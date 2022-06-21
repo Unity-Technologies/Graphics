@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
                 // If the resources are invalid, we cannot render this surface
-                if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, k_WaterHighBandCount))
+                if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
                     continue;
 
                 // Render the water surface
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Render the water surface (will be rendered as wireframe because of the hidden render state)
                 RenderWaterSurface(cmd,
-                    currentWater.simulation.gpuBuffers.displacementBuffer, currentWater.simulation.gpuBuffers.additionalDataBuffer, currentWater.simulation.gpuBuffers.causticsBuffer,
+                    currentWater.simulation.gpuBuffers.displacementBuffer, currentWater.simulation.gpuBuffers.additionalDataBuffer, currentWater.simulation.gpuBuffers.causticsBuffer, TextureXR.GetBlackTexture(),
                     m_WaterCameraHeightBuffer, m_WaterPatchDataBuffer, m_WaterIndirectDispatchBuffer, m_WaterCameraFrustrumBuffer, parameters);
             }
         }
