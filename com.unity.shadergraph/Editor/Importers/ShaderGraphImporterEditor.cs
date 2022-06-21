@@ -124,6 +124,12 @@ namespace UnityEditor.ShaderGraph
                 using (new EditorGUI.DisabledGroupScope(true))
                     materialEditor.OnInspectorGUI();
             }
+
+            if (GUILayout.Button("Open in Shader Graph v2"))
+            {
+                UnityEditor.ShaderGraph.Upgrader.Upgrader.DoSomething();
+            }
+
         }
 
         public override void OnEnable()

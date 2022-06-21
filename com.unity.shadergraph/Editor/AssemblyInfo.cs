@@ -15,3 +15,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphDelta.Tests")]
 [assembly: InternalsVisibleTo("Unity.ShaderGraph.Generation.Tests")]
 [assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphUI")]
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.Upgrader")]
