@@ -141,38 +141,6 @@ namespace UnityEditor.ShaderGraph
 
             return deps.ToArray();
         }
-
-
-        //static string[] GatherDependenciesFromSourceFile(string assetPath)
-        //{
-        //    try
-        //    {
-        //        AssetCollection assetCollection = new AssetCollection();
-        //        MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
-
-        //        List<string> dependencyPaths = new List<string>();
-        //        foreach (var asset in assetCollection.assets)
-        //        {
-        //            // only artifact dependencies need to be declared in GatherDependenciesFromSourceFile
-        //            // to force their imports to run before ours
-        //            if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
-        //            {
-        //                var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
-
-        //                // it is unfortunate that we can't declare these dependencies unless they have a path...
-        //                // I asked AssetDatabase team for GatherDependenciesFromSourceFileByGUID()
-        //                if (!string.IsNullOrEmpty(dependencyPath))
-        //                    dependencyPaths.Add(dependencyPath);
-        //            }
-        //        }
-        //        return dependencyPaths.ToArray();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Debug.LogException(e);
-        //        return new string[0];
-        //    }
-        //}
     }
 
     [Serializable]

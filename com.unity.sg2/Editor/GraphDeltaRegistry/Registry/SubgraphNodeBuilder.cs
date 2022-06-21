@@ -105,7 +105,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                     else if (connectedPort != null)
                     {
-                        // We can assume that the body code performs the assignment-- oh that's bad.
+                        // We can assume that the body code performs the assignment, because reference nodes are passed
+                        // directly into output ports-- this diverges a little in how ReferenceNodes normally work.
                         // func.AddLine($"{name} = sg_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
                     }
                     else
