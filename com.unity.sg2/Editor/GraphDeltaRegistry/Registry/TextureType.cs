@@ -145,6 +145,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public void CopySubFieldData(FieldHandler src, FieldHandler dst)
         {
             SetTextureType(dst, GetTextureType(src));
+            SetTextureAsset(dst, GetTextureAsset(src));
         }
 
         ShaderType ITypeDefinitionBuilder.GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
