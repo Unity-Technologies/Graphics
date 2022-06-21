@@ -327,12 +327,30 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
+        private IEnumerable<NodeHandler> GetContextNodesInOrder(Registry registry)
+        {
+            NodeHandler step = null;
+            foreach(var node in GetNodes(registry))
+            {
+                if (node.HasMetadata("_contextDescriptor") && node.GetPort("In") == null)
+                {
+                    step = node;
+                    break;
+                }
+            }
+
+            while (step != null)
+            {
+                yield return step;
+                step = step.GetPort("Out")?.GetConnectedPorts().First()?.GetNode();
+            }
+        }
+
         private PortHandler GetDefaultConnection(string contextEntryName, Registry registry)
         {
-            foreach(var context in contextNodes)
+            foreach (var contextNode in GetContextNodesInOrder(registry))
             {
-                var node = GetNode(context, registry);
-                foreach(var port in node.GetPorts())
+                foreach(var port in contextNode.GetPorts())
                 {
                     if (!port.IsInput && port.IsHorizontal)
                     {
