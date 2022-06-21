@@ -21,41 +21,17 @@ namespace UnityEditor.ShaderGraph.Utils
             var registry = asset.ShaderGraphModel.RegistryInstance;
 
             // get the node data from the SG1 graph
-            foreach (var node in graphData.GetNodes<AbstractMaterialNode>())
+            var nodeConverter = new NodeConverter(graphHandler);
+            var nodes = graphData.GetNodes<AbstractMaterialNode>();
+            foreach (var node in nodes)
             {
-                ConvertAndAdd(node);
-                //RegistryKey registryKey = AbstractMaterialNodeToRegistryKey(node);
-                //if (registryKey == null)
-                //{
-                //    // couldn't find a matching key in the registry
-                //    continue;
-                //}
-                //// add a node to the new graph
-                //graphHandler.AddNode(registryKey);
+                nodeConverter.Convert(node);
             }
 
             // add the result to the SG2
 
             // save
             ShaderGraphAssetUtils.HandleSave(newAssetPath, asset);
-        }
-
-        /// <summary>
-        /// Returns an instance of registered node in SG2 that best matches the provided SG1 node.
-        /// </summary>
-        internal static void ConvertNode(AbstractMaterialNode sg1Node)
-        {
-            throw new Exception("UNIMPLEMENTED");
-        }
-
-        internal static void ConvertAndAdd(AbstractMaterialNode node)
-        {
-
-        }
-
-        private static RegistryKey AbstractMaterialNodeToRegistryKey(AbstractMaterialNode node)
-        {
-            throw new Exception("UNIMPLEMENTED");
         }
     }
 }

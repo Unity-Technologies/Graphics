@@ -122,7 +122,8 @@ namespace UnityEditor.ShaderGraph
                 var graphDataWrapper = AssetDatabase.LoadAssetAtPath<GraphDataScriptableObject>(importer.assetPath);
                 Type t = Type.GetType("UnityEditor.ShaderGraph.Utils.ShaderGraphUpgrader,Unity.ShaderGraph.Upgrader");
                 var method = t.GetMethod("Upgrade", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-                method.Invoke(null, new object[] { graphDataWrapper.GraphData });
+                var newAssetPath = $"{importer.assetPath.Substring(0, importer.assetPath.Length - 12)}.sg2";
+                method.Invoke(null, new object[] { newAssetPath, graphDataWrapper.GraphData });
             }
 
             ApplyRevertGUI();

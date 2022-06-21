@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    class ShaderGraphRegistry
+    internal class ShaderGraphRegistry
     {
         private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
         private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         // TODO: remove direct access of these in GraphUI and from API.
-        internal Registry Registry;
+        internal Registry Registry { get; }
         internal NodeUIInfo NodeUIInfo;
         internal GraphHandler DefaultTopologies;
 
