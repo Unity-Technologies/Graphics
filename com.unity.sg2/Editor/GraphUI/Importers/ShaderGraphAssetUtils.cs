@@ -88,6 +88,16 @@ namespace UnityEditor.ShaderGraph
                 var assetID = AssetDatabase.GUIDFromAssetPath(ctx.assetPath).ToString();
                 var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
 
+
+
+                List<Defs.ParameterUIDescriptor> paramDesc = new();
+                foreach (var dec in asset.ShaderGraphModel.VariableDeclarations)
+                {
+                    var displayName = dec.GetVariableName();
+                    var identifierName = ((BaseShaderGraphConstant)dec.InitializationModel).PortName;
+                    paramDesc.Add(new Defs.ParameterUIDescriptor(identifierName, displayName));
+                }
+
                 Defs.NodeUIDescriptor desc = new(
                         version: 1,
                         name: assetID,
@@ -96,8 +106,7 @@ namespace UnityEditor.ShaderGraph
                         synonyms: new string[] { "SubGraph" },
                         displayName: fileName,
                         hasPreview: true,
-                        // TODO: search ports and fill this out.
-                        parameters: new Defs.ParameterUIDescriptor[] { }
+                        parameters: paramDesc.ToArray()
                     );
 
                 RegistryKey key = new RegistryKey { Name = assetID, Version = 1 };
