@@ -4,10 +4,10 @@
 QualitySettings:
   m_ObjectHideFlags: 0
   serializedVersion: 5
-  m_CurrentQuality: 1
+  m_CurrentQuality: 0
   m_QualitySettings:
-  - serializedVersion: 2
-    name: High Quality
+  - serializedVersion: 3
+    name: Ultra RT
     pixelLightCount: 2
     shadows: 2
     shadowResolution: 1
@@ -26,9 +26,87 @@ QualitySettings:
     softVegetation: 1
     realtimeReflectionProbes: 1
     billboardsFaceCameraPosition: 1
+    useLegacyDetailDistribution: 1
     vSyncCount: 1
     lodBias: 1
     maximumLODLevel: 0
+    enableLODCrossFade: 1
+    streamingMipmapsActive: 0
+    streamingMipmapsAddAllCameras: 1
+    streamingMipmapsMemoryBudget: 512
+    streamingMipmapsRenderersPerFrame: 512
+    streamingMipmapsMaxLevelReduction: 2
+    streamingMipmapsMaxFileIORequests: 1024
+    particleRaycastBudget: 256
+    asyncUploadTimeSlice: 2
+    asyncUploadBufferSize: 16
+    asyncUploadPersistentBuffer: 1
+    resolutionScalingFixedDPIFactor: 1
+    customRenderPipeline: {fileID: 11400000, guid: 96471df129b04e24991e9188b9c81134, type: 2}
+    excludedTargetPlatforms: []
+  - serializedVersion: 3
+    name: Very High RT
+    pixelLightCount: 2
+    shadows: 2
+    shadowResolution: 1
+    shadowProjection: 1
+    shadowCascades: 2
+    shadowDistance: 40
+    shadowNearPlaneOffset: 3
+    shadowCascade2Split: 0.33333334
+    shadowCascade4Split: {x: 0.06666667, y: 0.2, z: 0.46666667}
+    shadowmaskMode: 1
+    skinWeights: 255
+    textureQuality: 0
+    anisotropicTextures: 2
+    antiAliasing: 0
+    softParticles: 0
+    softVegetation: 1
+    realtimeReflectionProbes: 1
+    billboardsFaceCameraPosition: 1
+    useLegacyDetailDistribution: 1
+    vSyncCount: 1
+    lodBias: 1
+    maximumLODLevel: 0
+    enableLODCrossFade: 1
+    streamingMipmapsActive: 0
+    streamingMipmapsAddAllCameras: 1
+    streamingMipmapsMemoryBudget: 512
+    streamingMipmapsRenderersPerFrame: 512
+    streamingMipmapsMaxLevelReduction: 2
+    streamingMipmapsMaxFileIORequests: 1024
+    particleRaycastBudget: 256
+    asyncUploadTimeSlice: 2
+    asyncUploadBufferSize: 16
+    asyncUploadPersistentBuffer: 1
+    resolutionScalingFixedDPIFactor: 1
+    customRenderPipeline: {fileID: 11400000, guid: c78d399b0e7111b4eacf5caaae574939, type: 2}
+    excludedTargetPlatforms: []
+  - serializedVersion: 3
+    name: High
+    pixelLightCount: 2
+    shadows: 2
+    shadowResolution: 1
+    shadowProjection: 1
+    shadowCascades: 2
+    shadowDistance: 40
+    shadowNearPlaneOffset: 3
+    shadowCascade2Split: 0.33333334
+    shadowCascade4Split: {x: 0.06666667, y: 0.2, z: 0.46666667}
+    shadowmaskMode: 1
+    skinWeights: 255
+    textureQuality: 0
+    anisotropicTextures: 2
+    antiAliasing: 0
+    softParticles: 0
+    softVegetation: 1
+    realtimeReflectionProbes: 1
+    billboardsFaceCameraPosition: 1
+    useLegacyDetailDistribution: 1
+    vSyncCount: 1
+    lodBias: 1
+    maximumLODLevel: 0
+    enableLODCrossFade: 1
     streamingMipmapsActive: 0
     streamingMipmapsAddAllCameras: 1
     streamingMipmapsMemoryBudget: 512
@@ -42,8 +120,8 @@ QualitySettings:
     resolutionScalingFixedDPIFactor: 1
     customRenderPipeline: {fileID: 11400000, guid: 36dd385e759c96147b6463dcd1149c11, type: 2}
     excludedTargetPlatforms: []
-  - serializedVersion: 2
-    name: Medium Quality
+  - serializedVersion: 3
+    name: Medium
     pixelLightCount: 2
     shadows: 2
     shadowResolution: 1
@@ -62,9 +140,11 @@ QualitySettings:
     softVegetation: 1
     realtimeReflectionProbes: 1
     billboardsFaceCameraPosition: 1
+    useLegacyDetailDistribution: 1
     vSyncCount: 1
     lodBias: 1
     maximumLODLevel: 0
+    enableLODCrossFade: 1
     streamingMipmapsActive: 0
     streamingMipmapsAddAllCameras: 1
     streamingMipmapsMemoryBudget: 512
@@ -78,8 +158,8 @@ QualitySettings:
     resolutionScalingFixedDPIFactor: 1
     customRenderPipeline: {fileID: 11400000, guid: 3e2e6bfc59709614ab90c0cd7d755e48, type: 2}
     excludedTargetPlatforms: []
-  - serializedVersion: 2
-    name: Low Quality
+  - serializedVersion: 3
+    name: Low
     pixelLightCount: 2
     shadows: 2
     shadowResolution: 1
@@ -98,9 +178,11 @@ QualitySettings:
     softVegetation: 1
     realtimeReflectionProbes: 1
     billboardsFaceCameraPosition: 1
+    useLegacyDetailDistribution: 1
     vSyncCount: 1
     lodBias: 1
     maximumLODLevel: 0
+    enableLODCrossFade: 1
     streamingMipmapsActive: 0
     streamingMipmapsAddAllCameras: 1
     streamingMipmapsMemoryBudget: 512
@@ -115,11 +197,11 @@ QualitySettings:
     customRenderPipeline: {fileID: 11400000, guid: 168a2336534e4e043b2a210b6f8d379a, type: 2}
     excludedTargetPlatforms: []
   m_PerPlatformDefaultQuality:
-    GameCoreScarlett: 1
-    GameCoreXboxOne: 1
-    PS4: 1
-    PS5: 1
-    Server: 1
-    Standalone: 1
-    Windows Store Apps: 1
-    XboxOne: 1
+    GameCoreScarlett: 0
+    GameCoreXboxOne: 0
+    PS4: 0
+    PS5: 0
+    Server: 3
+    Standalone: 3
+    Windows Store Apps: 0
+    XboxOne: 0
