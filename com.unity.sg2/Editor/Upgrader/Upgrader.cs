@@ -1,17 +1,12 @@
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.Upgrader
+namespace UnityEditor.ShaderGraph.Utils
 {
-    public class Upgrader
+    internal class ShaderGraphUpgrader
     {
-        // TODO (Brett) deleteme -- this is for testing a button
-        public static void DoSomething()
+        internal static void Upgrade(GraphData graphData)
         {
-            Debug.LogError("Doing Something");
-        }
-
-        public Upgrader()
-        {
+            Debug.LogError($"GraphData : {graphData}");
         }
     }
 }

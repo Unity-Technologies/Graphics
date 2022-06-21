@@ -115,6 +115,16 @@ namespace UnityEditor.ShaderGraph
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 
+            if (GUILayout.Button("Open in Shader Graph v2"))
+            {
+                AssetImporter importer = target as AssetImporter;
+                Debug.Assert(importer != null, "importer != null");
+                var graphDataWrapper = AssetDatabase.LoadAssetAtPath<GraphDataScriptableObject>(importer.assetPath);
+                Type t = Type.GetType("UnityEditor.ShaderGraph.Utils.ShaderGraphUpgrader,Unity.ShaderGraph.Upgrader");
+                var method = t.GetMethod("Upgrade", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+                method.Invoke(null, new object[] { graphDataWrapper.GraphData });
+            }
+
             ApplyRevertGUI();
 
             if (materialEditor)
@@ -124,12 +134,6 @@ namespace UnityEditor.ShaderGraph
                 using (new EditorGUI.DisabledGroupScope(true))
                     materialEditor.OnInspectorGUI();
             }
-
-            if (GUILayout.Button("Open in Shader Graph v2"))
-            {
-                UnityEditor.ShaderGraph.Upgrader.Upgrader.DoSomething();
-            }
-
         }
 
         public override void OnEnable()

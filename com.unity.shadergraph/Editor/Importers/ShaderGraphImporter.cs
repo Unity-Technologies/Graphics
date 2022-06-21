@@ -183,6 +183,9 @@ Shader ""Hidden/GraphErrorShader2""
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
+            var graphDataScriptableObject = ScriptableObject.CreateInstance<GraphDataScriptableObject>();
+            graphDataScriptableObject.GraphData = graph;
+            ctx.AddObjectToAsset("GraphDataScriptableObject", graphDataScriptableObject);
 
             UnityEngine.Object mainObject = null;
 #if VFX_GRAPH_10_0_0_OR_NEWER
@@ -965,4 +968,10 @@ Shader ""Hidden/GraphErrorShader2""
 
 #endif
     }
+
+    class GraphDataObject : ScriptableObject
+    {
+        public GraphData GraphData;
+    }
+
 }

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed partial class GraphData : JsonObject
+    sealed internal partial class GraphData : JsonObject
     {
         public override int latestVersion => 3;
 
