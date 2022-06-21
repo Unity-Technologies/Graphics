@@ -11,7 +11,7 @@ This Block can calculate the position either from the ArcCirlce's **Surface**, *
 
 This Block also calculates a direction vector based on the calculated position on the shape, and stores it to the [direction attribute](Reference-Attributes.md), based on composition. This direction is equal to the normalized vector from the center of the circle to the calculated position.
 
-Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
+**Note**: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md) Blocks can then process the direction attribute.
 
 ![](Images/Block-SetPosition(Circle)Main.gif)
 
