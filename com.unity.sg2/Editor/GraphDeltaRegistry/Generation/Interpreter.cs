@@ -590,7 +590,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 || node.GetRegistryKey().Name == ReferenceNodeBuilder.kRegistryKey.Name)
                     continue;
 
-                var nodeBuilder = registry.GetNodeBuilder(root.GetRegistryKey());
+                var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
                 var func = nodeBuilder.GetShaderFunction(node, container, root.Registry, out var dependencies);
 
                 // build up our dependencies...
@@ -607,7 +607,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     var port = node.GetPort(parameter.Name);
 
-                    var argument = $"local_{node.ID.LocalPath}_{port.ID.LocalPath}";
+                    var argument = $"sg_{node.ID.LocalPath}_{port.ID.LocalPath}";
                     string initializer = null;
                     var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                     var connectedNode = connectedPort?.GetNode() ?? null;
@@ -620,13 +620,13 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (port.IsInput && isReference)
                     {
                         //root is providing the argument, but still goes through a reference node.
-                        argument = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID;
+                        argument = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID.Replace("out__", "_");
                         addLocalVariable = false;
                     }
                     // a normal connect-- we just use the normally generated argument name, but from the connected node/port.
                     else if (port.IsInput && connectedPort != null)
                     {
-                        argument = $"local_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+                        argument = $"sg_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
                     }
                     // not connected, so we need an initializer to setup the default value.
                     else if (port.IsInput)
@@ -636,7 +636,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     // we are connected to a subgraph output, which means we can just use the connected ports name directly as the argument.
                     else if (!port.IsInput && isContextOut)
                     {
-                        argument = connectedPort.LocalID;
+                        argument = "out_" + connectedPort.LocalID;
                         addLocalVariable = false;
                     }
 

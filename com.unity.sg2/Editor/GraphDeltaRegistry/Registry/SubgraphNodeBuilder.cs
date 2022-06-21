@@ -63,7 +63,10 @@ namespace UnityEditor.ShaderGraph.Defs
             outputs.includes = new();
             outputs.localFunctions = new();
 
-            var func = new ShaderFunction.Builder(container, "SomeName");
+            subgraph.ReconcretizeAll();
+
+            // TODO: allow for a function name/prefix to get added in the constructor
+            var func = new ShaderFunction.Builder(container, $"SomeName");
 
             foreach (var port in data.GetPorts())
             {
@@ -84,6 +87,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 if (!port.IsInput && port.IsHorizontal)
                 {
                     var name = port.LocalID;
+                    // the "out_" prefix is a bad smell and it permeates throughout this, contextBuilder, referenceNodeBuilder, and the Interpreter,
+                    // -- Think it means we need an 'inout' port type!
                     var inName = port.LocalID.TrimStart("out_".ToCharArray());
                     var inPort = output.GetPort(inName);
                     var type = port.GetShaderType(registry, container);
@@ -100,7 +105,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                     else if (connectedPort != null)
                     {
-                        func.AddLine($"{name} = local_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
+                        // We can assume that the body code performs the assignment-- oh that's bad.
+                        // func.AddLine($"{name} = sg_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
                     }
                     else
                     {
