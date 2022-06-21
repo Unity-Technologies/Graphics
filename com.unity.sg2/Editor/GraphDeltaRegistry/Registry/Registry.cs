@@ -89,6 +89,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var registryEntry = Activator.CreateInstance<T>();
             return Register(registryEntry);
         }
+        internal bool Unregister(RegistryKey key)
+        {
+            return builders.Remove(key);
+        }
 
         /// <summary>
         /// Registers a single function (represented as a pure data FunctionDescriptor)

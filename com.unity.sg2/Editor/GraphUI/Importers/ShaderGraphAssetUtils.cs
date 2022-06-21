@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
 using UnityEditor.AssetImporters;
@@ -65,7 +66,7 @@ namespace UnityEditor.ShaderGraph
                 var node = asset.ShaderGraphModel.GraphHandler.GetNode(key.Name);
                 string shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
-                Material mat = new (shader);
+                Material mat = new(shader);
                 foreach (var def in defaultTextures)
                 {
                     mat.SetTexture(def.Item1, def.Item2);
@@ -81,10 +82,80 @@ namespace UnityEditor.ShaderGraph
             {
                 Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
 
-                ctx.AddObjectToAsset("AssetHelper", asset, texture);
+                ctx.AddObjectToAsset("Asset", asset, texture);
                 ctx.SetMainObject(asset);
+
+                var assetID = AssetDatabase.GUIDFromAssetPath(ctx.assetPath).ToString();
+                var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
+
+                Defs.NodeUIDescriptor desc = new(
+                        version: 1,
+                        name: assetID,
+                        tooltip: "TODO: This should come from the SubGraphModel",
+                        categories: new string[] { "SubGraphs" },
+                        synonyms: new string[] { "SubGraph" },
+                        displayName: fileName,
+                        hasPreview: true,
+                        // TODO: search ports and fill this out.
+                        parameters: new Defs.ParameterUIDescriptor[] { }
+                    );
+
+                RegistryKey key = new RegistryKey { Name = assetID, Version = 1 };
+                var nodeBuilder = new Defs.SubGraphNodeBuilder(key, asset.ShaderGraphModel.GraphHandler);
+                var nodeUI = new StaticNodeUIDescriptorBuilder(desc);
+
+                ShaderGraphRegistry.Instance.Registry.Unregister(key);
+                ShaderGraphRegistry.Instance.Register(nodeBuilder, nodeUI);
             }
+
+
         }
+
+        //public static string[] GatherDependencies(ShaderGraphAsset asset)
+        //{
+        //    ctx.DependsOnArtifact()
+        //    SortedSet<string> deps = new();
+        //    var graph = asset.ShaderGraphModel.GraphHandler;
+
+        //    // <for each asset>:
+        //        // var path = AssetDatabase.GUIDToAssetPath("");
+        //        // if (!String.IsEmptyOrNull(path))
+        //            // deps.Add(path);
+
+        //    return deps.ToArray();
+        //}
+
+
+        //static string[] GatherDependenciesFromSourceFile(string assetPath)
+        //{
+        //    try
+        //    {
+        //        AssetCollection assetCollection = new AssetCollection();
+        //        MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
+
+        //        List<string> dependencyPaths = new List<string>();
+        //        foreach (var asset in assetCollection.assets)
+        //        {
+        //            // only artifact dependencies need to be declared in GatherDependenciesFromSourceFile
+        //            // to force their imports to run before ours
+        //            if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
+        //            {
+        //                var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+
+        //                // it is unfortunate that we can't declare these dependencies unless they have a path...
+        //                // I asked AssetDatabase team for GatherDependenciesFromSourceFileByGUID()
+        //                if (!string.IsNullOrEmpty(dependencyPath))
+        //                    dependencyPaths.Add(dependencyPath);
+        //            }
+        //        }
+        //        return dependencyPaths.ToArray();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Debug.LogException(e);
+        //        return new string[0];
+        //    }
+        //}
     }
 
     [Serializable]
