@@ -2,7 +2,9 @@
     "name": "Unity.ShaderGraph.Upgrader",
     "rootNamespace": "",
     "references": [
-        "GUID:be0903cd8e1546f498710afdc59db5eb"
+        "GUID:be0903cd8e1546f498710afdc59db5eb",
+        "GUID:97bddd7dc8a1fe343a2f93cba0c29747",
+        "GUID:f00137e8794763a4fbbd0bcfb9bc600d"
     ],
     "includePlatforms": [
         "Editor"
