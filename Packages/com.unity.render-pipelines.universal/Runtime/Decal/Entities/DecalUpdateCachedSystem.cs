@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<float> fadeFactors;
         public NativeArray<BoundingSphere> boundingSpheres;
         public NativeArray<DecalScaleMode> scaleModes;
-        public NativeArray<DecalLayerEnum> decalLayerMasks;
+        public NativeArray<uint> renderingLayerMasks;
         public NativeArray<float3> positions;
         public NativeArray<quaternion> rotation;
         public NativeArray<float3> scales;
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
             RemoveAtSwapBack(ref boundingSphereArray, entityIndex, count);
             RemoveAtSwapBack(ref boundingSpheres, entityIndex, count);
             RemoveAtSwapBack(ref scaleModes, entityIndex, count);
-            RemoveAtSwapBack(ref decalLayerMasks, entityIndex, count);
+            RemoveAtSwapBack(ref renderingLayerMasks, entityIndex, count);
             RemoveAtSwapBack(ref positions, entityIndex, count);
             RemoveAtSwapBack(ref rotation, entityIndex, count);
             RemoveAtSwapBack(ref scales, entityIndex, count);
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
             fadeFactors.ResizeArray(newCapacity);
             boundingSpheres.ResizeArray(newCapacity);
             scaleModes.ResizeArray(newCapacity);
-            decalLayerMasks.ResizeArray(newCapacity);
+            renderingLayerMasks.ResizeArray(newCapacity);
             positions.ResizeArray(newCapacity);
             rotation.ResizeArray(newCapacity);
             scales.ResizeArray(newCapacity);
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
             fadeFactors.Dispose();
             boundingSpheres.Dispose();
             scaleModes.Dispose();
-            decalLayerMasks.Dispose();
+            renderingLayerMasks.Dispose();
             positions.Dispose();
             rotation.Dispose();
             scales.Dispose();

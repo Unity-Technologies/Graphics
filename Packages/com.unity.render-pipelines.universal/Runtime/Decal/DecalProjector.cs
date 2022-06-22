@@ -3,32 +3,6 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
-    /// <summary>Decal Layers.</summary>
-    [Flags]
-    public enum DecalLayerEnum
-    {
-        /// <summary>The light will no affect any object.</summary>
-        Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Decal Layer 0.</summary>
-        DecalLayerDefault = 1 << 0,
-        /// <summary>Decal Layer 1.</summary>
-        DecalLayer1 = 1 << 1,
-        /// <summary>Decal Layer 2.</summary>
-        DecalLayer2 = 1 << 2,
-        /// <summary>Decal Layer 3.</summary>
-        DecalLayer3 = 1 << 3,
-        /// <summary>Decal Layer 4.</summary>
-        DecalLayer4 = 1 << 4,
-        /// <summary>Decal Layer 5.</summary>
-        DecalLayer5 = 1 << 5,
-        /// <summary>Decal Layer 6.</summary>
-        DecalLayer6 = 1 << 6,
-        /// <summary>Decal Layer 7.</summary>
-        DecalLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
-        Everything = 0xFF, // Custom name for "Everything" option
-    }
-
     /// <summary>The scaling mode to apply to decals that use the Decal Projector.</summary>
     public enum DecalScaleMode
     {
@@ -53,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
         internal static event DecalProjectorAction onDecalAdd;
         internal static event DecalProjectorAction onDecalRemove;
         internal static event DecalProjectorAction onDecalPropertyChange;
+        internal static event Action onAllDecalPropertyChange;
         internal static event DecalProjectorAction onDecalMaterialChange;
         internal static Material defaultMaterial { get; set; }
         internal static bool isSupported => onDecalAdd != null;
@@ -189,11 +164,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
+        uint m_DecalLayerMask = 1;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public DecalLayerEnum decalLayerMask
+        public uint renderingLayerMask
         {
             get => m_DecalLayerMask;
             set => m_DecalLayerMask = value;
@@ -363,6 +338,11 @@ namespace UnityEngine.Rendering.Universal
                 return true;
 
             return false;
+        }
+
+        internal static void UpdateAllDecalProperties()
+        {
+            onAllDecalPropertyChange?.Invoke();
         }
     }
 }
