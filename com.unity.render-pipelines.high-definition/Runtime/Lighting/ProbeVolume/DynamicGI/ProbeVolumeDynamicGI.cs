@@ -116,6 +116,13 @@ namespace UnityEngine.Rendering.HighDefinition
             BasisAmbientDiceWrappedUltraSoft
         }
 
+        [Serializable]
+        public enum ProbeVolumeDynamicGIRadianceEncoding
+        {
+            RGBFloat = 0,
+            LogLuv,
+        }
+
         ProbeVolumeDynamicGI()
         {
             s_DiagonalDist = Mathf.Sqrt(3.0f);
@@ -515,6 +522,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static void SetRadianceEncodingKeywords(ComputeShader shader, ProbeVolumeDynamicGIRadianceEncoding encoding)
+        {
+            var logLuv = encoding == ProbeVolumeDynamicGIRadianceEncoding.LogLuv;
+            CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_LOGLUV", logLuv);
+        }
 
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume,
             ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
@@ -522,11 +534,11 @@ namespace UnityEngine.Rendering.HighDefinition
             PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe,
             ProbeVolumeDynamicGIMixedLightMode mixedLightMode)
         {
-            var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
+            var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume, in giSettings);
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
-                    DispatchClearPreviousRadianceCache(cmd, probeVolume);
+                    DispatchClearPreviousRadianceCache(cmd, probeVolume, in giSettings);
             }
 
             if (probeVolume.HitNeighborAxisLength != 0)
@@ -559,12 +571,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume)
+        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
         {
             var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
             var shader = _PropagationClearRadianceShader;
 
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
+
+            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
 
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", propagationPipelineData.radianceCacheAxis0);
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", propagationPipelineData.radianceCacheAxis1);
@@ -588,6 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var pipelineData = ref probeVolume.GetPipelineData();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
+            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             var obb = pipelineData.BoundingBox;
@@ -678,6 +693,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var pipelineData = ref probeVolume.GetPipelineData();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
+            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             var obb = pipelineData.BoundingBox;
@@ -827,6 +843,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
             var shader = _PropagationCombineShader;
 
+            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             ref var pipelineData = ref probeVolume.GetPipelineData();
@@ -897,11 +914,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
             var shader = _PropagationCombineShader;
 
-            SetBasisKeywords(
+            /* SetBasisKeywords(
                 ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp,
                 ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft,
                 shader
-            );
+            ); */
 
             var obb = pipelineData.BoundingBox;
 
@@ -975,33 +992,25 @@ namespace UnityEngine.Rendering.HighDefinition
             return didDispose;
         }
 
-        private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
+        static bool InitializePropagationInputBuffers(ProbeVolumeHandle probeVolume)
         {
             probeVolume.EnsureVolumeBuffers();
 
             var dataVersion = probeVolume.GetDataVersion();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
+
+            var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
+            var hasHitNeighborAxes = hitNeighborAxisLength != 0;
+            var hitNeighborAxisLengthOrOne = hasHitNeighborAxes ? hitNeighborAxisLength : 1;
+            
             if (propagationPipelineData.buffersDataVersion != dataVersion)
             {
-                var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
-                var hasHitNeighborAxes = hitNeighborAxisLength != 0;
-                var hitNeighborAxisLengthOrOne = hasHitNeighborAxes ? hitNeighborAxisLength : 1;
                 ProbeVolume.EnsureBuffer<PackedNeighborHit>(ref propagationPipelineData.neighborHits, hitNeighborAxisLengthOrOne);
                 if (hasHitNeighborAxes)
                     probeVolume.SetHitNeighborAxis(propagationPipelineData.neighborHits);
 
                 ProbeVolume.EnsureBuffer<NeighborAxis>(ref propagationPipelineData.neighbors, probeVolume.NeighborAxisLength);
                 probeVolume.SetNeighborAxis(propagationPipelineData.neighbors);
-
-                int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
-                int numAxis = numProbes * s_NeighborAxis.Length;
-
-                ProbeVolume.EnsureBuffer<uint>(ref propagationPipelineData.hitRadianceCache, hitNeighborAxisLengthOrOne);
-                if (ProbeVolume.EnsureBuffer<uint>(ref propagationPipelineData.radianceCacheAxis0, numAxis))
-                {
-                    ProbeVolume.EnsureBuffer<uint>(ref propagationPipelineData.radianceCacheAxis1, numAxis);
-                    propagationPipelineData.radianceReadIndex = 0;
-                }
 
                 propagationPipelineData.buffersDataVersion = dataVersion;
                 return true;
@@ -1010,6 +1019,48 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return false;
             }
+        }
+
+        static bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        {
+            var changed = InitializePropagationInputBuffers(probeVolume);
+
+            ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
+            var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
+            var hasHitNeighborAxes = hitNeighborAxisLength != 0;
+            var hitNeighborAxisLengthOrOne = hasHitNeighborAxes ? hitNeighborAxisLength : 1;
+            int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
+            int numAxis = numProbes * s_NeighborAxis.Length;
+
+            changed |= giSettings.radianceEncoding.value == ProbeVolumeDynamicGIRadianceEncoding.LogLuv
+                ? EnsurePropagationBuffers<uint>(ref propagationPipelineData, hitNeighborAxisLengthOrOne, numAxis)
+                : EnsurePropagationBuffers<Vector3>(ref propagationPipelineData, hitNeighborAxisLengthOrOne, numAxis);
+
+            return changed;
+        }
+
+        static bool EnsurePropagationBuffers<T>(ref ProbeVolumePropagationPipelineData propagationPipelineData,
+            int hitNeighborAxisLengthOrOne, int numAxis)
+        {
+            var bufferStride = propagationPipelineData.hitRadianceCache != null && propagationPipelineData.hitRadianceCache.IsValid()
+                ? propagationPipelineData.hitRadianceCache.stride : 0;
+            var targetStride = Marshal.SizeOf(typeof(T));
+
+            if (bufferStride != targetStride)
+            {
+                ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
+                ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis0);
+                ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis1);
+            }
+
+            var changed = ProbeVolume.EnsureBuffer<T>(ref propagationPipelineData.hitRadianceCache, hitNeighborAxisLengthOrOne);
+            if (ProbeVolume.EnsureBuffer<T>(ref propagationPipelineData.radianceCacheAxis0, numAxis))
+            {
+                ProbeVolume.EnsureBuffer<T>(ref propagationPipelineData.radianceCacheAxis1, numAxis);
+                propagationPipelineData.radianceReadIndex = 0;
+                changed = true;
+            }
+            return changed;
         }
 
         internal static float GetMaxNeighborDistance(in ProbeVolumeArtistParameters parameters)

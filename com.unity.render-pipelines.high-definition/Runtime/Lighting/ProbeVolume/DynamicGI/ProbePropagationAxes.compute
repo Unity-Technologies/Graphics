@@ -1,14 +1,14 @@
-#pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
-#pragma multi_compile _ PROPAGATION_AXIS_MOST PROPAGATION_AXIS_LEAST
-#pragma multi_compile _ PREVIOUS_RADIANCE_CACHE_INVALID
-
 #pragma kernel PropagateLight
 #define GROUP_SIZE 64
 // #pragma enable_d3d11_debug_symbols
 
+#pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
+#pragma multi_compile _ PROPAGATION_AXIS_MOST PROPAGATION_AXIS_LEAST
+#pragma multi_compile _ PREVIOUS_RADIANCE_CACHE_INVALID
+
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
-
+#pragma multi_compile _ RADIANCE_ENCODING_LOGLUV
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -42,7 +42,7 @@ StructuredBuffer<NeighborAxisLookup> _SortedNeighborAxisLookups;
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
 
-StructuredBuffer<uint> _HitRadianceCacheAxis;
+StructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
 
 float _PropagationContribution;
@@ -287,7 +287,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             {
                 // Hit
                 float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
-                incomingHitRadiance += UnpackRadiance(_HitRadianceCacheAxis[hitIndex]) * weight;
+                incomingHitRadiance += DecodeRadiance(_HitRadianceCacheAxis[hitIndex]) * weight;
             }
             else
             {
@@ -336,6 +336,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             }
         }
 
-        _RadianceCacheAxis[index] = PackRadiance((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
+        _RadianceCacheAxis[index] = EncodeRadiance((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
     }
 }
