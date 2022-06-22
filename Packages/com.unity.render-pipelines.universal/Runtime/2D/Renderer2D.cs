@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
-            bool stackHasPostProcess = renderingData.postProcessingEnabled;
+            bool stackHasPostProcess = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
             bool lastCameraInStack = cameraData.resolveFinalTarget;
             var colorTextureFilterMode = FilterMode.Bilinear;
 
@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureCameraTarget(colorTargetHandle, depthTargetHandle);
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
+            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
             {
                 colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, name: "_InternalGradingLut");
@@ -247,32 +247,23 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
-            if (stackHasPostProcess && m_PostProcessPasses.isCreated)
+            if (stackHasPostProcess)
             {
-                RTHandle postProcessDestHandle;
-                if (lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass)
-                {
-                    postProcessDestHandle = k_CameraTarget;
-                }
-                else
-                {
-                    var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
-                    RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
-                    postProcessDestHandle = afterPostProcessColorHandle;
-                }
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
                     colorTargetHandle,
-                    postProcessDestHandle,
+                    afterPostProcessColorHandle,
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle.nameID == k_CameraTarget.nameID,
+                    afterPostProcessColorHandle.nameID == k_CameraTarget.nameID,
                     hasPassesAfterPostProcessing);
 
                 EnqueuePass(postProcessPass);
-                colorTargetHandle = postProcessDestHandle;
+                colorTargetHandle = afterPostProcessColorHandle;
             }
 
             RTHandle finalTargetHandle = colorTargetHandle;
@@ -293,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
+            if (requireFinalPostProcessPass)
             {
                 finalPostProcessPass.SetupFinalPass(finalTargetHandle, hasPassesAfterPostProcessing);
                 EnqueuePass(finalPostProcessPass);

@@ -597,7 +597,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var firstSource = GetSource();
                     Blitter.BlitCameraTexture(cmd, firstSource, GetDestination(), colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                    Blitter.BlitCameraTexture(cmd, GetDestination(), m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, destination.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    Blitter.BlitCameraTexture(cmd, GetDestination(), m_Destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, m_Destination.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
                 }
                 else if (m_ResolveToScreen)
                 {
