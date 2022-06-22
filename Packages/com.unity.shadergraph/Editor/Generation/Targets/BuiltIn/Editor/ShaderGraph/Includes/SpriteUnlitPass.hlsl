@@ -4,6 +4,7 @@ PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
+    output.color *= _RendererColor;
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
@@ -23,6 +24,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
-    color *= unpacked.color * _RendererColor;
+#if ALPHA_CLIP_THRESHOLD
+    clip(color.a - surfaceDescription.AlphaClipThreshold);
+#endif
+
+#ifndef HAVE_VFX_MODIFICATION
+    color *= unpacked.color;
+#endif
+
     return color;
 }
