@@ -627,6 +627,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     else if (port.IsInput && connectedPort != null)
                     {
                         argument = $"sg_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+                        addLocalVariable = false;
                     }
                     // not connected, so we need an initializer to setup the default value.
                     else if (port.IsInput)
