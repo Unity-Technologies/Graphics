@@ -221,10 +221,13 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 var shaderType = ShaderTypeForParameter(container, param, fallbackType);
                 if (param.Usage == Usage.In ||
-                    param.Usage == Usage.Static ||
-                    param.Usage == Usage.Local)
+                    param.Usage == Usage.Static)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
+                }
+                else if(param.Usage == Usage.Local)
+                {
+                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name);
                 }
                 else if (param.Usage == Usage.Out)
                 {
