@@ -104,6 +104,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 graphDelta.RemoveEdge(output, input, registry);
         }
 
+        public void AddContextConnection(string contextEntryName, ElementID portInput)
+        {
+            graphDelta.AddDefaultConnection(contextEntryName, portInput, registry);
+        }
+
+        public void RemoveContextConnection(string contextEntryName, ElementID portInput)
+        {
+            graphDelta.RemoveDefaultConnection(contextEntryName, portInput, registry);
+        }
+
         public void ReconcretizeAll()
         {
             foreach (var name in GetNodes().Select(e => e.ID.LocalPath).ToList())

@@ -202,6 +202,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             catch (Exception e)
             {
+                //Not going to change this now, but this should probably be done
+                //m_data.edges.Remove(new Edge(output, input));
                 Debug.LogException(e);
                 Debug.LogError("Failed to add edge.");
             }
@@ -232,6 +234,36 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void AddDefaultConnection(string contextEntryName, ElementID input, Registry registry)
         {
+            var newConnection = new ContextConnection(contextEntryName, input);
+            m_data.defaultConnections.Add(newConnection);
+            PortHandler port = new PortHandler(input, this, registry);
+            try
+            {
+                ReconcretizeNode(port.GetNode().ID, registry);
+            }
+            catch (Exception e)
+            {
+                m_data.defaultConnections.Remove(newConnection);
+                Debug.LogException(e);
+                Debug.LogError("Failed to add default context connection.");
+            }
+        }
+
+        public void RemoveDefaultConnection(string contextEntryName, ElementID input, Registry registry)
+        {
+            var newConnection = new ContextConnection(contextEntryName, input);
+            m_data.defaultConnections.Remove(newConnection);
+            PortHandler port = new PortHandler(input, this, registry);
+            try
+            {
+                ReconcretizeNode(port.GetNode().ID, registry);
+            }
+            catch (Exception e)
+            {
+                m_data.defaultConnections.Add(newConnection);
+                Debug.LogException(e);
+                Debug.LogError("Failed to remove default context connection.");
+            }
 
         }
 
