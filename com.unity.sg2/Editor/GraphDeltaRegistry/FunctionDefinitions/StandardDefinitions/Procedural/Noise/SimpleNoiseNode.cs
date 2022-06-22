@@ -14,13 +14,13 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_SimpleNoise_ValueNoise_Deterministic",
-@"	i = floor(uv);
+@"    i = floor(uv);
 	f = frac(uv);
 	f = f * f * (3.0 - 2.0 * f);
 	uv = abs(frac(uv) - 0.5);
 	c1 = i; c1.x += 1;
 	c2 = i; c2.y += 1;
-	Hash_Tchou_2_1_float(i, r0);//TODO: Call either the float version or the half version depending on precision
+	Hash_Tchou_2_1_float(i, r0); //TODO: Call either the float version or the half version depending on precision
 	Hash_Tchou_2_1_float(c1, r1);
 	Hash_Tchou_2_1_float(c2, r2);
 	Hash_Tchou_2_1_float(i + 1, r3);
@@ -45,12 +45,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "SimpleNoiseDeterministic",
-@"  Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*Scale, sample1);
+@"    Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*Scale, sample1);
     Out = sample1 * 0.125;
     Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*(Scale * 0.5), sample2);
 	Out += sample2 * 0.25;
     Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*(Scale * 0.25), sample3);
-	Out += *0.5;",
+	Out += sample3 * 0.5;",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
@@ -63,13 +63,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Unity_SimpleNoise_ValueNoise_LegacySine",
-@"	i = floor(uv);
+@"    i = floor(uv);
 	f = frac(uv);
 	f = f * f * (3.0 - 2.0 * f);
 	uv = abs(frac(uv) - 0.5);
 	c1 = i; c1.x += 1;
 	c2 = i; c2.y += 1;
-	Hash_LegacySine_2_1_float(i, r0);
+	Hash_LegacySine_2_1_float(i, r0); //TODO: Call either the float version or the half version depending on precision
 	Hash_LegacySine_2_1_float(c1, r1);
 	Hash_LegacySine_2_1_float(c2, r2);
 	Hash_LegacySine_2_1_float(i + 1, r3);
@@ -94,12 +94,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "SimpleNoiseLegacySine",
-@"  Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*Scale, sample1);
+@"    Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*Scale, sample1);
     Out = sample1 * 0.125;
     Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*(Scale * 0.5), sample2);
 	Out += sample2 * 0.25;
     Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*(Scale * 0.25), sample3);
-	Out += *0.5;",
+	Out += sample3 * 0.5;",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),

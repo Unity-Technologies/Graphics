@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_GradientNoise_Deterministic_Dir",
-@"	Hash_Tchou_2_1_float(p, x);
+@"	Hash_Tchou_2_1_float(p, x); //TODO: Call either the float version or the half version depending on precision
     Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
 	Out = normalize(Out);",
                     new ParameterDescriptor[]
@@ -63,10 +63,10 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
+                        new ParameterDescriptor("d00Out", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d01Out", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d10Out", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d11Out", TYPE.Vec2, Usage.Local)
                     },
                     new string[]
                     {
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Unity_GradientNoise_LegacyMod_Dir",
-@"	Hash_LegacyMod_2_1_float(p, x);
+@"	Hash_LegacyMod_2_1_float(p, x); //TODO: Call either the float version or the half version depending on precision
     Out.x = x - floor(x + 0.5); Out.y = abs(x) - 0.5;
 	Out = normalize(Out);",
                     new ParameterDescriptor[]
@@ -120,10 +120,10 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("d01", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("d10", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("d11", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d00Out", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d01Out", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d10Out", TYPE.Float, Usage.Local),
-                        new ParameterDescriptor("d11Out", TYPE.Float, Usage.Local)
+                        new ParameterDescriptor("d00Out", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d01Out", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d10Out", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d11Out", TYPE.Vec2, Usage.Local)
                     }
                 )
             }

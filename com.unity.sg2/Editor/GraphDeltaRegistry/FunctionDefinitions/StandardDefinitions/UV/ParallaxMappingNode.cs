@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "ParallaxMappingRed",
-                    "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
+                    "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ParallaxMappingGreen",
-                    "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
+                    "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ParallaxMappingBlue",
-                    "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
+                    "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ParallaxMappingAlpha",
-                    "ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
+                    "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Heightmap", TYPE.Texture2D, Usage.In),

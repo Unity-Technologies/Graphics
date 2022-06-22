@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_Voronoi_RandomVector_Deterministic",
-@"	Hash_Tchou_2_2_float(UV, UV);
+@"    Hash_Tchou_2_2_float(UV, UV); //TODO: Call either the float version or the half version depending on precision
 	Out.x = sin(UV.y * offset);
     Out.y = cos(UV.x * offset);
     Out = Out * 0.5 + 0.5;",
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "VoronoiDeterministic",
-@"	g = floor(UV * CellDensity);
+@"    g = floor(UV * CellDensity);
 	f = frac(UV * CellDensity);
 	for (int y = -1; y <= 1; y++)
 	{
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Unity_Voronoi_RandomVector_LegacySine",
-@"  Hash_LegacySine_2_2_float(UV, UV);
+@"    Hash_LegacySine_2_2_float(UV, UV); //TODO: Call either the float version or the half version depending on precision
 	Out.x = sin(UV.y * offset);
     Out.y = cos(UV.x * offset);
     Out = Out * 0.5 + 0.5;",
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "VoronoiLegacySine",
-@"	g = floor(UV * CellDensity);
+@"    g = floor(UV * CellDensity);
 	f = frac(UV * CellDensity);
 	for (int y = -1; y <= 1; y++)
 	{
