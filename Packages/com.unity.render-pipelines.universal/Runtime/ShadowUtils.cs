@@ -169,9 +169,8 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-            context.DrawShadows(ref settings);
+            var rl = context.CreateShadowRendererList(ref settings);
+            cmd.DrawRendererList(rl);
             cmd.DisableScissorRect();
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();

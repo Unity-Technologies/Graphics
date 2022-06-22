@@ -163,13 +163,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
             NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
 
-            context.DrawRenderers(renderingData.cullResults, ref data.drawingSettings, ref data.filteringSettings, s_ShaderTagUniversalMaterialType, false, tagValues, stateBlocks);
+            var param = new RendererListParams(renderingData.cullResults, data.drawingSettings, data.filteringSettings)
+            {
+                tagValues =  tagValues,
+                stateBlocks = stateBlocks,
+                tagName = s_ShaderTagUniversalMaterialType,
+                isPassTagName = false
+            };
+            var rl = context.CreateRendererList(ref param);
+            renderingData.commandBuffer.DrawRendererList(rl);
 
             tagValues.Dispose();
             stateBlocks.Dispose();
 
             // Render objects that did not match any shader pass with error shader
-            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, renderingData.cameraData.camera, data.filteringSettings, SortingCriteria.None);
+            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, renderingData.cameraData.camera, data.filteringSettings, SortingCriteria.None, renderingData.commandBuffer);
 
             // If any sub-system needs camera normal texture, make it available.
             // Input attachments will only be used when this is not needed so safe to skip in that case

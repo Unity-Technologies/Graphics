@@ -222,18 +222,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,
-                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        (ScriptableRenderContext ctx, CommandBuffer cmd, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                            RenderingUtils.DrawRendererListWithRenderStateBlock(ctx, cmd, data, ds, fs, rsb);
                         });
                 }
                 else
                 {
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock);
+                    RenderingUtils.DrawRendererListWithRenderStateBlock(context, cmd, renderingData, drawSettings, filterSettings, data.m_RenderStateBlock);
 
                     // Render objects that did not match any shader pass with error shader
-                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None, cmd);
                 }
+
+
             }
         }
 

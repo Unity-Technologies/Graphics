@@ -403,6 +403,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal delegate void DrawFunction(
             ScriptableRenderContext context,
+            CommandBuffer cmd,
             ref RenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
@@ -421,7 +422,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
-                func(context, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
+                func(context, cmd, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
             }
         }
 

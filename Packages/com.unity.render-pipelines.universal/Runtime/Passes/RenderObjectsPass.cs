@@ -135,20 +135,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock,
-                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        (ScriptableRenderContext ctx, CommandBuffer cmd, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                            RenderingUtils.DrawRendererListWithRenderStateBlock(ctx, cmd, data, ds, fs, rsb);
+
                         });
                 }
                 else
                 {
-                    // Ensure we flush our command-buffer before we render...
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    // Render the objects...
-                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                   RenderingUtils.DrawRendererListWithRenderStateBlock(context, cmd, renderingData, drawingSettings, m_FilteringSettings, m_RenderStateBlock);
                 }
+
+
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.xr.enabled)
                 {

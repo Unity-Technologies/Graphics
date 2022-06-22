@@ -116,7 +116,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var drawSettings = RenderingUtils.CreateDrawingSettings(shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filteringSettings);
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
             }
         }
 
