@@ -107,34 +107,36 @@ void UnpackIndicesAndValidityOnly(uint packedVal, out uint hitIndex, out float v
 // LogLUV encoding
 
 const static float3x3 LOG_LUV_ENCODE_MAT = float3x3(
-  0.2209, 0.3390, 0.4184,
-  0.1138, 0.6780, 0.7319,
-  0.0102, 0.1130, 0.2969);
+    0.2209, 0.1138, 0.0102,
+    0.3390, 0.6780, 0.1130,
+    0.4184, 0.7319, 0.2969);
 
 const static float3x3 LOG_LUV_DECODE_MAT = float3x3(
-  6.0014, -2.7008, -1.7996,
-  -1.3320,  3.1029, -5.7721,
-  0.3008, -1.0882,  5.6268);
+     6.0014, -1.3320,  0.3008,
+    -2.7008,  3.1029, -1.0882,
+    -1.7996, -5.7721,  5.6268);
 
-float4 LogLuvEncode(in float3 vRGB)  {
-    float4 vResult;
-    float3 Xp_Y_XYZp = mul(vRGB, LOG_LUV_ENCODE_MAT);
+float3 LogluvFromRgb(float3 vRGB)
+{
+    float3 vResult; 
+    float3 Xp_Y_XYZp = mul(LOG_LUV_ENCODE_MAT, vRGB);
     Xp_Y_XYZp = max(Xp_Y_XYZp, float3(1e-6, 1e-6, 1e-6));
     vResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;
-    float Le = 2 * log2(Xp_Y_XYZp.y) + 127;
-    vResult.w = frac(Le);
-    vResult.z = (Le - (floor(vResult.w*255.0f))/255.0f)/255.0f;
+    // float Le = log2(Xp_Y_XYZp.y) * (2.0 / 255.0) + (127.0 / 255.0); // original super large range
+    float Le = log2(Xp_Y_XYZp.y) * (1.0 / (20.0 + 16.61)) + (16.61 / (20.0 + 16.61)); // map ~[1e-5, 1M] to [0, 1] range
+    vResult.z = Le;
     return vResult;
 }
 
-float3 LogLuvDecode(in float4 vLogLuv) {
-    float Le = vLogLuv.z * 255 + vLogLuv.w;
+float3 RgbFromLogluv(float3 vLogLuv)
+{
     float3 Xp_Y_XYZp;
-    Xp_Y_XYZp.y = exp2((Le - 127) / 2);
+    // Xp_Y_XYZp.y = exp2(vLogLuv.z * 127.5 - 63.5); // original super large range
+    Xp_Y_XYZp.y = exp2(vLogLuv.z * (20.0 + 16.61) - 16.61); // map [0, 1] to ~[1e-5, 1M] range
     Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
     Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
-    float3 vRGB = mul(Xp_Y_XYZp, LOG_LUV_DECODE_MAT);
-    return max(vRGB, 0);
+    float3 vRGB = mul(LOG_LUV_DECODE_MAT, Xp_Y_XYZp);
+    return max(vRGB, 0.0);
 }
 
 // YCoCg encoding
@@ -183,12 +185,11 @@ uint PackRadiance(float3 color)
     uint packedOutput = 0;
     
 #if RADIANCE_ENCODING == 0 // LogLUV
-    float4 logLuv = LogLuvEncode(color);
+    float3 logLuv = LogluvFromRgb(color);
 
     packedOutput |= min(255, (uint)round(logLuv.x * 255)) << 0;
     packedOutput |= min(255, (uint)round(logLuv.y * 255)) << 8;
-    packedOutput |= min(255, (uint)round(logLuv.z * 255)) << 16;
-    packedOutput |= min(255, (uint)round(logLuv.w * 255)) << 24;
+    packedOutput |= min(65535, (uint)round(logLuv.z * 65535)) << 16;
 
 #else // YCoCg
     float scale = max(1, max(max(color.r, color.g), color.b));
@@ -209,12 +210,11 @@ uint PackRadiance(float3 color)
 float3 UnpackRadiance(uint packedVal)
 {
 #if RADIANCE_ENCODING == 0 // LogLUV
-    float4 outVal;
+    float3 outVal;
     outVal.x = ((packedVal >> 0) & 255) / 255.0f;
     outVal.y = ((packedVal >> 8) & 255) / 255.0f;
-    outVal.z = ((packedVal >> 16) & 255) / 255.0f;
-    outVal.w = ((packedVal >> 24) & 255) / 255.0f;
-    float3 color = LogLuvDecode(outVal);
+    outVal.z = ((packedVal >> 16) & 65535) / 65535.0f;
+    float3 color = RgbFromLogluv(outVal);
 
 #else // YCoCg
     float3 ycocg;
