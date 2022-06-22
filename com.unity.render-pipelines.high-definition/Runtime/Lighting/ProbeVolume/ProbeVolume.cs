@@ -1309,10 +1309,23 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hitRadianceCache == null || !hitRadianceCache.IsValid() || hitRadianceCache.count != hits.Length)
                 return;
 
-            var hitRandiance = new Vector3[hits.Length];
-            hitRadianceCache.GetData(hitRandiance);
-            for (int i = 0; i < hits.Length; i++)
-                hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(hitRandiance[i]);
+            if (propagationPipelineData.radianceEncoding == ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding.LogLuv)
+            {
+                var hitRandiance = new uint[hits.Length];
+                hitRadianceCache.GetData(hitRandiance);
+                for (int i = 0; i < hits.Length; i++)
+                {
+                    var lighting = ProbeVolumeDynamicGI.DecodeLogLuv(hitRandiance[i]);
+                    hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                }
+            }
+            else
+            {
+                var hitRandiance = new Vector3[hits.Length];
+                hitRadianceCache.GetData(hitRandiance);
+                for (int i = 0; i < hits.Length; i++)
+                    hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(hitRandiance[i]);
+            }
 
             probeVolumeAsset.dynamicGIMixedLightsBaked = true;
             IncrementDataVersion();

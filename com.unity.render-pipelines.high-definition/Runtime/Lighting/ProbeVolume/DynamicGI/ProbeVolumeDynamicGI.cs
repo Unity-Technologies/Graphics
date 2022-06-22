@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int radianceReadIndex;
         public int buffersDataVersion;
         public int simulationFrameTick;
+        public ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding radianceEncoding;
 
         public ComputeBuffer GetReadRadianceCacheAxis()
         {
@@ -399,6 +400,56 @@ namespace UnityEngine.Rendering.HighDefinition
             return packedOutput;
         }
 
+        static readonly Matrix4x4 LOG_LUV_ENCODE_MAT = new Matrix4x4(
+            new Vector4(0.2209f, 0.3390f, 0.4184f, 0f),
+            new Vector4(0.1138f, 0.6780f, 0.7319f, 0f),
+            new Vector4(0.0102f, 0.1130f, 0.2969f, 0f),
+            Vector4.zero);
+
+        static readonly Matrix4x4 LOG_LUV_DECODE_MAT = new Matrix4x4(
+            new Vector4( 6.0014f, -2.7008f, -1.7996f, 0f),
+            new Vector4(-1.3320f,  3.1029f, -5.7721f, 0f),
+            new Vector4( 0.3008f, -1.0882f,  5.6268f, 0f),
+            Vector4.zero);
+
+        static Vector3 LogluvFromRgb(Vector3 vRGB)
+        {
+            Vector3 vResult;
+            Vector3 Xp_Y_XYZp = LOG_LUV_ENCODE_MAT * vRGB;
+            Xp_Y_XYZp = new Vector3(
+                Mathf.Max(Xp_Y_XYZp.x, 1e-6f),
+                Mathf.Max(Xp_Y_XYZp.y, 1e-6f),
+                Mathf.Max(Xp_Y_XYZp.z, 1e-6f));
+            vResult.x = Xp_Y_XYZp.x / Xp_Y_XYZp.z;
+            vResult.y = Xp_Y_XYZp.y / Xp_Y_XYZp.z;
+            // float Le = log2(Xp_Y_XYZp.y) * (2.0 / 255.0) + (127.0 / 255.0); // original super large range
+            float Le = Mathf.Log(Xp_Y_XYZp.y, 2f) * (1f / (20f + 16.61f)) + (16.61f / (20f + 16.61f)); // map ~[1e-5, 1M] to [0, 1] range
+            vResult.z = Le;
+            return vResult;
+        }
+
+        static Vector3 RgbFromLogluv(Vector3 vLogLuv)
+        {
+            Vector3 Xp_Y_XYZp;
+            // Xp_Y_XYZp.y = exp2(vLogLuv.z * 127.5 - 63.5); // original super large range
+            Xp_Y_XYZp.y = Mathf.Pow(2f, vLogLuv.z * (20f + 16.61f) - 16.61f); // map [0, 1] to ~[1e-5, 1M] range
+            Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
+            Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
+            Vector3 vRGB = LOG_LUV_DECODE_MAT * Xp_Y_XYZp;
+            return new Vector3(
+                Mathf.Max(vRGB.x, 0f),
+                Mathf.Max(vRGB.y, 0f),
+                Mathf.Max(vRGB.z, 0f));
+        }
+
+        internal static Vector3 DecodeLogLuv(uint value)
+        {
+            Vector3 logLuv;
+            logLuv.x = ((value >> 0) & 255) / 255.0f;
+            logLuv.y = ((value >> 8) & 255) / 255.0f;
+            logLuv.z = ((value >> 16) & 65535) / 65535.0f;
+            return RgbFromLogluv(logLuv);
+        }
 
         internal void Allocate(RenderPipelineResources resources)
         {
@@ -1032,7 +1083,16 @@ namespace UnityEngine.Rendering.HighDefinition
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
 
-            changed |= giSettings.radianceEncoding.value == ProbeVolumeDynamicGIRadianceEncoding.LogLuv
+            var radianceEncoding = giSettings.radianceEncoding.value;
+            if (propagationPipelineData.radianceEncoding != radianceEncoding)
+            {
+                ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
+                ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis0);
+                ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis1);
+                propagationPipelineData.radianceEncoding = radianceEncoding;
+            }
+
+            changed |= radianceEncoding == ProbeVolumeDynamicGIRadianceEncoding.LogLuv
                 ? EnsurePropagationBuffers<uint>(ref propagationPipelineData, hitNeighborAxisLengthOrOne, numAxis)
                 : EnsurePropagationBuffers<Vector3>(ref propagationPipelineData, hitNeighborAxisLengthOrOne, numAxis);
 
@@ -1042,17 +1102,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static bool EnsurePropagationBuffers<T>(ref ProbeVolumePropagationPipelineData propagationPipelineData,
             int hitNeighborAxisLengthOrOne, int numAxis)
         {
-            var bufferStride = propagationPipelineData.hitRadianceCache != null && propagationPipelineData.hitRadianceCache.IsValid()
-                ? propagationPipelineData.hitRadianceCache.stride : 0;
-            var targetStride = Marshal.SizeOf(typeof(T));
-
-            if (bufferStride != targetStride)
-            {
-                ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
-                ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis0);
-                ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis1);
-            }
-
             var changed = ProbeVolume.EnsureBuffer<T>(ref propagationPipelineData.hitRadianceCache, hitNeighborAxisLengthOrOne);
             if (ProbeVolume.EnsureBuffer<T>(ref propagationPipelineData.radianceCacheAxis0, numAxis))
             {
