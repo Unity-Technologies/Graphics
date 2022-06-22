@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
         uint m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
 
+        internal DiffusionProfileSettings defaultDiffusionProfile => m_SSSDefaultDiffusionProfile;
+
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
@@ -70,29 +72,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
-            var currentDiffusionProfiles = m_GlobalSettings.diffusionProfileSettingsList;
-            var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
-
-            // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
-            if (diffusionProfileOverride.active && diffusionProfileOverride.diffusionProfiles.value != null)
-            {
-                currentDiffusionProfiles = diffusionProfileOverride.diffusionProfiles.value;
-            }
-
             // The first profile of the list is the default diffusion profile, used either when the diffusion profile
             // on the material isn't assigned or when the diffusion profile can't be displayed (too many on the frame)
             SetDiffusionProfileAtIndex(m_SSSDefaultDiffusionProfile, 0);
             m_SSSDiffusionProfileHashes[0] = DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID;
 
-            int i = 1;
-            foreach (var v in currentDiffusionProfiles)
+            int profileCount = 1;
+            var diffusionProfiles = hdCamera.volumeStack.GetComponent<DiffusionProfileList>().diffusionProfiles;
+            if (diffusionProfiles.value != null)
             {
-                if (v == null)
-                    continue;
-                SetDiffusionProfileAtIndex(v, i++);
+                profileCount = diffusionProfiles.accumulatedCount;
+                for (int i = 1; i < diffusionProfiles.accumulatedCount; i++)
+                    SetDiffusionProfileAtIndex(diffusionProfiles.value[i], i);
             }
 
-            m_SSSActiveDiffusionProfileCount = i;
+            m_SSSActiveDiffusionProfileCount = profileCount;
         }
 
         void SetDiffusionProfileAtIndex(DiffusionProfileSettings settings, int index)
