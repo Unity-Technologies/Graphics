@@ -62,12 +62,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             foreach(var port in nodeHandler.GetPorts())
             {
-                if (!port.IsInput || port.IsHorizontal)
+                if (!port.IsInput || !port.IsHorizontal)
                     continue;
 
                 if(port.HasMetadata(PortHandler.kDefaultConnection))
                 {
-                    m_data.defaultConnections.Add(new ContextConnection(port.GetMetadata<string>(PortHandler.kDefaultConnection), port.ID));
+                    var contextName = port.GetMetadata<string>(PortHandler.kDefaultConnection);
+                    var contextConnection = new ContextConnection(contextName, port.ID);
+                    m_data.defaultConnections.Add(contextConnection);
                 }
             }
 
@@ -306,6 +308,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             foreach(var defConnection in m_data.defaultConnections)
             {
                 PortHandler def = GetDefaultConnection(defConnection.Context, registry);
+                if (def == null)
+                    continue;
                 if(isInput && defConnection.Input.Equals(port))
                 {
                     yield return def;
@@ -323,16 +327,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
+        private IEnumerable<NodeHandler> GetContextNodesInOrder(Registry registry)
+        {
+            NodeHandler step = null;
+            foreach(var node in GetNodes(registry))
+            {
+                if (node.HasMetadata("_contextDescriptor") && node.GetPort("In") == null)
+                {
+                    step = node;
+                    break;
+                }
+            }
+
+            while (step != null)
+            {
+                yield return step;
+                step = step.GetPort("Out")?.GetConnectedPorts().First()?.GetNode();
+            }
+        }
+
         private PortHandler GetDefaultConnection(string contextEntryName, Registry registry)
         {
-            foreach(var context in contextNodes)
+            foreach (var contextNode in GetContextNodesInOrder(registry))
             {
-                var node = GetNode(context, registry);
-                foreach(var port in node.GetPorts())
+                foreach(var port in contextNode.GetPorts())
                 {
-                    if(port.IsInput && port.IsHorizontal)
+                    if (!port.IsInput && port.IsHorizontal)
                     {
-                        if(port.ID.LocalPath.Equals(contextEntryName))
+                        if (port.ID.LocalPath.Equals($"out_{contextEntryName}"))
                         {
                             return port;
                         }

@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
-        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables)
+        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var name = port.ID.LocalPath;
             var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
@@ -122,6 +122,15 @@ namespace UnityEditor.ShaderGraph.Generation
                     break;
             }
 
+            if (port.GetTypeField().GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
+            {
+                var fieldHandler = port.GetTypeField();
+                var tex = BaseTextureType.GetTextureAsset(fieldHandler);
+                if (tex != null && !defaultTextures.Contains((name, tex)))
+                    defaultTextures.Add((name, tex));
+            }
+
+
             outputVariables.Add(varOutBuilder.Build());
         }
 
@@ -153,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
                 {
-                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables);
+                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
                 }
             }
             //Create output type from evaluated root node outputs
@@ -399,28 +408,47 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
             List<ShaderFunction> localDependencies = new();
+            List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
             var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
 
-            if (dependencies.includes != null)
-                includes.AddRange(dependencies.includes);
+            // Process functions and prevent from adding duplicates
             if (dependencies.localFunctions != null)
                 localDependencies.AddRange(dependencies.localFunctions);
-
             localDependencies.Add(func);
-            bool shouldAdd = true;
-
             foreach (var function in localDependencies)
             {
+                bool shouldAdd = true;
                 foreach (var existing in shaderFunctions)
                 {
                     if (FunctionsAreEqual(existing, function))
                     {
                         shouldAdd = false;
+                        break;
                     }
                 }
                 if (shouldAdd)
                 {
                     shaderFunctions.Add(function);
+                }
+            }
+
+            // Process includes and prevent from adding duplicates
+            if (dependencies.includes != null)
+                localIncludes.AddRange(dependencies.includes);
+            foreach (var include in localIncludes)
+            {
+                bool shouldAdd = true;
+                foreach (var existing in includes)
+                {
+                    if (existing.Value == include.Value)
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd)
+                {
+                    includes.Add(include);
                 }
             }
 

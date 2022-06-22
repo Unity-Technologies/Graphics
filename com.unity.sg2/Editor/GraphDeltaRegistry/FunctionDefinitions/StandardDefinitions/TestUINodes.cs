@@ -152,6 +152,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     name: "TestIncludeFunction",
                     includes: new string[]
                     {
+                        // Also test whether we are deduplicating or not.
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\"",
                         "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
                     },
                     body: "Hash_Tchou_2_1_float(In, Out);",
@@ -521,6 +523,30 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: String.Empty,
             categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
+    }
+
+    internal class TestTruncate : IStandardNode
+    {
+        static string Name => "TestTruncate";
+        static int Version => 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Name, // Name
+            "Out = In.xyz;",
+            new ParameterDescriptor[] {
+                new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            }
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string[1] { "Test" },
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
