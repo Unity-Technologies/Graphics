@@ -18,7 +18,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_Model,
                 nameof(GraphDataVariableDeclarationModel.ShaderDeclaration),
                 "Shader Declaration",
-                null);
+                null,
+                typeof(SetShaderDeclarationCommand));
         }
 
         public override bool IsEmpty() => false;
