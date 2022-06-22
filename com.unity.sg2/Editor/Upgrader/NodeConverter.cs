@@ -40,7 +40,7 @@ public class NodeConverter
 
     internal void Convert(AddNode node)
     {
-        graphHandler.AddNode(new RegistryKey() { Name = "Add", Version = 1 }, "anything");
+        graphHandler.AddNode(new RegistryKey() { Name = "Add", Version = 1 }, "AddNodeID");
 
         //RegistryKey registryKey = AbstractMaterialNodeToRegistryKey(node);
         //if (registryKey == null)
