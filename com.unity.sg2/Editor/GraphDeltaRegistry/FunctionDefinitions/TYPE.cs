@@ -45,6 +45,27 @@ namespace UnityEditor.ShaderGraph.Defs
             GraphType.Height.One
         );
 
+        public static readonly ParametricTypeDescriptor Int2 = new(
+            GraphType.Precision.Any,
+            GraphType.Primitive.Int,
+            GraphType.Length.Two,
+            GraphType.Height.One
+        );
+
+        public static readonly ParametricTypeDescriptor Int3 = new(
+            GraphType.Precision.Any,
+            GraphType.Primitive.Int,
+            GraphType.Length.Three,
+            GraphType.Height.One
+        );
+
+        public static readonly ParametricTypeDescriptor Int4 = new(
+            GraphType.Precision.Any,
+            GraphType.Primitive.Int,
+            GraphType.Length.Four,
+            GraphType.Height.One
+        );
+
         public static readonly ParametricTypeDescriptor Float = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
