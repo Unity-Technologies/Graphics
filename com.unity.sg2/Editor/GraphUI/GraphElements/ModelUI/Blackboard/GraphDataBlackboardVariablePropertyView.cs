@@ -7,25 +7,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         protected override void BuildRows()
         {
-            AddExposedToggle();
-            AddInitializationField();
-            AddTooltipField();
-        }
-
-        protected override void UpdateElementFromModel()
-        {
-            base.UpdateElementFromModel();
-
             if (Model is not GraphDataVariableDeclarationModel graphDataModel) return;
-            var stencil = (ShaderGraphStencil)graphDataModel.GraphModel.Stencil;
-
-            if (!stencil.IsExposable(graphDataModel.DataType))
+            if (graphDataModel.IsExposable)
             {
-                m_ExposedToggle.SetEnabled(false);
-                m_ExposedToggle.SetValueWithoutNotify(false);
+                AddExposedToggle();
             }
 
-            Debug.Log(graphDataModel.InitializationModel);
+            AddInitializationField();
+            AddTooltipField();
         }
     }
 }

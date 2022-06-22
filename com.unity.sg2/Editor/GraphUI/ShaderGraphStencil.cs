@@ -134,43 +134,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     action = () =>
                     {
                         var command = new CreateGraphVariableDeclarationCommand(displayName, true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
-                        command.InitializationCallback = (decl, constant) =>
-                        {
-                            if (decl is not GraphDataVariableDeclarationModel graphDataVar) return;
-
-                            var graphModel = (ShaderGraphModel)decl.GraphModel;
-
-                            // Use this variables' generated guid to bind it to an underlying element in the graph data.
-                            var registry = graphModel.RegistryInstance;
-                            var graphHandler = graphModel.GraphHandler;
-
-                            // If the guid starts with a number, it will produce an invalid identifier in HLSL.
-                            var variableDeclarationName = "_" + graphDataVar.Guid;
-
-                            var propertyContext = graphHandler.GetNode(graphModel.BlackboardContextName);
-                            Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
-
-                            ContextBuilder.AddReferableEntry(
-                                propertyContext,
-                                type.GetBackingDescriptor(),
-                                variableDeclarationName,
-                                registry.Registry,
-                                IsExposable(type) ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
-                                source: IsExposable(type) ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
-                                displayName: variableDeclarationName);
-
-                            try
-                            {
-                                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                            }
-
-                            graphDataVar.contextNodeName = graphModel.BlackboardContextName;
-                            graphDataVar.graphDataName = variableDeclarationName;
-                        };
                         view.Dispatch(command);
                     }
                 });

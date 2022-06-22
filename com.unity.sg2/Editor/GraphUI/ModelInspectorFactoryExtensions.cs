@@ -20,8 +20,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        var variableInspector = new VariableDeclarationInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        var variableInspector = new GraphDataVariableSettingsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(variableInspector);
+                        break;
+                    }
+
+                    case SectionType.Advanced:
+                    {
+                        // GTF-provided common variable declaration settings
+                        var inspectorFields = VariableFieldsInspector.Create(ModelInspector.fieldsPartName,
+                            model,
+                            ui,
+                            ModelInspector.ussClassName,
+                            // Hide editor for the serialized m_IsExposed field for now, as it's not meaningful to us
+                            filter: field => field.Name != "m_IsExposed" && ModelInspectorView.AdvancedSettingsFilter(field));
+                        ui.PartList.AppendPart(inspectorFields);
                         break;
                     }
                 }
