@@ -99,7 +99,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
                     cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
-                    base.IsExposed = false;
                 }
             }
         }
