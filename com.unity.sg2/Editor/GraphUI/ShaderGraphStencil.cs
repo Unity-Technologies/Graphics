@@ -109,7 +109,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 case ParametricTypeDescriptor {Height: GraphType.Height.One}:
                 case TextureTypeDescriptor:
-                case SamplerStateTypeDescriptor:
                     return true;
                 default:
                     return false;
