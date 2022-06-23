@@ -84,8 +84,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public GraphDataVariableDeclarationModel() { }
-
         public override void CreateInitializationValue()
         {
             if (string.IsNullOrEmpty(contextNodeName) || string.IsNullOrEmpty(graphDataName))
