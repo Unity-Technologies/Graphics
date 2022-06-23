@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle DynamicExposurePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        internal TextureHandle DynamicExposurePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             // Dynamic exposure - will be applied in the next frame
             // Not considered as a post-process so it's not affected by its enabled state
@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Renderer)
                     ReceiveExposurePass(renderGraph, prevExposureHandle, nextExposureHandle, hdCamera);
 
-                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Merger || 
+                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Merger ||
                     HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.None)
                 {
                     using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
@@ -661,7 +661,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 hdCamera.dofHistoryIsValid = true;
                 postDoFTAAEnabled = true;
-                
+
             }
             else
             {

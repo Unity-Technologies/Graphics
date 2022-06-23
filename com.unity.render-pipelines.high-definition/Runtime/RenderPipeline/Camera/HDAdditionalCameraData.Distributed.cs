@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -15,30 +17,35 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 m_ExposureData = Vector4.zero;
 
         /// <summary>
-        /// Convert the exposure data to bytes.
+        /// Convert the exposure data to bytes (native array).
         /// </summary>
         /// <returns>Converted bytes</returns>
-        public byte[] ExposureAsBytes()
+        public NativeArray<byte> ExposureAsBytes()
         {
-            byte[] bytes = Array.Empty<byte>();
-            bytes = bytes.Concat(BitConverter.GetBytes(m_ExposureData.x))
-                .Concat(BitConverter.GetBytes(m_ExposureData.y))
-                .Concat(BitConverter.GetBytes(m_ExposureData.z))
-                .Concat(BitConverter.GetBytes(m_ExposureData.w))
-                .ToArray();
-            return bytes;
+            unsafe
+            {
+                NativeArray<byte> bytes =
+                    new NativeArray<byte>(sizeof(Vector4), Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+                var ptr = bytes.GetUnsafePtr();
+
+                UnsafeUtility.CopyStructureToPtr(ref m_ExposureData, ptr);
+
+                return bytes;
+            }
         }
 
         /// <summary>
         /// Convert the byte array to exposure data.
         /// </summary>
-        /// <param name="bytes">Source byte array</param>
-        public void ExposureFromBytes(byte[] bytes)
+        /// <param name="bytes">Source byte native array</param>
+        public void ExposureFromBytes(NativeArray<byte> bytes)
         {
-            m_ExposureData.x = BitConverter.ToSingle(bytes, 0);
-            m_ExposureData.y = BitConverter.ToSingle(bytes, 4);
-            m_ExposureData.z = BitConverter.ToSingle(bytes, 8);
-            m_ExposureData.w = BitConverter.ToSingle(bytes, 12);
+            unsafe
+            {
+                var ptr = bytes.GetUnsafePtr();
+                UnsafeUtility.CopyPtrToStructure(ptr, out m_ExposureData);
+            }
         }
     }
 }
