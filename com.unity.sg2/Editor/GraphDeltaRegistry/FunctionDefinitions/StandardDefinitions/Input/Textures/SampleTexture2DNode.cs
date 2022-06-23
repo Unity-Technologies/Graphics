@@ -6,14 +6,14 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public static string Name => "SampleTexture2D";
         public static int Version => 1;
-
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            "SampleTexture2DStandard",
             functions: new FunctionDescriptor[] {
                 new(
                     "SampleTexture2DStandard",
-@"  RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+@"    RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "SampleTexture2DLOD",
-@"  RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+@"    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "SampleTexture2DGradient",
-@"  RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+@"    RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), DDX, DDY);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "SampleTexture2DBias",
-@"  RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+@"    RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), Bias);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;

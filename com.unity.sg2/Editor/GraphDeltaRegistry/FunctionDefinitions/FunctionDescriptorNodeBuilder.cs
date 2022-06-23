@@ -64,9 +64,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 var port = data.GetPort(param.Name);
                 var field = port.GetTypeField();
                 var shaderType = registry.GetShaderType(field, container);
-                if (param.Usage == GraphType.Usage.In || param.Usage == GraphType.Usage.Static || param.Usage == GraphType.Usage.Local)
+                if (param.Usage == GraphType.Usage.In || param.Usage == GraphType.Usage.Static)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
+                }
+                else if (param.Usage == GraphType.Usage.Local)
+                {
+                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name);
                 }
                 else if (param.Usage == GraphType.Usage.Out)
                 {
