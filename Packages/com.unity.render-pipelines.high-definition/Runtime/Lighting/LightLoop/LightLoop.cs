@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Matrix used for LightList building, keep them around to avoid GC
-        Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[TextureXR.slices]; // (MSG)
 
         internal class LightList
         {
@@ -625,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_DebugSelectedLightShadowCount;
 
         // Data needed for the PrepareGPULightdata
-        List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
+        List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(TextureXR.slices); // (MSG)
 
         bool HasLightToCull()
         {

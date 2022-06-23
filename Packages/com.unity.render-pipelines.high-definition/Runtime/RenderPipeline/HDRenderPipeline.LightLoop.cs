@@ -407,6 +407,9 @@ namespace UnityEngine.Rendering.HighDefinition
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
             temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
+            if (m_LightListProjMatrices.Length != TextureXR.slices) // (MSG)
+                m_LightListProjMatrices = new Matrix4x4[TextureXR.slices]; // (MSG)
+
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {

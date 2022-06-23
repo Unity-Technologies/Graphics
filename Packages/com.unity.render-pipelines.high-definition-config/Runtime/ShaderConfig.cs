@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // REALLY IMPORTANT! This needs to be the maximum possible XrMaxViews for any supported platform!
         // this needs to be constant and not vary like XrMaxViews does as it is used to generate the cbuffer declarations
         /// <summary>Maximum number of XR views for constant buffer allocation.</summary>
-        public const int k_XRMaxViewsForCBuffer = 2;
+        public const int k_XRMaxViewsForCBuffer = 32; // (MSG)
 
         /// <summary>Indicates whether to use [camera-relative rendering](../manual/Camera-Relative-Rendering.md) to enhance precision.</summary>
         ///<seealso cref="ShaderOptions.CameraRelativeRendering"/>

@@ -1187,7 +1187,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 
                 VFXCameraXRSettings cameraXRSettings;
-                cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                cameraXRSettings.viewTotal = (uint)hdCamera.viewCount; // (MSG)
                 cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
                 cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
 
@@ -2197,7 +2197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
                 VFXCameraXRSettings cameraXRSettings;
-                cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                cameraXRSettings.viewTotal = (uint)hdCamera.viewCount; // (MSG)
                 cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
                 cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
 
@@ -2340,8 +2340,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingParams = hdCamera.xr.cullingParams;
 
                 // Sync the FOV on the camera to match the projection from the XR device in order to cull shadows accurately
-                if (!camera.usePhysicalProperties && !XRGraphicsAutomatedTests.enabled)
-                    camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+                // (MSG) if (!camera.usePhysicalProperties && !XRGraphicsAutomatedTests.enabled)
+                // (MSG)     camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
             }
             else
             {

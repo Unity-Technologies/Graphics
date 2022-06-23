@@ -658,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_xySeq = new Vector2[7];
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.slices]; // (MSG)
 
             CreateVolumetricLightingBuffers();
         }
@@ -777,6 +777,9 @@ namespace UnityEngine.Rendering.HighDefinition
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             var gpuAspect = HDUtils.ProjectionMatrixAspect(hdCamera.mainViewConstants.projMatrix);
             int frameIndex = (int)VolumetricFrameIndex(hdCamera);
+
+            if (m_PixelCoordToViewDirWS.Length != TextureXR.slices)
+                m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.slices];
 
             // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(resolution, gpuAspect, ref m_PixelCoordToViewDirWS);

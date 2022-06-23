@@ -37,9 +37,10 @@ namespace UnityEngine.Experimental.Rendering
         /// Parameterless constructor.
         /// Note: in order to avoid GC, the render pipeline should use XRPass.Create instead of this method.
         /// </summary>
-        public XRPass()
+        public XRPass () : this(initialViewCount: 2) {} // (MSG)
+        public XRPass(int initialViewCount = 0) // (MSG)
         {
-            m_Views = new List<XRView>(2);
+            m_Views = new List<XRView>(initialViewCount); // (MSG)
             m_OcclusionMesh = new XROcclusionMesh(this);
         }
 
@@ -292,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering
             cullingPassId = createInfo.cullingPassId;
             cullingParams = createInfo.cullingParameters;
             copyDepth = createInfo.copyDepth;
-            renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
+            renderTarget = createInfo.renderTarget;
             renderTargetDesc = createInfo.renderTargetDesc;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
         }

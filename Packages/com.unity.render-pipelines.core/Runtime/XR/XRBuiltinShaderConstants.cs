@@ -52,6 +52,20 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         static public readonly int unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
+        static int m_CurrentViewCount = 0;                      // (MSG)
+        static void Reallocate (int viewCount = 2)              // (MSG)
+        {                                                       // (MSG)
+            s_cameraProjMatrix = new Matrix4x4[viewCount];      // (MSG)
+            s_invCameraProjMatrix = new Matrix4x4[viewCount];   // (MSG)
+            s_viewMatrix = new Matrix4x4[viewCount];            // (MSG)
+            s_invViewMatrix = new Matrix4x4[viewCount];         // (MSG)
+            s_projMatrix = new Matrix4x4[viewCount];            // (MSG)
+            s_invProjMatrix = new Matrix4x4[viewCount];         // (MSG)
+            s_viewProjMatrix = new Matrix4x4[viewCount];        // (MSG)
+            s_invViewProjMatrix = new Matrix4x4[viewCount];     // (MSG)
+            s_worldSpaceCameraPos = new Vector4[viewCount];     // (MSG)
+        }                                                       // (MSG)
+
         // Pre-allocate arrays to avoid GC
         static Matrix4x4[] s_cameraProjMatrix = new Matrix4x4[2];
         static Matrix4x4[] s_invCameraProjMatrix = new Matrix4x4[2];
@@ -72,6 +86,12 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="renderIntoTexture"></param>
         public static void Update(XRPass xrPass, CommandBuffer cmd, bool renderIntoTexture)
         {
+            if (xrPass.viewCount != m_CurrentViewCount)     // (MSG)
+            {                                               // (MSG)
+                Reallocate(viewCount: xrPass.viewCount);    // (MSG)
+                m_CurrentViewCount = xrPass.viewCount;      // (MSG)
+            }                                               // (MSG)
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.enabled)
             {
@@ -79,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 if (xrPass.singlePassEnabled)
                 {
-                    for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
+                    for (int viewIndex = 0; viewIndex < m_CurrentViewCount; ++viewIndex) // (MSG)
                     {
                         s_cameraProjMatrix[viewIndex]     = xrPass.GetProjMatrix(viewIndex);
                         s_viewMatrix[viewIndex]           = xrPass.GetViewMatrix(viewIndex);

@@ -59,6 +59,8 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static readonly XRPass emptyPass = new XRPass();
 
+        static int m_MaxViewCount = 1; // (MSG)
+
         /// <summary>
         /// If true, the system will try to create a layout compatible with single-pass rendering.
         /// </summary>
@@ -140,15 +142,21 @@ namespace UnityEngine.Experimental.Rendering
         /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
         /// <returns></returns>
-        public static XRLayout NewLayout()
+        public static XRLayout NewLayout(int maxViews = -1) // (MSG)
         {
+            if (maxViews != -1)                                                         // (MSG)
+            {                                                                           // (MSG)
+                m_MaxViewCount = maxViews;                                              // (MSG)
+                TextureXR.maxViews = Math.Max(TextureXR.slices, m_MaxViewCount);        // (MSG)
+            }                                                                           // (MSG)
+
             RefreshDeviceInfo();
 
-            if (s_Layout.GetActivePasses().Count > 0)
-            {
-                Debug.LogWarning("Render Pipeline error : the XR layout still contains active passes. Executing XRSystem.EndLayout() right now.");
-                EndLayout();
-            }
+            // (MSG) if (s_Layout.GetActivePasses().Count > 0)
+            // (MSG) {
+            // (MSG)     Debug.LogWarning("Render Pipeline error : the XR layout still contains active passes. Executing XRSystem.EndLayout() right now.");
+            // (MSG)     EndLayout();
+            // (MSG) }
 
             return s_Layout;
         }
@@ -251,7 +259,7 @@ namespace UnityEngine.Experimental.Rendering
                 s_Display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
 
                 // XRTODO : replace by API from XR SDK, assume we have 2 views max for now
-                TextureXR.maxViews = Math.Max(TextureXR.slices, 2);
+                // (MSG) TextureXR.maxViews = Math.Max(TextureXR.slices, m_MaxViewCount);
             }
             else
             {

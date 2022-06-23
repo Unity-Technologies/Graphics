@@ -33,7 +33,8 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                AddPass(camera, XRSystem.emptyPass);
+                if (m_ActivePasses.Count == 0)              // (MSG)
+                    AddPass(camera, XRSystem.emptyPass);    // (MSG)
             }
         }
 
