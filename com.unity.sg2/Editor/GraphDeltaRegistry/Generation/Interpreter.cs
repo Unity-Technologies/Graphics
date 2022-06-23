@@ -620,14 +620,14 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (port.IsInput && isReference)
                     {
                         //root is providing the argument, but still goes through a reference node.
-                        argument = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID.Replace("out__", "_");
+                        argument = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID.Replace("out_", "");
                         addLocalVariable = false;
                     }
                     // a normal connect-- we just use the normally generated argument name, but from the connected node/port.
                     else if (port.IsInput && connectedPort != null)
                     {
                         argument = $"sg_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
-                        addLocalVariable = false;
+
                     }
                     // not connected, so we need an initializer to setup the default value.
                     else if (port.IsInput)
