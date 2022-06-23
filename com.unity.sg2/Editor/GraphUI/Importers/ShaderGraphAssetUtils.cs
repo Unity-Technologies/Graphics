@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
 using UnityEditor.AssetImporters;
@@ -65,7 +66,7 @@ namespace UnityEditor.ShaderGraph
                 var node = asset.ShaderGraphModel.GraphHandler.GetNode(key.Name);
                 string shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
-                Material mat = new (shader);
+                Material mat = new(shader);
                 foreach (var def in defaultTextures)
                 {
                     mat.SetTexture(def.Item1, def.Item2);
@@ -81,9 +82,62 @@ namespace UnityEditor.ShaderGraph
             {
                 Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
 
-                ctx.AddObjectToAsset("AssetHelper", asset, texture);
+                ctx.AddObjectToAsset("Asset", asset, texture);
                 ctx.SetMainObject(asset);
+
+                var assetID = AssetDatabase.GUIDFromAssetPath(ctx.assetPath).ToString();
+                var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
+
+                List<Defs.ParameterUIDescriptor> paramDesc = new();
+                foreach (var dec in asset.ShaderGraphModel.VariableDeclarations)
+                {
+                    var displayName = dec.GetVariableName();
+                    var identifierName = ((BaseShaderGraphConstant)dec.InitializationModel).PortName;
+                    paramDesc.Add(new Defs.ParameterUIDescriptor(identifierName, displayName));
+                }
+
+                Defs.NodeUIDescriptor desc = new(
+                        version: 1,
+                        name: assetID,
+                        tooltip: "TODO: This should come from the SubGraphModel",
+                        categories: new string[] { "SubGraphs" },
+                        synonyms: new string[] { "SubGraph" },
+                        displayName: fileName,
+                        hasPreview: true,
+                        parameters: paramDesc.ToArray()
+                    );
+
+                RegistryKey key = new RegistryKey { Name = assetID, Version = 1 };
+                var nodeBuilder = new Defs.SubGraphNodeBuilder(key, asset.ShaderGraphModel.GraphHandler);
+                var nodeUI = new StaticNodeUIDescriptorBuilder(desc);
+
+                ShaderGraphRegistry.Instance.Registry.Unregister(key);
+                ShaderGraphRegistry.Instance.Register(nodeBuilder, nodeUI);
             }
+        }
+
+        public static string[] GatherDependenciesForShaderGraphAsset(string assetPath)
+        {
+            string json = File.ReadAllText(assetPath, Encoding.UTF8);
+            var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
+            EditorJsonUtility.FromJsonOverwrite(json, asset);
+            asset.ShaderGraphModel.OnEnable();
+
+
+
+            SortedSet<string> deps = new();
+            var graph = asset.ShaderGraphModel.GraphHandler;
+
+            foreach(var node in graph.GetNodes())
+            {
+                // Subgraphs use their assetID as a registryKey for now-> this is bad and should be handled gracefully in the UI for a user to set in a safe way.
+                // TODO: make it so any node can be asked about its asset dependencies (Either through the builder, or through a field).
+                var depPath = AssetDatabase.GUIDToAssetPath(node.GetRegistryKey().Name);
+                if (!String.IsNullOrEmpty(depPath))
+                    deps.Add(depPath);
+            }
+
+            return deps.ToArray();
         }
     }
 
