@@ -8,6 +8,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class TextureTypeConstant : BaseShaderGraphConstant
     {
+        protected override void StoreValue()
+        {
+            storedTexture = (Texture)GetValue();
+        }
+
+        public override object GetStoredValue()
+        {
+            return storedTexture;
+        }
+
+        [SerializeField]
+        Texture storedTexture;
+
         override protected object GetValue() => BaseTextureType.GetTextureAsset(GetField());
         override protected void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
         override public object DefaultValue => null;

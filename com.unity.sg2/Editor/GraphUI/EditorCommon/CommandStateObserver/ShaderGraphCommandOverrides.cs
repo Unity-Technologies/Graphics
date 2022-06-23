@@ -180,9 +180,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Delete GTF data and linked edges, variable nodes
             DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
 
-            using (var selectionStateUpdater = selectionState.UpdateScope)
+            var selectionStateComponents = undoState.State.AllStateComponents.OfType<SelectionStateComponent>();
+
+            foreach (var selection in selectionStateComponents)
             {
-                selectionStateUpdater.SelectElements(modelsToDelete, false);
+                using (var selectionStateUpdater = selection.UpdateScope)
+                {
+                    selectionStateUpdater.SelectElements(modelsToDelete, false);
+                }
             }
 
             // Remove CLDS data

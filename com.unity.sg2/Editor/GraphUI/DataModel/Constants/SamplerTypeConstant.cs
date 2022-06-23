@@ -15,6 +15,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class SamplerStateTypeConstant : BaseShaderGraphConstant
     {
+        protected override void StoreValue()
+        {
+            storedValue = (SamplerStateData)GetValue();
+        }
+
+        public override object GetStoredValue()
+        {
+            return storedValue;
+        }
+
+        [SerializeField]
+        SamplerStateData storedValue;
+
         override protected object GetValue()
         {
             return new SamplerStateData {

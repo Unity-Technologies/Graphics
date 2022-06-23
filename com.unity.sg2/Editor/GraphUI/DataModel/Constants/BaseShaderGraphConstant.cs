@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -8,7 +9,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    public abstract class BaseShaderGraphConstant : IConstant
+    public abstract class BaseShaderGraphConstant : IConstant, ISerializationCallbackReceiver
     {
         [SerializeReference]
         protected ShaderGraphModel graphModel;
@@ -44,19 +45,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // TODO: (Sai) Is there a way to handle serializing this to its actual/leaf value and then serialize it over?
         // TODO: In OnBeforeSerialize() call an abstract function that allows for implementor classes to define how to serialize for cloning
         // TODO: In OnAfterSerialize() call an abstract function that allows for implementor classes to deserialize for cloning
-        public object ObjectValue {
+        public object ObjectValue
+        {
             get => IsInitialized ? GetValue() : DefaultValue;
             set {
                 if (IsInitialized)
                 {
                     SetValue(value);
-                    clonedObjectValue = value;
                 }
             }
         }
 
-        [SerializeField]
-        public object clonedObjectValue;
+        abstract protected void StoreValue();
+        abstract public object GetStoredValue();
 
         abstract protected object GetValue();
         abstract protected void SetValue(object value);
@@ -70,8 +71,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var copy = (GraphTypeConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);
-            copy.ObjectValue = ObjectValue;
+            copy.ObjectValue = GetStoredValue();
             return copy;
+        }
+
+        public void OnBeforeSerialize()
+        {
+            StoreValue();
+        }
+
+        public void OnAfterDeserialize()
+        {
         }
     }
 }

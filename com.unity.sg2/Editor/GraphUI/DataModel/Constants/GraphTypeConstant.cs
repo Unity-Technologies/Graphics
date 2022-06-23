@@ -10,6 +10,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         internal GraphType.Length GetLength() => IsInitialized ? GraphTypeHelpers.GetLength(GetField()) : GraphType.Length.Four;
         private GraphType.Primitive GetPrimitive() => IsInitialized ? GraphTypeHelpers.GetPrimitive(GetField()) : GraphType.Primitive.Float;
+
+        protected override void StoreValue()
+        {
+            if (!IsInitialized)
+                return;
+            switch (GetLength())
+            {
+                case GraphType.Length.One:
+                    switch (GetPrimitive())
+                    {
+                        case GraphType.Primitive.Int: storedValue.x = GraphTypeHelpers.GetAsInt(GetField());
+                            break;
+                        case GraphType.Primitive.Bool: storedValue.x = Convert.ToSingle(GraphTypeHelpers.GetAsBool(GetField()));
+                            break;
+                        case GraphType.Primitive.Float:
+                        default: storedValue.x = GraphTypeHelpers.GetAsFloat(GetField());
+                            break;
+                    }
+                    break;
+                case GraphType.Length.Two: storedValue = GraphTypeHelpers.GetAsVec2(GetField());
+                    break;
+                case GraphType.Length.Three: storedValue = GraphTypeHelpers.GetAsVec3(GetField());
+                    break;
+                case GraphType.Length.Four: storedValue = GraphTypeHelpers.GetAsVec4(GetField());
+                    break;
+                default: storedValue = (Vector4)DefaultValue;
+                    break;
+            }
+        }
+
+        public override object GetStoredValue()
+        {
+            return storedValue;
+        }
+
         override protected object GetValue()
         {
             switch (GetLength())
@@ -28,6 +63,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 default: return DefaultValue;
             }
         }
+
+        [SerializeField]
+        Vector4 storedValue;
 
         override protected void SetValue(object value)
         {

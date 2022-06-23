@@ -209,8 +209,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override BlackboardView CreateBlackboardView()
         {
-            if(GraphView != null)
+            if (GraphView != null)
+            {
                 m_BlackboardView = new BlackboardView(this, GraphView);
+                m_BlackboardView.ViewSelection.DetachFromView();
+                var viewSelection = new SGBlackboardViewSelection(m_BlackboardView, m_BlackboardView.BlackboardViewModel);
+                viewSelection.AttachToView();
+                m_BlackboardView.ViewSelection = viewSelection;
+            }
             return m_BlackboardView;
         }
 

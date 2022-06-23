@@ -4,20 +4,21 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
+using Edge = UnityEditor.GraphToolsFoundation.Overdrive.Edge;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphViewSelection : GraphViewSelection
     {
+        /// <summary>
+        /// This class overrides the graph views selection and context menu operation handler
+        /// We need it in order to handle cut operations with a slightly different logic,
+        /// and to change the default context menu options
+        /// </summary>
         public ShaderGraphViewSelection(GraphView view, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState)
-            : base(view, graphModelState, selectionState)
-        {
-            m_GraphModelStateComponent = graphModelState;
-        }
+            : base(view, graphModelState, selectionState) { }
 
-        GraphModelStateComponent m_GraphModelStateComponent;
-
-        ShaderGraphModel shaderGraphModel => m_GraphModelStateComponent.GraphModel as ShaderGraphModel;
+        ShaderGraphModel shaderGraphModel => m_GraphModelState.GraphModel as ShaderGraphModel;
 
         /// <summary>
         /// Adds items related to the selection to the contextual menu.
@@ -71,45 +72,45 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }, _ => DropdownMenuAction.Status.Normal);
         }
 
-        void BuildClipboard()
-        {
-            var currentSelection = GetSelection();
-            var nodeToModelClipboard = new Dictionary<string, IGraphElementModel>();
-            var nodeToEdgesClipboard = new Dictionary<string, IEnumerable<IEdgeModel>>();
-
-            foreach (var selectedModel in currentSelection)
-            {
-                switch (selectedModel)
-                {
-                    case GraphDataNodeModel graphDataNodeModel:
-                        nodeToModelClipboard.Add(graphDataNodeModel.graphDataName, graphDataNodeModel);
-                        nodeToEdgesClipboard.Add(graphDataNodeModel.graphDataName, graphDataNodeModel.GetConnectedEdges().ToList());
-                        break;
-                    case GraphDataVariableNodeModel graphDataVariableNodeModel:
-                        nodeToModelClipboard.Add(graphDataVariableNodeModel.graphDataName, graphDataVariableNodeModel);
-                        nodeToEdgesClipboard.Add(graphDataVariableNodeModel.graphDataName, graphDataVariableNodeModel.GetConnectedEdges().ToList());
-                        break;
-                }
-            }
-
-            shaderGraphModel.SetClipboard(nodeToModelClipboard, nodeToEdgesClipboard);
-        }
-
+        // This calls CopySelection()
         protected override void CutSelection()
         {
             shaderGraphModel.isCutOperation = true;
             base.CutSelection();
         }
 
+        void AddInputEdgesToSelection()
+        {
+            using (var updater = m_SelectionState.UpdateScope)
+            {
+                var selection = GetSelection();
+                for(var index = 0; index < selection.Count; index++)
+                {
+                    var element = selection[index];
+                    if (element is INodeModel nodeModel)
+                    {
+                        var edges = nodeModel.GetConnectedEdges().ToList();
+                        foreach(var edge in edges)
+                        {
+                            // Skip output edges
+                            if(edge.FromPort.NodeModel == nodeModel)
+                                continue;
+                            updater.SelectElement(edge, true);
+                        }
+                    }
+                }
+            }
+        }
+
         protected override void CopySelection()
         {
-            BuildClipboard();
+            AddInputEdgesToSelection();
             base.CopySelection();
         }
 
         protected override void DuplicateSelection()
         {
-            BuildClipboard();
+            AddInputEdgesToSelection();
             base.DuplicateSelection();
         }
 

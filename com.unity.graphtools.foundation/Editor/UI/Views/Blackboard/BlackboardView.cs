@@ -23,7 +23,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         IBlackboardGraphModel m_BlackboardGraphModel;
 
-        public ViewSelection ViewSelection { get; }
+        // GTF-EDIT: Added set accessor
+        public ViewSelection ViewSelection { get; set; }
 
         public Blackboard Blackboard { get; private set; }
 
