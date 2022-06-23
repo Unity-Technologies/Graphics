@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering
             cullingPassId = createInfo.cullingPassId;
             cullingParams = createInfo.cullingParameters;
             copyDepth = createInfo.copyDepth;
-            renderTarget = createInfo.renderTarget;
+            renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
             renderTargetDesc = createInfo.renderTargetDesc;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
         }
