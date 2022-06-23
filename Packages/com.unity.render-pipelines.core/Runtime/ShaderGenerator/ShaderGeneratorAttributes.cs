@@ -238,6 +238,28 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>                                                           // (MSG)
+    /// Attribute defining an HLSL array dependent on XR max view count.    // (MSG)
+    /// </summary>                                                          // (MSG)
+    [AttributeUsage(AttributeTargets.Field)]                                // (MSG)
+    public class HLSLXRMaxViewArray : System.Attribute                      // (MSG)
+    {                                                                       // (MSG)
+        /// <summary>                                                       // (MSG)
+        /// Type of the array elements.                                     // (MSG)
+        /// </summary>                                                      // (MSG)
+        public Type elementType;                                            // (MSG)
+                                                                            // (MSG)
+        /// <summary>                                                       // (MSG)
+        /// HLSLSArray constructor.                                         // (MSG)
+        /// </summary>                                                      // (MSG)
+        /// <param name="arraySize">Size of the array.</param>              // (MSG)
+        /// <param name="elementType">Type of the array elements.</param>   // (MSG)
+        public HLSLXRMaxViewArray(Type elementType)                         // (MSG)
+        {                                                                   // (MSG)
+            this.elementType = elementType;                                 // (MSG)
+        }                                                                   // (MSG)
+    }                                                                       // (MSG)
+
     /// <summary>
     /// Attribute defining packing.
     /// </summary>
