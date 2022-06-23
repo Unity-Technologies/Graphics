@@ -79,13 +79,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal void Register<T>() where T : IRegistryEntry =>
             Registry.Register<T>();
 
-        internal void RefreshSubGraph(RegistryKey key, GraphHandler subgraph, NodeUIDescriptor desc)
-        {
-            Registry.Unregister(key);
-            Register(new SubGraphNodeBuilder(key, subgraph), new StaticNodeUIDescriptorBuilder(desc));
-            DefaultTopologies.ReconcretizeNode(key.ToString());
-        }
-
         internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) =>
             NodeUIInfo.GetNodeUIDescriptor(key, node);
 

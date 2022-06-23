@@ -88,8 +88,6 @@ namespace UnityEditor.ShaderGraph
                 var assetID = AssetDatabase.GUIDFromAssetPath(ctx.assetPath).ToString();
                 var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
 
-
-
                 List<Defs.ParameterUIDescriptor> paramDesc = new();
                 foreach (var dec in asset.ShaderGraphModel.VariableDeclarations)
                 {
