@@ -188,6 +188,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void CopySubFieldData(FieldHandler src, FieldHandler dst)
         {
+            GradientTypeHelpers.SetGradient(dst, GradientTypeHelpers.GetGradient(src));
         }
 
         string ITypeDefinitionBuilder.GetInitializerList(FieldHandler data, Registry registry)

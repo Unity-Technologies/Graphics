@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -223,8 +224,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var height = GraphTypeHelpers.GetHeight(src);
             var primitive = GraphTypeHelpers.GetPrimitive(src);
             var precision = GraphTypeHelpers.GetPrecision(src);
+            var data = GraphTypeHelpers.GetComponents(src).ToArray();
 
             GraphTypeHelpers.InitGraphType(dst, length, precision, primitive, height);
+            GraphTypeHelpers.SetComponents(dst, 0, data);
         }
 
         string ITypeDefinitionBuilder.GetInitializerList(FieldHandler data, Registry registry)
