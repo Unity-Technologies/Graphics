@@ -211,6 +211,18 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("lightTypeExtent"), FormerlySerializedAs("m_LightTypeExtent")]
         PointLightHDType m_PointlightHDType = PointLightHDType.Punctual;
 
+        internal PointLightHDType pointLightHDType
+        {
+            get => m_PointlightHDType;
+            set
+            {
+                if (lightEntity.valid)
+                {
+                    HDLightRenderDatabase.instance.GetShadowRequestUpdateInfoAsRef(lightEntity).pointLightHDType = m_PointlightHDType;
+                }
+            }
+        }
+
         // Only for Spotlight, should be hide for other light
         [SerializeField, FormerlySerializedAs("spotLightShape")]
         SpotLightShape m_SpotLightShape = SpotLightShape.Cone;
@@ -297,6 +309,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!supportedUnits.Any(u => u == lightUnit))
                     lightUnit = supportedUnits.First();
                 UpdateAllLightValues();
+
+                HDLightRenderDatabase.instance.GetShadowRequestUpdateInfoAsRef(lightEntity).spotLightShape = m_SpotLightShape;
             }
         }
 
@@ -317,6 +331,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (type == HDLightType.Area)
                     ResolveAreaShape();
                 UpdateAllLightValues();
+
+                HDLightRenderDatabase.instance.GetShadowRequestUpdateInfoAsRef(lightEntity).areaLightShape = m_AreaLightShape;
             }
         }
 
