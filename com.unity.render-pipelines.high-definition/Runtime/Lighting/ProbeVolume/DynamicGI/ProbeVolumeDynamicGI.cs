@@ -568,8 +568,42 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void SetRadianceEncodingKeywords(ComputeShader shader, ProbeVolumeDynamicGIRadianceEncoding encoding)
         {
-            var logLuv = encoding == ProbeVolumeDynamicGIRadianceEncoding.LogLuv;
-            CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_LOGLUV", logLuv);
+            switch (encoding)
+            {
+                case ProbeVolumeDynamicGIRadianceEncoding.RGBFloat:
+                {
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_LOGLUV", false);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_HALFLUV", false);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_R11G11B10", false);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIRadianceEncoding.LogLuv:
+                {
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_LOGLUV", true);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_HALFLUV", false);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_R11G11B10", false);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIRadianceEncoding.HalfLuv:
+                {
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_LOGLUV", false);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_HALFLUV", true);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_R11G11B10", false);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIRadianceEncoding.R11G11B10:
+                {
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_LOGLUV", false);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_HALFLUV", false);
+                    CoreUtils.SetKeyword(shader, "RADIANCE_ENCODING_R11G11B10", true);
+                    break;
+                }
+
+                default: Debug.Assert(false); break;
+            }
         }
 
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume,

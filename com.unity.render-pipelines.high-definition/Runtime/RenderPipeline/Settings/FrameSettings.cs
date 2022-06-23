@@ -72,6 +72,10 @@ namespace UnityEngine.Rendering.HighDefinition
         RGBFloat,
         /// <summary>Use 32 bit LogLuv encoding.</summary>
         LogLuv,
+        /// <summary>Use 32 bit HalfLuv encoding where luminance is stored in a manually packed 16-bit half float.</summary>
+        HalfLuv,
+        /// <summary>Use 32 bit RGB encoding with 11-bits for R, 11-bits for G, and 10-bits for B. Manually packed.</summary>
+        R11G11B10,
     }
 
     /* ////// HOW TO ADD FRAME SETTINGS //////
