@@ -362,6 +362,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.probeVolumeDynamicGIMixedLightMode.hasMultipleDifferentValues,
                 overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI
             );
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIRadianceEncoding,
+                overridedDefaultValue: ProbeVolumeDynamicGIRadianceEncoding.RGBFloat,
+                customGetter: () => serialized.probeVolumeDynamicGIRadianceEncoding.GetEnumValue<ProbeVolumeDynamicGIRadianceEncoding>(),
+                customSetter: v  => serialized.probeVolumeDynamicGIRadianceEncoding.SetEnumValue((ProbeVolumeDynamicGIRadianceEncoding)v),
+                hasMixedValues: serialized.probeVolumeDynamicGIRadianceEncoding.hasMultipleDifferentValues,
+                overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI
+            );
 
             area.AmmendInfo(FrameSettingsField.Volumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => hdrpSettings.supportVolumetrics);

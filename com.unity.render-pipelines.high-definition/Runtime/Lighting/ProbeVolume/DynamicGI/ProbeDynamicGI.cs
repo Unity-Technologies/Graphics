@@ -30,8 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeVolumeDynamicGIBasisParameter basis = new ProbeVolumeDynamicGIBasisParameter(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp);
         [Tooltip("Advanced control selecting an alternative basis for use during propagation. None uses the same basis for propagation as hits.")]
         public ProbeVolumeDynamicGIBasisPropagationOverrideParameter basisPropagationOverride = new ProbeVolumeDynamicGIBasisPropagationOverrideParameter(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft);
-        [Tooltip("Advanced control selecting an alternative encoding for hit and probe axis radiance.")]
-        public ProbeVolumeDynamicGIRadianceEncoding radianceEncoding = new ProbeVolumeDynamicGIRadianceEncoding(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding.RGBFloat);
         [Tooltip("Advanced control for the SG sharpness used when evaluating the influence of infinite bounce light near surfaces")]
         public ClampedFloatParameter sharpness = new ClampedFloatParameter(6.0f, 0.0f, 16.0f);
         [Tooltip("Advanced control for the SG sharpness used when propagating light")]
@@ -73,13 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SampleNeighborsDirectionOnly,
             SampleNeighborsPositionAndDirection
         };
-
-        [Serializable]
-        public sealed class ProbeVolumeDynamicGIRadianceEncoding : VolumeParameter<ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding>
-        {
-            public ProbeVolumeDynamicGIRadianceEncoding(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding value, bool overrideState = false)
-                : base(value, overrideState) {}
-        }
 
         [Serializable]
         public sealed class DynamicGINeighboringVolumePropagationModeParameter : VolumeParameter<DynamicGINeighboringVolumePropagationMode>

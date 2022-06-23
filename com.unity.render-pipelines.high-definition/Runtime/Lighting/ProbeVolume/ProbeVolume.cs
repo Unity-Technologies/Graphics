@@ -1309,7 +1309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hitRadianceCache == null || !hitRadianceCache.IsValid() || hitRadianceCache.count != hits.Length)
                 return;
 
-            if (propagationPipelineData.radianceEncoding == ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding.LogLuv)
+            if (propagationPipelineData.radianceEncoding == ProbeVolumeDynamicGIRadianceEncoding.LogLuv)
             {
                 var hitRandiance = new uint[hits.Length];
                 hitRadianceCache.GetData(hitRandiance);

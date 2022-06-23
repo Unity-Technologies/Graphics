@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int radianceReadIndex;
         public int buffersDataVersion;
         public int simulationFrameTick;
-        public ProbeVolumeDynamicGI.ProbeVolumeDynamicGIRadianceEncoding radianceEncoding;
+        public ProbeVolumeDynamicGIRadianceEncoding radianceEncoding;
 
         public ComputeBuffer GetReadRadianceCacheAxis()
         {
@@ -115,13 +115,6 @@ namespace UnityEngine.Rendering.HighDefinition
             BasisAmbientDiceWrappedSofter,
             BasisAmbientDiceWrappedSuperSoft,
             BasisAmbientDiceWrappedUltraSoft
-        }
-
-        [Serializable]
-        public enum ProbeVolumeDynamicGIRadianceEncoding
-        {
-            RGBFloat = 0,
-            LogLuv,
         }
 
         ProbeVolumeDynamicGI()
@@ -583,25 +576,25 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
             RenderTargetIdentifier probeVolumeAtlasSHRTHandle, bool infiniteBounces,
             PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe,
-            ProbeVolumeDynamicGIMixedLightMode mixedLightMode)
+            ProbeVolumeDynamicGIMixedLightMode mixedLightMode, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
         {
-            var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume, in giSettings);
+            var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume, radianceEncoding);
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
-                    DispatchClearPreviousRadianceCache(cmd, probeVolume, in giSettings);
+                    DispatchClearPreviousRadianceCache(cmd, probeVolume, radianceEncoding);
             }
 
             if (probeVolume.HitNeighborAxisLength != 0)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
-                    DispatchPropagationHits(cmd, probeVolume, in giSettings, infiniteBounces, previousRadianceCacheInvalid, mixedLightMode);
+                    DispatchPropagationHits(cmd, probeVolume, in giSettings, infiniteBounces, previousRadianceCacheInvalid, mixedLightMode, radianceEncoding);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
-                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, propagationQuality, ambientProbe);
+                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, propagationQuality, ambientProbe, radianceEncoding);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
-                DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
+                DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle, radianceEncoding);
 
             _stats.Simulated(probeVolume);
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
@@ -622,14 +615,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        void DispatchClearPreviousRadianceCache(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
         {
             var kernel = _PropagationClearRadianceShader.FindKernel("ClearPreviousRadianceCache");
             var shader = _PropagationClearRadianceShader;
 
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
-            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
+            SetRadianceEncodingKeywords(shader, radianceEncoding);
 
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", propagationPipelineData.radianceCacheAxis0);
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", propagationPipelineData.radianceCacheAxis1);
@@ -645,7 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool infiniteBounces,
-            bool previousRadianceCacheInvalid, ProbeVolumeDynamicGIMixedLightMode mixedLightMode)
+            bool previousRadianceCacheInvalid, ProbeVolumeDynamicGIMixedLightMode mixedLightMode, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
         {
             var kernel = _PropagationHitsShader.FindKernel("AccumulateLightingDirectional");
             var shader = _PropagationHitsShader;
@@ -653,7 +646,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var pipelineData = ref probeVolume.GetPipelineData();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
-            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
+            SetRadianceEncodingKeywords(shader, radianceEncoding);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             var obb = pipelineData.BoundingBox;
@@ -736,7 +729,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings,
-            bool previousRadianceCacheInvalid, PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe)
+            bool previousRadianceCacheInvalid, PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe,
+            ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
         {
             var kernel = _PropagationAxesShader.FindKernel("PropagateLight");
             var shader = _PropagationAxesShader;
@@ -744,7 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var pipelineData = ref probeVolume.GetPipelineData();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
-            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
+            SetRadianceEncodingKeywords(shader, radianceEncoding);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             var obb = pipelineData.BoundingBox;
@@ -887,14 +881,16 @@ namespace UnityEngine.Rendering.HighDefinition
             s_AmbientProbe[6] = c6;
         }
 
-        void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
+        void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings,
+            in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle,
+            ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
         {
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             ProbeVolume.ProbeVolumeAtlasKey key = probeVolume.ComputeProbeVolumeAtlasKey();
             var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
             var shader = _PropagationCombineShader;
 
-            SetRadianceEncodingKeywords(shader, giSettings.radianceEncoding.value);
+            SetRadianceEncodingKeywords(shader, radianceEncoding);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             ref var pipelineData = ref probeVolume.GetPipelineData();
@@ -964,12 +960,6 @@ namespace UnityEngine.Rendering.HighDefinition
             int numProbes = size.x * size.y * size.z;
             var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
             var shader = _PropagationCombineShader;
-
-            /* SetBasisKeywords(
-                ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp,
-                ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft,
-                shader
-            ); */
 
             var obb = pipelineData.BoundingBox;
 
@@ -1072,7 +1062,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings)
+        static bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
         {
             var changed = InitializePropagationInputBuffers(probeVolume);
 
@@ -1082,8 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var hitNeighborAxisLengthOrOne = hasHitNeighborAxes ? hitNeighborAxisLength : 1;
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             int numAxis = numProbes * s_NeighborAxis.Length;
-
-            var radianceEncoding = giSettings.radianceEncoding.value;
+            
             if (propagationPipelineData.radianceEncoding != radianceEncoding)
             {
                 ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
