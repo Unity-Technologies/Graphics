@@ -178,7 +178,7 @@ namespace UnityEditor.ShaderGraph.Defs
             NodeHandler node,
             Registry registry)
         {
-            return param.TypeDescriptor switch
+            PortHandler portHandler = param.TypeDescriptor switch
             {
                 ParametricTypeDescriptor => ParametricToField(param, fallbackType, node, registry),
                 SamplerStateTypeDescriptor => SamplerStateToField(param, node, registry),
@@ -186,6 +186,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 GradientTypeDescriptor => GradientToField(param, node, registry),
                 _ => null,
             };
+            if (param.DefaultValue is ReferenceValueDescriptor referenceValueDescriptor)
+            {
+                portHandler.SetMetadata(PortHandler.kDefaultConnection, referenceValueDescriptor.ContextName);
+            }
+            return portHandler;
         }
     }
 }
