@@ -52,12 +52,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public int IndexInGroup;
 
-        // GTF-EDIT
-        /// <summary>
-        /// The callback to be invoked post-creation of the variable declaration model
-        /// </summary>
-        public Action<IVariableDeclarationModel, IConstant> InitializationCallback = null;
-
         /// <summary>
         /// Initializes a new CreateGraphVariableDeclarationCommand.
         /// </summary>
@@ -139,10 +133,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 if (command.VariableType != null)
                     newVariableDeclaration = graphModel.CreateGraphVariableDeclaration(command.VariableType, command.TypeHandle, command.VariableName,
-                        command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid, command.InitializationCallback);
+                        command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid);
                 else
                     newVariableDeclaration = graphModel.CreateGraphVariableDeclaration(command.TypeHandle, command.VariableName,
-                        command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid, command.InitializationCallback);
+                        command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid);
 
                 graphUpdater.MarkNew(newVariableDeclaration);
                 graphUpdater.MarkForRename(newVariableDeclaration);
