@@ -78,9 +78,15 @@ namespace UnityEditor.VFX.UI
 
         public static bool CanPaste(VFXView view, object data)
         {
+            var content = data?.ToString();
+            if (string.IsNullOrEmpty(content))
+            {
+                return false;
+            }
+
             try
             {
-                var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data.ToString());
+                var serializableGraph = JsonUtility.FromJson<SerializableGraph>(content);
 
                 if (view.controller.model.isSubgraph)
                 {

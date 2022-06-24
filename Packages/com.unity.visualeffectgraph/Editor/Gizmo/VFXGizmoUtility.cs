@@ -233,6 +233,7 @@ namespace UnityEditor.VFX.UI
                 gizmo.component = component;
                 gizmo.currentSpace = context.space;
                 gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
+                gizmo.currentHashCode = context.GetHashCode();
 
                 gizmo.CallDrawGizmo(context.value);
                 gizmo.component = null;
