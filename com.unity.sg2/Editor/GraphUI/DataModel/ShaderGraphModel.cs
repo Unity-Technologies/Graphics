@@ -460,16 +460,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel, bool keepGuid = false)
         {
-            var uniqueName = sourceModel.Title;
-            var copiedVariable = sourceModel.Clone();
+            var sourceDataVariable = sourceModel as GraphDataVariableDeclarationModel;
+            Assert.IsNotNull(sourceDataVariable);
+
+            var sourceShaderGraphConstant = sourceDataVariable.InitializationModel as BaseShaderGraphConstant;
+            Assert.IsNotNull(sourceShaderGraphConstant);
+
+            var uniqueName = sourceDataVariable.Title;
+            var copiedVariable = sourceDataVariable.Clone();
             copiedVariable.GraphModel = this;
             if (keepGuid)
                 copiedVariable.Guid = sourceModel.Guid;
             copiedVariable.Title = GenerateGraphVariableDeclarationUniqueName(uniqueName);
 
-            if (copiedVariable is GraphDataVariableDeclarationModel graphDataVariable
-                && graphDataVariable.InitializationModel is BaseShaderGraphConstant baseShaderGraphConstant)
+            if (copiedVariable.InitializationModel is BaseShaderGraphConstant baseShaderGraphConstant)
             {
+                baseShaderGraphConstant.Initialize(this, BlackboardContextName, sourceDataVariable.graphDataName);
+
                 // Initialize CLDS data prior to initializing the constant
                 ShaderGraphStencil.InitVariableDeclarationModel(copiedVariable, copiedVariable.InitializationModel);
                 copiedVariable.CreateInitializationValue();
@@ -486,7 +493,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 section.InsertItem(copiedVariable, -1);
             }
 
-            return copiedVariable;
+            return (TDeclType)((IVariableDeclarationModel)copiedVariable);
         }
 
         // TODO: (Sai) Would it be better to have a way to gather any variable nodes

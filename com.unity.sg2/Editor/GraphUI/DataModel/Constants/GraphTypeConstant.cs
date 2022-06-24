@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal GraphType.Length GetLength() => IsInitialized ? GraphTypeHelpers.GetLength(GetField()) : GraphType.Length.Four;
         private GraphType.Primitive GetPrimitive() => IsInitialized ? GraphTypeHelpers.GetPrimitive(GetField()) : GraphType.Primitive.Float;
 
+        // TODO: Not this
         protected override void StoreValue()
         {
             if (!IsInitialized)
@@ -20,32 +21,52 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphType.Length.One:
                     switch (GetPrimitive())
                     {
-                        case GraphType.Primitive.Int: storedValue.x = GraphTypeHelpers.GetAsInt(GetField());
+                        case GraphType.Primitive.Int: m_StoredValue.x = GraphTypeHelpers.GetAsInt(GetField());
                             break;
-                        case GraphType.Primitive.Bool: storedValue.x = Convert.ToSingle(GraphTypeHelpers.GetAsBool(GetField()));
+                        case GraphType.Primitive.Bool: m_StoredValue.x = Convert.ToSingle(GraphTypeHelpers.GetAsBool(GetField()));
                             break;
                         case GraphType.Primitive.Float:
-                        default: storedValue.x = GraphTypeHelpers.GetAsFloat(GetField());
+                        default: m_StoredValue.x = GraphTypeHelpers.GetAsFloat(GetField());
                             break;
                     }
                     break;
-                case GraphType.Length.Two: storedValue = GraphTypeHelpers.GetAsVec2(GetField());
+                case GraphType.Length.Two: m_StoredValue = GraphTypeHelpers.GetAsVec2(GetField());
                     break;
-                case GraphType.Length.Three: storedValue = GraphTypeHelpers.GetAsVec3(GetField());
+                case GraphType.Length.Three: m_StoredValue = GraphTypeHelpers.GetAsVec3(GetField());
                     break;
-                case GraphType.Length.Four: storedValue = GraphTypeHelpers.GetAsVec4(GetField());
+                case GraphType.Length.Four: m_StoredValue = GraphTypeHelpers.GetAsVec4(GetField());
                     break;
-                default: storedValue = (Vector4)DefaultValue;
+                default: m_StoredValue = (Vector4)DefaultValue;
                     break;
             }
         }
 
+        // TODO: Not this
         public override object GetStoredValue()
         {
-            return storedValue;
+            switch (GetLength())
+            {
+                case GraphType.Length.One:
+                    switch (GetPrimitive())
+                    {
+                        case GraphType.Primitive.Int: return (int)m_StoredValue.x;
+                        case GraphType.Primitive.Bool: return Convert.ToBoolean(m_StoredValue.x);
+                        case GraphType.Primitive.Float:
+                        default: return m_StoredValue.x;
+                    }
+                case GraphType.Length.Two: return new Vector2(m_StoredValue.x, m_StoredValue.y);
+                case GraphType.Length.Three: return new Vector3(m_StoredValue.x, m_StoredValue.y, m_StoredValue.z);
+                case GraphType.Length.Four: return m_StoredValue;
+                default: return DefaultValue;
+            }
         }
 
-        override protected object GetValue()
+        // This is a hack needed to support how GTF intends for constant values to duplicated
+        // The value needs to be stored in a serializable field, and then applied to the new constant
+        [SerializeField]
+        Vector4 m_StoredValue;
+
+        protected override object GetValue()
         {
             switch (GetLength())
             {
@@ -64,10 +85,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        [SerializeField]
-        Vector4 storedValue;
-
-        override protected void SetValue(object value)
+        protected override void SetValue(object value)
         {
             switch (GetLength())
             {
@@ -86,8 +104,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphType.Length.Four: GraphTypeHelpers.SetAsVec4(GetField(), (Vector4)value); break;
             }
         }
-        override public object DefaultValue => Activator.CreateInstance(Type);
-        override public Type Type
+        public override object DefaultValue => Activator.CreateInstance(Type);
+        public override Type Type
         {
             get
             {
@@ -106,7 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
         }
-        override public TypeHandle GetTypeHandle()
+        public override TypeHandle GetTypeHandle()
         {
             try
             {

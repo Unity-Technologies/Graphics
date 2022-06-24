@@ -7,9 +7,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GradientTypeConstant : BaseShaderGraphConstant
     {
+        // TODO: (Sai) When Gradients have support for assigning values from the Gradient Editor,
+        // revisit their duplication to ensure values are copied over
         protected override void StoreValue()
         {
-            storedValue = (Gradient)GetValue();
+            var currentGradientValue = GetValue();
+            if(currentGradientValue != null)
+                storedValue = (Gradient)currentGradientValue;
         }
 
         public override object GetStoredValue()

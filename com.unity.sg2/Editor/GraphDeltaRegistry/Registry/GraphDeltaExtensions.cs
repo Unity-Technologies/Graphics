@@ -41,6 +41,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // Add this reference node to list of reference nodes mapped to a referable
             handler.AddReferenceNodeMapping(nodeName, contextEntryName);
 
+            return node;
+
             // node.SetMetadata("_referenceName", contextEntryName);
 
             // reference nodes have some weird rules, in that they can't really fetch or achieve any sort of identity until they are connected downstream to a context node.

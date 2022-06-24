@@ -10,7 +10,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         protected override void StoreValue()
         {
-            storedTexture = (Texture)GetValue();
+            var currentTexture = GetValue();
+            if(currentTexture != null)
+                storedTexture = (Texture)currentTexture;
         }
 
         public override object GetStoredValue()
@@ -18,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return storedTexture;
         }
 
-        [SerializeField]
+        [SerializeReference]
         Texture storedTexture;
 
         override protected object GetValue() => BaseTextureType.GetTextureAsset(GetField());
