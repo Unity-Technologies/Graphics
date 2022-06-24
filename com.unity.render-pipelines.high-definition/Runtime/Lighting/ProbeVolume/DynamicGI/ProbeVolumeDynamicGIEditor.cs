@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var material = GetDebugNeighborMaterial();
                 if (material != null)
                 {
-                    InitializePropagationBuffers(probeVolume);
+                    InitializePropagationInputBuffers(probeVolume);
 
                     ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
                     

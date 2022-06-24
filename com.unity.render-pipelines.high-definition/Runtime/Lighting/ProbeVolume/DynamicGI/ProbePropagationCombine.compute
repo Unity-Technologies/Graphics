@@ -1,3 +1,12 @@
+#pragma kernel CombinePropagationAxis
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
+#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
+#pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -5,15 +14,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
-
-#pragma kernel CombinePropagationAxis
-
-#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
-#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
-
-#define GROUP_SIZE 64
-//#pragma enable_d3d11_debug_symbols
-
 
 StructuredBuffer<float> _ProbeVolumeAtlasReadSHL01Buffer;
 StructuredBuffer<float> _ProbeVolumeAtlasReadSHL2Buffer;
@@ -31,7 +31,7 @@ float3 _ProbeVolumeAtlasSHRotateForward;
 float3 _ProbeVolumeDGIBoundsRight;
 float3 _ProbeVolumeDGIBoundsUp;
 
-StructuredBuffer<float3> _RadianceCacheAxis;
+StructuredBuffer<RADIANCE> _RadianceCacheAxis;
 int _RadianceCacheAxisCount;
 float _BakedLightingContribution;
 float _DynamicPropagationContribution;
@@ -142,7 +142,7 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
     uint localIndex = probeIndex;
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
-        float3 radiance = _RadianceCacheAxis[localIndex].xyz;
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
         float3 directionOS = _RayAxis[axis].xyz;
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         float3 directionWS = mul(directionOS, probeVolumeLtw);
