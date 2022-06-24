@@ -356,6 +356,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_IsValidIndexScratchpadArray;
         }
 
+        internal NativeArray<int> GetShadowIndicesScratchpadArray(int minLightCount)
+        {
+            if (m_ShadowIndicesScratchpadArray.IsCreated && m_ShadowIndicesScratchpadArray.Length < minLightCount)
+            {
+                m_ShadowIndicesScratchpadArray.Dispose();
+                m_ShadowIndicesScratchpadArray = default;
+            }
+
+            if (!m_ShadowIndicesScratchpadArray.IsCreated)
+            {
+                m_ShadowIndicesScratchpadArray = new NativeArray<int>(minLightCount, Allocator.Persistent);
+            }
+
+            return m_ShadowIndicesScratchpadArray.GetSubArray(0, minLightCount);
+        }
+
 #if UNITY_EDITOR
         internal NativeArray<int> GetShadowRequestCountsScratchpad(int requestCount)
         {
@@ -370,7 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowRequestCountsScratchpad = new NativeArray<int>(requestCount, Allocator.Persistent);
             }
 
-            return m_ShadowRequestCountsScratchpad;
+            return m_ShadowRequestCountsScratchpad.GetSubArray(0, requestCount);
         }
 #endif
 
@@ -596,6 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeList<ShadowIndicesAndVisibleLightData> m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
         private NativeList<ShadowIndicesAndVisibleLightData> m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
         private NativeBitArray m_IsValidIndexScratchpadArray = new NativeBitArray(256, Allocator.Persistent);
+        private NativeArray<int> m_ShadowIndicesScratchpadArray;
 #if UNITY_EDITOR
         NativeArray<int> m_ShadowRequestCountsScratchpad;
 #endif
@@ -655,6 +672,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void DeleteArrays()
         {
+            if (m_IsValidIndexScratchpadArray.IsCreated)
+            {
+                m_IsValidIndexScratchpadArray.Dispose();
+                m_IsValidIndexScratchpadArray = default;
+            }
+
+            if (m_ShadowIndicesScratchpadArray.IsCreated)
+            {
+                m_ShadowIndicesScratchpadArray.Dispose();
+                m_ShadowIndicesScratchpadArray = default;
+            }
+
+
+#if UNITY_EDITOR
+            if (m_ShadowRequestCountsScratchpad.IsCreated)
+            {
+                m_ShadowRequestCountsScratchpad.Dispose();
+                m_ShadowRequestCountsScratchpad = default;
+            }
+#endif
             if (m_Capacity == 0)
                 return;
 
@@ -680,20 +717,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightsAndIndicesBuffer = default;
             m_SplitVisibleLightsAndIndicesBuffer.Dispose();
             m_SplitVisibleLightsAndIndicesBuffer = default;
-            if (m_IsValidIndexScratchpadArray.IsCreated)
-            {
-                m_IsValidIndexScratchpadArray.Dispose();
-                m_IsValidIndexScratchpadArray = default;
-            }
-
-
-#if UNITY_EDITOR
-            if (m_ShadowRequestCountsScratchpad.IsCreated)
-            {
-                m_ShadowRequestCountsScratchpad.Dispose();
-                m_ShadowRequestCountsScratchpad = default;
-            }
-#endif
 
             m_HDShadowRequestStorage.Dispose();
             m_HDShadowRequestStorage = default;
