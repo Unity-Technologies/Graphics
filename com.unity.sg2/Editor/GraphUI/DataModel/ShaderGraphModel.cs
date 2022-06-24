@@ -103,15 +103,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphHandlerBox.OnEnable();
             targetSettingsBox.OnEnable();
             base.OnEnable();
-            InitializeContextFromTarget();
+            foreach (var target in Targets)
+            {
+                InitializeContextFromTarget(target.value);
+            }
         }
 
-
-
-        private void InitializeContextFromTarget()
+        private void InitializeContextFromTarget(Target target)
         {
-            // TODO (Brett) We should be doing this for all context nodes not just MaterialPropertyContext
-            GraphHandler.RebuildContextData("MaterialPropertyContext",) ;
+            foreach (var node in NodeModels)
+            {
+                if (node is GraphDataContextNodeModel nodeModel)
+                {
+                    // TODO: How to get template name and CustomizationPoint name from target?
+                    GraphHandler.RebuildContextData(nodeModel.graphDataName, target, "UniversalPipeline", "SurfaceDescription", true) ;
+                }
+            }
         }
 
         public override bool CanBeSubgraph() => isSubGraph;
