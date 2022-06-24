@@ -106,10 +106,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             InitializeContextFromTarget();
         }
 
+
+
         private void InitializeContextFromTarget()
         {
             // TODO (Brett) We should be doing this for all context nodes not just MaterialPropertyContext
-            GraphHandler.RebuildContextData("MaterialPropertyContext", )
+            GraphHandler.RebuildContextData("MaterialPropertyContext",) ;
         }
 
         public override bool CanBeSubgraph() => isSubGraph;
