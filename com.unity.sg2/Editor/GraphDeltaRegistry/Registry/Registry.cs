@@ -58,8 +58,33 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public class PropertyContext : IContextDescriptor // TODO: Delete me.
     {
         // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor...
-        public IEnumerable<ContextEntry> GetEntries() => new List<ContextEntry>();
-        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public IEnumerable<ContextEntry> GetEntries()
+            => new List<ContextEntry>()
+            {
+                new ContextEntry {
+                    fieldName = "ObjectSpacePosition",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Three,
+                    height = GraphType.Height.One
+                },
+                new ContextEntry {
+                    fieldName = "ObjectSpaceNormal",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Three,
+                    height = GraphType.Height.One
+                },
+                new ContextEntry {
+                    fieldName = "ObjectSpaceTangent",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Three,
+                    height = GraphType.Height.One
+                }
+            };
+
+public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
     }
 
@@ -88,6 +113,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             var registryEntry = Activator.CreateInstance<T>();
             return Register(registryEntry);
+        }
+        internal bool Unregister(RegistryKey key)
+        {
+            return builders.Remove(key);
         }
 
         /// <summary>

@@ -56,6 +56,11 @@ Shader ""Hidden/GraphErrorShader2""
     Fallback Off
 }";
 
+        static string[] GatherDependenciesFromSourceFile(string assetPath)
+        {
+            return ShaderGraphAssetUtils.GatherDependenciesForShaderGraphAsset(assetPath);
+        }
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             ShaderGraphAssetUtils.HandleImport(ctx);

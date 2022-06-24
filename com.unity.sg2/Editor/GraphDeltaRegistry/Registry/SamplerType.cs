@@ -118,6 +118,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void CopySubFieldData(FieldHandler src, FieldHandler dst)
         {
+            var aniso = GetAniso(src);
+            var filter = GetFilter(src);
+            var depth = GetDepthComparison(src);
+
+            SetAniso(dst, aniso);
+            SetFilter(dst, filter);
+            SetDepthComparison(dst, depth);
         }
 
         public ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
