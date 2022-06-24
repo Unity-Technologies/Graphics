@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             : base(name, model, ownerElement, parentClassName)
         {
             m_OutputRows = new List<SubgraphOutputRow>();
-            m_AvailableTypes = ShaderGraphStencil.k_SupportedBlackboardTypes;
+            m_AvailableTypes = ShaderGraphExampleTypes.SubgraphOutputTypes.ToArray();
 
             if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
             m_ContextNodeModel = contextNodeModel;

@@ -1,21 +1,22 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RemapNode : IStandardNode
     {
-        public static string Name = "Remap";
-        public static int Version = 1;
+        public static string Name => "Remap";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { -1f, -1f, -1f, -1f }),
-            new ParameterDescriptor("InMinMax", TYPE.Vec2, Usage.In, new float[] { -1f, 1f }),
-            new ParameterDescriptor("OutMinMax", TYPE.Vec2, Usage.In, new float[] { 0f, 1f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { -1f, -1f, -1f, -1f }),
+                new ParameterDescriptor("InMinMax", TYPE.Vec2, Usage.In, new float[] { -1f, 1f }),
+                new ParameterDescriptor("OutMinMax", TYPE.Vec2, Usage.In, new float[] { 0f, 1f }),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -6,17 +5,19 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TilingAndOffsetNode : IStandardNode
     {
-        public static string Name = "TilingAndOffset";
-        public static int Version = 1;
+        public static string Name => "TilingAndOffset";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = UV * Tiling + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-            new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] { 1f, 1f}),
-            new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] { 1f, 1f}),
+                new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

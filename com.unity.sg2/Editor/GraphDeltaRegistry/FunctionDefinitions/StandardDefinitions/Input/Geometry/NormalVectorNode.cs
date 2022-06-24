@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class NormalVectorNode : IStandardNode
     {
-        static string Name = "NormalVector";
-        static int Version = 1;
+        public static string Name => "NormalVector";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = NormalVector;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("NormalVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Normal)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("NormalVector", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Normal)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return field.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static void AddReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName)
+        public static NodeHandler AddReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName)
         {
             var node = handler.AddNode<ReferenceNodeBuilder>(nodeName);
             var inPort = node.GetPort(ReferenceNodeBuilder.kContextEntry);

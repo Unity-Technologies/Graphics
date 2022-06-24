@@ -488,10 +488,15 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void NodePreview_GetFuncAndBlockShaderCode()
         {
-            FunctionDescriptor passThroughFD = new(1, "PassThrough",
+            FunctionDescriptor passThroughFD = new(
+                "PassThrough",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In)
+                }
+            );
 
             var registry = new Registry();
             var graphHandler = new GraphHandler(registry);
@@ -523,22 +528,36 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void FunctionDescriptor_PreviewOutputTypes()
         {
-            FunctionDescriptor truncate = new(1, "Truncate",
+            FunctionDescriptor truncate = new(
+                "Truncate",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In)
+                }
+            );
 
-            FunctionDescriptor make = new(1, "Make",
+            FunctionDescriptor make = new(
+                "Make",
                 "Out.x = X; Out.y = Y;",
-                new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
-                new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
-                new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In));
-
-            FunctionDescriptor append = new(1, "Append",
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
+                    new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
+                    new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In)
+                }
+            );
+            FunctionDescriptor append = new(
+                "Append",
                 "Out.xy = In; Out.z = Z;",
-                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
-                new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In));
+                new ParameterDescriptor[]
+                {
+                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                    new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
+                    new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In)
+                }
+            );
 
             var registry = new Registry();
             var graphHandler = new GraphHandler(registry);
@@ -767,6 +786,89 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             previewMgr.NotifyNodeFlowChanged("SampleTex");
             material = previewMgr.RequestNodePreviewMaterial("SampleTex");
             Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+        }
+
+        [Test]
+        public void SubgraphNode()
+        {
+            FunctionDescriptor AddFunc = new(
+                "Add",
+                "Out = A + B;",
+                new ParameterDescriptor[]
+                {
+                        new("Out", TYPE.Vec3, GraphType.Usage.Out),
+                        new("A", TYPE.Vec3, GraphType.Usage.In),
+                        new("B", TYPE.Vec3, GraphType.Usage.In)
+                 }
+            );
+
+            var registry = new Registry();
+            var subgraphHandler = new GraphHandler(registry);
+            var graphHandler = new GraphHandler(registry);
+            var subgraphPreviewMgr = new HeadlessPreviewManager();
+            var previewMgr = new HeadlessPreviewManager();
+
+            // Registry base types/concepts
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
+            var addKey = registry.Register(AddFunc);
+            registry.Register<ShaderGraphContext>(); // SubgraphNodeBuilder assumes this is present for now.
+            registry.Register<TestDescriptor>();
+
+            // setup the preview for subgraph, standard stuff.
+            subgraphPreviewMgr.SetActiveRegistry(registry);
+            subgraphPreviewMgr.SetActiveGraph(subgraphHandler);
+            subgraphPreviewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
+
+            // .. and for main graph
+            previewMgr.SetActiveRegistry(registry);
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
+
+
+            // Add our context nodes to the subgraph
+            var inputKey = Registry.ResolveKey<PropertyContext>();
+            var input = subgraphHandler.AddContextNode(inputKey);
+
+            var outputKey = Registry.ResolveKey<ShaderGraphContext>();
+            var output = subgraphHandler.AddContextNode(outputKey);
+
+            // add inputs and an output to the context nodes
+            ContextBuilder.AddReferableEntry(input, TYPE.Vec3, "InA", registry, usage: ContextEntryEnumTags.PropertyBlockUsage.Included); // TODO: unexposed globals don't get initialized anywhere.
+            ContextBuilder.AddReferableEntry(input, TYPE.Vec3, "InB", registry, usage: ContextEntryEnumTags.PropertyBlockUsage.Included);
+            ContextBuilder.AddReferableEntry(output, TYPE.Vec3, "Out", registry);
+
+            // set the inputs to be 1,0,0 and 0,1,0-- should be 1,1,0 (yellow) when added.
+            // TODO: Feels bad that we have to explicitly set the output side of the context that feeds into the reference nodes.
+            GraphTypeHelpers.SetAsVec3(input.GetPort("InA").GetTypeField(), Vector3.right);
+            GraphTypeHelpers.SetAsVec3(input.GetPort("InB").GetTypeField(), Vector3.up);
+
+            // Setup the nodes.
+            subgraphHandler.AddReferenceNode("InRefA", inputKey.Name, "InA");
+            subgraphHandler.AddReferenceNode("InRefB", inputKey.Name, "InB");
+            subgraphHandler.AddNode(addKey, "Add");
+
+            // connect the reference nodes to the add node;
+            Assert.IsTrue(subgraphHandler.TryConnect("InRefA", ReferenceNodeBuilder.kOutput, "Add", "A"));
+            Assert.IsTrue(subgraphHandler.TryConnect("InRefB", ReferenceNodeBuilder.kOutput, "Add", "B"));
+            Assert.IsTrue(subgraphHandler.TryConnect("Add", "Out", outputKey.Name, "Out"));
+            subgraphHandler.ReconcretizeAll();
+
+            // Should be able to test the material color from Add now- within the subgraph
+            var material = subgraphPreviewMgr.RequestNodePreviewMaterial("Add");
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(material));
+
+            //////////////////////////////////////////////////////////////////
+            // Register the subgraph to the registry
+            var subgraphKey = new RegistryKey() { Name = "SubgraphKey", Version = 1 };
+            registry.Register(new SubGraphNodeBuilder(subgraphKey, subgraphHandler));
+
+            //// Add subgraph node to a graph and make sure that it's still yellow when used in the graph.
+            graphHandler.AddNode(subgraphKey, "SubgraphNode");
+            graphHandler.ReconcretizeAll();
+
+            material = previewMgr.RequestNodePreviewMaterial("SubgraphNode");
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(material));
         }
     }
 }

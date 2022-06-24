@@ -1,18 +1,16 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RotateNode : IStandardNode
     {
-        static string Name = "Rotate";
-        static int Version = 1;
+        public static string Name => "Rotate";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "RotateRadians",
 @"    UV -= Center;
 	sincos(Rotation, s, c);
@@ -23,16 +21,18 @@ namespace UnityEditor.ShaderGraph.Defs
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
     Out = UV;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "RotateDegrees",
 @"    Rotation = radians(Rotation);
     UV -= Center;
@@ -44,13 +44,16 @@ namespace UnityEditor.ShaderGraph.Defs
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
     Out = UV;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rMatrix", TYPE.Mat2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
+                    }
                 ),
             }
         );

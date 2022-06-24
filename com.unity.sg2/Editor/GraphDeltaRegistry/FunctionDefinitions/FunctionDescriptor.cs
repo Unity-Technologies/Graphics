@@ -12,22 +12,22 @@ namespace UnityEditor.ShaderGraph.Defs
     /// </summary>
     internal readonly struct FunctionDescriptor
     {
-        public int Version { get; }
         public string Name { get; } // Must be a valid reference name
         public IReadOnlyCollection<ParameterDescriptor> Parameters { get; }
         public string Body { get; }  // HLSL syntax. All out parameters should be assigned a value.
+        public IReadOnlyCollection<string> Includes { get; }
 
         public FunctionDescriptor(
-            int version,
             string name,
             string body,
-            params ParameterDescriptor[] parameters)
+            ParameterDescriptor[] parameters,
+            string[] includes = null)
         {
-            Version = version;
             Name = name;
             Parameters = parameters.ToList().AsReadOnly();
             Body = body;
+            var includesList = includes == null  ? new List<string>() : includes.ToList();
+            Includes = includesList.AsReadOnly();
         }
-
     }
 }

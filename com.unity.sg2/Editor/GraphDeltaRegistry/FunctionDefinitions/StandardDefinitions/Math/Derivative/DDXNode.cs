@@ -4,33 +4,39 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class DDXNode : IStandardNode
     {
-        public static string Name = "DDX";
-        public static int Version = 1;
+        public static string Name => "DDX";
+        public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new (
-                    1,
                     "Standard",
                     "Out = ddx(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new (
-                    1,
                     "Coarse",
                     "Out = ddx_coarse(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 ),
                 new (
-                    1,
                     "Fine",
                     "Out = ddx_fine(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
                 )
             }
         );

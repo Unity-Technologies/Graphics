@@ -1,18 +1,16 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RectangleNode : IStandardNode
     {
-        static string Name = "Rectangle";
-        static int Version = 1;
+        public static string Name => "Rectangle";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "RectangleFastest",
 
 @"    w.x = Width;
@@ -24,15 +22,17 @@ namespace UnityEditor.ShaderGraph.Defs
     d = saturate(1 - d / fwidth(d));
 #endif
     Out = min(d.x, d.y);",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "RectangleNicest",
 
 @"    UV = UV * 2.0 - 1.0;
@@ -47,14 +47,17 @@ namespace UnityEditor.ShaderGraph.Defs
     o = min(o, k * w * 2.0f);
 #endif
     Out = o.x * o.y;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
-                    new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
-                    new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("o", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("k", TYPE.Vec2, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("o", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("k", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+                    }
                 )
             }
         );

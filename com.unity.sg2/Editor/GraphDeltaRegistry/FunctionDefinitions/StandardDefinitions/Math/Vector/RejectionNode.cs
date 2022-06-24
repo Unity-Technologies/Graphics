@@ -1,20 +1,21 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RejectionNode : IStandardNode
     {
-        public static string Name = "Rejection";
-        public static int Version = 1;
+        public static string Name => "Rejection";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = A - (B * dot(A, B) / dot(B, B));",
-            new ParameterDescriptor("A", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("B", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("B", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

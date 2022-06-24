@@ -1,21 +1,21 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ReflectionProbeNode : IStandardNode
     {
-        static string Name = "ReflectionProbe";
-        static int Version = 1;
+        public static string Name => "ReflectionProbe";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "    Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);",
-            new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_ViewDirection),
-            new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
-            new ParameterDescriptor("LOD", TYPE.Float, GraphType.Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_ViewDirection),
+                new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
+                new ParameterDescriptor("LOD", TYPE.Float, GraphType.Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

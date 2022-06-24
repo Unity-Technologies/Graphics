@@ -9,11 +9,23 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
+        /// <summary>
+        /// There's a collection of required and potentially useful pieces of data
+        /// that are cached as a part of the preview management.
+        /// Things like the compiled shader, material, the shader code, etc. This
+        /// function caches the code local only to the node, whereas the subsequent
+        /// function GetBlockCode provides the code for all upstream nodes.
         public static string GetFunctionCode(NodeHandler node, Registry registry)
         {
             var builder = new ShaderBuilder();
-            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
+            //List<ShaderFunction> dependencies = new();
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry, out var dependencies);
             builder.AddDeclarationString(func);
+            if (dependencies.localFunctions != null)
+            {
+                foreach (var dep in dependencies.localFunctions)
+                    builder.AddDeclarationString(dep);
+            }
             return builder.ConvertToString();
         }
 
@@ -71,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
-        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables)
+        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var name = port.ID.LocalPath;
             var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
@@ -110,6 +122,15 @@ namespace UnityEditor.ShaderGraph.Generation
                     break;
             }
 
+            if (port.GetTypeField().GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
+            {
+                var fieldHandler = port.GetTypeField();
+                var tex = BaseTextureType.GetTextureAsset(fieldHandler);
+                if (tex != null && !defaultTextures.Contains((name, tex)))
+                    defaultTextures.Add((name, tex));
+            }
+
+
             outputVariables.Add(varOutBuilder.Build());
         }
 
@@ -141,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
                 {
-                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables);
+                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
                 }
             }
             //Create output type from evaluated root node outputs
@@ -151,6 +172,7 @@ namespace UnityEditor.ShaderGraph.Generation
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.LocalPath}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
+            var includes = new List<ShaderFoundry.IncludeDescriptor>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
                 //if the node is a context node (and not the root node) we recurse
@@ -177,7 +199,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
                 else
                 {
-                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref defaultTextures, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref defaultTextures, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, ref includes, registry);
                 }
             }
 
@@ -190,6 +212,12 @@ namespace UnityEditor.ShaderGraph.Generation
             foreach(var func in shaderFunctions)
             {
                 blockBuilder.AddFunction(func);
+            }
+            // TODO: https://github.com/Unity-Technologies/Graphics/pull/7079 and following changes in Graphics repo
+            // will allow includes to be added directly to ShaderFunctions instead.
+            foreach (var include in includes)
+            {
+                blockBuilder.AddInclude(include);
             }
 
             var inputType = BuildStructFromVariables(container, $"{BlockName}Input", inputVariables, blockBuilder);
@@ -375,22 +403,55 @@ namespace UnityEditor.ShaderGraph.Generation
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
             ref List<ShaderFunction> shaderFunctions,
+            ref List<ShaderFoundry.IncludeDescriptor> includes,
             Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
-            var func = nodeBuilder.GetShaderFunction(node, container, registry);
-            bool shouldAdd = true;
-            foreach(var existing in shaderFunctions)
+            List<ShaderFunction> localDependencies = new();
+            List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
+            var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
+
+            // Process functions and prevent from adding duplicates
+            if (dependencies.localFunctions != null)
+                localDependencies.AddRange(dependencies.localFunctions);
+            localDependencies.Add(func);
+            foreach (var function in localDependencies)
             {
-                if(FunctionsAreEqual(existing, func))
+                bool shouldAdd = true;
+                foreach (var existing in shaderFunctions)
                 {
-                    shouldAdd = false;
+                    if (FunctionsAreEqual(existing, function))
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd)
+                {
+                    shaderFunctions.Add(function);
                 }
             }
-            if(shouldAdd)
+
+            // Process includes and prevent from adding duplicates
+            if (dependencies.includes != null)
+                localIncludes.AddRange(dependencies.includes);
+            foreach (var include in localIncludes)
             {
-                shaderFunctions.Add(func);
+                bool shouldAdd = true;
+                foreach (var existing in includes)
+                {
+                    if (existing.Value == include.Value)
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd)
+                {
+                    includes.Add(include);
+                }
             }
+
             string arguments = "";
             foreach (var param in func.Parameters)
             {
@@ -509,6 +570,82 @@ namespace UnityEditor.ShaderGraph.Generation
             foreach(var connected in port.GetConnectedPorts())
             {
                 yield return connected.GetNode();
+            }
+        }
+
+
+        internal static void GenerateSubgraphBody(
+            NodeHandler root,
+            ShaderContainer container,
+            ref ShaderFunction.Builder builder,
+            ref List<ShaderFunction> shaderFunctions,
+            ref List<ShaderFoundry.IncludeDescriptor> includes)
+        {
+            var registry = root.Registry;
+
+            // For each node, we need to add a function call to the body.
+            foreach (var node in GatherTreeLeafFirst(root))
+            {
+                if (node.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name
+                || node.GetRegistryKey().Name == ReferenceNodeBuilder.kRegistryKey.Name)
+                    continue;
+
+                var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
+                var func = nodeBuilder.GetShaderFunction(node, container, root.Registry, out var dependencies);
+
+                // build up our dependencies...
+                if (dependencies.includes != null)
+                    includes.Union(dependencies.includes);
+                if (dependencies.localFunctions != null)
+                    shaderFunctions.Union(dependencies.localFunctions);
+                if (!shaderFunctions.Contains(func))
+                    shaderFunctions.Add(func);
+
+                // gather up the arguments for this subnode
+                List<string> arguments = new();
+                foreach (var parameter in func.Parameters)
+                {
+                    var port = node.GetPort(parameter.Name);
+
+                    var argument = $"sg_{node.ID.LocalPath}_{port.ID.LocalPath}";
+                    string initializer = null;
+                    var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                    var connectedNode = connectedPort?.GetNode() ?? null;
+                    bool addLocalVariable = true;
+
+                    bool isReference = connectedNode?.GetRegistryKey().Name == ReferenceNodeBuilder.kRegistryKey.Name;
+                    bool isContextOut = connectedNode?.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name;
+
+                    // if it's a reference node, we can use the name of the contextEntry port, which is the name of the input port on the rootnode.
+                    if (port.IsInput && isReference)
+                    {
+                        //root is providing the argument, but still goes through a reference node.
+                        argument = connectedNode.GetPort(ReferenceNodeBuilder.kContextEntry).GetConnectedPorts().First().LocalID.Replace("out_", "");
+                        addLocalVariable = false;
+                    }
+                    // a normal connect-- we just use the normally generated argument name, but from the connected node/port.
+                    else if (port.IsInput && connectedPort != null)
+                    {
+                        argument = $"sg_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+
+                    }
+                    // not connected, so we need an initializer to setup the default value.
+                    else if (port.IsInput)
+                    {
+                        initializer = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
+                    }
+                    // we are connected to a subgraph output, which means we can just use the connected ports name directly as the argument.
+                    else if (!port.IsInput && isContextOut)
+                    {
+                        argument = "out_" + connectedPort.LocalID;
+                        addLocalVariable = false;
+                    }
+
+                    arguments.Add(argument);
+                    if (addLocalVariable)
+                        builder.AddVariableDeclarationStatement(parameter.Type, argument, initializer);
+                }
+                builder.CallFunction(func, arguments.ToArray());
             }
         }
     }

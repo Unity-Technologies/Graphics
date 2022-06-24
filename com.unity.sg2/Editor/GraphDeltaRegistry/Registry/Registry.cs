@@ -89,6 +89,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var registryEntry = Activator.CreateInstance<T>();
             return Register(registryEntry);
         }
+        internal bool Unregister(RegistryKey key)
+        {
+            return builders.Remove(key);
+        }
 
         /// <summary>
         /// Registers a single function (represented as a pure data FunctionDescriptor)
@@ -97,9 +101,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// NOTE: Registering just a function is a special case.
         ///       Generally nodes should be registered using Register(NodeDescriptor).
         /// </summary>
-        internal RegistryKey Register(FunctionDescriptor functionDescriptor)
+        internal RegistryKey Register(FunctionDescriptor functionDescriptor, int version = 1)
         {
-            var builder = new FunctionDescriptorNodeBuilder(functionDescriptor);
+            var builder = new FunctionDescriptorNodeBuilder(functionDescriptor, version);
             bool wasSuccess = Register(builder);
             if (!wasSuccess)
             {
@@ -139,7 +143,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var registryFlags = contextNodeBuilder.GetRegistryFlags();
             if(registryFlags == RegistryFlags.Base)
                 return (IContextDescriptor)contextNodeBuilder;
-
             return null;
         }
 

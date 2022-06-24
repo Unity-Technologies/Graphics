@@ -21,8 +21,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         RegistryKey IRegistryEntry.GetRegistryKey() => new RegistryKey { Name = "SamplerStateExampleNode", Version = 1 };
 
-        ShaderFunction INodeDefinitionBuilder.GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        ShaderFunction INodeDefinitionBuilder.GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             // This example just naively inlines a sampler state type so we can test if connections are working correctly.
             // (since textures nodes shouldn't generate sampler states if they are not connected, they should just use the one that comes w/the texture).
             var builder = new ShaderFunction.Builder(container, "SamplerStateExampleNode");
@@ -117,6 +118,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void CopySubFieldData(FieldHandler src, FieldHandler dst)
         {
+            var aniso = GetAniso(src);
+            var filter = GetFilter(src);
+            var depth = GetDepthComparison(src);
+
+            SetAniso(dst, aniso);
+            SetFilter(dst, filter);
+            SetDepthComparison(dst, depth);
         }
 
         public ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)

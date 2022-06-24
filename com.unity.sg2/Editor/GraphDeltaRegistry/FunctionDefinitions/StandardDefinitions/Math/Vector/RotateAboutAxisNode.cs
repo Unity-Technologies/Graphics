@@ -1,18 +1,16 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class RotateAboutAxisNode : IStandardNode
     {
-        static string Name = "RotateAboutAxis";
-        static int Version = 1;
+        public static string Name => "RotateAboutAxis";
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            new FunctionDescriptor[] {
+            functions: new FunctionDescriptor[] {
                 new(
-                    1,
                     "RotateAboutAxisRadians",
 @"    sincos(Rotation, s, c);
     one_minus_c = 1.0 - c;
@@ -27,17 +25,19 @@ namespace UnityEditor.ShaderGraph.Defs
 	rot_mat[2].y = one_minus_c * Axis.y * Axis.z + Axis.x * s;
 	rot_mat[2].z = 	one_minus_c * Axis.z * Axis.z + c;
     Out = mul(rot_mat,  In);",
-                    new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 ),
                 new(
-                    1,
                     "RotateAboutAxisDegrees",
 @"    Rotation = radians(Rotation);
     sincos(Rotation, s, c);
@@ -53,14 +53,17 @@ namespace UnityEditor.ShaderGraph.Defs
 	rot_mat[2].y = one_minus_c * Axis.y * Axis.z + Axis.x * s;
 	rot_mat[2].z = 	one_minus_c * Axis.z * Axis.z + c;
     Out = mul(rot_mat,  In);",
-                    new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
-                    new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("s", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
-                    new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
+                        new ParameterDescriptor("s", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("one_minus_c", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("rot_mat", TYPE.Mat3, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                    }
                 )
             }
         );

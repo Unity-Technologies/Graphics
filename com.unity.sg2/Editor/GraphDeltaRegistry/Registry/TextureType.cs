@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEngine;
@@ -27,8 +28,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             GraphTypeHelpers.InitGraphType(color);
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             // Need to ignore the sampler if there is no user data on it or if it isn't connected, textures have one they are loaded w/already.
             var samplerPort = node.GetPort(kSampler);
             bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
@@ -72,8 +74,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             node.AddPort<BaseTextureType>(kOutput, false, registry);
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, GetRegistryKey().Name);
             var field = node.GetPort(kInlineStatic).GetTypeField();
             var shaderType = registry.GetShaderType(field, container);
@@ -142,6 +145,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public void CopySubFieldData(FieldHandler src, FieldHandler dst)
         {
             SetTextureType(dst, GetTextureType(src));
+            SetTextureAsset(dst, GetTextureAsset(src));
         }
 
         ShaderType ITypeDefinitionBuilder.GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)

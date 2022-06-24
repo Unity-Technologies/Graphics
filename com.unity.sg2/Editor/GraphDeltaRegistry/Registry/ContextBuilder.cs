@@ -1,18 +1,35 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderFoundry;
+using UnityEditor.ShaderGraph.Defs;
 using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
+using static UnityEditor.ShaderGraph.GraphDelta.INodeDefinitionBuilder;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal class ContextBuilder : INodeDefinitionBuilder
     {
-        public static readonly RegistryKey kRegistryKey = new RegistryKey { Name = "_Context", Version = 1 };
+        public static readonly RegistryKey kRegistryKey = new RegistryKey {Name = "_Context", Version = 1};
         public RegistryKey GetRegistryKey() => kRegistryKey;
 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
+        public static void AddContextEntry(NodeHandler contextNode, ITypeDescriptor type, string fieldName, Registry registry)
+        {
+            NodeBuilderUtils.ParameterDescriptorToField(
+                new ParameterDescriptor(fieldName, type, GraphType.Usage.In),
+                TYPE.Vec4,
+                contextNode,
+                registry);
 
-        static public void AddContextEntry(NodeHandler contextNode, ContextEntry entry, Registry registry)
+            NodeBuilderUtils.ParameterDescriptorToField(
+                new ParameterDescriptor($"out_{fieldName}", type, GraphType.Usage.Out),
+                TYPE.Vec4,
+                contextNode,
+                registry);
+        }
+
+        public static void AddContextEntry(NodeHandler contextNode, ContextEntry entry, Registry registry)
         {
             // TODO/Problem: Only good for GraphType
             var inPort = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);
@@ -25,23 +42,43 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             ITypeDefinitionBuilder.CopyTypeField(inPort.GetTypeField(), outPort.GetTypeField(), registry);
         }
 
-        public static void AddReferableEntry(NodeHandler contextNode,
-                                             ContextEntry entry,
-                                             Registry registry,
-                                             PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
-                                             DataSource source = DataSource.Global,
-                                             string displayName = null,
-                                             string defaultValue = null)
+        static void SetUpReferableEntry(PortHandler port,
+            PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
+            DataSource source = DataSource.Global,
+            string displayName = null,
+            string defaultValue = null)
         {
-            AddContextEntry(contextNode, entry, registry);
-            var port = contextNode.GetPort(entry.fieldName);
             port.AddField(kPropertyBlockUsage, usage);
             port.AddField(kDataSource, source);
-            if(displayName != null)
+            if (displayName != null)
                 port.AddField(kDisplayName, displayName);
-            if(defaultValue != null)
+            if (defaultValue != null)
                 port.AddField(kDefaultValue, defaultValue);
+        }
 
+        public static void AddReferableEntry(NodeHandler contextNode,
+            ContextEntry entry,
+            Registry registry,
+            PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
+            DataSource source = DataSource.Global,
+            string displayName = null,
+            string defaultValue = null)
+        {
+            AddContextEntry(contextNode, entry, registry);
+            SetUpReferableEntry(contextNode.GetPort(entry.fieldName), usage, source, displayName, defaultValue);
+        }
+
+        public static void AddReferableEntry(NodeHandler contextNode,
+            ITypeDescriptor type,
+            string fieldName,
+            Registry registry,
+            PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
+            DataSource source = DataSource.Global,
+            string displayName = null,
+            string defaultValue = null)
+        {
+            AddContextEntry(contextNode, type, fieldName, registry);
+            SetUpReferableEntry(contextNode.GetPort(fieldName), usage, source, displayName, defaultValue);
         }
 
         static public void RemoveContextEntry(NodeHandler contextNode, string contextEntryName)
@@ -73,11 +110,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out Dependencies deps)
         {
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.
             // It's also pointless unless a similar strategy is taken for Reference nodes- who also need a fair amount of graph processing to function.
+            deps = new();
             return ShaderFunction.Invalid;
         }
     }

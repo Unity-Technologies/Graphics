@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 
@@ -8,8 +9,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     {
         public const string kContextEntry = "Input";
         public const string kOutput = "Output";
+        public static readonly RegistryKey kRegistryKey = new RegistryKey { Name = "Reference", Version = 1 };
 
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
+        public RegistryKey GetRegistryKey() => kRegistryKey;
+
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
         public void BuildNode(NodeHandler node, Registry registry)
@@ -32,8 +35,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
         {
+            deps = new();
             var port = node.GetPort(kContextEntry);
             var field = port.GetTypeField();
             var shaderType = registry.GetShaderType(field, container);

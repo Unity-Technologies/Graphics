@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -6,21 +5,23 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TexelSizeNode : IStandardNode
     {
-        public static string Name = "TexelSize";
-        public static int Version = 1;
+        public static string Name => "TexelSize";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"Width = Texture.texelSize.z;
 Height = Texture.texelSize.w;
 TexelWidth = Texture.texelSize.x;
 TexelHeight = Texture.texelSize.y;",
-            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-            new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("Height", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("TexelWidth", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("TexelHeight", TYPE.Float, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("Height", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("TexelWidth", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("TexelHeight", TYPE.Float, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

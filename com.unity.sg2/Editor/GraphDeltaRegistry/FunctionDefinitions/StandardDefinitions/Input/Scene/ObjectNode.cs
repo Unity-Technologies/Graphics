@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ObjectNode : IStandardNode
     {
-        static string Name = "Object";
-        static int Version = 1;
+        public static string Name => "Object";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"temp1.x = UNITY_MATRIX_M[0].x;
 temp1.y = UNITY_MATRIX_M[1].x;
@@ -25,11 +22,14 @@ Scale.y = length(temp2);
 Scale.z = length(temp3);
 Position = SHADERGRAPH_OBJECT_POSITION;
 ",
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("temp1", TYPE.Vec3, GraphType.Usage.Local),
-            new ParameterDescriptor("temp2", TYPE.Vec3, GraphType.Usage.Local),
-            new ParameterDescriptor("temp3", TYPE.Vec3, GraphType.Usage.Local)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("temp1", TYPE.Vec3, GraphType.Usage.Local),
+                new ParameterDescriptor("temp2", TYPE.Vec3, GraphType.Usage.Local),
+                new ParameterDescriptor("temp3", TYPE.Vec3, GraphType.Usage.Local)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

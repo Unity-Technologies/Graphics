@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class ViewDirectionNode : IStandardNode
     {
-        static string Name = "ViewDirection";
-        static int Version = 1;
+        public static string Name => "ViewDirection";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = ViewDir;",
-            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_ViewDirection)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_ViewDirection)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

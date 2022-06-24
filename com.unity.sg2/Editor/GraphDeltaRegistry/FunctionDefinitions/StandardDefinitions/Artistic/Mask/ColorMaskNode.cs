@@ -5,18 +5,20 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class ColorMaskNode : IStandardNode
     {
-        public static string Name = "ColorMask";
-        public static int Version = 1;
+        public static string Name => "ColorMask";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 "  Out = saturate(1 - (distance(MaskColor, In) - Range) / max(Fuzziness, 1e-5));",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Range", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("Range", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class MainLightDirectionNode : IStandardNode
     {
-        static string Name = "MainLightDirection";
-        static int Version = 1;
+        public static string Name => "MainLightDirection";
+        public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
 @"#if SHADERGRAPH_PREVIEW
 Direction = half3(-0.5, -0.5, 0);
@@ -17,7 +14,10 @@ Direction = half3(-0.5, -0.5, 0);
 Direction = SHADERGRAPH_MAIN_LIGHT_DIRECTION();
 #endif
 ",
-            new ParameterDescriptor("Direction", TYPE.Vec3, GraphType.Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("Direction", TYPE.Vec3, GraphType.Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

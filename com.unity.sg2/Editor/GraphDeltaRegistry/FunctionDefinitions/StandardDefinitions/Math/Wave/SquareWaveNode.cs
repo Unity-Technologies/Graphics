@@ -1,19 +1,20 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SquareWaveNode : IStandardNode
     {
-        public static string Name = "SquareWave";
-        public static int Version = 1;
+        public static string Name => "SquareWave";
+        public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
-            Version,
             Name,
             "Out = 1.0 - 2.0 * round(frac(In));",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
