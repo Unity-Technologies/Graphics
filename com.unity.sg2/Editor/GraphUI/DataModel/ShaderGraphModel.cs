@@ -103,7 +103,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphHandlerBox.OnEnable();
             targetSettingsBox.OnEnable();
             base.OnEnable();
+            InitializeContextFromTarget();
         }
+
+        private void InitializeContextFromTarget()
+        {
+            // TODO (Brett) We should be doing this for all context nodes not just MaterialPropertyContext
+            GraphHandler.RebuildContextData("MaterialPropertyContext", )
+        }
+
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
         {
