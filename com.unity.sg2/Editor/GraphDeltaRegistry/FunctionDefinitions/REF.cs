@@ -102,11 +102,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static readonly ReferenceValueDescriptor WorldSpace_CameraPosition = new("");
 
         public static readonly ReferenceValueDescriptor ObjectSpace = new("");
-        public static readonly ReferenceValueDescriptor ObjectSpace_Normal = new("");
-        public static readonly ReferenceValueDescriptor ObjectSpace_Tangent = new("");
+        public static readonly ReferenceValueDescriptor ObjectSpace_Normal = new("ObjectSpaceNormal");
+        public static readonly ReferenceValueDescriptor ObjectSpace_Tangent = new("ObjectSpaceTangent");
         public static readonly ReferenceValueDescriptor ObjectSpace_Bitangent = new("");
         public static readonly ReferenceValueDescriptor ObjectSpace_ViewDirection = new("");
-        public static readonly ReferenceValueDescriptor ObjectSpace_Position = new("");
+        public static readonly ReferenceValueDescriptor ObjectSpace_Position = new("ObjectSpacePosition");
 
         public static readonly ReferenceValueDescriptor ViewSpace = new("");
         public static readonly ReferenceValueDescriptor ViewSpace_Normal = new("");
