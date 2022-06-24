@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -14,14 +15,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (m_Model is not GraphDataVariableDeclarationModel variableDeclarationModel) yield break;
 
-            yield return new SGModelPropertyField<ContextEntryEnumTags.DataSource>(m_OwnerElement.RootView,
-                m_Model,
-                nameof(GraphDataVariableDeclarationModel.ShaderDeclaration),
-                "Shader Declaration",
-                null,
-                typeof(SetShaderDeclarationCommand));
+            if (variableDeclarationModel.IsExposable)
+            {
+                yield return new SGModelPropertyField<ContextEntryEnumTags.DataSource>(m_OwnerElement.RootView,
+                    m_Model,
+                    nameof(GraphDataVariableDeclarationModel.ShaderDeclaration),
+                    "Shader Declaration",
+                    null,
+                    typeof(SetShaderDeclarationCommand));
+            }
         }
 
-        public override bool IsEmpty() => false;
+        public override bool IsEmpty() => !GetFields().Any();
     }
 }
