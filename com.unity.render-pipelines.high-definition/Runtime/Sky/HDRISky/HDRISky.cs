@@ -75,6 +75,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter            rectLightShadow     = new BoolParameter(false);
 
         /// <summary>
+        /// Unity calls this method when it loads the class.
+        /// </summary>
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            // This is kind of a migration step, as on previous HDRP versions, HDRI sky editor
+            // didn't correctly set these values
+            upperHemisphereLuxValue.overrideState = hdriSky.overrideState;
+            upperHemisphereLuxColor.overrideState = hdriSky.overrideState;
+        }
+
+        /// <summary>
         /// Returns the hash code of the HDRI sky parameters.
         /// </summary>
         /// <returns>The hash code of the HDRI sky parameters.</returns>
