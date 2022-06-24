@@ -29,6 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var target = renderRequest.target;
 
+            bool renderToTexture = IsCameraRenderToTexture(hdCamera);
+            bool renderOnRenderer = IsCameraRequiredOnRenderer(hdCamera);
+            var distributedMode = GetDistributedMode();
+
             var renderGraphParams = new RenderGraphParameters()
             {
                 scriptableRenderContext = renderContext,
@@ -36,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameIndex = m_FrameCount
             };
 
-            if (GetDistributedMode() == DistributedMode.Renderer)
+            if (distributedMode == DistributedMode.Renderer && !renderToTexture)
             {
                 Const.UserInfo userInfo = SocketClient.Instance.UserInfo;
                 // TODO: We don't have a good place to store this for now so we create a new one each frame
@@ -68,6 +72,20 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             TextureHandle vtFeedbackBuffer = TextureHandle.nullHandle;
 #endif
+
+            if (distributedMode == DistributedMode.Renderer && renderToTexture && !renderOnRenderer)
+            {
+                // Don't do any rendering for not required cameras on renderer
+                BlitWhiteBuffer(m_RenderGraph, colorBuffer);
+                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                {
+                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, colorBuffer, backBuffer, viewIndex);
+                }
+
+                m_RenderGraph.Execute();
+
+                return;
+            }
 
             LightingBuffers lightingBuffers = new LightingBuffers();
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
@@ -178,7 +196,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 
-                if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.None)
+                if (distributedMode == DistributedMode.Renderer ||
+                    distributedMode == DistributedMode.None ||
+                    (distributedMode == DistributedMode.Merger && renderToTexture))
                 {
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
@@ -228,7 +248,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     prepassOutput.resolvedMotionVectorsBuffer = ResolveMotionVector(m_RenderGraph, hdCamera, prepassOutput.motionVectorsBuffer);
                 }
 
-                if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.None)
+                if (distributedMode == DistributedMode.Renderer ||
+                    distributedMode == DistributedMode.None ||
+                    (distributedMode == DistributedMode.Merger && renderToTexture))
                 {
                     // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
                     if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
@@ -284,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 }
 
-                if (GetDistributedMode() == DistributedMode.Merger)
+                if (distributedMode == DistributedMode.Merger && !renderToTexture)
                 {
                     bool hasConnection = false;
                     for (int i = 0; i < SocketServer.Instance.userCount; ++i)
@@ -299,11 +321,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         BlitWhiteBuffer(m_RenderGraph, colorBuffer);
                 }
 
-                if (GetDistributedMode() == DistributedMode.Merger || GetDistributedMode() == DistributedMode.None)
+                if (distributedMode == DistributedMode.Merger ||
+                    distributedMode == DistributedMode.None ||
+                    (distributedMode == DistributedMode.Renderer && renderToTexture && renderOnRenderer))
                     RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
             }
 
-            if (GetDistributedMode() == DistributedMode.Renderer && CurrentFrameID >= 0 && CurrentFrameID != LastSentFrameID)
+            if (distributedMode == DistributedMode.Renderer && !renderToTexture && CurrentFrameID >= 0 && CurrentFrameID != LastSentFrameID)
             {
                 if (GetVideoMode())
                     SendColorBufferVideo(m_RenderGraph, colorBuffer);
@@ -312,7 +336,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Only in merger mode we do all the rest rendering
-            if (GetDistributedMode() == DistributedMode.Merger || GetDistributedMode() == DistributedMode.None)
+            if (distributedMode == DistributedMode.Merger ||
+                distributedMode == DistributedMode.None ||
+                (distributedMode == DistributedMode.Renderer && renderToTexture && renderOnRenderer))
             {
                 // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
                 var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);

@@ -53,6 +53,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && s_videoMode;
         }
 
+        internal static bool IsCameraRenderToTexture(HDCamera hdCamera)
+        {
+            return hdCamera.camera.targetTexture != null; // TODO: Is there a better criteria?
+        }
+
+        internal static bool IsCameraRequiredOnRenderer(HDCamera hdCamera)
+        {
+            return false; // TODO: Placeholder
+        }
+
         internal static int CurrentFrameID { get; set; } = -1;
 
         private static int LastSentFrameID { get; set; }
@@ -310,7 +320,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using var builder = renderGraph.AddRenderPass<BlitWhitePassData>($"Blit White Buffer", out var passData);
 
-            passData.whiteTexture = builder.ReadTexture(renderGraph.defaultResources.whiteTexture);
+            var whiteTexture = TextureXR.useTexArray ?
+                renderGraph.defaultResources.whiteTextureXR :
+                renderGraph.defaultResources.whiteTexture;
+            passData.whiteTexture = builder.ReadTexture(whiteTexture);
             passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
             builder.SetRenderFunc(
                 (BlitWhitePassData data, RenderGraphContext context) =>

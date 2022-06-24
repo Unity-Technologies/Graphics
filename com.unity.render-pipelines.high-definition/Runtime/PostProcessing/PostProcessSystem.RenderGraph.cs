@@ -276,6 +276,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Not considered as a post-process so it's not affected by its enabled state
             if (!IsExposureFixed(hdCamera) && m_ExposureControlFS)
             {
+
+                bool renderToTexture = HDRenderPipeline.IsCameraRenderToTexture(hdCamera);
+                bool renderOnRenderer = HDRenderPipeline.IsCameraRequiredOnRenderer(hdCamera);
+                var distributedMode = HDRenderPipeline.GetDistributedMode();
+
                 var exposureParameters = PrepareExposureParameters(hdCamera);
 
                 RTHandle prevExposure = null;
@@ -286,11 +291,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var prevExposureHandle = renderGraph.ImportTexture(prevExposure);
                 var nextExposureHandle = renderGraph.ImportTexture(nextExposure);
 
-                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Renderer)
+                if (distributedMode == HDRenderPipeline.DistributedMode.Renderer && !renderToTexture)
                     ReceiveExposurePass(renderGraph, prevExposureHandle, nextExposureHandle, hdCamera);
 
-                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Merger ||
-                    HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.None)
+                if (distributedMode == HDRenderPipeline.DistributedMode.Merger ||
+                    distributedMode == HDRenderPipeline.DistributedMode.None ||
+                    (distributedMode == HDRenderPipeline.DistributedMode.Renderer && renderToTexture && renderOnRenderer))
                 {
                     using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
@@ -331,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Merger)
+                if (distributedMode == HDRenderPipeline.DistributedMode.Merger && !renderToTexture)
                     SendExposurePass(renderGraph, prevExposureHandle, nextExposureHandle, hdCamera);
 
                 if (hdCamera.resetPostProcessingHistory)
