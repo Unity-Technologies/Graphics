@@ -280,6 +280,7 @@ Shader "HDRP/Unlit"
 
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback. All other uses will pass 1.
             ZWrite [_ZWrite]
             ZTest [_ZTestDepthEqualForOpaque]
 
