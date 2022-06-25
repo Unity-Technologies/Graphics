@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The texture object is locked in native plugin so the process is safe across the main thread and the render thread
         }
 
+        [AOT.MonoPInvokeCallback(typeof(Codec.OnCodecComplete))]
         private static void SendEncodedData(IntPtr data, int size, int frameId)
         {
             var rendererId = SocketClient.Instance.UserInfo.userID;
