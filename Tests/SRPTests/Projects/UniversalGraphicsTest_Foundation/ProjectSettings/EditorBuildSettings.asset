@@ -320,4 +320,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/250_AlphaToCoverage/250_AlphaToCoverage_MSAA.unity
     guid: 5a37821ccdba7204096a71421610f99a
+  - enabled: 1
+    path: Assets/Scenes/252_RenderRequest.unity
+    guid: 81446d3c9a10ff94a873a19e2d8804e9
   m_configObjects: {}
