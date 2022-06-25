@@ -860,6 +860,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RegisteredLightDataPendingPlacement = default;
                 m_RecordsPendingPlacement.Dispose();
                 m_RecordsPendingPlacement = default;
+                m_TransformCaches.Dispose();
+                m_TransformCaches = default;
             }
         }
 

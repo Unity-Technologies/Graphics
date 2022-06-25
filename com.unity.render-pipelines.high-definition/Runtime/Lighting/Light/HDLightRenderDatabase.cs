@@ -722,6 +722,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HDShadowRequestStorage = default;
             m_HDShadowRequestIndicesStorage.Dispose();
             m_HDShadowRequestIndicesStorage = default;
+            m_CachedViewPositionsStorage.Dispose();
+            m_CachedViewPositionsStorage = default;
             m_FrustumPlanesStorage.Dispose();
             m_FrustumPlanesStorage = default;
             m_HDShadowRequestsCreated = false;
