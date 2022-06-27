@@ -198,6 +198,10 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Draw_Rendering_Antialiasing_TAA_Advanced(SerializedHDCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.taaBaseBlendFactor, Styles.TAABaseBlendFactor);
+                using (new EditorGUI.DisabledScope(s_IsRunningTAAU))
+                {
+                    EditorGUILayout.PropertyField(p.taaJitterScale, Styles.TAAJitterScale);
+                }
             }
 
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)

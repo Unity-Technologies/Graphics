@@ -329,6 +329,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
         public float taaBaseBlendFactor = 0.875f;
 
+        /// <summary> Scale to apply to the jittering applied when TAA is enabled. </summary>
+        [Range(0.1f, 1.0f)]
+        public float taaJitterScale = 1.0f;
+
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
@@ -596,6 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
             data.taaBaseBlendFactor = taaBaseBlendFactor;
+            data.taaJitterScale = taaJitterScale;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;
