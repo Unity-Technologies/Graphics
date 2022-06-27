@@ -15,8 +15,17 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
+        /// <summary>
+        /// If it is a global volume.
+        /// </summary>
         public bool globalVolume = false;
+        /// <summary>
+        /// The size
+        /// </summary>
         public Vector3 size = new Vector3(10, 10, 10);
+        /// <summary>
+        /// The geometry Distance Offset used during placement.
+        /// </summary>
         [HideInInspector, Range(0f, 2f)]
         public float geometryDistanceOffset = 0.2f;
 

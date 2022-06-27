@@ -150,8 +150,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (EditorWindow.HasOpenInstances<HDWizard>())
             {
-                HDWizard window = (HDWizard)EditorWindow.GetWindow(typeof(HDWizard));
-                window.ReBuildEntryList();
+                EditorApplication.update += DelayedRebuildEntryList;
+
+                // Case 1407981: Calling GetWindow in InitializeOnLoadMethod doesn't work and creates a new window instead of getting the existing one.
+                void DelayedRebuildEntryList()
+                {
+                    EditorApplication.update -= DelayedRebuildEntryList;
+                    HDWizard window = EditorWindow.GetWindow<HDWizard>(Style.title.text);
+                    window.ReBuildEntryList();
+                }
             }
         }
 
