@@ -734,7 +734,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// CoreUtils.SetRenderTarget(ctx.cmd, renderTexture.colorBuffer, renderTexture.depthBuffer, clearFlag);
             ///
             /// float aspectRatio = renderTexture.width / (float)renderTexture.height;
-            /// using (new HDRenderPipeline.OverrideCameraRendering(ctx, overrideCamera, aspectRatio))
+            /// using (new CustomPassUtils.OverrideCameraRendering(ctx, overrideCamera, aspectRatio))
             /// {
             ///     ...
             /// }
