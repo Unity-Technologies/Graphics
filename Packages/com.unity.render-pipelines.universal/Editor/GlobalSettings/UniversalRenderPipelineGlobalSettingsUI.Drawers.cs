@@ -34,24 +34,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        static void DrawRenderGraphCheckBox(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                if (serialized is SerializedUniversalRenderPipelineGlobalSettings universalRenderPipelineGlobalSettings)
-                {
-                    var oldWidth = EditorGUIUtility.labelWidth;
-                    EditorGUIUtility.labelWidth = RenderPipelineGlobalSettingsUI.Styles.labelWidth;
-
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.enableRenderGraph, Styles.enableRenderGraphLabel);
-
-                    EditorGUILayout.Space();
-                    EditorGUIUtility.labelWidth = oldWidth;
-
-                }
-            }
-        }
-
         static void OnContextClickRenderingLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
         {
             var menu = new GenericMenu();
@@ -81,18 +63,11 @@ namespace UnityEditor.Rendering.Universal
             }))),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
-        static readonly CED.IDrawer RenderGraphSection = CED.Group(
-            CED.Group(DrawRenderGraphCheckBox),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
         #endregion
 
         public static readonly CED.IDrawer Inspector = CED.Group(
                 RenderingLayerNamesSection,
                 MiscSection
-#if RENDER_GRAPH_ENABLED
-                , RenderGraphSection
-#endif
-            );
+        );
     }
 }

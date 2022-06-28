@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mixedLightingSupportedProp { get; }
         public SerializedProperty useRenderingLayers { get; }
         public SerializedProperty debugLevelProp { get; }
+        public SerializedProperty enableRenderGraph { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
 
@@ -130,6 +131,7 @@ namespace UnityEditor.Rendering.Universal
             mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
             useRenderingLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
+            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 
