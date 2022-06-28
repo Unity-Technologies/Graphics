@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.10.0]
 
 ### Fixed
-- Fixed accumulation when shutter interval is zero
+- Fixed accumulation when shutter interval is zero.
 
 ## [10.9.0] - 2021-12-06
 
