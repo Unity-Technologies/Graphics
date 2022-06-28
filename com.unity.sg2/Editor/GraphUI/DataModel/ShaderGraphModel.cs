@@ -480,6 +480,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Initialize CLDS data prior to initializing the constant
                 ShaderGraphStencil.InitVariableDeclarationModel(copiedVariable, copiedVariable.InitializationModel);
                 copiedVariable.CreateInitializationValue();
+                // Setting the stored value fails for textures right now, also need a way to store texture asset reference
+                if(baseShaderGraphConstant is TextureTypeConstant textureTypeConstant)
+                {
+                    var builder = RegistryInstance.GetTypeBuilder(sourceShaderGraphConstant.GetField().GetRegistryKey());
+                    builder.BuildType(textureTypeConstant.GetField(), GraphHandler.registry);
+                    builder.CopySubFieldData(sourceShaderGraphConstant.GetField(), textureTypeConstant.GetField());
+                }
                 copiedVariable.InitializationModel.ObjectValue = baseShaderGraphConstant.GetStoredValue();
             }
 

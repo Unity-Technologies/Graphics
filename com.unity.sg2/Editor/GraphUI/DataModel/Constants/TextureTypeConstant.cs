@@ -11,17 +11,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void StoreValue()
         {
             var currentTexture = GetValue();
-            if(currentTexture != null)
-                storedTexture = (Texture)currentTexture;
+            if (currentTexture != null)
+            {
+                var textureObject = (Texture)currentTexture;
+                var texturePath = AssetDatabase.GetAssetPath(textureObject.GetInstanceID());
+                textureAssetGuid = AssetDatabase.GUIDFromAssetPath(texturePath).ToString();
+            }
         }
 
         public override object GetStoredValue()
         {
-            return storedTexture;
+            if (!String.IsNullOrEmpty(textureAssetGuid))
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(textureAssetGuid);
+                var textureObject = AssetDatabase.LoadAssetAtPath<Texture>(assetPath);
+                return textureObject;
+            }
+
+            return null;
+            //return ObjectValue;
         }
 
-        [SerializeReference]
-        Texture storedTexture;
+        [SerializeField]
+        string textureAssetGuid;
 
         override protected object GetValue() => BaseTextureType.GetTextureAsset(GetField());
         override protected void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
