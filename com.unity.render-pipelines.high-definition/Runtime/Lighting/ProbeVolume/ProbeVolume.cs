@@ -1309,14 +1309,36 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hitRadianceCache == null || !hitRadianceCache.IsValid() || hitRadianceCache.count != hits.Length)
                 return;
 
-            if (propagationPipelineData.radianceEncoding == ProbeVolumeDynamicGIRadianceEncoding.LogLuv)
+            if (ProbeVolumeDynamicGI.IsRadianceEncodedInUint(propagationPipelineData.radianceEncoding))
             {
                 var hitRandiance = new uint[hits.Length];
                 hitRadianceCache.GetData(hitRandiance);
-                for (int i = 0; i < hits.Length; i++)
+                switch (propagationPipelineData.radianceEncoding)
                 {
-                    var lighting = ProbeVolumeDynamicGI.DecodeLogLuv(hitRandiance[i]);
-                    hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                    case ProbeVolumeDynamicGIRadianceEncoding.LogLuv:
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var lighting = ProbeVolumeDynamicGI.DecodeLogLuv(hitRandiance[i]);
+                            hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                        }
+                        break;
+                    case ProbeVolumeDynamicGIRadianceEncoding.HalfLuv:
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var lighting = ProbeVolumeDynamicGI.DecodeHalfLuv(hitRandiance[i]);
+                            hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                        }
+                        break;
+                    case ProbeVolumeDynamicGIRadianceEncoding.R11G11B10:
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var lighting = ProbeVolumeDynamicGI.DecodeSimpleR11G11B10(hitRandiance[i]);
+                            hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                        }
+                        break;
+                    default:
+                        Debug.Assert(false);
+                        return;
                 }
             }
             else
