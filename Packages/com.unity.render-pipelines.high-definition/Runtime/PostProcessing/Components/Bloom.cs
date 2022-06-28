@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the extent of the veiling effect.
         /// </summary>
-        [Tooltip("Set the radius of the bloom effect")]
+        [Tooltip("Set the radius of the bloom effect.")]
         public ClampedFloatParameter scatter = new ClampedFloatParameter(0.7f, 0f, 1f);
 
         /// <summary>
