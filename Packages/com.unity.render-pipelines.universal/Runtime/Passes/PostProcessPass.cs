@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -28,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
-    internal class PostProcessPass : ScriptableRenderPass
+    internal partial class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
@@ -42,6 +43,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_PongTexture;
         RTHandle[] m_BloomMipDown;
         RTHandle[] m_BloomMipUp;
+        TextureHandle[] _BloomMipUp;
+        TextureHandle[] _BloomMipDown;
         RTHandle m_BlendTexture;
         RTHandle m_EdgeColorTexture;
         RTHandle m_EdgeStencilTexture;
@@ -151,6 +154,9 @@ namespace UnityEngine.Rendering.Universal
             ShaderConstants._BloomMipDown = new int[k_MaxPyramidSize];
             m_BloomMipUp = new RTHandle[k_MaxPyramidSize];
             m_BloomMipDown = new RTHandle[k_MaxPyramidSize];
+            // Bloom pyramid TextureHandles
+            _BloomMipUp = new TextureHandle[k_MaxPyramidSize];
+            _BloomMipDown = new TextureHandle[k_MaxPyramidSize];
 
             for (int i = 0; i < k_MaxPyramidSize; i++)
             {

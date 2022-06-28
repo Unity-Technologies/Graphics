@@ -1509,6 +1509,33 @@ namespace UnityEngine.Rendering.Universal
         MotionVectors,
         DrawFullscreen,
 
+        // PostProcessPass RenderGraph
+        RG_SetupPostFX,
+        RG_StopNaNs,
+        RG_SMAAMaterialSetup,
+        RG_SMAAEdgeDetection,
+        RG_SMAABlendWeight,
+        RG_SMAANeighborhoodBlend,
+        RG_SetupDoF,
+        RG_DOFComputeCOC,
+        RG_DOFDownscalePrefilter,
+        RG_DOFBlurH,
+        RG_DOFBlurV,
+        RG_DOFBlurBokeh,
+        RG_DOFPostFilter,
+        RG_DOFComposite,
+        RG_MotionBlur,
+        RG_BloomSetupPass,
+        RG_BloomPrefilter,
+        RG_BloomFirstPass,
+        RG_BloomSecondPass,
+        RG_BloomUpsample,
+        RG_UberPostSetupBloomPass,
+        RG_UberPost,
+        RG_FinalSetup,
+        RG_FinalFSRScale,
+        RG_FinalBlit,
+
         FinalBlit
     }
 }

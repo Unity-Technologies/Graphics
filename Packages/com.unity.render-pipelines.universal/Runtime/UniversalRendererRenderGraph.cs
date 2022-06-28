@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
             // postFx
             internal TextureHandle internalColorLut;
+            internal TextureHandle afterPostProcessColor;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -65,6 +66,8 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.enableRandomWrite = false;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
+            rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None;
+            // TODO RENDERGRAPH: depthStencilFormat handling?
 
             return renderGraph.CreateTexture(rgDesc);
         }
@@ -221,6 +224,12 @@ namespace UnityEngine.Rendering.Universal
             }
             #endregion
 
+            {
+                var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                frameResources.afterPostProcessColor = CreateRenderGraphTexture(renderGraph, desc, "_AfterPostProcessTexture", true);
+            }
+
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -376,17 +385,17 @@ namespace UnityEngine.Rendering.Universal
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PreImageEffects, ref renderingData);
 
-            // TODO RENDERGRAPH: postprocessing passes
-            // TODO RENDERGRAPH: postprocessing passes sampler name
-            //postProcessPass.RenderStopNaN(in m_ActiveRenderGraphColor, out var PoFXTarget, ref renderingData);
-            //postProcessPass.RenderSMAA(in m_ActiveRenderGraphColor, out var SMAATarget, ref renderingData);
-            //postProcessPass.RenderDoF(in m_ActiveRenderGraphColor, out var DoFTarget, ref renderingData);
-
+            bool applyPostProcessing = renderingData.cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            if (applyPostProcessing)
+            {
+                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_ActiveRenderGraphColor, in frameResources.internalColorLut, in frameResources.afterPostProcessColor, ref renderingData, true);
+                postProcessPass.RenderFinalPassRenderGraph(renderGraph, in frameResources.afterPostProcessColor, ref renderingData);
+            }
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PostImageEffects, ref renderingData);
 
-            if (!m_TargetIsBackbuffer && renderingData.cameraData.resolveFinalTarget)
+            if (!m_TargetIsBackbuffer && renderingData.cameraData.resolveFinalTarget && !applyPostProcessing)
                 m_FinalBlitPass.Render(renderGraph, ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
         }
 

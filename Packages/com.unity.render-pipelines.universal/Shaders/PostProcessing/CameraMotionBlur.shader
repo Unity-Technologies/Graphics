@@ -14,8 +14,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 #define _PrevViewProjM  _PrevViewProjMStereo[unity_StereoEyeIndex]
 #define _ViewProjM unity_MatrixVP
 #else
-        float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
+#define _ViewProjM unity_MatrixVP
 #endif
         half _Intensity;
         half _Clamp;
