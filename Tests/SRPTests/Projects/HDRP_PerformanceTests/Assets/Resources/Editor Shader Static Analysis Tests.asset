@@ -19,7 +19,7 @@ MonoBehaviour:
     passNameFilter: +GBuffer
   - name: Forward
     category: Lit
-    keywordFilter: SHADOWS_SHADOWMASK&DECALS_3RT&LIGHT_LAYERS&SHADOW_LOW
+    keywordFilter: SHADOWS_SHADOWMASK&DECALS_3RT&LIGHT_LAYERS&SHADOW_LOW&AREA_SHADOW_MEDIUM
     passNameFilter: +Forward
   m_AssetDefinitions:
   - assetAlias: Deferred
