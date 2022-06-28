@@ -3,19 +3,19 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2022.2.metafile -%}
 
 ---
 
-URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
-    name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_runtime_mono_Linear on version trunk
+URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_2022.2:
+    name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_runtime_mono_Linear on version 2022.2
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2022_2.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
         TEST_FILTER: .*
@@ -97,17 +97,17 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2022.2:OSX
          rerun: on_new_revision
-URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
-    name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_editor_mono_Linear on version trunk
+URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_2022.2:
+    name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_editor_mono_Linear on version 2022.2
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2022_2.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
         TEST_FILTER: .*
@@ -183,17 +183,17 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2022.2:OSX
          rerun: on_new_revision
-URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
-    name: URP_Performance_LostCrypt on OSX_Metal_performance_build_editmode_mono_Linear on version trunk
+URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_2022.2:
+    name: URP_Performance_LostCrypt on OSX_Metal_performance_build_editmode_mono_Linear on version 2022.2
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2022_2.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
         TEST_FILTER: .*
@@ -269,7 +269,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2022.2:OSX
          rerun: on_new_revision
 URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION

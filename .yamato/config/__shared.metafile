@@ -1,13 +1,13 @@
-target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
-target_editor: trunk # specifies the target editor used for some package/preview publish jobs
+target_branch: 2022.2/staging # specifies the branch on which recurrent or pr triggers are created, etc
+target_editor: 2022.2 # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
   formatting: True
   packages.package_publish_all: True
   packages.project_publish_all: True
 editors: # applied for all yml files
-  - track: trunk
-    name: trunk
+  - track: 2022.2
+    name: 2022.2
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
