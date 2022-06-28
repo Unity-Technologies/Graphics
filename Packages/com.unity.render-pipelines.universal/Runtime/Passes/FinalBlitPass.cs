@@ -31,6 +31,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
         }
 
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Dispose()
         {
             m_CameraTargetHandle?.Release();

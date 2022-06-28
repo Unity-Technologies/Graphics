@@ -13,8 +13,14 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// The main class for the Universal Render Pipeline (URP).
+    /// </summary>
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
+        /// <summary>
+        /// The shader tag used in the Universal Render Pipeline (URP)
+        /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
@@ -80,6 +86,9 @@ namespace UnityEngine.Rendering.Universal
             };
         }
 
+        /// <summary>
+        /// The maximum amount of bias allowed for shadows.
+        /// </summary>
         public static float maxShadowBias
         {
             get => 10.0f;
@@ -151,6 +160,10 @@ namespace UnityEngine.Rendering.Universal
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
+
+        /// <summary>
+        /// The default Render Pipeline Global Settings.
+        /// </summary>
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
         // flag to keep track of depth buffer requirements by any of the cameras in the stack

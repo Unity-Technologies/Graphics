@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.Universal
             m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
         }
 
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             serializedObject.Update();

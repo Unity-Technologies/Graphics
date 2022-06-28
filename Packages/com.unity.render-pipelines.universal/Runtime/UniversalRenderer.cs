@@ -153,6 +153,10 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
+        /// <summary>
+        /// Constructor for the Universal Renderer.
+        /// </summary>
+        /// <param name="data">The settings to create the renderer with.</param>
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE

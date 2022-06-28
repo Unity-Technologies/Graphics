@@ -32,10 +32,21 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings,
     }
 
+    /// <summary>
+    /// Options to control the renderer override.
+    /// This enum is no longer in use.
+    /// </summary>
     //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
     public enum RendererOverrideOption
     {
+        /// <summary>
+        /// Use this to choose a custom override.
+        /// </summary>
         Custom,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
         UsePipelineSettings,
     }
 
@@ -277,6 +288,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Class containing various additional camera data used by URP.
+    /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -327,6 +341,9 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
+        /// <summary>
+        /// The serialized version of the class. Used for upgrading.
+        /// </summary>
         public float version => m_Version;
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
@@ -563,12 +580,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the current volume stack used by this camera.
         /// </summary>
-        VolumeStack m_VolumeStack = null;
         public VolumeStack volumeStack
         {
             get => m_VolumeStack;
             set => m_VolumeStack = value;
         }
+        VolumeStack m_VolumeStack = null;
 
         /// <summary>
         /// Returns true if this camera should render post-processing.

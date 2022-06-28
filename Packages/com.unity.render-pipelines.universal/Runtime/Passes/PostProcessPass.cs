@@ -15,6 +15,10 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>True if the component is active, otherwise false.</returns>
         bool IsActive();
 
+        /// <summary>
+        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
+        /// </summary>
+        /// <returns>True if it can run on-tile, otherwise false.</returns>
         bool IsTileCompatible();
     }
 }

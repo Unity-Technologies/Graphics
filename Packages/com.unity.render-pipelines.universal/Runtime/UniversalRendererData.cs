@@ -104,6 +104,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: move to core and share with HDRP
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
+
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
 
@@ -150,6 +151,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 
+        /// <inheritdoc/>
         protected override ScriptableRenderer Create()
         {
             if (!Application.isPlaying)
@@ -185,6 +187,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// The default stencil state settings.
+        /// </summary>
         public StencilStateData defaultStencilState
         {
             get => m_DefaultStencilState;
@@ -248,7 +253,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Use Octaedron Octahedron normal vector encoding for gbuffer normals.
+        /// Use Octahedron normal vector encoding for gbuffer normals.
         /// The overhead is negligible from desktop GPUs, while it should be avoided for mobile GPUs.
         /// </summary>
         public bool accurateGbufferNormals
@@ -274,6 +279,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -302,11 +308,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <inheritdoc/>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_AssetVersion = k_LatestAssetVersion;
         }
 
+        /// <inheritdoc/>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             if (m_AssetVersion <= 1)

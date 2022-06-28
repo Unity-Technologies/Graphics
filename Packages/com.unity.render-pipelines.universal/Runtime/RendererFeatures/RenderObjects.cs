@@ -20,43 +20,133 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Transparent,
     }
 
+    /// <summary>
+    /// The class for the render objects renderer feature.
+    /// </summary>
     [ExcludeFromPreset]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
     [URPHelpURL("urp-renderer-feature", "#render-objects-renderer-featurea-namerender-objects-renderer-featurea")]
     public class RenderObjects : ScriptableRendererFeature
     {
+        /// <summary>
+        /// Settings class used for the render objects renderer feature.
+        /// </summary>
         [System.Serializable]
         public class RenderObjectsSettings
         {
+            /// <summary>
+            /// The profiler tag used with the pass.
+            /// </summary>
             public string passTag = "RenderObjectsFeature";
+
+            /// <summary>
+            /// Controls when the render pass executes.
+            /// </summary>
             public RenderPassEvent Event = RenderPassEvent.AfterRenderingOpaques;
 
+            /// <summary>
+            /// The filter settings for the pass.
+            /// </summary>
             public FilterSettings filterSettings = new FilterSettings();
 
+            /// <summary>
+            /// The override material to use.
+            /// </summary>
             public Material overrideMaterial = null;
+
+            /// <summary>
+            /// The pass index to use with the override material.
+            /// </summary>
             public int overrideMaterialPassIndex = 0;
+
+            /// <summary>
+            /// The override shader to use.
+            /// </summary>
             public Shader overrideShader = null;
+
+            /// <summary>
+            /// The pass index to use with the override shader.
+            /// </summary>
             public int overrideShaderPassIndex = 0;
-            public enum OverrideMaterialMode { None, Material, Shader };
+
+            /// <summary>
+            /// Options to select which type of override mode should be used.
+            /// </summary>
+            public enum OverrideMaterialMode
+            {
+                /// <summary>
+                /// Use this to not override.
+                /// </summary>
+                None,
+
+                /// <summary>
+                /// Use this to use an override material.
+                /// </summary>
+                Material,
+
+                /// <summary>
+                /// Use this to use an override shader.
+                /// </summary>
+                Shader
+            };
+
+            /// <summary>
+            /// The selected override mode.
+            /// </summary>
             public OverrideMaterialMode overrideMode = OverrideMaterialMode.Material; //default to Material as this was previously the only option
 
+            /// <summary>
+            /// Sets whether it should override depth or not.
+            /// </summary>
             public bool overrideDepthState = false;
+
+            /// <summary>
+            /// The depth comparison function to use.
+            /// </summary>
             public CompareFunction depthCompareFunction = CompareFunction.LessEqual;
+
+            /// <summary>
+            /// Sets whether it should write to depth or not.
+            /// </summary>
             public bool enableWrite = true;
 
+            /// <summary>
+            /// The stencil settings to use.
+            /// </summary>
             public StencilStateData stencilSettings = new StencilStateData();
 
+            /// <summary>
+            /// The camera settings to use.
+            /// </summary>
             public CustomCameraSettings cameraSettings = new CustomCameraSettings();
         }
 
+        /// <summary>
+        /// The filter settings used.
+        /// </summary>
         [System.Serializable]
         public class FilterSettings
         {
             // TODO: expose opaque, transparent, all ranges as drop down
+
+            /// <summary>
+            /// The queue type for the objects to render.
+            /// </summary>
             public RenderQueueType RenderQueueType;
+
+            /// <summary>
+            /// The layer mask to use.
+            /// </summary>
             public LayerMask LayerMask;
+
+            /// <summary>
+            /// The passes to render.
+            /// </summary>
             public string[] PassNames;
 
+            /// <summary>
+            /// The constructor for the filter settings.
+            /// </summary>
             public FilterSettings()
             {
                 RenderQueueType = RenderQueueType.Opaque;
@@ -64,15 +154,36 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// The settings for custom cameras values.
+        /// </summary>
         [System.Serializable]
         public class CustomCameraSettings
         {
+            /// <summary>
+            /// Used to mark whether camera values should be changed or not.
+            /// </summary>
             public bool overrideCamera = false;
+
+            /// <summary>
+            /// Should the values be reverted after rendering the objects?
+            /// </summary>
             public bool restoreCamera = true;
+
+            /// <summary>
+            /// Changes the camera offset.
+            /// </summary>
             public Vector4 offset;
+
+            /// <summary>
+            /// Changes the camera field of view.
+            /// </summary>
             public float cameraFieldOfView = 60.0f;
         }
 
+        /// <summary>
+        /// The settings used for the Render Objects renderer feature.
+        /// </summary>
         public RenderObjectsSettings settings = new RenderObjectsSettings();
 
         RenderObjectsPass renderObjectsPass;

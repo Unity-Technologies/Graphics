@@ -389,10 +389,7 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        /// <summary>
-        /// Creates the panel
-        /// </summary>
-        /// <returns>The panel</returns>
+        /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

@@ -65,8 +65,13 @@ namespace UnityEngine.Rendering.Universal
 
         #region IDebugDisplaySettingsQuery
 
+        /// <inheritdoc/>
         public bool AreAnySettingsActive => m_DebugDisplaySettings.AreAnySettingsActive;
+
+        /// <inheritdoc/>
         public bool IsPostProcessingAllowed => m_DebugDisplaySettings.IsPostProcessingAllowed;
+
+        /// <inheritdoc/>
         public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
@@ -78,6 +83,7 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
             m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
 
+        /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
         {
             return m_DebugDisplaySettings.TryGetScreenClearColor(ref color);

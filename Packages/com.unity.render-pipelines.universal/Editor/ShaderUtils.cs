@@ -8,6 +8,9 @@ using UnityEditor.Rendering.Universal.ShaderGUI;
 
 namespace Unity.Rendering.Universal
 {
+    /// <summary>
+    /// Various utility functions for shaders in URP.
+    /// </summary>
     public static class ShaderUtils
     {
         internal enum ShaderID
