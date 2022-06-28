@@ -181,8 +181,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetViewport(new Rect(0, 0, srcMipWidth, srcMipHeight));
             cmd.DrawProcedural(Matrix4x4.identity, HDUtils.GetBlitMaterial(source.dimension), 0, MeshTopology.Triangles, 3, 1, m_PropertyBlock);
 
-            int finalTargetMipWidth = destination.width;
-            int finalTargetMipHeight = destination.height;
+            var finalTargetSize = new Vector2Int(destination.width, destination.height);
+            if (destination.useDynamicScale && isHardwareDrsOn)
+                finalTargetSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(finalTargetSize);
 
             // Note: smaller mips are excluded as we don't need them and the gaussian compute works
             // on 8x8 blocks
@@ -192,8 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 int dstMipHeight = Mathf.Max(1, srcMipHeight >> 1);
 
                 // Scale for downsample
-                float scaleX = ((float)srcMipWidth / finalTargetMipWidth);
-                float scaleY = ((float)srcMipHeight / finalTargetMipHeight);
+                float scaleX = ((float)srcMipWidth / finalTargetSize.x);
+                float scaleY = ((float)srcMipHeight / finalTargetSize.y);
 
                 // Downsample.
                 m_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, destination);
@@ -245,8 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 srcMipWidth = srcMipWidth >> 1;
                 srcMipHeight = srcMipHeight >> 1;
 
-                finalTargetMipWidth = finalTargetMipWidth >> 1;
-                finalTargetMipHeight = finalTargetMipHeight >> 1;
+                finalTargetSize.x = finalTargetSize.x >> 1;
+                finalTargetSize.y = finalTargetSize.y >> 1;
             }
 
             return srcMipLevel + 1;

@@ -202,6 +202,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
+        /// Controls the dimmer applied to the ambient and legacy light probes.
+        /// </summary>
+        [Tooltip("Controls the dimmer applied to the ambient and legacy light probes.")]
+        [AdditionalProperty]
+        public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);

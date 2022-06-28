@@ -155,6 +155,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayMarchingFallbackHierarchyParameter lastBounceFallbackHierarchy = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
 
         /// <summary>
+        /// Controls the dimmer applied to the ambient and legacy light probes.
+        /// </summary>
+        [Tooltip("Controls the dimmer applied to the ambient and legacy light probes.")]
+        [AdditionalProperty]
+        public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Defines the layers that GI should include.
         /// </summary>
         [Tooltip("Defines the layers that GI should include.")]

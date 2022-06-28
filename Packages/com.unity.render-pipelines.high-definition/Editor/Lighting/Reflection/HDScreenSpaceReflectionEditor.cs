@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Ray Tracing
         SerializedDataParameter m_RayMiss;
         SerializedDataParameter m_LastBounce;
+        SerializedDataParameter m_AmbientProbeDimmer;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_TextureLodBias;
         SerializedDataParameter m_RayLength;
@@ -82,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Generic ray tracing
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));
             m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
@@ -192,6 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
                 PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                 PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                PropertyField(m_AmbientProbeDimmer);
             }
             PropertyField(m_LayerMask, k_LayerMaskText);
             PropertyField(m_TextureLodBias, k_TextureLodBiasText);

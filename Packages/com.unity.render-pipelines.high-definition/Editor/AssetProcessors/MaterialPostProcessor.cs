@@ -378,6 +378,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (material == null)
                     material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    continue;
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {

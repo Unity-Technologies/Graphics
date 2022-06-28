@@ -270,10 +270,15 @@ namespace UnityEngine.Rendering.HighDefinition
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
-            Matrix4x4 matrix = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
-            splitData.cullingMatrix = matrix;
+
+            Matrix4x4 viewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(proj, view);
+            SetSplitDataCullingPlanesFromViewProjMatrix(ref splitData, viewProj);
+
+            Matrix4x4 deviceViewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+
+            splitData.cullingMatrix = deviceViewProj;
             splitData.cullingNearPlane = nearPlane;
-            return matrix;
+            return deviceViewProj;
         }
 
         static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
@@ -299,22 +304,14 @@ namespace UnityEngine.Rendering.HighDefinition
             deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
-            Matrix4x4 devProjView = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
-            // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes as we should have computed them with proj
-            GeometryUtility.CalculateFrustumPlanes(devProjView, s_CachedPlanes);
-            if (SystemInfo.usesReversedZBuffer)
-            {
-                var tmpPlane = s_CachedPlanes[2];
-                s_CachedPlanes[2] = s_CachedPlanes[3];
-                s_CachedPlanes[3] = tmpPlane;
-            }
-            splitData.cullingPlaneCount = 6;
-            for (int i = 0; i < 6; i++)
-                splitData.SetCullingPlane(i, s_CachedPlanes[i]);
+            Matrix4x4 viewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(proj, view);
+            SetSplitDataCullingPlanesFromViewProjMatrix(ref splitData, viewProj);
 
-            splitData.cullingMatrix = devProjView;
+            Matrix4x4 deviceViewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+
+            splitData.cullingMatrix = deviceViewProj;
             splitData.cullingNearPlane = nearZ;
-            return devProjView;
+            return deviceViewProj;
         }
 
         static float CalcGuardAnglePerspective(float angleInDeg, float resolution, float filterWidth, float normalBiasMax, float guardAngleMaxInDeg)
@@ -334,6 +331,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public static float GetSlopeBias(float baseBias, float normalizedSlopeBias)
         {
             return normalizedSlopeBias * baseBias;
+        }
+
+        static void SetSplitDataCullingPlanesFromViewProjMatrix(ref ShadowSplitData splitData, Matrix4x4 matrix)
+        {
+            GeometryUtility.CalculateFrustumPlanes(matrix, s_CachedPlanes);
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                var tmpPlane = s_CachedPlanes[2];
+                s_CachedPlanes[2] = s_CachedPlanes[3];
+                s_CachedPlanes[3] = tmpPlane;
+            }
+            splitData.cullingPlaneCount = 6;
+            for (int i = 0; i < 6; i++)
+                splitData.SetCullingPlane(i, s_CachedPlanes[i]);
         }
     }
 }
