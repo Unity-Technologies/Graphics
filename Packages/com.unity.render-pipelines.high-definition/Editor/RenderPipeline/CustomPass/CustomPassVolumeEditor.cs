@@ -72,6 +72,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            if (HDRenderPipeline.currentAsset == null || !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportCustomPass)
+                EditorGUILayout.HelpBox("The current HDRP asset does not support Custom Passes.", MessageType.Error);
+
             DrawSettingsGUI();
             DrawCustomPassReorderableList();
             DrawMaterialsGUI();
@@ -103,8 +106,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw the material inspectors:
             foreach (var materialEditor in m_MaterialEditors)
             {
-                materialEditor.DrawHeader();
-                materialEditor.OnInspectorGUI();
+                using (new EditorGUI.DisabledScope((materialEditor.target.hideFlags & HideFlags.NotEditable) != 0))
+                {
+                    materialEditor.DrawHeader();
+                    materialEditor.OnInspectorGUI();
+                }
             }
 
             m_CustomPassMaterialsHash = materialsHash;
