@@ -36,7 +36,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
             uint _DebugContactShadowLightIndex;
             int _DebugDepthPyramidMip;
             float _MinMotionVector;
+            float4 _MotionVecIntensityParams;
             CBUFFER_END
+
+            #define _MotionVecIntensityScale _MotionVecIntensityParams.x
+            #define _MotionVecHeatMode _MotionVecIntensityParams.y
 
             TEXTURE2D_X(_DebugFullScreenTexture);
 
@@ -148,10 +152,15 @@ Shader "Hidden/HDRP/DebugFullScreen"
             {
                 float2 motionVectorNDC;
                 DecodeMotionVector(SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, coords), motionVectorNDC);
-
                 return motionVectorNDC;
             }
             // end motion vector utilties
+
+            float3 ToHeat(float value)
+            {
+                float3 r = value * 2.1f - float3(1.8f, 1.14f, 0.3f);
+                return 1.0f - r * r;
+            }
 
             float4 Frag(Varyings input) : SV_Target
             {
@@ -222,6 +231,17 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_RAY_TRACING_ACCELERATION_STRUCTURE)
                 {
                     return SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS_INTENSITY)
+                {
+                    float2 mv = SampleMotionVectors(input.texcoord);
+                    float mvLen = length(mv) * _MotionVecIntensityScale;
+
+                    if (_MotionVecHeatMode)
+                        return float4(ToHeat(saturate(mvLen)), 1);
+
+                    return float4(mvLen.xxx, 1);
+
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {

@@ -225,7 +225,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
                     if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+                    {
                         PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.resolvedMotionVectorsBuffer, FullScreenDebugMode.MotionVectors, fullScreenDebugFormat);
+                        PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.resolvedMotionVectorsBuffer, FullScreenDebugMode.MotionVectorsIntensity, fullScreenDebugFormat);
+                    }
 
                     // Transparent objects may write to the depth and motion vectors buffers.
                     if (aovRequest.isValid)

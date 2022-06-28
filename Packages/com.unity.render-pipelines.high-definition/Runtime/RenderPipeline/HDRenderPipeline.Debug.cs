@@ -593,6 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)data.debugDisplaySettings.data.maxQuadCost);
                         mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)data.debugDisplaySettings.data.maxVertexDensity);
                         mpb.SetFloat(HDShaderIDs._MinMotionVector, data.debugDisplaySettings.data.minMotionVectorLength);
+                        mpb.SetVector(HDShaderIDs._MotionVecIntensityParams, new Vector4(data.debugDisplaySettings.data.motionVecVisualizationScale, data.debugDisplaySettings.data.motionVecIntensityHeat ? 1 : 0, 0, 0));
 
                         if (fullscreenBuffer != null)
                             ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
