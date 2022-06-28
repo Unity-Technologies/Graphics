@@ -13,6 +13,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
   - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
+  - Fixed custom editor GUI support for the BuiltIn Target [1380485](https://issuetracker.unity3d.com/product/unity/issues/guid/1380485/)
 
 
 Version Updated
