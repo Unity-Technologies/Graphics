@@ -1,12 +1,15 @@
-Shader "Hidden/Universal Render Pipeline/FallbackError"
+Shader "Hidden/HDRP/FallbackError"
 {
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel" = "4.5"}
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
 
         Pass
         {
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
@@ -15,7 +18,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
             #pragma editor_sync_compilation
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             struct appdata_t
             {
