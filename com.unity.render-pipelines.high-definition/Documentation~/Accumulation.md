@@ -29,7 +29,7 @@ The example script below demonstrates how to use these API calls.
 ## Scripting API example
 The following example demonstrates how to use the multi-frame rendering API in your scripts to properly record converged animation sequences with path tracing and/or accumulation motion blur. To use it, attach the script to a Camera in your Scene and, in the component's context menu, click the “Start Recording” and “Stop Recording” actions. 
 
-```
+```C#
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -49,13 +49,22 @@ public class FrameManager : MonoBehaviour
     [Range(0.0f, 1.0f)]
     public float shutterBeginsClosing = 0.75f;
 
+    // The desired frame rate when recording subframes.
+    [Min(1)]
+    public int captureFrameRate = 30;
+
     bool m_Recording = false;
     int m_Iteration = 0;
     int m_RecordedFrames = 0;
+    float m_OriginalDeltaTime = 0;
 
     [ContextMenu("Start Recording")]
     void BeginMultiframeRendering()
     {
+        // Set the desired capture delta time before using the accumulation API
+        m_OriginalDeltaTime = Time.captureDeltaTime;
+        Time.captureDeltaTime = 1.0f / captureFrameRate;
+
         RenderPipelineManager.beginFrameRendering += PrepareSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         renderPipeline.BeginRecording(samples, shutterInterval, shutterFullyOpen, shutterBeginsClosing);
@@ -71,6 +80,7 @@ public class FrameManager : MonoBehaviour
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         renderPipeline?.EndRecording();
         m_Recording = false;
+        Time.captureDeltaTime = m_OriginalDeltaTime;
     }
 
     void PrepareSubFrameCallBack(ScriptableRenderContext cntx, Camera[] cams)
@@ -80,11 +90,6 @@ public class FrameManager : MonoBehaviour
         {
             renderPipeline.PrepareNewSubFrame();
             m_Iteration++;
-        }
-
-        if (m_Recording && m_Iteration % samples == 0)
-        {
-            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
         }
     }
     
@@ -100,6 +105,15 @@ public class FrameManager : MonoBehaviour
     {
         // Make sure the shutter will begin closing sometime after it is fully open (and not before)
         shutterBeginsClosing = Mathf.Max(shutterFullyOpen, shutterBeginsClosing);
+    }
+
+    void Update()
+    {
+        // Save a screenshot to disk when recording
+        if (m_Recording && m_Iteration % samples == 0)
+        {
+            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
+        }
     }
 }
 ```
