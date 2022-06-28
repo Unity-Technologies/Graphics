@@ -44,10 +44,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // TODO: Not this
         public override object GetStoredValue()
         {
-            switch (GetLength())
+            switch (m_StoredLength)
             {
                 case GraphType.Length.One:
-                    switch (GetPrimitive())
+                    switch (m_StoredPrimitive)
                     {
                         case GraphType.Primitive.Int: return (int)m_StoredValue.x;
                         case GraphType.Primitive.Bool: return Convert.ToBoolean(m_StoredValue.x);
@@ -65,6 +65,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // The value needs to be stored in a serializable field, and then applied to the new constant
         [SerializeField]
         Vector4 m_StoredValue;
+
+        [SerializeField]
+        GraphType.Length m_StoredLength;
+
+        [SerializeField]
+        GraphType.Primitive m_StoredPrimitive;
 
         protected override object GetValue()
         {
@@ -103,6 +109,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphType.Length.Three: GraphTypeHelpers.SetAsVec3(GetField(), (Vector3)value); break;
                 case GraphType.Length.Four: GraphTypeHelpers.SetAsVec4(GetField(), (Vector4)value); break;
             }
+
+            m_StoredLength = GetLength();
+            m_StoredPrimitive = GetPrimitive();
         }
         public override object DefaultValue => Activator.CreateInstance(Type);
         public override Type Type

@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Returns true if a blackboard property with the given TypeHandle can be included in the property block for
         /// the current model. Use this to avoid exporting invalid properties like matrices.
         /// </summary>
-        bool IsExposable(TypeHandle typeHandle)
+        public bool IsExposable(TypeHandle typeHandle)
         {
             var descriptor = typeHandle.GetBackingDescriptor();
             switch (descriptor)
@@ -175,47 +175,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 });
             }
-        }
-
-        public static void InitVariableDeclarationModel(IVariableDeclarationModel model, IConstant constant)
-        {
-            if (model is not GraphDataVariableDeclarationModel graphDataVar) return;
-
-            var graphModel = (ShaderGraphModel)model.GraphModel;
-
-            // Use this variables' generated guid to bind it to an underlying element in the graph data.
-            var registry = graphModel.RegistryInstance;
-            var graphHandler = graphModel.GraphHandler;
-
-            // If the guid starts with a number, it will produce an invalid identifier in HLSL.
-            var variableDeclarationName = "_" + graphDataVar.Guid;
-            var contextName = graphModel.BlackboardContextName;
-
-            var propertyContext = graphHandler.GetNode(contextName);
-            Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
-
-            var entry = new ContextEntry
-            {
-                fieldName = variableDeclarationName,
-                height = ShaderGraphExampleTypes.GetGraphTypeHeight(model.DataType),
-                length = ShaderGraphExampleTypes.GetGraphTypeLength(model.DataType),
-                primitive = ShaderGraphExampleTypes.GetGraphTypePrimitive(model.DataType),
-                precision = GraphType.Precision.Any,
-                initialValue = Matrix4x4.zero,
-            };
-
-            ContextBuilder.AddReferableEntry(propertyContext, entry, registry.Registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
-            try
-            {
-                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
-            graphDataVar.contextNodeName = contextName;
-            graphDataVar.graphDataName = variableDeclarationName;
         }
 
         public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)

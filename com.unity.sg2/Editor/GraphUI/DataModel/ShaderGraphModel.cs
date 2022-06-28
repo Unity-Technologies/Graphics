@@ -466,27 +466,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var sourceShaderGraphConstant = sourceDataVariable.InitializationModel as BaseShaderGraphConstant;
             Assert.IsNotNull(sourceShaderGraphConstant);
 
-            var uniqueName = sourceDataVariable.Title;
             var copiedVariable = sourceDataVariable.Clone();
-            copiedVariable.GraphModel = this;
-            if (keepGuid)
-                copiedVariable.Guid = sourceModel.Guid;
-            copiedVariable.Title = GenerateGraphVariableDeclarationUniqueName(uniqueName);
+            copiedVariable.AssignNewGuid();
 
+            /* Init variable declaration model */
+            InitVariableDeclarationModel(
+                copiedVariable,
+                copiedVariable.DataType,
+                sourceDataVariable.Title,
+                sourceDataVariable.Modifiers,
+                sourceDataVariable.IsExposed,
+                copiedVariable.InitializationModel,
+                copiedVariable.Guid,
+                null);
+
+            /* Init variable constant value */
             if (copiedVariable.InitializationModel is BaseShaderGraphConstant baseShaderGraphConstant)
             {
-                baseShaderGraphConstant.Initialize(this, BlackboardContextName, sourceDataVariable.graphDataName);
-
-                // Initialize CLDS data prior to initializing the constant
-                ShaderGraphStencil.InitVariableDeclarationModel(copiedVariable, copiedVariable.InitializationModel);
                 copiedVariable.CreateInitializationValue();
-                // Setting the stored value fails for textures right now, also need a way to store texture asset reference
-                if(baseShaderGraphConstant is TextureTypeConstant textureTypeConstant)
-                {
-                    var builder = RegistryInstance.GetTypeBuilder(sourceShaderGraphConstant.GetField().GetRegistryKey());
-                    builder.BuildType(textureTypeConstant.GetField(), GraphHandler.registry);
-                    builder.CopySubFieldData(sourceShaderGraphConstant.GetField(), textureTypeConstant.GetField());
-                }
                 copiedVariable.InitializationModel.ObjectValue = baseShaderGraphConstant.GetStoredValue();
             }
 
@@ -501,6 +498,77 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             return (TDeclType)((IVariableDeclarationModel)copiedVariable);
+        }
+
+        protected override IVariableDeclarationModel InstantiateVariableDeclaration(
+            Type variableTypeToCreate,
+            TypeHandle variableDataType,
+            string variableName,
+            ModifierFlags modifierFlags,
+            bool isExposed,
+            IConstant initializationModel,
+            SerializableGUID guid,
+            Action<IVariableDeclarationModel, IConstant> initializationCallback = null
+        )
+        {
+            if (variableTypeToCreate != typeof(GraphDataVariableDeclarationModel))
+            {
+                return base.InstantiateVariableDeclaration(variableTypeToCreate, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
+            }
+
+            var graphDataVar = new GraphDataVariableDeclarationModel();
+            return InitVariableDeclarationModel(graphDataVar, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
+        }
+
+        IVariableDeclarationModel InitVariableDeclarationModel(
+            GraphDataVariableDeclarationModel graphDataVar,
+            TypeHandle variableDataType,
+            string variableName,
+            ModifierFlags modifierFlags,
+            bool isExposed,
+            IConstant initializationModel,
+            SerializableGUID guid,
+            Action<IVariableDeclarationModel, IConstant> initializationCallback)
+        {
+            // If the guid starts with a number, it will produce an invalid identifier in HLSL.
+            var variableDeclarationName = "_" + graphDataVar.Guid;
+
+            var propertyContext = GraphHandler.GetNode(BlackboardContextName);
+            Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
+
+            isExposed &= ((ShaderGraphStencil)Stencil).IsExposable(variableDataType);
+            ContextBuilder.AddReferableEntry(
+                propertyContext,
+                variableDataType.GetBackingDescriptor(),
+                variableDeclarationName,
+                GraphHandler.registry,
+                isExposed ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
+                source: isExposed ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
+                displayName: variableDeclarationName);
+
+            try
+            {
+                GraphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            graphDataVar.contextNodeName = BlackboardContextName;
+            graphDataVar.graphDataName = variableDeclarationName;
+
+            if (guid.Valid)
+                graphDataVar.Guid = guid;
+            graphDataVar.GraphModel = this;
+            graphDataVar.DataType = variableDataType;
+            graphDataVar.Title = GenerateGraphVariableDeclarationUniqueName(variableName);
+            graphDataVar.IsExposed = isExposed;
+            graphDataVar.Modifiers = modifierFlags;
+
+            initializationCallback?.Invoke(graphDataVar, initializationModel);
+
+            return graphDataVar;
         }
 
         // TODO: (Sai) Would it be better to have a way to gather any variable nodes
