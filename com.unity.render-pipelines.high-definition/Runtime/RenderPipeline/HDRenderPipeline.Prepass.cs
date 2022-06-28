@@ -274,9 +274,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
                 
+                RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
                 if (GetDistributedMode() != DistributedMode.Merger)
                 {
-                    RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
                     RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
                 }
 
