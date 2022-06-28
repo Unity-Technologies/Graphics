@@ -28,11 +28,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 foreach (var node in shaderGraphModel.NodeModels)
                 {
-                    if (node is GraphDataContextNodeModel nodeModel)
+                    if (node is GraphDataContextNodeModel nodeModel &&
+                        nodeModel.graphDataName == shaderGraphModel.BlackboardContextName)
                     {
                         // TODO: How to get template name and CustomizationPoint name from target?
                         shaderGraphModel.GraphHandler.RebuildContextData(nodeModel.graphDataName, target.value, "UniversalPipeline", "SurfaceDescription", true);
                         nodeModel.DefineNode();
+
+                        // TODO (Sai) Update previews when contexts change.
                     }
                 }
             }
