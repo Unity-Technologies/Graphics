@@ -91,6 +91,12 @@ public class FrameManager : MonoBehaviour
             renderPipeline.PrepareNewSubFrame();
             m_Iteration++;
         }
+
+        // Save a screenshot to disk when recording
+        if (m_Recording && m_Iteration % samples == 0)
+        {
+            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
+        }
     }
     
     void OnDestroy()
@@ -105,15 +111,6 @@ public class FrameManager : MonoBehaviour
     {
         // Make sure the shutter will begin closing sometime after it is fully open (and not before)
         shutterBeginsClosing = Mathf.Max(shutterFullyOpen, shutterBeginsClosing);
-    }
-
-    void Update()
-    {
-        // Save a screenshot to disk when recording
-        if (m_Recording && m_Iteration % samples == 0)
-        {
-            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
-        }
     }
 }
 ```
