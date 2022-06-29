@@ -413,8 +413,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool HasSetValidAmbientProbe(HDCamera hdCamera)
         {
-            SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-            if (ambientMode == SkyAmbientMode.Static)
+            var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
+
+            if (visualEnv.skyAmbientMode.value == SkyAmbientMode.Static)
+                return true;
+
+            // When sky is not set, ambient probe is always valid  (black probe)
+            if (visualEnv.skyType == 0) // None
                 return true;
 
             if (hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic && hdCamera.lightingSky != null &&
