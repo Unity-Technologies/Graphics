@@ -20,10 +20,13 @@ SHAPE_LIGHT(3)
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
 
+half4 _RendererColor;
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
+    output.color *= _RendererColor;
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
