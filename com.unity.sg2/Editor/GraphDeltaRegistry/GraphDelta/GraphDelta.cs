@@ -239,7 +239,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             PortHandler port = new PortHandler(input, this, registry);
             try
             {
-                ReconcretizeNode(port.GetNode().ID, registry);
+                // TODO (Brett) This is taken out because it was causing loop
+                //ReconcretizeNode(port.GetNode().ID, registry);
             }
             catch (Exception e)
             {
@@ -256,7 +257,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             PortHandler port = new PortHandler(input, this, registry);
             try
             {
-                ReconcretizeNode(port.GetNode().ID, registry);
+                //ReconcretizeNode(port.GetNode().ID, registry);
             }
             catch (Exception e)
             {

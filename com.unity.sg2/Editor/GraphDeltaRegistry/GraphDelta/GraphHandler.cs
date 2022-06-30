@@ -149,7 +149,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
-        public void RebuildContextData(ElementID contextNode, ITargetProvider target, string templateName, string cpName, bool input)
+        public void RebuildContextData(
+            ElementID contextNode,
+            ITargetProvider target,
+            string templateName,
+            string cpName,
+            bool input)
         {
             void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
             {
@@ -170,6 +175,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 return;
             }
+            // work on the concrete layer because user interactions can't change the data
             context.ClearLayerData(GraphDelta.k_concrete);
             context.DefaultLayer = GraphDelta.k_concrete;
 

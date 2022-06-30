@@ -103,7 +103,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphHandlerBox.OnEnable();
             targetSettingsBox.OnEnable();
             base.OnEnable();
+            foreach (var target in Targets)
+            {
+                InitializeContextFromTarget(target.value);
+            }
         }
+
+        private void InitializeContextFromTarget(Target target)
+        {
+            foreach (var node in NodeModels)
+            {
+                if (node is GraphDataContextNodeModel nodeModel && nodeModel.graphDataName ==  BlackboardContextName)
+                {
+                    // TODO: How to get template name and CustomizationPoint name from target?
+                    GraphHandler.RebuildContextData(
+                        nodeModel.graphDataName,
+                        target,
+                        "UniversalPipeline",
+                        "SurfaceDescription",
+                        true);
+                }
+            }
+        }
+
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
         {
