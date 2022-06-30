@@ -252,6 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PushMaskVolumeLightListGlobalParameters,
         ProbeVolumeDynamicGI,
         ProbeVolumeDynamicGIClear,
+        ProbeVolumeDynamicGIInitialize,
         ProbeVolumeDynamicGIHits,
         ProbeVolumeDynamicGIAxes,
         ProbeVolumeDynamicGICombine,

@@ -76,6 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static Vector4[] s_AmbientProbe;
 
         private ComputeShader _PropagationClearRadianceShader = null;
+        private ComputeShader _PropagationInitializeShader = null;
         private ComputeShader _PropagationHitsShader = null;
         private ComputeShader _PropagationAxesShader = null;
         private ComputeShader _PropagationCombineShader = null;
@@ -449,6 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Cleanup(); // To avoid double alloc.
 
             _PropagationClearRadianceShader = resources.shaders.probePropagationClearRadianceCS;
+            _PropagationInitializeShader = resources.shaders.probePropagationInitializeCS;
             _PropagationHitsShader = resources.shaders.probePropagationHitsCS;
             _PropagationAxesShader = resources.shaders.probePropagationAxesCS;
             _PropagationCombineShader = resources.shaders.probePropagationCombineCS;
@@ -617,6 +619,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
                     DispatchClearPreviousRadianceCache(cmd, probeVolume, radianceEncoding);
+
+                var initializeRadianceCacheWithBakedSH = true;
+                if (initializeRadianceCacheWithBakedSH)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIInitialize)))
+                        DispatchPropagationInitialize(cmd, probeVolume, in giSettings, in shaderGlobals, radianceEncoding);
+                    previousRadianceCacheInvalid = false;
+                }
             }
 
             if (probeVolume.HitNeighborAxisLength != 0)
@@ -668,6 +678,62 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int numHits = Mathf.Max(propagationPipelineData.radianceCacheAxis0.count, hitNeighborAxisLength);
             int dispatchX = (numHits + 63) / 64;
+            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+        }
+
+        void DispatchPropagationInitialize(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings,
+            in ShaderVariablesGlobal shaderGlobals, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
+        {
+            int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
+            ProbeVolume.ProbeVolumeAtlasKey key = probeVolume.ComputeProbeVolumeAtlasKey();
+            var kernel = _PropagationInitializeShader.FindKernel("InitializePropagationAxis");
+            var shader = _PropagationInitializeShader;
+
+            SetRadianceEncodingKeywords(shader, radianceEncoding);
+            SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
+
+            ref var pipelineData = ref probeVolume.GetPipelineData();
+            var obb = pipelineData.BoundingBox;
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, new Vector3(
+                probeVolume.parameters.resolutionX,
+                probeVolume.parameters.resolutionY,
+                probeVolume.parameters.resolutionZ
+            ));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
+                1.0f / (float) probeVolume.parameters.resolutionX,
+                1.0f / (float) probeVolume.parameters.resolutionY,
+                1.0f / (float) probeVolume.parameters.resolutionZ
+            ));
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, shaderGlobals._ProbeVolumeAtlasResolutionAndSliceCount);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, shaderGlobals._ProbeVolumeAtlasResolutionAndSliceCountInverse);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, key.rotation * new Vector3(1.0f, 0.0f, 0.0f));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, key.rotation * new Vector3(0.0f, 1.0f, 0.0f));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, key.rotation * new Vector3(0.0f, 0.0f, 1.0f));
+
+            cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasScale, pipelineData.Scale);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasBias, pipelineData.Bias);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, pipelineData.SHL01Buffer);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, pipelineData.SHL2Buffer);
+
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, pipelineData.ValidityBuffer);
+
+            ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
+            cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", propagationPipelineData.GetReadRadianceCacheAxis());
+            cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
+
+            cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
+
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
+
+            cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
+            cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
+
+            int dispatchX = (numProbes + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
