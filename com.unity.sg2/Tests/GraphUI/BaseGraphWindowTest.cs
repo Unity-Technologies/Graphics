@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [TearDown]
         public virtual void TearDown()
         {
-            CloseWindow();
+            //CloseWindow();
             AssetDatabase.DeleteAsset(testAssetPath);
         }
 
@@ -136,18 +136,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        [MenuItem("Tests/Shader Graph/Create Texture 2D Array From Selection")]
-        static void CreateTexture2DArrayFromSelection()
+        [MenuItem("Tests/Shader Graph/Create Texture 2D Array")]
+        static void CreateTexture2DArray()
         {
-            var selection = Selection.objects;
-            if (selection.Length == 0)
-                return;
+            var texture1 = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Shaders/Tests/Textures/bone_02.png", typeof(Texture2D));
+            var texture2 = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Shaders/Tests/Textures/cobblestone_d.tga", typeof(Texture2D));
 
-            var textures = new Texture2D[selection.Length];
-            for (int i = 0; i < textures.Length; i++)
-            {
-                textures[i] = (Texture2D)selection[i];
-            }
+            var textures = new [] {texture1, texture2};
 
             var array = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, textures[0].format, false);
             for (int i = 0; i < textures.Length; i++)

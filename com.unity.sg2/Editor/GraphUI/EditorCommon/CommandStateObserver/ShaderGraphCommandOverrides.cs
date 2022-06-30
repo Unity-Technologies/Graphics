@@ -43,6 +43,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             DeleteElementsCommand command)
         {
             var modelsToDelete = command.Models.ToList();
+            if (modelsToDelete.Count == 0)
+                return;
             // We want to override base handling here
             // DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
 
@@ -152,8 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             DeleteElementsCommand command)
         {
             var modelsToDelete = command.Models.ToList();
-
-            if (!modelsToDelete.Any())
+            if (modelsToDelete.Count == 0)
                 return;
 
             var graphModel = (ShaderGraphModel)graphModelState.GraphModel;

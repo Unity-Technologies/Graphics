@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class TextureTypeConstant : BaseShaderGraphConstant
     {
-        protected override void StoreValue()
+        protected override void StoreValueForCopy()
         {
             var currentTexture = GetValue();
             if (currentTexture != null)
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public override object GetStoredValue()
+        public override object GetStoredValueForCopy()
         {
             if (!String.IsNullOrEmpty(textureAssetGuid))
             {
@@ -29,7 +29,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             return null;
-            //return ObjectValue;
         }
 
         [SerializeField]

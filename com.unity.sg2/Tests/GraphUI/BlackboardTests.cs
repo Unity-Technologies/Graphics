@@ -199,5 +199,103 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNotNull(nodePreviewMaterial);
             Assert.AreEqual(Color.red, SampleMaterialColor(nodePreviewMaterial));
         }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllBlackboardPropertyTypesCanBeCreated()
+        {
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+            }
+        }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllBlackboardPropertyTypesCanBeDuplicated()
+        {
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+            }
+
+            // We want a copy of the original blackboard items
+            var originalItems = GraphModel.VariableDeclarations.ToList();
+            for(var index = 0; index < originalItems.Count; index++)
+            {
+                var declarationModel = originalItems[index];
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                yield return null;
+
+                Assert.IsTrue(m_TestEventHelper.SendDuplicateCommand());
+                yield return null;
+
+                // Check to make sure the duplication worked and there are now two of the type of the copied item
+                Assert.IsTrue(GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 2);
+            }
+        }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllBlackboardPropertyTypesCanBeCutPasted()
+        {
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+                break;
+            }
+
+            // We want a copy of the original blackboard items
+            var originalItems = GraphModel.VariableDeclarations.ToList();
+            for(var index = 0; index < originalItems.Count; index++)
+            {
+                var originalVariable = originalItems[index];
+
+                m_TestEventHelper.SendMouseDownEvent(m_BlackboardView);
+                m_TestEventHelper.SendMouseUpEvent(m_BlackboardView);
+                yield return null;
+
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, originalVariable));
+                yield return null;
+
+                Assert.IsTrue(m_TestEventHelper.SendCutCommand());
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+
+                // TODO: The ShaderGraphViewSelection is responding to cut command currently for some reason, need to get SGBlackboardSelection to do that instead
+                // Check to make sure the cut worked and the original item was deleted
+                Assert.IsTrue(GraphModel.VariableDeclarations.FirstOrDefault(model => Equals(model, originalVariable)) == null);
+
+                Assert.IsTrue(m_TestEventHelper.SendPasteCommand());
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+
+                // Check to make sure the paste worked and there is only one of the copied item
+                Assert.IsTrue(GraphModel.VariableDeclarations.Count(model => model.DataType == originalVariable.DataType) == 1);
+
+            }
+        }
     }
 }

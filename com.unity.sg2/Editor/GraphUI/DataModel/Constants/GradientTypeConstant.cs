@@ -9,14 +9,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         // TODO: (Sai) When Gradients have support for assigning values from the Gradient Editor,
         // revisit their duplication to ensure values are copied over
-        protected override void StoreValue()
+        protected override void StoreValueForCopy()
         {
             var currentGradientValue = GetValue();
             if(currentGradientValue != null)
                 storedValue = (Gradient)currentGradientValue;
         }
 
-        public override object GetStoredValue()
+        public override object GetStoredValueForCopy()
         {
             return storedValue;
         }

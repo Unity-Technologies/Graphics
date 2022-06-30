@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private GraphType.Primitive GetPrimitive() => IsInitialized ? GraphTypeHelpers.GetPrimitive(GetField()) : GraphType.Primitive.Float;
 
         // TODO: Not this
-        protected override void StoreValue()
+        protected override void StoreValueForCopy()
         {
             if (!IsInitialized)
                 return;
@@ -39,10 +39,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 default: m_StoredValue = (Vector4)DefaultValue;
                     break;
             }
+
+            m_StoredLength = GetLength();
+            m_StoredPrimitive = GetPrimitive();
         }
 
+
         // TODO: Not this
-        public override object GetStoredValue()
+        public override object GetStoredValueForCopy()
         {
             switch (m_StoredLength)
             {
@@ -109,9 +113,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphType.Length.Three: GraphTypeHelpers.SetAsVec3(GetField(), (Vector3)value); break;
                 case GraphType.Length.Four: GraphTypeHelpers.SetAsVec4(GetField(), (Vector4)value); break;
             }
-
-            m_StoredLength = GetLength();
-            m_StoredPrimitive = GetPrimitive();
         }
         public override object DefaultValue => Activator.CreateInstance(Type);
         public override Type Type

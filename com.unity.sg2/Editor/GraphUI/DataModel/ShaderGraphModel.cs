@@ -175,7 +175,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            // TODO: Leftover reference node? in CLDS?
+            // The referable entry this variable was backed by is removed in ShaderGraphCommandOverrides.HandleDeleteBlackboardItems()
+            // In future we want to bring it here
 
             return base.DeleteVariableDeclarations(variableModels, deleteUsages);
         }
@@ -185,7 +186,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var resolvedSource = fromPort;
             resolvedDestinations = new List<IPortModel>();
 
-            if (toPort.NodeModel is RedirectNodeModel toRedir)
+            if (toPort is { NodeModel: RedirectNodeModel toRedir })
             {
                 resolvedDestinations = toRedir.ResolveDestinations().ToList();
 
@@ -318,16 +319,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Called by PasteSerializedDataCommand to handle node duplication
         /// </summary>
-        /// <param name="sourceNode"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
+        /// <param name="sourceNodeModel"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
         /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
+        /// <param name="stateComponentUpdater"> The graph model state updater needed to mark the newly created node for observers</param>
+        /// <param name="edges"> List of any edge models that are being duplicated as well </param>
         /// <returns></returns>
-        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null, List<IEdgeModel> edges = null)
+        public override INodeModel DuplicateNode(
+            INodeModel sourceNodeModel,
+            Vector2 delta,
+            IStateComponentUpdater stateComponentUpdater = null,
+            List<IEdgeModel> edges = null)
         {
-            INodeModel sourceNodeModel = sourceNode;
-
-            // Get all input edges going into this node
-            var connectedEdges = edges.Where(edgeModel => edgeModel.ToNodeGuid == sourceNode.Guid);
-            m_NodeGuidToEdgesClipboard.Add(sourceNodeModel.Guid.ToString(), connectedEdges);
+            if (edges != null)
+            {
+                // Get all input edges on the node being duplicated
+                var connectedEdges = edges.Where(edgeModel => edgeModel.ToNodeGuid == sourceNodeModel.Guid);
+                m_NodeGuidToEdgesClipboard.Add(sourceNodeModel.Guid.ToString(), connectedEdges);
+            }
 
             var pastedNodeModel = sourceNodeModel.Clone();
             // Set GraphModel BEFORE OnDefineNode as it is commonly used during it
@@ -484,7 +492,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (copiedVariable.InitializationModel is BaseShaderGraphConstant baseShaderGraphConstant)
             {
                 copiedVariable.CreateInitializationValue();
-                copiedVariable.InitializationModel.ObjectValue = baseShaderGraphConstant.GetStoredValue();
+                copiedVariable.InitializationModel.ObjectValue = baseShaderGraphConstant.GetStoredValueForCopy();
             }
 
             AddVariableDeclaration(copiedVariable);
