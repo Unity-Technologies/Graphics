@@ -344,7 +344,7 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
 #ifdef UNITY_GPU_DRIVEN_PIPELINE
-        float lod = CalcLod(lightmapTex, ddxddy);
+    float lod = CalcLod(lightmapDirTex, ddxddy);
     real4 direction = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapDirTex, lightmapDirSampler, LIGHTMAP_EXTRA_ARGS_USE, lod);
 #else
     real4 direction = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapDirTex, lightmapDirSampler, LIGHTMAP_EXTRA_ARGS_USE);
@@ -354,8 +354,8 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
     if (encodedLightmap)
     {
 #ifdef UNITY_GPU_DRIVEN_PIPELINE
-        float lod = CalcLod(lightmapTex, ddxddy);
-        real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, lod).rgba;
+        //lod = CalcLod(lightmapTex, ddxddy);
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, 0).rgba;
 #else
         real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgba;
 #endif
@@ -363,8 +363,8 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
     else
     {
 #ifdef UNITY_GPU_DRIVEN_PIPELINE
-        float lod = CalcLod(lightmapTex, ddxddy);
-        illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, lod).rgb;
+        //lod = CalcLod(lightmapTex, ddxddy);
+        illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, 0).rgb;
 #else
         illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgb;
 #endif
