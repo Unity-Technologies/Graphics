@@ -225,7 +225,8 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogArtistParameters param = new LocalVolumetricFogArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
             LocalVolumetricFogEngineData data = param.ConvertToEngineData();
 
-            cb._HeightFogBaseScattering = data.scattering;
+            // When volumetric fog is disabled, we don't want its color to affect the heightfog. So we pass neutral values here.
+            cb._HeightFogBaseScattering = enableVolumetrics ? data.scattering : Vector4.one * data.extinction;
             cb._HeightFogBaseExtinction = data.extinction;
 
             float crBaseHeight = baseHeight.value;

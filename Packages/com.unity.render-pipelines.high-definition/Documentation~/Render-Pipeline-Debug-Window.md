@@ -57,7 +57,7 @@ To display the current active item independently of the debug window:
 
 ## Decals panel
 
-The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.md) in your project.
+The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.md) affecting transparent objects in your project.
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
