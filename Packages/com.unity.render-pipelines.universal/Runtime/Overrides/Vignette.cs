@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls the strength of the vignette effect.
         /// </summary>
-        [Tooltip("Amount of vignetting on screen.")]
+        [Tooltip("Use the slider to set the strength of the Vignette effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         /// <summary>

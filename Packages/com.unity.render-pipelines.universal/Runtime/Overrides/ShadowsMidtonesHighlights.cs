@@ -11,19 +11,16 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Use this to control and apply a hue to the shadows.
         /// </summary>
-        [Tooltip("Use this to control and apply a hue to the shadows.")]
         public Vector4Parameter shadows = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Use this to control and apply a hue to the midtones.
         /// </summary>
-        [Tooltip("Use this to control and apply a hue to the midtones.")]
         public Vector4Parameter midtones = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Use this to control and apply a hue to the highlights.
         /// </summary>
-        [Tooltip("Use this to control and apply a hue to the highlights.")]
         public Vector4Parameter highlights = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>

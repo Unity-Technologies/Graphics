@@ -783,6 +783,8 @@ Shader "HDRP/LitTessellation"
             Tags { "LightMode" = "TransparentBackface" }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
+
             ZWrite [_ZWrite]
             Cull Front
             ColorMask [_ColorMaskTransparentVelOne] 1
@@ -1308,5 +1310,6 @@ Shader "HDRP/LitTessellation"
         }
     }
 
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.LitGUI"
 }

@@ -48,5 +48,6 @@ Shader "Hidden/HDRP/MaterialError"
             ENDHLSL
         }
     }
-    Fallback Off
+
+    Fallback "Hidden/Shader Graph/FallbackError"
 }

@@ -87,6 +87,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Disposable pattern implementation.
+        /// Cleans up resources used by the renderer.
         /// </summary>
         public void Dispose()
         {
@@ -94,6 +95,11 @@ namespace UnityEngine.Rendering.Universal
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Called by Dispose().
+        /// Override this function to clean up resources in your renderer.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
         }

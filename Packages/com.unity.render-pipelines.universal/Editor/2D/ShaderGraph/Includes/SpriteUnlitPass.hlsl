@@ -8,6 +8,7 @@ PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
+    output.color *= _RendererColor;
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
@@ -46,7 +47,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
 #ifndef HAVE_VFX_MODIFICATION
-    color *= unpacked.color * _RendererColor;
+    color *= unpacked.color;
 #endif
 
     return color;

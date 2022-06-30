@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         protected override IncludeCollection pregraphIncludes => new IncludeCollection
         {
+            { kInstancing, IncludeLocation.Pregraph }, // For VR
             { CoreIncludes.CorePregraph },
             { CoreIncludes.ShaderGraphPregraph },
         };

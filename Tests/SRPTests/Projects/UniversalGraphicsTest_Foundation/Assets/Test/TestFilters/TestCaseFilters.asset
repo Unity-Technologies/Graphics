@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -19,7 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Needs fixing on DX12
   - FilteredScene: {fileID: 0}
@@ -30,7 +30,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Needs MSAA fixing on OpenGLES3
   - FilteredScene: {fileID: 0}
@@ -49,7 +49,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
   - FilteredScene: {fileID: 0}
@@ -59,7 +59,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
   - FilteredScene: {fileID: 0}
@@ -95,7 +95,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1394999/
   - FilteredScene: {fileID: 0}
@@ -104,7 +104,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
@@ -170,7 +170,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 8
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: No GLES2 on Deferred. Not supported.
   - FilteredScene: {fileID: 0}
@@ -182,7 +182,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 11
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: No GLES3 on Deferred. Not supported.
   - FilteredScene: {fileID: 0}
@@ -194,7 +194,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: No GL on Deferred. Not supported.
   - FilteredScene: {fileID: 0}
@@ -236,7 +236,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 8
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Decals not supported
   - FilteredScene: {fileID: 0}
@@ -245,7 +245,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
   - FilteredScene: {fileID: 0}
@@ -254,7 +254,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
   - FilteredScene: {fileID: 0}
@@ -263,7 +263,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: URP-1199
   - FilteredScene: {fileID: 0}
@@ -272,7 +272,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: URP-1199
   - FilteredScene: {fileID: 0}
@@ -281,7 +281,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: 'Bug: iPhone yamato instability for unknown reason.'
   - FilteredScene: {fileID: 0}
@@ -291,7 +291,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Crash on iOS
   - FilteredScene: {fileID: 0}
@@ -302,7 +302,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 8
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Rendering Layers not supported
   - FilteredScene: {fileID: 0}
@@ -313,7 +313,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 11
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Rendering Layers not supported
   - FilteredScene: {fileID: 0}
@@ -324,6 +324,49 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Rendering Layers not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6503bf3d647f147d1a23db3b0f5ecb55, type: 3}
+    - {fileID: 102900000, guid: 5ea759cdcf4f74574bc818dbb61b1945, type: 3}
+    - {fileID: 102900000, guid: d27c51a5aecee4e0e9c29141a0819c8b, type: 3}
+    - {fileID: 102900000, guid: 2236d967c83ebec47b8616c71fb0be17, type: 3}
+    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
+    - {fileID: 102900000, guid: a13b9207cccbd4cbb99cf2a72b761eef, type: 3}
+    - {fileID: 102900000, guid: 40c4ce99a7711204d978b31395d890b4, type: 3}
+    - {fileID: 102900000, guid: 74cb351d2fc32de4d812e3f2f08744e7, type: 3}
+    - {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
+    - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
+    - {fileID: 102900000, guid: 810b97dd4e5e5204b9e6ed3d05c42498, type: 3}
+    - {fileID: 102900000, guid: 8f1d00629fb57a8448b38a8822925713, type: 3}
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
+    - {fileID: 102900000, guid: e4bd4cb963e384819a1d8a13bc5127a8, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 99abb841000951945931ee709e2370a4, type: 3}
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 5998559ab00db184ba4ce2490fa35a72, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    - {fileID: 102900000, guid: 5a37821ccdba7204096a71421610f99a, type: 3}
+    - {fileID: 102900000, guid: 55b848c185ee4cb43b24ae0449be53ed, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk:
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-3312
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 4
+    XrSdk:
+    StereoModes: 0
+    Reason: Unstable

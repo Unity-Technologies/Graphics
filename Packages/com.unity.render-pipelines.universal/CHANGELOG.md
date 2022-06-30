@@ -4,7 +4,8 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+
+## [15.0.0] - 2022-06-13
 
 ### Added
 - All pre-built URP shaders and URP Shader Graph shaders now support the Mesh LOD cross-fade. Use the UniversalRenderPipelineAsset.lodCrossFadeDitheringType property to select the type of the cross-fade.
@@ -18,7 +19,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
-
 
 ## [14.0.2] - 2021-02-04
 

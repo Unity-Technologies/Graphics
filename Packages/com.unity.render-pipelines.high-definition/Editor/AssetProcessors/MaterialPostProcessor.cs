@@ -331,44 +331,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void RegisterReferencedDiffusionProfiles(Material material)
         {
-            void AddDiffusionProfileToSettings(string propName)
+            foreach (var nameID in GetShaderDiffusionProfileProperties(material.shader))
             {
-                if (!material.HasProperty(propName))
-                    return;
+                if (!material.HasProperty(nameID))
+                    continue;
 
-                var diffusionProfileAsset = material.GetVector(propName);
-                string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
-                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(assetPath);
-
+                var diffusionProfile = GetDiffusionProfileAsset(material, nameID);
                 HDRenderPipelineGlobalSettings.instance.TryAutoRegisterDiffusionProfile(diffusionProfile);
-            }
-
-            AddDiffusionProfileToSettings("_DiffusionProfileAsset");
-
-            // ShaderGraph can reference custom diffusion profiles.
-            var shader = material.shader;
-            if (shader.IsShaderGraphAsset())
-            {
-                int propertyCount = ShaderUtil.GetPropertyCount(shader);
-                for (int propIdx = 0; propIdx < propertyCount; ++propIdx)
-                {
-                    var attributes = shader.GetPropertyAttributes(propIdx);
-                    bool hasDiffusionProfileAttribute = false;
-                    foreach (var attribute in attributes)
-                    {
-                        if (attribute == "DiffusionProfile")
-                        {
-                            propIdx++;
-                            hasDiffusionProfileAttribute = true;
-                            break;
-                        }
-                    }
-
-                    var type = ShaderUtil.GetPropertyType(shader, propIdx);
-                    if (hasDiffusionProfileAttribute && type == ShaderUtil.ShaderPropertyType.Vector)
-                        AddDiffusionProfileToSettings(ShaderUtil.GetPropertyName(shader, propIdx));
-                }
             }
         }
 
@@ -409,6 +378,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (material == null)
                     material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    continue;
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {

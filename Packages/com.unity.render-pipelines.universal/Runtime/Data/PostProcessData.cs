@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
         public sealed class TextureResources
         {
             /// <summary>
-            /// Pre-baked Blue noise texture
+            /// Pre-baked Blue noise textures.
             /// </summary>
             [Reload("Textures/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
             public Texture2D[] blueNoise16LTex;

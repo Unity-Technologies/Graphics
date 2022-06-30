@@ -91,14 +91,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor HighResolutionWater = new KeywordDescriptor()
+        public static KeywordDescriptor WaterBandCount = new KeywordDescriptor()
         {
-            displayName = "HighResolutionWater",
-            referenceName = "HIGH_RESOLUTION_WATER",
-            type = KeywordType.Boolean,
+            displayName = "WaterBand",
+            referenceName = "WATER",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Default
+            entries = new KeywordEntry[]
+    {
+                new KeywordEntry() { displayName = "ONE_BAND", referenceName = "ONE_BAND" },
+                new KeywordEntry() { displayName = "TWO_BANDS", referenceName = "TWO_BANDS" },
+                new KeywordEntry() { displayName = "THREE_BANDS", referenceName = "THREE_BANDS" },
+    },
+            stages = KeywordShaderStage.Default,
         };
 
         public static KeywordDescriptor HasRefraction = new KeywordDescriptor()
@@ -147,6 +153,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }) },
         };
 
+        public static FieldCollection BasicWaterGBuffer = new FieldCollection()
+        {
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.FragInputs.texCoord0,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.IsFrontFace,
+        };
+
         public static PassDescriptor GenerateWaterGBufferPassTesselation()
         {
             return new PassDescriptor
@@ -159,8 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.BasicTessellation,
-                // We need motion vector version as GBuffer pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = CoreRequiredFields.BasicLighting,
+                requiredFields = BasicWaterGBuffer,
                 renderStates = WaterGBuffer,
                 pragmas = WaterTessellationInstanced,
                 defines = HDShaderPasses.GenerateDefines(WaterGBufferDefines, false, true),
@@ -216,6 +230,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Water specific properties
             context.AddField(StructFields.VertexDescriptionInputs.uv0);
             context.AddField(StructFields.VertexDescriptionInputs.uv1);
+            context.AddField(StructFields.VertexDescriptionInputs.WorldSpacePosition);
             context.AddField(HDFields.GraphTessellation);
             context.AddField(HDFields.TessellationFactor);
         }
@@ -242,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             base.CollectPassKeywords(ref pass);
-            pass.keywords.Add(HighResolutionWater);
+            pass.keywords.Add(WaterBandCount);
             pass.keywords.Add(CoreKeywordDescriptors.Decals);
             pass.keywords.Add(CoreKeywordDescriptors.Shadow);
             pass.keywords.Add(CoreKeywordDescriptors.AreaShadow);

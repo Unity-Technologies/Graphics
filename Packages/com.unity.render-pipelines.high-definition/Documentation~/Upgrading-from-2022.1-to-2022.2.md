@@ -19,11 +19,6 @@ Starting from HDRP 14.x, Alpha to Mask option have been removed. Alpha to Mask i
 ## Camera
 
 Starting from HDRP 14.x, the default for the Gate Fit parameter on the Physical camera settings is Vertical as opposed to the old Horizontal default.
-
-## Physically Based Sky
-
-Starting from HDRP 14.x, the **Ground Color** and **Ground Emission** textures of the PBR Sky have been flipped on the x axis. When upgrading a project, these textures might need to be flipped.
-
 ## Refraction
 
 Objects with Transparent Materials and a Refraction Model enabled now fall back to a higher quality default refraction behavior.
@@ -39,6 +34,10 @@ The old Unity material ball has been modified to remove all references to the ol
 The new Unity material ball with the new Unity logo can be accessed from com.unity.render-pipelines.high-definition\Runtime\RenderPipelineResources\Prefab.
 
 Material Samples have been updated accordinly.
+
+## Tone-mapping: ACES Approximation
+
+Aces approximation has been changed to better fit the full aces curve and get cleaner whites, especially when working with big values. This will change the look of your game by a somewhat almost unnoticeable amount.
 
 ## Decal Projectors
 

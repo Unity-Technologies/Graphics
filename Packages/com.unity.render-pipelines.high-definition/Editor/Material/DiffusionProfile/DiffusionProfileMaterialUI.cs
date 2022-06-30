@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     static class DiffusionProfileMaterialUI
     {
         internal static string diffusionProfileNotAssigned = "The diffusion profile on this material is not assigned.\nThe material will be rendered with an error color.";
-        internal static GUIContent diffusionProfileNotInHDRPAsset = new GUIContent("Make sure this Diffusion Profile is referenced in either a Diffusion Profile Override or the HDRP Global Settings. If the Diffusion Profile is not referenced in either, HDRP cannot use it. To add a reference to the Diffusion Profile in the HDRP Global Settings, press Fix.", EditorGUIUtility.IconContent("console.infoicon").image);
+        internal static GUIContent diffusionProfileNotInHDRPAsset = new GUIContent("Make sure this Diffusion Profile is referenced in a Diffusion Profile List in either a scene volume or in the HDRP Global Settings default volume profile.\nIf the Diffusion Profile is not referenced in either, HDRP cannot use it. To add a reference to the Diffusion Profile in the HDRP Global Settings, press Fix.", EditorGUIUtility.IconContent("console.infoicon").image);
 
         public static bool IsSupported(MaterialEditor materialEditor)
         {

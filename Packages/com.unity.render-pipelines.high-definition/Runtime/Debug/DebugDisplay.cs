@@ -117,6 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
         MinRenderingFullScreenDebug,
         /// <summary>Display Motion Vectors.</summary>
         MotionVectors,
+        /// <summary>Display Motion Vectors Intensity.</summary>
+        MotionVectorsIntensity,
         /// <summary>Display NaNs.</summary>
         NanTracker,
         /// <summary>Display Log of the color buffer.</summary>
@@ -317,6 +319,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
             public float minMotionVectorLength = 0.0f;
+            /// <summary>The scale to apply to motion vector lengths (in Normalized Device Coordinates) to be applied before display.</summary>
+            public float motionVecVisualizationScale = 40.0f;
+            /// <summary>Whether to visualize motion vector intensity as heat map or greyscale (if off).</summary>
+            public bool motionVecIntensityHeat = false;
 
 
             // TODO: The only reason this exist is because of Material/Engine debug enums
@@ -1832,12 +1838,22 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 widgetList.Add(new DebugUI.Container
                 {
-                    isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.MotionVectors,
+                    isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectors || data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity),
                     children =
                     {
                         new DebugUI.FloatField {displayName = "Min Motion Vector Length (in pixels)", getter = () => data.minMotionVectorLength, setter = value => data.minMotionVectorLength = value, min = () => 0}
                     }
                 });
+                widgetList.Add(new DebugUI.Container
+                {
+                    isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity),
+                    children =
+                    {
+                        new DebugUI.FloatField {displayName = "Motion Vector Scale", getter = () => data.motionVecVisualizationScale, setter = value => data.motionVecVisualizationScale = value, min = () => 0},
+                        new DebugUI.BoolField {displayName = "Visualize as Heat map", getter = () => data.motionVecIntensityHeat, setter = value => data.motionVecIntensityHeat = value }
+                    }
+                });
+
             }
 
             widgetList.AddRange(new DebugUI.Widget[]

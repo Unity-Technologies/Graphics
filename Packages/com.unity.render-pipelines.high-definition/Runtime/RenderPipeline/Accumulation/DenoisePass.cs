@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+// Enable the denoising code path only on windows
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -36,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle outputTexture)
         {
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             // Early exit if there is no denoising
             if (m_PathTracingSettings.denoising.value == HDDenoiserType.None)
             {

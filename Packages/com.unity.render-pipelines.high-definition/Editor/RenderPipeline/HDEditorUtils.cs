@@ -305,4 +305,20 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
     }
+
+    // Due to a UI bug/limitation, we have to do it this way to support bold labels
+    public class BoldLabelScope : GUI.Scope
+    {
+        FontStyle origFontStyle;
+        public BoldLabelScope()
+        {
+            origFontStyle = EditorStyles.label.fontStyle;
+            EditorStyles.label.fontStyle = FontStyle.Bold;
+        }
+
+        protected override void CloseScope()
+        {
+            EditorStyles.label.fontStyle = origFontStyle;
+        }
+    }
 }

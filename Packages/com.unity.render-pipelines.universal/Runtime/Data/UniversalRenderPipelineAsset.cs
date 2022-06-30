@@ -377,6 +377,7 @@ namespace UnityEngine.Rendering.Universal
     {
         /// <summary>Unity uses the Bayer matrix texture to compute the LOD cross-fade dithering.</summary>
         BayerMatrix,
+
         /// <summary>Unity uses the precomputed blue noise texture to compute the LOD cross-fade dithering.</summary>
         BlueNoise
     }
@@ -384,9 +385,9 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
+    /// </summary>
     /// <see cref="RenderPipelineAsset"/>
     /// <see cref="UniversalRenderPipeline"/>
-    /// </summary>
     [ExcludeFromPreset]
     [URPHelpURL("universalrp-asset")]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
@@ -467,6 +468,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
+        [SerializeField] bool m_EnableRenderGraph = false;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -492,12 +494,12 @@ namespace UnityEngine.Rendering.Universal
         // 1D shaper lut but for now we'll keep it simple.
 
         /// <summary>
-        /// The minimum size of the color grading LUT.
+        /// The minimum color grading LUT (lookup table) size.
         /// </summary>
         public const int k_MinLutSize = 16;
 
         /// <summary>
-        /// The maximum size of the color grading LUT.
+        /// The maximum color grading LUT (lookup table) size.
         /// </summary>
         public const int k_MaxLutSize = 65;
 
@@ -505,17 +507,17 @@ namespace UnityEngine.Rendering.Universal
         internal const int k_ShadowCascadeMaxCount = 4;
 
         /// <summary>
-        /// The default value of `additionalLightsShadowResolutionTierLow`.
+        /// The default low tier resolution for additional lights shadow texture.
         /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
 
         /// <summary>
-        /// The default value of `additionalLightsShadowResolutionTierMedium`.
+        /// The default medium tier resolution for additional lights shadow texture.
         /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
 
         /// <summary>
-        /// The default value of `additionalLightsShadowResolutionTierHigh`.
+        /// The default high tier resolution for additional lights shadow texture.
         /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
@@ -983,7 +985,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Specifies the msaa sample count used by this <c>UniversalRenderPipelineAsset</c>
         /// </summary>
-        /// <see cref="SampleCount"/>
+        /// <see cref="MsaaQuality"/>
         public int msaaSampleCount
         {
             get { return (int)m_MSAA; }
@@ -1285,7 +1287,16 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
         /// </summary>
+        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
         public bool supportsLightLayers
+        {
+            get { return m_SupportsLightLayers; }
+        }
+
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports rendering layers for lights, false otherwise.
+        /// </summary>
+        public bool useRenderingLayers
         {
             get { return m_SupportsLightLayers; }
         }
@@ -1312,6 +1323,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
+        }
+
+        /// <summary>
+        /// Controls whether the RenderGraph render path is enabled.
+        /// </summary>
+        internal bool enableRenderGraph
+        {
+            get { return m_EnableRenderGraph; }
+            set { m_EnableRenderGraph = value; }
         }
 
         /// <summary>
@@ -1578,7 +1598,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>
         /// Returns asset texture resources
@@ -1791,15 +1812,28 @@ namespace UnityEngine.Rendering.Universal
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
 
+        /// <summary>
+        /// Class containing texture resources used in URP.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class TextureResources
         {
+            /// <summary>
+            /// Pre-baked blue noise textures.
+            /// </summary>
             [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
             public Texture2D blueNoise64LTex;
 
+            /// <summary>
+            /// Bayer matrix texture.
+            /// </summary>
             [Reload("Textures/BayerMatrix.png")]
             public Texture2D bayerMatrixTex;
 
+            /// <summary>
+            /// Check if the textures need reloading.
+            /// </summary>
+            /// <returns>True if any of the textures need reloading.</returns>
             public bool NeedsReload()
             {
                 return blueNoise64LTex == null || bayerMatrixTex == null;

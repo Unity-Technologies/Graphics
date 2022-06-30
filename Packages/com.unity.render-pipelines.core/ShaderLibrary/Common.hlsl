@@ -421,11 +421,10 @@ TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
 
     float QuadReadAcrossDiagonal(float value, int2 screenPos)
     {
-        float dX = ddx_fine(value);
-        float dY = ddy_fine(value);
         float2 quadDir = GetQuadOffset(screenPos);
+        float dX = ddx_fine(value);
         float X = value - (dX * quadDir.x);
-        return X - (ddy_fine(value) * quadDir.y);
+        return X - (ddy_fine(X) * quadDir.y);
     }
 #endif
 

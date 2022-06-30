@@ -25,9 +25,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
+        /// A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones.
         /// </summary>
-        [Tooltip("When multiple Volumes affect the same settings, Unity uses this value to determine which Volume to use. A Volume with the highest Priority value takes precedence.")]
+        [Tooltip("A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones.")]
         public float priority = 0f;
 
         /// <summary>

@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         //
         internal bool UseDecalLayers { get; set; }
         //
-        internal bool UseLightLayers { get { return UniversalRenderPipeline.asset.supportsLightLayers; } }
+        internal bool UseLightLayers { get { return UniversalRenderPipeline.asset.useRenderingLayers; } }
         //
         internal bool UseRenderPass { get; set; }
         //
@@ -585,7 +585,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
             var additionalLightData = lightData.visibleLights[lightData.mainLightIndex].light.GetUniversalAdditionalLightData();
-            uint lightLayerMask = RenderingLayerUtils.ToRenderingLayers(additionalLightData.lightLayerMask);
+            uint lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
 
             cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
             cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
@@ -753,7 +753,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 var additionalLightData = light.GetUniversalAdditionalLightData();
-                uint lightLayerMask = RenderingLayerUtils.ToRenderingLayers(additionalLightData.lightLayerMask);
+                uint lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
 
                 // Setup shadow paramters:
                 // - for the main light, they have already been setup globally, so nothing to do.
@@ -822,7 +822,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
                 var additionalLightData = light.GetUniversalAdditionalLightData();
-                uint lightLayerMask = RenderingLayerUtils.ToRenderingLayers(additionalLightData.lightLayerMask);
+                uint lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
 
                 int lightFlags = 0;
                 if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
@@ -887,7 +887,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
                 var additionalLightData = light.GetUniversalAdditionalLightData();
-                uint lightLayerMask = RenderingLayerUtils.ToRenderingLayers(additionalLightData.lightLayerMask);
+                uint lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
 
                 int lightFlags = 0;
                 if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)

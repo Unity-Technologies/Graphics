@@ -357,11 +357,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             ctx.cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
-                            // TODO: remove this execute when DrawShadows will use a CommandBuffer
-                            ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
-                            ctx.cmd.Clear();
-
-                            ctx.renderContext.DrawShadows(ref data.shadowDrawSettings);
+                            //TODO(ddebaets) as the shadowDrawSettings are modified in this loop, we generate this RL very last minute
+                            // We might want to refactor this and create the RL ahead of time (especially if we ever allow AsyncPrepare on them)
+                            var rl = ctx.renderContext.CreateShadowRendererList(ref data.shadowDrawSettings);
+                            ctx.cmd.DrawRendererList(rl);
                         }
                         ctx.cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
                         ctx.cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.

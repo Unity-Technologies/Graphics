@@ -13,8 +13,14 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// The main class for the Universal Render Pipeline (URP).
+    /// </summary>
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
+        /// <summary>
+        /// The shader tag used in the Universal Render Pipeline (URP)
+        /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
@@ -80,6 +86,9 @@ namespace UnityEngine.Rendering.Universal
             };
         }
 
+        /// <summary>
+        /// The maximum amount of bias allowed for shadows.
+        /// </summary>
         public static float maxShadowBias
         {
             get => 10.0f;
@@ -151,6 +160,10 @@ namespace UnityEngine.Rendering.Universal
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
+
+        /// <summary>
+        /// The default Render Pipeline Global Settings.
+        /// </summary>
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
@@ -253,7 +266,11 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-            useRenderGraph = m_GlobalSettings.enableRenderGraph;
+#if RENDER_GRAPH_ENABLED
+            useRenderGraph = asset.enableRenderGraph;
+#else
+            useRenderGraph = false;
+#endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -1235,7 +1252,7 @@ namespace UnityEngine.Rendering.Universal
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
-            lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
+            lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
             lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
             for (var i = 0; i < lightData.originalIndices.Length; i++)
             {

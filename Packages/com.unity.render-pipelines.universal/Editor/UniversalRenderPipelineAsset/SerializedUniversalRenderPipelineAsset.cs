@@ -57,8 +57,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty srpBatcher { get; }
         public SerializedProperty supportsDynamicBatching { get; }
         public SerializedProperty mixedLightingSupportedProp { get; }
-        public SerializedProperty supportsLightLayers { get; }
+        public SerializedProperty useRenderingLayers { get; }
         public SerializedProperty debugLevelProp { get; }
+        public SerializedProperty enableRenderGraph { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
 
@@ -128,8 +129,9 @@ namespace UnityEditor.Rendering.Universal
             srpBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             supportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
-            supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
+            useRenderingLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
+            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 

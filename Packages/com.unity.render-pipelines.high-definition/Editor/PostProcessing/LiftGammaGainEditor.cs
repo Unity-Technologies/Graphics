@@ -9,9 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Styles
         {
-            public static readonly GUIContent liftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this control to apply a hue to the dark tones (shadows) and adjust their level.");
-            public static readonly GUIContent gammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this control to apply a hue to the mid-range tones and adjust their level.");
-            public static readonly GUIContent gainLabel = EditorGUIUtility.TrTextContent("Gain", "Use this control to apply a hue to the highlights and adjust their level.");
+            public static readonly GUIContent liftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.");
+            public static readonly GUIContent gammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this to control and apply a hue to the mid-range tones with a power function.");
+            public static readonly GUIContent gainLabel = EditorGUIUtility.TrTextContent("Gain", "Use this to increase and apply a hue to the signal and make highlights brighter.");
         }
 
         SerializedDataParameter m_Lift;

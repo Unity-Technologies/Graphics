@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -97,7 +98,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // TODO: add option to only draw either one?
                 DrawCameraMotionVectors(context, cmd, camera, cameraMaterial);
-                DrawObjectMotionVectors(context, ref renderingData, camera, objectMaterial);
+                DrawObjectMotionVectors(context, ref renderingData, camera, objectMaterial, cmd);
             }
         }
 
@@ -140,14 +141,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.Clear();
         }
 
-        private static void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera, Material objectMaterial)
+        private static void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera, Material objectMaterial, CommandBuffer cmd)
         {
             var drawingSettings = GetDrawingSettings(ref renderingData, objectMaterial);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
-            // Draw Renderers
-            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            RenderingUtils.DrawRendererListWithRenderStateBlock(context, cmd, renderingData, drawingSettings, filteringSettings, renderStateBlock);
         }
         #endregion
 

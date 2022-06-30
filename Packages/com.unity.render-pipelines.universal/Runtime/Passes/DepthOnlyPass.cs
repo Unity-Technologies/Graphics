@@ -85,14 +85,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filteringSettings);
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
             }
         }
 

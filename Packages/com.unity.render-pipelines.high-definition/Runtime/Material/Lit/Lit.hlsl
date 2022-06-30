@@ -55,12 +55,20 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 //-----------------------------------------------------------------------------
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
-#define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer5
-#define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer6
+    #define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+    #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer5
+    #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer6
+    #if (SHADERPASS == SHADERPASS_GBUFFER)
+        #if defined(SHADER_API_PSSL)
+            //For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
+            //In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
+            //Thus, when VT is enabled, we force FMT_32_ABGR
+            #pragma PSSL_target_output_format(target 4 FMT_32_ABGR)
+        #endif
+    #endif
 #else
-#define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer4
-#define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer5
+    #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer4
+    #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer5
 #endif
 
 #if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
@@ -708,6 +716,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #ifdef LIGHT_LAYERS
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    // Channels xyz are not written to because of the ColorMask
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
 #endif
 
@@ -716,7 +725,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-    OUT_GBUFFER_VTFEEDBACK = builtinData.vtPackedFeedback;
+    OUT_GBUFFER_VTFEEDBACK = PackVTFeedbackWithAlpha(builtinData.vtPackedFeedback, (float2)positionSS.xy, 1.0);
 #endif
 }
 

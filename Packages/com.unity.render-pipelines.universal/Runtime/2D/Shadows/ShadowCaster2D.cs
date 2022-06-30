@@ -12,11 +12,22 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
     {
+        /// <summary>
+        /// Options for the component versioning.
+        /// </summary>
         public enum ComponentVersions
         {
+            /// <summary>
+            /// Use this for unserialized.
+            /// </summary>
             Version_Unserialized = 0,
+
+            /// <summary>
+            /// Use this for version 1.
+            /// </summary>
             Version_1 = 1
         }
+
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
@@ -36,8 +47,16 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         internal BoundingSphere m_ProjectedBoundingSphere;
 
+        /// <summary>
+        /// The mesh to draw with.
+        /// </summary>
         public Mesh mesh => m_Mesh;
+
+        /// <summary>
+        /// The path for the shape.
+        /// </summary>
         public Vector3[] shapePath => m_ShapePath;
+
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
         int m_PreviousShadowGroup = 0;
@@ -167,6 +186,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// This function is called when the object becomes enabled and active.
+        /// </summary>
         protected void OnEnable()
         {
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
@@ -179,11 +201,17 @@ namespace UnityEngine.Rendering.Universal
             m_ShadowCasterGroup = null;
         }
 
+        /// <summary>
+        /// This function is called when the behaviour becomes disabled.
+        /// </summary>
         protected void OnDisable()
         {
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
         }
 
+        /// <summary>
+        /// Update is called every frame, if the MonoBehaviour is enabled.
+        /// </summary>
         public void Update()
         {
             Renderer renderer;
@@ -222,11 +250,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version

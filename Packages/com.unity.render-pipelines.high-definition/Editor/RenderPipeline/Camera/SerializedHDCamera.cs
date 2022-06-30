@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty taaMotionVectorRejection;
         public SerializedProperty taaAntiRinging;
         public SerializedProperty taaBaseBlendFactor;
+        public SerializedProperty taaJitterScale;
         public SerializedProperty taaQualityLevel;
 
         public SerializedProperty clearColorMode;
@@ -95,6 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             taaAntiRinging = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiHistoryRinging);
             taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
             taaBaseBlendFactor = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaBaseBlendFactor);
+            taaJitterScale = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaJitterScale);
 
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);

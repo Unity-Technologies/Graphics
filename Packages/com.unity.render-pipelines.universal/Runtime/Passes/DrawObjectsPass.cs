@@ -14,12 +14,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle[] m_ColorTargetIndentifiers;
         RTHandle m_DepthTargetIndentifiers;
 
+        /// <summary>
+        /// Creates a new <c>DrawObjectsWithRenderingLayersPass</c> instance.
+        /// </summary>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
+        /// <param name="opaque">Marks whether the objects are opaque or transparent.</param>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="stencilState">The stencil settings to use with this poss.</param>
+        /// <param name="stencilReference">The stencil reference value to use with this pass.</param>
         public DrawObjectsWithRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
             base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {
             m_ColorTargetIndentifiers = new RTHandle[2];
         }
 
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment handle.</param>
+        /// <param name="renderingLayersTexture">Texture used with rendering layers.</param>
+        /// <param name="depthAttachment">Depth attachment handle.</param>
+        /// <exception cref="ArgumentException"></exception>
         public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment)
         {
             if (colorAttachment == null)
@@ -34,11 +51,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DepthTargetIndentifiers = depthAttachment;
         }
 
+        /// <inheritdoc/>
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
         }
 
+        /// <inheritdoc/>
         protected override void OnExecute(CommandBuffer cmd)
         {
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
@@ -59,6 +78,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+
+        /// <summary>
+        /// Used to indicate whether transparent objects should receive shadows or not.
+        /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
 
         PassData m_PassData;
@@ -69,14 +92,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Creates a new <c>DrawObjectsPass</c> instance.
         /// </summary>
-        /// <param name="profilerTag"></param>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
         /// <param name="shaderTagIds"></param>
-        /// <param name="opaque"></param>
+        /// <param name="opaque">Marks whether the objects are opaque or transparent.</param>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
-        /// <param name="renderQueueRange"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="stencilState"></param>
-        /// <param name="stencilReference"></param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="stencilState">The stencil settings to use with this poss.</param>
+        /// <param name="stencilReference">The stencil reference value to use with this pass.</param>
         /// <seealso cref="ShaderTagId"/>
         /// <seealso cref="RenderPassEvent"/>
         /// <seealso cref="RenderQueueRange"/>
@@ -107,13 +130,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Creates a new <c>DrawObjectsPass</c> instance.
         /// </summary>
-        /// <param name="profilerTag"></param>
-        /// <param name="opaque"></param>
-        /// <param name="evt"></param>
-        /// <param name="renderQueueRange"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="stencilState"></param>
-        /// <param name="stencilReference"></param>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
+        /// <param name="opaque">Marks whether the objects are opaque or transparent.</param>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="stencilState">The stencil settings to use with this poss.</param>
+        /// <param name="stencilReference">The stencil reference value to use with this pass.</param>
         /// <seealso cref="RenderPassEvent"/>
         /// <seealso cref="RenderQueueRange"/>
         /// <seealso cref="LayerMask"/>
@@ -222,18 +245,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,
-                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        (ScriptableRenderContext ctx, CommandBuffer cmd, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                            RenderingUtils.DrawRendererListWithRenderStateBlock(ctx, cmd, data, ds, fs, rsb);
                         });
                 }
                 else
                 {
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock);
+                    RenderingUtils.DrawRendererListWithRenderStateBlock(context, cmd, renderingData, drawSettings, filterSettings, data.m_RenderStateBlock);
 
                     // Render objects that did not match any shader pass with error shader
-                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None, cmd);
                 }
+
+
             }
         }
 
@@ -313,6 +338,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Called before ExecutePass draws the objects.
+        /// </summary>
+        /// <param name="cmd">The command buffer to use.</param>
         protected virtual void OnExecute(CommandBuffer cmd) { }
     }
 }

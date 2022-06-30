@@ -1515,8 +1515,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 previousScreenSize;
             public Vector4 taaParameters;
             public Vector4 taaParameters1;
-            public Vector4 taaFilterWeights;
-            public Vector4 taaFilterWeights1;
+            public float[] taaFilterWeights;
             public bool motionVectorRejection;
             public Vector4 taauParams;
             public Rect finalViewport;
@@ -1576,6 +1575,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 antiFlickerLerpFactor = 0.7f;
             }
             float antiFlicker = postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, antiFlickerLerpFactor);
+            const float historyContrastBlendStart =  0.51f;
+            float historyContrastLerp =  Mathf.Clamp01((antiFlickerLerpFactor - historyContrastBlendStart) / (1.0f - historyContrastBlendStart));
 
             passData.taaParameters = new Vector4(historySharpening, antiFlicker, motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
@@ -1583,8 +1584,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float totalWeight = 0;
             for (int i = 0; i < 9; ++i)
             {
-                float x = TAASampleOffsets[i].x - camera.taaJitter.x;
-                float y = TAASampleOffsets[i].y - camera.taaJitter.y;
+                Vector2 jitter = camera.taaJitter;
+                float x = TAASampleOffsets[i].x + jitter.x;
+                float y = TAASampleOffsets[i].y + jitter.y;
                 float d = (x * x + y * y);
 
                 taaSampleWeights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
@@ -1603,9 +1605,9 @@ namespace UnityEngine.Rendering.HighDefinition
             const float offset = postDofMin - TAABaseBlendFactorMin * scale;
             float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
 
-            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
-            passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
-            passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
+            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, historyContrastLerp);
+
+            passData.taaFilterWeights = taaSampleWeights;
 
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
@@ -1629,6 +1631,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (passData.motionVectorRejection)
             {
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
+            }
+
+            if (historyContrastLerp > 0.0f)
+            {
+                passData.temporalAAMaterial.EnableKeyword("HISTORY_CONTRAST_ANTI_FLICKER");
             }
 
             passData.runsTAAU = TAAU;
@@ -1790,8 +1797,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
                         mpb.SetVector(HDShaderIDs._TaaPostParameters1, data.taaParameters1);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
-                        mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
-                        mpb.SetVector(HDShaderIDs._TaaFilterWeights1, data.taaFilterWeights1);
+                        mpb.SetFloatArray(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
                         mpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
 
@@ -2146,11 +2153,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofPrefilterCS.EnableKeyword("HIGH_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("HIGH_QUALITY");
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
             else
             {
                 parameters.dofPrefilterCS.EnableKeyword("LOW_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("LOW_QUALITY");
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
 
             if (bothLayersActive || nearLayerActive)
@@ -2179,6 +2188,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 // Fix the resolution to half. This only affects the out-of-focus regions (and there is no visible benefit at computing those at higher res). Tiles with pixels near the focus plane always run at full res.
                 parameters.resolution = DepthOfFieldResolution.Half;
+
+                if (parameters.highQualityFiltering)
+                {
+                    parameters.pbDoFGatherCS.EnableKeyword("HIGH_QUALITY");
+                }
             }
 
             if (hdCamera.msaaEnabled)
@@ -2701,7 +2715,10 @@ namespace UnityEngine.Rendering.HighDefinition
             //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA
             ComputeShader cs = parameters.dofCoCReprojectCS;
             int kernel = parameters.dofCoCReprojectKernel;
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(parameters.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.z, cocHistoryScale.w, 0f));
+            // This is a fixed empirical value. Was initially 0.91 but was creating a lot of ghosting trails in DoF.
+            // Looks like we can push it down to 0.86 and still get nice stable results.
+            float cocHysteresis = 0.86f;
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(parameters.resetPostProcessingHistory ? 0f : cocHysteresis, cocHistoryScale.z, cocHistoryScale.w, 0f));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoC);

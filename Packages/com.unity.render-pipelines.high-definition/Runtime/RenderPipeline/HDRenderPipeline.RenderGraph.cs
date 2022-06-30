@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ApplyCameraMipBias(hdCamera);
 
-                    RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
+                    RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput, vtFeedbackBuffer, shadowResult, cullingResults);
 
                     ResetCameraMipBias(hdCamera);
 
@@ -225,7 +225,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
                     if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+                    {
                         PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.resolvedMotionVectorsBuffer, FullScreenDebugMode.MotionVectors, fullScreenDebugFormat);
+                        PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.resolvedMotionVectorsBuffer, FullScreenDebugMode.MotionVectorsIntensity, fullScreenDebugFormat);
+                    }
 
                     // Transparent objects may write to the depth and motion vectors buffers.
                     if (aovRequest.isValid)
@@ -825,10 +828,9 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorBuffer,
             in LightingBuffers lightingBuffers,
             in BuildGPULightListOutput lightLists,
-            TextureHandle depthBuffer,
+            in PrepassOutput prepassOutput,
             TextureHandle vtFeedbackBuffer,
             ShadowResult shadowResult,
-            DBufferOutput dbuffer,
             CullingResults cullResults)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -853,11 +855,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseColorBuffer(lightingBuffers.diffuseLightingBuffer, index++);
                     builder.UseColorBuffer(lightingBuffers.sssBuffer, index++);
                 }
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
+                builder.AllowRendererListCulling(false);
 
-                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
-                passData.dbuffer = ReadDBuffer(dbuffer, builder);
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && DecalSystem.instance.HasAnyForwardEmissive();
+                passData.dbuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+
+                // Texture has been bound globally during prepass, warn rendergraph that we may use it here
+                if (passData.enableDecals && hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                    builder.ReadTexture(prepassOutput.renderingLayersBuffer);
 
                 builder.SetRenderFunc(
                     (ForwardOpaquePassData data, RenderGraphContext context) =>
@@ -958,7 +965,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                 return renderGraph.defaultResources.blackTextureXR;
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             // For now disable this pass when path tracing is ON and denoising is active (the denoiser flushes the command buffer for syncing and invalidates the recorded RendererLists)
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState() && m_PathTracingSettings.denoising.value != HDDenoiserType.None)
                 return renderGraph.defaultResources.blackTextureXR;
@@ -1356,7 +1363,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Render the deferred water lighting
-            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid, volumetricLighting, waterGBuffer);
+            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid, volumetricLighting, waterGBuffer, lightLists);
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);

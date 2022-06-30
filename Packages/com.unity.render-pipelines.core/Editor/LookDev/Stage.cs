@@ -143,7 +143,17 @@ namespace UnityEditor.Rendering.LookDev
         /// <seealso cref="MoveIntoStage"/>
         public GameObject InstantiateIntoStage(GameObject prefabOrSceneObject, Vector3 position, Quaternion rotation, bool persistent = false)
         {
-            var handle = GameObject.Instantiate(prefabOrSceneObject);
+            GameObject handle;
+
+            if (PrefabUtility.IsPartOfAnyPrefab(prefabOrSceneObject))
+            {
+                // Instantiate the prefab directly into the preview scene to prevent any issues
+                // with systems that register with the main scene in Awake [Case 1399762].
+                handle = PrefabUtility.InstantiatePrefab(prefabOrSceneObject, m_PreviewScene) as GameObject;
+            }
+            else
+                handle = GameObject.Instantiate(prefabOrSceneObject);
+
             MoveIntoStage(handle, position, rotation, persistent);
             return handle;
         }

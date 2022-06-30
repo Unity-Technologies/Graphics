@@ -45,6 +45,8 @@ float4 _CurrentEffectResolution;
 float _PixelSpreadAngleTangent;
 int _AffectSmoothSurfaces;
 int _SingleReflectionBounce;
+// Contains history buffer size in xy and the uv scale in zw
+float4 _HistorySizeAndScale;
 
 // Output texture
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
@@ -86,14 +88,9 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // Compute the current and history UV coordinates
     float2 currentUV = (mainCoord + 0.5f) * _ScreenSize.zw;
-    float2 historyCoordinate = ((float2)(mainCoord + 0.5f) - velocity * _CurrentEffectResolution.xy);
-    float2 historyUV = clamp(historyCoordinate, 0.0f, _CurrentEffectResolution.xy - 1.0f) * _HistoryBufferSize.xy;
 
     // Fetch the current and history values and apply the exposition to it.
     float3 color = Fetch(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-    float4 historyRaw = Fetch4(_HistoryBuffer, historyUV, 0.0, 1.0);
-    float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
-
     if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
@@ -101,11 +98,18 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         return;
     }
 
-    float sampleCount = historyRaw.w;
+    float2 historyUVUnscaled = currentUV - velocity;
+    float4 historyRaw = Fetch4(_HistoryBuffer, historyUVUnscaled, 0.0, _HistorySizeAndScale.zw);
+    float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
+
+    // Depending on the roughness of the surface run one or the other temporal reprojection
     float3 result;
     if (normalData.perceptualRoughness > ROUGHNESS_ACCUMULATION_THRESHOLD)
     {
         bool canBeReprojected = true;
+
+        float2 historyCoordinate = historyUVUnscaled * _HistorySizeAndScale.xy;
+        float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
 
         // If the pixel was outside of the screen during the previous frame, invalidate the history
         if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0
@@ -136,6 +140,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         if (length(historyPositionWS - posInput.positionWS) > maxRadius)
             canBeReprojected = false;
 
+        float sampleCount = historyRaw.w;
         if (canBeReprojected && sampleCount != 0.0)
         {
             float accumulationFactor = sampleCount >= 8.0 ? 0.93 : (sampleCount / (sampleCount + 1.0));
@@ -190,7 +195,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     }
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(result * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
-    _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = sampleCount;
+    _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = historyRaw.w;
 }
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]

@@ -471,6 +471,11 @@ Shader "HDRP/Lit"
                 Pass Replace
             }
 
+            // Depending on virtual texturing, light layers buffer can be put in slot 4 or 5
+            // When using decal layers, we must make sure we don't write to RGB channels
+            ColorMask [_LightLayersMaskBuffer4] 4
+            ColorMask [_LightLayersMaskBuffer5] 5
+
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
@@ -753,6 +758,8 @@ Shader "HDRP/Lit"
             Tags { "LightMode" = "TransparentBackface" }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
+
             ZWrite [_ZWrite]
             Cull Front
             ColorMask [_ColorMaskTransparentVelOne] 1
@@ -835,6 +842,8 @@ Shader "HDRP/Lit"
             }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback. All other uses will pass 1.
+
             // In case of forward we want to have depth equal for opaque mesh
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
@@ -1282,5 +1291,6 @@ Shader "HDRP/Lit"
         }
     }
 
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.LitGUI"
 }
