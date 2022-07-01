@@ -1523,6 +1523,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taaScales;
             public bool runsTAAU;
             public bool runsAfterUpscale;
+            public bool msaaIsEnabled;
 
             public TextureHandle source;
             public TextureHandle destination;
@@ -1734,7 +1735,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float stdDev = 0.4f;
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
 
-            passData.stencilBuffer = stencilTexture;
+            passData.stencilBuffer =  builder.ReadTexture(stencilTexture);
+            // With MSAA enabled we really don't support TAA (see docs), it should mostly work but stuff like stencil tests won't when manually sampled.
+            // As a result we just set stencil to black. This flag can be used in the future to make proper support for the MSAA+TAA combo.
+            passData.msaaIsEnabled = camera.msaaEnabled;
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
@@ -1818,11 +1822,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             rect = data.finalViewport;
 
-                            RTHandle stencil = data.stencilBuffer;
-                            if (stencil.rt.stencilFormat == GraphicsFormat.None)  // We are accessing MSAA resolved version and not the depth stencil buffer directly.
-                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencil);
+                            // If this is the case it means we are using MSAA. With MSAA TAA is not really supported, so we just bind a black stencil.
+                            if (data.msaaIsEnabled)
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, ctx.defaultResources.blackTextureXR);
                             else
-                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencil, RenderTextureSubElement.Stencil);
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
 
 
                             HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, taauPass);

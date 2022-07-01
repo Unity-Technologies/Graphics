@@ -196,13 +196,14 @@ namespace UnityEditor.VFX.HDRP
 
         VFXExpression AngleFadeSimplification(VFXExpression angleFadeExp)
         {
+            // See DecalSystem.cs
             angleFadeExp = angleFadeExp / VFXValue.Constant(new Vector2(180.0f, 180.0f));
             var angleStart = new VFXExpressionExtractComponent(angleFadeExp, 0);
             var angleEnd = new VFXExpressionExtractComponent(angleFadeExp, 1);
             var range = new VFXExpressionMax(VFXValue.Constant(0.0001f), angleEnd - angleStart);
             var simplifiedAngleFade = new VFXExpressionCombine(
-                VFXValue.Constant(1.0f) - (VFXValue.Constant(0.25f) - angleStart) / range,
-                VFXValue.Constant(-0.25f) / range);
+                VFXValue.Constant(0.222222222f) / range,
+                (angleEnd - VFXValue.Constant(0.5f)) / range);
             return simplifiedAngleFade;
         }
 
