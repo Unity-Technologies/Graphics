@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.Universal
         OpaqueWriteRenderingLayers = (1L << 33),
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
+        LightCookies = (1L << 36),
     }
 
     [Flags]
@@ -115,6 +116,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ForwardPlus;
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
+        LocalKeyword m_LightCookies;
 
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
@@ -183,6 +185,7 @@ namespace UnityEditor.Rendering.Universal
             m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
+            m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -538,6 +541,9 @@ namespace UnityEditor.Rendering.Universal
                 stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
                 return true;
 
+            if (stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies))
+                return true;
+
             string keywordNames = "";
             foreach (var keyword in compilerData.shaderKeywordSet.GetShaderKeywords())
             {
@@ -888,6 +894,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.enableLODCrossFade)
                 shaderFeatures |= ShaderFeatures.LODCrossFade;
+
+            if (pipelineAsset.supportsLightCookies)
+                shaderFeatures |= ShaderFeatures.LightCookies;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
