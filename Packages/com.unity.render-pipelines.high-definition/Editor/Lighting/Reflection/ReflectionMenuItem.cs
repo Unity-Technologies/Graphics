@@ -33,5 +33,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var planarProbe = go.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(1, 0.01f, 1);
         }
+
+        [MenuItem("GameObject/Volume/Reflection Proxy Volume", priority =  12)]
+        static void CreateReflectionProxyVolumeGameObject(MenuCommand menuCommand)
+        {
+            var parent = menuCommand.context as GameObject;
+            var go = CoreEditorUtils.CreateGameObject("Reflection Proxy Volume", parent);
+            var proxyVolume = go.AddComponent<ReflectionProxyVolumeComponent>();
+        }
     }
 }

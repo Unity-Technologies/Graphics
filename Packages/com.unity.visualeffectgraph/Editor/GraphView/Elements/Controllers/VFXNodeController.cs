@@ -178,7 +178,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput, bool revertTypeConstraint = false)
         {
         }
 

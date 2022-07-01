@@ -3,12 +3,27 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    /// <summary>
+    /// Modes for Debugging Probes
+    /// </summary>
     [GenerateHLSL]
     public enum DebugProbeShadingMode
     {
+        /// <summary>
+        /// Based on Spherical Harmonics
+        /// </summary>
         SH,
+        /// <summary>
+        /// Based on validity
+        /// </summary>
         Validity,
+        /// <summary>
+        /// Based on validity over a dilation threshold
+        /// </summary>
         ValidityOverDilationThreshold,
+        /// <summary>
+        /// Based on size
+        /// </summary>
         Size
     }
 

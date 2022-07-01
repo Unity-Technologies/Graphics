@@ -133,8 +133,19 @@ namespace UnityEditor.Rendering
             presetValue = -1
         };
 
+        /// <summary>
+        /// The content
+        /// </summary>
         public GUIContent content;
+
+        /// <summary>
+        /// The value
+        /// </summary>
         public Vector2 value;
+
+        /// <summary>
+        /// The value of the preset
+        /// </summary>
         public float presetValue;
     }
 

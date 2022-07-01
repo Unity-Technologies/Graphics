@@ -7,6 +7,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public enum APVConstantBufferRegister
     {
+        /// <summary>
+        /// Global register
+        /// </summary>
         GlobalRegister = 5
     }
 

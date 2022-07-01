@@ -2,15 +2,12 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
 using UnityEngine.TestTools;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
-using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
@@ -488,6 +485,57 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             window.autoCompile = bckpAutoCompile;
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Focus_On_Clear_Selection_When_Node_Is_Selected()
+        {
+            // Prepare
+            var vfxController = StartEditTestAsset();
+            var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc);
+            vfxController.ApplyChanges();
+
+            var sphereNode = window.graphView.GetAllNodes().Single(x => x.controller.model == sphereOperator);
+            window.graphView.AddToSelection(sphereNode);
+            window.graphView.Focus();
+            // Wait one frame for selection to apply (in the inspector)
+            yield return null;
+
+            // Check the focus is in the graph (so that "space" shortcut will work)
+            Assert.True(window.graphView.HasFocus());
+
+            // This is what could mess up with focus
+            window.graphView.ClearSelection();
+
+            // VFX graph must keep the focus
+            yield return null;
+            Assert.True(window.graphView.HasFocus());
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Focus_On_Clear_Selection_When_No_Selection()
+        {
+            // Prepare
+            var vfxController = StartEditTestAsset();
+            var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc);
+            vfxController.ApplyChanges();
+
+            // Check the focus is in the graph (so that "space" shortcut will work)
+            window.graphView.Focus();
+            Assert.True(window.graphView.HasFocus());
+
+            // This is what could mess up with focus
+            window.graphView.ClearSelection();
+
+            // VFX graph must keep the focus
+            yield return null;
+            Assert.True(window.graphView.HasFocus());
         }
     }
 }

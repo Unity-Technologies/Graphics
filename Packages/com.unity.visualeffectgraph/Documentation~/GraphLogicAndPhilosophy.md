@@ -19,7 +19,7 @@ In the horizontal property workflow, you can define mathematical operations to e
 
 The property workflow connects Contexts using the **Property Slots** of their Blocks. The left side is the input and the right side is the output.
 
-The Visual Effect Graph comes with a large Block and Node library that you can to define the behavior of your visual effect. The network of Nodes that you create controls the horizontal flow of data that the render pipeline passes to the Blocks within your graph's Contexts.
+The Visual Effect Graph comes with a large Block and Node library that you can use to define the behavior of your visual effect. The network of Nodes that you create controls the horizontal flow of data that the render pipeline passes to the Blocks within your graph's Contexts.
 
 To customize how particles behave, you can connect horizontal Nodes to a Block to create a custom a mathematical expression. To do this, use the **Create Node** context menu to add Nodes, change their values, then connect the Nodes to Block properties.
 
