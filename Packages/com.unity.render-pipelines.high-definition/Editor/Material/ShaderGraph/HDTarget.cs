@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
         Toggle m_SupportVFXToggle;
+        Toggle m_SupportComputeForVertexSetupToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -69,6 +70,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_ActiveSubTarget = value;
         }
 
+        public bool supportComputeForVertexSetup
+        {
+            get => m_SupportComputeForVertexSetup;
+        }
+
         [SerializeField]
         List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
 
@@ -77,6 +83,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         bool m_SupportVFX;
+
+        [SerializeField]
+        bool m_SupportComputeForVertexSetup;
 
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
@@ -225,6 +234,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     });
                 }
             }
+
+            // TODO: Disable these right before merging PR and remove this comment.
+
+            m_SupportComputeForVertexSetupToggle = new Toggle("") { value = m_SupportComputeForVertexSetup };
+            context.AddProperty("Support Compute for Vertex Setup", "", 0, m_SupportComputeForVertexSetupToggle, (evt) =>
+            {
+                m_SupportComputeForVertexSetup = m_SupportComputeForVertexSetupToggle.value;
+                onChange();
+            });
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -883,6 +901,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.GameCoreXboxSeries, Platform.PS5}) },
+        };
+
+        public static PragmaCollection BasicKernel = new PragmaCollection
+        {
+            { Pragma.Kernel("Kernel") },
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one

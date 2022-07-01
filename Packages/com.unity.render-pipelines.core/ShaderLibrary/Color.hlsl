@@ -665,12 +665,22 @@ float3 AcesTonemap(float3 aces)
 
     // Apply RRT and ODT
     // https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
-#if defined(SHADER_API_SWITCH) // Fix floating point overflow on extremely large values.
-    float3 rgbPost = (acescg * (acescg + 0.0245786f * 0.01f) - 0.000090537f * 0.01f) /
-        (acescg * (0.983729f * 0.01f * acescg + 0.4329510f * 0.01f) + 0.238081f * 0.01f);
+    const float a = 0.0245786f;
+    const float b = 0.000090537f;
+    const float c = 0.983729f;
+    const float d = 0.4329510f;
+    const float e = 0.238081f;
+
+#if defined(SHADER_API_SWITCH)
+    // To reduce the likelyhood of extremely large values, we avoid using the x^2 term and therefore
+    // divide numerator and denominator by it. This will lead to the constant factors of the
+    // quadratic in the numerator and denominator to be divided by x; we add a tiny epsilon to avoid divide by 0.
+    float3 rcpAcesCG = rcp(acescg + FLT_MIN);
+    float3 rgbPost = (acescg + a - b * rcpAcesCG) /
+        (acescg * c + d + e * rcpAcesCG);
 #else
-    float3 rgbPost = (acescg * (acescg + 0.0245786f) - 0.000090537f) /
-        (acescg * (0.983729f * acescg + 0.4329510f) + 0.238081f);
+    float3 rgbPost = (acescg * (acescg + a) - b) /
+        (acescg * (c * acescg + d) + e);
 #endif
 
     // Scale luminance to linear code value

@@ -111,20 +111,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal FilteringSettings filteringSettings;
         }
 
-        internal void Render(RenderGraph renderGraph, out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ref TextureHandle cameraDepthTexture, ref RenderingData renderingData)
         {
-            const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
-            const int k_DepthBufferBits = 32;
-
             using (var builder = renderGraph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
             {
-                var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                depthDescriptor.depthBufferBits = k_DepthBufferBits;
-                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-                cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);
-
                 passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
                 passData.renderingData = renderingData;
                 passData.shaderTagId = this.shaderTagId;
@@ -137,9 +127,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     ExecutePass(context.renderContext, data, ref data.renderingData);
                 });
-
-                return;
             }
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", cameraDepthTexture, "Set Global CameraDepthTexture");
         }
     }
 }

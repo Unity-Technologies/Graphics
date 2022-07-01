@@ -177,11 +177,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     ExecutePass(context.renderContext, data, ref data.renderingData);
-                    data.renderingData.commandBuffer.SetGlobalTexture("_MotionVectorTexture", data.motionVectorColor);
                 });
-
-                return;
             }
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph,"_MotionVectorTexture", motionVectorColor, "Set Motion Vector Color Texture");
+            RenderGraphUtils.SetGlobalTexture(renderGraph,"_MotionVectorDepthTexture", motionVectorDepth, "Set Motion Vector Depth Texture");
         }
     }
 }

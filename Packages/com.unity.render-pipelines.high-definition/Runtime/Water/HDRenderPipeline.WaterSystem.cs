@@ -683,6 +683,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorPyramid;
             public TextureHandle depthBuffer;
 
+            // Light Cluster data
+            public ComputeBufferHandle layeredOffsetsBuffer;
+            public ComputeBufferHandle logBaseBuffer;
+
             // Output buffers
             public TextureHandle gbuffer0;
             public TextureHandle gbuffer1;
@@ -748,6 +752,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderWaterSurface(CommandBuffer cmd,
             RTHandle displacementBuffer, RTHandle additionalDataBuffer, RTHandle causticsBuffer, RTHandle depthPyramid,
+            ComputeBuffer layeredOffsetsBuffer, ComputeBuffer logBaseBuffer,
             ComputeBuffer cameraHeightBuffer, ComputeBuffer patchDataBuffer, ComputeBuffer indirectBuffer, ComputeBuffer cameraFrustumBuffer,
             WaterRenderingParameters parameters)
         {
@@ -779,10 +784,16 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.mbp.SetTexture(HDShaderIDs._FoamTexture, parameters.surfaceFoam);
             parameters.mbp.SetTexture(HDShaderIDs._FoamMask, parameters.foamMask);
 
+            // Light cluster data
+            if (layeredOffsetsBuffer != null)
+            parameters.mbp.SetBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, layeredOffsetsBuffer);
+            if (logBaseBuffer != null)
+                parameters.mbp.SetBuffer(HDShaderIDs.g_logBaseBuffer, logBaseBuffer);
+
             // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
-            cmd.SetGlobalBuffer(HDShaderIDs._WaterPatchData, patchDataBuffer);
-            cmd.SetGlobalBuffer(HDShaderIDs._WaterCameraHeightBuffer, cameraHeightBuffer);
-            cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthPyramid);
+            parameters.mbp.SetBuffer(HDShaderIDs._WaterPatchData, patchDataBuffer);
+            parameters.mbp.SetBuffer(HDShaderIDs._WaterCameraHeightBuffer, cameraHeightBuffer);
+            parameters.mbp.SetTexture(HDShaderIDs._CameraDepthTexture, depthPyramid);
 
             // Raise the right stencil flags
             cmd.SetGlobalFloat("_StencilWaterRefGBuffer", (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
@@ -861,7 +872,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderWaterSurfaceGBuffer(RenderGraph renderGraph, HDCamera hdCamera,
                                         WaterSurface currentWater, WaterRendering settings, int surfaceIdx, bool evaluateCameraPos,
-                                        TextureHandle depthBuffer, TextureHandle depthPyramid,
+                                        TextureHandle depthBuffer, TextureHandle depthPyramid, ComputeBufferHandle layeredOffsetsBuffer, ComputeBufferHandle logBaseBuffer,
                                         TextureHandle WaterGbuffer0, TextureHandle WaterGbuffer1, TextureHandle WaterGbuffer2, TextureHandle WaterGbuffer3)
         {
             using (var builder = renderGraph.AddRenderPass<WaterRenderingGBufferData>("Render Water Surface GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingGBuffer)))
@@ -884,6 +895,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.patchDataBuffer = renderGraph.ImportComputeBuffer(m_WaterPatchDataBuffer);
                 passData.frustumBuffer = renderGraph.ImportComputeBuffer(m_WaterCameraFrustrumBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                passData.layeredOffsetsBuffer = builder.ReadComputeBuffer(layeredOffsetsBuffer);
+                passData.logBaseBuffer = builder.ReadComputeBuffer(logBaseBuffer);
 
                 // Request the output textures
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
@@ -902,7 +915,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Render the water surface
                         RenderWaterSurface(ctx.cmd,
-                            data.displacementTexture, data.additionalData, data.causticsData, data.depthPyramid,
+                            data.displacementTexture, data.additionalData, data.causticsData, data.depthPyramid, data.layeredOffsetsBuffer, data.logBaseBuffer,
                             data.heightBuffer, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer, data.parameters);
                     });
             }
@@ -958,7 +971,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle waterGBuffer3;
         }
 
-        WaterGBuffer RenderWaterGBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle colorPyramid, TextureHandle depthPyramid)
+        WaterGBuffer RenderWaterGBuffer(RenderGraph renderGraph, HDCamera hdCamera,
+                                        TextureHandle depthBuffer, TextureHandle normalBuffer,
+                                        TextureHandle colorPyramid, TextureHandle depthPyramid,
+                                        in BuildGPULightListOutput lightLists)
         {
             // Allocate the return structure
             WaterGBuffer outputGBuffer = new WaterGBuffer();
@@ -1012,7 +1028,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Render the water surface
                 RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, surfaceIdx == m_UnderWaterSurfaceIndex,
-                                depthBuffer, depthPyramid, WaterGbuffer0, WaterGbuffer1, WaterGbuffer2, WaterGbuffer3);
+                                depthBuffer, depthPyramid, lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
+                                WaterGbuffer0, WaterGbuffer1, WaterGbuffer2, WaterGbuffer3);
             }
 
             using (var builder = renderGraph.AddRenderPass<WaterRenderingSSRData>("Prepare water for SSR", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingSSR)))
@@ -1060,7 +1077,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return outputGBuffer;
         }
 
-        void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists)
         {
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
@@ -1115,7 +1132,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 FillWaterSurfaceProfile(hdCamera, settings, currentWater, surfaceIdx);
 
                 // Render the water surface
-                RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, false, depthBuffer, renderGraph.defaultResources.blackTextureXR, WaterGbuffer0, colorBuffer, WaterGbuffer2, WaterGbuffer3);
+                RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, false,
+                    depthBuffer, renderGraph.defaultResources.blackTextureXR,
+                    lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
+                    WaterGbuffer0, colorBuffer, WaterGbuffer2, WaterGbuffer3);
             }
         }
 

@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.Universal
         OpaqueWriteRenderingLayers = (1L << 33),
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
+        LightCookies = (1L << 36),
     }
 
     [Flags]
@@ -115,6 +116,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ForwardPlus;
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
+        LocalKeyword m_LightCookies;
 
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
@@ -183,6 +185,7 @@ namespace UnityEditor.Rendering.Universal
             m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
+            m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -538,6 +541,9 @@ namespace UnityEditor.Rendering.Universal
                 stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
                 return true;
 
+            if (stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies))
+                return true;
+
             string keywordNames = "";
             foreach (var keyword in compilerData.shaderKeywordSet.GetShaderKeywords())
             {
@@ -795,71 +801,22 @@ namespace UnityEditor.Rendering.Universal
 #endif
         }
 
-        static bool TryGetRenderPipelineAssetsForBuildTarget(BuildTarget buildTarget, List<UniversalRenderPipelineAsset> urps)
-        {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            if (qualitySettings == null)
-                return false;
-
-            var property = qualitySettings.FindProperty("m_QualitySettings");
-            if (property == null)
-                return false;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
-
-            for (int i = 0; i < property.arraySize; i++)
-            {
-                bool isExcluded = false;
-
-                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
-                if (excludedTargetPlatforms == null)
-                    return false;
-
-                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
-                {
-                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
-                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
-                    {
-                        Debug.Log($"Excluding quality level {QualitySettings.names[i]} from stripping."); // TODO: remove after QA
-                        isExcluded = true;
-                        break;
-                    }
-                }
-
-                if (!isExcluded)
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-            }
-
-            return true;
-        }
-
         private static void FetchAllSupportedFeatures()
         {
-            List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
-            urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-
-            // TODO: Replace once we have official API for filtering urps per build target
-            if (!TryGetRenderPipelineAssetsForBuildTarget(EditorUserBuildSettings.activeBuildTarget, urps))
+            using (ListPool<UniversalRenderPipelineAsset>.Get(out var urps))
             {
-                // Fallback
-                Debug.LogWarning("Shader stripping per enabled quality levels failed! Stripping will use all quality levels. Please report a bug!");
-                for (int i = 0; i < QualitySettings.names.Length; i++)
+                EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urps);
+                s_SupportedFeaturesList.Clear();
+
+                foreach (UniversalRenderPipelineAsset urp in urps)
                 {
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-                }
-            }
+                    if (urp != null)
+                    {
+                        int rendererCount = urp.m_RendererDataList.Length;
 
-            s_SupportedFeaturesList.Clear();
-
-            foreach (UniversalRenderPipelineAsset urp in urps)
-            {
-                if (urp != null)
-                {
-                    int rendererCount = urp.m_RendererDataList.Length;
-
-                    for (int i = 0; i < rendererCount; ++i)
-                        s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                        for (int i = 0; i < rendererCount; ++i)
+                            s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                    }
                 }
             }
         }
@@ -937,6 +894,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.enableLODCrossFade)
                 shaderFeatures |= ShaderFeatures.LODCrossFade;
+
+            if (pipelineAsset.supportsLightCookies)
+                shaderFeatures |= ShaderFeatures.LightCookies;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;

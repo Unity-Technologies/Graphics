@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportsDynamicBatching { get; }
         public SerializedProperty mixedLightingSupportedProp { get; }
         public SerializedProperty useRenderingLayers { get; }
+        public SerializedProperty supportsLightCookies { get; }
         public SerializedProperty debugLevelProp { get; }
         public SerializedProperty enableRenderGraph { get; }
 
@@ -130,6 +131,7 @@ namespace UnityEditor.Rendering.Universal
             supportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
             useRenderingLayers = serializedObject.FindProperty("m_SupportsLightLayers");
+            supportsLightCookies = serializedObject.FindProperty("m_SupportsLightCookies");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
             enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 

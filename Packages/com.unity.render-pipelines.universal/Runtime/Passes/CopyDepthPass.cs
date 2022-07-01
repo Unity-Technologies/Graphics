@@ -187,30 +187,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             destination = k_CameraTarget;
         }
 
-        internal void Render(RenderGraph renderGraph, out TextureHandle destination, in TextureHandle source, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ref TextureHandle destination, in TextureHandle source, ref RenderingData renderingData, string passName = "Copy Depth")
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
-            // TODO RENDERGRAPH: should refactor this as utility method for other passes to set Global textures
-            using (var builder = renderGraph.AddRenderPass<PassData>("Setup Global Depth", out var passData, base.profilingSampler))
-            {
-                passData.source = builder.ReadTexture(source);
-                builder.AllowPassCulling(false);
+            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraDepthAttachment", source, "Set Global CameraDepthAttachment");
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
-                {
-                    context.cmd.SetGlobalTexture("_CameraDepthAttachment", data.source);
-                });
-            }
-            using (var builder = renderGraph.AddRenderPass<PassData>("Copy Depth", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRenderPass<PassData>(passName, out var passData, base.profilingSampler))
             {
-                var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-                depthDescriptor.depthStencilFormat = GraphicsFormat.None;
-                depthDescriptor.depthBufferBits = 0;
-                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-                destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);
-
                 passData.copyDepthMaterial = m_CopyDepthMaterial;
                 passData.msaaSamples = MssaSamples;
                 passData.cameraData = renderingData.cameraData;
@@ -230,18 +214,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 });
             }
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Setup Global Copy Depth", out var passData, base.profilingSampler))
-            {
-                passData.cmd = renderingData.commandBuffer;
-                passData.destination = builder.UseColorBuffer(destination, 0);
-
-                builder.AllowPassCulling(false);
-
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
-                {
-                    data.cmd.SetGlobalTexture("_CameraDepthTexture", data.destination);
-                });
-            }
+            RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", destination, "Set Global CameraDepthTexture");
         }
     }
 }
