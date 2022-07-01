@@ -248,8 +248,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return 1;
         }
 
-        public static readonly float[] sizeMultiplier = new float[] {1.0f, 4.0f, 32.0f, 128.0f};
-        public static readonly float[] offsets = new float[]{0.0f, 0.5f, 4.5f, 36.5f};
+        internal static readonly float[] sizeMultiplier = new float[] {1.0f, 4.0f, 32.0f, 128.0f};
+        internal static readonly float[] offsets = new float[]{0.0f, 0.5f, 4.5f, 36.5f};
 
         // Function that evaluates the bounds of a given grid based on it's coordinates
         static void ComputeGridBounds(int x, int y, float centerGridSize,
