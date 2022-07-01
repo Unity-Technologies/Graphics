@@ -1,20 +1,19 @@
 # Lit
 
-The Lit Master Stack enables you to render custom physically-based materials in the High Definition Render Pipeline (HDRP). It supports various effects, such as subsurface scattering, anisotropy, iridescence, specular color and translucency.
+The Lit Master Stack enables you to render custom physically based materials in the High Definition Render Pipeline (HDRP). It supports various effects, such as subsurface scattering, anisotropy, iridescence, specular color and translucency.
 
 ![](Images/HDRPFeatures-LitShader.png)
 
 ## Creating a Lit Shader Graph
 
-To create a Lit material in Shader Graph, you can either:
+To create a Lit material in Shader Graph, use one of the following methods:
 
 * Modify an existing Shader Graph.
     1. Open the Shader Graph in the Shader Editor.
     2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
     3. In the **Material** drop-down, select **Lit**.
 
-* Create a new Shader Graph.
-    1. Go to **Assets > Create >Shader Graph > HDRP** and click **Lit Shader Graph**.
+* Create a new Shader Graph. Go to **Assets** > **Create** > **Shader Graph** > **HDRP** and select **Lit Shader Graph**.
 
 ## Contexts
 

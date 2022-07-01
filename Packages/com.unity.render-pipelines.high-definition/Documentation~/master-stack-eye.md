@@ -1,20 +1,18 @@
 # Eye
 
-The Eye Master Stack enables you to render custom physically-based eye materials in the High Definition Render Pipeline (HDRP). It models a two-layer material, in which the first layer describes the cornea and fluids on the surface, and the second layer describes the sclera and the iris, visible through the first layer. It supports various effects, such as cornea refraction, caustics, pupil dilation, limbal darkening, and subsurface scattering.
+The Eye Master Stack enables you to render custom physically based eye materials in the High Definition Render Pipeline (HDRP). It models a two-layer material, in which the first layer describes the cornea and fluids on the surface, and the second layer describes the sclera and the iris, visible through the first layer. It supports various effects, such as cornea refraction, caustics, pupil dilation, limbal darkening, and subsurface scattering.
 
 ![](Images/HDRPFeatures-EyeShader.png)
 
 ## Creating an Eye Shader Graph
 
-To create an Eye material in Shader Graph, you can either:
+To create an Eye material in Shader Graph, use one of the following methods:
 
 * Modify an existing Shader Graph.
     1. Open the Shader Graph in the Shader Editor.
     2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
     3. In the **Material** drop-down, select **Eye**.
-
-* Create a new Shader Graph.
-    1. Go to **Assets > Create > Shader Graph > HDRP** and click **Eye Shader Graph**.
+* Create a new Shader Graph. Go to **Assets** > **Create** > **Shader Graph** > **HDRP** and click **Eye Shader Graph**.
 
 ## Contexts
 

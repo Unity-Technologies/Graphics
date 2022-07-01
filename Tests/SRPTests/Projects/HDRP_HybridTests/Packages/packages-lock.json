@@ -326,7 +326,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.2.2-preview",
+      "version": "7.8.23-exp.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {

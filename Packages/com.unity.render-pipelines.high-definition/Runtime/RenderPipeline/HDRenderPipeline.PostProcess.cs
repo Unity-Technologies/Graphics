@@ -481,9 +481,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Save the post process screen size before any resolution group change
             var postProcessScreenSize = hdCamera.postProcessScreenSize;
 
-            //default always to downsampled resolution group.
-            //when DRS is off this resolution group is the same.
-            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
+            //The resGroup is always expected to be in BeforeDynamicResUpscale state at the beginning of post processing.
+            //If this assert fails, it means that some effects prior might be using the wrong resolution.
+            Assert.IsTrue(resGroup == ResolutionGroup.BeforeDynamicResUpscale, "Resolution group must always be reset before calling RenderPostProcess");
 
             // Note: whether a pass is really executed or not is generally inside the Do* functions.
             // with few exceptions.
@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer, sunOcclusionTexture);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph, hdCamera);
@@ -1557,8 +1557,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 previousScreenSize;
             public Vector4 taaParameters;
             public Vector4 taaParameters1;
-            public Vector4 taaFilterWeights;
-            public Vector4 taaFilterWeights1;
+            public float[] taaFilterWeights;
             public bool motionVectorRejection;
             public Vector4 taauParams;
             public Rect finalViewport;
@@ -1566,6 +1565,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taaScales;
             public bool runsTAAU;
             public bool runsAfterUpscale;
+            public bool msaaIsEnabled;
 
             public TextureHandle source;
             public TextureHandle destination;
@@ -1617,6 +1617,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 antiFlickerLerpFactor = 0.7f;
             }
             float antiFlicker = postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, antiFlickerLerpFactor);
+            const float historyContrastBlendStart =  0.51f;
+            float historyContrastLerp =  Mathf.Clamp01((antiFlickerLerpFactor - historyContrastBlendStart) / (1.0f - historyContrastBlendStart));
 
             passData.taaParameters = new Vector4(historySharpening, antiFlicker, motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
@@ -1624,8 +1626,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float totalWeight = 0;
             for (int i = 0; i < 9; ++i)
             {
-                float x = TAASampleOffsets[i].x - camera.taaJitter.x;
-                float y = TAASampleOffsets[i].y - camera.taaJitter.y;
+                Vector2 jitter = camera.taaJitter;
+                float x = TAASampleOffsets[i].x + jitter.x;
+                float y = TAASampleOffsets[i].y + jitter.y;
                 float d = (x * x + y * y);
 
                 taaSampleWeights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
@@ -1644,9 +1647,9 @@ namespace UnityEngine.Rendering.HighDefinition
             const float offset = postDofMin - TAABaseBlendFactorMin * scale;
             float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
 
-            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
-            passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
-            passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
+            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, historyContrastLerp);
+
+            passData.taaFilterWeights = taaSampleWeights;
 
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
@@ -1670,6 +1673,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (passData.motionVectorRejection)
             {
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
+            }
+
+            if (historyContrastLerp > 0.0f)
+            {
+                passData.temporalAAMaterial.EnableKeyword("HISTORY_CONTRAST_ANTI_FLICKER");
             }
 
             passData.runsTAAU = TAAU;
@@ -1769,7 +1777,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float stdDev = 0.4f;
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
 
-            passData.stencilBuffer = stencilTexture;
+            passData.stencilBuffer =  builder.ReadTexture(stencilTexture);
+            // With MSAA enabled we really don't support TAA (see docs), it should mostly work but stuff like stencil tests won't when manually sampled.
+            // As a result we just set stencil to black. This flag can be used in the future to make proper support for the MSAA+TAA combo.
+            passData.msaaIsEnabled = camera.msaaEnabled;
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
@@ -1828,8 +1839,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
                         mpb.SetVector(HDShaderIDs._TaaPostParameters1, data.taaParameters1);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
-                        mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
-                        mpb.SetVector(HDShaderIDs._TaaFilterWeights1, data.taaFilterWeights1);
+                        mpb.SetFloatArray(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
                         mpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
 
@@ -1853,11 +1864,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             rect = data.finalViewport;
 
-                            RTHandle stencil = data.stencilBuffer;
-                            if (stencil.rt.stencilFormat == GraphicsFormat.None)  // We are accessing MSAA resolved version and not the depth stencil buffer directly.
-                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencil);
+                            // If this is the case it means we are using MSAA. With MSAA TAA is not really supported, so we just bind a black stencil.
+                            if (data.msaaIsEnabled)
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, ctx.defaultResources.blackTextureXR);
                             else
-                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencil, RenderTextureSubElement.Stencil);
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
 
 
                             HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, taauPass);
@@ -3255,7 +3266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.

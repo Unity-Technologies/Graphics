@@ -23,7 +23,7 @@ In the Universal Render Pipeline (URP), Unity exposes different properties of th
 ||*Perspective* |Camera will render objects with perspective intact. |
 ||*Orthographic* |Camera will render objects uniformly, with no sense of perspective. |
 |**Size**||The viewport size of the Camera when set to Orthographic. |
-|__Field of view__ ||Field of view axis. |
+|__FOV Axis__ ||Field of view axis. |
 |__Field of view__||The width of the Camera's view angle, measured in degrees along the selected axis. |
 |__Physical Camera__ ||Tick this box to enable the Physical Camera properties for this camera. <br/><br/> When the Physical Camera properties are enabled, Unity calculates the **Field of View** using the properties that simulate real-world camera attributes: **Focal Length**, **Sensor Size**, and **Lens Shift**. <br/><br/>Physical Camera properties are not visible in the Inspector until you tick this box.|
 |__Clipping Planes__ ||Distances from the camera to start and stop rendering. |

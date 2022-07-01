@@ -1,6 +1,8 @@
 # Arnold Standard Surface shader
 
-The Arnold Standard Surface shader replicates the Arnold Standard Surface shader available in Autodesk® 3DsMax and Autodesk® Maya for the High Definition Render Pipeline (HDRP). When Unity imports an FBX that includes a material using Autodesk's Arnold Standard Surface shader, it applies HDRP's Arnold Standard Surface shader to the material. The material properties and texture inputs are identical between the Unity and Autodesk versions of this shader. The materials themselves also look and respond to light similarly. Note that there are slight differences between what you see in Autodesk® Maya or Autodesk® 3DsMax and what you see in HDRP and HDRP does not support some material features.
+The Arnold Standard Surface shader replicates the Arnold Standard Surface shader available in Autodesk® 3DsMax and Autodesk® Maya for the High Definition Render Pipeline (HDRP). When Unity imports an FBX that includes a material using Autodesk's Arnold Standard Surface shader, it applies HDRP's Arnold Standard Surface shader to the material. The material properties and texture inputs are identical between the Unity and Autodesk versions of this shader. The materials themselves also look and respond to light similarly.
+
+**Note**: There are slight differences between what you see in Autodesk® Maya or Autodesk® 3DsMax and what you see in HDRP and HDRP doesn't support some material features.
 
 ![](Images/arnold-standard-surface-example-maya.png)
 
@@ -15,14 +17,14 @@ Note that the HDRP implementation of this shader uses a Shader Graph.
 
 When Unity imports an FBX with a compatible Arnold shader, it automatically creates an Arnold material. If you want to manually create an Arnold Standard Surface material:
 
-1. Create a new material (menu: **Assets > Create > Material**).
-2. In the Inspector for the Material, click the Shader drop-down then click **HDRP > ArnoldStandardSurface > ArnoldStandardSurface**.
+1. Create a new material (menu: **Assets** > **Create** > **Material**).
+2. In the Inspector for the Material, click the Shader drop-down then click **HDRP** > **ArnoldStandardSurface** > **ArnoldStandardSurface**.
 
 ## Properties
 
 ### Surface Options
 
-**Surface Options** control the overall look of your Material's surface and how Unity renders the Material on screen.
+**Surface Options** control the look of your Material's surface and how Unity renders the Material on screen.
 
 <table>
 <tr>

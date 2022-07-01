@@ -9,11 +9,11 @@ Shader "Hidden/HDRP/TemporalAA"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma multi_compile_local_fragment _ ORTHOGRAPHIC
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
         #pragma multi_compile_local_fragment _ ANTI_RINGING
+        #pragma multi_compile_local_fragment _ HISTORY_CONTRAST_ANTI_FLICKER
         #pragma multi_compile_local_fragment _ DIRECT_STENCIL_SAMPLE
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
 
@@ -27,6 +27,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasingOptionDef.hlsl"
 
         // ---------------------------------------------------
         // Tier definitions
@@ -44,6 +45,8 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 0
     #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
+    #define BLEND_FACTOR_MV_TUNE 0
+    #define MV_DILATION DEPTH_DILATION
 
 #elif defined(MEDIUM_QUALITY)
     #define YCOCG 1
@@ -57,7 +60,8 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
-
+    #define BLEND_FACTOR_MV_TUNE 1
+    #define MV_DILATION DEPTH_DILATION
 
 #elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
     #define YCOCG 1
@@ -71,6 +75,8 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+    #define BLEND_FACTOR_MV_TUNE 1
+    #define MV_DILATION DEPTH_DILATION
 
 #elif defined(TAA_UPSCALE)
     #define YCOCG 1
@@ -84,6 +90,8 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+    #define BLEND_FACTOR_MV_TUNE 1
+    #define MV_DILATION DEPTH_DILATION
 
 #elif defined(POST_DOF)
     #define YCOCG 1
@@ -97,6 +105,8 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+    #define BLEND_FACTOR_MV_TUNE 1
+    #define MV_DILATION DEPTH_DILATION
 
 #endif
 
@@ -119,8 +129,8 @@ Shader "Hidden/HDRP/TemporalAA"
         float4 _TaaPostParameters;
         float4 _TaaPostParameters1;
         float4 _TaaHistorySize;
-        float4 _TaaFilterWeights;
-        float4 _TaaFilterWeights1;
+
+        float _TaaFilterWeights[9];
 
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
@@ -130,6 +140,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _BaseBlendFactor _TaaPostParameters1.x
         #define _CentralWeight _TaaPostParameters1.y
         #define _ExcludeTAABit (uint)_TaaPostParameters1.z
+        #define _HistoryContrastBlendLerp _TaaPostParameters1.w
 
         // TAAU specific
         float4 _TaauParameters;
@@ -183,21 +194,6 @@ Shader "Hidden/HDRP/TemporalAA"
 
     // ------------------------------------------------------------------
 
-        // This complexity will not be needed when moving to CS.
-        void SwizzleFilterWeights(int2 posSS, inout float4 filterParams1, inout float4 filterParams2)
-        {
-            // Data arrives as if filterParams weights for { (0, 1), (1, 0), (-1, 0), (0,-1) }, filterParams2 for { (-1, 1), (1, -1), (1, 1), (-1, -1) }
-            bool2 needSwizzle = (posSS & 1) == 0;
-
-            filterParams1.yz = needSwizzle.x ? filterParams1.zy : filterParams1.yz;
-            filterParams1.xw = needSwizzle.y ? filterParams1.wx : filterParams1.xw;
-#if WIDE_NEIGHBOURHOOD
-            filterParams2 = all(needSwizzle) ? filterParams2.yxwz :
-                (needSwizzle.x && !needSwizzle.y) ? filterParams2.zwxy :
-                (!needSwizzle.x && needSwizzle.y) ? filterParams2.wzyx : filterParams2;
-#endif
-        }
-
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -214,19 +210,13 @@ Shader "Hidden/HDRP/TemporalAA"
             #endif
 
             // --------------- Get closest motion vector ---------------
-            float2 motionVector;
 
             int2 samplePos = input.positionCS.xy;
-
-#if ORTHOGRAPHIC
-            float2 closestOffset = 0;
-#else
 
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
 #endif
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos);
-#endif
+
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
             uint stencil = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, samplePos));
@@ -235,7 +225,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
             float lengthMV = 0;
 
-            DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv + closestOffset * _InputSize.zw), 0), motionVector);
+            float2 motionVector = GetMotionVector(_CameraMotionVectorsTexture, _DepthTexture, uv, samplePos, _InputSize);
             // --------------------------------------------------------
 
             // --------------- Get resampled history ---------------
@@ -258,19 +248,13 @@ Shader "Hidden/HDRP/TemporalAA"
                 // --------------------------------------------------------
 
                 // --------------- Filter central sample ---------------
-                float4 filterParams = _TaaFilterWeights;
-                float4 filterParams1 = _TaaFilterWeights1;
-                float centralWeight = _CentralWeight;
+                float4 filterParams = 0;
 #ifdef TAA_UPSCALE
                 filterParams.x = _TAAUFilterRcpSigma2;
                 filterParams.y = _TAAUScale;
                 filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
-
-#elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
-                // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
-                SwizzleFilterWeights(floor(input.positionCS.xy), filterParams, filterParams1);
 #endif
-                CTYPE filteredColor = FilterCentralColor(samples, filterParams, filterParams1, centralWeight);
+                CTYPE filteredColor = FilterCentralColor(samples, filterParams, _TaaFilterWeights);
                 // ------------------------------------------------------
 
                 if (offScreen)
@@ -283,19 +267,23 @@ Shader "Hidden/HDRP/TemporalAA"
                 float motionVectorLength = 0.0f;
                 float motionVectorLenInPixels = 0.0f;
 
-#if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
+#if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION || BLEND_FACTOR_MV_TUNE
                 motionVectorLength = length(motionVector);
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
 
-                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+                float aggressivelyClampedHistoryLuma = 0;
+                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale, aggressivelyClampedHistoryLuma);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
                 filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
                 // ------------------------------------------------------------------------------
 
                 // --------------- Compute blend factor for history ---------------
-                float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
+                float blendFactor = GetBlendFactor(colorLuma, aggressivelyClampedHistoryLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor, _HistoryContrastBlendLerp);
+#if BLEND_FACTOR_MV_TUNE
+                blendFactor = lerp(blendFactor, saturate(2.0f * blendFactor), saturate(motionVectorLenInPixels  / 50.0f));
+#endif
                 // --------------------------------------------------------
 
                 // ------------------- Alpha handling ---------------------------
@@ -322,7 +310,7 @@ Shader "Hidden/HDRP/TemporalAA"
 #ifdef TAA_UPSCALE
                 blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
 #endif
-                blendFactor = max(blendFactor, 0.03);
+                blendFactor = clamp(blendFactor, 0.03f, 0.98f);
 
                 CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END

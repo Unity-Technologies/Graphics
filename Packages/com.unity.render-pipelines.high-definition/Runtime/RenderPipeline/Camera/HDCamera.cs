@@ -257,6 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float taaAntiFlicker;
         internal float taaMotionVectorRejection;
         internal float taaBaseBlendFactor;
+        internal float taaJitterScale;
         internal bool taaAntiRinging;
 
         internal Vector4 zBufferParams;
@@ -837,7 +838,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
                 var hdPipeline = (HDRenderPipeline)(RenderPipelineManager.currentPipeline);
-                bool forceReallocPyramid = false;
+                bool forceReallocHistorySystem = false;
                 int colorBufferID = (int)HDCameraFrameHistoryType.ColorBufferMipChain;
                 int numColorPyramidBuffersAllocated = m_HistoryRTSystem.GetNumFramesAllocated(colorBufferID);
                 if (numColorPyramidBuffersAllocated > 0)
@@ -845,7 +846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var currPyramid = GetCurrentFrameRT(colorBufferID);
                     if (currPyramid != null && currPyramid.rt.graphicsFormat != hdPipeline.GetColorBufferFormat())
                     {
-                        forceReallocPyramid = true;
+                        forceReallocHistorySystem = true;
                     }
                 }
 
@@ -861,7 +862,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var aovHistory = GetHistoryRTHandleSystem(aovRequest);
                     if (aovHistory.GetNumFramesAllocated(colorBufferID) != numColorPyramidBuffersRequired)
                     {
-                        forceReallocPyramid = true;
+                        forceReallocHistorySystem = true;
                         break;
                     }
                 }
@@ -869,26 +870,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If we change the upscale schedule, refresh the history buffers. We need to do this, because if postprocess is after upscale, the size of some buffers needs to change.
                 if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule || previousFrameWasTAAUpsampled != IsTAAUEnabled())
                 {
-                    forceReallocPyramid = true;
+                    forceReallocHistorySystem = true;
                     m_PrevUpsamplerSchedule = DynamicResolutionHandler.instance.upsamplerSchedule;
                 }
 
                 // Handle the color buffers
-                if (numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocPyramid)
+                if (numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocHistorySystem)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
+
                     // Since we nuke all history we must inform the post process system too.
                     resetPostProcessingHistory = true;
 
-                    // The history system only supports the "nuke all" option.
-                    // TODO: Fix this, only the color buffers should be discarded.
-                    m_HistoryRTSystem.Dispose();
-                    m_HistoryRTSystem = new BufferedRTHandleSystem();
+                    if (forceReallocHistorySystem)
+                    {
+                        m_HistoryRTSystem.Dispose();
+                        m_HistoryRTSystem = new BufferedRTHandleSystem();
+                    }
+                    else
+                    {
+                       // We only need to release all the ColorBufferMipChain buffers (and they will potentially be allocated just under if needed).
+                        m_HistoryRTSystem.ReleaseBuffer((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                    }
 
                     m_ExposureTextures.clear();
 
-                    if (numColorPyramidBuffersRequired != 0 || forceReallocPyramid)
+                    if (numColorPyramidBuffersRequired != 0 || forceReallocHistorySystem)
                     {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
 
@@ -1437,6 +1445,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
                     taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
                     taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
+                    taaJitterScale = m_AdditionalCameraData.taaJitterScale;
                     taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
                     taaBaseBlendFactor = m_AdditionalCameraData.taaBaseBlendFactor;
                 }
@@ -1756,6 +1765,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+
+            if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
+            {
+                jitterX *= taaJitterScale;
+                jitterY *= taaJitterScale;
+            }
+
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
 
             Matrix4x4 proj;
