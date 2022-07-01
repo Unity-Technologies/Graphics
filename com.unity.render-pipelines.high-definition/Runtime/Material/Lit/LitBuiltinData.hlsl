@@ -3,7 +3,11 @@
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, float3 emissiveColor, out BuiltinData builtinData)
 {
     // For back lighting we use the oposite vertex normal
-    InitBuiltinData(posInput, alpha, bentNormalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2, builtinData);
+    InitBuiltinData(posInput, alpha, bentNormalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        0, float2(0.0f, 0.0f), 
+#endif
+        builtinData);
 
     builtinData.emissiveColor = emissiveColor;
 
@@ -31,12 +35,18 @@ void GetBuiltinDataForGPUDriven(
     float alpha, 
     float3 bentNormalWS,
     float depthOffset, 
-    float3 emissiveColor, 
-    uint instancePageOffset,
+    float3 emissiveColor,
+    UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET_DECLARE,
     out BuiltinData builtinData)
 {
     // For back lighting we use the oposite vertex normal
-    InitBuiltinDataForGPUDriven(posInput, alpha, bentNormalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2, instancePageOffset, float2(input.texcoordDDX1.x, input.texcoordDDY1.x), builtinData);
+    InitBuiltinData(posInput, alpha, bentNormalWS,
+        -input.tangentToWorld[2], input.texCoord1, input.texCoord2,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET,
+        float2(input.texcoordDDX1.x, input.texcoordDDY1.x),
+#endif
+        builtinData);
 
     builtinData.emissiveColor = emissiveColor;
 
@@ -116,7 +126,7 @@ void GetBuiltinDataForGPUDriven(FragInputs input,
     float alpha, 
     float3 bentNormalWS, 
     float depthOffset,
-    uint instancePageOffset, 
+    UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET_DECLARE,
     out BuiltinData builtinData)
 {
 #ifdef _EMISSIVE_COLOR_MAP
@@ -150,9 +160,9 @@ void GetBuiltinDataForGPUDriven(FragInputs input,
     UVMapping emissiveMapMapping = layerTexCoord.base0;
 #endif
 
-    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData, emissiveMapMapping), instancePageOffset, builtinData);
+    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData, emissiveMapMapping), UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET, builtinData);
 #else
-    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData), instancePageOffset, builtinData);
+    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData), UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET, builtinData);
 #endif
 }
 
@@ -165,11 +175,11 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
 #endif
 }
 
-void GetBuiltinDataForGPUDriven(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, UVMapping emissiveMapMapping, uint instancePageOffset, out BuiltinData builtinData)
+void GetBuiltinDataForGPUDriven(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, UVMapping emissiveMapMapping, UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET_DECLARE, out BuiltinData builtinData)
 {
 #ifdef _EMISSIVE_MAPPING_BASE
-    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData, emissiveMapMapping), instancePageOffset, builtinData);
+    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, GetEmissiveColor(surfaceData, emissiveMapMapping), UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET, builtinData);
 #else
-    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, instancePageOffset, builtinData);
+    GetBuiltinDataForGPUDriven(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET, builtinData);
 #endif
 }

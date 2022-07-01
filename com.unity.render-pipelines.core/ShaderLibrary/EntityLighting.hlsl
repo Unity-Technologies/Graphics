@@ -303,7 +303,15 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #define LIGHTMAP_EXTRA_ARGS_USE uv
 #endif
 
-real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool encodedLightmap, real4 decodeInstructions, float2 ddxddy)
+real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler),
+    LIGHTMAP_EXTRA_ARGS,
+    float4 transform,
+    bool encodedLightmap,
+    real4 decodeInstructions
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    , float2 ddxddy
+#endif
+)
 {
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
@@ -332,7 +340,11 @@ real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler
 }
 
 void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_PARAM(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS, float4 transform,
-    float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions, float2 ddxddy, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
+    float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    float2 ddxddy,
+#endif
+    inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
 {
      // In directional mode Enlighten bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
@@ -379,13 +391,21 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
 
 // Just a shortcut that call function above
 real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_PARAM(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS, float4 transform,
-    float3 normalWS, bool encodedLightmap, real4 decodeInstructions, float2 ddxddy)
+    float3 normalWS, bool encodedLightmap, real4 decodeInstructions
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+, float2 ddxddy
+#endif
+)
 {
     float3 backNormalWSUnused = 0.0;
     real3 bakeDiffuseLighting = 0.0;
     real3 backBakeDiffuseLightingUnused = 0.0;
     SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_ARGS(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS_USE, transform,
-                                normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions, ddxddy, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+                                normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+                                ddxddy,
+#endif
+                                bakeDiffuseLighting, backBakeDiffuseLightingUnused);
 
     return bakeDiffuseLighting;
 }

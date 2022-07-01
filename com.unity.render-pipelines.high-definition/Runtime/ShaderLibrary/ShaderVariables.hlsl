@@ -349,6 +349,8 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
+
+//#elif defined (UNITY_DOTS_INSTANCING_ENABLED)
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 // Undef the matrix error macros so that the DOTS instancing macro works
 #undef unity_ObjectToWorld
@@ -391,65 +393,10 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
 #define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
 #define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
-
 #endif
 
-//#ifdef UNITY_GPU_DRIVEN_PIPELINE
-ByteAddressBuffer _InstancingPageBuffer;
-float4 LoadInstancingBuffer_float4(uint index, uint pageOffset)
-{
-    if (pageOffset == ~0u)
-        return (float4) 1;
-    
-    //uint count = _InstancingPageBuffer.Load(pageOffset);
-    //if (index >= count)
-    //    return (float4) 1;
-    uint address = _InstancingPageBuffer.Load(pageOffset + (index + 1) * 4);
-    return asfloat(_InstancingPageBuffer.Load4(address));
-}
-
-float4x4 LoadInstancingBuffer_float4x4(uint index, uint pageOffset)
-{
-    if (pageOffset == ~0u)
-        return (float4x4) 0;
-    
-    //uint count = _InstancingPageBuffer.Load(pageOffset);
-    //if (index >= count)
-    //    return (float4x4) 0;
-    
-    uint address = _InstancingPageBuffer.Load(pageOffset + (index + 1) * 4);
-    float4 p1 = asfloat(_InstancingPageBuffer.Load4(address + 0 * 16));
-    float4 p2 = asfloat(_InstancingPageBuffer.Load4(address + 1 * 16));
-    float4 p3 = asfloat(_InstancingPageBuffer.Load4(address + 2 * 16));
-    float4 p4 = asfloat(_InstancingPageBuffer.Load4(address + 3 * 16));
-    return float4x4(
-        p1.x, p1.y, p1.z, p1.w,
-        p2.x, p2.y, p2.z, p2.w,
-        p3.x, p3.y, p3.z, p3.w,
-        p4.x, p4.y, p4.z, p4.w);
-}
-
-//#define UNITY_GPU_DRIVEN_DOTS_INSTANCING_PROP(Type, Name, Index) UNITY_DOTS_INSTANCED_PROP(Type, Name); 
-#define UNITY_GPU_DRIVEN_DOTS_INSTANCING(Type, Index, Offset) LoadInstancingBuffer_##Type(Index, Offset)
-
-#define unity_GPUDriven_LightmapST(Offset)       UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 0, Offset)
-#define unity_GPUDriven_LightmapIndex(Offset)    UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 1, Offset)
-
-// Start from 1, because unity_GPUDriven_ProbeVolumeParams is 0
-#define unity_GPUDriven_SHAr(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 1, Offset)
-#define unity_GPUDriven_SHAg(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 2, Offset)
-#define unity_GPUDriven_SHAb(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 3, Offset)
-#define unity_GPUDriven_SHBr(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 4, Offset)
-#define unity_GPUDriven_SHBg(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 5, Offset)
-#define unity_GPUDriven_SHBb(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 6, Offset)
-#define unity_GPUDriven_SHC(Offset)              UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 7, Offset)
-
-#define unity_GPUDriven_ProbeVolumeParams(Offset)              UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 0, Offset)
-#define unity_GPUDriven_ProbeVolumeWorldToObject(Offset)       UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4x4, 1, Offset)
-#define unity_GPUDriven_ProbeVolumeSizeInv(Offset)             UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 2, Offset)
-#define unity_GPUDriven_ProbeVolumeMin(Offset)                 UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 3, Offset)
-
-//#endif
+#define UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET bufferPageOffset
+#define UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET_DECLARE uint UNITY_GPU_DRIVEN_PROPERTY_BUFFER_OFFSET
 
 // Define View/Projection matrix macro
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
@@ -459,7 +406,6 @@ float4x4 LoadInstancingBuffer_float4x4(uint index, uint pageOffset)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderVariablesDecal.hlsl"
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
