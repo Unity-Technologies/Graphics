@@ -1,75 +1,31 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(DiffusionProfileSettings))]
-    partial class DiffusionProfileSettingsEditor : HDBaseEditor<DiffusionProfileSettings>
+    partial class DiffusionProfileSettingsEditor : Editor
     {
-        sealed class Profile
-        {
-            internal SerializedProperty self;
-            internal DiffusionProfile objReference;
-
-            internal SerializedProperty scatteringDistance;
-            internal SerializedProperty scatteringDistanceMultiplier;
-            internal SerializedProperty transmissionTint;
-            internal SerializedProperty texturingMode;
-            internal SerializedProperty transmissionMode;
-            internal SerializedProperty thicknessRemap;
-            internal SerializedProperty worldScale;
-            internal SerializedProperty ior;
-
-            // Render preview
-            internal RenderTexture profileRT;
-            internal RenderTexture transmittanceRT;
-
-            internal Profile()
-            {
-                profileRT = new RenderTexture(256, 256, 0, GraphicsFormat.R16G16B16A16_SFloat);
-                transmittanceRT = new RenderTexture(16, 256, 0, GraphicsFormat.R16G16B16A16_SFloat);
-            }
-
-            internal void Release()
-            {
-                CoreUtils.Destroy(profileRT);
-                CoreUtils.Destroy(transmittanceRT);
-            }
-        }
-
-        Profile m_Profile;
-
         Material m_ProfileMaterial;
         Material m_TransmittanceMaterial;
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
+        List<DiffusionProfileSettings> m_DiffusionProfileSettingsTargets;
+        SerializedDiffusionProfileSettings m_SerializedDiffusionProfileSettings;
+        bool m_MultipleObjectSelected;
 
+        void OnEnable()
+        {
             // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime
             m_ProfileMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRP/DrawDiffusionProfile");
             m_TransmittanceMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRP/DrawTransmittanceGraph");
 
-            var serializedProfile = properties.Find(x => x.profile);
-
-            var rp = new RelativePropertyFetcher<DiffusionProfile>(serializedProfile);
-
-            m_Profile = new Profile
-            {
-                self = serializedProfile,
-                objReference = m_Target.profile,
-
-                scatteringDistance = rp.Find(x => x.scatteringDistance),
-                scatteringDistanceMultiplier = rp.Find(x => x.scatteringDistanceMultiplier),
-                transmissionTint = rp.Find(x => x.transmissionTint),
-                texturingMode = rp.Find(x => x.texturingMode),
-                transmissionMode = rp.Find(x => x.transmissionMode),
-                thicknessRemap = rp.Find(x => x.thicknessRemap),
-                worldScale = rp.Find(x => x.worldScale),
-                ior = rp.Find(x => x.ior)
-            };
+            m_DiffusionProfileSettingsTargets = targets.Cast<DiffusionProfileSettings>().ToList();
+            m_SerializedDiffusionProfileSettings = new SerializedDiffusionProfileSettings((DiffusionProfileSettings)target, serializedObject);
+            m_MultipleObjectSelected = targets.Length > 1;
 
             Undo.undoRedoPerformed += UpdateProfile;
         }
@@ -79,117 +35,158 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.Destroy(m_ProfileMaterial);
             CoreUtils.Destroy(m_TransmittanceMaterial);
 
-            m_Profile.Release();
-
-            m_Profile = null;
+            m_SerializedDiffusionProfileSettings.Dispose();
 
             Undo.undoRedoPerformed -= UpdateProfile;
         }
 
         public override void OnInspectorGUI()
         {
-            CheckStyles();
-
             serializedObject.Update();
 
-            EditorGUILayout.Space();
+            DrawScattering(m_MultipleObjectSelected);
+            DrawIORAndScale();
+            DrawSSS();
+            DrawTransmission();
 
-            var profile = m_Profile;
-
-            EditorGUI.indentLevel++;
-
-            using (var scope = new EditorGUI.ChangeCheckScope())
+            //NOTE: We manually apply changes and update all properties every time to fix a case when User click Reset on Component.
+            //Unfortunately there is no way to receive callback from that Reset so only way to have correct Preview is to update target every time.
+            foreach (var settings in m_DiffusionProfileSettingsTargets)
             {
-                EditorGUI.BeginChangeCheck();
-                // For some reason the HDR picker is in gamma space, so convert to maintain same visual
-                var color = EditorGUILayout.ColorField(s_Styles.profileScatteringColor, profile.scatteringDistance.colorValue.gamma, true, false, false);
-                if (EditorGUI.EndChangeCheck())
-                    profile.scatteringDistance.colorValue = color.linear;
+                UpdateProfile(settings);
+            }
+
+            serializedObject.ApplyModifiedProperties();
+
+            if (!m_MultipleObjectSelected)
+                RenderPreview();
+        }
+
+        void DrawScattering(bool multipleObjectSelected)
+        {
+            EditorGUILayout.LabelField(Styles.scatteringLabel, EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (new EditorGUI.MixedValueScope(m_SerializedDiffusionProfileSettings.scatteringDistance.hasMultipleDifferentValues))
+                using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+                {
+                    // For some reason the HDR picker is in gamma space, so convert to maintain same visual
+                    var color = EditorGUILayout.ColorField(Styles.profileScatteringColor,
+                        m_SerializedDiffusionProfileSettings.scatteringDistance.colorValue.gamma, true, false, false);
+                    if (changeCheckScope.changed)
+                        m_SerializedDiffusionProfileSettings.scatteringDistance.colorValue = color.linear;
+                }
 
                 using (new EditorGUI.IndentLevelScope())
-                    EditorGUILayout.PropertyField(profile.scatteringDistanceMultiplier, s_Styles.profileScatteringDistanceMultiplier);
+                    EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.scatteringDistanceMultiplier,
+                        Styles.profileScatteringDistanceMultiplier);
 
-                using (new EditorGUI.DisabledScope(true))
-                    EditorGUILayout.FloatField(s_Styles.profileMaxRadius, profile.objReference.filterRadius);
-
-                EditorGUILayout.Space();
-
-                EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
-                EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
-
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(s_Styles.SubsurfaceScatteringLabel, EditorStyles.boldLabel);
-
-                profile.texturingMode.intValue = EditorGUILayout.Popup(s_Styles.texturingMode, profile.texturingMode.intValue, s_Styles.texturingModeOptions);
-
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(s_Styles.TransmissionLabel, EditorStyles.boldLabel);
-
-                profile.transmissionMode.intValue = EditorGUILayout.Popup(s_Styles.profileTransmissionMode, profile.transmissionMode.intValue, s_Styles.transmissionModeOptions);
-
-                EditorGUILayout.PropertyField(profile.transmissionTint, s_Styles.profileTransmissionTint);
-                EditorGUILayout.PropertyField(profile.thicknessRemap, s_Styles.profileMinMaxThickness);
-                var thicknessRemap = profile.thicknessRemap.vector2Value;
-                EditorGUILayout.MinMaxSlider(s_Styles.profileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0f, 50f);
-                profile.thicknessRemap.vector2Value = thicknessRemap;
-
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(s_Styles.profilePreview0, s_Styles.centeredMiniBoldLabel);
-                EditorGUILayout.LabelField(s_Styles.profilePreview1, EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.LabelField(s_Styles.profilePreview2, EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.LabelField(s_Styles.profilePreview3, EditorStyles.centeredGreyMiniLabel);
-                EditorGUILayout.Space();
-
-                serializedObject.ApplyModifiedProperties();
-
-                // NOTE: We cannot change only upon scope changed since there is no callback when Reset is triggered for Editor and the scope is not changed when Reset is called.
-                // The following operations are not super cheap, but are not overly expensive, so we instead trigger the change every time inspector is drawn.
-                //    if (scope.changed)
+                if (!multipleObjectSelected)
                 {
-                    // Validate and update the cache for this profile only
-                    profile.objReference.Validate();
-                    m_Target.UpdateCache();
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.FloatField(Styles.profileMaxRadius, m_SerializedDiffusionProfileSettings.objReference.filterRadius);
                 }
             }
 
-            RenderPreview(profile);
-
             EditorGUILayout.Space();
-            EditorGUI.indentLevel--;
-
-            serializedObject.ApplyModifiedProperties();
         }
 
-        void RenderPreview(Profile profile)
+        void DrawIORAndScale()
         {
-            var obj = profile.objReference;
-            float r = obj.filterRadius;
-            var S = obj.shapeParam;
+            EditorGUILayout.Slider(m_SerializedDiffusionProfileSettings.ior, 1.0f, 2.0f, Styles.profileIor);
+            EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.worldScale, Styles.profileWorldScale);
+            EditorGUILayout.Space();
+        }
 
-            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius, r);
-            m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
+        void DrawSSS()
+        {
+            EditorGUILayout.LabelField(Styles.subsurfaceScatteringLabel, EditorStyles.boldLabel);
+
+            var texturingModeMixedValues = m_SerializedDiffusionProfileSettings.texturingMode.hasMultipleDifferentValues;
+            using (new EditorGUI.IndentLevelScope())
+            using (new EditorGUI.MixedValueScope(texturingModeMixedValues))
+            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+            {
+                var previousTexturingMode = texturingModeMixedValues ? int.MinValue : m_SerializedDiffusionProfileSettings.texturingMode.intValue;
+                var newTexturingMode = EditorGUILayout.EnumPopup(Styles.texturingMode, (DiffusionProfile.TexturingMode)previousTexturingMode);
+                if (changeCheckScope.changed)
+                    m_SerializedDiffusionProfileSettings.texturingMode.intValue = (int)(DiffusionProfile.TexturingMode)newTexturingMode;
+            }
+
+            EditorGUILayout.Space();
+        }
+
+        void DrawTransmission()
+        {
+            EditorGUILayout.LabelField(Styles.transmissionLabel, EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                var transmissionModeMixedValues = m_SerializedDiffusionProfileSettings.transmissionMode.hasMultipleDifferentValues;
+                using (new EditorGUI.MixedValueScope(transmissionModeMixedValues))
+                using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+                {
+                    var previousTransmissionMode = transmissionModeMixedValues ? int.MinValue : m_SerializedDiffusionProfileSettings.transmissionMode.intValue;
+                    var newTransmissionMode = EditorGUILayout.EnumPopup(Styles.profileTransmissionMode, (DiffusionProfile.TransmissionMode)previousTransmissionMode);
+                    if (changeCheckScope.changed)
+                        m_SerializedDiffusionProfileSettings.transmissionMode.intValue = (int)(DiffusionProfile.TransmissionMode)newTransmissionMode;
+                }
+
+                EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.transmissionTint, Styles.profileTransmissionTint);
+                EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.thicknessRemap, Styles.profileMinMaxThickness);
+
+                if (!m_SerializedDiffusionProfileSettings.thicknessRemap.hasMultipleDifferentValues)
+                {
+                    using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+                    {
+                        var thicknessRemap = m_SerializedDiffusionProfileSettings.thicknessRemap.vector2Value;
+                        EditorGUILayout.MinMaxSlider(Styles.profileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0f, 50f);
+                        if (changeCheckScope.changed)
+                            m_SerializedDiffusionProfileSettings.thicknessRemap.vector2Value = thicknessRemap;
+                    }
+                }
+            }
+
+            EditorGUILayout.Space();
+        }
+
+        void RenderPreview()
+        {
+            EditorGUILayout.LabelField(Styles.profilePreview0, Styles.miniBoldButton);
+            EditorGUILayout.LabelField(Styles.profilePreview1, EditorStyles.centeredGreyMiniLabel);
+            EditorGUILayout.Space();
+
+            var obj = m_SerializedDiffusionProfileSettings.objReference;
+            var radius = obj.filterRadius;
+            var shape = obj.shapeParam;
+
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius, radius);
+            m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, shape);
 
             // Draw the profile.
-            EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256f, 256f), profile.profileRT, m_ProfileMaterial, ScaleMode.ScaleToFit, 1f);
+            EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256f, 256f), m_SerializedDiffusionProfileSettings.profileRT, m_ProfileMaterial, ScaleMode.ScaleToFit, 1f);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(s_Styles.transmittancePreview0, s_Styles.centeredMiniBoldLabel);
-            EditorGUILayout.LabelField(s_Styles.transmittancePreview1, EditorStyles.centeredGreyMiniLabel);
-            EditorGUILayout.LabelField(s_Styles.transmittancePreview2, EditorStyles.centeredGreyMiniLabel);
+            EditorGUILayout.LabelField(Styles.transmittancePreview0, Styles.miniBoldButton);
+            EditorGUILayout.LabelField(Styles.transmittancePreview1, EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.Space();
 
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam, S);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam, shape);
             m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, obj.transmissionTint);
             m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap, obj.thicknessRemap);
 
             // Draw the transmittance graph.
-            EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16f, 16f), profile.transmittanceRT, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16f);
+            EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16f, 16f), m_SerializedDiffusionProfileSettings.transmittanceRT, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16f);
         }
 
         void UpdateProfile()
         {
-            m_Target.profile.Validate();
-            m_Target.UpdateCache();
+            UpdateProfile(m_SerializedDiffusionProfileSettings.settings);
+        }
+
+        void UpdateProfile(DiffusionProfileSettings settings)
+        {
+            settings.profile.Validate();
+            settings.UpdateCache();
         }
     }
 }
