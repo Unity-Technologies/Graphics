@@ -116,25 +116,12 @@ namespace UnityEditor.Rendering
         // index is only used when we need to re-create a component in a specific spot (e.g. reset)
         void CreateEditor(VolumeComponent component, SerializedProperty property, int index = -1, bool forceOpen = false)
         {
-            var componentType = component.GetType();
-
-            if (RenderPipelineManager.currentPipeline != null)
-            {
-                if (componentType.GetCustomAttributes(typeof(VolumeComponentMenuForRenderPipeline), true)
-                    .FirstOrDefault() is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline
-                             && !volumeComponentMenuForRenderPipeline.pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType()))
-                {
-                    return;
-                }
-            }
-
             var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
             editor.inspector = m_BaseEditor;
-            editor.baseProperty = property.Copy();
             editor.Init();
 
             if (forceOpen)
-                editor.baseProperty.isExpanded = true;
+                editor.expanded = true;
 
             if (index < 0)
                 m_Editors.Add(editor);
@@ -143,17 +130,23 @@ namespace UnityEditor.Rendering
         }
 
         int m_CurrentHashCode;
-        void RefreshEditors()
+
+        void ClearEditors()
         {
-            if (m_Editors.Any())
+            if (m_Editors?.Any() ?? false)
             {
                 // Disable all editors first
                 foreach (var editor in m_Editors)
-                    editor.OnDisable();
+                    UnityEngine.Object.DestroyImmediate(editor);
 
                 // Remove them
                 m_Editors.Clear();
             }
+        }
+
+        void RefreshEditors()
+        {
+            ClearEditors();
 
             // Refresh the ref to the serialized components in case the asset got swapped or another
             // script is editing it while it's active in the inspector
@@ -175,15 +168,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         public void Clear()
         {
-            if (m_Editors == null)
-                return; // Hasn't been initialized yet
-
-            foreach (var editor in m_Editors)
-                editor.OnDisable();
-
-            m_Editors.Clear();
-
-            // ReSharper disable once DelegateSubtraction
+            ClearEditors();
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
@@ -211,13 +196,16 @@ namespace UnityEditor.Rendering
                 for (int i = 0; i < m_Editors.Count; i++)
                 {
                     var editor = m_Editors[i];
+                    if (!editor.visible)
+                        continue;
+
                     var title = editor.GetDisplayTitle();
                     int id = i; // Needed for closure capture below
 
                     CoreEditorUtils.DrawSplitter();
-                    bool displayContent = CoreEditorUtils.DrawHeaderToggle(
+                    bool displayContent = CoreEditorUtils.DrawHeaderToggleFoldout(
                         title,
-                        editor.baseProperty,
+                        editor.expanded,
                         editor.activeProperty,
                         pos => OnContextClick(pos, editor, id),
                         editor.hasAdditionalProperties ? () => editor.showAdditionalProperties : (Func<bool>)null,
@@ -225,7 +213,10 @@ namespace UnityEditor.Rendering
                         Help.GetHelpURLForObject(editor.volumeComponent)
                     );
 
-                    if (displayContent)
+                    if (displayContent ^ editor.expanded)
+                        editor.expanded = displayContent;
+
+                    if (editor.expanded)
                     {
                         using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue))
                             editor.OnInternalInspectorGUI();
@@ -256,27 +247,10 @@ namespace UnityEditor.Rendering
             var targetComponent = targetEditor.volumeComponent;
             var menu = new GenericMenu();
 
-            if (id == 0)
-            {
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move to Top"));
-            }
-            else
-            {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Top"), false, () => MoveComponent(id, -id));
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
-            }
-
-            if (id == m_Editors.Count - 1)
-            {
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move to Bottom"));
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
-            }
-            else
-            {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count - 1) - id));
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
-            }
+            menu.AddItem(EditorGUIUtility.TrTextContent("Move to Top"), false, () => MoveComponent(id, Move.Top));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, Move.Up));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, Move.Down));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, Move.Bottom));
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => CollapseComponents());
@@ -346,13 +320,8 @@ namespace UnityEditor.Rendering
 
         internal void RemoveComponent(int id)
         {
-            // Huh. Hack to keep foldout state on the next element...
-            bool nextFoldoutState = false;
-            if (id < m_Editors.Count - 1)
-                nextFoldoutState = m_Editors[id + 1].baseProperty.isExpanded;
-
             // Remove from the cached editors list
-            m_Editors[id].OnDisable();
+            UnityEngine.Object.DestroyImmediate(m_Editors[id]);
             m_Editors.RemoveAt(id);
 
             m_SerializedObject.Update();
@@ -365,14 +334,6 @@ namespace UnityEditor.Rendering
 
             // ...and remove the array index itself from the list
             m_ComponentsProperty.DeleteArrayElementAtIndex(id);
-
-            // Finally refresh editor reference to the serialized settings list
-            for (int i = 0; i < m_Editors.Count; i++)
-                m_Editors[i].baseProperty = m_ComponentsProperty.GetArrayElementAtIndex(i).Copy();
-
-            // Set the proper foldout state if needed
-            if (id < m_Editors.Count)
-                m_Editors[id].baseProperty.isExpanded = nextFoldoutState;
 
             m_SerializedObject.ApplyModifiedProperties();
 
@@ -391,7 +352,7 @@ namespace UnityEditor.Rendering
         internal void ResetComponent(Type type, int id)
         {
             // Remove from the cached editors list
-            m_Editors[id].OnDisable();
+            UnityEngine.Object.DestroyImmediate(m_Editors[id]);
             m_Editors[id] = null;
 
             m_SerializedObject.Update();
@@ -426,25 +387,56 @@ namespace UnityEditor.Rendering
             AssetDatabase.SaveAssets();
         }
 
-        internal void MoveComponent(int id, int offset)
+        internal enum Move
         {
-            // Move components
+            Up,
+            Down,
+            Top,
+            Bottom
+        }
+
+        internal void MoveComponent(int id, Move move)
+        {
             m_SerializedObject.Update();
-            m_ComponentsProperty.MoveArrayElement(id, id + offset);
+
+            int newIndex = id;
+
+            // Find the index based on the visible editor
+            switch(move)
+            {
+                case Move.Up:
+                    {
+                        do
+                        {
+                            newIndex--;
+                        }
+                        while (newIndex >= 0 && !m_Editors[newIndex].visible);
+                    }
+                    break;
+                case Move.Down:
+                    {
+                        do
+                        {
+                            newIndex++;
+                        }
+                        while (newIndex < m_Editors.Count && !m_Editors[newIndex].visible);
+                    }
+                    break;
+                case Move.Top:
+                    newIndex = 0;
+                    break;
+                case Move.Bottom:
+                    newIndex = m_Editors.Count - 1;
+                    break;
+            }
+
+            newIndex = Mathf.Clamp(newIndex, 0, m_Editors.Count - 1);
+
+            m_ComponentsProperty.MoveArrayElement(id, newIndex);
             m_SerializedObject.ApplyModifiedProperties();
 
-            // We need to keep track of what was expanded before to set it afterwards.
-            bool targetExpanded = m_Editors[id + offset].baseProperty.isExpanded;
-            bool sourceExpanded = m_Editors[id].baseProperty.isExpanded;
-
-            // Move editors
-            var prev = m_Editors[id + offset];
-            m_Editors[id + offset] = m_Editors[id];
-            m_Editors[id] = prev;
-
-            // Set the expansion values
-            m_Editors[id + offset].baseProperty.isExpanded = targetExpanded;
-            m_Editors[id].baseProperty.isExpanded = sourceExpanded;
+            if (!m_Editors.TrySwap(id, newIndex, out var error))
+                Debug.LogException(error);
         }
 
         internal void CollapseComponents()
@@ -454,7 +446,7 @@ namespace UnityEditor.Rendering
             int numEditors = m_Editors.Count;
             for (int i = 0; i < numEditors; ++i)
             {
-                m_Editors[i].baseProperty.isExpanded = false;
+                m_Editors[i].expanded = false;
             }
             m_SerializedObject.ApplyModifiedProperties();
         }
@@ -466,7 +458,7 @@ namespace UnityEditor.Rendering
             int numEditors = m_Editors.Count;
             for (int i = 0; i < numEditors; ++i)
             {
-                m_Editors[i].baseProperty.isExpanded = true;
+                m_Editors[i].expanded = true;
             }
             m_SerializedObject.ApplyModifiedProperties();
         }
