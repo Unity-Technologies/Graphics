@@ -2181,6 +2181,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 // Fix the resolution to half. This only affects the out-of-focus regions (and there is no visible benefit at computing those at higher res). Tiles with pixels near the focus plane always run at full res.
                 parameters.resolution = DepthOfFieldResolution.Half;
+
+                if (parameters.highQualityFiltering)
+                {
+                    parameters.pbDoFGatherCS.EnableKeyword("HIGH_QUALITY");
+                }
             }
 
             if (camera.msaaEnabled)
@@ -2682,7 +2687,10 @@ namespace UnityEngine.Rendering.HighDefinition
             //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA
             ComputeShader cs = parameters.dofCoCReprojectCS;
             int kernel = parameters.dofCoCReprojectKernel;
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(parameters.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.z, cocHistoryScale.w, 0f));
+            // This is a fixed empirical value. Was initially 0.91 but was creating a lot of ghosting trails in DoF.
+            // Looks like we can push it down to 0.86 and still get nice stable results.
+            float cocHysteresis = 0.86f;
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(parameters.resetPostProcessingHistory ? 0f : cocHysteresis, cocHistoryScale.z, cocHistoryScale.w, 0f));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoC);

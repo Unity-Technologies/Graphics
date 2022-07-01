@@ -9,6 +9,7 @@
 #pragma kernel KMain
 
 #pragma multi_compile _ ENABLE_ALPHA
+#pragma multi_compile _ HIGH_QUALITY
 
 CBUFFER_START(cb0)
 float4 _Params;
@@ -42,13 +43,17 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     centerSample.color = GetColorSample(posInputs.positionSS, 0);
     centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
+
+#ifndef HIGH_QUALITY
     int tileClass = GetTileClass(posInputs.positionSS);
     if (ResScale != 1.0 && tileClass != FAST_DEFOCUS_TILE)
     {
         // Early exit: these tiles will be computed at full res in the combine pass
+        // This might create small artifacts during upscale of the half-res tiles (bilinear fetch at the border picks unblurred values and this might be visible), so it's disabled in high quality mode
         _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE)centerSample.color;
         return;
     }
+#endif
 
     DoFTile tileData;
     LoadTileData(posInputs.positionSS, centerSample, NumRings, tileData);

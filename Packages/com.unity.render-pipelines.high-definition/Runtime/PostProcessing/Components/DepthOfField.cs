@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
         [AdditionalProperty]
-        [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
+        [Tooltip("When enabled, HDRP uses bicubic instead of bilinear filtering for the depth of field effect. Also conceals tiling artifacts in the physically-based mode.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
