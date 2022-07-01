@@ -300,6 +300,9 @@ EditorBuildSettings:
     path: Assets/Scenes/250_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1
+    path: Assets/Scenes/252_RenderRequest.unity
+    guid: 81446d3c9a10ff94a873a19e2d8804e9	 
+  - enabled: 1
     path: Assets/Scenes/248_LOD_CrossFade.unity
     guid: 3b4bfea1d564d9541bb3a139484410ef
   - enabled: 1
