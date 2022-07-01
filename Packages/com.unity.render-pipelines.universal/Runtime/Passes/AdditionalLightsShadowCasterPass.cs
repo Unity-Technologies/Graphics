@@ -1040,7 +1040,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("Additional Lights Shadowmap", out var passData, base.profilingSampler))
             {
-                InitPassData(ref passData, ref renderingData, ref graph);
+                InitPassData(ref passData, ref renderingData);
 
                 if (!m_CreateEmptyShadowmap)
                 {
@@ -1062,12 +1062,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("Set Additional Shadow Globals", out var passData, base.profilingSampler))
             {
-                InitPassData(ref passData, ref renderingData, ref graph);
+                InitPassData(ref passData, ref renderingData);
 
                 passData.shadowmapTexture = shadowTexture;
 
                 if (shadowTexture.IsValid())
-                    builder.UseDepthBuffer(shadowTexture, DepthAccess.Read);
+                    builder.ReadTexture(shadowTexture);
 
                 builder.AllowPassCulling(false);
 
@@ -1076,20 +1076,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (data.emptyShadowmap)
                     {
                         data.pass.SetEmptyAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
-                        data.shadowmapTexture = data.graph.defaultResources.defaultShadowTexture;
+                        data.shadowmapTexture = context.defaultResources.defaultShadowTexture;
                     }
 
-                    data.renderingData.commandBuffer.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
+                    context.cmd.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
                 });
 
                 return passData.shadowmapTexture;
             }
         }
 
-        void InitPassData(ref PassData passData, ref RenderingData renderingData, ref RenderGraph graph)
+        void InitPassData(ref PassData passData, ref RenderingData renderingData)
         {
             passData.pass = this;
-            passData.graph = graph;
 
             passData.emptyShadowmap = m_CreateEmptyShadowmap;
             passData.shadowmapID = m_AdditionalLightsShadowmapID;

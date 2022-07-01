@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             if (settings.overrideDepthState)
-                renderObjectsPass.SetDetphState(settings.enableWrite, settings.depthCompareFunction);
+                renderObjectsPass.SetDepthState(settings.enableWrite, settings.depthCompareFunction);
 
             if (settings.stencilSettings.overrideStencilState)
                 renderObjectsPass.SetStencilState(settings.stencilSettings.stencilReference,

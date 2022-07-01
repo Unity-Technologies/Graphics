@@ -675,10 +675,10 @@ namespace UnityEngine.Rendering.Universal
         public abstract void Execute(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
-        /// TODO RENDERGRAPH
+        /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation
         /// </summary>
         /// <param name="renderingData"></param>
-        internal virtual void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public virtual void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
         }

@@ -175,8 +175,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool HasDepthPrepass { get; set; }
         //
         internal bool HasNormalPrepass { get; set; }
-        //
-        internal bool HasRenderingLayerPrepass { get; set; }
+
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
         // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
@@ -405,7 +404,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
-            bool hasRenderingLayerPrepass,
             RTHandle depthCopyTexture,
             RTHandle depthAttachment,
             RTHandle colorAttachment)
@@ -413,7 +411,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
-            this.HasRenderingLayerPrepass = hasRenderingLayerPrepass;
 
             this.DepthCopyTexture = depthCopyTexture;
 
