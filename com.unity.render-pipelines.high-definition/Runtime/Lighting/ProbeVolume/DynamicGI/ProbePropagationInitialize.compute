@@ -129,11 +129,14 @@ void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
             // but it can be approximately represented as an ZH.
             // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indistinguishable.
             float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
-            ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
-            SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+            // ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
+            // SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
             float3 incomingHitRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS);
 
-            _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance * 4);
+            // TODO: Figure out why ZHWindow makes everything too smooth and dark. Skipping and adjusting radiance with a magic number for now.
+            incomingHitRadiance *= 0.6;
+
+            _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
         }
     }
 }
