@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
 using UnityEditor.ShaderGraph.HeadlessPreview.UnitTests;
 using UnityEngine.TestTools;
+using static UnityEditor.VersionControl.Message;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
 {
@@ -112,14 +113,17 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                 }
             }
 
+            Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
 
-            //Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
-            //prevCode += "\n\n" + shaderMessages.FirstOrDefault().message;
+            string dump = "";
+            foreach (var msg in shaderMessages)
+                dump += msg + "\n";
 
-            //Debug.LogAssertion(prevCode);
+            dump += prevCode;
 
-            var material = Preview.RequestNodePreviewMaterial(previewName);
+            Assert.IsNotEmpty(shaderMessages, dump);
 
+            var material = Preview.RequestNodePreviewMaterial(previewName, true);
             var value = PreviewTestFixture.SampleMaterialColor(material);
             Assert.AreNotEqual(new Color(1,1,0,1), value);
         }
