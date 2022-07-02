@@ -64,7 +64,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                 var typeName = outPort?.GetTypeField()?.GetRegistryKey().Name;
                 previewName = "Helper";
 
-                // This case is skipped currently because Matrix outputs are excluded.
                 if (typeName == GraphType.kRegistryKey.Name)
                 {
                     var keyMatDet = new RegistryKey { Name = "MatrixDeterminant", Version = 1 };
@@ -94,9 +93,9 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                             break;
 
                         case BaseTextureType.TextureType.CubeMap:
-                            var keyCube = new RegistryKey { Name = "Cube", Version = 1 };
+                            var keyCube = new RegistryKey { Name = "SampleReflectedCubemap", Version = 1 };
                             Graph.AddNode(keyCube, previewName);
-                            Graph.TryConnect(nodeName, portName, previewName, "TextureArray");
+                            Graph.TryConnect(nodeName, portName, previewName, "Cube");
                             break;
                     }
                 }
@@ -113,14 +112,18 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                 }
             }
 
-            //Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
 
+            // The following would be the prefered output, as we could get a much more concise idea of what is wrong and how to fix it--
+            // but the Shader Compiler floods the test results window before ShaderMessages can be accessed, meaning any additional outputs
+            // would end up exceeding the 15000 character limit (and appear at the bottom). It's possible to get this to work correctly
+            // by not routing through the PreviewManager, but the setup and behavior of nodes would then be inconsistent with where this
+            // is relevant.
+
+            //Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
             //string dump = "";
             //foreach (var msg in shaderMessages)
             //    dump += msg + "\n";
-
             //dump += prevCode;
-
             //Assert.IsNotEmpty(shaderMessages, dump);
 
             var material = Preview.RequestNodePreviewMaterial(previewName);
