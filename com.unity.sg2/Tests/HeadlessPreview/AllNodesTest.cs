@@ -25,18 +25,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
 
         static string[] InitNodeNames()
         {
-            // Matrices don't convert propertly in preview for now, so we want to filter out matrices
-            return SGR.DefaultTopologies.GetNodes().Where(GetIsNotMatrixOutput).Select(e => e.ID.LocalPath).ToArray();
+            return SGR.DefaultTopologies.GetNodes().Select(e => e.ID.LocalPath).ToArray();
         }
 
-        static bool GetIsNotMatrixOutput(NodeHandler node)
-        {
-            return true;
-
-            var typeField = node.GetPorts().Where(e => !e.IsInput)?.First()?.GetTypeField();
-            return !(typeField.GetRegistryKey().Name == GraphType.kRegistryKey.Name && (int)GraphTypeHelpers.GetHeight(typeField) > 1);
-        }
-
+        // whether or not a node will require another node to coerce the value to a vector for testing preview compilation.
         static bool HasVectorOutput(NodeHandler node)
         {
             var nodeKey = node.GetRegistryKey();
