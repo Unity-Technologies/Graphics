@@ -113,17 +113,17 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                 }
             }
 
-            Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
+            //Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
 
-            string dump = "";
-            foreach (var msg in shaderMessages)
-                dump += msg + "\n";
+            //string dump = "";
+            //foreach (var msg in shaderMessages)
+            //    dump += msg + "\n";
 
-            dump += prevCode;
+            //dump += prevCode;
 
-            Assert.IsNotEmpty(shaderMessages, dump);
+            //Assert.IsNotEmpty(shaderMessages, dump);
 
-            var material = Preview.RequestNodePreviewMaterial(previewName, true);
+            var material = Preview.RequestNodePreviewMaterial(previewName);
             var value = PreviewTestFixture.SampleMaterialColor(material);
             Assert.AreNotEqual(new Color(1,1,0,1), value);
         }
