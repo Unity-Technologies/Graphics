@@ -73,7 +73,7 @@ MonoBehaviour:
     m_Value: 3
   rayTracing:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -123,16 +123,16 @@ MonoBehaviour:
     m_Value: 2
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 1.3
   m_SampleCount:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 4
   m_Denoise:
     m_OverrideState: 1
     m_Value: 1
   m_DenoiserRadius:
     m_OverrideState: 1
-    m_Value: 0.3
+    m_Value: 1
 --- !u!114 &5442155027611909722
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -148,7 +148,7 @@ MonoBehaviour:
   active: 1
   cameraClusterRange:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 50
 --- !u!114 &6426704641791874640
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -176,10 +176,10 @@ MonoBehaviour:
     m_Value: 4
   m_MinSmoothness:
     m_OverrideState: 1
-    m_Value: 0.4
+    m_Value: 0.6
   m_SmoothnessFadeStart:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.8
   reflectSky:
     m_OverrideState: 0
     m_Value: 1
@@ -221,10 +221,13 @@ MonoBehaviour:
     m_Value: 32
   rayMiss:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
   lastBounceFallbackHierarchy:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 2
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -235,7 +238,7 @@ MonoBehaviour:
     m_Value: 1
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 60
   m_ClampValue:
     m_OverrideState: 1
     m_Value: 10
@@ -246,10 +249,10 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 8
   m_AffectSmoothSurfaces:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   mode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   m_FullResolution:
     m_OverrideState: 1
@@ -281,7 +284,7 @@ MonoBehaviour:
     m_Value: 3
   enable:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   tracing:
     m_OverrideState: 1
     m_Value: 4
@@ -305,12 +308,15 @@ MonoBehaviour:
     m_Value: 0
   m_DenoiserRadiusSS:
     m_OverrideState: 1
-    m_Value: 0.343
+    m_Value: 0.6
   m_SecondDenoiserPassSS:
     m_OverrideState: 1
     m_Value: 1
   lastBounceFallbackHierarchy:
     m_OverrideState: 1
+    m_Value: 2
+  ambientProbeDimmer:
+    m_OverrideState: 0
     m_Value: 0
   layerMask:
     m_OverrideState: 0
@@ -318,35 +324,35 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
   textureLodBias:
-    m_OverrideState: 0
-    m_Value: 7
+    m_OverrideState: 1
+    m_Value: 1
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 20
   m_ClampValue:
     m_OverrideState: 1
     m_Value: 10
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   m_FullResolution:
     m_OverrideState: 0
     m_Value: 0
   sampleCount:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 1
   bounceCount:
     m_OverrideState: 1
     m_Value: 3
   m_Denoise:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   m_HalfResolutionDenoiser:
     m_OverrideState: 0
     m_Value: 0
   m_DenoiserRadius:
     m_OverrideState: 0
-    m_Value: 0.429
+    m_Value: 0.6
   m_SecondDenoiserPass:
     m_OverrideState: 0
     m_Value: 1
