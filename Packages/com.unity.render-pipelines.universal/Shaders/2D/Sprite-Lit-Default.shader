@@ -65,6 +65,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
             half4 _MainTex_ST;
+            float4 _Color;
+            half4 _RendererColor;
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
@@ -95,7 +97,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
 
-                o.color = v.color;
+                o.color = v.color * _Color * _RendererColor;
                 return o;
             }
 
@@ -211,6 +213,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
             float4 _MainTex_ST;
+            float4 _Color;
+            half4 _RendererColor;
 
             Varyings UnlitVertex(Attributes attributes)
             {
@@ -223,7 +227,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.color = attributes.color;
+                o.color = attributes.color * _Color * _RendererColor;
                 return o;
             }
 
