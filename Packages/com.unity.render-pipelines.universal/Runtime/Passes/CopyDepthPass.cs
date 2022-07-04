@@ -170,6 +170,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
+                    if (cameraData.xr.supportsFoveatedRendering)
+                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+
                     isGameViewFinalTarget |= destination.nameID == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
                 bool yflip = (copyToDepth || !isSourceYflipped && !isGameViewFinalTarget) && SystemInfo.graphicsUVStartsAtTop;

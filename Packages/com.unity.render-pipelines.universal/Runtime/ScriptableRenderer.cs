@@ -1394,6 +1394,15 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
 
+            // Selectively enable foveated rendering
+            if (cameraData.xr.supportsFoveatedRendering)
+            {
+                if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
+                {
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                }
+            }
+
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -1407,16 +1416,17 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
             }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Inform the late latching system for XR once we're done with a render pass
             if (cameraData.xr.enabled)
             {
+                if (cameraData.xr.supportsFoveatedRendering)
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+
+                // Inform the late latching system for XR once we're done with a render pass
                 XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
-#endif
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -1704,6 +1714,15 @@ namespace UnityEngine.Rendering.Universal
                     cameraData.xrUniversal.canMarkLateLatch = true;
 
                 cameraData.xr.StartSinglePass(cmd);
+
+                if (cameraData.xr.supportsFoveatedRendering)
+                {
+                    cmd.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
+
+                    if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -1716,6 +1735,16 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cameraData.xr.StopSinglePass(cmd);
+
+
+                if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
+                {
+                    if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
+
+                    cmd.ConfigureFoveatedRendering(IntPtr.Zero);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }

@@ -20,6 +20,14 @@ namespace UnityEditor.ShaderGraph
         public string shaderName;
         public List<PropertyCollector.TextureInfo> assignedTextures;
         public string errorMessage;
+
+        public static GeneratedShader Null => new GeneratedShader
+        {
+            codeString = null,
+            shaderName = null,
+            assignedTextures = null,
+            errorMessage = null
+        };
     }
 
     class Generator
@@ -55,6 +63,25 @@ namespace UnityEditor.ShaderGraph
                 foreach (var additionalShaderID in m_AdditionalShaderIDs)
                 {
                     yield return BuildShader(additionalShaderID);
+                }
+            }
+        }
+
+        // accessor for all generated compute shaders
+        public IEnumerable<GeneratedShader> allGeneratedComputeShaders
+        {
+            get
+            {
+                // Note: Currently we build one compute shader asset per kernel, can look in the future to see
+                // how to handle multiple kernels per compute shader asset if it's necessary.
+                for (int i = 0; i < m_Targets.Count; i++)
+                {
+                    var context = m_TargetContexts[i];
+
+                    foreach (KernelCollection.Item kernel in context.kernels)
+                    {
+                        yield return BuildComputeShader(i, kernel.descriptor);
+                    }
                 }
             }
         }
@@ -452,6 +479,48 @@ namespace UnityEditor.ShaderGraph
             subshaderProperties.SetReadOnly();
 
             return subshaderProperties;
+        }
+
+        GeneratedShader BuildComputeShader(int targetIndex, KernelDescriptor kernel)
+        {
+            m_Builder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
+
+            // Note: Currently we generate one compute shader asset per kernel.
+            GenerateKernel(targetIndex, kernel);
+
+            var generatedShader = new GeneratedShader
+            {
+                codeString = m_Builder.ToCodeBlock(),
+                shaderName = kernel.name.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal),
+                assignedTextures = null,
+                errorMessage = null
+            };
+
+            // kill builder to ensure it doesn't get used outside of this function
+            m_Builder = null;
+
+            return generatedShader;
+        }
+
+        void GenerateKernel(int targetIndex, KernelDescriptor kernel)
+        {
+            var pass = kernel.passDescriptorReference;
+
+            // Patch the pass descriptor template with the one defined by the kernel.
+            pass.passTemplatePath = kernel.templatePath;
+            pass.sharedTemplateDirectories = kernel.sharedTemplateDirectories;
+
+            // Grab various graph information needed to generate the reference pass descriptor.
+            var outTemporaryBlocks = new List<BlockNode>();
+            var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[targetIndex], m_GraphData, m_Mode, m_OutputNode, outTemporaryBlocks);
+
+            List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> activeBlockDescriptors = m_ActiveBlocks.Select(x => (x.descriptor, x.GetInputSlots<MaterialSlot>().FirstOrDefault().IsUsingDefaultValue())).ToList();
+            var connectedBlockDescriptors = m_ActiveBlocks.Where(x => x.IsSlotConnected(0)).Select(x => x.descriptor).ToList();
+
+            var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass, activeBlockDescriptors, connectedBlockDescriptors, m_Targets[targetIndex]);
+
+            // Invoke the existing shader pass generation routine.
+            GenerateShaderPass(targetIndex, pass, activeFields, activeBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);
         }
 
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields, List<BlockFieldDescriptor> currentBlockDescriptors, PropertyCollector subShaderProperties)

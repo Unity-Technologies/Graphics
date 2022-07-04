@@ -3,9 +3,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
     Properties
     {
         _MainTex ("Sprite Texture", 2D) = "white" {}
-        _Color ("Tint", Color) = (1,1,1,1)
 
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
+        [HideInInspector] _Color ("Tint", Color) = (1,1,1,1)
         [HideInInspector] PixelSnap ("Pixel snap", Float) = 0
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _Flip ("Flip", Vector) = (1,1,1,1)
@@ -61,6 +61,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             SAMPLER(sampler_MainTex);
             half4 _MainTex_ST;
             float4 _Color;
+            half4 _RendererColor;
 
             Varyings UnlitVertex(Attributes v)
             {
@@ -73,7 +74,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.color = v.color * _Color;
+                o.color = v.color * _Color * _RendererColor;
                 return o;
             }
 
@@ -141,6 +142,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             SAMPLER(sampler_MainTex);
             float4 _MainTex_ST;
             float4 _Color;
+            half4 _RendererColor;
 
             Varyings UnlitVertex(Attributes attributes)
             {
@@ -153,7 +155,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 o.positionWS = TransformObjectToWorld(attributes.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.color = attributes.color * _Color;
+                o.color = attributes.color * _Color * _RendererColor;
                 return o;
             }
 

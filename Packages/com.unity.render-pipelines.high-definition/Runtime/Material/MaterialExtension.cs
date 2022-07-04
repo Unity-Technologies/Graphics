@@ -243,6 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SG_Decal,
             SG_Eye,
             SG_Water,
+            SG_FogVolume,
             Count_All,
             Count_ShaderGraph = Count_All - Count_Standard,
             SG_External = -1, // material packaged outside of HDRP
@@ -472,16 +473,48 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Get the Diffusion profile on a Shader Graph material.</summary>
         /// <param name="material">The material to access.</param>
+        /// <param name="referenceName">The reference name of the Diffusion Profile property in the Shader Graph.</param>
         /// <returns>The Diffusion Profile Asset.</returns>
-        public static DiffusionProfileSettings GetDiffusionProfileShaderGraph(Material material)
+        public static DiffusionProfileSettings GetDiffusionProfileShaderGraph(Material material, string referenceName)
         {
-            return GetDiffusionProfileAsset(material, HDShaderIDs._DiffusionProfileAsset);
+            return GetDiffusionProfileAsset(material, Shader.PropertyToID(referenceName + "_Asset"));
         }
 
         internal static DiffusionProfileSettings GetDiffusionProfileAsset(Material material, int assetPropertyId)
         {
             string guid = HDUtils.ConvertVector4ToGUID(material.GetVector(assetPropertyId));
             return UnityEditor.AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+        }
+
+        internal static IEnumerable<int> GetShaderDiffusionProfileProperties(Shader shader)
+        {
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset") != -1)
+                yield return HDShaderIDs._DiffusionProfileAsset;
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset0") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset0");
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset1") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset1");
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset2") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset2");
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset3") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset3");
+
+            int propertyCount = UnityEditor.ShaderUtil.GetPropertyCount(shader);
+            for (int propIdx = 0; propIdx < propertyCount; ++propIdx)
+            {
+                var attributes = shader.GetPropertyAttributes(propIdx);
+                foreach (var attribute in attributes)
+                {
+                    if (attribute == "DiffusionProfile")
+                    {
+                        propIdx++;
+                        var type = UnityEditor.ShaderUtil.GetPropertyType(shader, propIdx);
+                        if (type == UnityEditor.ShaderUtil.ShaderPropertyType.Vector)
+                            yield return shader.GetPropertyNameId(propIdx);
+                        break;
+                    }
+                }
+            }
         }
 #endif
 

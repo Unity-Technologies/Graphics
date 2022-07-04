@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float taaAntiFlicker;
         internal float taaMotionVectorRejection;
         internal float taaBaseBlendFactor;
+        internal float taaJitterScale;
         internal bool taaAntiRinging;
 
         internal Vector4 zBufferParams;
@@ -1478,6 +1479,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
                     taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
                     taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
+                    taaJitterScale = m_AdditionalCameraData.taaJitterScale;
                     taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
                     taaBaseBlendFactor = m_AdditionalCameraData.taaBaseBlendFactor;
                 }
@@ -1793,6 +1795,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+
+            if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
+            {
+                jitterX *= taaJitterScale;
+                jitterY *= taaJitterScale;
+            }
+
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
 
             Matrix4x4 proj;

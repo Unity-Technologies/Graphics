@@ -1,6 +1,5 @@
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -69,26 +68,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal void BuildGridMesh(ref Mesh mesh)
         {
+            int meshResolution = WaterConsts.k_WaterTessellatedMeshResolution;
             mesh = new Mesh();
-            Vector3[] vertices = new Vector3[(k_WaterTessellatedMeshResolution + 1) * (k_WaterTessellatedMeshResolution + 1)];
-            for (int i = 0, y = 0; y <= k_WaterTessellatedMeshResolution; y++)
+            Vector3[] vertices = new Vector3[(meshResolution + 1) * (meshResolution + 1)];
+            for (int i = 0, y = 0; y <= meshResolution; y++)
             {
-                for (int x = 0; x <= k_WaterTessellatedMeshResolution; x++, i++)
+                for (int x = 0; x <= meshResolution; x++, i++)
                 {
-                    vertices[i] = new Vector3(x / (float)k_WaterTessellatedMeshResolution - 0.5f, 0.0f, y / (float)k_WaterTessellatedMeshResolution - 0.5f);
+                    vertices[i] = new Vector3(x / (float)meshResolution - 0.5f, 0.0f, y / (float)meshResolution - 0.5f);
                 }
             }
             mesh.vertices = vertices;
 
-            int[] triangles = new int[k_WaterTessellatedMeshResolution * k_WaterTessellatedMeshResolution * 6];
-            for (int ti = 0, vi = 0, y = 0; y < k_WaterTessellatedMeshResolution; y++, vi++)
+            int[] triangles = new int[meshResolution * meshResolution * 6];
+            for (int ti = 0, vi = 0, y = 0; y < meshResolution; y++, vi++)
             {
-                for (int x = 0; x < k_WaterTessellatedMeshResolution; x++, ti += 6, vi++)
+                for (int x = 0; x < meshResolution; x++, ti += 6, vi++)
                 {
                     triangles[ti] = vi;
                     triangles[ti + 3] = triangles[ti + 2] = vi + 1;
-                    triangles[ti + 4] = triangles[ti + 1] = vi + k_WaterTessellatedMeshResolution + 1;
-                    triangles[ti + 5] = vi + k_WaterTessellatedMeshResolution + 2;
+                    triangles[ti + 4] = triangles[ti + 1] = vi + meshResolution + 1;
+                    triangles[ti + 5] = vi + meshResolution + 2;
                 }
             }
             mesh.triangles = triangles;
@@ -103,64 +103,39 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(directionX, directionY);
         }
 
-        // Function that guesses the maximal wave height from the wind speed
-        static internal float MaximumWaveHeightFunction(float windSpeed)
+
+        static internal float EvaluateSwellSecondPatchSize(float maxPatchSize)
         {
-            return 1.0f - Mathf.Exp(-k_PhillipsWindFalloffCoefficient * windSpeed * windSpeed);
+            float relativeSwellPatchSize = (maxPatchSize - WaterConsts.k_SwellMinPatchSize) / (WaterConsts.k_SwellMaxPatchSize - WaterConsts.k_SwellMinPatchSize);
+            return Mathf.Lerp(WaterConsts.k_SwellMinRatio, WaterConsts.k_SwellMaxRatio, relativeSwellPatchSize);
         }
 
-        // Function that loops thought all the current waves and computes the maximal wave height
-        internal static void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
+        static internal float SampleMaxAmplitudeTable(int2 pixelCoord)
         {
-            // Initialize the band data
-            float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
-
-            // Evaluate the wave height for each band (lower frequencies)
-            b0 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.x * MaximumWaveHeightFunction(waterWindSpeed);
-            b1 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.y * MaximumWaveHeightFunction(waterWindSpeed);
-
-            // Evaluate the wave height for each band (higher frequencies)
-            if (highBandCount)
-            {
-                b2 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.z * MaximumWaveHeightFunction(waterWindSpeed);
-                b3 = k_WaterAmplitudeNormalization * normalizedWaveAmplitude.w * MaximumWaveHeightFunction(waterWindSpeed);
-            }
-
-            // Output the wave heights
-            waveHeights = new Vector4(b0, b1, b2, b3);
-            // TODO have a better estimation for this
-            maxWaveHeight = k_MaxWaterSurfaceElevation;
+            int clampedX = Mathf.Clamp(pixelCoord.x, 0, WaterConsts.k_TableResolution - 1);
+            int clampedY = Mathf.Clamp(pixelCoord.y, 0, WaterConsts.k_TableResolution - 1);
+            int tapIndex = clampedX + clampedY * WaterConsts.k_TableResolution;
+            return WaterConsts.k_MaximumAmplitudeTable[tapIndex];
         }
 
-        // Function that evaluates the maximum wind speed given a patch size
-        static internal float MaximumWindForPatch(float patchSize)
+        static internal float EvaluateMaxAmplitude(float patchSize, float windSpeed)
         {
-            float a = Mathf.Sqrt(-1.0f / Mathf.Log(0.999f * 0.999f));
-            float b = (0.001f * Mathf.PI * 2.0f) / patchSize;
-            float c = k_PhillipsWindScalar * Mathf.Sqrt((1.0f / k_PhillipsGravityConstant) * (a / b));
-            return c;
-        }
+            // Convert the position from uv to floating pixel coords (for the bilinear interpolation)
+            Vector2 uv = new Vector2(windSpeed / WaterConsts.k_SwellMaximumWindSpeed, Mathf.Clamp((patchSize - 25.0f) / 4975.0f, 0.0f, 1.0f));
+            float2 tapCoord = new float2(uv.x * (WaterConsts.k_TableResolution - 1), uv.y * (WaterConsts.k_TableResolution - 1));
+            int2 pixelCoord = FloorCoordinate(tapCoord);
 
-        // Function that evaluates the patch sizes of the 4 bands based on the max patch size
-        static internal Vector4 ComputeBandPatchSizes(float maxPatchSize)
-        {
-            float range = maxPatchSize - k_MinPatchSize;
-            float b0 = maxPatchSize;
-            float b1 = maxPatchSize - 7.0f / 8.0f * range;
-            float b2 = maxPatchSize - 31.0f / 32.0f * range;
-            float b3 = maxPatchSize - 63.0f / 64.0f * range;
-            return new Vector4(b0, b1, b2, b3);
-        }
+            // Evaluate the UV for this sample
+            float p0 = SampleMaxAmplitudeTable(pixelCoord);
+            float p1 = SampleMaxAmplitudeTable(pixelCoord + new int2(1, 0));
+            float p2 = SampleMaxAmplitudeTable(pixelCoord + new int2(0, 1));
+            float p3 = SampleMaxAmplitudeTable(pixelCoord + new int2(1, 1));
 
-        // Function that evaluates the wind speed of each individual patch
-        static internal Vector4 ComputeWindSpeeds(float windSpeed, Vector4 patchSizes)
-        {
-            float normalizedWindSpeed = Mathf.Sqrt(windSpeed / 100.0f);
-            float b0 = MaximumWindForPatch(patchSizes.x) * normalizedWindSpeed;
-            float b1 = MaximumWindForPatch(patchSizes.y) * normalizedWindSpeed;
-            float b2 = MaximumWindForPatch(patchSizes.z) * normalizedWindSpeed;
-            float b3 = MaximumWindForPatch(patchSizes.w) * normalizedWindSpeed;
-            return new Vector4(b0, b1, b2, b3);
+            // Do the bilinear interpolation
+            float2 fract = tapCoord - pixelCoord;
+            float i0 = lerp(p0, p1, fract.x);
+            float i1 = lerp(p2, p3, fract.x);
+            return lerp(i0, i1, fract.y);
         }
 
         // Function that applies a profile to the scattering color to make the edition range linear
@@ -221,6 +196,76 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             uint4 hashed = WaterHashFunctionUInt4(p);
             return new float4(hashed.x, hashed.y, hashed.z, hashed.w) / (float)0xffffffffU;
+        }
+
+        static void SetupWaterShaderKeyword(CommandBuffer cmd, int bandCount)
+        {
+            if (bandCount == 1)
+            {
+                CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", true);
+                CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", false);
+                CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", false);
+            }
+            else if (bandCount == 2)
+            {
+                CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", false);
+                CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", true);
+                CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", false);
+            }
+            else
+            {
+                CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", false);
+                CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", false);
+                CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", true);
+            }
+        }
+
+        static internal int EvaluateBandCount(WaterSurfaceType surfaceType, bool ripplesOn)
+        {
+            switch (surfaceType)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                    return ripplesOn ? 3 : 2;
+                case WaterSurfaceType.River:
+                    return ripplesOn ? 2 : 1;
+                case WaterSurfaceType.Pool:
+                    return 1;
+            }
+            return 1;
+        }
+
+        static internal int EvaluateCPUBandCount(WaterSurfaceType surfaceType, bool ripplesOn, bool evaluateRipplesCPU)
+        {
+            switch (surfaceType)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                    return evaluateRipplesCPU ? (ripplesOn ? 3 : 2) : 2;
+                case WaterSurfaceType.River:
+                    return evaluateRipplesCPU ? (ripplesOn ? 1 : 1) : 1;
+                case WaterSurfaceType.Pool:
+                    return 1;
+            }
+            return 1;
+        }
+
+        public static readonly float[] sizeMultiplier = new float[] {1.0f, 4.0f, 32.0f, 128.0f};
+        public static readonly float[] offsets = new float[]{0.0f, 0.5f, 4.5f, 36.5f};
+
+        // Function that evaluates the bounds of a given grid based on it's coordinates
+        static void ComputeGridBounds(int x, int y, float centerGridSize,
+                            out float2 center,
+                            out float2 size)
+        {
+            int absX = abs(x);
+            int absY = abs(y);
+            float signX = sign(x);
+            float signY = sign(y);
+
+            // Size of the patch
+            size = float2(centerGridSize * sizeMultiplier[absX], centerGridSize * sizeMultiplier[absY]);
+
+            // Offset position of the patch
+            center = float2(signX * (offsets[absX] * centerGridSize + size.x * 0.5f), signY * (offsets[absY] * centerGridSize + size.y * 0.5f));
         }
     }
 }

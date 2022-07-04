@@ -524,6 +524,53 @@ float3 GetRendererExtents()
     return (maxBounds - minBounds) * 0.5;
 }
 
+// This utility function is currently used to support an alpha blending friendly format
+// for virtual texturing + transparency support.
+float2 ConvertRGBA8UnormToRG16Unorm(float4 inputRGBA8Unorm)
+{
+    uint4 uintValues = (uint4)(inputRGBA8Unorm * 255.0f) & 0xFF;
+    float scale = 1.0 / (float)(0xFFFF);
+    float2 packedRG16UnormVal = float2(
+        (float)(uintValues.x | (uintValues.y << 8)),
+        (float)(uintValues.z | (uintValues.w << 8))) * scale;
+    return packedRG16UnormVal;
+}
+
+// This utility function is currently used to support an alpha blending friendly format
+// for virtual texturing + transparency support.
+float4 ConvertRG16UnormToRGBA8Unorm(float2 compressedFeedback)
+{
+    float scale = (float)(0xFFFF);
+    uint2 packedUintValues = (uint2)(compressedFeedback * scale);
+    uint4 uintValues = uint4(packedUintValues.x, packedUintValues.x >> 8, packedUintValues.y, packedUintValues.y >> 8) & 0xFF;
+    return (float4)uintValues / 255.0f;
+}
+
+float4 PackVTFeedbackWithAlpha(float4 feedback, float2 pixelCoord, float alpha)
+{
+    float2 vtFeedbackCompressed = ConvertRGBA8UnormToRG16Unorm(feedback);
+    if (alpha == 1.0 || alpha == 0.0)
+        return float4(vtFeedbackCompressed.x, vtFeedbackCompressed.y, 0.0, alpha);
+
+    float2 pixelLocationAlpha = frac(pixelCoord * 0.25f); // We don't scale after the frac so this will give coords 0, 0.25, 0.5, 0.75
+    int pixelId = (int)(pixelLocationAlpha.y * 16 + pixelLocationAlpha.x * 4) & 0xF;
+
+    // Modern hardware supports array indexing with per pixel varying indexes
+    // on old hardware this will be expanded to a conditional tree by the compiler
+    const float thresholdMaxtrix[16] = {1.0f / 17.0f, 9.0f / 17.0f, 3.0f / 17.0f, 11.0f / 17.0f,
+                                        13.0f / 17.0f,  5.0f / 17.0f, 15.0f / 17.0f, 7.0f / 17.0f,
+                                        4.0f / 17.0f, 12.0f / 17.0f, 2.0f / 17.0f, 10.0f / 17.0f,
+                                        16.0f / 17.0f, 8.0f / 17.0f, 14.0f / 17.0f, 6.0f / 17.0f};
+
+    float threshold = thresholdMaxtrix[pixelId];
+    return float4(vtFeedbackCompressed.x, vtFeedbackCompressed.y, 0.0, alpha < threshold ? 0.0f : 1.0);
+}
+
+float4 UnpackVTFeedbackWithAlpha(float4 feedbackWithAlpha)
+{
+    return ConvertRG16UnormToRGBA8Unorm(feedbackWithAlpha.xy);
+}
+
 // To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject

@@ -4,12 +4,15 @@
 // yield a Phillips spectrum distribution in the [-1, 1] range
 #define EARTH_GRAVITY 9.81
 #define ONE_OVER_SQRT2 0.70710678118
-#define PHILLIPS_AMPLITUDE_SCALAR 10.0
+#define PHILLIPS_AMPLITUDE_SCALAR 0.2
 #define WATER_IOR 1.3333
 #define WATER_INV_IOR 1.0 / WATER_IOR
-#define SURFACE_FOAM_BRIGHTNESS 0.7
-#define SCATTERING_FOAM_BRIGHTNESS 1.5
+#define SURFACE_FOAM_BRIGHTNESS 1.0
+#define SCATTERING_FOAM_BRIGHTNESS 1.75
 #define UNDER_WATER_SCATTERING_ATTENUATION 0.25
+#define AMBIENT_SCATTERING_INTENSITY 0.5
+#define HEIGHT_SCATTERING_INTENSITY 0.5
+#define DISPLACEMENT_SCATTERING_INTENSITY 0.5
 
 // Water simulation data
 Texture2DArray<float4> _WaterDisplacementBuffer;
@@ -18,15 +21,22 @@ Texture2D<float4> _WaterCausticsDataBuffer;
 StructuredBuffer<float> _WaterCameraHeightBuffer;
 
 // Water mask
-Texture2D<float2> _WaterMask;
+TEXTURE2D(_WaterMask);
+SAMPLER(sampler_WaterMask);
 
 // Foam textures
 Texture2D<float> _FoamTexture;
-Texture2D<float> _FoamMask;
+TEXTURE2D(_FoamMask);
+SAMPLER(sampler_FoamMask);
 
 #if UNITY_ANY_INSTANCING_ENABLED
 StructuredBuffer<float4> _WaterPatchData;
 #endif
+
+float2 OrientationToDirection(float orientation)
+{
+    return float2(cos(orientation), sin(orientation));
+}
 
 uint4 WaterHashFunctionUInt4(uint3 coord)
 {
@@ -48,7 +58,7 @@ float GaussianDis(float u, float v)
     return sqrt(-2.0 * log(max(u, 1e-6f))) * cos(PI * v);
 }
 
-float Phillips(float2 k, float2 w, float V)
+float Phillips(float2 k, float2 w, float V, float directionDampener, float patchSize)
 {
     float kk = k.x * k.x + k.y * k.y;
     float result = 0.0;
@@ -56,11 +66,11 @@ float Phillips(float2 k, float2 w, float V)
     {
         float L = (V * V) / EARTH_GRAVITY;
         // To avoid _any_ directional bias when there is no wind we lerp towards 0.5f
-        float wk = lerp(dot(normalize(k), w), 0.5, _DirectionDampener);
+        float wk = lerp(dot(normalize(k), w), 0.5, directionDampener);
         float phillips = (exp(-1.0f / (kk * L * L)) / (kk * kk)) * (wk * wk);
-        result = phillips * (wk < 0.0f ? _DirectionDampener : 1.0);
+        result = phillips * (wk < 0.0f ? directionDampener : 1.0);
     }
-    return PHILLIPS_AMPLITUDE_SCALAR * result;
+    return PHILLIPS_AMPLITUDE_SCALAR * result / (patchSize * patchSize);
 }
 
 float2 ComplexExp(float arg)
@@ -86,42 +96,34 @@ float FrequencyAmpltiude(float2 complex)
 struct WaterSimulationCoordinates
 {
     float2 uvBand0;
+#if defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
     float2 uvBand1;
+#endif
+#if defined(WATER_THREE_BANDS)
     float2 uvBand2;
-    float2 uvBand3;
+#endif
 };
 
 void ComputeWaterUVs(float3 positionWS, out WaterSimulationCoordinates waterCoord)
 {
     float2 uv = positionWS.xz;
-    waterCoord.uvBand0 = uv / _BandPatchSize.x;
-    waterCoord.uvBand1 = uv / _BandPatchSize.y;
-    waterCoord.uvBand2 = uv / _BandPatchSize.z;
-    waterCoord.uvBand3 = uv / _BandPatchSize.w;
+    waterCoord.uvBand0 = (uv - OrientationToDirection(_PatchCurrentOrientation[0]) * _PatchCurrentSpeed[0] * _SimulationTime) / _PatchSize.x;
+#if defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
+    waterCoord.uvBand1 = (uv - OrientationToDirection(_PatchCurrentOrientation[1]) * _PatchCurrentSpeed[1] * _SimulationTime) / _PatchSize.y;
+#endif
+#if defined(WATER_THREE_BANDS)
+    waterCoord.uvBand2 = (uv - OrientationToDirection(_PatchCurrentOrientation[2]) * _PatchCurrentSpeed[2] * _SimulationTime) / _PatchSize.z;
+#endif
 }
 
 float2 ComputeWaterUV(float3 positionWS, int bandIndex)
 {
-    return positionWS.xz / _BandPatchSize[bandIndex];
+    return (positionWS.xz - OrientationToDirection(_PatchCurrentOrientation[bandIndex]) * _PatchCurrentSpeed[bandIndex] * _SimulationTime) / _PatchSize[bandIndex];
 }
 
 float3 ShuffleDisplacement(float3 displacement)
 {
     return float3(-displacement.y, displacement.x, -displacement.z);
-}
-
-float EvaluateDisplacementNormalization(uint bandIndex)
-{
-    // Compute the displacement normalization factor
-    float patchSizeRatio = _BandPatchSize[bandIndex] / _BandPatchSize[0];
-    return _WaveAmplitude[bandIndex] * PHILLIPS_AMPLITUDE_SCALAR / patchSizeRatio;
-}
-
-float4 EvaluateDisplacementNormalization()
-{
-    // Compute the displacement normalization factor
-    float4 patchSizeRatio = _BandPatchSize / _BandPatchSize[0];
-    return _WaveAmplitude * PHILLIPS_AMPLITUDE_SCALAR / patchSizeRatio;
 }
 
 void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
@@ -154,12 +156,6 @@ float EvaluateJacobian(float3 p0, float3 p1, float3 p2, float pixelSize)
 float EvaluateFoam(float jacobian, float foamAmount)
 {
     return saturate(-jacobian + foamAmount);
-}
-
-// Fast random hash function
-float2 SimpleHash2(float2 p)
-{
-    return frac(sin(mul(float2x2(127.1, 311.7, 269.5, 183.3), p)) * 43758.5453);
 }
 
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -224,7 +220,20 @@ float2 EvaluateWaterMaskUV(float3 positionAWS)
     uv = float2(uv.x * _WaterRotation.x + uv.y * _WaterRotation.y, uv.x * _WaterRotation.y - uv.y * _WaterRotation.x);
 
     // Shift and scale
-    return float2(uv.x - _WaterMaskOffset.x, uv.y - _WaterMaskOffset.y) * _WaterMaskScale + 0.5f;
+    return float2(uv.x - _WaterMaskOffset.x, _WaterMaskOffset.y - uv.y) * _WaterMaskScale + 0.5f;
+}
+
+float PackLowFrequencyHeight(float displacement)
+{
+    // Value goes from [-1 to 1]
+    float normalizedDisplacement = displacement / _ScatteringWaveHeight;
+    return saturate(normalizedDisplacement * 0.5 + 0.5);
+}
+
+float UnpackLowFrequencyHeight(float normalizedDisplacement)
+{
+    // Input value is from [0 to 1.0] out put is from [-1 to 1]
+    return normalizedDisplacement * 2.0 - 1.0;
 }
 
 void EvaluateWaterDisplacement(float3 positionAWS, float4 bandsMultiplier, out WaterDisplacementData displacementData)
@@ -233,51 +242,45 @@ void EvaluateWaterDisplacement(float3 positionAWS, float4 bandsMultiplier, out W
     WaterSimulationCoordinates waterCoord;
     ComputeWaterUVs(positionAWS, waterCoord);
 
-    // Compute the displacement normalization factor
-    float4 patchSizes = _BandPatchSize / _BandPatchSize[0];
-    float4 patchSizes2 = patchSizes * patchSizes;
-    float4 displacementNormalization = EvaluateDisplacementNormalization();
-
     // Accumulate the displacement from the various layers
     float3 totalDisplacement = 0.0;
+    float3 rawDisplacement = 0.0;
     float lowFrequencyHeight = 0.0;
-    float normalizedDisplacement = 0.0;
+
+    // Evaluate the distance to the camera
+    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
 
     // Attenuate using the water mask
     float2 maskUV = EvaluateWaterMaskUV(positionAWS);
-    float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, s_linear_clamp_sampler, maskUV, 0);
+    float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, sampler_WaterMask, maskUV, 0).xy;
 
     // First band
-    float3 rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand0, 0, 0).xyz * displacementNormalization.x * waterMask.x * bandsMultiplier.x;
+    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand0, 0, 0).xyz * _PatchAmplitudeMultiplier[0] * waterMask.x * bandsMultiplier.x;
+    rawDisplacement = lerp(rawDisplacement, rawDisplacement * _PatchFadeValue[0], saturate((distanceToCamera - _PatchFadeStart[0]) / _PatchFadeDistance[0]));
     totalDisplacement += rawDisplacement;
     lowFrequencyHeight += rawDisplacement.x;
-    normalizedDisplacement = rawDisplacement.x / patchSizes2.x;
 
+#if defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
     // Second band
-    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand1, 1, 0).xyz * displacementNormalization.y * waterMask.x * bandsMultiplier.y;
+    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand1, 1, 0).xyz * _PatchAmplitudeMultiplier[1] * waterMask.x * bandsMultiplier.y;
+    rawDisplacement = lerp(rawDisplacement, rawDisplacement * _PatchFadeValue[1], saturate((distanceToCamera - _PatchFadeStart[1]) / _PatchFadeDistance[1]));
     totalDisplacement += rawDisplacement;
     lowFrequencyHeight += rawDisplacement.x;
-    normalizedDisplacement = rawDisplacement.x / patchSizes2.y;
-
-    // We only apply the choppiness tot he first two bands, doesn't behave very good past those
-    totalDisplacement.yz *= _Choppiness;
-
-#if defined(HIGH_RESOLUTION_WATER)
-    // Third band
-    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand2, 2, 0).xyz * displacementNormalization.z * waterMask.y * bandsMultiplier.z;
-    totalDisplacement += rawDisplacement;
-    lowFrequencyHeight += rawDisplacement.x * 0.5;
-    normalizedDisplacement = rawDisplacement.x / patchSizes2.z;
-
-    // Fourth band
-    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand3, 3, 0).xyz * displacementNormalization.w * waterMask.y * bandsMultiplier.w;
-    totalDisplacement += rawDisplacement;
-    normalizedDisplacement = rawDisplacement.x / patchSizes2.w;
 #endif
+
+#if defined(WATER_THREE_BANDS)
+    // Third band
+    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand2, 2, 0).xyz * _PatchAmplitudeMultiplier[2] * waterMask.y * bandsMultiplier.z;
+    rawDisplacement = lerp(rawDisplacement, rawDisplacement * _PatchFadeValue[2], saturate((distanceToCamera - _PatchFadeStart[2]) / _PatchFadeDistance[2]));
+    totalDisplacement += rawDisplacement;
+#endif
+
+    // We only apply the choppiness to all bands
+    totalDisplacement.yz *= _Choppiness;
 
     // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
     displacementData.displacement = float3(-totalDisplacement.y, totalDisplacement.x, -totalDisplacement.z);
-    displacementData.lowFrequencyHeight = (_MaxWaveHeight + lowFrequencyHeight) / _MaxWaveHeight - 0.5f;
+    displacementData.lowFrequencyHeight = PackLowFrequencyHeight(lowFrequencyHeight);
     displacementData.sssMask = EvaluateSSSMask(positionAWS, _WorldSpaceCameraPos);
 }
 
@@ -295,6 +298,18 @@ void PackWaterVertexData(float3 positionAWS, float3 displacement, float lowFrequ
     packedWaterData.normalOS = float3(0, 1, 0);
     packedWaterData.uv0 = float4(positionAWS.x, displacement.y, positionAWS.z, 0.0);
     packedWaterData.uv1 = float4(lowFrequencyHeight, 0.0, sssMask, length(float2(displacement.x, displacement.z)));
+}
+
+float2 EvaluateFoamMaskUV(float3 positionAWS)
+{
+    // Move back to object space
+    float2 uv = float2(positionAWS.x, -positionAWS.z);
+    if (!_InfiniteSurface)
+        uv -= float2(_PatchOffset.x, _PatchOffset.z);
+    uv = float2(uv.x * _WaterRotation.x + uv.y * _WaterRotation.y, uv.x * _WaterRotation.y - uv.y * _WaterRotation.x);
+
+    // Shift and scale
+    return float2(uv.x - _FoamMaskOffset.x, _FoamMaskOffset.y - uv.y) * _FoamMaskScale + 0.5f;
 }
 
 struct WaterAdditionalData
@@ -317,45 +332,56 @@ void EvaluateWaterAdditionalData(float3 positionAWS, float4 bandsMultiplier, out
     texSize.xy = _BandResolution;
     texSize.zw = 1.0f / _BandResolution;
 
+    // Evaluate the distance to the camera
+    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+
     // Attenuate using the water mask
     float2 maskUV = EvaluateWaterMaskUV(positionAWS);
-    float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, s_linear_clamp_sampler, maskUV, 0);
+    float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, sampler_WaterMask, maskUV, 0).xy;
+
+    // Initialize the surface gradients
+    float3 surfaceGradient = 0.0;
+    float jacobianSurface = 0.0;
+    float jacobianDeep = 0.0;
 
     // First band
     float4 additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand0, 0, texSize);
-    float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y) * waterMask.x * bandsMultiplier.x;
-    float jacobianSurface = additionalData.z;
-    float jacobianDeep = additionalData.w;
-
-    // Second band
-    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize);
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * waterMask.x * bandsMultiplier.y;
     jacobianSurface += additionalData.z;
     jacobianDeep += additionalData.w;
+    float3 band0SG = float3(additionalData.x, 0, additionalData.y) * waterMask.x * bandsMultiplier.x;
+    surfaceGradient += lerp(band0SG, band0SG * _PatchFadeValue[0], saturate((distanceToCamera - _PatchFadeStart[0]) / _PatchFadeDistance[0]));
 
-    // Up the second band, the low frequency and complete normals are the same
-    float3 lowFrequencySurfaceGradient = surfaceGradient;
-
-#if defined(HIGH_RESOLUTION_WATER)
-    // Third band
-    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize);
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * waterMask.y * bandsMultiplier.z;
-    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * 0.5 * waterMask.y * bandsMultiplier.z;
-    jacobianSurface += additionalData.z * 0.5;
-    jacobianDeep += additionalData.w * 0.5;
-
-    // Fourth band
-    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand3, 3, texSize);
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * waterMask.y * bandsMultiplier.w;
+#if defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
+    // Second band
+    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize);
+    jacobianSurface += additionalData.z;
+    jacobianDeep += additionalData.w;
+    float3 band1SG = float3(additionalData.x, 0, additionalData.y) * waterMask.x * bandsMultiplier.y;
+    surfaceGradient += lerp(band1SG, band1SG * _PatchFadeValue[1], saturate((distanceToCamera - _PatchFadeStart[1]) / _PatchFadeDistance[1]));
 #endif
 
-    // Output the two surface gradients
+    // The low frenquency bands have been processed
+    waterAdditionalData.lowFrequencySurfaceGradient = surfaceGradient;
+
+#if defined(WATER_THREE_BANDS)
+    // Third band
+    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize);
+    jacobianSurface += additionalData.z;
+    jacobianDeep += additionalData.w;
+    float3 band2SG = float3(additionalData.x, 0, additionalData.y) * waterMask.y * bandsMultiplier.z;
+    surfaceGradient += lerp(band2SG, band2SG * _PatchFadeValue[2], saturate((distanceToCamera - _PatchFadeStart[2]) / _PatchFadeDistance[2]));
+#endif
+
+    // Output the complete
     waterAdditionalData.surfaceGradient = surfaceGradient;
-    waterAdditionalData.lowFrequencySurfaceGradient = lowFrequencySurfaceGradient;
+
+    // Attenuate using the foam mask
+    float2 foamMaskUV = EvaluateFoamMaskUV(positionAWS);
+    float foamMask = SAMPLE_TEXTURE2D(_FoamMask, sampler_FoamMask, foamMaskUV).x;
 
     // Evaluate the foam from the jacobian
-    waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS;
-    waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount) * SCATTERING_FOAM_BRIGHTNESS;
+    waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS * _FoamIntensity * foamMask;
+    waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount) * SCATTERING_FOAM_BRIGHTNESS * _FoamIntensity * foamMask;
 }
 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
@@ -387,19 +413,7 @@ float3 ComputeDebugNormal(float3 worldPos)
 
 float2 EvaluateFoamUV(float3 positionAWS)
 {
-    return (positionAWS.xz) * _FoamTilling;
-}
-
-float2 EvaluateFoamMaskUV(float3 positionAWS)
-{
-    // Move back to object space
-    float2 uv = positionAWS.xz;
-    if (!_InfiniteSurface)
-        uv -= float2(_PatchOffset.x, _PatchOffset.z);
-    uv = float2(uv.x * _WaterRotation.x + uv.y * _WaterRotation.y, uv.x * _WaterRotation.y - uv.y * _WaterRotation.x);
-
-    // Shift and scale
-    return float2(uv.x - _FoamMaskOffset.x, uv.y - _FoamMaskOffset.y) * _FoamMaskScale + 0.5f;
+    return (positionAWS.xz - OrientationToDirection(_PatchCurrentOrientation[0]) * _PatchCurrentSpeed[0] * _SimulationTime) * _FoamTilling;
 }
 
 struct FoamData
@@ -412,17 +426,13 @@ struct FoamData
 void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient,
     float surfaceFoam, float customFoam, float3 positionAWS, out FoamData foamData)
 {
-    // Attenuate using the foam mask
-    float2 foamMaskUV = EvaluateFoamMaskUV(positionAWS);
-    float foamMask = SAMPLE_TEXTURE2D(_FoamMask, s_linear_clamp_sampler, foamMaskUV).x;
-
     // Compute the surface foam
     float2 foamUV = EvaluateFoamUV(positionAWS);
 
     float foamTex = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, foamUV).x;
 
     // Final foam value
-    foamData.foamValue = surfaceFoam * foamMask.x * _WindFoamAttenuation * foamTex;
+    foamData.foamValue = surfaceFoam * _WindFoamAttenuation * foamTex;
 
     // Evaluate the foam mask
     float foamBlend = saturate(foamData.foamValue * 10.0f);
@@ -438,14 +448,14 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
 
 float EvaluateHeightBasedScattering(float lowFrequencyHeight)
 {
-    float heightBasedScattering = lerp(1.0, 0.01, saturate(lowFrequencyHeight));
-    return lerp(1.0, heightBasedScattering, _HeightBasedScattering);
+    float heightScatteringValue = lerp(0.0, HEIGHT_SCATTERING_INTENSITY, lowFrequencyHeight);
+    return lerp(0.0, heightScatteringValue, _HeightBasedScattering);
 }
 
 float EvaluateDisplacementScattering(float displacement)
 {
-    float displacementScattering = lerp(1.0, 0.01, displacement / max(max(_WaveAmplitude.x, _WaveAmplitude.y), 1.0));
-    return lerp(1.0, displacementScattering, _DisplacementScattering);
+    float displacementScatteringValue = lerp(0.0, DISPLACEMENT_SCATTERING_INTENSITY, displacement / (_ScatteringWaveHeight * _Choppiness));
+    return lerp(0.0, displacementScatteringValue, _DisplacementScattering);
 }
 
 float GetWaveTipThickness(float normalizedDistanceToMaxWaveHeightPlane, float3 worldView, float3 refractedRay)
@@ -501,11 +511,6 @@ float VoronoiNoise(float2 coordinate)
     return minDistToCell * minDistToCell;
 }
 
-float3 EvaluateCausticsUV(float3 causticPosAWS)
-{
-    return (causticPosAWS) * _CausticsTiling + float3(_CausticsOffset.x, 0.0, _CausticsOffset.y);
-}
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float3 waterPositionRWS, float2 distortedWaterNDC)
@@ -527,7 +532,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float3 waterPositi
     float3 causticsValues = 0.0;
 
     // TODO: Is this worth a multicompile?
-    if (_WaterCausticsType == 0)
+    if (_WaterCausticsEnabled)
     {
         // Evaluate the triplanar coodinates
         float3 sampleCoord = causticPosAWS / (_CausticsRegionSize * 0.5) + 0.5;
@@ -541,18 +546,6 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float3 waterPositi
         causticsValues.x = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
         causticsValues.y = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
         causticsValues.z = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
-    }
-    else
-    {
-        // Evaluate the triplanar coodinates
-        float3 causticsUV = EvaluateCausticsUV(causticPosAWS);
-        float2 uv0, uv1, uv2;
-        GetTriplanarCoordinate(causticsUV, uv0, uv1, uv2);
-
-        // Evaluate the caustic s
-        causticsValues.x = VoronoiNoise(uv0);
-        causticsValues.y = VoronoiNoise(uv1);
-        causticsValues.z = VoronoiNoise(uv2);
     }
 
     // Evaluate the triplanar weights and blend the samples togheter
@@ -635,8 +628,9 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)
 {
     // Compute the tip thickness
-    float3 lowFreqeuncyRefractedRay = refract(-viewWS, lowFrequencyNormals, WATER_INV_IOR);
-    return GetWaveTipThickness(max(0.01, lowFrequencyHeight), viewWS, lowFreqeuncyRefractedRay);
+    float tipHeight = saturate(UnpackLowFrequencyHeight(lowFrequencyHeight));
+    float3 lowFrequencyRefractedRay = refract(-viewWS, lowFrequencyNormals, WATER_INV_IOR);
+    return GetWaveTipThickness(max(0.01, tipHeight), viewWS, lowFrequencyRefractedRay);
 }
 
 float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
@@ -647,11 +641,14 @@ float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
 
 float3 EvaluateScatteringColor(float sssMask, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
 {
-    // Evlaute the scattering color (where the refraction doesn't happen)
+    // Evaluate the scattering terms (where the refraction doesn't happen)
     float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight);
     float displacementScattering = EvaluateDisplacementScattering(horizontalDisplacement);
-    float3 scatteringCoefficients = (displacementScattering + heightBasedScattering) * (1.f - _ScatteringColorTips.rgb);
-    float3 scatteringTint = _ScatteringColorTips.xyz * exp(-scatteringCoefficients) ;
+    float ambientScattering = AMBIENT_SCATTERING_INTENSITY * _AmbientScattering;
+
+    // Stum the scattering terms
+    float scatteringTerms = saturate(ambientScattering + heightBasedScattering + displacementScattering);
+    float3 scatteringTint = _ScatteringColorTips.xyz * exp(-(1.0 - _ScatteringColorTips.rgb)) * scatteringTerms;
     float lambertCompensation = lerp(_ScatteringLambertLighting.z, _ScatteringLambertLighting.w, sssMask);
     return scatteringTint * (1.f - absorptionTint) * lambertCompensation * (1.0 + deepFoam);
 }

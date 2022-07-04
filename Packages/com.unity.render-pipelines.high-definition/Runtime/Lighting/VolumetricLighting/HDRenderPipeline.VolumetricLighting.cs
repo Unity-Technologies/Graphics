@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -20,10 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 rcpPosFaceFade;
         public float endTimesRcpDistFadeLen;
         public Vector3 rcpNegFaceFade;
-        public int useVolumeMask; // bool
-        public Vector3 atlasOffset;   // coordinates in the atlas in pixels
+        public LocalVolumetricFogBlendingMode blendingMode;
+        public Vector3 albedo;
         public LocalVolumetricFogFalloffMode falloffMode;
-        public Vector4 maskSize;      // xyz: atlas size / mask size, w: mask size in pixels
 
         public static LocalVolumetricFogEngineData GetNeutralValues()
         {
@@ -31,7 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering = Vector3.zero;
             data.extinction = 0;
-            data.atlasOffset = Vector3.zero;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
             data.rcpPosFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -39,9 +39,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.invertFade = 0;
             data.rcpDistFadeLen = 0;
             data.endTimesRcpDistFadeLen = 1;
-            data.useVolumeMask = 0;
-            data.maskSize = Vector4.zero;
             data.falloffMode = LocalVolumetricFogFalloffMode.Linear;
+            data.blendingMode = LocalVolumetricFogBlendingMode.Additive;
+            data.albedo = Vector3.zero;
 
             return data;
         }
@@ -59,7 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _VBufferHistoryIsValid;
 
         public Vector4 _VBufferSampleOffset;
-        public Vector4 _VolumeMaskDimensions;
 
         public float _VBufferVoxelSize;
         public float _HaveToPad;
@@ -86,6 +85,57 @@ namespace UnityEngine.Rendering.HighDefinition
         Linear,
         /// <summary></summary>
         Exponential,
+    }
+
+    [GenerateHLSL]
+    public enum LocalVolumetricFogBlendingMode
+    {
+        Overwrite   = 0,
+        Additive    = 1,
+        Multiply    = 2,
+        Min         = 3,
+        Max         = 4,
+    }
+
+    [GenerateHLSL(needAccessors = false)]
+    public unsafe struct VolumetricMaterialRenderingData
+    {
+        public uint startSliceIndex;
+        public uint sliceCount;
+        public Vector4 viewSpaceBounds;
+        [HLSLArray(8, typeof(Vector3))]
+        public fixed float obbVertexPositionWS[8 * 3];
+    }
+
+    // TODO: 16bit floats, Mathf.FloatToHalf
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    public struct VolumetricMaterialDataCBuffer
+    {
+        public Vector4 _VolumetricMaterialObbRight;
+        public Vector4 _VolumetricMaterialObbUp;
+        public Vector4 _VolumetricMaterialObbExtents;
+        public Vector4 _VolumetricMaterialObbCenter;
+        public Vector4 _VolumetricMaterialAlbedo;
+        public Vector4 _VolumetricMaterialRcpPosFaceFade;
+        public Vector4 _VolumetricMaterialRcpNegFaceFade;
+
+        public float _VolumetricMaterialInvertFade;
+        public float _VolumetricMaterialExtinction;
+        public float _VolumetricMaterialRcpDistFadeLen;
+        public float _VolumetricMaterialEndTimesRcpDistFadeLen;
+
+        public float _VolumetricMaterialFalloffMode;
+        public float padding0;
+        public float padding1;
+        public float padding2;
+    }
+
+    public enum LocalVolumetricFogMaskMode
+    {
+        /// <summary>Use a 3D texture as mask.</summary>
+        Texture,
+        /// <summary>Use a material as mask. The material must use the "Fog Volume" material type in Shader Graph.</summary>
+        Material,
     }
 
     class VolumeRenderingUtils
@@ -120,6 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public List<OrientedBBox> bounds;
         public List<LocalVolumetricFogEngineData> density;
+        public int volumeCount; // doesn't include material volumetric fog volumes
     }
 
     struct VBufferParameters
@@ -177,6 +228,33 @@ namespace UnityEngine.Rendering.HighDefinition
             return depthDecodingParams.x * Mathf.Exp(ln2 * d * depthDecodingParams.y) + depthDecodingParams.z;
         }
 
+        float EncodeLogarithmicDepthGeneralized(float z, Vector4 encodingParams)
+        {
+            return encodingParams.x + encodingParams.y * Mathf.Log(Mathf.Max(0, z - encodingParams.z), 2);
+        }
+
+        float DecodeLogarithmicDepthGeneralized(float d, Vector4 decodingParams)
+        {
+            return decodingParams.x * Mathf.Pow(2, d * decodingParams.y) + decodingParams.z;
+        }
+
+        internal int ComputeSliceIndexFromDistance(float distance, int maxSliceCount)
+        {
+            // Avoid out of bounds access
+            distance = Mathf.Clamp(distance, 0f, ComputeLastSliceDistance((uint)maxSliceCount));
+
+            float vBufferNearPlane = DecodeLogarithmicDepthGeneralized(0, depthDecodingParams);
+
+            // float dt = (distance - vBufferNearPlane) * 2;
+            float dt = distance + vBufferNearPlane;
+            float e1 = EncodeLogarithmicDepthGeneralized(dt, depthEncodingParams);
+            float rcpSliceCount = 1.0f / (float)maxSliceCount;
+
+            float slice = (e1 - rcpSliceCount) / rcpSliceCount;
+
+            return (int)slice;
+        }
+
         // See EncodeLogarithmicDepthGeneralized().
         static Vector4 ComputeLogarithmicDepthEncodingParams(float nearPlane, float farPlane, float c)
         {
@@ -218,11 +296,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<OrientedBBox> m_VisibleVolumeBounds = null;
         List<LocalVolumetricFogEngineData> m_VisibleVolumeData = null;
-        internal const int k_MaxVisibleLocalVolumetricFogCount = 512;
+        List<LocalVolumetricFog> m_VisibleLocalVolumetricFogVolumes = null;
+        NativeArray<uint> m_VolumetricFogSortKeys;
+        NativeArray<uint> m_VolumetricFogSortKeysTemp;
+        internal const int k_MaxVisibleLocalVolumetricFogCount = 1024;
+
+        // DrawProceduralIndirect with an index buffer takes 5 parameters instead of 4
+        const int k_VolumetricMaterialIndirectArgumentCount = 5;
+        const int k_VolumetricMaterialIndirectArgumentByteSize = k_VolumetricMaterialIndirectArgumentCount * sizeof(uint);
+        const int k_VolumetricFogPriorityMaxValue = 1048576; // 2^20 because there are 20 bits in the volumetric fog sort key
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer m_VisibleVolumeBoundsBuffer = null;
-        ComputeBuffer m_VisibleVolumeDataBuffer = null;
+        GraphicsBuffer m_VolumetricMaterialDataBuffer = null;
+        GraphicsBuffer m_VolumetricMaterialIndexBuffer = null;
+        Material m_DefaultVolumetricFogMaterial = null;
 
         ShaderVariablesVolumetric m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
 
@@ -268,6 +356,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera.GetCameraFrameCount() % 14;
         }
 
+        static void ComputeVolumetricFogSliceCountAndScreenFraction(Fog fog, out int sliceCount, out float screenFraction)
+        {
+            if (fog.fogControlMode == FogControl.Balance)
+            {
+                // Evaluate the ssFraction and sliceCount based on the control parameters
+                float maxScreenSpaceFraction = (1.0f - fog.resolutionDepthRatio) * (Fog.maxFogScreenResolutionPercentage - Fog.minFogScreenResolutionPercentage) + Fog.minFogScreenResolutionPercentage;
+                screenFraction = Mathf.Lerp(Fog.minFogScreenResolutionPercentage, maxScreenSpaceFraction, fog.volumetricFogBudget) * 0.01f;
+                float maxSliceCount = Mathf.Max(1.0f, fog.resolutionDepthRatio * Fog.maxFogSliceCount);
+                sliceCount = (int)Mathf.Lerp(1.0f, maxSliceCount, fog.volumetricFogBudget);
+            }
+            else
+            {
+                screenFraction = fog.screenResolutionPercentage.value * 0.01f;
+                sliceCount = fog.volumeSliceCount.value;
+            }
+        }
+
         static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera, ref float voxelSize)
         {
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
@@ -276,24 +381,14 @@ namespace UnityEngine.Rendering.HighDefinition
             int viewportWidth = hdCamera.actualWidth;
             int viewportHeight = hdCamera.actualHeight;
 
-            float screenFraction;
-            int sliceCount;
+            ComputeVolumetricFogSliceCountAndScreenFraction(controller, out var sliceCount, out var screenFraction);
             if (controller.fogControlMode == FogControl.Balance)
             {
-                // Evaluate the ssFraction and sliceCount based on the control parameters
-                float maxScreenSpaceFraction = (1.0f - controller.resolutionDepthRatio) * (Fog.maxFogScreenResolutionPercentage - Fog.minFogScreenResolutionPercentage) + Fog.minFogScreenResolutionPercentage;
-                screenFraction = Mathf.Lerp(Fog.minFogScreenResolutionPercentage, maxScreenSpaceFraction, controller.volumetricFogBudget) * 0.01f;
-                float maxSliceCount = Mathf.Max(1.0f, controller.resolutionDepthRatio * Fog.maxFogSliceCount);
-                sliceCount = (int)Mathf.Lerp(1.0f, maxSliceCount, controller.volumetricFogBudget);
-
                 // Evaluate the voxel size
                 voxelSize = 1.0f / screenFraction;
             }
             else
             {
-                screenFraction = controller.screenResolutionPercentage.value * 0.01f;
-                sliceCount = controller.volumeSliceCount.value;
-
                 if (controller.screenResolutionPercentage.value == Fog.optimalFogScreenResolutionPercentage)
                     voxelSize = 8;
                 else
@@ -628,17 +723,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeBounds = new List<OrientedBBox>();
             m_VisibleVolumeData = new List<LocalVolumetricFogEngineData>();
+            m_VisibleLocalVolumetricFogVolumes = new List<LocalVolumetricFog>();
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            m_VisibleVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(LocalVolumetricFogEngineData)));
+            int maxVolumeCountTimesViewCount = k_MaxVisibleLocalVolumetricFogCount * 2;
+            m_VolumetricMaterialDataBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.Vertex, maxVolumeCountTimesViewCount, Marshal.SizeOf(typeof(VolumetricMaterialRenderingData)));
+            m_VolumetricMaterialIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, 3 * 4, sizeof(uint));
+            m_VolumetricFogSortKeys = new NativeArray<uint>(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            m_VolumetricFogSortKeysTemp = new NativeArray<uint>(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            // Index buffer for triangle fan with max 6 vertices
+            m_VolumetricMaterialIndexBuffer.SetData(new List<uint>{
+                0, 1, 2,
+                0, 2, 3,
+                0, 3, 4,
+                0, 4, 5
+            });
+            m_DefaultVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaderGraphs.defaultFogVolumeShader);
         }
 
         internal void DestroyVolumetricLightingBuffers()
         {
-            CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
+            CoreUtils.SafeRelease(m_VolumetricMaterialIndexBuffer);
+            CoreUtils.SafeRelease(m_VolumetricMaterialDataBuffer);
+            CoreUtils.Destroy(m_DefaultVolumetricFogMaterial);
+
+            if (m_VolumetricFogSortKeys.IsCreated)
+                m_VolumetricFogSortKeys.Dispose();
+            if (m_VolumetricFogSortKeysTemp.IsCreated)
+                m_VolumetricFogSortKeysTemp.Dispose();
 
             m_VisibleVolumeData = null; // free()
             m_VisibleVolumeBounds = null; // free()
+            m_VisibleLocalVolumetricFogVolumes = null;
         }
 
         void InitializeVolumetricLighting()
@@ -714,12 +830,25 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VBufferRcpInstancedViewCount = 1.0f / hdCamera.viewCount;
         }
 
-        LocalVolumetricFogList PrepareVisibleLocalVolumetricFogList(HDCamera hdCamera, CommandBuffer cmd)
+        uint PackFogVolumeSortKey(LocalVolumetricFog fog, int index)
         {
-            LocalVolumetricFogList localVolumetricFog = new LocalVolumetricFogList();
+            // 12 bit index, 20 bit priority
+            int halfMaxPriority = k_VolumetricFogPriorityMaxValue / 2;
+            int clampedPriority = Mathf.Clamp(fog.parameters.priority, -halfMaxPriority, halfMaxPriority) + halfMaxPriority;
+            uint priority = (uint)(clampedPriority & 0xFFFFF);
+            uint fogIndex = (uint)(index & 0xFFF);
+            return (priority << 12) | (fogIndex << 0);
+        }
 
+        static int UnpackFogVolumeIndex(uint sortKey)
+        {
+            return (int)(sortKey & 0xFFF);
+        }
+
+        void PrepareVisibleLocalVolumetricFogList(HDCamera hdCamera, CommandBuffer cmd)
+        {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
-                return localVolumetricFog;
+                return;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleLocalVolumetricFogList)))
             {
@@ -733,16 +862,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_VisibleVolumeBounds.Clear();
                 m_VisibleVolumeData.Clear();
+                m_VisibleLocalVolumetricFogVolumes.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var volumes = LocalVolumetricFogManager.manager.PrepareLocalVolumetricFogData(cmd, hdCamera);
+                int maxLocalVolumetricFogOnScreen = asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen;
+                var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
-                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleLocalVolumetricFogCount); i++)
+                foreach (var volume in volumes)
                 {
-                    LocalVolumetricFog volume = volumes[i];
-
-                    // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+
+                    // Reject volumes that are completely fade out or outside of the volumetric fog
+                    float minObbDistance = GeometryUtils.DistanceToOBB(obb, camPosition) - hdCamera.camera.nearClipPlane;
+                    if (minObbDistance > volume.parameters.distanceFadeEnd || minObbDistance > fog.depthExtent.value)
+                        continue;
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
@@ -753,21 +887,27 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
                     {
                         // TODO: cache these?
-                        var data = volume.parameters.ConvertToEngineData();
-
                         m_VisibleVolumeBounds.Add(obb);
-                        m_VisibleVolumeData.Add(data);
+                        m_VisibleVolumeData.Add(volume.parameters.ConvertToEngineData());
+
+                        m_VisibleLocalVolumetricFogVolumes.Add(volume);
+
+                        if (m_VisibleLocalVolumetricFogVolumes.Count >= maxLocalVolumetricFogOnScreen)
+                        {
+                            Debug.LogError($"The number of local volumetric fog in the view is above the limit: {m_VisibleLocalVolumetricFogVolumes.Count} instead of {maxLocalVolumetricFogOnScreen}. To fix this, please increase the maximum number of local volumetric fog in the view in the HDRP asset.");
+                            break;
+                        }
                     }
                 }
 
+                // Assign priorities for sorting
+                for (int i = 0; i < m_VisibleLocalVolumetricFogVolumes.Count; i++)
+                    m_VolumetricFogSortKeys[i] = PackFogVolumeSortKey(m_VisibleLocalVolumetricFogVolumes[i], i);
+
+                // Stable sort to avoid flickering
+                CoreUnsafeUtils.MergeSort(m_VolumetricFogSortKeys, volumes.Count, ref m_VolumetricFogSortKeysTemp);
+
                 m_VisibleVolumeBoundsBuffer.SetData(m_VisibleVolumeBounds);
-                m_VisibleVolumeDataBuffer.SetData(m_VisibleVolumeData);
-
-                // Fill the struct with pointers in order to share the data with the light loop.
-                localVolumetricFog.bounds = m_VisibleVolumeBounds;
-                localVolumetricFog.density = m_VisibleVolumeData;
-
-                return localVolumetricFog;
             }
         }
 
@@ -785,7 +925,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int j = 0; j < 16; ++j)
                     cb._VBufferCoordToViewDirWS[i * 16 + j] = m_PixelCoordToViewDirWS[i][j];
             cb._VBufferUnitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
-            cb._NumVisibleLocalVolumetricFog = (uint)m_VisibleVolumeBounds.Count;
+            cb._NumVisibleLocalVolumetricFog = (uint)m_VisibleLocalVolumetricFogVolumes.Count;
             cb._CornetteShanksConstant = CornetteShanksPhasePartConstant(fog.anisotropy.value);
             cb._VBufferHistoryIsValid = hdCamera.volumetricHistoryIsValid ? 1u : 0u;
 
@@ -796,16 +936,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
             xySeqOffset.Set(m_xySeq[sampleIndex].x, m_xySeq[sampleIndex].y, m_zSeq[sampleIndex], frameIndex);
             cb._VBufferSampleOffset = xySeqOffset;
-
-            var volumeAtlas = LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas();
-            cb._VolumeMaskDimensions = Vector4.zero;
-            if (LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas() != null)
-            {
-                cb._VolumeMaskDimensions.x = volumeAtlas.width; // 1 / number of textures
-                cb._VolumeMaskDimensions.y = volumeAtlas.height;
-                cb._VolumeMaskDimensions.z = volumeAtlas.volumeDepth;
-                cb._VolumeMaskDimensions.w = 0; // Not used
-            }
 
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
@@ -844,61 +974,65 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 resolution;
             public int viewCount;
-            public bool tiledLighting;
-
-            public Texture volumeAtlas;
 
             public ShaderVariablesVolumetric volumetricCB;
             public ShaderVariablesLightList lightListCB;
 
             public TextureHandle densityBuffer;
-            public ComputeBufferHandle bigTileLightListBuffer;
-            public ComputeBuffer visibleVolumeBoundsBuffer;
-            public ComputeBuffer visibleVolumeDataBuffer;
             public ComputeBuffer volumetricAmbientProbeBuffer;
         }
 
-        TextureHandle VolumeVoxelizationPass(RenderGraph renderGraph,
+        class LocalVolumetricFogMaterialVoxelizationPassData
+        {
+            public HDCamera hdCamera;
+            public Fog fog;
+            public int maxSliceCount;
+            public Vector3Int viewportSize;
+
+            public List<LocalVolumetricFog> volumetricFogs;
+            public TextureHandle densityBuffer;
+            public Material defaultVolumetricMaterial;
+            public List<LocalVolumetricFogEngineData> visibleVolumeData;
+            public List<OrientedBBox> visibleVolumeBounds;
+
+            public int computeRenderingParametersKernel;
+            public ComputeShader volumetricMaterialCS;
+            public ComputeBufferHandle indirectArgumentBuffer;
+            public ComputeBuffer visibleVolumeBoundsBuffer;
+            public GraphicsBuffer materialDataBuffer;
+            public GraphicsBuffer triangleFanIndexBuffer;
+            public NativeArray<uint> fogVolumeSortKeys;
+        }
+
+        unsafe TextureHandle VolumeVoxelizationPass(RenderGraph renderGraph,
             HDCamera hdCamera,
+            CullingResults cullingResults,
             ComputeBuffer visibleVolumeBoundsBuffer,
-            ComputeBuffer visibleVolumeDataBuffer,
             ComputeBufferHandle bigTileLightList)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
-                using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Volume Voxelization", out var passData))
+                TextureHandle densityBuffer;
+                int frameIndex = (int)VolumetricFrameIndex(hdCamera);
+                var currIdx = (frameIndex + 0) & 1;
+                var currParams = hdCamera.vBufferParams[currIdx];
+
+                using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Height Fog Voxelization", out var passData))
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
-                    int frameIndex = (int)VolumetricFrameIndex(hdCamera);
-                    var currIdx = (frameIndex + 0) & 1;
-                    var prevIdx = (frameIndex + 1) & 1;
-
-                    var currParams = hdCamera.vBufferParams[currIdx];
-
                     passData.viewCount = hdCamera.viewCount;
-                    passData.tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-                    bool optimal = currParams.voxelSize == 8;
 
                     passData.voxelizationCS = m_VolumeVoxelizationCS;
-                    passData.voxelizationKernel = (passData.tiledLighting ? 1 : 0) | (!optimal ? 2 : 0);
+                    passData.voxelizationKernel = 0;
 
                     var cvp = currParams.viewportSize;
 
                     passData.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-                    passData.volumeAtlas = LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas();
-
-                    if (passData.volumeAtlas == null)
-                        passData.volumeAtlas = CoreUtils.blackVolumeTexture;
 
                     UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, passData.resolution);
                     passData.volumetricCB = m_ShaderVariablesVolumetricCB;
                     passData.lightListCB = m_ShaderVariablesLightListCB;
-
-                    passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
-                    passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
-                    if (passData.tiledLighting)
-                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
                     { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
@@ -908,24 +1042,178 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
                         {
-                            if (data.tiledLighting)
-                                ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileLightListBuffer);
-
                             ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeBounds, data.visibleVolumeBoundsBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeData, data.visibleVolumeDataBuffer);
-                            ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeMaskAtlas, data.volumeAtlas);
                             ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
 
                             ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.voxelizationCS, HDShaderIDs._ShaderVariablesVolumetric);
-                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.voxelizationCS, HDShaderIDs._ShaderVariablesLightList);
 
                             // The shader defines GROUP_SIZE_1D = 8.
                             ctx.cmd.DispatchCompute(data.voxelizationCS, data.voxelizationKernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
                         });
 
-                    return passData.densityBuffer;
+                    densityBuffer = passData.densityBuffer;
                 }
+
+                if (!SystemInfo.supportsRenderTargetArrayIndexFromVertexShader)
+                {
+                    Debug.LogError("Hardware not supported for Volumetric Materials");
+                    return densityBuffer;
+                }
+
+                if (m_VisibleLocalVolumetricFogVolumes.Count == 0)
+                    return densityBuffer;
+
+                int maxLocalVolumetricFogOnScreen = asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen;
+                var indirectArgumentBuffer = renderGraph.CreateComputeBuffer(
+                    new ComputeBufferDesc(hdCamera.viewCount * k_VolumetricMaterialIndirectArgumentCount * maxLocalVolumetricFogOnScreen, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "FogVolumeIndirectArguments" }
+                );
+
+                // Voxelize fog volume meshes
+                using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
+                {
+                    passData.fog = hdCamera.volumeStack.GetComponent<Fog>();
+                    passData.densityBuffer = builder.WriteTexture(densityBuffer);
+                    passData.hdCamera = hdCamera;
+                    passData.volumetricMaterialCS = defaultResources.shaders.volumetricMaterialCS;
+                    passData.computeRenderingParametersKernel = passData.volumetricMaterialCS.FindKernel("ComputeVolumetricMaterialRenderingParameters");
+                    passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
+                    passData.viewportSize = currParams.viewportSize;
+                    passData.volumetricFogs = m_VisibleLocalVolumetricFogVolumes;
+                    passData.materialDataBuffer = m_VolumetricMaterialDataBuffer;
+                    passData.defaultVolumetricMaterial = m_DefaultVolumetricFogMaterial;
+                    passData.visibleVolumeData = m_VisibleVolumeData;
+                    passData.visibleVolumeBounds = m_VisibleVolumeBounds;
+                    passData.triangleFanIndexBuffer = m_VolumetricMaterialIndexBuffer;
+                    passData.fogVolumeSortKeys = m_VolumetricFogSortKeys;
+
+                    ComputeVolumetricFogSliceCountAndScreenFraction(passData.fog, out passData.maxSliceCount, out _);
+
+                    passData.indirectArgumentBuffer = builder.WriteComputeBuffer(indirectArgumentBuffer);
+
+                    builder.SetRenderFunc(
+                        (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                        {
+                            int volumeCount = data.volumetricFogs.Count;
+
+                            // Compute the indirect arguments to render volumetric materials
+                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumeBounds, data.visibleVolumeBoundsBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricIndirectBufferArguments, data.indirectArgumentBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricMaterialData, data.materialDataBuffer);
+                            ctx.cmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._VolumeCount, volumeCount);
+                            ctx.cmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._MaxSliceCount, data.maxSliceCount);
+
+                            int dispatchXCount = Mathf.Max(1, Mathf.CeilToInt((float)volumeCount / 32.0f)) * data.hdCamera.viewCount;
+                            ctx.cmd.DispatchCompute(data.volumetricMaterialCS, data.computeRenderingParametersKernel, dispatchXCount, 1, 1);
+                            int xrViewArgumentOffset = volumeCount * k_VolumetricMaterialIndirectArgumentByteSize;
+                            var props = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+
+                            // Setup common properties for all fog volumes
+                            bool obliqueMatrix = GeometryUtils.IsProjectionMatrixOblique(data.hdCamera.camera.projectionMatrix);
+                            if (obliqueMatrix)
+                            {
+                                // Convert the non oblique projection matrix to its  GPU version
+                                var gpuProjNonOblique = GL.GetGPUProjectionMatrix(data.hdCamera.nonObliqueProjMatrix, true);
+                                // Build the non oblique view projection matrix
+                                var vpNonOblique = gpuProjNonOblique * data.hdCamera.mainViewConstants.viewMatrix;
+                                props.SetMatrix(HDShaderIDs._CameraInverseViewProjection_NO, vpNonOblique.inverse);
+                            }
+                            props.SetInt(HDShaderIDs._IsObliqueProjectionMatrix, obliqueMatrix ? 1 : 0);
+                            props.SetVector(HDShaderIDs._CameraRight, data.hdCamera.camera.transform.right);
+                            props.SetBuffer(HDShaderIDs._VolumetricMaterialData, data.materialDataBuffer);
+
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.densityBuffer);
+                            ctx.cmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
+
+                            for (int i = 0; i < volumeCount; i++)
+                            {
+                                int volumeIndex = UnpackFogVolumeIndex(data.fogVolumeSortKeys[i]);
+
+                                if (volumeIndex >= data.volumetricFogs.Count)
+                                    continue;
+
+                                var volume = data.volumetricFogs[volumeIndex];
+                                Material material = volume.parameters.materialMask;
+
+                                // Setup parameters for the default volumetric fog ShaderGraph
+                                if (volume.parameters.maskMode == LocalVolumetricFogMaskMode.Texture)
+                                {
+                                    material = data.defaultVolumetricMaterial;
+                                    bool alphaTexture = false;
+
+                                    if (volume.parameters.volumeMask != null)
+                                    {
+                                        props.SetTexture(HDShaderIDs._VolumetricMask, volume.parameters.volumeMask);
+                                        ctx.cmd.EnableShaderKeyword("_ENABLE_VOLUMETRIC_FOG_MASK");
+                                        if (volume.parameters.volumeMask is Texture3D t3d)
+                                            alphaTexture = t3d.format == TextureFormat.Alpha8;
+                                    }
+                                    else
+                                    {
+                                        ctx.cmd.DisableShaderKeyword("_ENABLE_VOLUMETRIC_FOG_MASK");
+                                    }
+
+                                    props.SetVector(HDShaderIDs._VolumetricScrollSpeed, volume.parameters.textureScrollingSpeed);
+                                    props.SetVector(HDShaderIDs._VolumetricTiling, volume.parameters.textureTiling);
+                                    props.SetFloat(HDShaderIDs._AlphaOnlyTexture, alphaTexture ? 1 : 0);
+                                }
+
+                                if (material == null)
+                                    continue;
+
+                                // We can't setup render state on the command buffer so need to have a different pass for each blend mode
+                                int passIndex = FogVolumeAPI.GetPassIndexFromBlendingMode(volume.parameters.blendingMode);
+
+#if UNITY_EDITOR
+                                // In the editor after modifying a shader, it's possible that a pass is still compiling when rendering
+                                if (!UnityEditor.ShaderUtil.IsPassCompiled(material, passIndex))
+                                {
+                                    if (!UnityEditor.ShaderUtil.ShaderHasError(material.shader))
+                                        UnityEditor.ShaderUtil.CompilePass(material, passIndex);
+                                    continue;
+                                }
+#endif
+                                // Using a constant buffer updated per draw call allows to greatly increase the performance of the shader
+                                // compared to using a structured buffer (structured buffer access are very slow even with unifrom indices).
+                                var engineData = data.visibleVolumeData[volumeIndex];
+                                var bounds = data.visibleVolumeBounds[volumeIndex];
+                                var materialCB = new VolumetricMaterialDataCBuffer();
+                                materialCB._VolumetricMaterialObbRight = bounds.right;
+                                materialCB._VolumetricMaterialObbUp = bounds.up;
+                                materialCB._VolumetricMaterialObbExtents = new Vector3(bounds.extentX, bounds.extentY, bounds.extentZ);
+                                materialCB._VolumetricMaterialObbCenter = bounds.center;
+                                materialCB._VolumetricMaterialAlbedo = engineData.albedo;
+
+                                materialCB._VolumetricMaterialExtinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath);
+                                materialCB._VolumetricMaterialRcpPosFaceFade = engineData.rcpPosFaceFade;
+                                materialCB._VolumetricMaterialRcpNegFaceFade = engineData.rcpNegFaceFade;
+                                materialCB._VolumetricMaterialInvertFade = engineData.invertFade;
+
+                                materialCB._VolumetricMaterialRcpDistFadeLen = engineData.rcpDistFadeLen;
+                                materialCB._VolumetricMaterialEndTimesRcpDistFadeLen = engineData.endTimesRcpDistFadeLen;
+                                materialCB._VolumetricMaterialFalloffMode = (int)engineData.falloffMode;
+
+                                ConstantBuffer.PushGlobal(ctx.cmd, materialCB, HDShaderIDs._VolumetricMaterialDataCBuffer);
+
+                                // Upload the volume index to fetch the volume data from the compute shader
+                                props.SetInt(HDShaderIDs._VolumeIndex, volumeIndex);
+
+                                // We need to issue a draw call per eye because the number of instances to dispatch can be different per eye
+                                for (int viewIndex = 0 ; viewIndex < data.hdCamera.viewCount; viewIndex++)
+                                {
+                                    int viewOffset = xrViewArgumentOffset * viewIndex;
+                                    props.SetInt(HDShaderIDs._VolumetricViewIndex, viewIndex);
+                                    ctx.cmd.DrawProceduralIndirect(data.triangleFanIndexBuffer, volume.transform.localToWorldMatrix,
+                                        material, passIndex, MeshTopology.Triangles, data.indirectArgumentBuffer,
+                                        k_VolumetricMaterialIndirectArgumentByteSize * volumeIndex + viewOffset, props
+                                    );
+                                }
+                            }
+                        });
+                }
+
+                RenderVolumetricMaterialOverdraw(renderGraph, indirectArgumentBuffer, hdCamera);
+
+                return densityBuffer;
             }
             return TextureHandle.nullHandle;
         }

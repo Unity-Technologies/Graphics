@@ -11,7 +11,7 @@
 // #pragma enable_d3d11_debug_symbols
 
 // Required for finding the vertical displacements
-#pragma multi_compile _ HIGH_RESOLUTION_WATER
+#pragma multi_compile WATER_ONE_BAND WATER_TWO_BANDS WATER_THREE_BANDS
 
 // Required to be defined for some includes
 #define WATER_SIMULATION
@@ -27,6 +27,9 @@
 // InitializePhillipsSpectrum UAVS
 RWTexture2DArray<float2> _H0BufferRW;
 
+// The noise function that we use generates a visible assymetry in the spectrum, this solves the issue
+#define NOISE_FUNCTION_OFFSET 64
+
 [numthreads(8, 8, 1)]
 void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
 {
@@ -34,15 +37,15 @@ void InitializePhillipsSpectrum(uint3 thread : SV_DispatchThreadID)
     uint3 sampleCoordinate = uint3(thread.xy + _WaterSampleOffset, thread.z);
 
     // We need 4 random numbers from the sample coords
-    float4 rn = WaterHashFunctionFloat4(sampleCoordinate);
+    float4 rn = WaterHashFunctionFloat4(sampleCoordinate + NOISE_FUNCTION_OFFSET);
 
     // First part of the phillips spectrum term
     float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
     // Second part of the phillips spectrum term
-    float2 nDC = (thread.xy / (float)_WaterRefSimRes - _WaterSpectrumOffset) * 2.0f;
-    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[thread.z];
-    float P = Phillips(k, _WindDirection, _WindSpeed[thread.z]);
+    float2 k = TWO_PI * (thread.xy - _BandResolution * 0.5) / _PatchSize[thread.z];
+    float2 windDirection = -OrientationToDirection(_PatchWindOrientation[thread.z]);
+    float P = Phillips(k, windDirection, _PatchWindSpeed[thread.z], _PatchDirectionDampener[thread.z], _PatchSize[thread.z]);
 
     // Combine and output
     _H0BufferRW[int3(thread.xyz)] = E * sqrt(P);
@@ -56,8 +59,7 @@ RWTexture2DArray<float4> _HtImaginaryBufferRW;
 [numthreads(8, 8, 1)]
 void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
 {
-    float2 nDC = (currentThread.xy / (float)_WaterRefSimRes - _WaterSpectrumOffset) * 2.0;
-    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[currentThread.z];
+    float2 k = TWO_PI * (currentThread.xy - _BandResolution * 0.5) / _PatchSize[currentThread.z];
 
     float  kl = length(k);
     float  w = sqrt(EARTH_GRAVITY * kl);
@@ -105,12 +107,11 @@ void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
     float3 displacementUp = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(0, 1)) & (_BandResolution - 1), bandIdx).xyz);
 
     // Evaluate the displacement normalization factor and pixel size
-    float pixelSize = _BandPatchSize[bandIdx] / _BandResolution;
-    float normalization = EvaluateDisplacementNormalization(bandIdx);
+    float pixelSize = _PatchSize[bandIdx] / _BandResolution;
 
     // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
     float3 p0, p1, p2;
-    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, normalization, pixelSize, p0, p1, p2);
+    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, _PatchAmplitudeMultiplier[bandIdx], pixelSize, p0, p1, p2);
 
     // Compute the surface gradients of this band
     float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
@@ -123,7 +124,7 @@ void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
 
     // Blend the jacobians
     float surfaceJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - _JacobianDrag) + additionalData.z * _JacobianDrag);
-    float scatteringJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - 0.99) + additionalData.w * 0.99);
+    float scatteringJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - 0.97) + additionalData.w * 0.97);
 
     // Output the normal and foam
     _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, surfaceJacobian, scatteringJacobian);
@@ -273,18 +274,20 @@ void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
     _CauticsGeometryRW[6 * quadIndex + 5] = D;
 }
 
+static const float sizeMultiplier[4] = {1.0, 4.0, 32.0, 128.0};
+
 /*
-1 * 0.5 + 2 * 0.5
-1 * 0.5 + 2 + 4 * 0.5
-1 * 0.5 + 2 + 4 + 8 * 0.5
-1 * 0.5 + 2 + 4 + 8 + 16 * 0.5
-1 * 0.5 + 2 + 4 + 8 + 16 + 32 * 0.5
+0.0
+1 * 0.5
+1 * 0.5 + 2
+1 * 0.5 + 2 + 4
+1 * 0.5 + 2 + 4 + 8
+1 * 0.5 + 2 + 4 + 8 + 16
 */
-static const float offsets[5] = { 0.0f, 1.5f, 4.5f, 10.5f, 22.5f };
+static const float offsets[4] = {0.0, 0.5, 4.5, 36.5};
 
 // Function that evaluates the bounds of a given grid based on it's coordinates
 void ComputeGridBounds(int x, int y, float centerGridSize,
-                        float2 centerGridPos, float farPlane,
                         inout float2 center,
                         inout float2 size)
 {
@@ -293,11 +296,11 @@ void ComputeGridBounds(int x, int y, float centerGridSize,
     float signX = sign(x);
     float signY = sign(y);
 
-    // Offset position of the patch
-    center = float2(signX * offsets[absX] * centerGridSize, signY * offsets[absY] * centerGridSize);
-
     // Size of the patch
-    size = float2(centerGridSize * (1 << absX), centerGridSize * (1 << absY));
+    size = float2(centerGridSize * sizeMultiplier[absX], centerGridSize * sizeMultiplier[absY]);
+
+    // Offset position of the patch
+    center = float2(signX * (offsets[absX] * centerGridSize + size.x * 0.5), signY * (offsets[absY] * centerGridSize + size.y * 0.5));
 }
 
 // Group share flag that allows us to keep track of the valid instances
@@ -324,7 +327,7 @@ void EvaluateInstanceData(uint3 currentThread : SV_DispatchThreadID)
     // Compute the grid center and size
     float2 center;
     float2 size;
-    ComputeGridBounds(x - radius, y - radius, _GridSize.x, _PatchOffset.xz, _ProjectionParams.z, center, size);
+    ComputeGridBounds(x - radius, y - radius, _GridSize.x, center, size);
 
     // Frustum cull the patch while accounting for it's maximal deformation
     OrientedBBox obb;

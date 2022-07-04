@@ -79,8 +79,8 @@ void ButterflyPass(int passIndex, uint x, uint t0, uint t1, out float3 resultR, 
     float3 inputR2 = pingPongArray[t0][indices.y];
     float3 inputI2 = pingPongArray[t1][indices.y];
 
-    resultR = (inputR1 + weights.x * inputR2 + weights.y * inputI2) * 0.5;
-    resultI = (inputI1 - weights.y * inputR2 + weights.x * inputI2) * 0.5;
+    resultR = (inputR1 + weights.x * inputR2 + weights.y * inputI2);
+    resultI = (inputI1 - weights.y * inputR2 + weights.x * inputI2);
 }
 
 [numthreads(FFT_RESOLUTION, 1, 1)]
@@ -114,10 +114,10 @@ void FFT_PASS_TI(uint3 id : SV_DispatchThreadID)
     float3 imaginaryValue = 0.0;
     ButterflyPass(BUTTERFLY_COUNT - 1, position.x, textureIndices.x, textureIndices.y, realValue, imaginaryValue);
 #if defined(COLUMN_PASS)
-    float sign_correction_and_normalization = ((position.x + position.y) & 0x01) ? -TWO_PI : TWO_PI;
-    _FFTRealBufferRW[int3(texturePos, id.z)] = float4(realValue * sign_correction_and_normalization * COMPENSATION_FACTOR, 0.0);
+    float sign_correction_and_normalization = ((position.x + position.y) & 0x01) ? -1.0 : 1.0;
+    _FFTRealBufferRW[int3(texturePos, id.z)] = float4(realValue * sign_correction_and_normalization, 0.0);
 #else
-    _FFTRealBufferRW[int3(texturePos, id.z)] = float4(realValue * COMPENSATION_FACTOR, 0.0);
-    _FFTImaginaryBufferRW[int3(texturePos, id.z)] = float4(imaginaryValue * COMPENSATION_FACTOR, 0.0);
+    _FFTRealBufferRW[int3(texturePos, id.z)] = float4(realValue, 0.0);
+    _FFTImaginaryBufferRW[int3(texturePos, id.z)] = float4(imaginaryValue, 0.0);
 #endif
 }

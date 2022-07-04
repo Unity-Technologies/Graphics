@@ -17,14 +17,6 @@ The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP
 
 The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](Look-Dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](Override-Visual-Environment.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
 
-## Diffusion Profile Assets
-
-Use this section to select which custom [Diffusion Profiles](Diffusion-Profile.md) can be in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, use the [Diffusion Profile Override](Override-Diffusion-Profile.md) inside a Volume. This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global).
-
-The following image shows the Diffusion Profile Assets section set up for HDRP's default scene:
-
-![](Images/HDRPgs_Diffusion_Profile_Assets.png)
-
 ## Frame Settings (Default Values)
 
 The [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras perform at runtime.

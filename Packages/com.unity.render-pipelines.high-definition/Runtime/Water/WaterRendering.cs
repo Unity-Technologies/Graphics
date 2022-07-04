@@ -49,14 +49,26 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the size of the water grids in meters.
         /// </summary>
-        [Tooltip("Sets the size of the water grids in meters.")]
-        public MinFloatParameter gridSize = new MinFloatParameter(1000.0f, 100.0f);
+        [Tooltip("Sets the size of the minimum water grids in meters.")]
+        public MinFloatParameter minGridSize = new MinFloatParameter(50.0f, 50.0f);
+
+        /// <summary>
+        /// Sets the size of the water grids in meters.
+        /// </summary>
+        [Tooltip("Sets the size of the maximum water grids in meters.")]
+        public MinFloatParameter maxGridSize = new MinFloatParameter(2500.0f, 250.0f);
+
+        /// <summary>
+        /// Sets the elevation at which the max grid size is reached.
+        /// </summary>
+        [Tooltip("Sets the elevation at which the max grid size is reached.")]
+        public MinFloatParameter elevationTransition = new MinFloatParameter(1000.0f, 20.0f);
 
         /// <summary>
         /// Controls the number of LOD patches that are rendered.
         /// </summary>
         [Tooltip("Controls the number of LOD patches that are rendered.")]
-        public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(2, 1, 3);
+        public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(3, 1, 4);
 
         /// <summary>
         /// Sets the maximum tessellation factor for the water surface.

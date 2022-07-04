@@ -113,6 +113,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendMedium;
         LocalKeyword m_DecalNormalBlendHigh;
         LocalKeyword m_ForwardPlus;
+        LocalKeyword m_FoveatedRenderingNonUniformRaster;
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
 
@@ -181,6 +182,7 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
             m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
+            m_FoveatedRenderingNonUniformRaster = TryGetLocalKeyword(shader, ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
 
@@ -480,6 +482,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus))
                 return true;
+
+            // Strip Foveated Rendering variants on all platforms (except PS5)
+            // TODO: add a way to communicate this requirement from the xr plugin directly
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC)
+#endif
+            {
+                if (compilerData.shaderKeywordSet.IsEnabled(m_FoveatedRenderingNonUniformRaster))
+                    return true;
+            }
 
             // Screen Space Occlusion
             if (IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque))
@@ -1038,7 +1050,9 @@ namespace UnityEditor.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (universalRendererData.xrSystemData != null)
+                        {
                             shaderFeatures |= ShaderFeatures.DrawProcedural;
+                        }
 #endif
                     }
                 }

@@ -39,19 +39,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 // If the surface is infinite, we need to check if the camera is between the top plane + max displacement  and the top plane - volume depth
-                if (currentWater.infinite)
+                if (currentWater.IsInfinite())
                 {
                     // If the resources are invalid, we cannot render this surface
-                    if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, k_WaterHighBandCount))
+                    if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
                         continue;
 
                     // Maximal possible wave height of the current setup
-                    float maxWaveHeight;
-                    Vector4 waveAmpltiude;
-                    ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highFrequencyBands, out waveAmpltiude, out maxWaveHeight);
+                    float maxWaveHeight = HDRenderPipeline.EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, currentWater.simulation.spectrum.patchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
 
                     // Evaluate the vertical boundaries of the volume
-                    float topPlane = currentWater.transform.position.y + k_MaxWaterSurfaceElevation;
+                    float topPlane = currentWater.transform.position.y + maxWaveHeight * 1.5f;
                     float bottomPlane = currentWater.transform.position.y - currentWater.volumeDepth;
 
                     // If both conditions are true, the camera is inside this volume
@@ -132,18 +130,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cameraHeightBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
 
                 // Bind the caustics buffer that may be required
-                bool simulationCaustics = waterSurface.caustics && waterSurface.causticsAlgorithm == WaterSurface.WaterCausticsType.Simulation;
-                passData.causticsData = simulationCaustics ? renderGraph.ImportTexture(waterSurface.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
+                passData.causticsData = waterSurface.caustics ? renderGraph.ImportTexture(waterSurface.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
 
                 // Fill the water rendering CB
                 passData.waterRenderingCB._CausticsIntensity = waterSurface.causticsIntensity;
-                passData.waterRenderingCB._CausticsTiling = waterSurface.causticsTiling;
                 passData.waterRenderingCB._CausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
                 passData.waterRenderingCB._PatchOffset = waterSurface.transform.position;
-                passData.waterRenderingCB._WaterCausticsType = waterSurface.caustics ? (simulationCaustics ? 0 : 1) : 0;
+                passData.waterRenderingCB._WaterCausticsEnabled = waterSurface.caustics ? 1 : 0;
 
                 // Fill the water CB
-                passData.waterCB._CausticsRegionSize = waterSurface.simulation.patchSizes[waterSurface.causticsBand];
+                passData.waterCB._CausticsRegionSize = waterSurface.simulation.spectrum.patchSizes[waterSurface.causticsBand];
 
                 // Request the output textures
                 passData.outputColorBuffer = builder.WriteTexture(CreateColorBuffer(m_RenderGraph, hdCamera, false));

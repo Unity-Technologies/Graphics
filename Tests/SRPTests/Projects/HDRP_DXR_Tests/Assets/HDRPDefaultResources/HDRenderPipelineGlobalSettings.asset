@@ -88,7 +88,7 @@ MonoBehaviour:
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   colorGradingSpace: 1
-  diffusionProfileSettingsList:
+  m_ObsoleteDiffusionProfileSettingsList:
   - {fileID: 11400000, guid: dd7a918c1bae69f44837b38174e50a61, type: 2}
   - {fileID: 11400000, guid: d48d38dbecb5bf44db08516376edc733, type: 2}
   - {fileID: 11400000, guid: 784637474d9deec43a1d78b2361b9e6f, type: 2}
@@ -113,4 +113,4 @@ MonoBehaviour:
     serializedProfiles: []
     serializedBakeSettings: []
     serializedBakingSets: []
-  m_Version: 4
+  m_Version: 5

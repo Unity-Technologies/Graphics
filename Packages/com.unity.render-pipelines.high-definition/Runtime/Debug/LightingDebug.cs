@@ -379,6 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool showReflectionProbe = true;
 
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
+        [Obsolete("The local volumetric fog atlas was removed. This field is unused.")]
         public bool displayLocalVolumetricFogAtlas = false;
         /// <summary>Local Volumetric Fog atlas slice.</summary>
         public uint localVolumetricFogAtlasSlice = 0;

@@ -13,7 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public class DocumentationUrls
         {
             public static readonly string k_Volumes = "Volume-Profile";
-            public static readonly string k_DiffusionProfiles = "Override-Diffusion-Profile";
             public static readonly string k_FrameSettings = "Frame-Settings";
             public static readonly string k_LightLayers = "Light-Layers";
             public static readonly string k_DecalLayers = "Decal";
@@ -177,27 +176,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion // Custom Post Processes
-
-        #region Diffusion Profile Settings List
-
-        static readonly CED.IDrawer DiffusionProfileSettingsSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.diffusionProfileSettingsLabel, Documentation.GetPageLink(DocumentationUrls.k_DiffusionProfiles))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawDiffusionProfileSettings)
-        );
-        static void DrawDiffusionProfileSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(5);
-                var labelWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = 100;
-                serialized.m_DiffusionProfileUI.OnGUI(serialized.diffusionProfileSettingsList);
-                EditorGUIUtility.labelWidth = labelWidth;
-            }
-        }
-
-        #endregion //Diffusion Profile Settings List
 
         #region Volume Profiles
         static Editor m_CachedDefaultVolumeProfileEditor;
@@ -426,8 +404,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly CED.IDrawer Inspector = CED.Group(
         VolumeSection,
-        CED.Group((serialized, owner) => EditorGUILayout.Space()),
-        DiffusionProfileSettingsSection,
         CED.Group((serialized, owner) => EditorGUILayout.Space()),
         FrameSettingsSection,
         CED.Group((serialized, owner) => EditorGUILayout.Space()),

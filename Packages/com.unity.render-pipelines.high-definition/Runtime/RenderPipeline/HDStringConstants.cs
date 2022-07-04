@@ -58,7 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
-
+        /// <summary>Fog Volume Voxelize pass name.</summary>
+        public static readonly string s_FogVolumeVoxelizeStr = "FogVolumeVoxelize";
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -98,6 +99,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DecalMeshForwardEmissiveName = new ShaderTagId(s_DecalMeshForwardEmissiveStr);
         /// <summary>DBuffer VFX Decal shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferVFXDecalName = new ShaderTagId(s_DBufferVFXDecalStr);
+
+        // Fog volume passes
+        /// <summary>Fog Volume Voxelize pass shader tag id.</summary>
+        public static readonly ShaderTagId s_FogVolumeVoxelizeName = new ShaderTagId(s_FogVolumeVoxelizeStr);
 
         // Legacy name
         internal static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
@@ -291,7 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaPostParameters1 = Shader.PropertyToID("_TaaPostParameters1");
         public static readonly int _TaaHistorySize = Shader.PropertyToID("_TaaHistorySize");
         public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
-        public static readonly int _TaaFilterWeights1 = Shader.PropertyToID("_TaaFilterWeights1");
         public static readonly int _TaauParameters = Shader.PropertyToID("_TaauParameters");
         public static readonly int _TaaScales = Shader.PropertyToID("_TaaScales");
 
@@ -447,6 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FullScreenDebugDepthRemap = Shader.PropertyToID("_FullScreenDebugDepthRemap");
         public static readonly int _FullScreenDebugBuffer = Shader.PropertyToID("_FullScreenDebugBuffer");
         public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
+        public static readonly int _FogVolumeOverdrawMaxValue = Shader.PropertyToID("_FogVolumeOverdrawMaxValue");
         public static readonly int _QuadOverdrawClearBuffParams = Shader.PropertyToID("_QuadOverdrawClearBuffParams");
         public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
         public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
@@ -580,7 +585,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VBufferFeedback = Shader.PropertyToID("_VBufferFeedback");
         public static readonly int _VolumeBounds = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData = Shader.PropertyToID("_VolumeData");
-        public static readonly int _VolumeMaskAtlas = Shader.PropertyToID("_VolumeMaskAtlas");
         public static readonly int _VolumeAmbientProbeBuffer = Shader.PropertyToID("_VolumetricAmbientProbeBuffer");
 
         public static readonly int _MaxZMaskTexture = Shader.PropertyToID("_MaxZMaskTexture");
@@ -1100,6 +1104,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaveformParameters    = Shader.PropertyToID("_WaveformParameters");
         public static readonly int _WaveformBuffer        = Shader.PropertyToID("_WaveformBuffer");
         public static readonly int _BufferSize            = Shader.PropertyToID("_BufferSize");
+
+        // Volumetric Materials
+        public static readonly int _VolumeCount = Shader.PropertyToID("_VolumeCount");
+        public static readonly int _VolumeIndex = Shader.PropertyToID("_VolumeIndex");
+        public static readonly int _CameraRight = Shader.PropertyToID("_CameraRight");
+        public static readonly int _MaxSliceCount = Shader.PropertyToID("_MaxSliceCount");
+        public static readonly int _VolumetricIndirectBufferArguments = Shader.PropertyToID("_IndirectBufferArguments");
+        public static readonly int _VolumetricMaterialData = Shader.PropertyToID("_VolumetricMaterialData");
+        public static readonly int _VolumetricMask = Shader.PropertyToID("_Mask");
+        public static readonly int _VolumetricScrollSpeed = Shader.PropertyToID("_ScrollSpeed");
+        public static readonly int _VolumetricTiling = Shader.PropertyToID("_Tiling");
+        public static readonly int _VolumetricViewIndex = Shader.PropertyToID("_ViewIndex");
+        public static readonly int _CameraInverseViewProjection_NO = Shader.PropertyToID("_CameraInverseViewProjection_NO");
+        public static readonly int _IsObliqueProjectionMatrix = Shader.PropertyToID("_IsObliqueProjectionMatrix");
+        public static readonly int _VolumetricMaterialDataCBuffer = Shader.PropertyToID("VolumetricMaterialDataCBuffer");
     }
 
     /// <summary>

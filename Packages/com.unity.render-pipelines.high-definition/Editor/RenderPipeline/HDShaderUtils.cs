@@ -222,6 +222,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 return shader.name == "HDRP/Unlit";
         }
 
+        internal static bool IsFogVolumeShader(Shader shader)
+        {
+            if (shader == null)
+                return false;
+
+            if (shader.IsShaderGraphAsset())
+            {
+                if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
+                    return obj.shaderID == ShaderID.SG_FogVolume;
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+
         internal static string GetShaderPath(ShaderID id)
         {
             int index = (int)id;
