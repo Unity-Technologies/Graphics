@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 
 using static UnityEngine.Rendering.HighDefinition.ProbePropagationBasis;
@@ -435,6 +436,157 @@ namespace UnityEngine.Rendering.HighDefinition
                 Mathf.Max(vRGB.z, 0f));
         }
 
+        static Vector3 LuvFromRgb(Vector3 vRGB)
+        {
+            Vector3 vResult; 
+            Vector3 Xp_Y_XYZp = LOG_LUV_ENCODE_MAT * vRGB;
+            Xp_Y_XYZp = new Vector3(
+                Mathf.Max(Xp_Y_XYZp.x, 1e-6f),
+                Mathf.Max(Xp_Y_XYZp.y, 1e-6f),
+                Mathf.Max(Xp_Y_XYZp.z, 1e-6f));
+            vResult.x = Xp_Y_XYZp.x / Xp_Y_XYZp.z;
+            vResult.y = Xp_Y_XYZp.y / Xp_Y_XYZp.z;
+            float Le = Xp_Y_XYZp.y; // Raw range
+            vResult.z = Le;
+            return vResult;
+        }
+        
+        static Vector3 RgbFromLuv(Vector3 vLogLuv)
+        {
+            Vector3 Xp_Y_XYZp;
+            Xp_Y_XYZp.y = vLogLuv.z; // Raw range
+            Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
+            Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
+            Vector3 vRGB = LOG_LUV_DECODE_MAT * Xp_Y_XYZp;
+            return new Vector3(
+                Mathf.Max(vRGB.x, 0f),
+                Mathf.Max(vRGB.y, 0f),
+                Mathf.Max(vRGB.z, 0f));
+        }
+        
+        static uint EncodeSimpleUHalfFloat(float x)
+        {
+            x = Mathf.Clamp(x, Mathf.Pow(2f, -15f), Mathf.Pow(2f, 16f));
+        
+            uint floatBits = UnsafeUtility.As<float, uint>(ref x);
+        
+            uint floatFraction = floatBits & ((1u << 23) - 1u);
+            uint floatExponent = floatBits >> 23;
+        
+            uint halfFraction = floatFraction >> (23 - 11); // truncate.
+        
+            // float bias: -127
+            // half bias: -15
+            // diff bias: -112.
+            uint halfExponent = (floatExponent < 112u) ? 0u : (floatExponent - 112u); 
+            halfExponent = Math.Min(31u, halfExponent); // Clamp shouldnt be necessary.
+            
+            return (halfExponent << 11) | halfFraction;
+        }
+        
+        static float DecodeSimpleUHalfFloat(uint halfBits)
+        {
+            uint halfExponent = halfBits >> 11;
+            uint halfFraction = halfBits & ((1u << 11) - 1u);
+        
+            uint floatFraction = halfFraction << (23 - 11);
+            uint floatExponent = halfExponent + 112u;
+            
+            uint floatBits = (floatExponent << 23) | floatFraction;
+        
+            return UnsafeUtility.As<uint, float>(ref floatBits);
+        }
+        
+        static uint EncodeSimpleU10Float(float x)
+        {
+            x = Mathf.Clamp(x, Mathf.Pow(2f, -15f), Mathf.Pow(2f, 16f));
+        
+            uint floatBits = UnsafeUtility.As<float, uint>(ref x);
+        
+            uint floatFraction = floatBits & ((1u << 23) - 1u);
+            uint floatExponent = floatBits >> 23;
+        
+            uint halfFraction = floatFraction >> (23 - 5); // truncate.
+        
+            // float bias: -127
+            // half bias: -15
+            // diff bias: -112.
+            uint halfExponent = (floatExponent < 112u) ? 0u : (floatExponent - 112u); 
+            halfExponent = Math.Min(31u, halfExponent); // Clamp shouldnt be necessary.
+            
+            return (halfExponent << 5) | halfFraction;
+        }
+        
+        static float DecodeSimpleU10Float(uint halfBits)
+        {
+            uint halfExponent = halfBits >> 5;
+            uint halfFraction = halfBits & ((1u << 5) - 1u);
+        
+            uint floatFraction = halfFraction << (23 - 5);
+            uint floatExponent = halfExponent + 112u;
+            
+            uint floatBits = (floatExponent << 23) | floatFraction;
+        
+            return UnsafeUtility.As<uint, float>(ref floatBits);
+        }
+        
+        static uint EncodeSimpleU11Float(float x)
+        {
+            x = Mathf.Clamp(x, Mathf.Pow(2f, -15f), Mathf.Pow(2f, 16f));
+        
+            uint floatBits = UnsafeUtility.As<float, uint>(ref x);
+        
+            uint floatFraction = floatBits & ((1u << 23) - 1u);
+            uint floatExponent = floatBits >> 23;
+        
+            uint halfFraction = floatFraction >> (23 - 6); // truncate.
+        
+            // float bias: -127
+            // half bias: -15
+            // diff bias: -112.
+            uint halfExponent = (floatExponent < 112u) ? 0u : (floatExponent - 112u); 
+            halfExponent = Math.Min(31u, halfExponent); // Clamp shouldnt be necessary.
+            
+            return (halfExponent << 6) | halfFraction;
+        }
+        
+        static float DecodeSimpleU11Float(uint halfBits)
+        {
+            uint halfExponent = halfBits >> 6;
+            uint halfFraction = halfBits & ((1u << 6) - 1u);
+        
+            uint floatFraction = halfFraction << (23 - 6);
+            uint floatExponent = halfExponent + 112u;
+            
+            uint floatBits = (floatExponent << 23) | floatFraction;
+        
+            return UnsafeUtility.As<uint, float>(ref floatBits);
+        }
+        
+        static uint EncodeSimpleR11G11B10(Vector3 rgb)
+        {
+            uint r11 = EncodeSimpleU11Float(rgb.x);
+            uint g11 = EncodeSimpleU11Float(rgb.y);
+            uint b10 = EncodeSimpleU10Float(rgb.z);
+        
+            return (r11 << 21)
+                | (g11 << 10)
+                | b10;
+        }
+        
+        internal static Vector3 DecodeSimpleR11G11B10(uint r11g11b10)
+        {
+            uint r11 = r11g11b10 >> 21;
+            uint g11 = (r11g11b10 >> 10) & ((1u << 11) - 1u);
+            uint b10 = r11g11b10 & ((1u << 10) - 1u);
+        
+            return new Vector3(
+                DecodeSimpleU11Float(r11),
+                DecodeSimpleU11Float(g11),
+                DecodeSimpleU10Float(b10)
+            );
+        }
+
         internal static Vector3 DecodeLogLuv(uint value)
         {
             Vector3 logLuv;
@@ -442,6 +594,15 @@ namespace UnityEngine.Rendering.HighDefinition
             logLuv.y = ((value >> 8) & 255) / 255.0f;
             logLuv.z = ((value >> 16) & 65535) / 65535.0f;
             return RgbFromLogluv(logLuv);
+        }
+
+        internal static Vector3 DecodeHalfLuv(uint value)
+        {
+            Vector3 luv;
+            luv.x = ((value >> 0) & 255) / 255.0f;
+            luv.y = ((value >> 8) & 255) / 255.0f;
+            luv.z = DecodeSimpleUHalfFloat(value >> 16);
+            return RgbFromLuv(luv);
         }
 
         internal void Allocate(RenderPipelineResources resources)
@@ -565,6 +726,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        internal static bool IsRadianceEncodedInUint(ProbeVolumeDynamicGIRadianceEncoding encoding) => encoding != ProbeVolumeDynamicGIRadianceEncoding.RGBFloat;
 
         static void SetRadianceEncodingKeywords(ComputeShader shader, ProbeVolumeDynamicGIRadianceEncoding encoding)
         {
@@ -1115,7 +1278,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propagationPipelineData.radianceEncoding = radianceEncoding;
             }
 
-            changed |= radianceEncoding == ProbeVolumeDynamicGIRadianceEncoding.LogLuv
+            changed |= IsRadianceEncodedInUint(propagationPipelineData.radianceEncoding)
                 ? EnsurePropagationBuffers<uint>(ref propagationPipelineData, hitNeighborAxisLengthOrOne, numAxis)
                 : EnsurePropagationBuffers<Vector3>(ref propagationPipelineData, hitNeighborAxisLengthOrOne, numAxis);
 
