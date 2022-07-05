@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
 using BlendMode = UnityEngine.Rendering.BlendMode;
@@ -63,6 +64,9 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorApplication.update += () =>
             {
+                if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset universalRenderPipeline)
+                    return;
+
                 if (Time.renderedFrameCount > 0)
                 {
                     bool fileExist = true;
@@ -197,7 +201,7 @@ namespace UnityEditor.Rendering.Universal
                     AssetDatabase.AddObjectToAsset(assetVersion, asset);
                 }
 
-                while (assetVersion.version < k_Upgraders.Length)
+                while (assetVersion.version >= 0 && assetVersion.version < k_Upgraders.Length)
                 {
                     k_Upgraders[assetVersion.version](material, shaderID);
                     debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
