@@ -40,22 +40,22 @@ MonoBehaviour:
         m_Untranslated: "To visualize the probes, make sure the Gizmos are enabled
           in the Scene view, and at the bottom of the <b>Window</b> > <b>Rendering</b>
           > <b>Lighting</b> Window, set <b>Light Probe Visualization</b> to <b>All
-          Probes No Cells.</b>\r\n\r\nThe <b>Light Probe Group</b> can be found in
-          the <i>Hierarchy</i> <b>Lighting</b> > <b>Light Probe Group.</b> These
-          Light Probes were placed by hand. \n\nSelect the Light Probe Group, then
-          in the <i>Inspector,</i> click the <b>Edit Light Probes</b> button to select,
-          move or duplicate probes.\r\n\nLight Probes are baked manually in the <b>Lighting</b>
-          Window, via the <b>Generate Lighting</b> button.\n\n\n<b>Expert Tips</b>\r\n\r\n\u2022
+          Probes No Cells.</b>\n\nThe <b>Light Probe Group</b> can be found in the
+          <i>Hierarchy</i> <b>Lighting</b> > <b>Light Probe Group.</b> These Light
+          Probes were placed by hand. \n\nSelect the Light Probe Group, then in the
+          <i>Inspector,</i> click the <b>Edit Light Probes</b> button to select,
+          move or duplicate probes.\n\nLight Probes are baked manually in the <b>Lighting</b>
+          Window, via the <b>Generate Lighting</b> button.\n\n\n<b>Expert Tips</b>\n\n\u2022
           Light Probe Groups are not real-time, so remember to generate the lighting
-          again if you made noticeable changes to the scene.\r\n\r\n\u2022 The spheres
+          again if you made noticeable changes to the scene.\n\n\u2022 The spheres
           in the image above are a visualisation of the lighting captured by the
           Light Probes at their corresponding locations. Objects are set by default
           to receive lighting from Light Probes, and will receive the lighting as
           a blend from the 4 closest probes. Therefore, it\u2019s important to increase
           the density of probes in areas of high lighting contrast to ensure more
-          accurate interpolation between probes.\r\n\r\n\u2022 It is recommended
-          to set smaller stationary Mesh Renderers to receive Global Illumination
-          from Light Probes, rather than from Lightmaps. Light Probes are baked considerably
+          accurate interpolation between probes.\n\n\u2022 It is recommended to set
+          smaller stationary Mesh Renderers to receive Global Illumination from Light
+          Probes, rather than from Lightmaps. Light Probes are baked considerably
           faster than lightmaps, and Light Probe data is considerably smaller than
           that of lightmaps. Apart from the main structures (walls, floors, etc.),
           most objects in this sample Scene are tagged to receive Global Illumination
@@ -79,9 +79,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 9.263008
-    m_Pivot: {x: 5.012642, y: 6.3360305, z: 6.4604263}
-    m_Rotation: {x: -0.04870288, y: 0.4779922, z: 0.026555957, w: 0.8766343}
+    m_Size: 0.8660253
+    m_Pivot: {x: 29.906303, y: 1.9557085, z: 6.273357}
+    m_Rotation: {x: -0.07154695, y: -0.90737444, z: 0.17223871, w: -0.37680447}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

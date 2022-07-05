@@ -70,7 +70,7 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 32.532547, y: 4.0315433, z: 0.23401433}
+    m_Pivot: {x: 29.641615, y: 4.276095, z: 0.23401432}
     m_Rotation: {x: 0, y: 0.70710677, z: 0, w: 0.70710677}
     m_FrameObject:
       m_SceneGuid: 
