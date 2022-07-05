@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering
         public List<VolumeComponent> components = new List<VolumeComponent>();
 
         /// <summary>
+        /// **Note**: For Internal Use Only<br/>
         /// A dirty check used to redraw the profile inspector when something has changed. This is
         /// currently only used in the editor.
         /// </summary>
