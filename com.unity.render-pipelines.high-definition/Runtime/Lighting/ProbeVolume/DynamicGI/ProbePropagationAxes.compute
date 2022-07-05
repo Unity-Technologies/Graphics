@@ -87,7 +87,7 @@ int ProbeCoordinateToIndex(uint3 probeCoordinate)
 
 float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVolumeLtw)
 {
-    float3 localPosition = ((probeCoordinates * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
+    float3 localPosition = (((probeCoordinates + 0.5) * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
     return mul(localPosition, probeVolumeLtw) + GetAbsolutePositionWS(_ProbeVolumeDGIBoundsCenter);
 }
 
@@ -320,7 +320,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         SHIncomingIrradiance shIncomingIrradiance = shIncomingIrradianceProbeCurrent;
                     #endif
 
-                    float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
+                    float weight = neighborAxisLookup.propagationWeight;
 
                     // Because convolution in SH space is cheap (zonal harmonic window component-wise multiplication), we are able to
                     // more accurately capture the integral of incoming irradiance over the hit basis solid angle + weight.
