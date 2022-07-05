@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Maximum number of views for XR.</summary>
 #if ENABLE_VR
-        XrMaxViews = 2,
+        XrMaxViews = 32,
 #else
         XrMaxViews = 1,
 #endif
