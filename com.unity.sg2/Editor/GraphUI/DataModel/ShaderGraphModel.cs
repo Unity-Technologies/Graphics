@@ -665,65 +665,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return this.CreateNode<GraphDataVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
         }
 
-        protected override IVariableDeclarationModel InstantiateVariableDeclaration(
-            Type variableTypeToCreate,
-            TypeHandle variableDataType,
-            string variableName,
-            ModifierFlags modifierFlags,
-            bool isExposed,
-            IConstant initializationModel,
-            SerializableGUID guid,
-            Action<IVariableDeclarationModel, IConstant> initializationCallback = null
-        )
-        {
-            if (variableTypeToCreate != typeof(GraphDataVariableDeclarationModel))
-            {
-                return base.InstantiateVariableDeclaration(variableTypeToCreate, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
-            }
-
-            var graphDataVar = new GraphDataVariableDeclarationModel();
-
-            // If the guid starts with a number, it will produce an invalid identifier in HLSL.
-            var variableDeclarationName = "_" + graphDataVar.Guid;
-
-            var propertyContext = GraphHandler.GetNode(BlackboardContextName);
-            Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
-
-            isExposed &= ((ShaderGraphStencil)Stencil).IsExposable(variableDataType);
-            ContextBuilder.AddReferableEntry(
-                propertyContext,
-                variableDataType.GetBackingDescriptor(),
-                variableDeclarationName,
-                GraphHandler.registry,
-                isExposed ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
-                source: isExposed ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
-                displayName: variableDeclarationName);
-
-            try
-            {
-                GraphHandler.ReconcretizeNode(propertyContext.ID.FullPath);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
-            graphDataVar.contextNodeName = BlackboardContextName;
-            graphDataVar.graphDataName = variableDeclarationName;
-
-            if (guid.Valid)
-                graphDataVar.Guid = guid;
-            graphDataVar.GraphModel = this;
-            graphDataVar.DataType = variableDataType;
-            graphDataVar.Title = GenerateGraphVariableDeclarationUniqueName(variableName);
-            graphDataVar.IsExposed = isExposed;
-            graphDataVar.Modifiers = modifierFlags;
-
-            initializationCallback?.Invoke(graphDataVar, initializationModel);
-
-            return graphDataVar;
-        }
-
         protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
     }
 }
