@@ -1,4 +1,7 @@
+using System;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -10,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string m_ContextNodeName;
 
         /// <summary>
-        // Name of the context node that owns the entry for this Variable
+        /// Name of the context node that owns the entry for this Variable
         /// </summary>
         public string contextNodeName
         {
@@ -23,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string m_GraphDataName;
 
         /// <summary>
-        // Name of the port on the Context Node that owns the entry for this Variable
+        /// Name of the port on the Context Node that owns the entry for this Variable
         /// </summary>
         public string graphDataName
         {
@@ -31,11 +34,55 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
-        public GraphDataVariableDeclarationModel()
+        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+
+        PortHandler contextEntry => shaderGraphModel.GraphHandler
+            .GetNode(contextNodeName)
+            .GetPort(graphDataName);
+
+        public ContextEntryEnumTags.DataSource ShaderDeclaration
         {
+            get =>
+                contextEntry
+                    .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
+                    .GetData();
+            set =>
+                contextEntry
+                    .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
+                    .SetData(value);
         }
 
-        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+        /// <summary>
+        /// Returns true if this variable declaration's data type is exposable according to the stencil,
+        /// false otherwise.
+        /// </summary>
+        public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel.Stencil).IsExposable(DataType);
+
+        public override bool IsExposed
+        {
+            get
+            {
+                if (!IsExposable)
+                {
+                    return false;
+                }
+
+                return contextEntry
+                    .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
+                    .GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
+            }
+            set
+            {
+                if (!IsExposable)
+                {
+                    value = false;
+                }
+
+                contextEntry
+                    .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
+                    .SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
+            }
+        }
 
         public override void CreateInitializationValue()
         {

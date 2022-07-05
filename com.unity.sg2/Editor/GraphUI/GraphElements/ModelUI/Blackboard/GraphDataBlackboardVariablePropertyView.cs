@@ -1,4 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -6,7 +7,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         protected override void BuildRows()
         {
-            AddExposedToggle();
+            if (Model is not GraphDataVariableDeclarationModel graphDataModel) return;
+            if (graphDataModel.IsExposable)
+            {
+                AddExposedToggle();
+            }
+
             AddInitializationField();
             AddTooltipField();
         }
