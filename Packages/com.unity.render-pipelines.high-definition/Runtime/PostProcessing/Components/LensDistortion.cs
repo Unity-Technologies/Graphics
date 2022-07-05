@@ -34,9 +34,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2Parameter center = new Vector2Parameter(new Vector2(0.5f, 0.5f));
 
         /// <summary>
-        /// Controls global screen scaling for the distortion effect. Use this to hide the screen borders when using a high <see cref="intensity"/>.
+        /// Controls global screen scaling for the distortion effect. Use this to hide the screen borders when using high <see cref="intensity"/>.
         /// </summary>
-        [Tooltip("Controls global screen scaling for the distortion effect. Use this to hide the screen borders when using a high \"Intensity\".")]
+        [Tooltip("Controls global screen scaling for the distortion effect. Use this to hide the screen borders when using high \"Intensity\".")]
         public ClampedFloatParameter scale = new ClampedFloatParameter(1f, 0.01f, 5f);
 
         /// <summary>

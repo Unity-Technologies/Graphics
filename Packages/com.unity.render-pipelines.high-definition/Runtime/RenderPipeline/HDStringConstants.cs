@@ -228,6 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
         public static readonly int _StencilCmp = Shader.PropertyToID("_StencilCmp");
 
+        public static readonly int _LightLayersMaskBuffer4 = Shader.PropertyToID("_LightLayersMaskBuffer4");
+        public static readonly int _LightLayersMaskBuffer5 = Shader.PropertyToID("_LightLayersMaskBuffer5");
+
         public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
 
         public static readonly int _ClearColor = Shader.PropertyToID("_ClearColor");
@@ -291,7 +294,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaPostParameters1 = Shader.PropertyToID("_TaaPostParameters1");
         public static readonly int _TaaHistorySize = Shader.PropertyToID("_TaaHistorySize");
         public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
-        public static readonly int _TaaFilterWeights1 = Shader.PropertyToID("_TaaFilterWeights1");
         public static readonly int _TaauParameters = Shader.PropertyToID("_TaauParameters");
         public static readonly int _TaaScales = Shader.PropertyToID("_TaaScales");
 
@@ -451,6 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
         public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
         public static readonly int _MinMotionVector = Shader.PropertyToID("_MinMotionVector");
+        public static readonly int _MotionVecIntensityParams = Shader.PropertyToID("_MotionVecIntensityParams");
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
@@ -673,6 +676,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Denoising
         public static readonly int _EnableExposureControl = Shader.PropertyToID("_EnableExposureControl");
+        public static readonly int _HistorySizeAndScale = Shader.PropertyToID("_HistorySizeAndScale");
         public static readonly int _HistoryBuffer = Shader.PropertyToID("_HistoryBuffer");
         public static readonly int _HistoryBuffer0 = Shader.PropertyToID("_HistoryBuffer0");
         public static readonly int _HistoryBuffer1 = Shader.PropertyToID("_HistoryBuffer1");
@@ -909,6 +913,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DepthMinMaxAvg = Shader.PropertyToID("_DepthMinMaxAvg");
 
         public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+        public static readonly int _FlareSunOcclusionTex = Shader.PropertyToID("_FlareSunOcclusionTex");
         public static readonly int _FlareOcclusionRemapTex = Shader.PropertyToID("_FlareOcclusionRemapTex");
         public static readonly int _LensFlareOcclusion = Shader.PropertyToID("_LensFlareOcclusion");
         public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");

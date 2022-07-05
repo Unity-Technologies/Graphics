@@ -131,7 +131,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // For tessellation we want to process tessellation factor always from the point of view of the camera (to be consistent and avoid Z-fight).
     // For the culling part however we want to use the current view (shadow view).
     // Thus the following code play with both.
-    float frustumEps = -_MaxWaveHeight; // "-" Expected parameter for CullTriangleEdgesFrustum
+    float frustumEps = -_MaxWaveDisplacement; // "-" Expected parameter for CullTriangleEdgesFrustum
 
     // TODO: the only reason I test the near plane here is that I am not sure that the product of other tessellation factors
     // (such as screen-space/distance-based) results in the tessellation factor of 1 for the geometry behind the near plane.

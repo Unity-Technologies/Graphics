@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -15,6 +16,10 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>True if the component is active, otherwise false.</returns>
         bool IsActive();
 
+        /// <summary>
+        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
+        /// </summary>
+        /// <returns>True if it can run on-tile, otherwise false.</returns>
         bool IsTileCompatible();
     }
 }
@@ -24,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
-    internal class PostProcessPass : ScriptableRenderPass
+    internal partial class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
@@ -38,6 +43,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_PongTexture;
         RTHandle[] m_BloomMipDown;
         RTHandle[] m_BloomMipUp;
+        TextureHandle[] _BloomMipUp;
+        TextureHandle[] _BloomMipDown;
         RTHandle m_BlendTexture;
         RTHandle m_EdgeColorTexture;
         RTHandle m_EdgeStencilTexture;
@@ -147,6 +154,9 @@ namespace UnityEngine.Rendering.Universal
             ShaderConstants._BloomMipDown = new int[k_MaxPyramidSize];
             m_BloomMipUp = new RTHandle[k_MaxPyramidSize];
             m_BloomMipDown = new RTHandle[k_MaxPyramidSize];
+            // Bloom pyramid TextureHandles
+            _BloomMipUp = new TextureHandle[k_MaxPyramidSize];
+            _BloomMipDown = new TextureHandle[k_MaxPyramidSize];
 
             for (int i = 0; i < k_MaxPyramidSize; i++)
             {
@@ -586,6 +596,12 @@ namespace UnityEngine.Rendering.Universal
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 if (m_UseSwapBuffer && !m_ResolveToScreen)
                 {
+                    if (!m_HasFinalPass)
+                    {
+                        // We need to reenable this to be able to blit to the correct AA target
+                        renderer.EnableSwapBufferMSAA(true);
+                        destination = renderer.GetCameraColorFrontBuffer(cmd);
+                    }
                     Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                     renderer.SwapColorBuffer(cmd);
                 }
@@ -597,7 +613,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var firstSource = GetSource();
                     Blitter.BlitCameraTexture(cmd, firstSource, GetDestination(), colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                    Blitter.BlitCameraTexture(cmd, GetDestination(), m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, destination.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    Blitter.BlitCameraTexture(cmd, GetDestination(), m_Destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_BlitMaterial, m_Destination.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
                 }
                 else if (m_ResolveToScreen)
                 {

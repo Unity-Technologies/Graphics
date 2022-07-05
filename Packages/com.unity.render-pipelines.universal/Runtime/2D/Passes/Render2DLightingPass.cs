@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
@@ -166,14 +167,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderStateBlock renderStateBlock = new RenderStateBlock();
                 activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock,
-                    (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                    (ScriptableRenderContext ctx, CommandBuffer cmd, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                     {
-                        ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                        RenderingUtils.DrawRendererListWithRenderStateBlock(ctx, cmd, data, ds, fs, rsb);
                     });
             }
             else
             {
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
             }
         }
 
@@ -448,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             filterSettings.sortingLayerRange = SortingLayerRange.all;
-            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None, renderingData.commandBuffer);
         }
 
         Renderer2DData IRenderPass2D.rendererData

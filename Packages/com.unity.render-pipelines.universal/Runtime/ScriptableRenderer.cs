@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
             internal static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
             internal static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
+            internal static readonly ProfilingSampler initRenderGraphFrame = new ProfilingSampler($"Initialize Render Graph frame settings");
 
             public static class RenderBlock
             {
@@ -63,17 +64,18 @@ namespace UnityEngine.Rendering.Universal
         /// If your renderer is not supporting stacking this one should return 0.
         /// For the UI to show the Camera Stack widget this must support CameraRenderType.Base.
         /// <see cref="CameraRenderType"/>
-        /// Returns the bitmask of the supported camera render types in the renderer's current state.
         /// </summary>
+        /// <returns>The bitmask of the supported camera render types in the renderer's current state.</returns>
         public virtual int SupportedCameraStackingTypes()
         {
             return 0;
         }
 
         /// <summary>
-        /// Returns true if the given camera render type is supported in the renderer's current state.
+        /// Check if the given camera render type is supported in the renderer's current state.
         /// </summary>
         /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
+        /// <returns>True if the given camera render type is supported in the renderer's current state.</returns>
         public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
         {
             return (SupportedCameraStackingTypes() & 1 << (int)cameraRenderType) != 0;
@@ -526,6 +528,10 @@ namespace UnityEngine.Rendering.Universal
         private static bool m_UseOptimizedStoreActions = false;
 
         const int k_RenderPassBlockCount = 4;
+
+        /// <summary>
+        /// The RTHandle for the Camera Target.
+        /// </summary>
         protected static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
@@ -638,6 +644,10 @@ namespace UnityEngine.Rendering.Universal
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// Cleans up resources used by the renderer.
+        /// </summary>
         public void Dispose()
         {
             // Dispose all renderer features...
@@ -653,6 +663,11 @@ namespace UnityEngine.Rendering.Universal
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Called by Dispose().
+        /// Override this function to clean up resources in your renderer.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
         }
@@ -759,7 +774,7 @@ namespace UnityEngine.Rendering.Universal
         private void InitRenderGraphFrame(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("InitFrame", out var passData,
-                Profiling.setupFrameData)) //TODO rendergraph maybe add a new profiling scope?
+                Profiling.initRenderGraphFrame))
             {
                 passData.renderingData = renderingData;
                 passData.renderer = this;
@@ -800,8 +815,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    // TODO RENDERGRAPH: implement both branches
-
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
                     // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
@@ -857,24 +870,29 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         internal void DrawRenderGraphGizmos(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, GizmoSubset gizmoSubset, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
-                Profiling.drawGizmos))
-            {
-                builder.UseColorBuffer(color, 0);
-                builder.UseDepthBuffer(depth, DepthAccess.Read);
+            #if UNITY_EDITOR
+                if (!Handles.ShouldRenderGizmos() || renderingData.cameraData.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                    return;
 
-                passData.renderingData = renderingData;
-                passData.renderer = this;
-                passData.gizmoSubset = gizmoSubset;
-
-                builder.AllowPassCulling(false);
-
-                builder.SetRenderFunc((DrawGizmosPassData data, RenderGraphContext rgContext) =>
+                using (var builder = renderGraph.AddRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
+                    Profiling.drawGizmos))
                 {
-                    Camera camera = data.renderingData.cameraData.camera;
-                    data.renderer.DrawGizmos(rgContext.renderContext, camera, data.gizmoSubset, ref data.renderingData);
-                });
-            }
+                    builder.UseColorBuffer(color, 0);
+                    builder.UseDepthBuffer(depth, DepthAccess.Read);
+
+                    passData.renderingData = renderingData;
+                    passData.renderer = this;
+                    passData.gizmoSubset = gizmoSubset;
+
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((DrawGizmosPassData data, RenderGraphContext rgContext) =>
+                    {
+                        Camera camera = data.renderingData.cameraData.camera;
+                        data.renderer.DrawGizmos(rgContext.renderContext, camera, data.gizmoSubset, ref data.renderingData);
+                    });
+                }
+            #endif
         }
 
         private class BeginXRPassData
@@ -886,6 +904,9 @@ namespace UnityEngine.Rendering.Universal
         private void BeginRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+            if (!renderingData.cameraData.xr.enabled)
+                return;
+
             using (var builder = renderGraph.AddRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
                 Profiling.beginXRRendering))
             {
@@ -922,6 +943,9 @@ namespace UnityEngine.Rendering.Universal
         private void EndRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+            if (!renderingData.cameraData.xr.enabled)
+                return;
+
             using (var builder = renderGraph.AddRenderPass<EndXRPassData>("EndXRRendering", out var passData,
                 Profiling.endXRRendering))
             {
@@ -1011,6 +1035,18 @@ namespace UnityEngine.Rendering.Universal
             foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
             {
                 if (pass.renderPassEvent >= injectionPoint && (int) pass.renderPassEvent < nextValue)
+                    pass.RecordRenderGraph(renderGraph, ref renderingData);
+            }
+        }
+
+        internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData, RenderPassEvent startInjectionPoint, RenderPassEvent endInjectionPoint)
+        {
+            int range = ScriptableRenderPass.GetRenderPassEventRange(endInjectionPoint);
+            int nextValue = (int) endInjectionPoint + range;
+
+            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
+            {
+                if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
                     pass.RecordRenderGraph(renderGraph, ref renderingData);
             }
         }
@@ -1603,7 +1639,8 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
 
                     // on platforms that support Load and Store actions having the clear flag means that the action will be DontCare, which is something we want when the color target is bound the first time
-                    if (SystemInfo.usesLoadStoreActions)
+                    // (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget) check below ensures camera UI's clearFlag is respected when targeting built-in backbuffer.
+                    if (SystemInfo.usesLoadStoreActions && passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
                         finalClearFlag |= renderPass.clearFlag;
 
                     finalClearColor = cameraData.backgroundColor;

@@ -49,39 +49,122 @@ namespace UnityEngine.Rendering.HighDefinition
         public NativeArray<float4> displacementBufferCPU;
     }
 
+    /// <summary>
+    /// Structure that holds all the data that allows us to define the water spectrum.
+    /// </summary>
+    public struct WaterSpectrumParameters
+    {
+        // The number of bands that are actually evaluated
+        internal int numActiveBands;
+
+        // Value that defines the patch sizes of the bands (up to 4)
+        internal Vector4 patchSizes;
+
+        // The wind speed, orientation and weight used to evaluate the Phillips spectrum
+        internal Vector4 patchWindSpeed;
+
+        // Value that defines the wind directionality to each patch (up to 4)
+        internal Vector4 patchWindDirDampener;
+
+        // The wind orientation (in degrees) for each band
+        internal Vector4 patchWindOrientation;
+
+        /// <summary>
+        /// Compare two WaterSpectrumParameters for equality.
+        /// </summary>
+        /// <param name="a">The first WaterSpectrumParameters to compare.</param>
+        /// <param name="b">The second WaterSpectrumParameters to compare.</param>
+        /// <returns>True if the WaterSpectrumParameters are both equal (or both null), false otherwise.</returns>
+        public static bool operator ==(WaterSpectrumParameters a, WaterSpectrumParameters b)
+        {
+            return (a.numActiveBands == b.numActiveBands)
+                && (a.patchSizes == b.patchSizes)
+                && (a.patchWindSpeed == b.patchWindSpeed)
+                && (a.patchWindDirDampener == b.patchWindDirDampener)
+                && (a.patchWindOrientation == b.patchWindOrientation);
+        }
+
+        /// <summary>
+        /// Compare two WaterSpectrumParameters for inequality.
+        /// </summary>
+        /// <param name="a">The first WaterSpectrumParameters to compare.</param>
+        /// <param name="b">The second WaterSpectrumParameters to compare.</param>
+        /// <returns>True if the WaterSpectrumParameters are not equal, false otherwise.</returns>
+        public static bool operator !=(WaterSpectrumParameters a, WaterSpectrumParameters b)
+        {
+            return (a.numActiveBands != b.numActiveBands)
+                || (a.patchSizes != b.patchSizes)
+                || (a.patchWindSpeed != b.patchWindSpeed)
+                || (a.patchWindDirDampener != b.patchWindDirDampener)
+                || (a.patchWindOrientation != b.patchWindOrientation);
+        }
+
+        /// <summary>
+        /// Get an appropriate hash value for this NPath.
+        /// </summary>
+        /// <returns>A hash value for this NPath.</returns>
+        public override int GetHashCode() { return base.GetHashCode(); }
+
+
+        /// <summary>Returns true if the WaterSpectrumParameters is equal to a given WaterSpectrumParameters, false otherwise.</summary>
+        /// <param name="o">Right hand side argument to compare equality with.</param>
+        /// <returns>The result of the equality comparison.</returns>
+        public override bool Equals(object o)
+        {
+            return o is WaterSpectrumParameters other && this == other;
+        }
+
+    }
+
+    /// <summary>
+    /// Structure that holds all the data that allows us to render the water surface from the spectrum.
+    /// </summary>
+    public struct WaterRenderingParameters
+    {
+        // System simulation time
+        internal float simulationTime;
+
+        // The per-band amplitude multiplier
+        internal Vector4 patchAmplitudeMultiplier;
+
+        // The current speed
+        internal Vector4 patchCurrentSpeed;
+
+        // The current orientation
+        internal Vector4 patchCurrentOrientation;
+
+        // The fade start for each band
+        internal Vector4 patchFadeStart;
+
+        // The fade distance for each band
+        internal Vector4 patchFadeDistance;
+
+        // The fade value for each band
+        internal Vector4 patchFadeValue;
+    }
+
     internal class WaterSimulationResources
     {
         // Overall time that has passed since Unity has been initialized
         private float m_Time = 0;
-
         // Current simulation time (used to compute the dispersion of the Phillips spectrum)
         public float simulationTime = 0;
-
         // Delta time of the current frame
         public float deltaTime = 0;
 
         // Resolution at which the water system is ran
         public int simulationResolution = 0;
-
         // The number bands that we will be running the simulation at
-        public int numBands = 0;
+        public int maxNumBands = 0;
 
-        // The wind speed, orientation and weight used to evaluate the Phillips spectrum
-        public float windSpeed = 0;
-        public float windOrientation = 0;
-        public float windAffectCurrent = 0;
+        // The type of the surface
+        public WaterSurfaceType surfaceType;
 
-        // Value that defines the patch sizes of the bands (up to 4)
-        public Vector4 patchSizes = Vector4.zero;
+        // The spectrum parameters
+        public WaterSpectrumParameters spectrum = new WaterSpectrumParameters();
 
-        // Value that defines the wind speed that is applied to each patch (up to 4)
-        public Vector4 patchWindSpeed = Vector4.zero;
-
-        // Wave amplitude multiplier
-        public Vector4 waveAmplitude = Vector4.zero;
-
-        // Maximum wave height of the simulation
-        public float maxWaveHeight = 0.0f;
+        // The rendering parameters
+        public WaterRenderingParameters rendering = new WaterRenderingParameters();
 
         // The set of GPU Buffers used to run the simulation
         public WaterSimulationResourcesGPU gpuBuffers = null;
@@ -92,9 +175,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public void AllocateSimulationBuffersGPU()
         {
             gpuBuffers = new WaterSimulationResourcesGPU();
-            gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+            gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
+            gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
+            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
         }
 
         public void ReleaseSimulationBuffersGPU()
@@ -112,8 +195,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void AllocateSimulationBuffersCPU()
         {
             cpuBuffers = new WaterSimulationResourcesCPU();
-            cpuBuffers.h0BufferCPU = new NativeArray<float2>(simulationResolution * simulationResolution * numBands, Allocator.Persistent);
-            cpuBuffers.displacementBufferCPU = new NativeArray<float4>(simulationResolution * simulationResolution * numBands, Allocator.Persistent);
+            cpuBuffers.h0BufferCPU = new NativeArray<float2>(simulationResolution * simulationResolution * maxNumBands, Allocator.Persistent);
+            cpuBuffers.displacementBufferCPU = new NativeArray<float4>(simulationResolution * simulationResolution * maxNumBands, Allocator.Persistent);
         }
 
         public void ReleaseSimulationBuffersCPU()
@@ -131,14 +214,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Keep track of the values that constraint the texture allocation.
             simulationResolution = simulationRes;
-            numBands = nbBands;
+            maxNumBands = nbBands;
             m_Time = Time.realtimeSinceStartup;
         }
 
         // Function that validates the resources (size and if allocated)
         public bool ValidResources(int simulationRes, int nbBands)
         {
-            return (simulationRes == simulationResolution) && (nbBands == numBands) && AllocatedTextures();
+            return (simulationRes == simulationResolution)
+            && (nbBands == maxNumBands)
+            && AllocatedTextures();
         }
 
         // Function that makes sure that all the textures are allocated
@@ -192,20 +277,29 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseSimulationBuffersGPU();
             ReleaseSimulationBuffersCPU();
 
+            // Reset the spectrum data
+            spectrum.numActiveBands = 0;
+            spectrum.patchSizes = Vector4.zero;
+            spectrum.patchWindSpeed = Vector4.zero;
+            spectrum.patchWindOrientation = Vector4.zero;
+            spectrum.patchWindDirDampener = Vector4.zero;
+
+            // Reset the rendering data
+            rendering.patchAmplitudeMultiplier = Vector4.zero;
+            rendering.patchCurrentSpeed = Vector4.zero;
+            rendering.patchCurrentOrientation = Vector4.zero;
+            rendering.patchFadeStart = Vector4.zero;
+            rendering.patchFadeDistance = Vector4.zero;
+            rendering.patchFadeValue = Vector4.zero;
+
             // Reset the resolution data
             simulationResolution = 0;
-            numBands = 0;
+            maxNumBands = 0;
 
             // Reset the simulation time
             m_Time = 0;
             simulationTime = 0;
             deltaTime = 0;
-
-            // Reset the simulation parameters
-            windSpeed = 0;
-            windOrientation = 0;
-            windAffectCurrent = 0;
-            patchSizes = Vector4.zero;
         }
     }
 }

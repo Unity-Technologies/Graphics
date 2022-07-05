@@ -13,8 +13,14 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// The main class for the Universal Render Pipeline (URP).
+    /// </summary>
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
+        /// <summary>
+        /// The shader tag used in the Universal Render Pipeline (URP)
+        /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
@@ -34,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!exists)
                 {
                     // NOTE: camera.name allocates!
-                    ps = new ProfilingSampler($"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCamera)}: {camera.name}");
+                    ps = new ProfilingSampler($"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCameraInternal)}: {camera.name}");
                     s_HashSamplerCache.Add(cameraId, ps);
                 }
                 return ps;
@@ -80,6 +86,9 @@ namespace UnityEngine.Rendering.Universal
             };
         }
 
+        /// <summary>
+        /// The maximum amount of bias allowed for shadows.
+        /// </summary>
         public static float maxShadowBias
         {
             get => 10.0f;
@@ -151,6 +160,10 @@ namespace UnityEngine.Rendering.Universal
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
+
+        /// <summary>
+        /// The default Render Pipeline Global Settings.
+        /// </summary>
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
@@ -253,7 +266,11 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-            useRenderGraph = m_GlobalSettings.enableRenderGraph;
+#if RENDER_GRAPH_ENABLED
+            useRenderGraph = asset.enableRenderGraph;
+#else
+            useRenderGraph = false;
+#endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -317,7 +334,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                     UpdateVolumeFramework(camera, null);
 
-                    RenderSingleCamera(renderContext, camera);
+                    RenderSingleCameraInternal(renderContext, camera);
 
                     using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
                     {
@@ -345,6 +362,91 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        protected override bool IsRenderRequestSupported<RequestData>(Camera camera, RequestData data)
+        {
+            if (data is StandardRequest)
+                return true;
+            else if (data is SingleCameraRequest)
+                return true;
+
+            return false;
+        }
+
+        protected override void ProcessRenderRequests<RequestData>(ScriptableRenderContext context, Camera camera, RequestData renderRequest)
+        {
+            StandardRequest standardRequest = renderRequest as StandardRequest;
+            SingleCameraRequest singleRequest = renderRequest as SingleCameraRequest;
+
+            if(standardRequest != null || singleRequest != null)
+            {
+                RenderTexture destination = standardRequest != null ? standardRequest.destination : singleRequest.destination;
+                int mipLevel = standardRequest != null ? standardRequest.mipLevel : singleRequest.mipLevel;
+                int slice = standardRequest != null ? standardRequest.slice : singleRequest.slice;
+                int face = standardRequest != null ? (int)standardRequest.face : (int)singleRequest.face;
+
+                //store data that will be changed
+                var orignalTarget = camera.targetTexture;
+
+                //set data
+                RenderTexture temporaryRT = null;
+                RenderTextureDescriptor RTDesc = destination.descriptor;
+                //need to set use default constructor of RenderTextureDescriptor which doesn't enable allowVerticalFlip which matters for cubemaps.
+                if (destination.dimension == TextureDimension.Cube)
+                    RTDesc = new RenderTextureDescriptor();
+
+                RTDesc.colorFormat = destination.format;
+                RTDesc.volumeDepth = 1;
+                RTDesc.msaaSamples = destination.descriptor.msaaSamples;
+                RTDesc.dimension = TextureDimension.Tex2D;
+                RTDesc.width = destination.width / (int)Math.Pow(2, mipLevel);
+                RTDesc.height = destination.height / (int)Math.Pow(2, mipLevel);
+                RTDesc.width = Mathf.Max(1, RTDesc.width);
+                RTDesc.height = Mathf.Max(1, RTDesc.height);
+
+                //if mip is 0 and target is Texture2D we can immediately render to the requested destination
+                if(destination.dimension != TextureDimension.Tex2D || mipLevel != 0)
+                {
+                    temporaryRT = RenderTexture.GetTemporary(RTDesc);
+                }
+
+                camera.targetTexture = temporaryRT ? temporaryRT : destination;
+
+                if (standardRequest != null)
+                {
+                    Render(context, new Camera[] { camera });
+                }
+                else
+                {
+                    RenderSingleCameraInternal(context, camera);
+                }
+
+                if(temporaryRT)
+                {
+                    switch(destination.dimension)
+                    {
+                        case TextureDimension.Tex2D:
+                        case TextureDimension.Tex2DArray:
+                        case TextureDimension.Tex3D:
+                            Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
+                            break;
+                        case TextureDimension.Cube:
+                        case TextureDimension.CubeArray:
+                            Graphics.CopyTexture(temporaryRT, 0, 0, destination, face + slice * 6, mipLevel);
+                            break;
+                    }
+                }
+
+                //restore data
+                camera.targetTexture = orignalTarget;
+                Graphics.SetRenderTarget(orignalTarget);
+                RenderTexture.ReleaseTemporary(temporaryRT);
+            }
+            else
+            {
+                Debug.LogWarning("The given RenderRequest type: " + typeof(RequestData).FullName  + ", is either invalid or unsupported by the current pipeline");
+            }
+        }
+
         /// <summary>
         /// Standalone camera rendering. Use this to render procedural cameras.
         /// This method doesn't call <c>BeginCameraRendering</c> and <c>EndCameraRendering</c> callbacks.
@@ -352,7 +454,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="camera">Camera to render.</param>
         /// <seealso cref="ScriptableRenderContext"/>
+        [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmiteRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type", false)]
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
+        {
+            RenderSingleCameraInternal(context, camera);
+        }
+
+        internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera)
         {
             UniversalAdditionalCameraData additionalCameraData = null;
             if (IsGameCamera(camera))
@@ -1235,7 +1343,7 @@ namespace UnityEngine.Rendering.Universal
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
-            lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
+            lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
             lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
             for (var i = 0; i < lightData.originalIndices.Length; i++)
             {
@@ -1530,5 +1638,13 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
+
+        public class SingleCameraRequest
+        {
+            public RenderTexture destination = null;
+            public int mipLevel = 0;
+            public CubemapFace face = CubemapFace.Unknown;
+            public int slice = 0;
+        }
     }
 }

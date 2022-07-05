@@ -864,19 +864,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
-            {
-                displayName = "Screen Space Ambient Occlusion",
-                referenceName = "_SCREEN_SPACE_OCCLUSION",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-                stages = KeywordShaderStage.Fragment,
-            };
-
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
-                { ScreenSpaceAmbientOcclusion },
+                { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },

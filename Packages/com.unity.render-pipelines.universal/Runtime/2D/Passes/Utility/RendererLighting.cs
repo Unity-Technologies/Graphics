@@ -541,7 +541,10 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
 
                 drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
             }
         }
 

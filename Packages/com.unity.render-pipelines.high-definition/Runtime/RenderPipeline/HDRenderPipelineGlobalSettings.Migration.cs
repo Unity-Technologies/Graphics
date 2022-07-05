@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateLensFlare,
             MovedSupportRuntimeDebugDisplayToGlobalSettings,
             DisableAutoRegistration,
+            MoveDiffusionProfilesToVolume,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -56,6 +57,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Field is on for new projects, but disable it for existing projects
                 data.autoRegisterDiffusionProfiles = false;
+            }),
+            MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                foreach (var profile in data.m_ObsoleteDiffusionProfileSettingsList)
+                {
+                    bool found = false;
+                    var overrides = data.GetOrCreateDiffusionProfileList();
+                    foreach (var profile2 in overrides.diffusionProfiles.value)
+                    {
+                        if (profile2 == profile)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        data.AddDiffusionProfile(profile);
+                }
+#pragma warning restore 618
             })
         );
         bool IMigratableAsset.Migrate()
@@ -126,9 +147,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 oldAsset.diffusionProfileSettings.TryToUpgrade();
 
             int oldSize = oldAsset.m_ObsoleteDiffusionProfileSettingsList?.Length ?? 0;
-            System.Array.Resize(ref assetToUpgrade.diffusionProfileSettingsList, oldSize);
+            System.Array.Resize(ref assetToUpgrade.m_ObsoleteDiffusionProfileSettingsList, oldSize);
             for (int i = 0; i < oldSize; ++i)
-                assetToUpgrade.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
+                assetToUpgrade.m_ObsoleteDiffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
 #pragma warning restore 618
 
             //3. Set version to next & Launch remaining of migration

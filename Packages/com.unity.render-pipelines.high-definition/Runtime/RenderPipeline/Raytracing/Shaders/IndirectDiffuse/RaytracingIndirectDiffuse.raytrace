@@ -119,7 +119,7 @@ void RayGenIntegration()
         // Compute the current sample index
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIndex;
 
-    	// Generate the new sample (follwing values of the sequence)
+        // Generate the new sample (follwing values of the sequence)
         float2 theSample;
         theSample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
         theSample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
@@ -152,21 +152,16 @@ void RayGenIntegration()
         // Evaluate the ray intersection
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_GLOBAL_ILLUMINATION, 0, 1, 0, rayDescriptor, rayIntersection);
 
+        // Clamp the exposed color in HSV space
+        rayIntersection.color = RayTracingHSVClamp(rayIntersection.color * GetCurrentExposureMultiplier(), _RaytracingIntensityClamp);
+
         // Contribute to the pixel
         finalColor += rayIntersection.color;
     }
 
-   	// Normalize the value
+    // Normalize the value
     finalColor *= 1.0f / _RaytracingNumSamples;
 
-    // Convert to HSV space
-    finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
-
-    // Expose and clamp the final color
-    finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-
-    // Convert back to HSV space
-    finalColor = HsvToRgb(finalColor);
     // We store the sampled color and the weight that shall be used for it (1.0f)
     _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0f);
 }

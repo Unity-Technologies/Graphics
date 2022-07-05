@@ -156,6 +156,17 @@ Shader ""Hidden/GraphErrorShader2""
                         importContext.AddObjectToAsset($"Shader-{generatedShader.shaderName}", shader);
                     }
                 }
+
+                foreach (var generatedComputeShader in generator.allGeneratedComputeShaders)
+                {
+                    // Create the compute asset.
+                    var computeShader = ShaderUtil.CreateComputeShaderAsset(importContext, generatedComputeShader.codeString);
+
+                    // TODO: ReportErrors for Compute Shader. Will require ShaderUtil.GetComputeShaderMessages.
+
+                    computeShader.name = $"ComputeShader-{generatedComputeShader.shaderName}";
+                    importContext.AddObjectToAsset(computeShader.name, computeShader);
+                }
             }
             catch (Exception e)
             {

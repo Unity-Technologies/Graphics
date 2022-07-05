@@ -4,9 +4,10 @@
 name: postprocessing
 test_editors:
   - trunk
+  - 2022.2
+  - 2022.1
   - 2021.3
   - 2020.3
-  - 2019.4
 test_platforms:
   - name: win
     type: Unity::VM

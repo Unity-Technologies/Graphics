@@ -25,12 +25,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class Styles
         {
-            public static readonly GUIContent isGlobal = new GUIContent("Mode", "A global volume is applied to the whole scene. A local volume is applied only when the camera position is inside the volume. A camera volume is applied only for the target camera.");
-            public static readonly GUIContent fadeRadius = new GUIContent("Fade Radius", "Radius from where your effect will be rendered, the _FadeValue in shaders will be updated using this radius");
-            public static readonly GUIContent injectionPoint = new GUIContent("Injection Point", "Where the pass is going to be executed in the pipeline.");
-            public static readonly GUIContent priority = new GUIContent("Priority", "Determine the execution order when multiple Custom Pass Volumes overlap with the same injection point.");
-            public static readonly GUIContent targetCamera = new GUIContent("Target Camera", "Determine on which camera this custom pass volume will be applied. If this property is null and the mode is set to camera, the volume is ignored.");
-            public static readonly GUIContent[] modes = { new GUIContent("Global"), new GUIContent("Local"), new GUIContent("Camera") };
+            public static readonly GUIContent isGlobal = EditorGUIUtility.TrTextContent("Mode", "Global Volumes affect the Camera wherever the Camera is in the Scene and Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider. A camera volume is applied only for the target camera.");
+            public static readonly GUIContent fadeRadius = EditorGUIUtility.TrTextContent("Fade Radius", "Radius from where your effect will be rendered, the _FadeValue in shaders will be updated using this radius");
+            public static readonly GUIContent injectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The stage in the render pipeline to execute this pass.");
+            public static readonly GUIContent priority = EditorGUIUtility.TrTextContent("Priority", "A value which determines the execution order when there are several Custom Pass Volumes with the same injection point overlaps. Custom Pass Volume with a higher value is rendered first.");
+            public static readonly GUIContent targetCamera = EditorGUIUtility.TrTextContent("Target Camera", "Determines on which camera this custom pass volume will be applied. If this property is null and the mode is set to camera, the volume is ignored.");
+            public static readonly GUIContent[] modes = { EditorGUIUtility.TrTextContent("Global"), EditorGUIUtility.TrTextContent("Local"), EditorGUIUtility.TrTextContent("Camera") };
         }
 
         class SerializedPassVolume
@@ -266,7 +266,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 SearchWindow.Open(new SearchWindowContext(windowPosition), searchObject);
             };
 
-            m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
+            m_CustomPassList.onReorderCallback = (index) =>
+            {
+                serializedObject.ApplyModifiedProperties();
+                ClearCustomPassCache();
+            };
 
             m_CustomPassList.onRemoveCallback = (list) =>
             {

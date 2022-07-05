@@ -2,27 +2,30 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Class for the rendering debugger settings.
+    /// </summary>
     public class UniversalRenderPipelineDebugDisplaySettings : DebugDisplaySettings<UniversalRenderPipelineDebugDisplaySettings>
     {
         DebugDisplaySettingsCommon CommonSettings { get; set; }
 
         /// <summary>
-        /// Material-related Rendering Debugger settings.
+        /// Material-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsMaterial materialSettings { get; private set; }
 
         /// <summary>
-        /// Rendering-related Rendering Debugger settings.
+        /// Rendering-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsRendering renderingSettings { get; private set; }
 
         /// <summary>
-        /// Lighting-related Rendering Debugger settings.
+        /// Lighting-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsLighting lightingSettings { get; private set; }
 
         /// <summary>
-        /// Volume-related Rendering Debugger settings.
+        /// Volume-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsVolume volumeSettings { get; private set; }
 

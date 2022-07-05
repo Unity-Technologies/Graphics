@@ -7,44 +7,6 @@ using UnityEngine.Profiling;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
-    /// Extension of DrawObjectPass that also output Rendering Layers Texture as second render target.
-    /// </summary>
-    internal class DrawObjectsWithRenderingLayersPass : DrawObjectsPass
-    {
-        RTHandle[] m_ColorTargetIndentifiers;
-        RTHandle m_DepthTargetIndentifiers;
-
-        public DrawObjectsWithRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
-            base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
-        {
-            m_ColorTargetIndentifiers = new RTHandle[2];
-        }
-
-        public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment)
-        {
-            if (colorAttachment == null)
-                throw new ArgumentException("Color attachment can not be null", "colorAttachment");
-            if (renderingLayersTexture == null)
-                throw new ArgumentException("Rendering layers attachment can not be null", "renderingLayersTexture");
-            if (depthAttachment == null)
-                throw new ArgumentException("Depth attachment can not be null", "depthAttachment");
-
-            m_ColorTargetIndentifiers[0] = colorAttachment;
-            m_ColorTargetIndentifiers[1] = renderingLayersTexture;
-            m_DepthTargetIndentifiers = depthAttachment;
-        }
-
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
-        }
-
-        protected override void OnExecute(CommandBuffer cmd)
-        {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
-        }
-    }
-
     /// <summary>
     /// Draw  objects into the given color and depth target
     ///
@@ -57,26 +19,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderStateBlock m_RenderStateBlock;
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
         string m_ProfilerTag;
-        ProfilingSampler m_ProfilingSampler;
+        protected ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+
+        /// <summary>
+        /// Used to indicate whether transparent objects should receive shadows or not.
+        /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
 
         PassData m_PassData;
-        bool m_UseDepthPriming;
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
         /// <summary>
         /// Creates a new <c>DrawObjectsPass</c> instance.
         /// </summary>
-        /// <param name="profilerTag"></param>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
         /// <param name="shaderTagIds"></param>
-        /// <param name="opaque"></param>
+        /// <param name="opaque">Marks whether the objects are opaque or transparent.</param>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
-        /// <param name="renderQueueRange"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="stencilState"></param>
-        /// <param name="stencilReference"></param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="stencilState">The stencil settings to use with this poss.</param>
+        /// <param name="stencilReference">The stencil reference value to use with this pass.</param>
         /// <seealso cref="ShaderTagId"/>
         /// <seealso cref="RenderPassEvent"/>
         /// <seealso cref="RenderQueueRange"/>
@@ -107,13 +72,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Creates a new <c>DrawObjectsPass</c> instance.
         /// </summary>
-        /// <param name="profilerTag"></param>
-        /// <param name="opaque"></param>
-        /// <param name="evt"></param>
-        /// <param name="renderQueueRange"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="stencilState"></param>
-        /// <param name="stencilReference"></param>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
+        /// <param name="opaque">Marks whether the objects are opaque or transparent.</param>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="stencilState">The stencil settings to use with this poss.</param>
+        /// <param name="stencilReference">The stencil reference value to use with this pass.</param>
         /// <seealso cref="RenderPassEvent"/>
         /// <seealso cref="RenderQueueRange"/>
         /// <seealso cref="LayerMask"/>
@@ -145,12 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_PassData.m_IsOpaque = m_IsOpaque;
-            m_PassData.m_RenderStateBlock = m_RenderStateBlock;
-            m_PassData.m_FilteringSettings = m_FilteringSettings;
-            m_PassData.m_ShaderTagIdList = m_ShaderTagIdList;
-            m_PassData.m_ProfilingSampler = m_ProfilingSampler;
-            m_PassData.pass = this;
+            InitPassData(ref m_PassData);
 
             ExecutePass(context, m_PassData, ref renderingData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
         }
@@ -195,9 +155,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float alphaToMaskAvailable = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.m_IsOpaque) ? 1.0f : 0.0f;
                 cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
 
-                // TODO RENDERGRAPH: do this as a separate pass, so no need of calling OnExecute here...
-                data.pass.OnExecute(cmd);
-
+                // TODO RENDERGRAPH: once RenderLists land we should be able to remove these 2 lines
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -222,22 +180,24 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,
-                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        (ScriptableRenderContext ctx, CommandBuffer cmd, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                            RenderingUtils.DrawRendererListWithRenderStateBlock(ctx, cmd, data, ds, fs, rsb);
                         });
                 }
                 else
                 {
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock);
+                    RenderingUtils.DrawRendererListWithRenderStateBlock(context, cmd, renderingData, drawSettings, filterSettings, data.m_RenderStateBlock);
 
                     // Render objects that did not match any shader pass with error shader
-                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None, cmd);
                 }
+
+
             }
         }
 
-        private class PassData
+        protected class PassData
         {
             internal TextureHandle m_Albedo;
             internal TextureHandle m_Depth;
@@ -251,14 +211,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal ProfilingSampler m_ProfilingSampler;
 
             internal bool m_ShouldTransparentsReceiveShadows;
-
-            internal DrawObjectsPass pass;
         }
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, ref RenderingData renderingData)
         {
-            Camera camera = renderingData.cameraData.camera;
-
             using (var builder = renderGraph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
                 m_ProfilingSampler))
             {
@@ -274,45 +230,158 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
 
-                passData.m_IsOpaque = m_IsOpaque;
-                passData.m_RenderStateBlock = m_RenderStateBlock;
-                passData.m_FilteringSettings = m_FilteringSettings;
-                passData.m_ShaderTagIdList = m_ShaderTagIdList;
-                passData.m_ProfilingSampler = m_ProfilingSampler;
+                InitPassData(ref passData);
 
                 passData.m_ShouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
 
-                passData.pass = this;
-
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    ref var renderingData = ref data.m_RenderingData;
-
-                    // TODO RENDERGRAPH figure out where to put XR proj flip logic so that it can be auto handled in render graph
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    if (renderingData.cameraData.xr.enabled)
-                    {
-                        // SetRenderTarget might alter the internal device state(winding order).
-                        // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                        bool renderIntoTexture = data.m_Albedo != renderingData.cameraData.xr.renderTarget;
-                        XRBuiltinShaderConstants.Update(renderingData.cameraData.xr, renderingData.commandBuffer, renderIntoTexture);
-                        XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
-                    }
-#endif
-
-                    // Currently we only need to call this additional pass when the user
-                    // doesn't want transparent objects to receive shadows
-                    if (!data.m_IsOpaque && !data.m_ShouldTransparentsReceiveShadows)
-                        TransparentSettingsPass.ExecutePass(context.cmd, data.m_ShouldTransparentsReceiveShadows);
-
-                    bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.m_Albedo, data.m_Depth);
-                    CameraSetup(context.cmd, data, ref renderingData);
-                    ExecutePass(context.renderContext, data, ref renderingData, yFlip);
+                    RenderGraphRenderFunc(data, context, false);
                 });
 
             }
         }
 
-        protected virtual void OnExecute(CommandBuffer cmd) { }
+        protected void InitPassData(ref PassData passData)
+        {
+            passData.m_IsOpaque = m_IsOpaque;
+            passData.m_RenderStateBlock = m_RenderStateBlock;
+            passData.m_FilteringSettings = m_FilteringSettings;
+            passData.m_ShaderTagIdList = m_ShaderTagIdList;
+            passData.m_ProfilingSampler = m_ProfilingSampler;
+        }
+
+        protected static void RenderGraphRenderFunc(PassData data, RenderGraphContext context, bool isRenderingLayersPass)
+        {
+            ref var renderingData = ref data.m_RenderingData;
+
+            // TODO RENDERGRAPH figure out where to put XR proj flip logic so that it can be auto handled in render graph
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (renderingData.cameraData.xr.enabled)
+            {
+                // SetRenderTarget might alter the internal device state(winding order).
+                // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                bool renderIntoTexture = data.m_Albedo != renderingData.cameraData.xr.renderTarget;
+                XRBuiltinShaderConstants.Update(renderingData.cameraData.xr, renderingData.commandBuffer, renderIntoTexture);
+                XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
+            }
+#endif
+
+            // Currently we only need to call this additional pass when the user
+            // doesn't want transparent objects to receive shadows
+            if (!data.m_IsOpaque && !data.m_ShouldTransparentsReceiveShadows)
+                TransparentSettingsPass.ExecutePass(context.cmd, data.m_ShouldTransparentsReceiveShadows);
+
+            bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.m_Albedo, data.m_Depth);
+            CameraSetup(context.cmd, data, ref renderingData);
+
+            if (isRenderingLayersPass)
+                CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+
+            ExecutePass(context.renderContext, data, ref renderingData, yFlip);
+        }
+    }
+
+    /// <summary>
+    /// Extension of DrawObjectPass that also output Rendering Layers Texture as second render target.
+    /// </summary>
+    internal class DrawObjectsWithRenderingLayersPass : DrawObjectsPass
+    {
+        RTHandle[] m_ColorTargetIndentifiers;
+        RTHandle m_DepthTargetIndentifiers;
+
+        /// <summary>
+        /// Creates a new <c>DrawObjectsWithRenderingLayersPass</c> instance.
+        /// </summary>
+        /// <param name="profilerTag">The profiler tag used with the pass.</param>
+        /// <param name="opaque">Marks whether the objects are opaque or transparent.</param>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
+        /// <param name="stencilState">The stencil settings to use with this poss.</param>
+        /// <param name="stencilReference">The stencil reference value to use with this pass.</param>
+        public DrawObjectsWithRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
+            base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
+        {
+            m_ColorTargetIndentifiers = new RTHandle[2];
+        }
+
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment handle.</param>
+        /// <param name="renderingLayersTexture">Texture used with rendering layers.</param>
+        /// <param name="depthAttachment">Depth attachment handle.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment)
+        {
+            if (colorAttachment == null)
+                throw new ArgumentException("Color attachment can not be null", "colorAttachment");
+            if (renderingLayersTexture == null)
+                throw new ArgumentException("Rendering layers attachment can not be null", "renderingLayersTexture");
+            if (depthAttachment == null)
+                throw new ArgumentException("Depth attachment can not be null", "depthAttachment");
+
+            m_ColorTargetIndentifiers[0] = colorAttachment;
+            m_ColorTargetIndentifiers[1] = renderingLayersTexture;
+            m_DepthTargetIndentifiers = depthAttachment;
+        }
+
+        /// <inheritdoc/>
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = renderingData.commandBuffer;
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+
+            base.Execute(context, ref renderingData);
+        }
+
+        private class RenderingLayersPassData
+        {
+            internal PassData basePassData;
+            internal RenderingLayerUtils.MaskSize maskSize;
+        }
+
+        internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<RenderingLayersPassData>("Draw Objects With Rendering Layers Pass", out var passData,
+                m_ProfilingSampler))
+            {
+                passData.basePassData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
+                builder.UseColorBuffer(renderingLayersTexture, 1);
+                passData.basePassData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);
+
+                if (mainShadowsTexture.IsValid())
+                    builder.ReadTexture(mainShadowsTexture);
+                if (additionalShadowsTexture.IsValid())
+                    builder.ReadTexture(additionalShadowsTexture);
+
+                passData.basePassData.m_RenderingData = renderingData;
+
+                builder.AllowPassCulling(false);
+
+                InitPassData(ref passData.basePassData);
+
+                passData.basePassData.m_ShouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
+                passData.maskSize = maskSize;
+
+                builder.SetRenderFunc((RenderingLayersPassData data, RenderGraphContext context) =>
+                {
+                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+
+                    RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
+
+                    RenderGraphRenderFunc(data.basePassData, context, false);
+                });
+
+            }
+        }
     }
 }

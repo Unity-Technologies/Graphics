@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.Universal
                 DecalProjector.onDecalRemove += OnDecalRemove;
                 DecalProjector.onDecalPropertyChange += OnDecalPropertyChange;
                 DecalProjector.onDecalMaterialChange += OnDecalMaterialChange;
+                DecalProjector.onAllDecalPropertyChange += OnAllDecalPropertyChange;
             }
 
             m_ReferenceCounter++;
@@ -120,6 +121,7 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.onDecalRemove -= OnDecalRemove;
             DecalProjector.onDecalPropertyChange -= OnDecalPropertyChange;
             DecalProjector.onDecalMaterialChange -= OnDecalMaterialChange;
+            DecalProjector.onAllDecalPropertyChange -= OnAllDecalPropertyChange;
         }
 
         private void OnDecalAdd(DecalProjector decalProjector)
@@ -137,6 +139,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_DecalEntityManager.IsValid(decalProjector.decalEntity))
                 m_DecalEntityManager.UpdateDecalEntityData(decalProjector.decalEntity, decalProjector);
+        }
+
+
+        private void OnAllDecalPropertyChange()
+        {
+            m_DecalEntityManager.UpdateAllDecalEntitiesData();
         }
 
         private void OnDecalMaterialChange(DecalProjector decalProjector)
@@ -217,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var technique = GetTechnique(isDeferred);
             atEvent = technique == DecalTechnique.DBuffer ? RenderingLayerUtils.Event.DepthNormalPrePass : RenderingLayerUtils.Event.Opaque;
-            maskSize = RenderingLayerUtils.MaskSize.Bits16;
+            maskSize = RenderingLayerUtils.MaskSize.Bits8;
             return requiresDecalLayers;
         }
 

@@ -185,7 +185,9 @@ bool IsAlphaToMaskAvailable()
 half AlphaClip(half alpha, half cutoff)
 {
     // Produce 0.0 if the input value would be clipped by traditional alpha clipping and produce the original input value otherwise.
-    half clippedAlpha = (alpha >= cutoff) ? alpha : 0.0;
+    // WORKAROUND: The alpha parameter in this ternary expression MUST be converted to a float in order to work around a known HLSL compiler bug.
+    //             See Fogbugz 934464 for more information
+    half clippedAlpha = (alpha >= cutoff) ? float(alpha) : 0.0;
 
     // Calculate a specialized alpha value that should be used when alpha-to-coverage is enabled
     half alphaToCoverageAlpha = SharpenAlpha(alpha, cutoff);

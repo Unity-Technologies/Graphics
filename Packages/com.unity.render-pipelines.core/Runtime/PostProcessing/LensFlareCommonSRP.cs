@@ -382,10 +382,12 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
         /// <param name="_FlareData1">ShaderID for the FlareData1</param>
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
@@ -397,8 +399,9 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
+            Texture sunOcclusionTexture,
             bool taaEnabled,
-            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
+            int _FlareSunOcclusionTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             Vector2 vScreenRatio;
 
@@ -507,6 +510,22 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
+                if (sunOcclusionTexture != null)
+                {
+                    if (comp.volumetricCloudOcclusion)
+                    {
+                        cmd.EnableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                        cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
+                    }
+                    else
+                    {
+                        cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                    }
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                }
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 

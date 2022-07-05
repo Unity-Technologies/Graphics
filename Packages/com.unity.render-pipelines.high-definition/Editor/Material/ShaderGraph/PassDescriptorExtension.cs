@@ -18,6 +18,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static bool IsLightingOrMaterial(this PassDescriptor pass)
         {
+            if (pass.lightMode == null)
+                return false;
+
             return pass.IsForward()
                 || pass.lightMode == HDShaderPassNames.s_GBufferStr
                 // DXR passes without visibility, prepass or path tracing

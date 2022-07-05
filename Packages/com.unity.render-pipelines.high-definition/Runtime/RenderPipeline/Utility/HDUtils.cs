@@ -772,7 +772,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 buildTarget == UnityEditor.BuildTarget.PS5 ||
                 // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
                 // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
-                buildTarget == UnityEditor.BuildTarget.CloudRendering);
+                buildTarget == UnityEditor.BuildTarget.CloudRendering ||
+                buildTarget == UnityEditor.BuildTarget.LinuxHeadlessSimulation);
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
@@ -21,8 +22,8 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         }
 
-        private Material m_Material;
-        private ProfilingSampler m_ProfilingSampler;
+        private static Material m_Material;
+        private static ProfilingSampler m_ProfilingSampler;
 
         public DrawNormalPass()
         {
@@ -38,18 +39,8 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
-            {
-                NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
 
-                int width = renderingData.cameraData.cameraTargetDescriptor.width;
-                int height = renderingData.cameraData.cameraTargetDescriptor.height;
-
-                Render(cmd, renderingData.cameraData, TapMode.Tap1, new Rect(0, 0, 0.5f, 0.5f), width, height);
-                Render(cmd, renderingData.cameraData, TapMode.Tap3, new Rect(0.5f, 0, 0.5f, 0.5f), width, height);
-                Render(cmd, renderingData.cameraData, TapMode.Tap5, new Rect(0, 0.5f, 0.5f, 0.5f), width, height);
-                Render(cmd, renderingData.cameraData, TapMode.Tap9, new Rect(0.5f, 0.5f, 0.5f, 0.5f), width, height);
-            }
+            ExecutePass(cmd, renderingData.cameraData);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -57,7 +48,23 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        private void Render(CommandBuffer cmd, in CameraData cameraData, TapMode tapMode, Rect viewport, int width, int height)
+        static void ExecutePass(CommandBuffer cmd, CameraData cameraData)
+        {
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                NormalReconstruction.SetupProperties(cmd, cameraData);
+
+                int width = cameraData.cameraTargetDescriptor.width;
+                int height = cameraData.cameraTargetDescriptor.height;
+
+                Render(cmd, cameraData, TapMode.Tap1, new Rect(0, 0, 0.5f, 0.5f), width, height);
+                Render(cmd, cameraData, TapMode.Tap3, new Rect(0.5f, 0, 0.5f, 0.5f), width, height);
+                Render(cmd, cameraData, TapMode.Tap5, new Rect(0, 0.5f, 0.5f, 0.5f), width, height);
+                Render(cmd, cameraData, TapMode.Tap9, new Rect(0.5f, 0.5f, 0.5f, 0.5f), width, height);
+            }
+        }
+
+        static void Render(CommandBuffer cmd, in CameraData cameraData, TapMode tapMode, Rect viewport, int width, int height)
         {
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP1", tapMode == TapMode.Tap1);
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP3", tapMode == TapMode.Tap3);
@@ -83,6 +90,25 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
             }
             cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+        }
+
+        internal class PassData
+        {
+            internal CameraData cameraData;
+        }
+        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
+            {
+                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                builder.UseColorBuffer(color, 0);
+                passData.cameraData = renderingData.cameraData;
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                {
+                    ExecutePass(rgContext.cmd, data.cameraData);
+                });
+            }
         }
     }
 

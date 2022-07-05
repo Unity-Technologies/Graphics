@@ -263,58 +263,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static bool TryGetRenderPipelineAssetsForBuildTarget<T>(BuildTarget buildTarget, List<T> srpAssets) where T : RenderPipelineAsset
-        {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            if (qualitySettings == null)
-                return false;
-
-            var property = qualitySettings.FindProperty("m_QualitySettings");
-            if (property == null)
-                return false;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
-
-            var allQualityLevelsAreOverriden = true;
-            for (int i = 0; i < property.arraySize; i++)
-            {
-                bool isExcluded = false;
-
-                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
-                if (excludedTargetPlatforms == null)
-                    return false;
-
-                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
-                {
-                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
-                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
-                    {
-                        isExcluded = true;
-                        break;
-                    }
-                }
-
-                if (!isExcluded)
-                {
-                    var asset = QualitySettings.GetRenderPipelineAssetAt(i) as T;
-                    if (asset != null)
-                        srpAssets.Add(asset);
-                    else
-                        allQualityLevelsAreOverriden = false;
-                }
-            }
-
-            if (!allQualityLevelsAreOverriden)
-            {
-                // We need to check the fallback cases
-                if (GraphicsSettings.defaultRenderPipeline is T srpAsset)
-                    srpAssets.Add(srpAsset);
-            }
-
-            return true;
-        }
-
         static void GetAllValidHDRPAssets(BuildTarget buildTarget)
         {
             s_PlayerNeedRaytracing = false;
@@ -333,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
             //   AND at least one quality level does not have SRP override
             // Fetch all SRP overrides in all enabled quality levels for this platform
-            TryGetRenderPipelineAssetsForBuildTarget(buildTarget, _hdrpAssets);
+            buildTarget.TryGetRenderPipelineAssets<HDRenderPipelineAsset>(_hdrpAssets);
 
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
@@ -381,7 +329,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (!Application.isBatchMode)
                 {
-                    if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
+                    if (!EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
                         throw new UnityEditor.Build.BuildFailedException("Build canceled");
                 }
                 else
@@ -398,7 +346,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_PlayerNeedRaytracing = true;
                 }
             }
-
 
             Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
                 _hdrpAssets.Count,

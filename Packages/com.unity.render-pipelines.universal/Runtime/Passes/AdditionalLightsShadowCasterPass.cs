@@ -148,6 +148,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Dispose()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
@@ -859,8 +862,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        // Get the "additional light index" (used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...) from the "global" visible light index
-        // Function called by Deferred Renderer
+        /// <summary>
+        /// Gets the additional light index from the global visible light index, which is used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, etc.
+        /// </summary>
+        /// <param name="visibleLightIndex">The index of the visible light.</param>
+        /// <returns>The additional light index.</returns>
         public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
         {
             if (visibleLightIndex < 0 || visibleLightIndex >= m_VisibleLightIndexToAdditionalLightIndex.Length)
@@ -925,7 +931,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
 
                     var settings = new ShadowDrawingSettings(cullResults, originalLightIndex, BatchCullingProjectionType.Perspective);
-                    settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.supportsLightLayers;
+                    settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;
                     settings.splitData = shadowSliceData.splitData;
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
                         ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
@@ -1034,7 +1040,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("Additional Lights Shadowmap", out var passData, base.profilingSampler))
             {
-                InitPassData(ref passData, ref renderingData, ref graph);
+                InitPassData(ref passData, ref renderingData);
 
                 if (!m_CreateEmptyShadowmap)
                 {
@@ -1056,12 +1062,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("Set Additional Shadow Globals", out var passData, base.profilingSampler))
             {
-                InitPassData(ref passData, ref renderingData, ref graph);
+                InitPassData(ref passData, ref renderingData);
 
                 passData.shadowmapTexture = shadowTexture;
 
                 if (shadowTexture.IsValid())
-                    builder.UseDepthBuffer(shadowTexture, DepthAccess.Read);
+                    builder.ReadTexture(shadowTexture);
 
                 builder.AllowPassCulling(false);
 
@@ -1070,20 +1076,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (data.emptyShadowmap)
                     {
                         data.pass.SetEmptyAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
-                        data.shadowmapTexture = data.graph.defaultResources.defaultShadowTexture;
+                        data.shadowmapTexture = context.defaultResources.defaultShadowTexture;
                     }
 
-                    data.renderingData.commandBuffer.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
+                    context.cmd.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
                 });
 
                 return passData.shadowmapTexture;
             }
         }
 
-        void InitPassData(ref PassData passData, ref RenderingData renderingData, ref RenderGraph graph)
+        void InitPassData(ref PassData passData, ref RenderingData renderingData)
         {
             passData.pass = this;
-            passData.graph = graph;
 
             passData.emptyShadowmap = m_CreateEmptyShadowmap;
             passData.shadowmapID = m_AdditionalLightsShadowmapID;

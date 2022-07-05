@@ -29,11 +29,19 @@ namespace UnityEngine.Rendering.Universal
 
         #region IDebugDisplaySettingsData
 
+        /// <inheritdoc/>
         public bool AreAnySettingsActive => false;
+
+        /// <inheritdoc/>
         public bool IsPostProcessingAllowed => true;
+
+        /// <inheritdoc/>
         public bool IsLightingActive => true;
+
+        /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color _) => false;
 
+        /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new StatsPanel(m_DebugFrameTiming);

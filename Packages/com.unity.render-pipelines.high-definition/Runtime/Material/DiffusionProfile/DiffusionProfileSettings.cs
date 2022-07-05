@@ -24,13 +24,21 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public enum TexturingMode : uint
         {
+            [InspectorName("Pre and Post-Scatter")]
+            [Tooltip("Partially applies the albedo to the Material twice, before and after the subsurface scattering pass, for a softer look.")]
             PreAndPostScatter = 0,
+            [InspectorName("Post-Scatter")]
+            [Tooltip("Applies the albedo to the Material after the subsurface scattering pass, so the contents of the albedo texture aren't blurred.")]
             PostScatter = 1
         }
 
         public enum TransmissionMode : uint
         {
+            [InspectorName("Thick Object")]
+            [Tooltip("Select this mode for geometrically thick objects. This mode uses shadow maps.")]
             Regular = 0,
+            [InspectorName("Thin Object")]
+            [Tooltip("Select this mode for thin, double-sided geometry, such as paper or leaves.")]
             ThinObject = 1
         }
 
