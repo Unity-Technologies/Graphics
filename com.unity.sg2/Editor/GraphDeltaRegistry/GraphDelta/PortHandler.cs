@@ -12,7 +12,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return new PortHeader();
         }
 
-        internal string kTypeField = "TypeField";
+        internal static string kTypeField = "TypeField";
+        internal static string kDefaultConnection = "DefaultConnection";
         public string LocalID => ID.LocalPath;
         public bool IsInput => GetMetadata<bool>(PortHeader.kInput);
         public bool IsHorizontal => GetMetadata<bool>(PortHeader.kHorizontal);
@@ -24,19 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<PortHandler> GetConnectedPorts()
         {
-            bool input = GetMetadata<bool>(PortHeader.kInput);
-            foreach(var edge in Owner.m_data.edges)
-            {
-                if(input && edge.Input.Equals(ID))
-                {
-                    yield return new PortHandler(edge.Output, Owner, Registry, DefaultLayer);
-                }
-                else if(!input && edge.Output.Equals(ID))
-                {
-                    yield return new PortHandler(edge.Input, Owner, Registry, DefaultLayer);
-                }
-
-            }
+            return Owner.GetConnectedPorts(this.ID, Registry);
         }
 
         internal PortHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)

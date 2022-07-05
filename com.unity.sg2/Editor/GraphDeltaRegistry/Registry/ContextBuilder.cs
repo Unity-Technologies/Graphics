@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
                 var context = registry.GetContextDescriptor(contextKey);
                 foreach (var entry in context.GetEntries())
-                    AddContextEntry(node, entry, registry);
+                    AddReferableEntry(node, entry, registry);
             }
             catch
             {

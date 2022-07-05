@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -13,9 +14,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
+            GraphModelStateComponent graphModelState,
             ChangeTargetSettingsCommand command)
         {
-            // TODO: How to undo/redo? Do we need a state component to push on the stack with the current target list?
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState , command);
+            }
 
             Debug.Log("ChangeTargetSettingsCommand: Target Settings Change is unimplemented");
 
