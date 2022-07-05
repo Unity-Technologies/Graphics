@@ -334,7 +334,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 // Get all input edges on the node being duplicated
                 var connectedEdges = edges.Where(edgeModel => edgeModel.ToNodeGuid == sourceNodeModel.Guid);
-                m_NodeGuidToEdgesClipboard.Add(sourceNodeModel.Guid.ToString(), connectedEdges);
+                if(connectedEdges.Any())
+                    m_NodeGuidToEdgesClipboard.Add(sourceNodeModel.Guid.ToString(), connectedEdges);
             }
 
             var pastedNodeModel = sourceNodeModel.Clone();
@@ -475,7 +476,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Assert.IsNotNull(sourceShaderGraphConstant);
 
             var copiedVariable = sourceDataVariable.Clone();
-            copiedVariable.AssignNewGuid();
+            // Only assign new guids if there is a conflict,
+            // this handles the case of a variable node being copied over to a graph where its source blackboard item doesn't exist yet
+            // the blackboard item will be duplicated, but if a new guid gets the assigned that variable node now is invalid
+            if (VariableDeclarations.Any(declarationModel => declarationModel.Guid == sourceDataVariable.Guid))
+                copiedVariable.AssignNewGuid();
+            else
+                copiedVariable.Guid = sourceDataVariable.Guid;
 
             /* Init variable declaration model */
             InitVariableDeclarationModel(

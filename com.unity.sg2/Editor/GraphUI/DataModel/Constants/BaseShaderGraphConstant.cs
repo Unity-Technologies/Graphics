@@ -25,11 +25,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return null;
             var nodeReader = graphHandler.GetNode(nodeName)
                 ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
-            var portReader = nodeReader.GetPort(portName);
-            Assert.IsNotNull(portReader);
-            var typeField = portReader.GetTypeField();
-            Assert.IsNotNull(typeField);
-            return typeField;
+            try
+            {
+                var portReader = nodeReader.GetPort(portName);
+                var typeField = portReader.GetTypeField();
+                return typeField;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return null;
+            }
         }
         public string NodeName => nodeName;
         public string PortName => portName;

@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [TearDown]
         public virtual void TearDown()
         {
-            //CloseWindow();
+            CloseWindow();
             AssetDatabase.DeleteAsset(testAssetPath);
         }
 

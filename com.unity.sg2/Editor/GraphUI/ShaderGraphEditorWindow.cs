@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         MainPreviewView m_MainPreviewView;
 
-        BlackboardView m_BlackboardView;
+        internal BlackboardView m_BlackboardView;
 
         // We setup a reference to the MainPreview when the overlay containing it is created
         // We do this because the resources needed to initialize the preview are not available at overlay creation time
