@@ -256,14 +256,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
         /// <remarks> Dirties the preview compile & render state of all nodes downstream of the changed node </remarks>
-        public List<string> NotifyNodeFlowChanged(string nodeName)
+        public List<string> NotifyNodeFlowChanged(string nodeName, bool wasNodeDeleted = false)
         {
             var impactedNodes = new List<string>();
 
+            var sourceNode = m_GraphHandle.GetNode(nodeName);
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
-                var sourceNode = m_GraphHandle.GetNode(nodeName);
-                if (sourceNode == null)
+                if (wasNodeDeleted)
                 {
                     // Node was deleted, get rid of the preview data associated with it
                     m_CachedPreviewData.Remove(nodeName);
@@ -273,22 +273,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     // TODO: Will we handle node bypassing directly in GetDownstreamNodes()?
                     var previewData = m_CachedPreviewData[nodeName];
                     previewData.isShaderOutOfDate = true;
-
-                    foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
-                    {
-                        if (m_CachedPreviewData.TryGetValue(downStreamNode.ID.LocalPath, out var downStreamNodeData))
-                        {
-                            downStreamNodeData.isShaderOutOfDate = true;
-                        }
-
-                        impactedNodes.Add(downStreamNode.ID.LocalPath);
-                    }
                 }
-
-                return impactedNodes;
             }
 
-            Debug.Log("HeadlessPreviewManager: NotifyNodeFlowChanged called on a node that hasn't been registered!");
+            if (sourceNode != null)
+            {
+                foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
+                {
+                    if (m_CachedPreviewData.TryGetValue(downStreamNode.ID.LocalPath, out var downStreamNodeData))
+                    {
+                        downStreamNodeData.isShaderOutOfDate = true;
+                    }
+
+                    impactedNodes.Add(downStreamNode.ID.LocalPath);
+                }
+            }
 
             return impactedNodes;
         }

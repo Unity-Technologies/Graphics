@@ -81,6 +81,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             SetUpReferableEntry(contextNode.GetPort(fieldName), usage, source, displayName, defaultValue);
         }
 
+        static public void RemoveContextEntry(NodeHandler contextNode, string contextEntryName)
+        {
+            contextNode.RemovePort(contextEntryName);
+            contextNode.RemovePort($"out_{contextEntryName}");
+        }
+
+        public static void RemoveReferableEntry(
+            NodeHandler contextNode,
+            string contextEntryName)
+        {
+            RemoveContextEntry(contextNode, contextEntryName);
+        }
+
         public void BuildNode(NodeHandler node, Registry registry)
         {
             //This should do nothing, but temporarily keeping this in

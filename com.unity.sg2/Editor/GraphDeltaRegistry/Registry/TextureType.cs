@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             => $"Property_{GetUniqueUniformName(data)}";
 
         public static Texture GetTextureAsset(FieldHandler data)
-            => data.GetSubField<Internal.SerializableTexture>(KAsset).GetData().texture;
+            => data?.GetSubField<Internal.SerializableTexture>(KAsset).GetData().texture;
 
         public static void SetTextureAsset(FieldHandler data, Texture tex)
         {

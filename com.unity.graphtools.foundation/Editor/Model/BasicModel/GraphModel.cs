@@ -793,8 +793,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// GTF-EDIT: Added virtual modifier
+        /// GTF-EDIT: Added state updater and edges list arguments, but these should not be PR-ed to GTF
         /// <inheritdoc />
-        public virtual INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null)
+        public virtual INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null, List<IEdgeModel> copiedEdges = null)
         {
             var pastedNodeModel = sourceNode.Clone();
 
@@ -1295,8 +1296,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             return copy;
         }
 
+        /// GTF-EDIT: Added virtual modifier
         /// <inheritdoc />
-        public GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true)
+        public virtual GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true)
         {
             var changedModelsDict = new Dictionary<IGraphElementModel, IReadOnlyList<ChangeHint>>();
             var deletedModels = new List<IGraphElementModel>();

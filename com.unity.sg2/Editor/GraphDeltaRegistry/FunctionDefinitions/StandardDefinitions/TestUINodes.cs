@@ -752,7 +752,7 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
-    internal class TestUpgrade_V1 : IStandardNode
+    internal class TestUpgrade_V2 : IStandardNode
     {
         public static string Name => "TestUpgrade";
         public static int Version => 2;
@@ -769,14 +769,14 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
-            Name + "(V1)",
+            Name + "(V2)",
             tooltip: string.Empty,
-            categories: new[] { "Test", "Upgradeable", "V1" },
+            categories: new[] { "Test", "Upgradeable", "V2" },
             synonyms: Array.Empty<string>()
         );
     }
 
-    internal class TestUpgrade_V2 : IStandardNode
+    internal class TestUpgrade_V3 : IStandardNode
     {
         public static string Name => "TestUpgrade";
         public static int Version => 3;
@@ -794,9 +794,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
-            Name + "(V2)",
+            Name + "(V3)",
             tooltip: string.Empty,
-            categories: new[] { "Test", "Upgradeable", "V2" },
+            categories: new[] { "Test", "Upgradeable", "V3" },
             synonyms: Array.Empty<string>()
         );
     }

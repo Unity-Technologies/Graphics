@@ -8,6 +8,32 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class TextureTypeConstant : BaseShaderGraphConstant
     {
+        protected override void StoreValueForCopy()
+        {
+            var currentTexture = GetValue();
+            if (currentTexture != null)
+            {
+                var textureObject = (Texture)currentTexture;
+                var texturePath = AssetDatabase.GetAssetPath(textureObject.GetInstanceID());
+                textureAssetGuid = AssetDatabase.GUIDFromAssetPath(texturePath).ToString();
+            }
+        }
+
+        public override object GetStoredValueForCopy()
+        {
+            if (!String.IsNullOrEmpty(textureAssetGuid))
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(textureAssetGuid);
+                var textureObject = AssetDatabase.LoadAssetAtPath<Texture>(assetPath);
+                return textureObject;
+            }
+
+            return null;
+        }
+
+        [SerializeField]
+        string textureAssetGuid;
+
         override protected object GetValue() => BaseTextureType.GetTextureAsset(GetField());
         override protected void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
         override public object DefaultValue => null;
