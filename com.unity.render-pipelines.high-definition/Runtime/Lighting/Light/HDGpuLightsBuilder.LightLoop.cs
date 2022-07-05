@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int directionalLightCount = visibleLights.sortedDirectionalLightCounts;
             int lightCounts = visibleLights.sortedLightCounts;
-            NativeArray<int> shadowIndices = new NativeArray<int>(lightCounts, Allocator.Temp);
+            NativeArray<int> shadowIndices = lightEntities.GetShadowIndicesScratchpadArray(lightCounts);
             HDAdditionalLightData.CalculateShadowIndices(hdCamera, in cullResults, visibleLights, lightEntities, hdShadowSettings, debugDisplaySettings,
                 m_ShadowManager, m_Asset, shadowIndices, ref m_DebugSelectedLightShadowIndex, ref m_DebugSelectedLightShadowCount);
 
@@ -486,8 +486,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-
-            shadowIndices.Dispose();
         }
     }
 }
