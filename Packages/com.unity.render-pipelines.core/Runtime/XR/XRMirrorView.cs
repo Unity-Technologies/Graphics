@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -62,11 +63,27 @@ namespace UnityEngine.Experimental.Rendering
                             s_MirrorViewMaterialProperty.SetVector(k_ScaleBiasRt, scaleBiasRt);
                             s_MirrorViewMaterialProperty.SetFloat(k_SourceTexArraySlice, blitParam.srcTexArraySlice);
 
+                            if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None && blitParam.foveatedRenderingInfo != IntPtr.Zero)
+                            {
+                                cmd.ConfigureFoveatedRendering(blitParam.foveatedRenderingInfo);
+
+                                if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                                    cmd.EnableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
+                            }
+
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mat, shaderPass, MeshTopology.Quads, 4, 1, s_MirrorViewMaterialProperty);
                         }
                     }
                 }
+            }
+
+            if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
+            {
+                cmd.ConfigureFoveatedRendering(IntPtr.Zero);
+
+                if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                    cmd.DisableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
             }
         }
 

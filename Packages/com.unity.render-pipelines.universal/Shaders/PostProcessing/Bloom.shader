@@ -8,6 +8,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
         float4 _BlitTexture_TexelSize;
 
@@ -53,6 +54,10 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+
+#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+            uv = RemapFoveatedRenderingResolve(uv);
+#endif
 
         #if _BLOOM_HQ
             float texelSize = _BlitTexture_TexelSize.x;
@@ -178,6 +183,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma vertex Vert
                 #pragma fragment FragPrefilter
                 #pragma multi_compile_local _ _BLOOM_HQ
+                #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
             ENDHLSL
         }
 
