@@ -3,12 +3,13 @@ using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    public abstract class BaseShaderGraphConstant : IConstant
+    public abstract class BaseShaderGraphConstant : IConstant, ISerializationCallbackReceiver
     {
         [SerializeReference]
         protected ShaderGraphModel graphModel;
@@ -24,8 +25,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return null;
             var nodeReader = graphHandler.GetNode(nodeName)
                 ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
-            var portReader = nodeReader.GetPort(portName);
-            return portReader.GetTypeField();
+            try
+            {
+                var portReader = nodeReader.GetPort(portName);
+                var typeField = portReader.GetTypeField();
+                return typeField;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return null;
+            }
         }
         public string NodeName => nodeName;
         public string PortName => portName;
@@ -39,24 +49,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        [SerializeField]
-        // TODO: Currently constants when their owning node model is cloned, don't get their values carried over
-        // TODO: (Sai) Is there a way to handle serializing this to its actual/leaf value and then serialize it over?
-        // TODO: In OnBeforeSerialize() call an abstract function that allows for implementor classes to define how to serialize for cloning
-        // TODO: In OnAfterSerialize() call an abstract function that allows for implementor classes to deserialize for cloning
-        public object ObjectValue {
+        public object ObjectValue
+        {
             get => IsInitialized ? GetValue() : DefaultValue;
             set {
                 if (IsInitialized)
                 {
                     SetValue(value);
-                    clonedObjectValue = value;
                 }
             }
         }
 
-        [SerializeField]
-        public object clonedObjectValue;
+        // TODO: Do this in CLDS instead
+        abstract protected void StoreValueForCopy();
+        abstract public object GetStoredValueForCopy();
 
         abstract protected object GetValue();
         abstract protected void SetValue(object value);
@@ -70,8 +76,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var copy = (GraphTypeConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);
-            copy.ObjectValue = ObjectValue;
+            copy.ObjectValue = GetStoredValueForCopy();
             return copy;
+        }
+
+        bool HasBackingVariableBeenDeleted()
+        {
+            foreach(var model in graphModel.VariableDeclarations)
+            {
+                // If we can find a variable that is tied to this constant, we're fine!
+                if (model is GraphDataVariableDeclarationModel variableDeclarationModel
+                && variableDeclarationModel.graphDataName == portName)
+                {
+                    return false;
+                }
+            }
+
+            // If we get to here, this constant has been orphaned and someone's maintaining a leaky reference
+            return true;
+        }
+
+        public void OnBeforeSerialize()
+        {
+            // TODO: (Sai) this is a memory leak of some sort
+            // TODO: the owning variable gets deleted so someone else is maintaining a reference
+            if (nodeName == graphModel.BlackboardContextName && HasBackingVariableBeenDeleted())
+                return;
+            StoreValueForCopy();
+        }
+
+        public void OnAfterDeserialize()
+        {
         }
     }
 }

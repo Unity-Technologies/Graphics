@@ -146,7 +146,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph)
         {
-            throw new NotImplementedException();
+            // TODO: (Sai) When we have built-in keywords, those do not allow for duplication
+            return true;
         }
 
         public override IInspectorModel CreateInspectorModel(IModel inspectedModel)

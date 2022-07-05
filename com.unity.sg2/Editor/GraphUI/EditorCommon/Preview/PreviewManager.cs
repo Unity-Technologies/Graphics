@@ -187,7 +187,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (wasNodeDeleted)
             {
                 OnNodeRemoved(nodeName);
-                m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
+                m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName, true);
             }
             else
             {
@@ -220,10 +220,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)
         {
-            // TODO: (Sai) Would it be better to have a way to gather any variable nodes linked to a blackboard item at a GraphHandler level instead of here?
-            var linkedVariableNodes = m_GraphModelStateComponent.GraphModel.NodeModels.Where(
-                node => node is GraphDataVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
-                                                                                                                    && variableDeclarationModel.graphDataName == propertyName);
+            var linkedVariableNodes =  m_GraphModel.GetLinkedVariableNodes(propertyName);
 
             var variableNodeNames = new List<string>();
             foreach(var node in linkedVariableNodes)

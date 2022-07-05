@@ -146,7 +146,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_NodePreviewMode = value;
         }
 
-
         public Texture PreviewTexture { get; private set; }
 
         public bool PreviewShaderIsCompiling { get; private set; }

@@ -84,6 +84,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             SetUpReferableEntry(AddContextEntry(contextNode, type, fieldName, registry), usage, source, displayName, defaultValue);
         }
 
+        static public void RemoveContextEntry(NodeHandler contextNode, string contextEntryName)
+        {
+            contextNode.RemovePort(contextEntryName);
+            contextNode.RemovePort($"out_{contextEntryName}");
+        }
+
+        public static void RemoveReferableEntry(
+            NodeHandler contextNode,
+            string contextEntryName)
+        {
+            RemoveContextEntry(contextNode, contextEntryName);
+        }
+
         public void BuildNode(NodeHandler node, Registry registry)
         {
             //This should do nothing, but temporarily keeping this in
@@ -92,7 +105,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
                 var context = registry.GetContextDescriptor(contextKey);
                 foreach (var entry in context.GetEntries())
-                    AddContextEntry(node, entry, registry);
+                    AddReferableEntry(node, entry, registry);
             }
             catch
             {

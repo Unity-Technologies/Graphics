@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             GraphHandler graph = new(defaultRegistry);
-            graph.AddContextNode(propertyKey);
+            graph.AddContextNode(propertyKey.Name);
             graph.AddContextNode(contextKey);
             graph.ReconcretizeAll();
 

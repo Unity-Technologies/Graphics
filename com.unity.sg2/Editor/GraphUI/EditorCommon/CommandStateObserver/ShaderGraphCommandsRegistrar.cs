@@ -6,7 +6,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class ShaderGraphCommandsRegistrar
     {
-        public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, PreviewManager previewManager, ShaderGraphModel shaderGraphModel, Dispatcher dispatcher)
+        public static void RegisterCommandHandlers(
+            BaseGraphTool graphTool,
+            GraphView graphView,
+            BlackboardView blackboardView,
+            PreviewManager previewManager,
+            ShaderGraphModel shaderGraphModel,
+            Dispatcher dispatcher)
         {
             if (dispatcher is not CommandDispatcher commandDispatcher)
                 return;
@@ -52,14 +58,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 previewManager
             );
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, ChangeActiveTargetsCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeActiveTargetsCommand>(
                 ChangeActiveTargetsCommand.DefaultCommandHandler,
-                graphTool.UndoStateComponent
+                graphTool.UndoStateComponent,
+                graphViewModel.GraphModelState
             );
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, ChangeTargetSettingsCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeTargetSettingsCommand>(
                 ChangeTargetSettingsCommand.DefaultCommandHandler,
-                graphTool.UndoStateComponent
+                graphTool.UndoStateComponent,
+                graphViewModel.GraphModelState
             );
 
             //commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, ChangePreviewModeCommand>(
@@ -72,7 +80,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Unregister the base GraphView command handling for this as we want to insert our own
             graphView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
-                ShaderGraphCommandOverrides.HandleDeleteElements,
+                ShaderGraphCommandOverrides.HandleDeleteNodesAndEdges,
+                graphTool.UndoStateComponent,
+                graphViewModel.GraphModelState,
+                graphViewModel.SelectionState,
+                previewManager);
+
+            blackboardView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
+            blackboardView.Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
+                ShaderGraphCommandOverrides.HandleDeleteBlackboardItems,
                 graphTool.UndoStateComponent,
                 graphViewModel.GraphModelState,
                 graphViewModel.SelectionState,

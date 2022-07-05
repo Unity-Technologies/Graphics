@@ -284,6 +284,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return ExecuteCommand("Duplicate");
         }
 
+        public bool SendCutCommand()
+        {
+            return ExecuteCommand("Cut");
+        }
+
+        public bool SendCopyCommand()
+        {
+            return ExecuteCommand("Copy");
+        }
+
+        public bool SendPasteCommand()
+        {
+            return ExecuteCommand("Paste");
+        }
+
         bool ExecuteCommand(string command)
         {
             return m_Window.SendEvent(new Event { type = EventType.ExecuteCommand, commandName = command });

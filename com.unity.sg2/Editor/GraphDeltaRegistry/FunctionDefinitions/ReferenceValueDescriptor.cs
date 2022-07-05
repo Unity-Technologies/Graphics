@@ -2,11 +2,11 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     public class ReferenceValueDescriptor : IValueDescriptor
     {
-        public string Tag { get; private set; }
+        public string ContextName { get; private set; }
 
-        public ReferenceValueDescriptor(string tag)
+        public ReferenceValueDescriptor(string contextName)
         {
-            Tag = tag;
+            ContextName = contextName;
         }
     }
 }

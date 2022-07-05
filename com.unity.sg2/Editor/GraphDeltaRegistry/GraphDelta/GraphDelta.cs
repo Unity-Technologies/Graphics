@@ -60,6 +60,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             builder.BuildNode(nodeHandler, registry);
             nodeHandler.DefaultLayer = k_user;
 
+            foreach(var port in nodeHandler.GetPorts())
+            {
+                if (!port.IsInput || !port.IsHorizontal)
+                    continue;
+
+                if(port.HasMetadata(PortHandler.kDefaultConnection))
+                {
+                    var contextName = port.GetMetadata<string>(PortHandler.kDefaultConnection);
+                    var contextConnection = new ContextConnection(contextName, port.ID);
+                    m_data.defaultConnections.Add(contextConnection);
+                }
+            }
+
             return nodeHandler;
         }
 
@@ -149,9 +162,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodeHandler.DefaultLayer = k_user;
             }
 
-            foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
+            try
             {
-                ReconcretizeNode(downstream.ID, registry);
+                foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
+                {
+                    ReconcretizeNode(downstream.ID, registry);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
 
             return builder != null;
@@ -189,6 +209,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             catch (Exception e)
             {
+                //Not going to change this now, but this should probably be done
+                //m_data.edges.Remove(new Edge(output, input));
                 Debug.LogException(e);
                 Debug.LogError("Failed to add edge.");
             }
@@ -215,6 +237,42 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 Debug.LogException(e);
                 Debug.LogError("Failed to remove edge.");
             }
+        }
+
+        public void AddDefaultConnection(string contextEntryName, ElementID input, Registry registry)
+        {
+            var newConnection = new ContextConnection(contextEntryName, input);
+            m_data.defaultConnections.Add(newConnection);
+            PortHandler port = new PortHandler(input, this, registry);
+            try
+            {
+                // TODO (Brett) This is taken out because it was causing loop
+                //ReconcretizeNode(port.GetNode().ID, registry);
+            }
+            catch (Exception e)
+            {
+                m_data.defaultConnections.Remove(newConnection);
+                Debug.LogException(e);
+                Debug.LogError("Failed to add default context connection.");
+            }
+        }
+
+        public void RemoveDefaultConnection(string contextEntryName, ElementID input, Registry registry)
+        {
+            var newConnection = new ContextConnection(contextEntryName, input);
+            m_data.defaultConnections.Remove(newConnection);
+            PortHandler port = new PortHandler(input, this, registry);
+            try
+            {
+                //ReconcretizeNode(port.GetNode().ID, registry);
+            }
+            catch (Exception e)
+            {
+                m_data.defaultConnections.Add(newConnection);
+                Debug.LogException(e);
+                Debug.LogError("Failed to remove default context connection.");
+            }
+
         }
 
         internal IEnumerable<NodeHandler> GetConnectedDownstreamNodes(ElementID node, Registry registry)
@@ -279,13 +337,71 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if(isInput && edge.Input.Equals(port))
                 {
                     yield return new PortHandler(edge.Output, this, registry);
+                    yield break; // only one input connection is allowed - break on the first input
                 }
                 else if (!isInput && edge.Output.Equals(port))
                 {
                     yield return new PortHandler(edge.Input, this, registry);
                 }
-
             }
+
+            foreach(var defConnection in m_data.defaultConnections)
+            {
+                PortHandler def = GetDefaultConnection(defConnection.Context, registry);
+                if (def == null)
+                    continue;
+                if(isInput && defConnection.Input.Equals(port))
+                {
+                    yield return def;
+                    yield break; // only one input connection is allowed - break on the first input
+                }
+
+                if(!isInput && def.Equals(port))
+                {
+                    //only valid if no other connection exists to this port
+                    if(!m_data.edges.Any(e => e.Input.Equals(defConnection.Input)))
+                    {
+                        yield return new PortHandler(defConnection.Input, this, registry);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<NodeHandler> GetContextNodesInOrder(Registry registry)
+        {
+            NodeHandler step = null;
+            foreach(var node in GetNodes(registry))
+            {
+                if (node.HasMetadata("_contextDescriptor") && node.GetPort("In") == null)
+                {
+                    step = node;
+                    break;
+                }
+            }
+
+            while (step != null)
+            {
+                yield return step;
+                step = step.GetPort("Out")?.GetConnectedPorts().First()?.GetNode();
+            }
+        }
+
+        private PortHandler GetDefaultConnection(string contextEntryName, Registry registry)
+        {
+            foreach (var contextNode in GetContextNodesInOrder(registry))
+            {
+                foreach(var port in contextNode.GetPorts())
+                {
+                    if (!port.IsInput && port.IsHorizontal)
+                    {
+                        if (port.ID.LocalPath.Equals($"out_{contextEntryName}"))
+                        {
+                            return port;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, Registry registry)

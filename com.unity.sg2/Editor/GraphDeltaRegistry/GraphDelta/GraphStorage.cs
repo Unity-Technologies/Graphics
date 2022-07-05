@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     }
 
     [Serializable]
-    internal class Edge 
+    internal class Edge
     {
         [SerializeField]
         private ElementID m_output;
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public Edge()
         {
         }
-        public Edge(ElementID output, ElementID input) 
+        public Edge(ElementID output, ElementID input)
         {
             this.m_output = output;
             this.m_input = input;
@@ -57,15 +57,88 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     }
 
     [Serializable]
+    internal class ContextConnection
+    {
+        [SerializeField]
+        private string m_context;
+        public string Context { get => m_context; }
+        [SerializeField]
+        private ElementID m_input;
+        public ElementID Input { get => m_input; }
+
+        public ContextConnection()
+        {
+        }
+        public ContextConnection(string context, ElementID input)
+        {
+            this.m_context = context;
+            this.m_input = input;
+        }
+
+        public bool Equals(ContextConnection obj)
+        {
+            return Context.Equals(obj.Context) && Input.Equals(obj.Input);
+        }
+    }
+
+
+    // Needed to get around Unitys inability to serialize list of lists
+    [Serializable]
+    internal class ReferableToReferenceNodeMapping
+    {
+        public string this[int key]
+        {
+            get => referenceNodeNames[key];
+            set => referenceNodeNames[key] = value;
+        }
+
+        [SerializeField]
+        internal List<string> referenceNodeNames;
+    }
+
+    [Serializable]
     internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
         [SerializeField]
         internal List<Edge> edges = new List<Edge>();
 
+        [SerializeField]
+        internal List<ContextConnection> defaultConnections = new List<ContextConnection>();
+
+        // TODO (Sai): Cleanup how this is exposed and consult with Liz to a better solution
+        internal Dictionary<string, ReferableToReferenceNodeMapping> referableToReferenceNodeMap = new();
+
+        [SerializeField]
+        List<string> referableNames;
+
+        [SerializeField]
+        List<ReferableToReferenceNodeMapping> referenceNodeMappings;
+
         protected override void AddDefaultLayers()
         {
             AddLayer(0, GraphDelta.k_concrete, false);
             AddLayer(1, GraphDelta.k_user,     true);
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            referableNames = referableToReferenceNodeMap.Keys.ToList();
+            referenceNodeMappings = referableToReferenceNodeMap.Values.ToList();
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            referableToReferenceNodeMap = new Dictionary<string, ReferableToReferenceNodeMapping>();
+
+            for(var index = 0; index < referableNames.Count; index++)
+            {
+                var referable = referableNames[index];
+                referableToReferenceNodeMap.Add(referable, referenceNodeMappings[index]);
+            }
         }
 
         internal GraphDataHandler GetHandler(ElementID elementID, GraphDelta delta, Registry registry)
@@ -163,12 +236,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal class EdgeList
         {
             public List<Edge> edges;
+            public List<ContextConnection> defaultConnections;
         }
         internal (string layerData, string metaData, string edgeData) CreateCopyLayerData(IEnumerable<NodeHandler> nodes)
         {
             List<DataReader> readers = new List<DataReader>();
             EdgeList edgeList = new EdgeList();
             edgeList.edges = new List<Edge>();
+            edgeList.defaultConnections = new List<ContextConnection>();
             foreach(var node in nodes)
             {
                 readers.Add(node.Reader);
@@ -183,6 +258,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 edgeList.edges.Add(edge);
                             }
                         }
+                        foreach(var def in defaultConnections.Where(e => e.Input.Equals(port.ID)))
+                        {
+                            edgeList.defaultConnections.Add(def);
+                        }
+
                     }
                     else
                     {

@@ -386,7 +386,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         continue;
                 }
 
-                var pastedNode = graphModel.DuplicateNode(originalModel, delta, graphViewUpdater);
+                // GTF-EDIT: Passing in state updater and edge list arguments, should not be PR-ed to GTF
+                var pastedNode = graphModel.DuplicateNode(originalModel, delta, graphViewUpdater, copyPasteData.edges);
 
                 if (variableNode != null)
                 {
