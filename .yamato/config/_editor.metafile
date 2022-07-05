@@ -1,6 +1,27 @@
 editor_priming_agent: package_ci_ubuntu_small
 editor_pin_agent: package_ci_ubuntu_small
 
+
+editor_priming_config:
+  use_predefined_variables: True
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu:v2.0.0-947723
+    flavor: b1.small
+  skip_checkout: true
+  job_timeout: 12
+  commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o <PLATFORM_OS> --wait --skip-download <COMPONENTS> > unity_revision.txt
+  add_artifacts:
+    - artifacts.unity_revision.paths: "unity_revision.txt"
+
+
+
 # EDITOR PINNING
 
 editor_versions_file: .yamato/_latest_editor_versions_TRACK.metafile
