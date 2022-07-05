@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         [SerializeField]
         internal List<ContextConnection> defaultConnections = new List<ContextConnection>();
+
         // TODO (Sai): Cleanup how this is exposed and consult with Liz to a better solution
         internal Dictionary<string, ReferableToReferenceNodeMapping> referableToReferenceNodeMap = new();
 
