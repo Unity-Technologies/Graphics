@@ -38,6 +38,24 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             return hasPreviewableOutputPort && GraphTypeHelpers.GetHeight(typeField) == GraphType.Height.One;
         }
 
+        static readonly Color BadImageResults = new(1, 1, 0, 1);
+
+        static readonly RegistryKey MatrixDeterminant = new RegistryKey { Name = "MatrixDeterminant", Version = 1 };
+        static readonly RegistryKey SampleCube = new RegistryKey { Name = "SampleReflectedCubemap", Version = 1 };
+        static readonly RegistryKey SampleTex2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };
+        static readonly RegistryKey SampleTex3d = new RegistryKey { Name = "SampleTexture3D", Version = 1 };
+        static readonly RegistryKey SampleTexArray = new RegistryKey { Name = "SampleTexture2DArray", Version = 1 };
+
+        static string FindInputPortNameByTypeKeyName(NodeHandler node, string typeName)
+        {
+            foreach(var port in node.GetPorts().Where(e=> e.IsInput))
+            {
+                if (port.GetTypeField().GetRegistryKey().Name == typeName)
+                    return port.LocalID;
+            }
+            return null;
+        }
+
         static ShaderGraphRegistry SGR = InitSGR();
         // Need to resolve the node names statically so that the Test Runner is happy and shows each node.
         static string[] nodeNames = InitNodeNames();
@@ -64,52 +82,38 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                 var typeName = outPort?.GetTypeField()?.GetRegistryKey().Name;
                 previewName = "Helper";
 
+                RegistryKey key = new RegistryKey { Name = "Invalid", Version = 1 };
+
                 if (typeName == GraphType.kRegistryKey.Name)
                 {
-                    var keyMatDet = new RegistryKey { Name = "MatrixDeterminant", Version = 1 };
-                    Graph.AddNode(keyMatDet, previewName);
-                    Graph.TryConnect(nodeName, portName, previewName, "In");
+                    key = MatrixDeterminant;
                 }
-                if (typeName == BaseTextureType.kRegistryKey.Name)
+                else if (typeName == BaseTextureType.kRegistryKey.Name)
                 {
                     switch (BaseTextureType.GetTextureType(outPort.GetTypeField()))
                     {
-                        case BaseTextureType.TextureType.Texture2D:
-                            var key2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };
-                            Graph.AddNode(key2d, previewName);
-                            Graph.TryConnect(nodeName, portName, previewName, "Texture");
-                            break;
-
-                        case BaseTextureType.TextureType.Texture3D:
-                            var key3d = new RegistryKey { Name = "SampleTexture3D", Version = 1 };
-                            Graph.AddNode(key3d, previewName);
-                            Graph.TryConnect(nodeName, portName, previewName, "Texture");
-                            break;
-
-                        case BaseTextureType.TextureType.Texture2DArray:
-                            var keyArray = new RegistryKey { Name = "SampleTexture2DArray", Version = 1 };
-                            Graph.AddNode(keyArray, previewName);
-                            Graph.TryConnect(nodeName, portName, previewName, "TextureArray");
-                            break;
-
-                        case BaseTextureType.TextureType.CubeMap:
-                            var keyCube = new RegistryKey { Name = "SampleReflectedCubemap", Version = 1 };
-                            Graph.AddNode(keyCube, previewName);
-                            Graph.TryConnect(nodeName, portName, previewName, "Cube");
-                            break;
+                        case BaseTextureType.TextureType.Texture2D: key = SampleTex2d; break;
+                        case BaseTextureType.TextureType.Texture3D: key = SampleTex3d; break;
+                        case BaseTextureType.TextureType.Texture2DArray: key = SampleTexArray; break;
+                        case BaseTextureType.TextureType.CubeMap: key = SampleCube; break;
                     }
                 }
-                if (typeName == SamplerStateType.kRegistryKey.Name)
+                else if (typeName == SamplerStateType.kRegistryKey.Name)
                 {
-                    var key2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };
-                    Graph.AddNode(key2d, previewName);
-                    Graph.TryConnect(nodeName, portName, previewName, "Sampler");
+                    key = SampleTex2d;
                 }
-                if (typeName == GradientType.kRegistryKey.Name)
+                else if (typeName == GradientType.kRegistryKey.Name)
                 {
-                    Graph.AddNode<SampleGradientNode>(previewName);
-                    Graph.TryConnect(nodeName, outPort.LocalID, previewName, SampleGradientNode.kGradient);
+                    key = Registry.ResolveKey<SampleGradientNode>();
                 }
+                else
+                {
+                    Assert.Fail($"The type: {typeName} of output port: {portName} does not have a node key associated with it.");
+                }
+
+                var nodeHelper = Graph.AddNode(key, previewName);
+                var portHelperName = FindInputPortNameByTypeKeyName(nodeHelper, typeName);
+                Graph.TryConnect(nodeName, portName, previewName, portHelperName);
             }
 
 
@@ -128,7 +132,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
 
             var material = Preview.RequestNodePreviewMaterial(previewName);
             var value = PreviewTestFixture.SampleMaterialColor(material);
-            Assert.AreNotEqual(new Color(1,1,0,1), value);
+            Assert.AreNotEqual(BadImageResults, value);
         }
     }
 }
