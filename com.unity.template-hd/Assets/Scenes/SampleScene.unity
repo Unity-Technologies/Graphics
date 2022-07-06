@@ -2344,29 +2344,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 714672050}
     m_Modifications:
-    - target: {fileID: 2135859148504277512, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 2783000264598635044, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 3977989256849039896, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 5458761457199449238, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
     - target: {fileID: 6233257718770741736, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
       propertyPath: m_Name
       value: LoungeChair_01
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233257718770741736, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
       objectReference: {fileID: 0}
     - target: {fileID: 6979351295171511291, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
       propertyPath: m_RootOrder
@@ -2411,10 +2391,6 @@ PrefabInstance:
     - target: {fileID: 6979351295171511291, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7585118853056521111, guid: 2658dc79455b4694e9b38cd7b9453ff0, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19498,7 +19474,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -3.4432373, z: -0}
+    textureOffset: {x: -0, y: -28.027739, z: -0}
     falloffMode: 0
   m_Version: 2
 --- !u!1001 &1504255721
