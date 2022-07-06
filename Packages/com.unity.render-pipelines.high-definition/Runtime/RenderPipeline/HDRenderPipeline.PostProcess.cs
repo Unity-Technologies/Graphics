@@ -132,7 +132,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowsMidtonesHighlights m_ShadowsMidtonesHighlights;
         ColorCurves m_Curves;
         FilmGrain m_FilmGrain;
-        PathTracing m_PathTracing;
 
         // Prefetched frame settings (updated on every frame)
         bool m_StopNaNFS;
@@ -346,7 +345,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
             m_Curves = stack.GetComponent<ColorCurves>();
             m_FilmGrain = stack.GetComponent<FilmGrain>();
-            m_PathTracing = stack.GetComponent<PathTracing>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
@@ -367,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing) || camera.IsTAAUEnabled();
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
-            m_AntialiasingFS &= !m_PathTracing.enable.value;
+            m_AntialiasingFS &= !camera.IsPathTracingEnabled();
 
             // Sanity check, cant run dlss unless the pass is not null
             m_DLSSPassEnabled = m_DLSSPass != null && camera.IsDLSSEnabled();
@@ -558,7 +556,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
-                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !m_PathTracing.enable.value)
+                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !hdCamera.IsPathTracingEnabled())
                 {
                     RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
                 }
@@ -2915,7 +2913,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                hdCamera.IsPathTracingEnabled() &&
                 hdCamera.camera.cameraType != CameraType.Preview &&
                 m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
 
