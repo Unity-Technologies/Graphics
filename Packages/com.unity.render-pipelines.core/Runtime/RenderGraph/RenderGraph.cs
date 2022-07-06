@@ -644,6 +644,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </code>
         /// </example>
         /// <seealso cref="RenderGraphExecution"/>
+        /// <returns><see cref="RenderGraphExecution"/></returns>
         public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;

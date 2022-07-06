@@ -50,6 +50,10 @@ namespace UnityEngine.Experimental.Rendering
             return false;
         }
 
+        /// <summary>
+        /// Updates the cell streaming for a <see cref="Camera"/>
+        /// </summary>
+        /// <param name="camera">The camera to be updated</param>
         public void UpdateCellStreaming(Camera camera)
         {
             if (!isInitialized) return;

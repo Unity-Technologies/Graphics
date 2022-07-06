@@ -75,6 +75,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Render Probe Volume related debug
         /// </summary>
+        /// <param name="camera">The camera</param>
         public void RenderDebug(Camera camera)
         {
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)

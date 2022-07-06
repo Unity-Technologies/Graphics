@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Modifies the <see cref="SerializedObject"/> for this Light slider
         /// </summary>
-        /// <param name="serialized"></param>
+        /// <param name="serialized">The object</param>
         public void SetSerializedObject(SerializedObject serialized)
         {
             m_SerializedObject = serialized;
@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering
         /// <param name="value">The current value, and also returns the modified value.</param>
         /// <param name="sliderRange">The ranges of the slider.</param>
         /// <param name="_">Not used</param>
-        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 valueRange)
+        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 _)
         {
             DoSlider(rect, ref value, sliderRange);
         }

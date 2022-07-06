@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering
     public abstract class DebugDisplaySettings<T> : IDebugDisplaySettings
         where T : IDebugDisplaySettings, new()
     {
+        /// <summary>
+        /// The settings instantiated
+        /// </summary>
         protected readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
 
         private static readonly Lazy<T> s_Instance = new Lazy<T>(() =>
@@ -73,6 +76,12 @@ namespace UnityEngine.Rendering
         }
         #endregion
 
+        /// <summary>
+        /// Adds a new data
+        /// </summary>
+        /// <typeparam name="TData">a <see cref="IDebugDisplaySettingsData"/></typeparam>
+        /// <param name="newData">The new data</param>
+        /// <returns>The data that has been added</returns>
         protected TData Add<TData>(TData newData) where TData : IDebugDisplaySettingsData
         {
             m_Settings.Add(newData);

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Debug data UI, this is the main holder for debug displays
+    /// </summary>
     public class DebugDisplaySettingsUI : IDebugData
     {
         private IEnumerable<IDebugDisplaySettingsPanelDisposable> m_DisposablePanels;
@@ -21,6 +24,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Registers a <see cref="IDebugDisplaySettings"/>
+        /// </summary>
+        /// <param name="settings">The settings to be registered</param>
         public void RegisterDebug(IDebugDisplaySettings settings)
         {
             DebugManager debugManager = DebugManager.instance;
@@ -47,6 +54,9 @@ namespace UnityEngine.Rendering
             m_Settings.ForEach(onExecute);
         }
 
+        /// <summary>
+        /// Clears all the <see cref="IDebugDisplaySettings"/> that were registered
+        /// </summary>
         public void UnregisterDebug()
         {
             DebugManager debugManager = DebugManager.instance;
@@ -68,6 +78,10 @@ namespace UnityEngine.Rendering
         }
 
         #region IDebugData
+        /// <summary>
+        /// Action when a reset is done, called by the DebugManager
+        /// </summary>
+        /// <returns>The <see cref="Action"/> that will be executed on reset</returns>
         public Action GetReset()
         {
             return Reset;

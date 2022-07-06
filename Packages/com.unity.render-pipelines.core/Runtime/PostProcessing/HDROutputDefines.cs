@@ -2,10 +2,10 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
 {
-    [GenerateHLSL]
     /// <summary>
     /// The available options for range reduction/tonemapping when outputting to an HDR device.
     /// </summary>
+    [GenerateHLSL]
     public enum HDRRangeReduction
     {
         /// <summary>

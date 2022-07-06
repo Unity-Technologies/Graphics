@@ -466,7 +466,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="cmd">Command buffer used for rendering.</param>
         /// <param name="source">Source texture.</param>
-        /// <param name="scaleBiasTex">Scale and bias for the input texture.</param>
         /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
         /// <param name="mipLevelTex">Mip level to blit.</param>
         public static void BlitCubeToOctahedral2DQuadSingleChannel(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex)

@@ -29,13 +29,24 @@ namespace UnityEngine.Experimental.Rendering
         [HideInInspector, Range(0f, 2f)]
         public float geometryDistanceOffset = 0.2f;
 
+        /// <summary>
+        /// The <see cref="LayerMask"/>
+        /// </summary>
         public LayerMask objectLayerMask = -1;
 
-
+        /// <summary>
+        /// The lowest subdivision level override
+        /// </summary>
         [HideInInspector]
         public int lowestSubdivLevelOverride = 0;
+        /// <summary>
+        /// The highest subdivision level override
+        /// </summary>
         [HideInInspector]
         public int highestSubdivLevelOverride = -1;
+        /// <summary>
+        /// If the subdivision levels need to be overriden
+        /// </summary>
         [HideInInspector]
         public bool overridesSubdivLevels = false;
 
