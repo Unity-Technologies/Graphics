@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
                 size = new Vector2(125, 125);
                 window.SetMainPreviewReference(m_MainPreviewView);
+                // TODO: Need to cache image or have a way to request preview manager to update this
                 return m_MainPreviewView;
             }
 
