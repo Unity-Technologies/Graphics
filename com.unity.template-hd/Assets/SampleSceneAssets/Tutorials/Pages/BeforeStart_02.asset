@@ -43,14 +43,14 @@ MonoBehaviour:
 
           It provides a filtered
           view for all lighting-related GameObjects, from <b>Lights</b> to <b>Reflection
-          Probes,</b> as well as <b>Emissive Materials.</b> It is therfore extremely
-          useful in large scenes that may contain a very large number of such objects,
-          without having to rely on the <i>Hierarchy</i> window.
+          Probes,</b> as well as <b>Volumes</b> and <b>Emissive Materials.</b> It
+          is therfore extremely useful in large scenes that may contain a very large
+          number of objects, without having to solely rely on the <i>Hierarchy</i>
+          window.
 
 
-          The
-          <b>Light Explorer</b> also lets you tune key properties directly within
-          the tool, such as light intensities and colors.'
+          The <b>Light Explorer</b> also lets you tune key properties
+          directly within the tool, such as light intensities and colors.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
