@@ -60,6 +60,21 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
                 }
             }
+            else
+            {
+                // For procedural VT, we only need to expose a single property, indicating the referenceName and the number of layers
+
+                // Adds a property as:
+                //   [ProceduralTextureStack.MyStack(1)] [NoScaleOffset] MyStack("Procedural Virtual Texture", 2D) = "white" {}
+                // or:
+                //   [GlobalProceduralTextureStack.MyStack(2)] [NoScaleOffset] MyStack("Procedural Virtual Texture", 2D) = "white" {}
+                string prefixString = value.shaderDeclaration == HLSLDeclaration.UnityPerMaterial
+                    ? "ProceduralTextureStack"
+                    : "GlobalProceduralTextureStack";
+
+                int numLayers = value.layers.Count;
+                builder.AppendLine($"{hideTagString}[{prefixString}.{referenceName}({numLayers})][NoScaleOffset]{referenceName}(\"{"Procedural Virtual Texture"}\", 2D) = \"white\" {{}}");
+            }
         }
 
         internal override string GetPropertyBlockString()
@@ -75,8 +90,7 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                // PVT should always be Global to be compatible with SRP batcher
-                HLSLDeclaration decl = (value.procedural) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
+                HLSLDeclaration decl = (value.procedural) ? value.shaderDeclaration : HLSLDeclaration.UnityPerMaterial;
 
                 action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
@@ -205,11 +219,8 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            if (!value.procedural)
-            {
-                // non procedural VT shader properties must always be exposed
-                generatePropertyBlock = true;
-            }
+            // VT shader properties must be exposed so they can be picked up by the native-side VT system
+            generatePropertyBlock = true;
         }
     }
 }
