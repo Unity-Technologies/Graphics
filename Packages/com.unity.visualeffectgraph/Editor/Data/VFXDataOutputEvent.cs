@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXContext, int[]> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
             VFXSystemNames systemNames)
@@ -92,10 +92,13 @@ namespace UnityEditor.VFX
                 if (spawner.contextType != VFXContextType.Spawner)
                     throw new InvalidOperationException("VFXDataOutputEvent unexpected link on Output event");
 
+                if (contextSpawnToBufferIndex[spawner].Length != 1)
+                    throw new InvalidOperationException("VFXDataOutputEvent doesn't support replication (yet)");
+
                 systemBufferMappings.Add(new VFXMapping()
                 {
                     name = "spawner_input",
-                    index = contextSpawnToBufferIndex[spawner]
+                    index = contextSpawnToBufferIndex[spawner][0]
                 });
             }
 

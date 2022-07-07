@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXContext, int[]> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
             VFXSystemNames systemNames = null)
