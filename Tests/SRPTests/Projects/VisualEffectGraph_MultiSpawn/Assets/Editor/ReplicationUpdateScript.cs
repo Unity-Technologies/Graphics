@@ -11,7 +11,7 @@ namespace Test
 {
     class Sample
     {
-        [MenuItem("Edit/Visual Effects//Modify Replication Count (test)", priority = 321)]
+        [MenuItem("Edit/VFX/Modify Replication Count (test)", priority = 321)]
         public static void ModifyReplicationCOunt()
         {
             var vfxAssets = new List<VisualEffectAsset>();
@@ -55,9 +55,6 @@ namespace Test
                     bounds.size = new Vector3(1, 1, 1);
                     boundingBoxSlot.value = bounds;
                 }
-
-		//TODOPAUL: Update following line
-                //graph.OnSaved();
             }
 
             AssetDatabase.SaveAssets();
