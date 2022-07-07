@@ -223,12 +223,6 @@ namespace UnityEditor.VFX.Block
                         throw new InvalidOperationException("Unexpected placement mode : " + placementMode);
                 }
 
-                if (compositionPosition == AttributeCompositionMode.Blend)
-                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesBlendPosition)));
-
-                if (compositionDirection == AttributeCompositionMode.Blend)
-                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesBlendDirection)));
-
                 return properties;
             }
         }
