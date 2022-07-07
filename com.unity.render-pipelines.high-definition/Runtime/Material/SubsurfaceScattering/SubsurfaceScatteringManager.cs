@@ -227,8 +227,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Most modern GPUs support it. We can avoid performing a costly copy in this case.
             // TODO: test/implement for other platforms.
             return (SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12);
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries);
         }
 
         struct SubsurfaceScatteringParameters

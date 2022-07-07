@@ -7,6 +7,7 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
   - type: editmode
+
 platforms:
   - name: Win
     apis:
@@ -17,7 +18,20 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -27,7 +41,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
@@ -35,13 +49,22 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - Standalone
+            - editmode
+            - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

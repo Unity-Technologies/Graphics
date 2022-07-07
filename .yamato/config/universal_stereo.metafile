@@ -5,20 +5,29 @@ test_platforms:
   - type: Standalone
  # - type: playmode
   - type: editmode
+
 platforms:
   - name: Win
-    apis: 
+    apis:
     build_configs:
       - name: mono
     color_spaces:
       - Linear
-all:
-  dependencies:
-    - platform: Win
-      api: ''
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - editmode
-  #      - playmode
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: ''
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+          - editmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

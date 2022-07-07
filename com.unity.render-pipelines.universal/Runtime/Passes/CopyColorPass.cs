@@ -44,6 +44,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
         {
+            // Configure pass only for the first eye in XR multipass to avoid calling GetTemporaryRT with the same id twice
+            if (eyeIndex > 0)
+                return;
+
             RenderTextureDescriptor descriptor = cameraTextureDescripor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;

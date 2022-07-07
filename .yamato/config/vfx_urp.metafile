@@ -7,6 +7,7 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
 #  - type: editmode
+
 platforms:
   - name: Win
     apis:
@@ -17,7 +18,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+  - name: OSX
     apis:
       - name: OpenGLCore
         exclude_test_platforms:
@@ -28,7 +29,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -37,12 +38,21 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - playmode
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - Standalone
+            - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

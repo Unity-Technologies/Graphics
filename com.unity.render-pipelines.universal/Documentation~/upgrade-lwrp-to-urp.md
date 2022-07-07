@@ -5,7 +5,7 @@ Unity upgrades some things automatically, and you must make some manual changes.
 
 ## Before upgrading
 ### Update Assembly Definition Assets
-URP uses GUIDs instead of Assembly Definition string names. If you are using Assembly Definition Assets (ASMDefs) in your Project, you should ensure that **Use GUIDs** is enabled on each of them. 
+URP uses GUIDs instead of Assembly Definition string names. If you are using Assembly Definition Assets (ASMDefs) in your Project, you should ensure that **Use GUIDs** is enabled on each of them.
 
 Unity upgrades any existing string references to LWRP automatically as part of the upgrade process, but it is best practice to use GUIDs on your Assembly Definition Assets for future proofing.
 
@@ -70,7 +70,7 @@ As part of the automatic upgrade process, Unity installed URP as a dependency of
 
 To install URP as a dependency of the Project:
 
-* Go to menu: **Window** > **Package Manager**. 
+* Go to menu: **Window** > **Package Manager**.
 * Locate the **Universal RP** package, and note the version number to the right of its name. This is the version of URP that has been added to your Project.
 * Close Unity.
 * In your file explorer, open the root folder of your Unity Project.

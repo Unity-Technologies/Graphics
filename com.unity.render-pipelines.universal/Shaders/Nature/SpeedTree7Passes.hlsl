@@ -157,6 +157,8 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     output.positionWS = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;
 
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
     return output;
 }
 

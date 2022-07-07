@@ -4,6 +4,40 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.8.0] - 2021-07-23
+
+### Fixed
+- Fixed wrong LUT initialization in Wireframe mode.
+
+## [7.7.0] - 2021-04-28
+
+### Added
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed lights shadow frustum near and far planes.
+- Fixed motionblur issue when  both color and post-porcessing buffers format are with alpha.  (case 1333592)
+- Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed cubemap static preview not updated when the asset is imported.
+
+## [7.6.0] - 2021-03-25
+
+### Added
+- Support for the PlayStation 5 platform has been added.
+
+### Fixed
+- Fixed light layer issue when performing editing on multiple lights.
+
+## Changed
+- Tidy up of platform abstraction code for shader optimization.
+
+## [7.5.3] - 2021-01-11
+
+### Fixed
+- Fixed case where material keywords would not get setup before usage.
+- Fixed shader warning in ReflectionDenoiser
+- Fixed XR depth copy (case 1286908).
+
 ## [7.5.2] - 2020-11-16
 
 ### Added
@@ -31,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaNs happening when upscaling ray tracing reflections in performance mode (case 1294076).
 - Fixed LayeredLit shader compilation issue with metal shader and raytracing
 - Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed case where material keywords would not get setup before usage.
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).

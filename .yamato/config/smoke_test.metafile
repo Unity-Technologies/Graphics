@@ -5,6 +5,7 @@ test_platforms:
   - type: playmode
   - type: editmode
   - type: Standalone
+
 platforms:
   - name: Win
     apis:
@@ -13,14 +14,36 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-        - editmode
-        - Standalone
-        
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+
+jobs:
+  - name: PR <PROJECT_NAME>
+#    triggers:
+#      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode
+            - editmode
+            - Standalone
+  - name: Extra <PROJECT_NAME>
+    dependencies: []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

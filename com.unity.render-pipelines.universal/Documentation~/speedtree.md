@@ -7,5 +7,4 @@ When you use SpeedTree Shaders in URP, keep the following in mind:
 * There is no Global Illumination on trees in URP.
 
 * Trees cannot receive shadows in URP.
-* In URP, you can configure whether lights should be per vertex of per pixel in the [URP Asset](universalrp-asset.md). 
-
+* In URP, you can configure whether lights should be per vertex of per pixel in the [URP Asset](universalrp-asset.md).

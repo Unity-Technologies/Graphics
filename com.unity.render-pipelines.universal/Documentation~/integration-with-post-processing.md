@@ -8,7 +8,7 @@ Refer to the [documentation for the PPv2 package](https://docs.unity3d.com/Packa
 
 ## URP's integrated post-processing solution
 
-URP's integrated post-processing solution uses the [Volume](Volumes.md) framework for post-processing effects. 
+URP's integrated post-processing solution uses the [Volume](Volumes.md) framework for post-processing effects.
 
 The images below show a Scene with and without URP post-processing.
 
@@ -46,7 +46,7 @@ To configure post-processing in a new Scene:
 
 2. Add a GameObject with a [Volume](Volumes.md) component in the Scene. This instruction adds a Global Volume. Select **GameObject > Volume > Global Volume**.
 
-3. Select the **Global Volume** GameObject. In the Volume component, create a new Profile by clicking **New** button on the right side of the Profile property. 
+3. Select the **Global Volume** GameObject. In the Volume component, create a new Profile by clicking **New** button on the right side of the Profile property.
 
     ![Create new Profile.](Images/post-proc/volume-new-scene-new-profile.png)
 
@@ -73,7 +73,7 @@ Post-processing effects can take up a lot of frame time. If you’re using URP f
 
 **Note:** For depth-of field, Unity recommends that you use Gaussian Depth of Field for lower-end devices. For console and desktop platforms, use Bokeh Depth of Field.
 
-**Note:** For anti-aliasing on mobile platforms, Unity recommends that you use FXAA. 
+**Note:** For anti-aliasing on mobile platforms, Unity recommends that you use FXAA.
 
 ### Post-processing in URP for VR
 In VR apps and games, certain post-processing effects can cause nausea and disorientation. To reduce motion sickness in fast-paced or high-speed apps, use the Vignette effect for VR, and avoid the effects Lens Distortion, Chromatic Aberration, and Motion Blur for VR.

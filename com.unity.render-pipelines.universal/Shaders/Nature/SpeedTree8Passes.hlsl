@@ -38,6 +38,7 @@ struct SpeedTreeVertexOutput
     #endif
 
     float3 positionWS               : TEXCOORD7;
+    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 8);
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -62,10 +63,9 @@ struct SpeedTreeFragmentInput
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
-    // smooth LOD
-    #if defined(LOD_FADE_PERCENTAGE) && !defined(EFFECT_BILLBOARD)
+#if defined(LOD_FADE_PERCENTAGE) && (!defined(LOD_FADE_CROSSFADE) && !defined(EFFECT_BILLBOARD))
         input.vertex.xyz = lerp(input.vertex.xyz, input.texcoord2.xyz, lodValue);
-    #endif
+#endif
 
     // wind
     #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
@@ -239,6 +239,8 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     output.clipPos = vertexInput.positionCS;
 
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
     return output;
 }
 
@@ -294,7 +296,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
 }
 
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
@@ -303,9 +305,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BILLBOARD
-            LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
-        #endif
+        LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
     #endif
 #endif
 
@@ -369,13 +369,22 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
         occlusion = input.interpolated.color.r;
     #endif
 
-    // subsurface (hijack emissive)
-    #ifdef EFFECT_SUBSURFACE
-        emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
-    #endif
-
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
+
+    // subsurface (hijack emissive)
+    #ifdef EFFECT_SUBSURFACE
+    Light mainLight = GetMainLight(inputData.shadowCoord); 
+    half fSubsurfaceRough = 0.7 - smoothness * 0.5;
+    half fSubsurface = D_GGX(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough);
+
+    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
+    float3 tintedSubsurface = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
+    float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * realtimeShadow;
+    float3 indirectSubsurface = tintedSubsurface.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
+    emission = directSubsurface + indirectSubsurface;
+    #endif
 
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
@@ -390,9 +399,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BILLBOARD
-            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
-        #endif
+        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
     #endif
 #endif
 

@@ -163,7 +163,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         float3 colorSum = float3(0.0, 0.0, 0.0);
         float wSum = 0.0;
 
-        uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+        int2 tapCoord = centerCoord - effectiveRadius * passIncr;
         for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
         {
             // Make sure the pixel coord we are trying to use is in the screen (not out of bounds)

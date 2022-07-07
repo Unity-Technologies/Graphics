@@ -699,6 +699,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesLODBias = true
                 , overridesMaximumLODLevel = true
                 , terrainDetailUnsupported = true
+				, autoAmbientProbeBaking = false
+                , autoDefaultReflectionProbeBaking = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -2469,10 +2471,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRDepthCopy)))
                 {
                     var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-                    var rtScale = depthBuffer.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale();
 
                     m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
-                    m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
+                    m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                     m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
 
                     cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
@@ -3307,7 +3308,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // clear decal property mask buffer
             cmd.SetComputeBufferParam(propertyMaskClearShader, propertyMaskClearShaderKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
             cmd.DispatchCompute(propertyMaskClearShader, propertyMaskClearShaderKernel, propertyMaskBufferSize / 64, 1, 1);
-            cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
+            
+            if ( HDUtils.RWTargetsAlwaysStartFromZero())
+            {
+                cmd.SetRandomWriteTarget(0, propertyMaskBuffer);
+            }
+            else
+            {
+                cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
+            }
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -4458,7 +4467,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // On PS4 we don't have working MRT clear, so need to clear buffers one by one
                             // https://fogbugz.unity3d.com/f/cases/1182018/
-                            if (Application.platform == RuntimePlatform.PS4)
+                            if (Application.platform == RuntimePlatform.PS4 || Application.platform == RuntimePlatform.PS5)
                             {
                                 var GBuffers = m_GbufferManager.GetBuffersRTI();
                                 foreach (var gbuffer in GBuffers)

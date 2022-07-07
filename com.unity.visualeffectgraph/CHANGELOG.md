@@ -4,6 +4,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.8.0] - 2021-07-23
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.7.0] - 2021-04-28
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.6.0] - 2021-03-25
+
+### Fixed
+- Fixed issue with VFX using incorrect buffer type for strip data
+
+### Changed
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
+
+## [7.5.3] - 2021-01-11
+### Fixed
+- Unexpected shaderGraph reference lost while upgrading package [Case 1297186](https://issuetracker.unity3d.com/product/unity/issues/guid/1297186/)
+- Exclude Operator, Context, Block and Subgraph from Preset [Case 1232309](https://issuetracker.unity3d.com/product/unity/issues/guid/1232309/)
+- Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
+- Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
+- Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
+- VFXEventBinderBase throwing a null reference exception in runtime
+
 ## [7.5.2] - 2020-11-16
 ### Fixed
 - GPU Evaluation of Construct Matrix

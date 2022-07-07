@@ -76,13 +76,7 @@
     * [Hair](Master-Node-Hair)
     * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
-  * Shader Graph Nodes
-    * [Emission](SGNode-Emission)
-    * [Baked GI](SGNode-Baked-GI)
-    * [Diffusion Profile](SGNode-Diffusion-Profile)
-    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
-    * [Exposure](SGNode-Exposure)
-    * [HD Scene Color](SGNode-HD-Scene-Color)
+  * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)

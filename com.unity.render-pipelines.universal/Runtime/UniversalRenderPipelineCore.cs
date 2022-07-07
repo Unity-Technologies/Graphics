@@ -362,9 +362,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
+            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
-            RenderTextureDescriptor desc;
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);;
             GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
@@ -376,11 +376,14 @@ namespace UnityEngine.Rendering.Universal
                 desc = XRGraphics.eyeTextureDesc;
                 renderTextureFormatDefault = desc.graphicsFormat;
             }
-            else if (camera.targetTexture == null)
+
+            if (camera.targetTexture == null)
             {
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale);
-                desc.height = (int)((float)desc.height * renderScale);
+                if (!isStereoEnabled)
+                {
+                    desc.width = (int)((float)desc.width * renderScale);
+                    desc.height = (int)((float)desc.height * renderScale);
+                }
 
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
@@ -398,11 +401,37 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.width = camera.pixelWidth;
+                desc.height = camera.pixelHeight;
             }
 
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+
+            // The way RenderTextures handle MSAA fallback when an unsupported sample count of 2 is requested (falling back to numSamples = 1), differs fom the way
+            // the fallback is handled when setting up the Vulkan swapchain (rounding up numSamples to 4, if supported). This caused an issue on Mali GPUs which don't support
+            // 2x MSAA.
+            // The following code makes sure that on Vulkan the MSAA unsupported fallback behaviour is consistent between RenderTextures and Swapchain.
+            // TODO: we should review how all backends handle MSAA fallbacks and move these implementation details in engine code.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                // if the requested number of samples is 2, and the supported value is 1x, it means that 2x is unsupported on this GPU.
+                // Then we bump up the requested value to 4.
+                if (desc.msaaSamples == 2 && SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc) == 1)
+                    desc.msaaSamples = 4;
+            }
+
+            // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
+            // replace the requested desc.msaaSamples value with the actual value the engine falls back to
+            desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
+
+            // if the target platform doesn't support storing multisampled RTs and we are doing a separate opaque pass, using a Load load action on the subsequent passes
+            // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
+            // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
+            if (!SystemInfo.supportsStoreAndResolveAction && requiresOpaqueTexture)
+                desc.msaaSamples = 1;
+
             return desc;
         }
 
@@ -463,7 +492,6 @@ namespace UnityEngine.Rendering.Universal
                 lightData.InitNoBake(light.GetInstanceID());
                 lightsOutput[i] = lightData;
             }
-            Debug.LogWarning("Realtime GI is not supported in Universal Pipeline.");
 #endif
         };
     }

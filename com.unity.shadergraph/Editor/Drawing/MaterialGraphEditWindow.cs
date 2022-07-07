@@ -226,15 +226,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            if (graphObject != null)
-            {
-                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
-                    UpdateAsset();
-                Undo.ClearUndo(graphObject);
-                graphObject = null;
-            }
-
+            PromptSaveIfDirtyOnQuit();
             graphEditorView = null;
         }
 
@@ -631,6 +623,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             try
             {
+                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
                 m_ColorSpace = PlayerSettings.colorSpace;
                 m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
 
@@ -688,6 +681,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 titleContent = EditorGUIUtility.TrTextContentWithIcon(asset.name.Split('/').Last(), icon);
 
                 Repaint();
+                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
             }
             catch (Exception)
             {
@@ -696,6 +690,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = null;
                 throw;
             }
+        }
+
+        private bool PromptSaveIfDirtyOnQuit()
+        {
+            if (graphObject != null)
+            {
+                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                    UpdateAsset();
+                Undo.ClearUndo(graphObject);
+                graphObject = null;
+            }
+            return true;
         }
 
         Texture2D GetThemeIcon(GraphData graphdata)

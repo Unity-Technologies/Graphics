@@ -92,6 +92,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_isInit[(int)index] && m_PreIntegratedFGD[(int)index].IsCreated())
                 return;
 
+            // If we are in wireframe mode, the drawfullscreen will not work as expected, but we don't need the LUT anyway
+            // So create the texture to avoid errors, it will be initialized by the first render without wireframe
+            if (GL.wireframe)
+            {
+                m_PreIntegratedFGD[(int)index].Create();
+                return;
+            }
+
             CoreUtils.DrawFullScreen(cmd, m_PreIntegratedFGDMaterial[(int)index], new RenderTargetIdentifier(m_PreIntegratedFGD[(int)index]));
             m_isInit[(int)index] = true;
         }

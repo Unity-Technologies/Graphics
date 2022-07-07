@@ -85,6 +85,10 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
+        // Variable to avoid flooding the log with warnings.
+        internal static bool hasLoggedCameraStackMultipassWarning = false;
+
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -380,7 +384,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
+                    if (!hasLoggedCameraStackMultipassWarning)
+                    {
+                        Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
+                        hasLoggedCameraStackMultipassWarning = true;
+                    }
                 }
 #if POST_PROCESSING_STACK_2_0_0_OR_NEWER
                 }
@@ -510,6 +518,18 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+
+            ///////////////////////////////////////////////////////////////////
+            // Descriptor settings                                            /
+            ///////////////////////////////////////////////////////////////////
+
+            int msaaSamples = 1;
+            if (camera.allowMSAA && asset.msaaSampleCount > 1)
+                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : asset.msaaSampleCount;
+
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -611,9 +631,6 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
-            int msaaSamples = 1;
-            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1)
-                msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
@@ -637,10 +654,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
-
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(baseCamera, cameraData.renderScale,
-                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
 
         /// <summary>

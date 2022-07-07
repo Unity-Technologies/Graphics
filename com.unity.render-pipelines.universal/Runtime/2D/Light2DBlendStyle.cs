@@ -64,6 +64,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         internal BlendFactors customBlendFactors;
 
+        internal bool hasRenderTarget;
+
         internal Vector2 blendFactors
         {
             get
