@@ -37,12 +37,13 @@ MonoBehaviour:
       Title:
         m_Untranslated: Additional Properties
       Text:
-        m_Untranslated: "By default, certain advanced properties for Lights and Volumes
-          components may be hidden in the <i>Inspector</i> to reduce the cognitive
-          load for new Unity users.\n\nFor this tutorial, we recommend you enable
-          the display of these properties for every GameObject.\n\n1. Open <b>Edit</b>
-          > <b>Preferences</b> > <b>Core Render Pipeline</b>\n\n2. Set the <b>Additional
-          Properties Visibility</b> to <b> All Visible</b> \n\n"
+        m_Untranslated: "By default, certain advanced properties for <b>Light</b>
+          and <b>Volume</b> components may be hidden in the <i>Inspector</i> to reduce
+          the cognitive load for new Unity users.\n\nFor this tutorial, we recommend
+          you enable the display of these properties for every GameObject.\n\n1.
+          Open <b>Edit</b> > <b>Preferences</b> > <b>Core Render Pipeline</b>\n\n2.
+          Set the <b>Additional Properties Visibility</b> to <b> All Visible</b>
+          \n\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
