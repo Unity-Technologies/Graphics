@@ -770,6 +770,7 @@ namespace UnityEditor.VFX
                             eventDescTemp.Add(new EventDesc
                             {
                                 name = proxyEventName,
+                                index = sourceSpawn.Key.index,
                                 startSystems = new List<VFXContext>(),
                                 stopSystems = new List<VFXContext>(),
                                 initSystems = new List<VFXContext>()
@@ -1028,6 +1029,7 @@ namespace UnityEditor.VFX
         struct EventDesc
         {
             public string name;
+            public uint index;
             public List<VFXContext> startSystems;
             public List<VFXContext> stopSystems;
             public List<VFXContext> initSystems;
@@ -1039,12 +1041,15 @@ namespace UnityEditor.VFX
             public int count;
         }
 
-        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex)
+        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex, uint eventIndex)
         {
             foreach (var data in input)
-                if (contextToSystemIndex.TryGetValue(data, out var index))
-                    foreach (var subIndex in Enumerable.Range(index.start, index.count))
-                        yield return (uint)subIndex;
+                if (contextToSystemIndex.TryGetValue(data, out var range))
+                {
+                    if (eventIndex > range.count)
+                        throw new InvalidOperationException("Unexpected replication state.");
+                    yield return (uint)(range.start + eventIndex);
+                }
         }
 
         private void CleanRuntimeData()
@@ -1252,9 +1257,9 @@ namespace UnityEditor.VFX
                     return new VFXEventDesc()
                     {
                         name = e.name,
-                        initSystems = ConvertDataToSystemIndex(e.initSystems, dataToSystemIndex).ToArray(),
-                        startSystems = ConvertDataToSystemIndex(e.startSystems, dataToSystemIndex).ToArray(),
-                        stopSystems = ConvertDataToSystemIndex(e.stopSystems, dataToSystemIndex).ToArray()
+                        initSystems = ConvertDataToSystemIndex(e.initSystems, dataToSystemIndex, e.index).ToArray(),
+                        startSystems = ConvertDataToSystemIndex(e.startSystems, dataToSystemIndex, e.index).ToArray(),
+                        stopSystems = ConvertDataToSystemIndex(e.stopSystems, dataToSystemIndex, e.index).ToArray()
                     };
                 }).Where(e =>
                     {
