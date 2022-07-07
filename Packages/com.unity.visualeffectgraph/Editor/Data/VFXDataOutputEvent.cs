@@ -92,14 +92,7 @@ namespace UnityEditor.VFX
                 if (spawner.contextType != VFXContextType.Spawner)
                     throw new InvalidOperationException("VFXDataOutputEvent unexpected link on Output event");
 
-                if (contextSpawnToBufferIndex[spawner].Length != 1)
-                    throw new InvalidOperationException("VFXDataOutputEvent doesn't support replication (yet)");
-
-                systemBufferMappings.Add(new VFXMapping()
-                {
-                    name = "spawner_input",
-                    index = contextSpawnToBufferIndex[spawner][0]
-                });
+                systemBufferMappings.AddRange(contextSpawnToBufferIndex[spawner].Select(bufferIndex => new VFXMapping("spawner_input", bufferIndex)));
             }
 
             outSystemDescs.Add(new VFXEditorSystemDesc()
