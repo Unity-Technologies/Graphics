@@ -734,13 +734,13 @@ namespace UnityEditor.VFX
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
 
-            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][0].Any()).Select(o => o.Key.source).ToList();
-            var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][1].Any()).Select(o => o.Key.source).ToList();
+            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][0].Any()).Select(o => o.Key).ToList();
+            var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][1].Any()).Select(o => o.Key).ToList();
 
             var eventDescTemp = new EventDesc[]
             {
-                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<VFXContext>(), initSystems = new List<VFXContext>() },
-                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<VFXContext>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
+                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<SpawnInstance>(), initSystems = new List<VFXContext>() },
+                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<SpawnInstance>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
             }.ToList();
 
             var specialNames = new HashSet<string>(new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName });
@@ -770,9 +770,8 @@ namespace UnityEditor.VFX
                             eventDescTemp.Add(new EventDesc
                             {
                                 name = proxyEventName,
-                                index = sourceSpawn.Key.index,
-                                startSystems = new List<VFXContext>(),
-                                stopSystems = new List<VFXContext>(),
+                                startSystems = new List<SpawnInstance>(),
+                                stopSystems = new List<SpawnInstance>(),
                                 initSystems = new List<VFXContext>()
                             });
                         }
@@ -785,11 +784,11 @@ namespace UnityEditor.VFX
                                 var startSystem = link.slotIndex == 0;
                                 if (startSystem)
                                 {
-                                    eventDesc.startSystems.Add(link.context);
+                                    eventDesc.startSystems.Add(sourceSpawn.Key);
                                 }
                                 else
                                 {
-                                    eventDesc.stopSystems.Add(link.context);
+                                    eventDesc.stopSystems.Add(sourceSpawn.Key);
                                 }
                             }
                         }
@@ -1029,9 +1028,8 @@ namespace UnityEditor.VFX
         struct EventDesc
         {
             public string name;
-            public uint index;
-            public List<VFXContext> startSystems;
-            public List<VFXContext> stopSystems;
+            public List<SpawnInstance> startSystems;
+            public List<SpawnInstance> stopSystems;
             public List<VFXContext> initSystems;
         }
 
@@ -1041,14 +1039,25 @@ namespace UnityEditor.VFX
             public int count;
         }
 
-        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex, uint eventIndex)
+        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex)
         {
             foreach (var data in input)
                 if (contextToSystemIndex.TryGetValue(data, out var range))
                 {
-                    if (eventIndex > range.count)
-                        throw new InvalidOperationException("Unexpected replication state.");
-                    yield return (uint)(range.start + eventIndex);
+                    if (range.count != 1)
+                        throw new InvalidOperationException("Unexpected replication behavior.");
+                    yield return (uint)range.start;
+                }
+        }
+
+        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<SpawnInstance> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex)
+        {
+            foreach (var data in input)
+                if (contextToSystemIndex.TryGetValue(data.source, out var range))
+                {
+                    if (data.index > range.count)
+                        throw new InvalidOperationException("Unexpected replication behavior.");
+                    yield return (uint)range.start + data.index;
                 }
         }
 
@@ -1257,9 +1266,9 @@ namespace UnityEditor.VFX
                     return new VFXEventDesc()
                     {
                         name = e.name,
-                        initSystems = ConvertDataToSystemIndex(e.initSystems, dataToSystemIndex, e.index).ToArray(),
-                        startSystems = ConvertDataToSystemIndex(e.startSystems, dataToSystemIndex, e.index).ToArray(),
-                        stopSystems = ConvertDataToSystemIndex(e.stopSystems, dataToSystemIndex, e.index).ToArray()
+                        initSystems = ConvertDataToSystemIndex(e.initSystems, dataToSystemIndex).ToArray(),
+                        startSystems = ConvertDataToSystemIndex(e.startSystems, dataToSystemIndex).ToArray(),
+                        stopSystems = ConvertDataToSystemIndex(e.stopSystems, dataToSystemIndex).ToArray()
                     };
                 }).Where(e =>
                     {
