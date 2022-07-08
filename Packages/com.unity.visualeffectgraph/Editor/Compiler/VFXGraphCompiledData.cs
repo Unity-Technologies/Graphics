@@ -682,6 +682,10 @@ namespace UnityEditor.VFX
                 else
                     throw new InvalidOperationException("system names manager cannot be null");
 
+                if (spawnContext.count > 1)
+                {
+                    nativeName += " Replication " + spawnContext.index;
+                }
 
                 //Warning: Expecting sequential index of replicated system
                 if (!outDataToSystemIndex.ContainsKey(spawnContext.source))
