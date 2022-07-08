@@ -90,6 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 case GraphType.Length.Two: return GraphTypeHelpers.GetAsVec2(GetField());
                 case GraphType.Length.Three: return GraphTypeHelpers.GetAsVec3(GetField());
+                case GraphType.Length.Four when Temp_DisplayAsColor: return (Color)GraphTypeHelpers.GetAsVec4(GetField());
                 case GraphType.Length.Four: return GraphTypeHelpers.GetAsVec4(GetField());
                 default: return DefaultValue;
             }
@@ -97,6 +98,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void SetValue(object value)
         {
+            if (value is Color color)
+            {
+                value = (Vector4)color;
+            }
+
             switch (GetLength())
             {
                 case GraphType.Length.One:
@@ -123,6 +129,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case GraphType.Length.Two: return typeof(Vector2);
                     case GraphType.Length.Three: return typeof(Vector3);
+                    case GraphType.Length.Four when Temp_DisplayAsColor: return typeof(Color);
                     case GraphType.Length.Four: return typeof(Vector4);
                     default:
                         switch (GetPrimitive())
@@ -142,6 +149,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case GraphType.Length.Two: return TypeHandle.Vector2;
                     case GraphType.Length.Three: return TypeHandle.Vector3;
+                    case GraphType.Length.Four when Temp_DisplayAsColor: return ShaderGraphExampleTypes.Color;
                     case GraphType.Length.Four: return TypeHandle.Vector4;
                     default:
                         switch (GetPrimitive())
@@ -160,5 +168,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return TypeHandle.Unknown;
             }
         }
+
+        // TODO: Proper abstraction - just experimenting rn.
+        public bool Temp_DisplayAsColor { get; set; }
     }
 }

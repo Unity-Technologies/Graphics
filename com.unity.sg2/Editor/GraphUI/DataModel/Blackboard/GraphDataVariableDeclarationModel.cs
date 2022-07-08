@@ -3,6 +3,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -97,6 +98,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
                     cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
+                    if (DataType == ShaderGraphExampleTypes.Color && cldsConstant is GraphTypeConstant graphTypeConstant)
+                    {
+                        graphTypeConstant.Temp_DisplayAsColor = true;
+                    }
                 }
             }
         }
