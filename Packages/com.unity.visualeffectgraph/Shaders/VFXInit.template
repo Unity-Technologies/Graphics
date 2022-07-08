@@ -18,9 +18,7 @@ CBUFFER_START(initParams)
     uint nbSpawned;					// Numbers of particle spawned
     uint spawnIndex;				// Index of the first particle spawned
     uint dispatchWidth;
-#if VFX_USE_DYNAMIC_SOURCE_COUNT
     uint nbEvents;					// Number of spawn events
-#endif
 #else
     uint offsetInAdditionalOutput;
 	uint nbMax;
@@ -98,10 +96,6 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		
 #if !VFX_USE_SPAWNER_FROM_GPU
         int sourceIndex = 0;
-
-        #if !VFX_USE_DYNAMIC_SOURCE_COUNT
-            uint nbEvents = VFX_STATIC_SOURCE_COUNT;
-        #endif
 
         #if USE_PREFIX_SUM
             uint left = 0;
