@@ -743,11 +743,26 @@ namespace UnityEditor.VFX
 
             var eventDescTemp = new EventDesc[]
             {
-                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<SpawnInstance>(), initSystems = new List<VFXContext>() },
-                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<SpawnInstance>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
+                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<SpawnInstance>(), initSystems = new List<SpawnInstance>() },
+                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<SpawnInstance>(), stopSystems = allStopNotLinked, initSystems = new List<SpawnInstance>() },
             }.ToList();
 
             var specialNames = new HashSet<string>(new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName });
+
+            //Abstract replication behavior with a common list mixing spawn context & initialize
+            //N.B.: These SpawnInstance aren't registered in contextSpawnToSpawnInfo
+            var virtualEventReceiver = new List<SpawnInstance>();
+            virtualEventReceiver.AddRange(contextSpawnToSpawnInfo.Keys);
+            virtualEventReceiver.AddRange(contexts
+                .Where(o => o.contextType == VFXContextType.Init)
+                .Select(initContext =>
+                    new SpawnInstance()
+                        {
+                            count = 1,
+                            index = 0,
+                            source = initContext
+                        }
+                ));
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
             foreach (var evt in events)
@@ -761,11 +776,11 @@ namespace UnityEditor.VFX
 
                 foreach (var link in effectiveOuts)
                 {
-                    foreach (var sourceSpawn in contextSpawnToSpawnInfo.Where(o => o.Key.source == link.context))
+                    foreach (var sourceSpawn in virtualEventReceiver.Where(o => o.source == link.context))
                     {
                         var proxyEventName = eventName;
-                        if (sourceSpawn.Key.index != 0u)
-                            proxyEventName = string.Format("{0}_{1}", proxyEventName, sourceSpawn.Key.index);
+                        if (sourceSpawn.index != 0u)
+                            proxyEventName = string.Format("{0}_{1}", proxyEventName, sourceSpawn.index);
 
                         var eventIndex = eventDescTemp.FindIndex(o => o.name == proxyEventName);
                         if (eventIndex == -1)
@@ -776,7 +791,7 @@ namespace UnityEditor.VFX
                                 name = proxyEventName,
                                 startSystems = new List<SpawnInstance>(),
                                 stopSystems = new List<SpawnInstance>(),
-                                initSystems = new List<VFXContext>()
+                                initSystems = new List<SpawnInstance>()
                             });
                         }
 
@@ -788,17 +803,17 @@ namespace UnityEditor.VFX
                                 var startSystem = link.slotIndex == 0;
                                 if (startSystem)
                                 {
-                                    eventDesc.startSystems.Add(sourceSpawn.Key);
+                                    eventDesc.startSystems.Add(sourceSpawn);
                                 }
                                 else
                                 {
-                                    eventDesc.stopSystems.Add(sourceSpawn.Key);
+                                    eventDesc.stopSystems.Add(sourceSpawn);
                                 }
                             }
                         }
                         else if (link.context.contextType == VFXContextType.Init)
                         {
-                            eventDesc.initSystems.Add(link.context);
+                            eventDesc.initSystems.Add(sourceSpawn);
                         }
                         else
                         {
@@ -1034,24 +1049,13 @@ namespace UnityEditor.VFX
             public string name;
             public List<SpawnInstance> startSystems;
             public List<SpawnInstance> stopSystems;
-            public List<VFXContext> initSystems;
+            public List<SpawnInstance> initSystems;
         }
 
         struct SystemIndex
         {
             public int start;
             public int count;
-        }
-
-        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex)
-        {
-            foreach (var data in input)
-                if (contextToSystemIndex.TryGetValue(data, out var range))
-                {
-                    if (range.count != 1)
-                        throw new InvalidOperationException("Unexpected replication behavior.");
-                    yield return (uint)range.start;
-                }
         }
 
         static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<SpawnInstance> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex)
