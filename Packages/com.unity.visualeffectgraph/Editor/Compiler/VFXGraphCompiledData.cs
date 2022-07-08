@@ -579,7 +579,7 @@ namespace UnityEditor.VFX
         }
 
         private static void FillSpawner(Dictionary<SpawnInstance, SpawnInfo> outContextSpawnToSpawnInfo,
-            Dictionary<VFXContext, SystemIndex> outDataToSystemIndex,
+            Dictionary<VFXContext, SystemIndices> outDataToSystemIndex,
             List<VFXCPUBufferDesc> outCpuBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             IEnumerable<VFXContext> contexts,
@@ -687,10 +687,10 @@ namespace UnityEditor.VFX
                     nativeName += " Replication " + spawnContext.index;
                 }
 
-                //Warning: Expecting sequential index of replicated system
+                //Warning: We are expecting sequential index of replicated system
                 if (!outDataToSystemIndex.ContainsKey(spawnContext.source))
                 {
-                    outDataToSystemIndex.Add(spawnContext.source, new SystemIndex() { start = outSystemDescs.Count, count = (int)spawnContext.count });
+                    outDataToSystemIndex.Add(spawnContext.source, new SystemIndices() { start = outSystemDescs.Count, count = (int)spawnContext.count });
                 }
 
                 contextToCompiledData[spawnContext.source] = contextData;
@@ -1052,13 +1052,13 @@ namespace UnityEditor.VFX
             public List<SpawnInstance> initSystems;
         }
 
-        struct SystemIndex
+        struct SystemIndices
         {
             public int start;
             public int count;
         }
 
-        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<SpawnInstance> input, Dictionary<VFXContext, SystemIndex> contextToSystemIndex)
+        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<SpawnInstance> input, Dictionary<VFXContext, SystemIndices> contextToSystemIndex)
         {
             foreach (var data in input)
                 if (contextToSystemIndex.TryGetValue(data.source, out var range))
@@ -1213,7 +1213,7 @@ namespace UnityEditor.VFX
                 });
 
                 var contextSpawnToSpawnInfo = new Dictionary<SpawnInstance, SpawnInfo>();
-                var dataToSystemIndex = new Dictionary<VFXContext, SystemIndex>();
+                var dataToSystemIndex = new Dictionary<VFXContext, SystemIndices>();
                 FillSpawner(contextSpawnToSpawnInfo, dataToSystemIndex, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<EventDesc>();
@@ -1236,7 +1236,7 @@ namespace UnityEditor.VFX
                         //TODO: Rework this approach and always use FillDescs after an appropriate ordering of compilableData
                         //TODO: We should identify context by its VFXData but connected spawn context are sharing the same VFXData (see VFXData.InnerSetData)
                         foreach (var context in data.owners)
-                            dataToSystemIndex.Add(context, new SystemIndex() { start = systemDescs.Count, count = 1 });
+                            dataToSystemIndex.Add(context, new SystemIndices() { start = systemDescs.Count, count = 1 });
                     }
 
                     data.FillDescs(VFXGraph.compileReporter,
