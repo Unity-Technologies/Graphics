@@ -77,7 +77,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //    previewManager
             //);
 
-            // Unregister the base GraphView command handling for this as we want to insert our own
+            // GTF Overrides
+
+            // Unregister the base GraphView command handling for delete as we want to insert our own
             graphView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
                 ShaderGraphCommandOverrides.HandleDeleteNodesAndEdges,
@@ -141,6 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphTool.UndoStateComponent,
                 graphViewModel.GraphModelState);
 
+            // Context entry commands
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddContextEntryCommand>(
                 AddContextEntryCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,

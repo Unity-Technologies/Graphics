@@ -12,15 +12,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         ShaderGraphGraphTool m_GraphTool;
 
-        protected PreviewManager m_PreviewManager;
+        MainPreviewView m_MainPreviewView;
 
-        internal IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
+        protected PreviewManager m_PreviewManager;
 
         protected GraphViewStateObserver m_GraphViewStateObserver;
 
-        MainPreviewView m_MainPreviewView;
-
-        internal BlackboardView m_BlackboardView;
+        protected BlackboardView m_BlackboardView;
 
         // We setup a reference to the MainPreview when the overlay containing it is created
         // We do this because the resources needed to initialize the preview are not available at overlay creation time
@@ -28,6 +26,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_MainPreviewView = mainPreviewView;
         }
+
+        internal IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
@@ -56,6 +56,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             TryGetOverlay("gtf-blackboard", out var gtfBlackboard);
             overlayCanvas.Remove(gtfBlackboard);
+
+            TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
+            if (overlay is PreviewOverlay previewOverlay)
+                previewOverlay.onCachedPreviewTextureRequest = m_PreviewManager.GetCachedMainPreviewTexture;
         }
 
         protected override void OnEnable()

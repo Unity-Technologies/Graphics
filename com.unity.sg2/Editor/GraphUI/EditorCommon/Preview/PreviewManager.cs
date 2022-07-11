@@ -10,6 +10,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
 
+    /// <summary>
+    /// Manager class for node and master previews
+    /// Layer that handles the interaction between GTF/Editor and the HeadlessPreviewManager
+    /// </summary>
     public class PreviewManager
     {
         bool m_IsInitialized;
@@ -167,6 +171,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
             foreach (var updatedNode in updatedNodes)
                 m_DirtyNodes.Remove(updatedNode);
 
+        }
+
+        public Texture GetCachedMainPreviewTexture()
+        {
+            m_PreviewHandlerInstance.RequestMainPreviewTexture(
+                m_MainPreviewData.width,
+                m_MainPreviewData.height,
+                m_MainPreviewData.mesh,
+                m_MainPreviewData.scale,
+                m_MainPreviewData.preventRotation,
+                m_MainPreviewData.rotation,
+                out var cachedMainPreviewTexture,
+                out var shaderMessages);
+
+            return cachedMainPreviewTexture;
         }
 
         public void OnPreviewMeshChanged()

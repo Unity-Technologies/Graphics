@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /// <summary>
     /// This class encapsulates all functionality related to generating preview render and shader data from a node graph
+    /// TODO: Pack all the render info. in each Request() function into a struct so that its more visible what data is needed and function calls are slimmer
     /// </summary>
     public class HeadlessPreviewManager
     {
@@ -481,6 +482,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             errorMessages = null;
             mainPreviewTexture = null;
 
+            // Assign it to the currently output texture
+            mainPreviewTexture = m_MainPreviewData.texture;
+
             if (width != mainPreviewWidth || height != mainPreviewHeight)
             {
                 // Main Preview window was resized, need to re-render at new size
@@ -574,7 +578,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         16,
                         RenderTextureFormat.ARGB32,
                         RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave },
-                isShaderOutOfDate = true,
+                isShaderOutOfDate = true
             };
 
             m_CachedPreviewData.Add(m_OutputContextNodeName, m_MainPreviewData);

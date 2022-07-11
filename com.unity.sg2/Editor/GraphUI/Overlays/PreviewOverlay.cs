@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,6 +12,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string k_OverlayID = "Preview";
 
         MainPreviewView m_MainPreviewView;
+
+        public Func<Texture> onCachedPreviewTextureRequest;
 
         public override VisualElement CreatePanelContent()
         {
@@ -27,6 +30,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
                 size = new Vector2(125, 125);
                 window.SetMainPreviewReference(m_MainPreviewView);
+                var cachedTexture = onCachedPreviewTextureRequest?.Invoke();
+                if (cachedTexture != null)
+                    m_MainPreviewView.mainPreviewTexture = cachedTexture;
+
                 // TODO: Need to cache image or have a way to request preview manager to update this
                 return m_MainPreviewView;
             }
