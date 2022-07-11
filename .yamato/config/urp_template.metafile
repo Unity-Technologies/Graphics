@@ -1,6 +1,6 @@
 project:
-  name: Template
-  folder: PostProcessing_Tests
+  name: URP_Template
+  folder: Template_Tests
 test_platforms:
   - type: playmode
     allow_cache: False
