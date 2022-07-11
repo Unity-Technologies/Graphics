@@ -17,16 +17,13 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
     [TestFixture]
     class DefaultPreviewsTestFixture
     {
-        static ShaderGraphRegistry InitSGR()
-        {
-            ShaderGraphRegistry SGR = new();
-            SGR.InitializeDefaults();
-            return SGR;
-        }
+        ShaderGraphRegistry SGR;
 
-        static string[] InitNodeNames()
+        [OneTimeSetUp]
+        public void StartUp()
         {
-            return SGR.DefaultTopologies.GetNodes().Select(e => e.ID.LocalPath).ToArray();
+            SGR = new();
+            SGR.InitializeDefaults();
         }
 
         // whether or not a node will require another node to coerce the value to a vector for testing preview compilation.
@@ -39,7 +36,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
         }
 
         static readonly Color BadImageResults = new(1, 1, 0, 1);
-
         static readonly RegistryKey MatrixDeterminant = new RegistryKey { Name = "MatrixDeterminant", Version = 1 };
         static readonly RegistryKey SampleCube = new RegistryKey { Name = "SampleReflectedCubemap", Version = 1 };
         static readonly RegistryKey SampleTex2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };
@@ -56,9 +52,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             return null;
         }
 
-        static ShaderGraphRegistry SGR = InitSGR();
+        static string[] InitNodeNames()
+        {
+            ShaderGraphRegistry tmp = new();
+            tmp.InitializeDefaults();
+            return tmp.DefaultTopologies.GetNodes().Select(e => e.ID.LocalPath).ToArray();
+        }
         // Need to resolve the node names statically so that the Test Runner is happy and shows each node.
-        static string[] nodeNames = InitNodeNames();
+        static readonly string[] nodeNames = InitNodeNames();
 
         [TestCaseSource("nodeNames")]
         public void DoesPreviewCompile(string nodeName)
