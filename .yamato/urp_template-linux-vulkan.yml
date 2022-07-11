@@ -7,8 +7,8 @@
 
 ---
 
-Template_Linux_Vulkan_playmode_mono_Linear_trunk:
-    name: Template on Linux_Vulkan_playmode_mono_Linear on version trunk
+URP_Template_Linux_Vulkan_playmode_mono_Linear_trunk:
+    name: URP_Template on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:v2.0.0-947723
@@ -33,7 +33,7 @@ Template_Linux_Vulkan_playmode_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Template_Tests
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -41,12 +41,12 @@ Template_Linux_Vulkan_playmode_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
-Template_Linux_Vulkan_editmode_mono_Linear_trunk:
-    name: Template on Linux_Vulkan_editmode_mono_Linear on version trunk
+URP_Template_Linux_Vulkan_editmode_mono_Linear_trunk:
+    name: URP_Template on Linux_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:v2.0.0-947723
@@ -71,7 +71,7 @@ Template_Linux_Vulkan_editmode_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/Template_Tests
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -79,12 +79,12 @@ Template_Linux_Vulkan_editmode_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
-Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
-    name: Template on Linux_Vulkan_Standalone_mono_Linear on version trunk
+URP_Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
+    name: URP_Template on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:v2.0.0-947723
@@ -101,7 +101,7 @@ Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  command: chmod +x utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -109,14 +109,14 @@ Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
-      -  path: .yamato/template-linux-vulkan.yml#Build_Template_Linux_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/urp_template-linux-vulkan.yml#Build_URP_Template_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-Build_Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
-    name: Build Template on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
+Build_URP_Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
+    name: Build URP_Template on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:v2.0.0-947723
@@ -141,7 +141,7 @@ Build_Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Template_Tests --timeout=1200
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -149,15 +149,15 @@ Build_Template_Linux_Vulkan_Standalone_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
         players:
             paths:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
-Template_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
-    name: Template on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
+URP_Template_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_Template on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:v2.0.0-947723
@@ -182,7 +182,7 @@ Template_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Template_Tests
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -190,12 +190,12 @@ Template_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
-Template_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
-    name: Template on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
+URP_Template_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_Template on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:v2.0.0-947723
@@ -220,7 +220,7 @@ Template_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/Template_Tests
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -228,12 +228,12 @@ Template_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
-Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Template on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
+URP_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: URP_Template on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:v2.0.0-947723
@@ -250,7 +250,7 @@ Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: chmod +x utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -258,14 +258,14 @@ Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
-      -  path: .yamato/template-linux-vulkan.yml#Build_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_template-linux-vulkan.yml#Build_URP_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Build_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build Template on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+Build_URP_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Template on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:v2.0.0-947723
@@ -290,7 +290,7 @@ Build_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Template_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Template_Tests --timeout=1200
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -298,7 +298,7 @@ Build_Template_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
         players:
             paths:
               -  "players*/**"

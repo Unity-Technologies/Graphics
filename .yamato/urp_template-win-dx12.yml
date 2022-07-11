@@ -7,8 +7,8 @@
 
 ---
 
-Template_Win_Vulkan_playmode_mono_Linear_trunk:
-    name: Template on Win_Vulkan_playmode_mono_Linear on version trunk
+URP_Template_Win_DX12_playmode_mono_Linear_trunk:
+    name: URP_Template on Win_DX12_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.1-971269
@@ -32,17 +32,17 @@ Template_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-Template_Win_Vulkan_editmode_mono_Linear_trunk:
-    name: Template on Win_Vulkan_editmode_mono_Linear on version trunk
+URP_Template_Win_DX12_editmode_mono_Linear_trunk:
+    name: URP_Template on Win_DX12_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
@@ -65,17 +65,17 @@ Template_Win_Vulkan_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-Template_Win_Vulkan_Standalone_mono_Linear_trunk:
-    name: Template on Win_Vulkan_Standalone_mono_Linear on version trunk
+URP_Template_Win_DX12_Standalone_mono_Linear_trunk:
+    name: URP_Template on Win_DX12_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.1-971269
@@ -95,19 +95,19 @@ Template_Win_Vulkan_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-      -  path: .yamato/template-win-vulkan.yml#Build_Template_Win_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/urp_template-win-dx12.yml#Build_URP_Template_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-Build_Template_Win_Vulkan_Standalone_mono_Linear_trunk:
-    name: Build Template on Win_Vulkan_mono_Linear_Standalone_build_Player on version trunk
+Build_URP_Template_Win_DX12_Standalone_mono_Linear_trunk:
+    name: Build URP_Template on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
@@ -130,20 +130,20 @@ Build_Template_Win_Vulkan_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
         players:
             paths:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-Template_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
-    name: Template on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
+URP_Template_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_Template on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.1-971269
@@ -167,17 +167,17 @@ Template_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
-Template_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
-    name: Template on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
+URP_Template_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_Template on Win_DX12_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
@@ -200,17 +200,17 @@ Template_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
-Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Template on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
+URP_Template_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: URP_Template on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.1-971269
@@ -230,19 +230,19 @@ Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
-      -  path: .yamato/template-win-vulkan.yml#Build_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_template-win-dx12.yml#Build_URP_Template_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Build_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build Template on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+Build_URP_Template_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Template on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
@@ -265,12 +265,12 @@ Build_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
+              -  "TestProjects/Template_Tests/Logs/*.log"
         players:
             paths:
               -  "players*/**"
