@@ -287,8 +287,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         INodeModel CreateNode(Type nodeTypeToCreate, string nodeName, Vector2 position,
             SerializableGUID guid = default, Action<INodeModel> initializationCallback = null, SpawnFlags spawnFlags = SpawnFlags.Default);
 
-        // GTF-EDIT: Added parameter to pass state updater in some situations where its needed, can default to null however
-        INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null);
+        // GTF-EDIT: Added state updater and edges list arguments, but these should not be PR-ed to GTF
+        INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta, IStateComponentUpdater stateComponentUpdater = null, List<IEdgeModel> copiedEdges = null);
 
         IReadOnlyCollection<IGraphElementModel> DeleteNodes(IReadOnlyCollection<INodeModel> nodeModels, bool deleteConnections);
 

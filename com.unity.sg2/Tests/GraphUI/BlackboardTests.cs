@@ -27,6 +27,28 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             FindBlackboardView();
         }
 
+        // TODO: This will probably be useful elsewhere, consider abstracting it out
+        string CreateSecondGraph(
+            out ShaderGraphAsset secondGraphAsset,
+            out TestEditorWindow secondEditorWindow,
+            out TestEventHelpers secondWindowTestHelper)
+        {
+            // Create second graph
+            var secondGraphPath = testAssetPath.Replace(ShaderGraphStencil.DefaultGraphAssetName, "NewShaderGraph1");
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            newGraphAction.Action(0, secondGraphPath, "");
+            secondGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(secondGraphPath);
+
+            // Create second window
+            secondEditorWindow = EditorWindow.CreateWindow<TestEditorWindow>(typeof(TestEditorWindow), typeof(TestEditorWindow));
+            secondEditorWindow.shouldCloseWindowNoPrompt = true;
+
+            // Load second graph
+            secondEditorWindow.SetCurrentSelection(secondGraphAsset, GraphViewEditorWindow.OpenMode.Open);
+            secondWindowTestHelper = new TestEventHelpers(secondEditorWindow);
+            return secondGraphPath;
+        }
+
         private void FindBlackboardView()
         {
             const string viewFieldName = "m_BlackboardView";
@@ -178,7 +200,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator TestBlackboardItemValueChangeAffectsPreview()
+        public IEnumerator TestItemValueChangeAffectsPreview()
         {
             yield return TestVariableNodeCanBeAdded();
 
@@ -199,5 +221,247 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNotNull(nodePreviewMaterial);
             Assert.AreEqual(Color.red, SampleMaterialColor(nodePreviewMaterial));
         }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllPropertyTypesCanBeCreated()
+        {
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+            }
+        }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllPropertyTypesCanBeDuplicated()
+        {
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+            }
+
+            // We want a copy of the original blackboard items
+            var originalItems = GraphModel.VariableDeclarations.ToList();
+            for(var index = 0; index < originalItems.Count; index++)
+            {
+                var declarationModel = originalItems[index];
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                yield return null;
+
+                Assert.IsTrue(m_TestEventHelper.SendDuplicateCommand());
+                yield return null;
+
+                // Check to make sure the duplication worked and there are now two of the type of the copied item
+                Assert.IsTrue(GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 2);
+            }
+        }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllPropertyTypesCanBeCutPasted()
+        {
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+                break;
+            }
+
+            // We want a copy of the original blackboard items
+            var originalItems = GraphModel.VariableDeclarations.ToList();
+            for(var index = 0; index < originalItems.Count; index++)
+            {
+                var originalVariable = originalItems[index];
+
+                m_TestEventHelper.SendMouseDownEvent(m_BlackboardView);
+                m_TestEventHelper.SendMouseUpEvent(m_BlackboardView);
+                yield return null;
+
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, originalVariable));
+                yield return null;
+
+                Assert.IsTrue(m_TestEventHelper.SendCutCommand());
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+
+                // TODO: The ShaderGraphViewSelection is responding to cut command currently for some reason, need to get SGBlackboardSelection to do that instead
+                // Check to make sure the cut worked and the original item was deleted
+                Assert.IsTrue(GraphModel.VariableDeclarations.FirstOrDefault(model => Equals(model, originalVariable)) == null);
+
+                Assert.IsTrue(m_TestEventHelper.SendPasteCommand());
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+
+                // Check to make sure the paste worked and there is only one of the copied item
+                Assert.IsTrue(GraphModel.VariableDeclarations.Count(model => model.DataType == originalVariable.DataType) == 1);
+
+            }
+        }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        [UnityTest]
+        public IEnumerator TestAllPropertyTypesCanBeCopiedBetweenGraphs()
+        {
+            // Wait till first graph is loaded
+            while (GraphModel == null)
+                yield return null;
+
+            var secondGraphPath = CreateSecondGraph(out ShaderGraphAsset secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
+
+            // Wait till second graph is loaded as well
+            while (secondGraphAsset.GraphModel == null)
+                yield return null;
+
+            // Go back to first graph
+            m_Window.Show();
+            m_Window.Focus();
+
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+            }
+
+            // We want a copy of the original blackboard items
+            var originalItems = GraphModel.VariableDeclarations.ToList();
+            for(var index = 0; index < originalItems.Count; index++)
+            {
+                // Switch back to first graph
+                m_Window.Show();
+                m_Window.Focus();
+                yield return null;
+
+                // Select item
+                m_TestEventHelper.SendMouseDownEvent(m_BlackboardView);
+                m_TestEventHelper.SendMouseUpEvent(m_BlackboardView);
+
+                var declarationModel = originalItems[index];
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                yield return null;
+
+                // Copy Item from first graph
+                Assert.IsTrue(m_TestEventHelper.SendCopyCommand());
+                yield return null;
+
+                // Switch to second graph
+                secondEditorWindow.Show();
+                secondEditorWindow.Focus();
+                yield return null;
+
+                secondWindowTestHelper.SendMouseDownEvent(secondEditorWindow.blackboardView);
+                secondWindowTestHelper.SendMouseUpEvent(secondEditorWindow.blackboardView);
+
+                // Paste in second graph
+                Assert.IsTrue(secondWindowTestHelper.SendPasteCommand());
+                yield return null;
+
+                // Check to make sure the copy worked and there is one of the copied type in the target graph
+                Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 1);
+            }
+
+            // Close second window
+            secondEditorWindow.Close();
+            // Remove second graph asset
+            AssetDatabase.DeleteAsset(secondGraphPath);
+        }
+
+        // TODO: (Sai) Make these generalized to keywords also when those come in
+        /*[UnityTest]
+        public IEnumerator TestAllPropertyTypesCanBeCutBetweenGraphs()
+        {
+            // Wait till first graph is loaded
+            while (GraphModel == null)
+                yield return null;
+
+            var secondGraphPath = CreateSecondGraph(out ShaderGraphAsset secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
+
+            // Wait till second graph is loaded
+            while (secondGraphAsset.GraphModel == null)
+                yield return null;
+
+            // Go back to first graph
+            m_Window.Show();
+            m_Window.Focus();
+
+            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
+
+            var createMenu = new List<Stencil.MenuItem>();
+            stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
+
+            foreach (var menuItem in createMenu)
+            {
+                menuItem.action.Invoke();
+                yield return null;
+            }
+
+            // We want a copy of the original blackboard items
+            var originalItems = GraphModel.VariableDeclarations.ToList();
+            for(var index = 0; index < originalItems.Count; index++)
+            {
+                // Switch back to first graph
+                m_Window.Show();
+                m_Window.Focus();
+                yield return null;
+
+                // Select item
+                m_TestEventHelper.SendMouseDownEvent(m_BlackboardView);
+                m_TestEventHelper.SendMouseUpEvent(m_BlackboardView);
+
+                var declarationModel = originalItems[index];
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                yield return null;
+
+                // Cut Item from first graph
+                Assert.IsTrue(m_TestEventHelper.SendCutCommand());
+                yield return null;
+
+                // Switch to second graph
+                secondEditorWindow.Show();
+                secondEditorWindow.Focus();
+                yield return null;
+
+                secondWindowTestHelper.SendMouseDownEvent(secondEditorWindow.blackboardView);
+                secondWindowTestHelper.SendMouseUpEvent(secondEditorWindow.blackboardView);
+
+                // Paste in second graph
+                Assert.IsTrue(secondWindowTestHelper.SendPasteCommand());
+                yield return null;
+
+                // Check to make sure the copy worked and there is one of the copied type in the target graph
+                Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 1);
+            }
+
+            // Close second window
+            secondEditorWindow.Close();
+            // Remove second graph asset
+            AssetDatabase.DeleteAsset(secondGraphPath);
+        }*/
     }
 }

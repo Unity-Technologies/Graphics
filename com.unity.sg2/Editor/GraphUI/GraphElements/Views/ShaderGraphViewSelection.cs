@@ -1,17 +1,24 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
+using Edge = UnityEditor.GraphToolsFoundation.Overdrive.Edge;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphViewSelection : GraphViewSelection
     {
+        /// <summary>
+        /// This class overrides the graph views selection and context menu operation handler
+        /// We need it in order to handle cut operations with a slightly different logic,
+        /// and to change the default context menu options
+        /// </summary>
         public ShaderGraphViewSelection(GraphView view, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState)
-            : base(view, graphModelState, selectionState)
-        {
+            : base(view, graphModelState, selectionState) { }
 
-        }
+        ShaderGraphModel shaderGraphModel => m_GraphModelState.GraphModel as ShaderGraphModel;
 
         /// <summary>
         /// Adds items related to the selection to the contextual menu.
@@ -22,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (evt.menu.MenuItems().Count > 0)
                 evt.menu.AppendSeparator();
 
-            if (GetSelection().Any(model => model is INodeModel))
+            if (GetSelection().Any(model => model is INodeModel) || GetSelection().Count == 0)
                 HandleNodeContextMenus(evt);
             else
                 HandleEdgeContextMenu(evt);
@@ -63,6 +70,54 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_View.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, SelectableModels.ToList()));
             }, _ => DropdownMenuAction.Status.Normal);
+        }
+
+        // This calls CopySelection()
+        protected override void CutSelection()
+        {
+            shaderGraphModel.isCutOperation = true;
+            base.CutSelection();
+        }
+
+        void AddInputEdgesToSelection()
+        {
+            using (var updater = m_SelectionState.UpdateScope)
+            {
+                var selection = GetSelection();
+                for(var index = 0; index < selection.Count; index++)
+                {
+                    var element = selection[index];
+                    if (element is INodeModel nodeModel)
+                    {
+                        var edges = nodeModel.GetConnectedEdges().ToList();
+                        foreach(var edge in edges)
+                        {
+                            // Skip output edges
+                            if(edge.FromPort.NodeModel == nodeModel)
+                                continue;
+                            updater.SelectElement(edge, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        protected override void CopySelection()
+        {
+            AddInputEdgesToSelection();
+            base.CopySelection();
+        }
+
+        protected override void DuplicateSelection()
+        {
+            AddInputEdgesToSelection();
+            base.DuplicateSelection();
+        }
+
+        protected override void Paste()
+        {
+            base.Paste();
+            shaderGraphModel.isCutOperation = false;
         }
     }
 }

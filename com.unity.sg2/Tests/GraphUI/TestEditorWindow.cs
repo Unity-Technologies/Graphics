@@ -8,6 +8,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     public class TestEditorWindow : ShaderGraphEditorWindow
     {
+        public BlackboardView blackboardView => m_BlackboardView;
+
         public PreviewManager previewManager => m_PreviewManager;
         protected override GraphView CreateGraphView()
         {

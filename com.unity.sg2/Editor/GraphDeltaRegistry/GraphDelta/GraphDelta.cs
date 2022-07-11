@@ -162,9 +162,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodeHandler.DefaultLayer = k_user;
             }
 
-            foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
+            try
             {
-                ReconcretizeNode(downstream.ID, registry);
+                foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
+                {
+                    ReconcretizeNode(downstream.ID, registry);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
 
             return builder != null;
@@ -239,7 +246,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             PortHandler port = new PortHandler(input, this, registry);
             try
             {
-                ReconcretizeNode(port.GetNode().ID, registry);
+                // TODO (Brett) This is taken out because it was causing loop
+                //ReconcretizeNode(port.GetNode().ID, registry);
             }
             catch (Exception e)
             {
@@ -256,7 +264,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             PortHandler port = new PortHandler(input, this, registry);
             try
             {
-                ReconcretizeNode(port.GetNode().ID, registry);
+                //ReconcretizeNode(port.GetNode().ID, registry);
             }
             catch (Exception e)
             {

@@ -43,6 +43,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
         }
 
+        public void AddReferenceNodeMapping(string nodeName, string contextEntryName)
+        {
+            if (graphDelta.m_data.referableToReferenceNodeMap.TryGetValue(contextEntryName, out var referenceNodeMapping))
+            {
+                referenceNodeMapping.referenceNodeNames.Add(nodeName);
+            }
+            else
+            {
+                var newReferenceNodeList = new List<string> { nodeName };
+                var newMapping = new ReferableToReferenceNodeMapping();
+                newMapping.referenceNodeNames = newReferenceNodeList;
+                graphDelta.m_data.referableToReferenceNodeMap[contextEntryName] = newMapping;
+            }
+        }
+
+        public void RemoveReferenceNodeMapping(string nodeName, string contextEntryName)
+        {
+            if (graphDelta.m_data.referableToReferenceNodeMap.TryGetValue(contextEntryName, out var referenceNodeMapping)
+                && referenceNodeMapping != null)
+                referenceNodeMapping.referenceNodeNames.Remove(nodeName);
+        }
+
+        public List<string> GetReferenceNodeMapping(string contextEntryName)
+        {
+            if(graphDelta.m_data.referableToReferenceNodeMap.TryGetValue(contextEntryName, out var referenceNodeList))
+                return referenceNodeList.referenceNodeNames;
+            return null;
+        }
+
         [Obsolete("AddNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
             "Use AddNode<T>(string name) for updated behavior")]
         internal NodeHandler AddNode<T>(string name, Registry registry) where T : INodeDefinitionBuilder =>
@@ -149,7 +178,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
-        public void RebuildContextData(ElementID contextNode, ITargetProvider target, string templateName, string cpName, bool input)
+        public void RebuildContextData(
+            ElementID contextNode,
+            ITargetProvider target,
+            string templateName,
+            string cpName,
+            bool input)
         {
             void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
             {
@@ -170,6 +204,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 return;
             }
+            // work on the concrete layer because user interactions can't change the data
             context.ClearLayerData(GraphDelta.k_concrete);
             context.DefaultLayer = GraphDelta.k_concrete;
 

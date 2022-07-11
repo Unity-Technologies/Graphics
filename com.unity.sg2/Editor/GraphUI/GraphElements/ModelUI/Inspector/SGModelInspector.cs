@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return false;
             }
 
-            return true;
+            return base.IsEmpty();
         }
     }
 }

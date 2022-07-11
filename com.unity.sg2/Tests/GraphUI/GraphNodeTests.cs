@@ -153,8 +153,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestOutdatedNodeGetsUpgradeBadge()
         {
             var node = m_GraphView.GraphModel.CreateGraphDataNode(
-                new RegistryKey {Name = "TestUpgrade", Version = 1},
-                displayName: "V1"
+                new RegistryKey {Name = "TestUpgrade", Version = 2},
+                displayName: "V2"
             );
             yield return null;
 
@@ -168,8 +168,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestUpToDateNodeDoesNotGetUpgradeBadge()
         {
             m_GraphView.GraphModel.CreateGraphDataNode(
-                new RegistryKey {Name = "TestUpgrade", Version = 2},
-                displayName: "V2"
+                new RegistryKey {Name = "TestUpgrade", Version = 3},
+                displayName: "V3"
             );
             yield return null;
 
@@ -181,23 +181,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestNodeCanBeUpgraded()
         {
             var node = m_GraphView.GraphModel.CreateGraphDataNode(
-                new RegistryKey {Name = "TestUpgrade", Version = 1},
-                displayName: "V1"
+                new RegistryKey {Name = "TestUpgrade", Version = 2},
+                displayName: "V2"
             );
             yield return null;
 
             m_GraphView.Dispatch(new UpgradeNodeCommand(node));
             yield return null;
 
-            Assert.AreEqual(2, node.registryKey.Version, "Upgrading a node should set it to the latest version");
+            Assert.AreEqual(3, node.registryKey.Version, "Upgrading a node should set it to the latest version");
         }
 
         [UnityTest]
         public IEnumerator TestDismissingUpgradeRemovesBadge()
         {
             var node = m_GraphView.GraphModel.CreateGraphDataNode(
-                new RegistryKey {Name = "TestUpgrade", Version = 1},
-                displayName: "V1"
+                new RegistryKey {Name = "TestUpgrade", Version = 2},
+                displayName: "V2"
             );
             yield return null;
 

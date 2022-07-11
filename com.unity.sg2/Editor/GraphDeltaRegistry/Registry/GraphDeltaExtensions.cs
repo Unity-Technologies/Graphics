@@ -37,7 +37,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}"); // TODO: Not this.
             handler.AddEdge(outPort.ID, inPort.ID);
             handler.ReconcretizeNode(node.ID.FullPath);
+
+            // Add this reference node to list of reference nodes mapped to a referable
+            handler.AddReferenceNodeMapping(nodeName, contextEntryName);
+
             return node;
+
             // node.SetMetadata("_referenceName", contextEntryName);
 
             // reference nodes have some weird rules, in that they can't really fetch or achieve any sort of identity until they are connected downstream to a context node.
@@ -52,8 +57,32 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var node = handler.GetNode(nodeName);
             var inPort = node.GetPort(ReferenceNodeBuilder.kContextEntry);
             var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}");
+
             handler.RemoveEdge(outPort.ID, inPort.ID);
             handler.RemoveNode(nodeName);
+
+            // Any edges this reference node was connected to (apart from its referable)
+            // will have a visual edge model in GTF that will remove its CLDS counterpart
+
+            // Remove this node from list of reference nodes mapped to a referable
+            handler.RemoveReferenceNodeMapping(nodeName, contextEntryName);
+        }
+
+        public static void RemoveReferableEntry(this GraphHandler handler, string contextName, string contextEntryName)
+        {
+            // Remove any reference nodes and edges that linked back to this referable entry
+            var referenceNodeList = handler.GetReferenceNodeMapping(contextEntryName);
+            if (referenceNodeList != null)
+            {   for (var index = 0; index < referenceNodeList.Count; index++)
+                {
+                    var referenceNode = referenceNodeList[index];
+                    RemoveReferenceNode(handler, referenceNode, contextName, contextEntryName);
+                }
+            }
+
+            // Then remove the context entry that represented the referable itself
+            var contextNode = handler.GetNode(contextName);
+            ContextBuilder.RemoveReferableEntry(contextNode, contextEntryName);
         }
 
         internal static void SetupContext(this GraphHandler handler, IEnumerable<IContextDescriptor> contexts)

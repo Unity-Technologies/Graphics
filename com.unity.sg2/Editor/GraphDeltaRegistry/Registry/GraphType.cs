@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             SetComponents(field, 0, val.x, val.y, val.z);
 
         public static void SetAsVec4(FieldHandler field, Vector4 val, int col = 0) =>
-            SetComponents(field, col * 4, val.x, val.y, val.z);
+            SetComponents(field, col * 4, val.x, val.y, val.z, val.w);
 
         public static void SetAsMat4(FieldHandler field, Matrix4x4 val)
         {

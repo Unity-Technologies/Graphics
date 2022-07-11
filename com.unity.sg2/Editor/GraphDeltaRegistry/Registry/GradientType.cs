@@ -110,6 +110,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     {
         public static Gradient GetGradient(FieldHandler field)
         {
+            // This is possible when duplicating/cloning a variable declaration model
+            // from another graph and it doesnt have a graphHandler reference
+            if (field == null)
+            {
+                var defaultGradient = new Gradient(){
+                    colorKeys = new GradientColorKey[] {
+                        new(new Color(0, 0, 0), 0),
+                        new(new Color(1, 1, 1), 1)
+                    },
+                    alphaKeys = new GradientAlphaKey[] {
+                        new(1, 0),
+                        new(1, 1)
+                    }
+                };
+
+                return defaultGradient;
+            }
             field.GetField<GradientMode>(GradientType.kGradientMode, out var mode);
             field.GetField<int>(GradientType.kColorCount, out var colorCount);
             field.GetField<int>(GradientType.kAlphaCount, out var alphaCount);
