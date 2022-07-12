@@ -24,7 +24,7 @@ jobs:
     triggers:
         recurring:
           -  branch: 10.x.x/release
-             frequency: 1 * * ?
+             frequency: weekly
 
   - name: General Checks
     triggers:

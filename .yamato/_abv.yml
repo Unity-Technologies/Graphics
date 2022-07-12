@@ -38,7 +38,7 @@ all_project_ci_nightly_2020.3:
     triggers:
         recurring:
           -  branch: 10.x.x/release
-             frequency: 1 * * ?
+             frequency: weekly
 
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2020.3
