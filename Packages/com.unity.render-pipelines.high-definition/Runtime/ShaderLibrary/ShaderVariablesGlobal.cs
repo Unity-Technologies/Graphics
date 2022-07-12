@@ -256,6 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // See ScreenCoordOverride.hlsl for details.
         public Vector4 _ScreenSizeOverride;
-        public Vector4 _ScreenCoordScaleBias;
+        public Matrix4x4 _ScreenCoordScaleBias;
     }
 }

@@ -69,7 +69,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+                color = ApplyGrain(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC, unity_StereoEyeIndex), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
             #endif
 
@@ -81,7 +81,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC, unity_StereoEyeIndex), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
             }
             #endif
 

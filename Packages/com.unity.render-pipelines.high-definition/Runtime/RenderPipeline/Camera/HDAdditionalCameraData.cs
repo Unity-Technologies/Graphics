@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 screenSizeOverride;
 
         /// <summary>Transform used when Screen Coordinates Override is active.</summary>
-        public Vector4 screenCoordScaleBias;
+        public Matrix4x4 screenCoordScaleBias;
 
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]

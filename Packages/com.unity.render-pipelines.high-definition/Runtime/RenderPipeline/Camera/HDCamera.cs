@@ -1219,7 +1219,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScreenSizeOverride = additionalCameraDataIsNull ? cb._ScreenSize : m_AdditionalCameraData.screenSizeOverride;
 
             // Default to identity scale-bias.
-            cb._ScreenCoordScaleBias = additionalCameraDataIsNull ? new Vector4(1, 1, 0, 0) : m_AdditionalCameraData.screenCoordScaleBias;
+            cb._ScreenCoordScaleBias = additionalCameraDataIsNull ? new Matrix4x4(new Vector4(1, 1, 0, 0), Vector4.zero, Vector4.zero, Vector4.zero) : m_AdditionalCameraData.screenCoordScaleBias;
         }
 
         unsafe internal void UpdateShaderVariablesXRCB(ref ShaderVariablesXR cb)
