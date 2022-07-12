@@ -8,17 +8,9 @@ using UnityEngine.SceneManagement;
 
 public class GraphicsTests
 {
-#if UNITY_2020_3
-    private const string UniversalPackagePath = "Assets/ReferenceImages/2020_3";
-#elif UNITY_2021_3
-    private const string UniversalPackagePath = "Assets/ReferenceImages/2021_3";
-#elif UNITY_2022_1
-    private const string UniversalPackagePath = "Assets/ReferenceImages/2022_1";
-#elif UNITY_2022_2
-    private const string UniversalPackagePath = "Assets/ReferenceImages/2022_2";
-#else
-    private const string UniversalPackagePath = "Assets/ReferenceImages/trunk";
-#endif
+
+    private const string UniversalPackagePath = "Assets/ReferenceImages";
+
 
     [UnityTest, Category("RenderingExamplesTest")]
     [PrebuildSetup("SetupGraphicsTestCases")]
