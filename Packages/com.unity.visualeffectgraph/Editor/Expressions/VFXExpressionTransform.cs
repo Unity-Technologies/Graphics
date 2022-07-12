@@ -254,7 +254,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("float3(length({0}[0]),length({0}[1]),length({0}[2]))", parents[0]);
+            return string.Format("float3(length({0}._11_21_31),length({0}._12_22_32),length({0}._13_23_33))", parents[0]);
         }
     }
 
