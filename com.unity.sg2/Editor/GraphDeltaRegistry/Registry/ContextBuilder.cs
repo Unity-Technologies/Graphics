@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             ContextEntry entry,
             Registry registry,
             PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
-            DataSource source = DataSource.Global,
+            DataSource source = DataSource.Constant,
             string displayName = null,
             string defaultValue = null)
         {
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string fieldName,
             Registry registry,
             PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
-            DataSource source = DataSource.Global,
+            DataSource source = DataSource.Constant,
             string displayName = null,
             string defaultValue = null)
         {
