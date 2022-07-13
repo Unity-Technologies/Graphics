@@ -98,10 +98,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
                     cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
-                    if (DataType == ShaderGraphExampleTypes.Color && cldsConstant is GraphTypeConstant graphTypeConstant)
-                    {
-                        graphTypeConstant.Temp_DisplayAsColor = true;
-                    }
                 }
             }
         }
