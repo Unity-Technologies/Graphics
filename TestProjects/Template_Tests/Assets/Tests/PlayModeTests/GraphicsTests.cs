@@ -9,13 +9,10 @@ using UnityEngine.SceneManagement;
 public class GraphicsTests
 {
 
-    private const string UniversalPackagePath = "Assets/ReferenceImages";
-
-
     [UnityTest, Category("RenderingExamplesTest")]
     [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases(UniversalPackagePath)]
-    
+    [UseGraphicsTestCases]
+   
 
     public IEnumerator Runtime(GraphicsTestCase testCase)
     {
@@ -23,14 +20,17 @@ public class GraphicsTests
 
         // Always wait one frame for scene load
         yield return null;
-        
-        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
+
+        var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         var settings = Object.FindObjectOfType<GlobalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find GlobalGraphicsTestSettings"); // Asset that needs to be added to Main Camera in every scene
 
         Scene scene = SceneManager.GetActiveScene();
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
+        for (int i = 0; i < settings.WaitFrames; i++)
+            yield return null;
+
+        ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings);
     }
 
 #if UNITY_EDITOR
