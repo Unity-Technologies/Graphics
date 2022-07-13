@@ -1218,7 +1218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShadowNearPlane == value)
                     return;
 
-                m_ShadowNearPlane = Mathf.Clamp(value, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane);
+                m_ShadowNearPlane = Mathf.Clamp(value, 0, HDShadowUtils.k_MaxShadowNearPlane);
             }
         }
 
@@ -2402,7 +2402,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
-            float n = shadowNearPlane;
+            float n = lightType == HDLightType.Area || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box ? shadowNearPlane : Mathf.Max(shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane);
             shadowRequest.zBufferParam = new Vector4((f - n) / n, 1.0f, (f - n) / (n * f), 1.0f / f);
             shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
             shadowRequest.normalBias = normalBias;
@@ -2846,6 +2846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case AreaLightShape.Rectangle:
                             lightData.lightUnit = LightUnit.Lumen;
                             lightData.intensity = k_DefaultAreaLightIntensity;
+                            lightData.shadowNearPlane = 0;
                             light.shadows = LightShadows.None;
                             break;
                         case AreaLightShape.Disc:

@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shape != SpotLightShape.Pyramid)
                 aspectRatio = 1.0f;
 
+            if (shape != SpotLightShape.Box)
+                nearPlane = Mathf.Max(HDShadowUtils.k_MinShadowNearPlane, nearPlane);
+
             float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
             ExtractSpotLightMatrix(visibleLight, forwardOffset: 0, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
 
@@ -243,8 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static Matrix4x4 ExtractBoxLightProjectionMatrix(float range, float width, float height, float nearPlane)
         {
-            float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
-            return Matrix4x4.Ortho(-width / 2, width / 2, -height / 2, height / 2, nearZ, range);
+            return Matrix4x4.Ortho(-width / 2, width / 2, -height / 2, height / 2, nearPlane, range);
         }
 
         static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float forwardOffset, float spotAngle, float nearPlane, float guardAngle, float aspectRatio, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
@@ -277,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 deviceViewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
 
             splitData.cullingMatrix = deviceViewProj;
-            splitData.cullingNearPlane = nearPlane;
+            splitData.cullingNearPlane = nearPlane - forwardOffset;
             return deviceViewProj;
         }
 
