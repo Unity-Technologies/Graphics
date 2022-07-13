@@ -51,6 +51,11 @@ namespace UnityEditor.ShaderGraph.Utils
             }
         }
 
+        public string ToJson()
+        {
+            return EditorJsonUtility.ToJson(new MeshHelper { mesh = mesh }, false);
+        }
+
         public void OnBeforeSerialize()
         {
             m_SerializedMesh = EditorJsonUtility.ToJson(new MeshHelper { mesh = mesh }, false);

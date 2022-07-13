@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
             if (overlay is PreviewOverlay previewOverlay)
-                previewOverlay.onCachedPreviewTextureRequest = m_PreviewManager.GetCachedMainPreviewTexture;
+                previewOverlay.getCachedMainPreviewTexture = m_PreviewManager.GetCachedMainPreviewTexture;
         }
 
         protected override void OnEnable()

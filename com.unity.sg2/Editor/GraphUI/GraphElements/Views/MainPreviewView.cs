@@ -19,12 +19,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             get => m_PreviewTextureImage.image;
             set
             {
-                if(value != null)
+                if (value != null)
+                {
                     m_PreviewTextureImage.image = value;
+                    this.MarkDirtyRepaint();
+                }
             }
         }
 
-        Vector2 m_PreviewScrollPosition;
+        Vector2 m_PreviewScrollPosition = new();
+
+        Vector2 m_PreviewSize;
+
+        bool m_LockPreviewRotation;
 
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
@@ -35,12 +42,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         Dictionary<string, Mesh> m_PreviewMeshIndex = new();
 
         ContextualMenuManipulator m_ContextualMenuManipulator;
-
-        Mesh m_PreviousMesh;
-
-        // TODO: (Sai) Remove from here? And make commands affect this in the asset model?
-        // View and model are a bit tightly coupled here
-        MainPreviewData m_MainPreviewData;
 
         public MainPreviewView(Dispatcher dispatcher)
         {
@@ -55,6 +56,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             this.AddManipulator(new Scrollable(OnScroll));
 
             BuildPreviewMeshIndex();
+
+            this.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            var owningOverlay = this.GetFirstAncestorWithName("unity-overlay");
+            if (owningOverlay != null)
+            {
+                owningOverlay.UnregisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+                owningOverlay.RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+            }
         }
 
         void BuildPreviewMeshIndex()
@@ -73,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Initialize(MainPreviewData mainPreviewData)
         {
-            m_MainPreviewData = mainPreviewData;
+            m_PreviewSize = new Vector2(mainPreviewData.width, mainPreviewData.height);
         }
 
         Image CreatePreview(Texture inputTexture)
@@ -100,7 +113,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void ChangePreviewMesh(Mesh newPreviewMesh)
         {
-            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh);
+            m_LockPreviewRotation = newPreviewMesh.name == "Sprite" ? true : false;
+            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh, m_LockPreviewRotation);
             m_CommandDispatcher.Dispatch(changePreviewMeshCommand);
         }
 
@@ -113,33 +127,56 @@ namespace UnityEditor.ShaderGraph.GraphUI
         void ChangeMeshCustom()
         {
             MethodInfo showMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] { typeof(Object), typeof(Type), typeof(Object), typeof(bool), typeof(List<int>), typeof(Action<Object>), typeof(Action<Object>) }, new ParameterModifier[7]);
-            m_PreviousMesh = m_MainPreviewData.mesh;
             showMethod?.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnObjectSelectorClosed, (Action<Object>)OnObjectSelectionUpdated });
         }
 
         void OnObjectSelectorClosed(object currentMesh)
         {
             var newPreviewMesh = currentMesh as Mesh;
-            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh);
+            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh, m_LockPreviewRotation);
             m_CommandDispatcher.Dispatch(changePreviewMeshCommand);
         }
 
         void OnObjectSelectionUpdated(object currentMesh)
         {
             var newPreviewMesh = currentMesh as Mesh;
-            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh);
+            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh, m_LockPreviewRotation);
             m_CommandDispatcher.Dispatch(changePreviewMeshCommand);
         }
 
-        void OnMouseDragPreviewMesh(Vector2 obj)
+        void OnMouseDragPreviewMesh(Vector2 deltaMouse)
         {
-            throw new System.NotImplementedException();
+            if (m_LockPreviewRotation) return;
+
+            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(m_PreviewSize.x, m_PreviewSize.y) * 140f;
+            m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
+            Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
+            if (float.IsNaN(previewRotation.x) || float.IsNaN(previewRotation.y) || float.IsNaN(previewRotation.z) || float.IsNaN(previewRotation.w))
+                return;
+            var changePreviewRotationCommand = new ChangePreviewRotationCommand(previewRotation);
+            m_CommandDispatcher.Dispatch(changePreviewRotationCommand);
         }
 
         void OnScroll(float scrollValue)
         {
-            throw new System.NotImplementedException();
+            float rescaleAmount = -scrollValue * .03f;
+            var changePreviewZoomCommand = new ChangePreviewZoomCommand(rescaleAmount);
+            m_CommandDispatcher.Dispatch(changePreviewZoomCommand);
         }
 
+        void OnGeometryChangedEvent(GeometryChangedEvent evt)
+        {
+            var currentWidth = this.style.width;
+            var currentHeight = this.style.height;
+
+            var targetWidth = new Length(evt.newRect.width, LengthUnit.Pixel);
+            var targetHeight = new Length(evt.newRect.height, LengthUnit.Pixel);
+
+            this.style.width = targetWidth;
+            this.style.height = targetHeight;
+
+            //var changePreviewSizeCommand = new ChangePreviewSizeCommand(evt.newRect.size);
+            //m_CommandDispatcher.Dispatch(changePreviewSizeCommand);
+        }
     }
 }

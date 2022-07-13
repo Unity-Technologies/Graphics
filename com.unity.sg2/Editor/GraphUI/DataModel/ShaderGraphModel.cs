@@ -10,31 +10,97 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
-using Edge = UnityEditor.GraphToolsFoundation.Overdrive.Edge;
+
+using SerializedMesh = UnityEditor.ShaderGraph.Utils.SerializableMesh;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public enum PropagationDirection
-    {
-        Upstream,
-        Downstream
-    }
-
     [Serializable]
     class MainPreviewData
     {
+        string m_GraphModelGuid;
+
+        string ScaleUserPrefKey => m_GraphModelGuid + "." + ChangePreviewZoomCommand.UserPrefsKey;
+        string RotationUserPrefKey => m_GraphModelGuid + "." + ChangePreviewRotationCommand.UserPrefsKey;
+        string WidthUserPrefKey => m_GraphModelGuid + "." + ChangePreviewSizeCommand.UserPrefsKey + ".width";
+        string HeightUserPrefKey => m_GraphModelGuid + "." + ChangePreviewSizeCommand.UserPrefsKey + ".height";
+
+        public MainPreviewData(string graphAssetGuid)
+        {
+            m_GraphModelGuid = graphAssetGuid;
+            // Get scale from prefs if present
+            scale = EditorPrefs.GetFloat(ScaleUserPrefKey, 1.0f);
+
+            // Get rotation from prefs if present
+            var rotationJson = EditorPrefs.GetString(RotationUserPrefKey, string.Empty);
+            if (rotationJson != string.Empty)
+            {
+                var storedRotation = Quaternion.identity;
+                EditorJsonUtility.FromJsonOverwrite(rotationJson, storedRotation);
+            }
+
+            // Get width and height from user prefs if present
+            width = EditorPrefs.GetInt(WidthUserPrefKey, 130);
+            height = EditorPrefs.GetInt(HeightUserPrefKey, 130);
+
+        }
+
         [SerializeField]
-        private SerializableMesh serializedMesh = new ();
-        public bool preventRotation;
-
-        public int width = 125;
-        public int height = 125;
+        private SerializedMesh serializedMesh = new ();
 
         [NonSerialized]
-        public Quaternion rotation = Quaternion.identity;
+        int m_Width = 130;
+
+        public int width
+        {
+            get => m_Width;
+            set
+            {
+                m_Width = value;
+                EditorPrefs.SetInt(WidthUserPrefKey, m_Width);
+            }
+        }
 
         [NonSerialized]
-        public float scale = 1f;
+        int m_Height = 130;
+
+        public int height
+        {
+            get => m_Height;
+            set
+            {
+                m_Height = value;
+                EditorPrefs.SetInt(HeightUserPrefKey, m_Height);
+            }
+        }
+
+
+        [NonSerialized]
+        Quaternion m_Rotation = Quaternion.identity;
+
+        public Quaternion rotation
+        {
+            get => m_Rotation;
+            set
+            {
+                m_Rotation = value;
+                EditorPrefs.SetString(RotationUserPrefKey, EditorJsonUtility.ToJson(rotation));
+            }
+        }
+
+
+        [NonSerialized]
+        float m_Scale = 1.0f;
+
+        public float scale
+        {
+            get => m_Scale;
+            set
+            {
+                m_Scale = value;
+                EditorPrefs.SetFloat(ScaleUserPrefKey, m_Scale);
+            }
+        }
 
         public Mesh mesh
         {
@@ -50,7 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
         [SerializeField]
-        private MainPreviewData mainPreviewData = new(); // TODO: This should wrap a UserPrefs entry instead of being stored here.
+        private MainPreviewData mainPreviewData; // TODO: This should wrap a UserPrefs entry instead of being stored here.
         [SerializeField]
         private bool isSubGraph = false;
 
@@ -122,6 +188,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 InitializeContextFromTarget(target.value);
             }
+
+            mainPreviewData = new(Guid.ToString());
         }
 
         private void InitializeContextFromTarget(Target target)

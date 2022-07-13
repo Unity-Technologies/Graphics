@@ -13,7 +13,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         MainPreviewView m_MainPreviewView;
 
-        public Func<Texture> onCachedPreviewTextureRequest;
+        /// <summary>
+        /// Is set in ShaderGraphEditorWindow::InitializeOverlayWindows to a function of the preview manager
+        /// </summary>
+        public Func<Texture> getCachedMainPreviewTexture;
 
         public override VisualElement CreatePanelContent()
         {
@@ -28,13 +31,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_MainPreviewView.AddToClassList("MainPreviewView");
                 m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
-                size = new Vector2(125, 125);
+                // TODO: Get size from preview data/user prefs
+                size = new Vector2(130, 130);
+                // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
+                maxSize = new Vector2(500.0f, 500.0f);
                 window.SetMainPreviewReference(m_MainPreviewView);
-                var cachedTexture = onCachedPreviewTextureRequest?.Invoke();
+                var cachedTexture = getCachedMainPreviewTexture?.Invoke();
                 if (cachedTexture != null)
                     m_MainPreviewView.mainPreviewTexture = cachedTexture;
 
-                // TODO: Need to cache image or have a way to request preview manager to update this
+                if(window.GraphTool.ToolState.GraphModel is ShaderGraphModel graphModel)
+                    m_MainPreviewView.Initialize(graphModel.MainPreviewData);
+
                 return m_MainPreviewView;
             }
 
