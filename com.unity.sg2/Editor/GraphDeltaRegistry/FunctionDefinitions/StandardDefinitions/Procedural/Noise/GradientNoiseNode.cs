@@ -33,18 +33,12 @@ namespace UnityEditor.ShaderGraph.Defs
 @"	p = UV * Scale;
 	ip = floor(p);
 	fp = frac(p);
-    ip2 = ip; ip2.y += 1;
-    ip3 = ip; ip3.x += 1;
-    fp2 = fp; fp2.y -= 1;
-    fp3 = fp; fp2.x -= 1;
-    Unity_GradientNoise_Deterministic_Dir(ip, d00Out);
-	d00 = dot(d00Out, fp);
-    Unity_GradientNoise_Deterministic_Dir(ip2, d01Out);
-	d01 = dot(d01Out, fp2);
-    Unity_GradientNoise_Deterministic_Dir(ip3, d10Out);
-	d10 = dot(d10Out, fp3);
-    Unity_GradientNoise_Deterministic_Dir(ip + 1, d11Out);
-	d11 = dot(d11Out, fp - 1);
+    ip2 = ip; ip2.y += 1; fp2 = fp; fp2.y -= 1;
+    ip3 = ip; ip3.x += 1; fp3 = fp; fp3.x -= 1;
+    Unity_GradientNoise_Deterministic_Dir(ip, d00Out); d00 = dot(d00Out, fp);
+    Unity_GradientNoise_Deterministic_Dir(ip2, d01Out); d01 = dot(d01Out, fp2);
+    Unity_GradientNoise_Deterministic_Dir(ip3, d10Out); d10 = dot(d10Out, fp3);
+    Unity_GradientNoise_Deterministic_Dir(ip + 1, d11Out); d11 = dot(d11Out, fp - 1);
 	fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
 	Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;",
                     new ParameterDescriptor[]
@@ -90,18 +84,12 @@ namespace UnityEditor.ShaderGraph.Defs
 @"	p = UV * Scale;
 	ip = floor(p);
 	fp = frac(p);
-    ip2 = ip; ip2.y += 1;
-    ip3 = ip; ip3.x += 1;
-    fp2 = fp; fp2.y -= 1;
-    fp3 = fp; fp2.x -= 1;
-    Unity_GradientNoise_LegacyMod_Dir(ip, d00Out);
-	d00 = dot(d00Out, fp);
-    Unity_GradientNoise_LegacyMod_Dir(ip2, d01Out);
-	d01 = dot(d01Out, fp2);
-    Unity_GradientNoise_LegacyMod_Dir(ip3, d10Out);
-	d10 = dot(d10Out, fp3);
-    Unity_GradientNoise_LegacyMod_Dir(ip + 1, d11Out);
-	d11 = dot(d11Out, fp - 1);
+    ip2 = ip; ip2.y += 1; fp2 = fp; fp2.y -= 1;
+    ip3 = ip; ip3.x += 1; fp3 = fp; fp3.x -= 1;
+    Unity_GradientNoise_LegacyMod_Dir(ip, d00Out); d00 = dot(d00Out, fp);
+    Unity_GradientNoise_LegacyMod_Dir(ip2, d01Out); d01 = dot(d01Out, fp2);
+    Unity_GradientNoise_LegacyMod_Dir(ip3, d10Out); d10 = dot(d10Out, fp3);
+    Unity_GradientNoise_LegacyMod_Dir(ip + 1, d11Out); d11 = dot(d11Out, fp - 1);
 	fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
 	Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;",
                     new ParameterDescriptor[]
