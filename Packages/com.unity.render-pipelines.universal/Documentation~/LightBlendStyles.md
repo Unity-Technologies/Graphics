@@ -2,14 +2,14 @@
 
 ![](Images/2D/image_38.png)
 
-__Blend Styles__ determine the way a particular Light interacts with Sprites in the Scene. All Lights in the Scene must pick from one of the available Blend Styles. The Universal Render Pipeline (URP) 2D Asset can currently contain a total of four different Light Blend Styles, starting with the 'Default' Blend Style being available.
+**Blend Styles** determine the way a particular Light interacts with Sprites in the Scene. All Lights in the Scene must pick from one of the available Blend Styles. The Universal Render Pipeline (URP) 2D Asset can currently contain a total of four different Light Blend Styles, with different default Blend Style settings. Lights created will default to the first Blend Style.
 
 | **Property**             | **Function**                                                 |
 | ------------------------ | ------------------------------------------------------------ |
-| __Name__                 | The name that appears when choosing a Blend Style for a Light2D. |
-| __Mask Texture Channel__ | Which mask channel to use when applying this Blend Style to a Sprite. |
-| __Render Texture Scale__ | Scale for the internal render texture created for this Blend Style. |
-| __Blend Mode__           | What blending mode the Light2D uses when this Blend Style is selected. |
+| **Name**                 | The name that appears when choosing a Blend Style for a Light2D. |
+| **Mask Texture Channel** | Which mask channel to use when applying this Blend Style to a Sprite. |
+| **Render Texture Scale** | Scale for the internal render texture created for this Blend Style. |
+| **Blend Mode**           | What blending mode the Light2D uses when this Blend Style is selected. |
 
 
 
@@ -24,29 +24,6 @@ Blend Modes controls the way a Sprite is lit by light. The following examples sh
 | Original Sprite                            | Multiply                            |
 | ![Additive](Images/2D/image_42.png)           | ![Subtractive](Images/2D/image_43.png) |
 | Additive                                   | Subtractive                         |
-
-
-
-## Custom Blend Modes
-
-![](Images/2D/image_44.png)
-
-All of the Blend Modes available can be expressed with Custom Blend Factors. The factors for the existing Blend Modes are as follows:
-
-- Multiplicative
-
-- - Modulate = 1
-  - Additive = 0
-
-- Additive
-
-- - Modulate = 0
-  - Additive = 1
-
-- Subtractive
-
-- - Modulate = 0
-  - Additive = -1
 
 
 

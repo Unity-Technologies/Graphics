@@ -1,13 +1,13 @@
-# 2D Renderer and Shader Graph
+# 2D Sprite Shader Graph
 
 ## Creating a Lit Shader
 
-1. Create a new Asset by selecting __Assets > Create > Shader Graph > URP > Sprite Lit Shader Graph__. The Shader Graph Asset is then created in the Asset window.
+1. Create a new Asset by selecting **Assets > Create > Shader Graph > URP > Sprite Lit Shader Graph**. The Shader Graph Asset is then created in the Asset window.
 
    ![](Images/2D/2d-urp12-create-lit-shader.png)
    <br/>
 
-2. Double-click the new Asset to open the __Shader Graph__.
+2. Double-click the new Asset to open the **Shader Graph**.
    ![](Images/2D/2d-urp12-open-shader-graph.png)
    <br/>
 
