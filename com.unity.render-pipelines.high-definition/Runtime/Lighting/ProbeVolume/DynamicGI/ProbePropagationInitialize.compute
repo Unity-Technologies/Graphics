@@ -8,6 +8,9 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
@@ -99,6 +102,45 @@ float3 ProbeVolumeEvaluateIncomingRadiance(SHIncomingIrradiance shIncomingIrradi
     return incomingRadiance;
 }
 
+float Halton(uint index, uint radix)
+{
+    float result = 0.0;
+    float fraction = 1.0 / (float)radix;
+
+    while (index > 0)
+    {
+        result += (index % radix) * fraction;
+
+        index /= radix;
+        fraction /= radix;
+    }
+
+    return result;
+}
+
+float3 ComputeDirectionFromHalton(uint i)
+{
+    float2 halton = float2(Halton(i, 2u), Halton(i, 3u));
+    
+    float theta = halton.x * 2.0 * PI;
+    float z = -(halton.y * 2.0 - 1.0);
+    float r = sqrt(1.0 - z * z);
+
+    float3 sampleDirection = float3(
+        r * cos(theta),
+        r * sin(theta),
+        z
+    );
+    
+    return sampleDirection;
+}
+
+#define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
+#define BASIS_FROM_SH_MODE_MONTE_CARLO_PROGRESSIVE_LEAST_SQUARES (1)
+#define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (2)
+#define BASIS_FROM_SH_MODE_ZH_FIT (3)
+#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+
 [numthreads(GROUP_SIZE, 1, 1)]
 void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
 {
@@ -115,7 +157,154 @@ void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
         SHIncomingIrradiance shIncomingIrradiance = SHIncomingIrradianceCompute(bakedOutgoingRadiosity);
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+
+#if BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
+
+#define IMPORTANCE_SAMPLING_ENABLED
+#if !defined(IMPORTANCE_SAMPLING_ENABLED)
+        const int SAMPLE_COUNT = 8192;
+#else
+        const int SAMPLE_COUNT = 32;
+#endif
+        const float SAMPLE_COUNT_INVERSE = 1.0 / float(SAMPLE_COUNT);
+        // float GOLDEN_ANGLE = PI * (3.0 - sqrt(5.0));
+        float GOLDEN_ANGLE_HALF = GOLDEN_ANGLE * 0.5;
+        const float SOLID_ANGLE_SPHERE = 4.0 * PI;
+
+        for (int i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        {
+            BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[i].xyz, _Sharpness);
+            float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+            basisAxisHit.mean = basisAxisHitDirectionWS;
+
+            float3 incomingHitRadiance = 0.0;
+
+            // Importance sample basis lobe by remapping samples into a cone that approximately matches the solid angle of the basis.
+            // https://www.shadertoy.com/view/wlB3Wt
+            //
+            // solidAngleOfCone = 2 * PI * (1 - cosTheta) // note cosTheta is half angle
+            // 1.0 / (1 - cosTheta) = 2 * PI / solidAngleOfCone
+            // 1 - cosTheta = solidAngleOfCone / (2 * PI)
+            // -cosTheta + 1 = solidAngleOfCone / (2 * PI)
+            // -cosTheta = solidAngleOfCone / (2 * PI) - 1
+            // cosTheta = -solidAngleOfCone / (2 * PI) + 1
+            // solidAngleOfSG = integralOfSG = float b = 2.0 * PI / sharpness; return exp(-2.0 * sharpness) * -b + b;
+
+#if !defined(IMPORTANCE_SAMPLING_ENABLED)
+            float solidAngleBasis = 4.0 * PI;
+#else
+            // In order to derive the approximate solid angle, we need the normalized integral (the integral where the peak is 1, not amplitude)
+            // The lerp towards 2.0 * PI is an adhoc lerp to get more coverage. Must be tuned for the specific basis being used.
+            // With Ambient Dice, using the integral as the solid angle to extract cone coverage is not conservative enough.
+            float solidAngleBasis = lerp(ComputeBasisAxisHitIntegral(basisAxisHit) / basisAxisHit.amplitude, 2.0 * PI, 0.25);
+            float3x3 basisAxisHitLocalToWorld = GetLocalFrame(basisAxisHit.mean);
+#endif
+            float cosThetaMaxRatio = solidAngleBasis / SOLID_ANGLE_SPHERE;
+
+            for (int sampleIndex = 0; sampleIndex < SAMPLE_COUNT; ++sampleIndex)
+            {
+                float3 sampleDirectionWS;
+                {
+                    float offset = (float)sampleIndex + 0.5;
+                    float theta = offset * GOLDEN_ANGLE + GOLDEN_ANGLE_HALF;
+                    float z = -(offset * SAMPLE_COUNT_INVERSE * cosThetaMaxRatio * 2.0 - 1.0);
+                    float r = sqrt(1.0 - z * z);
+
+                    float3 sampleDirectionBasisOS = float3(
+                        r * cos(theta),
+                        r * sin(theta),
+                        z
+                    );               
+#if defined(IMPORTANCE_SAMPLING_ENABLED)    
+                    sampleDirectionWS = mul(sampleDirectionBasisOS, basisAxisHitLocalToWorld);
+#else
+                    sampleDirectionWS = sampleDirectionBasisOS; // No rotation necessary, we are sampling the whole sphere.
+#endif
+                }
+
+                float differentialArea = solidAngleBasis * SAMPLE_COUNT_INVERSE;
+                
+                float3 sampleIncomingRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, sampleDirectionWS);
+
+                incomingHitRadiance += sampleIncomingRadiance * differentialArea * ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS);
+            }
+
+            _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
+        }
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_PROGRESSIVE_LEAST_SQUARES
+        // Progressive Least-Squares Encoding for Linear Bases
+        // https://jcgt.org/published/0009/01/02/
+        const float ACCELERATION = 1.0; // A value between 1 and 5 is reasonable.
+        const int SAMPLE_COUNT = 1024;
+        const float SAMPLE_COUNT_INVERSE = 1.0 / (float)SAMPLE_COUNT;
+        const bool NON_NEGATIVE_SOLVE = true;
+        const bool GAUSS_SEIDEL_ITERATION = false;
+        float3 coefficients[NEIGHBOR_AXIS_COUNT];
+        float monteCarloIntegrals[NEIGHBOR_AXIS_COUNT];
+        float totalSampleWeight = 0.0;
         
+        for (int i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        {
+            coefficients[i] = 0.0;
+            monteCarloIntegrals[i] = 0.0;
+        }
+
+        for (int sampleIndex = 0; sampleIndex < SAMPLE_COUNT; ++sampleIndex)
+        {
+            // Progressive Least-Squares must use a progressive sampling sequence to be effective. Halton works well here. Non-progressive sequences like Hammersley do not.
+            float3 sampleDirectionWS = ComputeDirectionFromHalton((uint)sampleIndex + 1u);
+
+            float3 sampleIncomingRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, sampleDirectionWS);
+
+            float differentialArea = 4.0 * PI * SAMPLE_COUNT_INVERSE;
+
+            float sampleWeight = differentialArea;
+
+            totalSampleWeight += sampleWeight;
+            float sampleWeightScale = 1.0 / totalSampleWeight;
+            float3 delta = sampleIncomingRadiance;
+            float sampleLobeWeights[NEIGHBOR_AXIS_COUNT];
+
+            for (int axisIndex = 0; axisIndex < NEIGHBOR_AXIS_COUNT; ++axisIndex)
+            {
+                BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[axisIndex].xyz, _Sharpness);
+                float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+                basisAxisHit.mean = basisAxisHitDirectionWS;
+                
+                float weight = ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS);
+                weight *= differentialArea;
+                delta -= coefficients[axisIndex] * weight;
+                sampleLobeWeights[axisIndex] = weight;
+            }
+
+            for (axisIndex = 0; axisIndex < NEIGHBOR_AXIS_COUNT; ++axisIndex)
+            {
+                float weight = sampleLobeWeights[axisIndex];
+                float integralGuess = weight * weight;
+                monteCarloIntegrals[axisIndex] += (integralGuess - monteCarloIntegrals[axisIndex]) * sampleWeightScale;
+                float basisIntegral = sampleWeightScale + (1.0 - sampleWeightScale) * monteCarloIntegrals[axisIndex];
+                float deltaScale = ACCELERATION * weight * sampleWeightScale / basisIntegral;
+                coefficients[axisIndex] += delta * deltaScale;
+                
+                if (NON_NEGATIVE_SOLVE)
+                {
+                    coefficients[axisIndex] = max(0.0, coefficients[axisIndex]);
+                }
+                
+                if (GAUSS_SEIDEL_ITERATION)
+                {
+                    delta *= 1.0 - deltaScale * weight;
+                }
+            }
+        }
+
+        for (i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        {
+            _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(coefficients[i]);
+        }
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_ZH_FIT
         for (int i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
         {
             BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[i].xyz, _Sharpness);
@@ -126,14 +315,27 @@ void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
             // but it can be approximately represented as an ZH.
             // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indistinguishable.
             float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
-            // ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
-            // SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+            ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
+            SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
             float3 incomingHitRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS);
 
-            // TODO: Figure out why ZHWindow makes everything too smooth and dark. Skipping and adjusting radiance with a magic number for now.
-            incomingHitRadiance *= 0.6;
+            // ComputeZHWindowFromBasisAxisHit() returns a normalized (amplitude == 1) window.
+            // We need to scale down the radiance by the actual amplitude of the window to complete the projection.
+            incomingHitRadiance *= basisAxisHit.amplitude;
 
             _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
         }
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+        for (int i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        {
+            BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[i].xyz, _Sharpness);
+            float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+            float3 incomingHitRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS);
+            incomingHitRadiance *= basisAxisHit.amplitude;
+
+            _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
+        }
+#endif
     }
 }
