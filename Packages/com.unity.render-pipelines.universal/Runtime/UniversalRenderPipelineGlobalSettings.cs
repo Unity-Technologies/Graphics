@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.Serialization;
 
@@ -15,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         #region Version system
 
 #pragma warning disable CS0414
-        [SerializeField] int k_AssetVersion = 2;
+        [SerializeField] int k_AssetVersion = 3;
 #pragma warning restore CS0414
 
         public void OnBeforeSerialize()
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            if (k_AssetVersion != 2)
+            if (k_AssetVersion != 3)
             {
                 EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
@@ -49,6 +50,24 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_INCLUDE_TESTS
                 asset.m_StripUnusedPostProcessingVariants = true;
 #endif
+            }
+
+            if (asset.k_AssetVersion < 3)
+            {
+                int index = 0;
+                asset.m_RenderingLayerNames = new string[8];
+#pragma warning disable 618 // Obsolete warning
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName0;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName1;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName2;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName3;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName4;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName5;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName6;
+                asset.m_RenderingLayerNames[index++] = asset.lightLayerName7;
+#pragma warning restore 618 // Obsolete warning
+                asset.k_AssetVersion = 3;
+                asset.UpdateRenderingLayerNames();
             }
 
             EditorUtility.SetDirty(asset);
@@ -150,23 +169,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (src != null)
                 {
-                    assetCreated.lightLayerName0 = System.String.Copy(src.lightLayerName0);
-                    assetCreated.lightLayerName1 = System.String.Copy(src.lightLayerName1);
-                    assetCreated.lightLayerName2 = System.String.Copy(src.lightLayerName2);
-                    assetCreated.lightLayerName3 = System.String.Copy(src.lightLayerName3);
-                    assetCreated.lightLayerName4 = System.String.Copy(src.lightLayerName4);
-                    assetCreated.lightLayerName5 = System.String.Copy(src.lightLayerName5);
-                    assetCreated.lightLayerName6 = System.String.Copy(src.lightLayerName6);
-                    assetCreated.lightLayerName7 = System.String.Copy(src.lightLayerName7);
-
-                    assetCreated.decalLayerName0 = System.String.Copy(src.decalLayerName0);
-                    assetCreated.decalLayerName1 = System.String.Copy(src.decalLayerName1);
-                    assetCreated.decalLayerName2 = System.String.Copy(src.decalLayerName2);
-                    assetCreated.decalLayerName3 = System.String.Copy(src.decalLayerName3);
-                    assetCreated.decalLayerName4 = System.String.Copy(src.decalLayerName4);
-                    assetCreated.decalLayerName5 = System.String.Copy(src.decalLayerName5);
-                    assetCreated.decalLayerName6 = System.String.Copy(src.decalLayerName6);
-                    assetCreated.decalLayerName7 = System.String.Copy(src.decalLayerName7);
+                    System.Array.Copy(src.m_RenderingLayerNames, assetCreated.m_RenderingLayerNames, src.m_RenderingLayerNames.Length);
                 }
 
                 AssetDatabase.SaveAssets();
@@ -183,8 +186,8 @@ namespace UnityEngine.Rendering.Universal
             UpdateRenderingLayerNames();
         }
 
-        [System.NonSerialized]
-        string[] m_RenderingLayerNames;
+        [SerializeField]
+        string[] m_RenderingLayerNames = new string[] { "Default" };
         string[] renderingLayerNames
         {
             get
@@ -210,152 +213,73 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
         public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
+        [SerializeField]
+        uint m_ValidRenderingLayers;
+        /// <summary>Valid rendering layers that can be used by graphics. </summary>
+        public uint validRenderingLayers => m_ValidRenderingLayers;
+
         /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
         internal void UpdateRenderingLayerNames()
         {
-            if (m_RenderingLayerNames == null)
-                m_RenderingLayerNames = new string[32];
-
-            int index = 0;
-            m_RenderingLayerNames[index++] = lightLayerName0;
-            m_RenderingLayerNames[index++] = lightLayerName1;
-            m_RenderingLayerNames[index++] = lightLayerName2;
-            m_RenderingLayerNames[index++] = lightLayerName3;
-            m_RenderingLayerNames[index++] = lightLayerName4;
-            m_RenderingLayerNames[index++] = lightLayerName5;
-            m_RenderingLayerNames[index++] = lightLayerName6;
-            m_RenderingLayerNames[index++] = lightLayerName7;
-
-            m_RenderingLayerNames[index++] = decalLayerName0;
-            m_RenderingLayerNames[index++] = decalLayerName1;
-            m_RenderingLayerNames[index++] = decalLayerName2;
-            m_RenderingLayerNames[index++] = decalLayerName3;
-            m_RenderingLayerNames[index++] = decalLayerName4;
-            m_RenderingLayerNames[index++] = decalLayerName5;
-            m_RenderingLayerNames[index++] = decalLayerName6;
-            m_RenderingLayerNames[index++] = decalLayerName7;
-
-            // Unused
-            for (int i = index; i < m_RenderingLayerNames.Length; ++i)
-            {
-                m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
-            }
-
             // Update prefixed
             if (m_PrefixedRenderingLayerNames == null)
                 m_PrefixedRenderingLayerNames = new string[32];
-            if (m_PrefixedLightLayerNames == null)
-                m_PrefixedLightLayerNames = new string[8];
             for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
             {
-                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
-                if (i < 8)
-                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+                uint renderingLayer = (uint)(1 << i);
+
+                m_ValidRenderingLayers = i < m_RenderingLayerNames.Length ? (m_ValidRenderingLayers | renderingLayer) : (m_ValidRenderingLayers & ~renderingLayer);
+                m_PrefixedRenderingLayerNames[i] = i < m_RenderingLayerNames.Length ? m_RenderingLayerNames[i] : $"Unused Layer {i}";
             }
+
+            // Update decals
+            DecalProjector.UpdateAllDecalProperties();
         }
 
-        [System.NonSerialized]
-        string[] m_PrefixedLightLayerNames = null;
         /// <summary>
         /// Names used for display of light layers with Layer's index as prefix.
         /// For example: "0: Light Layer Default"
         /// </summary>
-        public string[] prefixedLightLayerNames
-        {
-            get
-            {
-                if (m_PrefixedLightLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_PrefixedLightLayerNames;
-            }
-        }
+        [Obsolete("This is obsolete, please use prefixedRenderingLayerMaskNames instead.", false)]
+        public string[] prefixedLightLayerNames => new string[0];
+
 
         #region Light Layer Names [3D]
 
-        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
-
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0 = k_DefaultLightLayerNames[0];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName0;
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1 = k_DefaultLightLayerNames[1];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName1;
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2 = k_DefaultLightLayerNames[2];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName2;
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3 = k_DefaultLightLayerNames[3];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName3;
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4 = k_DefaultLightLayerNames[4];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName4;
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5 = k_DefaultLightLayerNames[5];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName5;
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6 = k_DefaultLightLayerNames[6];
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string lightLayerName6;
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7 = k_DefaultLightLayerNames[7];
+        [Obsolete("This is obsolete, please use renderingLayerNames instead.", false)]
+        public string lightLayerName7;
 
-        static readonly string[] k_DefaultDecalLayerNames = { "Decal Layer default", "Decal Layer 1", "Decal Layer 2", "Decal Layer 3", "Decal Layer 4", "Decal Layer 5", "Decal Layer 6", "Decal Layer 7" };
-
-        /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0 = k_DefaultDecalLayerNames[0];
-        /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1 = k_DefaultDecalLayerNames[1];
-        /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2 = k_DefaultDecalLayerNames[2];
-        /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3 = k_DefaultDecalLayerNames[3];
-        /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4 = k_DefaultDecalLayerNames[4];
-        /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5 = k_DefaultDecalLayerNames[5];
-        /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6 = k_DefaultDecalLayerNames[6];
-        /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7 = k_DefaultDecalLayerNames[7];
-
-        [System.NonSerialized]
-        string[] m_LightLayerNames = null;
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames
-        {
-            get
-            {
-                if (m_LightLayerNames == null)
-                {
-                    m_LightLayerNames = new string[8];
-                }
-
-                m_LightLayerNames[0] = lightLayerName0;
-                m_LightLayerNames[1] = lightLayerName1;
-                m_LightLayerNames[2] = lightLayerName2;
-                m_LightLayerNames[3] = lightLayerName3;
-                m_LightLayerNames[4] = lightLayerName4;
-                m_LightLayerNames[5] = lightLayerName5;
-                m_LightLayerNames[6] = lightLayerName6;
-                m_LightLayerNames[7] = lightLayerName7;
-
-                return m_LightLayerNames;
-            }
-        }
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string[] lightLayerNames => new string[0];
 
         internal void ResetRenderingLayerNames()
         {
-            lightLayerName0 = k_DefaultLightLayerNames[0];
-            lightLayerName1 = k_DefaultLightLayerNames[1];
-            lightLayerName2 = k_DefaultLightLayerNames[2];
-            lightLayerName3 = k_DefaultLightLayerNames[3];
-            lightLayerName4 = k_DefaultLightLayerNames[4];
-            lightLayerName5 = k_DefaultLightLayerNames[5];
-            lightLayerName6 = k_DefaultLightLayerNames[6];
-            lightLayerName7 = k_DefaultLightLayerNames[7];
-
-            decalLayerName0 = k_DefaultDecalLayerNames[0];
-            decalLayerName1 = k_DefaultDecalLayerNames[1];
-            decalLayerName2 = k_DefaultDecalLayerNames[2];
-            decalLayerName3 = k_DefaultDecalLayerNames[3];
-            decalLayerName4 = k_DefaultDecalLayerNames[4];
-            decalLayerName5 = k_DefaultDecalLayerNames[5];
-            decalLayerName6 = k_DefaultDecalLayerNames[6];
-            decalLayerName7 = k_DefaultDecalLayerNames[7];
+            m_RenderingLayerNames = new string[] { "Default"};
         }
 
         #endregion
