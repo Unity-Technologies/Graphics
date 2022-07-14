@@ -334,7 +334,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var fieldCollection = new FieldCollection();
 
-                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic);
+                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicSurfaceData : CoreRequiredFields.Basic);
                 fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
 
                 return fieldCollection;
@@ -386,7 +386,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // For shadow matte (unlit SG only) we need to enable write normal buffer
                 // For lighting case: we want to use WRITE_NORMAL_BUFFER as a define in forward only case and WRITE_NORMAL_BUFFER as a keyword in Lit case.
                 // This is handled in CollectPassKeywords() function in SurfaceSubTarget.cs so we don't add it here.
-                defines = GenerateDefines(supportLighting ? Defines.raytracingDefault : CoreDefines.MotionVectorUnlit, useVFX, useTessellation),
+                defines = GenerateDefines(CoreDefines.MotionVectorUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -395,7 +395,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var fieldCollection = new FieldCollection();
 
-                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector);
+                fieldCollection.Add(CoreRequiredFields.BasicSurfaceData);
                 fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
 
                 return fieldCollection;
@@ -446,7 +446,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicSurfaceData,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
@@ -503,7 +503,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 // BackThenFront is a forward pass and thus require same settings
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicSurfaceData,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.BackThenFront, useVFX, useTessellation),

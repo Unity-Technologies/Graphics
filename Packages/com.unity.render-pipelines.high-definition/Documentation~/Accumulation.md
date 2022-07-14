@@ -76,11 +76,11 @@ public class FrameManager : MonoBehaviour
     [ContextMenu("Stop Recording")]
     void StopMultiframeRendering()
     {
-        Time.captureDeltaTime = m_OriginalDeltaTime;
         RenderPipelineManager.beginFrameRendering -= PrepareSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         renderPipeline?.EndRecording();
         m_Recording = false;
+        Time.captureDeltaTime = m_OriginalDeltaTime;
     }
 
     void PrepareSubFrameCallBack(ScriptableRenderContext cntx, Camera[] cams)
@@ -110,6 +110,15 @@ public class FrameManager : MonoBehaviour
     {
         // Make sure the shutter will begin closing sometime after it is fully open (and not before)
         shutterBeginsClosing = Mathf.Max(shutterFullyOpen, shutterBeginsClosing);
+    }
+
+    void Update()
+    {
+        // Save a screenshot to disk when recording
+        if (m_Recording && m_Iteration % samples == 0)
+        {
+            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
+        }
     }
 }
 ```
@@ -162,12 +171,12 @@ public class SuperSampling : MonoBehaviour
     [ContextMenu("Stop Accumulation")]
     void StopAccumulation()
     {
-        Time.captureDeltaTime = m_OriginalDeltaTime;
         RenderPipelineManager.beginContextRendering -= PrepareSubFrameCallBack;
         RenderPipelineManager.endContextRendering -= EndSubFrameCallBack;
         HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         renderPipeline?.EndRecording();
         m_Recording = false;
+        Time.captureDeltaTime = m_OriginalDeltaTime;
     }
 
     Matrix4x4 GetJitteredProjectionMatrix(Camera camera)
@@ -210,11 +219,6 @@ public class SuperSampling : MonoBehaviour
             m_OriginalProectionMatrix.Add(camera.projectionMatrix);
             camera.projectionMatrix = GetJitteredProjectionMatrix(camera);
         }
-
-        if (saveToDisk && m_Recording && m_Iteration % (samples * samples) == 0)
-        {
-            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
-        }
     }
 
     void EndSubFrameCallBack(ScriptableRenderContext cntx, List<Camera> cameras)
@@ -237,6 +241,15 @@ public class SuperSampling : MonoBehaviour
     {
         // Make sure that we have at least one sample
         samples = Mathf.Max(1, samples);
+    }
+
+    void Update()
+    {
+        // Save a screenshot to disk when recording
+        if (saveToDisk && m_Recording && m_Iteration % (samples * samples) == 0)
+        {
+            ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
+        }
     }
 }
 ```

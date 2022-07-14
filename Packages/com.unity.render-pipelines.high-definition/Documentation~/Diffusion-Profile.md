@@ -25,6 +25,10 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP 
 |:---|:---|
 | **Texturing Mode** | Use the drop-down to select when HDRP applies the albedo of the Material.<br />&#8226; **Post-Scatter**: HDRP applies the albedo to the Material after the subsurface scattering pass. This means that the contents of the albedo texture aren't blurred. Use this mode for scanned data and photographs that already contain some blur due to subsurface scattering. <br />&#8226; **Pre- and Post-Scatter**: Albedo is partially applied twice, before and after the subsurface scattering pass. Effectively, this blurs the albedo, resulting in a softer, more natural look. |
 
+The following image displays the effect of each Texturing Mode option on a human face model:
+
+![](Images/profile_texturing_mode.png)
+
 
 
 ### Transmission only
@@ -36,6 +40,10 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP 
 | **Min-Max Thickness (mm)** | Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map. This range corresponds to the minimum and maximum values of the Thickness Remap (mm) slider below. |
 | **Thickness Remap (mm)** | Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map. This range is displayed by the Min-Max Thickness (mm) fields above. |
 
+
+The image below displays a human ear model without transmission (left) and with a configured **Thickness Remap** value (right):
+
+![](Images/transmission_thick.png)
 
 
 ### Profile Previews

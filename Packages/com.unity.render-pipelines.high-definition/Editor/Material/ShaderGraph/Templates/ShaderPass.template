@@ -43,7 +43,6 @@ Pass
 	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
@@ -72,6 +71,19 @@ Pass
     $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
     $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
+
+    //Strip down the FragInputs.hlsl (on graphics), so we can only optimize the interpolators we use.
+    //if by accident something requests contents of FragInputs.hlsl, it will be caught as a compiler error
+    //Frag inputs stripping is only enabled when FRAG_INPUTS_ENABLE_STRIPPING is set
+    #if !defined(SHADER_STAGE_RAY_TRACING) && SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER && SHADERPASS != SHADERPASS_FULL_SCREEN_DEBUG
+    #define FRAG_INPUTS_ENABLE_STRIPPING
+    #endif
+    $FragInputs.texCoord0: #define FRAG_INPUTS_USE_TEXCOORD0
+    $FragInputs.texCoord1: #define FRAG_INPUTS_USE_TEXCOORD1
+    $FragInputs.texCoord2: #define FRAG_INPUTS_USE_TEXCOORD2
+    $FragInputs.texCoord3: #define FRAG_INPUTS_USE_TEXCOORD3
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
 
     $SurfaceDescriptionInputs.FaceSign:                 // Define when IsFontFaceNode is included in ShaderGraph
     $SurfaceDescriptionInputs.FaceSign:                 #define VARYINGS_NEED_CULLFACE
@@ -273,9 +285,21 @@ Pass
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
+        #ifdef FRAG_INPUTS_USE_TEXCOORD1
+            float4 lightmapTexCoord1 = fragInputs.texCoord1;
+        #else
+            float4 lightmapTexCoord1 = float4(0,0,0,0);
+        #endif
+
+        #ifdef FRAG_INPUTS_USE_TEXCOORD2
+            float4 lightmapTexCoord2 = fragInputs.texCoord2;
+        #else
+            float4 lightmapTexCoord2 = float4(0,0,0,0);
+        #endif
+
         // Builtin Data
         // For back lighting we use the oposite vertex normal
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], lightmapTexCoord1, lightmapTexCoord2, builtinData);
 
         #else
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);

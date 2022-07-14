@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Label m_InstallConfigPackageHelpboxLabel;
 
         [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000)]
-        static void OpenWindow()
+        static internal void OpenWindow()
         {
             var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
