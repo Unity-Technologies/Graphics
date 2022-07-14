@@ -424,6 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ProbeVolumeBilateralFilterWeightMin = 0.0f;
             cb._ProbeVolumeBilateralFilterWeight = 0.0f;
             cb._ProbeVolumeBilateralFilterOctahedralDepthParameters = Vector2.zero;
+            cb._ProbeVolumeSamplingMode = (int)ProbeVolumesEncodingModes.SphericalHarmonicsL2;
 
             bool probeVolumeReflectionProbeNormalizationEnabled = false;
             float probeVolumeReflectionProbeNormalizationDirectionality = 0.0f;
@@ -510,6 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     settings.octahedralDepthLightBleedReductionThreshold.value
                 );
             }
+            cb._ProbeVolumeSamplingMode = hdCamera.frameSettings.probeVolumeSamplingQuality;
 
             bool probeVolumeReflectionProbeNormalizationEnabled = settings.reflectionProbeNormalizationWeight.value >= 1e-5f;
             float probeVolumeReflectionProbeNormalizationDirectionality = settings.reflectionProbeNormalizationDirectionality.value;
