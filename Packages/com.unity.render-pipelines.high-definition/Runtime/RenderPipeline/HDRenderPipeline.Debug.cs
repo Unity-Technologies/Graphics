@@ -1492,7 +1492,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle depth = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
 
                 // Render the debug water
-                RenderWaterDebug(renderGraph, hdCamera, msaa, output, depthBuffer);
+                RenderWaterDebug(renderGraph, hdCamera, msaa, output, depthBuffer, lightLists);
 
                 using (var builder = renderGraph.AddRenderPass<DebugViewMaterialData>("DisplayDebug ViewMaterial", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugViewMaterial)))
                 {

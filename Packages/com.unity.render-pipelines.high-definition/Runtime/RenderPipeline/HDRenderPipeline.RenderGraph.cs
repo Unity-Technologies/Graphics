@@ -1329,7 +1329,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTransparentDepthPrepass(renderGraph, hdCamera, prepassOutput, cullingResults);
 
             // Render the water gbuffer (and prepare for the transparent SSR pass)
-            var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture);
+            var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, lightLists);
 
             // Render the transparent SSR lighting
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
