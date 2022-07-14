@@ -1,6 +1,6 @@
 # Unlit
 
-The Unlit Master Stack lets you create shaders that are not affected by lighting.
+The Unlit Master Stack lets you create shaders that aren't affected by lighting.
 
 
 
@@ -16,9 +16,7 @@ To create an Unlit material in Shader Graph, you can either:
     2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button and select **HDRP**.
     3. In the **Material** drop-down, select **Unlit**.
 
-* Create a new Shader Graph.
-
-    1. Go to **Assets > Create >Shader Graph > HDRP** and click **Unlit Shader Graph**.
+* Create a new Shader Graph. Go to **Assets** > **Create** > **Shader Graph** > **HDRP** and select **Unlit Shader Graph**.
 
 ## Contexts
 
