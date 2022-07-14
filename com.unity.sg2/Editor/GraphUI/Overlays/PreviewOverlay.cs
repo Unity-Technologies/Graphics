@@ -18,6 +18,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         public Func<Texture> getCachedMainPreviewTexture;
 
+        public PreviewOverlay()
+        {
+            minSize = new Vector2(130, 130);
+            // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
+            maxSize = new Vector2(1000, 1000);
+        }
+
         public override VisualElement CreatePanelContent()
         {
             var emptyPlaceholder = new VisualElement();
@@ -31,10 +38,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_MainPreviewView.AddToClassList("MainPreviewView");
                 m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
-                // TODO: Get size from preview data/user prefs
-                size = new Vector2(130, 130);
-                // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
-                maxSize = new Vector2(500.0f, 500.0f);
+
+                if (float.IsNaN(size.x) || float.IsNaN(size.y))
+                    size = minSize;
+
                 window.SetMainPreviewReference(m_MainPreviewView);
                 var cachedTexture = getCachedMainPreviewTexture?.Invoke();
                 if (cachedTexture != null)
@@ -42,6 +49,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 if(window.GraphTool.ToolState.GraphModel is ShaderGraphModel graphModel)
                     m_MainPreviewView.Initialize(graphModel.MainPreviewData);
+
+                size = new Vector2(130, 130);
 
                 return m_MainPreviewView;
             }

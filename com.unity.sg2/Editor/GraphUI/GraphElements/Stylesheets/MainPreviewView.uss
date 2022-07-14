@@ -10,8 +10,11 @@
     position-right: 0;
     position-bottom: 0;
 
-    min-width: 100;
-    max-width: 100;
+    min-width: 130;
+    min-height: 130;
+
+    width: 130;
+    height: 130;
 }
 
 .MainPreviewView

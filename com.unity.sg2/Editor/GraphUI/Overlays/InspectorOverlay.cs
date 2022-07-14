@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SGInspectorOverlay()
         {
             minSize = new Vector2(100, 100);
-            maxSize = Vector2.positiveInfinity;
+            maxSize = new Vector2(1000, 1000);
         }
 
         /// <inheritdoc />
@@ -34,7 +34,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_InspectorView.AddToClassList(ModelInspectorView.ussClassName);
                     m_InspectorView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
                     m_InspectorView.AddStylesheet("Inspector.uss");
+
                     size = new Vector2(300, 300);
+
                     return m_InspectorView;
                 }
             }

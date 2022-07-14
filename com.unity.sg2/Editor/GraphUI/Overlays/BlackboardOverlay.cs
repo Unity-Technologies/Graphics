@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SGBlackboardOverlay()
         {
             minSize = new Vector2(100, 100);
-            maxSize = Vector2.positiveInfinity;
+            maxSize = new Vector2(1000, 1000);
         }
 
         /// <inheritdoc />
@@ -32,8 +32,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_BlackboardView.RegisterCallback<TooltipEvent>((e) => e.StopPropagation());
                     m_BlackboardView.AddToClassList(BlackboardView.ussClassName);
                     m_BlackboardView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+                    m_BlackboardView.AddStylesheet("Blackboard.uss");
 
-                    size = new Vector2(300, 400);
+                    size = new Vector2(300, 300);
+
                     return m_BlackboardView;
                 }
             }

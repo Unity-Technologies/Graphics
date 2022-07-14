@@ -365,3 +365,14 @@
 .ge-blackboard-field .ge-icon--data-type-string {
     --unity-image-tint-color: var(--port-type-string);
 }
+
+.unity-overlay__resizable-content-container {
+    min-width: 100px;
+    min-height: 100px;
+
+    max-width: 500;
+    max-height: 1000;
+
+    width: 150px;
+    height: 200px;
+}
