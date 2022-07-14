@@ -18,13 +18,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         public Func<Texture> getCachedMainPreviewTexture;
 
-        public PreviewOverlay()
-        {
-            minSize = new Vector2(130, 130);
-            // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
-            maxSize = new Vector2(1000, 1000);
-        }
-
         public override VisualElement CreatePanelContent()
         {
             var emptyPlaceholder = new VisualElement();
@@ -34,28 +27,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return emptyPlaceholder;
 
             m_MainPreviewView = new MainPreviewView(window.GraphTool.Dispatcher);
-            if (m_MainPreviewView != null)
-            {
-                m_MainPreviewView.AddToClassList("MainPreviewView");
-                m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
+            m_MainPreviewView.AddToClassList("MainPreviewView");
+            m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
 
-                if (float.IsNaN(size.x) || float.IsNaN(size.y))
-                    size = minSize;
+            window.SetMainPreviewReference(m_MainPreviewView);
+            var cachedTexture = getCachedMainPreviewTexture?.Invoke();
+            if (cachedTexture != null)
+                m_MainPreviewView.mainPreviewTexture = cachedTexture;
 
-                window.SetMainPreviewReference(m_MainPreviewView);
-                var cachedTexture = getCachedMainPreviewTexture?.Invoke();
-                if (cachedTexture != null)
-                    m_MainPreviewView.mainPreviewTexture = cachedTexture;
+            // TODO: The overlays should be persisting the size and driving the main preview size
+            minSize = new Vector2(130, 130);
+            // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
+            maxSize = new Vector2(1000, 1000);
+            size = minSize;
 
-                if(window.GraphTool.ToolState.GraphModel is ShaderGraphModel graphModel)
-                    m_MainPreviewView.Initialize(graphModel.MainPreviewData);
+            m_MainPreviewView.Initialize(size);
 
-                size = new Vector2(130, 130);
-
-                return m_MainPreviewView;
-            }
-
-            return emptyPlaceholder;
+            return m_MainPreviewView;
         }
     }
 }

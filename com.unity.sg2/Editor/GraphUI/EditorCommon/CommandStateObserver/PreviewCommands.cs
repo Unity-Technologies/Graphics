@@ -230,9 +230,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangePreviewSizeCommand command
         )
         {
-            graphModel.MainPreviewData.width = Mathf.RoundToInt(command.m_NewPreviewSize.x);
-            graphModel.MainPreviewData.height = Mathf.RoundToInt(command.m_NewPreviewSize.y);
-
             // Lets the preview manager know to re-render the main preview outputs
             previewManager.OnMainPreviewDataChanged();
         }

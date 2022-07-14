@@ -17,6 +17,20 @@
     height: 130;
 }
 
+OverlayResizerGroup
+{
+    min-width: 100px;
+    min-height: 100px;
+
+    max-width: 1000;
+    max-height: 1000;
+
+    width: 130px;
+    height: 130px;
+
+    background-color: red;
+}
+
 .MainPreviewView
 {
     min-width: 100px;

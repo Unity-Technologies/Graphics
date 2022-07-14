@@ -13,11 +13,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string k_OverlayID = "sg-Blackboard";
 
         BlackboardView m_BlackboardView;
-        public SGBlackboardOverlay()
-        {
-            minSize = new Vector2(100, 100);
-            maxSize = new Vector2(1000, 1000);
-        }
 
         /// <inheritdoc />
         public override VisualElement CreatePanelContent()
@@ -34,6 +29,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_BlackboardView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
                     m_BlackboardView.AddStylesheet("Blackboard.uss");
 
+                    // TODO: The overlays should be persisting the size and driving the main preview size
+                    minSize = new Vector2(100, 100);
+                    maxSize = new Vector2(1000, 1000);
                     size = new Vector2(300, 300);
 
                     return m_BlackboardView;

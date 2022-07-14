@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -22,58 +21,50 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         string ScaleUserPrefKey => m_GraphModelGuid + "." + ChangePreviewZoomCommand.UserPrefsKey;
         string RotationUserPrefKey => m_GraphModelGuid + "." + ChangePreviewRotationCommand.UserPrefsKey;
-        string WidthUserPrefKey => m_GraphModelGuid + "." + ChangePreviewSizeCommand.UserPrefsKey + ".width";
-        string HeightUserPrefKey => m_GraphModelGuid + "." + ChangePreviewSizeCommand.UserPrefsKey + ".height";
+        string MeshUserPrefKey => m_GraphModelGuid + "." + ChangePreviewMeshCommand.UserPrefsKey;
 
         public MainPreviewData(string graphAssetGuid)
         {
+            // Get graph asset guid so we can search for user prefs attached to this asset (if any)
             m_GraphModelGuid = graphAssetGuid;
+
             // Get scale from prefs if present
             scale = EditorPrefs.GetFloat(ScaleUserPrefKey, 1.0f);
 
             // Get rotation from prefs if present
             var rotationJson = EditorPrefs.GetString(RotationUserPrefKey, string.Empty);
             if (rotationJson != string.Empty)
+                m_Rotation = StringToQuaternion(rotationJson);
+
+            // Get mesh from prefs if present
+            var meshJson = EditorPrefs.GetString(MeshUserPrefKey, string.Empty);
+            if (meshJson != string.Empty)
+               EditorJsonUtility.FromJsonOverwrite(meshJson, serializedMesh);
+        }
+
+        public static Quaternion StringToQuaternion(string sQuaternion)
+        {
+            // Remove the parentheses
+            if (sQuaternion.StartsWith("(") && sQuaternion.EndsWith(")"))
             {
-                var storedRotation = Quaternion.identity;
-                EditorJsonUtility.FromJsonOverwrite(rotationJson, storedRotation);
+                sQuaternion = sQuaternion.Substring(1, sQuaternion.Length - 2);
             }
 
-            // Get width and height from user prefs if present
-            width = EditorPrefs.GetInt(WidthUserPrefKey, 130);
-            height = EditorPrefs.GetInt(HeightUserPrefKey, 130);
+            // split the items
+            string[] sArray = sQuaternion.Split(',');
 
+            // store as a Vector3
+            Quaternion result = new Quaternion(
+                float.Parse(sArray[0]),
+                float.Parse(sArray[1]),
+                float.Parse(sArray[2]),
+                float.Parse(sArray[3]));
+
+            return result;
         }
 
         [SerializeField]
         private SerializedMesh serializedMesh = new ();
-
-        [NonSerialized]
-        int m_Width = 130;
-
-        public int width
-        {
-            get => m_Width;
-            set
-            {
-                m_Width = value;
-                EditorPrefs.SetInt(WidthUserPrefKey, m_Width);
-            }
-        }
-
-        [NonSerialized]
-        int m_Height = 130;
-
-        public int height
-        {
-            get => m_Height;
-            set
-            {
-                m_Height = value;
-                EditorPrefs.SetInt(HeightUserPrefKey, m_Height);
-            }
-        }
-
 
         [NonSerialized]
         Quaternion m_Rotation = Quaternion.identity;
@@ -84,7 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set
             {
                 m_Rotation = value;
-                EditorPrefs.SetString(RotationUserPrefKey, EditorJsonUtility.ToJson(rotation));
+                EditorPrefs.SetString(RotationUserPrefKey, rotation.ToString());
             }
         }
 
@@ -105,7 +96,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public Mesh mesh
         {
             get => serializedMesh.mesh;
-            set => serializedMesh.mesh = value;
+            set
+            {
+                serializedMesh.mesh = value;
+                EditorPrefs.SetString(MeshUserPrefKey, EditorJsonUtility.ToJson(serializedMesh));
+            }
         }
     }
 

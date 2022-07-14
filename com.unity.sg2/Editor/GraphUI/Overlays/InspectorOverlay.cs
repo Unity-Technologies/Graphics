@@ -35,6 +35,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_InspectorView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
                     m_InspectorView.AddStylesheet("Inspector.uss");
 
+                    // TODO: The overlays should be persisting the size and driving the main preview size
+                    minSize = new Vector2(100, 100);
+                    maxSize = new Vector2(1000, 1000);
                     size = new Vector2(300, 300);
 
                     return m_InspectorView;

@@ -47,6 +47,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
 
+        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
+        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
+
         internal PreviewManager(GraphModelStateComponent graphModelStateComponent)
         {
             m_GraphModelStateComponent = graphModelStateComponent;
@@ -71,8 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_MainPreviewData = graphModel.MainPreviewData;
 
             // Initialize the headless preview
-            m_PreviewHandlerInstance.Initialize(m_MainContextNodeName,
-                new Vector2(m_MainPreviewData.width, m_MainPreviewData.height));
+            m_PreviewHandlerInstance.Initialize(m_MainContextNodeName, m_MainPreviewView.PreviewSize);
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
@@ -115,8 +117,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (IsMainContextNode(nodeModel))
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
-                        m_MainPreviewData.width,
-                        m_MainPreviewData.height,
+                        PreviewWidth,
+                        PreviewHeight,
                         m_MainPreviewData.mesh,
                         m_MainPreviewData.scale,
                         m_LockMainPreviewRotation,
@@ -182,8 +184,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public Texture GetCachedMainPreviewTexture()
         {
             m_PreviewHandlerInstance.RequestMainPreviewTexture(
-                m_MainPreviewData.width,
-                m_MainPreviewData.height,
+                PreviewWidth,
+                PreviewHeight,
                 m_MainPreviewData.mesh,
                 m_MainPreviewData.scale,
                 m_LockMainPreviewRotation,

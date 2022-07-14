@@ -31,6 +31,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Vector2 m_PreviewSize;
 
+        public Vector2 PreviewSize => m_PreviewSize;
+
         bool m_LockPreviewRotation;
 
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
@@ -84,9 +86,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public void Initialize(MainPreviewData mainPreviewData)
+        public void Initialize(Vector2 previewSize)
         {
-            m_PreviewSize = new Vector2(mainPreviewData.width, mainPreviewData.height);
+            m_PreviewSize = previewSize;
         }
 
         Image CreatePreview(Texture inputTexture)
