@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
         [SerializeField]
-        private MainPreviewData mainPreviewData; // TODO: This should wrap a UserPrefs entry instead of being stored here.
+        private MainPreviewData mainPreviewData;
         [SerializeField]
         private bool isSubGraph = false;
 
