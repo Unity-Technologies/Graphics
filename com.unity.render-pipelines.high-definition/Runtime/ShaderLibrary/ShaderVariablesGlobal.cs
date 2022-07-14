@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _EnableDecalLayers;
 
         public Vector2  _ProbeVolumeBilateralFilterOctahedralDepthParameters;
-        public float    _Pad8;
+        public int      _ProbeVolumeSamplingMode;
         public float    _Pad9;
 
         public Vector4  _ProbeVolumeReflectionProbeNormalizationParameters;

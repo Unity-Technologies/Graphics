@@ -25,7 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RemoveCookieCubeAtlasToOctahedral2D,
             RoughDistortion,
             VirtualTexturing,
-            DynamicGIQuality
+            DynamicGIQuality,
+            ProbeVolumeQuality,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -143,6 +144,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateDynamicGIQuality(ref data.m_RenderingPathDefaultCameraFrameSettings);
                 FrameSettings.MigrateDynamicGIQuality(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
                 FrameSettings.MigrateDynamicGIQuality(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }),
+            MigrationStep.New(Version.ProbeVolumeQuality, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateProbeVolumeQuality(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateProbeVolumeQuality(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateProbeVolumeQuality(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
             })
         );
 

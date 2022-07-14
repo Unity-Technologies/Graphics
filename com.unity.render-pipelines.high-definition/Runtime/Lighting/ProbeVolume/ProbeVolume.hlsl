@@ -242,28 +242,30 @@ float3 ProbeVolumeEvaluateSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSpher
 
 void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 normalWS, float3 backNormalWS, float3 reflectionDirectionWS, float3 viewDirectionWS, uint renderingLayers, float weightHierarchy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float3 reflectionProbeNormalizationLighting, out float reflectionProbeNormalizationWeight)
 {
-#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-    ProbeVolumeSphericalHarmonicsL0 coefficients;
-    ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
-    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
-    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, coefficients);
-
-#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    ProbeVolumeSphericalHarmonicsL1 coefficients;
-    ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
-    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
-    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
-
-#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-    ProbeVolumeSphericalHarmonicsL2 coefficients;
-    ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
-    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
-    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
-
-#endif
+    if (_ProbeVolumeSamplingMode == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0)
+    {
+        ProbeVolumeSphericalHarmonicsL0 coefficients;
+        ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
+        reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, coefficients);
+    }
+    else if (_ProbeVolumeSamplingMode == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1)
+    {
+        ProbeVolumeSphericalHarmonicsL1 coefficients;
+        ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
+        reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
+    }
+    else if (_ProbeVolumeSamplingMode == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2)
+    {
+        ProbeVolumeSphericalHarmonicsL2 coefficients;
+        ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
+        reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
+    }
 
     reflectionProbeNormalizationWeight = weightHierarchy * ProbeVolumeGetReflectionProbeNormalizationWeight();
 }
