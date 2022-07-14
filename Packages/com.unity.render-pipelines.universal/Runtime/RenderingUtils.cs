@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
-                    isRenderToBackBufferTarget = destination == cameraData.xr.renderTarget;
+                    isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
 #endif
 
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
