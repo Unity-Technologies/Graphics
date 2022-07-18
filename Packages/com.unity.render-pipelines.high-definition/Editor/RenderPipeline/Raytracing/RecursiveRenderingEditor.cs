@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
@@ -41,6 +42,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                 EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
                 return;
             }
+
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                HDRenderPipelineUI.DisplayRayTracingSupportBox();
 
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.assetSupportsRayTracing)

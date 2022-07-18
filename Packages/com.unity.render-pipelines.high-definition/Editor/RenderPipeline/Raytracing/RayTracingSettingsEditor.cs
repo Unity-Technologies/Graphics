@@ -37,6 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
             PropertyField(m_RayBias);
             PropertyField(m_ExtendShadowCulling);
             PropertyField(m_ExtendCameraCulling);

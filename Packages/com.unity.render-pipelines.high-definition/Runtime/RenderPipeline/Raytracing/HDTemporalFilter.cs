@@ -508,7 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Output the combination to the history buffer
                             ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                             ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTexture, data.intermediateSignalOutput);
-                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputArrayTextureRW, data.intermediateSignalOutput);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputArrayTextureRW, data.distanceHistorySignal);
                             ctx.cmd.DispatchCompute(data.temporalFilterCS, data.outputHistoryKernel, numTilesX, numTilesY, data.viewCount);
                         }
                     });

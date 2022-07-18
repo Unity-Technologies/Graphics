@@ -49,6 +49,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                 {
                     using (new IndentLevelScope())
                     {
+                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                            HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
                         PropertyField(m_LayerMask);
                         PropertyField(m_MaxSamples);
                         PropertyField(m_MinDepth);

@@ -38,14 +38,16 @@ groupshared uint2 gs_tileCoord;
 #endif
 
 CBUFFER_START(cb0)
-    float4 _Params;
+    float4 _Params1;
+    float4 _Params2;
     float4 _TexelSize;
 CBUFFER_END
 
-#define SampleCount         _Params.x
-#define ScaledRadius        _Params.y
-#define BarrelClipping      _Params.z
-#define Radius              _Params.w
+#define SampleCount         _Params1.x
+#define ScaledRadius        _Params1.y
+#define BarrelClipping      _Params1.z
+#define Radius              _Params1.w
+#define MaxMips             _Params2.x
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
@@ -88,13 +90,12 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float samp0CoC = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS).x;
 #endif
 
-    const float kMaxMips = 4.0;
     float2 sampDist = _PostProcessScreenSize.zw * samp0CoC * Radius;
 
 #if NEAR
     float mip = 0.0;
 #else
-    float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * ScaledRadius);
+    float mip = min(MaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * ScaledRadius);
 #endif
 
     uint mipCeiled = ceil(mip);

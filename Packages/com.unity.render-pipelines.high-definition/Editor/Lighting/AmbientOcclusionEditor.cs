@@ -77,7 +77,19 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (HDRenderPipeline.assetSupportsRayTracing)
+            {
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion."));
+
+                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+                {
+                    using (new IndentLevelScope())
+                    {
+                        // If ray tracing is supported display the content of the volume component
+                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                            HDRenderPipelineUI.DisplayRayTracingSupportBox();
+                    }
+                }
+            }
 
             // Shared attributes
             PropertyField(m_Intensity, EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas."));
