@@ -345,6 +345,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
             #define BUMP_SCALE_NOT_SUPPORTED 1
@@ -373,6 +377,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
@@ -400,6 +408,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
