@@ -1,7 +1,7 @@
 #unity-overlay
 {
-    align-items: stretch;
-    align-content: stretch;
+    align-items: center;
+    align-content: center;
     display: flex;
 
     position-type: absolute;
@@ -33,6 +33,7 @@ OverlayResizerGroup
 
 .MainPreviewView
 {
+    padding: 2;
     min-width: 100px;
     min-height: 100px;
 
@@ -49,7 +50,8 @@ OverlayResizerGroup
 }
 
 #previewImage {
-    padding: 3;
     align-self: stretch;
+    align-content: stretch;
+    align-items: stretch;
     flex-grow: 1;
 }

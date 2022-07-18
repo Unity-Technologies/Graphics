@@ -67,6 +67,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var owningOverlay = this.GetFirstAncestorWithName("unity-overlay");
             if (owningOverlay != null)
             {
+                if (this.style.width.value.value != 0 && this.style.height.value.value != 0)
+                {
+                    m_PreviewSize.x = this.style.width.value.value;
+                    m_PreviewSize.y = this.style.height.value.value;
+                }
+
                 owningOverlay.UnregisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
                 owningOverlay.RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
             }
@@ -150,7 +156,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (m_LockPreviewRotation) return;
 
-            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(m_PreviewSize.x, m_PreviewSize.y) * 140f;
+            var previewWidth = this.style.width.value.value;
+            var previewHeight = this.style.height.value.value;
+
+            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewWidth, previewHeight) * 140f;
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             if (float.IsNaN(previewRotation.x) || float.IsNaN(previewRotation.y) || float.IsNaN(previewRotation.z) || float.IsNaN(previewRotation.w))
@@ -161,7 +170,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnScroll(float scrollValue)
         {
-            float rescaleAmount = -scrollValue * .03f;
+            float rescaleAmount = scrollValue * .03f;
             var changePreviewZoomCommand = new ChangePreviewZoomCommand(rescaleAmount);
             m_CommandDispatcher.Dispatch(changePreviewZoomCommand);
         }
