@@ -31,8 +31,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 if (builder.ConstantOwner is PortModel)
                 {
-                    return new MissingFieldEditor(builder.CommandTarget, "Matrix (TODO)");
+                    return builder.BuildDefaultConstantEditor(constant);
                 }
+
                 // TODO (Joe): Default should be identity matrix
                 return new MatrixConstantPropertyField(constant, builder.ConstantOwner, builder.CommandTarget, (int)height, builder.Label);
             }

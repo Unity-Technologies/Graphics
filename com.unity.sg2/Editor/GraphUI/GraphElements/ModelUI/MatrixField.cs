@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         const string k_MatrixPartTemplate = "StaticPortParts/MatrixPart";
         const string k_MatrixRowClass = "sg-matrix-row";
         const string k_MatrixElementClass = "sg-matrix-element";
-        const string k_MatrixContainerName = "sg-matrix";
+        const string k_MatrixContainerName = "sg-matrix-container";
 
         public FloatField[,] matrixElementFields { get; private set; }
         readonly int m_Size;
