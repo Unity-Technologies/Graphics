@@ -56,20 +56,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphViewModel.GraphModelState,
                 previewManager);
 
-
-            // Demo commands (TODO: Remove)
-            //commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, AddPortCommand>(
-            //    AddPortCommand.DefaultCommandHandler,
-            //    graphTool.UndoStateComponent,
-            //    graphView.GraphViewState
-            //);
-
-            //commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, RemovePortCommand>(
-            //    RemovePortCommand.DefaultCommandHandler,
-            //    graphTool.UndoStateComponent,
-            //    graphView.GraphModelState
-            //);
-
             // Shader Graph commands
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,

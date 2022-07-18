@@ -469,12 +469,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_MainPreviewData.isRenderOutOfDate = true;
 
             // Main Preview window was resized, RTs cannot be resized so create a new one
-            m_MainPreviewData.renderTexture = new RenderTexture(
+            m_MainPreviewData.renderTexture =
+                new RenderTexture(
                 width,
                 height,
                 16,
                 RenderTextureFormat.ARGB32,
-                RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                RenderTextureReadWrite.Default
+                ) { hideFlags = HideFlags.HideAndDontSave };
+
             m_MainPreviewData.renderTexture.Create();
             m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
         }
