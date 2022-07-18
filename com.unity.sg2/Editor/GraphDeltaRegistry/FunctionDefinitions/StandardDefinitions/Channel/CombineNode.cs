@@ -10,8 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"
-    RGBA.r = R;
+@"    RGBA.r = R;
     RGBA.g = G;
     RGBA.b = B;
     RGBA.a = A;
@@ -19,8 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
     RGB.g = G;
     RGB.b = B;
     RG.r = R;
-    RG.g = G;
-",
+    RG.g = G;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("R", TYPE.Float, Usage.In),

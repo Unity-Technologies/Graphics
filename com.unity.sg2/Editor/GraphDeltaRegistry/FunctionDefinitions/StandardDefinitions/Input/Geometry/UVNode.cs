@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-"Out = UV;",
+            "   Out = UV;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
