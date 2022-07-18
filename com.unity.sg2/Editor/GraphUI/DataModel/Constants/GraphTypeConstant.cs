@@ -1,4 +1,3 @@
-
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -80,6 +79,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override object GetValue()
         {
+            switch (GetHeight())
+            {
+                case GraphType.Height.Four: return GraphTypeHelpers.GetAsMat4(GetField());
+                case GraphType.Height.Three: throw new NotImplementedException("GetAsMat3");
+                case GraphType.Height.Two: throw new NotImplementedException("GetAsMat2");
+            }
+
             switch (GetLength())
             {
                 case GraphType.Length.One:
@@ -99,6 +105,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void SetValue(object value)
         {
+            switch (GetHeight())
+            {
+                case GraphType.Height.Four:
+                {
+                    GraphTypeHelpers.SetAsMat4(GetField(), (Matrix4x4)value);
+                    return;
+                }
+                case GraphType.Height.Three: throw new NotImplementedException("SetAsMat3");
+                case GraphType.Height.Two: throw new NotImplementedException("SetAsMat2");
+            }
+
             switch (GetLength())
             {
                 case GraphType.Length.One:
@@ -121,6 +138,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get
             {
+                switch (GetHeight())
+                {
+                    // TODO (Joe): what should actually go here?
+                    case GraphType.Height.Four: return typeof(void);
+                    case GraphType.Height.Three: return typeof(void);
+                    case GraphType.Height.Two: return typeof(void);
+                }
+
                 switch (GetLength())
                 {
                     case GraphType.Length.Two: return typeof(Vector2);
@@ -136,10 +161,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
         }
+
         public override TypeHandle GetTypeHandle()
         {
             try
             {
+                switch (GetHeight())
+                {
+                    case GraphType.Height.Four: return ShaderGraphExampleTypes.Matrix4;
+                    case GraphType.Height.Three: return ShaderGraphExampleTypes.Matrix3;
+                    case GraphType.Height.Two: return ShaderGraphExampleTypes.Matrix2;
+                }
+
                 switch (GetLength())
                 {
                     case GraphType.Length.Two: return TypeHandle.Vector2;

@@ -26,6 +26,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static BaseModelPropertyField BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
         {
+            var height = constant.GetHeight();
+            if (height > GraphType.Height.One)
+            {
+                if (builder.ConstantOwner is PortModel)
+                {
+                    return new MissingFieldEditor(builder.CommandTarget, "Matrix (TODO)");
+                }
+                // TODO (Joe): Default should be identity matrix
+                return new MatrixConstantPropertyField(constant, builder.ConstantOwner, builder.CommandTarget, (int)height, builder.Label);
+            }
+
             // TODO (Joe): Two color fields pointing to the same data can get visually out of sync.
             // Try changing a color field when it's visible in both the inspector and blackboard. Only one appears to
             // change. But if you right click on the unchanged one and select "Copy," the correct, updated value will
