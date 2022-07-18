@@ -82,8 +82,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             switch (GetHeight())
             {
                 case GraphType.Height.Four: return GraphTypeHelpers.GetAsMat4(GetField());
-                case GraphType.Height.Three: throw new NotImplementedException("GetAsMat3");
-                case GraphType.Height.Two: throw new NotImplementedException("GetAsMat2");
+                case GraphType.Height.Three: return GraphTypeHelpers.GetAsMat3(GetField());
+                case GraphType.Height.Two: return GraphTypeHelpers.GetAsMat2(GetField());
             }
 
             switch (GetLength())
@@ -112,8 +112,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     GraphTypeHelpers.SetAsMat4(GetField(), (Matrix4x4)value);
                     return;
                 }
-                case GraphType.Height.Three: throw new NotImplementedException("SetAsMat3");
-                case GraphType.Height.Two: throw new NotImplementedException("SetAsMat2");
+                case GraphType.Height.Three:
+                {
+                    GraphTypeHelpers.SetAsMat3(GetField(), (Matrix4x4)value);
+                    return;
+                }
+                case GraphType.Height.Two:
+                {
+                    GraphTypeHelpers.SetAsMat2(GetField(), (Matrix4x4)value);
+                    return;
+                }
             }
 
             switch (GetLength())
@@ -140,10 +148,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (GetHeight())
                 {
-                    // TODO (Joe): what should actually go here?
-                    case GraphType.Height.Four: return typeof(void);
-                    case GraphType.Height.Three: return typeof(void);
-                    case GraphType.Height.Two: return typeof(void);
+                    case GraphType.Height.Four: return typeof(Matrix4x4);
+                    case GraphType.Height.Three: return typeof(Matrix4x4);
+                    case GraphType.Height.Two: return typeof(Matrix4x4);
                 }
 
                 switch (GetLength())
