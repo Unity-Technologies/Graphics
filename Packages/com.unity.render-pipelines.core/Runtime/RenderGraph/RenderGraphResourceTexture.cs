@@ -58,6 +58,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => handle.IsValid();
 
+        /// <summary>
+        /// Sets the fallback resource
+        /// </summary>
+        /// <param name="texture">The texture handle</param>
         public void SetFallBackResource(TextureHandle texture) { fallBackResource = texture.handle; }
     }
 

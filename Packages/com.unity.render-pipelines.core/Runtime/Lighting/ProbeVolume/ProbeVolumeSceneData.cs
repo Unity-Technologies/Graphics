@@ -12,7 +12,9 @@ namespace UnityEngine.Experimental.Rendering
 {
     // Add Profile and baking settings.
 
-    /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
+    /// <summary>
+    /// A class containing info about the bounds defined by the probe volumes in various scenes.
+    /// </summary>
     [System.Serializable]
     public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {

@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 using (new EditorGUI.DisabledScope(m_CloudClassNames.Count == 1)) // Only "None"
                 {
-                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Clouds", "Specify which kind of clouds you want to use for static ambient in the referenced profile for active scene."));
+                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Background Clouds", "Specify which kind of background clouds you want to use for static ambient in the referenced profile for active scene."));
                 }
 
                 EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
@@ -225,8 +225,8 @@ namespace UnityEditor.Rendering.HighDefinition
             VolumeProfile profile = m_SerializedActiveSceneLightingSky.volumeProfile;
             if (profile != null)
             {
-                bool foundID = false;
                 var currentID = idProperty.intValue;
+                bool foundID = currentID == 0;
 
                 foreach (KeyValuePair<int, Type> kvp in typesDict)
                 {

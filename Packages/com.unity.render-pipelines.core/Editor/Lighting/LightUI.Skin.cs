@@ -28,18 +28,25 @@ namespace UnityEditor.Rendering
             // Emission
             /// <summary>Label with "Color"</summary>
             public static readonly GUIContent color = EditorGUIUtility.TrTextContent("Color", "Specifies the color this Light emits.");
-            /// <summary>Label with "Color"</summary>
+
+            /// <summary> Light Appearance </summary>
             public static readonly GUIContent lightAppearance = EditorGUIUtility.TrTextContent("Light Appearance", "Specifies the mode for this Light's color is calculated.");
+
+            /// <summary>
+            /// Options for Light Appearance
+            /// </summary>
             public static readonly GUIContent[] lightAppearanceOptions = new[]
             {
                 EditorGUIUtility.TrTextContent("Color"),
                 EditorGUIUtility.TrTextContent("Filter and Temperature")
             };
+
             /// <summary>List of the appearance units </summary>
             public static readonly GUIContent[] lightAppearanceUnits = new[]
             {
                 EditorGUIUtility.TrTextContent("Kelvin")
             };
+
             /// <summary>Label for color filter</summary>
             public static readonly GUIContent colorFilter = EditorGUIUtility.TrTextContent("Filter", "Specifies a color which tints the Light source.");
             /// <summary>Label for color temperature</summary>

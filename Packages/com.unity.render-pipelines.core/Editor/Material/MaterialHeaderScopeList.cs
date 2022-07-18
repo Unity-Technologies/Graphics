@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering
         /// <param name="title"><see cref="GUIContent"/> The title of the scope</param>
         /// <param name="expandable">The mask identifying the scope</param>
         /// <param name="action">The action that will be drawn if the scope is expanded</param>
+        /// <typeparam name="TEnum"> The enum for the scope </typeparam>
         public void RegisterHeaderScope<TEnum>(GUIContent title, TEnum expandable, Action<Material> action)
             where TEnum : struct, IConvertible
         {

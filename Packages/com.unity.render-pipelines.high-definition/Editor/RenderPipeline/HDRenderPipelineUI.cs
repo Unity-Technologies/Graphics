@@ -823,6 +823,16 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGISecondDenoise.GetArrayElementAtIndex(tier), Styles.SSGISecondDenoise);
         }
 
+        internal static void DisplayRayTracingSupportBox()
+        {
+            CoreEditorUtils.DrawFixMeBox(Styles.rayTracingRestrictionOnlyWarning, "Open", () =>
+            {
+                HDUserSettings.wizardActiveTab = 2; // focus on dxr tab
+                HDWizard.OpenWindow();
+            });
+
+        }
+
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.colorBufferFormat, Styles.colorBufferFormatContent);
@@ -879,7 +889,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!HDRenderPipeline.currentSystemSupportsRayTracing)
                 {
                     if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
-                        EditorGUILayout.HelpBox(Styles.rayTracingRestrictionOnlyWarning.text, MessageType.Warning, wide: true);
+                        DisplayRayTracingSupportBox();
                     else
                         EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
                 }

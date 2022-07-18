@@ -25,17 +25,25 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP 
 |:---|:---|
 | **Texturing Mode** | Use the drop-down to select when HDRP applies the albedo of the Material.<br />&#8226; **Post-Scatter**: HDRP applies the albedo to the Material after the subsurface scattering pass. This means that the contents of the albedo texture aren't blurred. Use this mode for scanned data and photographs that already contain some blur due to subsurface scattering. <br />&#8226; **Pre- and Post-Scatter**: Albedo is partially applied twice, before and after the subsurface scattering pass. Effectively, this blurs the albedo, resulting in a softer, more natural look. |
 
+The following image displays the effect of each Texturing Mode option on a human face model:
+
+![](Images/profile_texturing_mode.png)
+
 
 
 ### Transmission only
 
 | Property| Description |
 |:---|:---|
-| **Transmission Mode** | Use the drop-down to select a method for calculating light transmission. <br />&#8226; **Thick Object**: is for geometrically thick objects. Note that since this mode makes use of shadow maps, directional lights automatically fall back to the thin object mode that relies solely on thickness maps (since shadow maps of directional lights don't offer enough precision for thickness estimation). <br />&#8226; **Thin Object**: is for thin, double-sided, geometry. |
+| **Transmission Mode** | Use the drop-down to determine how HDRP calculates light transmission:<br />• **Thick Object**: Select this mode for geometrically thick objects. This mode uses shadow maps. Shadow maps of directional lights aren't precise enough to use to estimate thickness. Directional lights instead use the **Transmission Multiplier** setting from the [Shadows volume component](Override-Shadows.md#properties) to scale transmission.<br />• **Thin Object**: Select this mode for thin, double-sided geometry. |
 | **Transmission Tint** | Specifies the tint of the translucent lighting (that's transmitted through objects). |
 | **Min-Max Thickness (mm)** | Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map. This range corresponds to the minimum and maximum values of the Thickness Remap (mm) slider below. |
 | **Thickness Remap (mm)** | Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map. This range is displayed by the Min-Max Thickness (mm) fields above. |
 
+
+The image below displays a human ear model without transmission (left) and with a configured **Thickness Remap** value (right):
+
+![](Images/transmission_thick.png)
 
 
 ### Profile Previews

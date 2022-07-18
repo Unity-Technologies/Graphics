@@ -566,6 +566,38 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SizeValues[axe].floatValue = newSize;
         }
 
+        internal void MinMaxSliderWithFields(GUIContent label, ref float minValue, ref float maxValue, float minLimit, float maxLimit)
+        {
+            var rect = EditorGUILayout.GetControlRect();
+            rect = EditorGUI.PrefixLabel(rect, label);
+
+            const float fieldWidth = 40, padding = 4;
+            if (rect.width < 3 * fieldWidth + 2 * padding)
+            {
+                EditorGUI.MinMaxSlider(rect, ref minValue, ref maxValue, minLimit, maxLimit);
+            }
+            else
+            {
+                var tmpRect = new Rect(rect);
+                tmpRect.width = fieldWidth;
+
+                EditorGUI.BeginChangeCheck();
+                float value = EditorGUI.FloatField(tmpRect, minValue);
+                if (EditorGUI.EndChangeCheck())
+                    minValue = Mathf.Max(value, minLimit);
+
+                tmpRect.x = rect.xMax - fieldWidth;
+                EditorGUI.BeginChangeCheck();
+                value = EditorGUI.FloatField(tmpRect, maxValue);
+                if (EditorGUI.EndChangeCheck())
+                    maxValue = Mathf.Min(value, maxLimit);
+
+                tmpRect.xMin = rect.xMin + (fieldWidth + padding);
+                tmpRect.xMax = rect.xMax - (fieldWidth + padding);
+                EditorGUI.MinMaxSlider(tmpRect, ref minValue, ref maxValue, minLimit, maxLimit);
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             bool supportDecals = false;
@@ -653,7 +685,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
                     float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
+                    MinMaxSliderWithFields(k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
                     if (EditorGUI.EndChangeCheck())
                     {
                         m_StartAngleFadeProperty.floatValue = angleFadeMinValue;

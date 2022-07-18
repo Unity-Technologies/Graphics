@@ -18,6 +18,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var planarProbe = plane.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(10, 0.01f, 10);
 
+            // Disable the influence volume as proxy by default for planar reflection. We want it enabled by default for
+            // normal HD probes, but for planar reflections it can cause some undesirable default results.
+            planarProbe.useInfluenceVolumeAsProxyVolume = false;
+
             var material = HDRenderPipelineGlobalSettings.instance?.GetDefaultMirrorMaterial();
             if (material)
             {
@@ -32,6 +36,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var go = CoreEditorUtils.CreateGameObject("Planar Reflection", parent);
             var planarProbe = go.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(1, 0.01f, 1);
+
+            // Disable the influence volume as proxy by default for planar reflection. We want it enabled by default for
+            // normal HD probes, but for planar reflections it can cause some undesirable default results.
+            planarProbe.useInfluenceVolumeAsProxyVolume = false;
         }
 
         [MenuItem("GameObject/Volume/Reflection Proxy Volume", priority =  12)]

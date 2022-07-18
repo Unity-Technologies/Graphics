@@ -145,6 +145,17 @@ You can only use path tracing with hair you create with the [Hair Master Stack](
 
 If you create hair using ribbons, it won’t work with path tracing in Unity. For path tracing to work with hair, you must use cards or tube geometry. For more information, see [Geometry type](master-stack-hair.md\#hair-geometry).
 
+##  Path tracing and automatic histogram exposure
+Path tracing creates noise that changes the minimum and maximum values that HDRP uses for automatic, histogram-based [exposure](Override-Exposure.md). You can visualize this when you use the [RGB Histogram](Render-Pipeline-Debug-Window.md#LightingPanel) to debug the exposure in your scene.
+
+This is especially visible in the first few un-converged frames that have the highest level of noise. However, this does not affect the exposure of the final converged frame.
+
+If there is any noise that affects the exposure in the final converged frame, adjust the following properties in the [Automatic Histogram](Override-Exposure.md#AutomaticHistogram) override to set the exposure to your desired range:
+
+* **Limit Min**
+
+* **Limit Max**
+
 ## Limitations
 
 This section contains information on the limitations of HDRP's path tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its path-traced render pipeline.

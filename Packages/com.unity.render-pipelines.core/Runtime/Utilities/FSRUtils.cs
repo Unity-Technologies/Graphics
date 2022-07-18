@@ -119,6 +119,7 @@ namespace UnityEngine.Rendering
         ///
         /// FSR requires the textureGather shader instruction which wasn't supported by OpenGL ES until version 3.1
         /// </summary>
+        /// <returns>if FSR is supported on the current system</returns>
         public static bool IsSupported()
         {
             return SystemInfo.graphicsShaderLevel >= 45;

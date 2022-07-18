@@ -559,8 +559,17 @@ namespace UnityEngine.Rendering
             /// </summary>
             public enum Style
             {
+                /// <summary>
+                /// Info
+                /// </summary>
                 Info,
+                /// <summary>
+                /// Warning
+                /// </summary>
                 Warning,
+                /// <summary>
+                /// Error
+                /// </summary>
                 Error
             }
 

@@ -779,6 +779,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
 
             CustomPassVolume.Cleanup();
+            CustomPostProcessVolumeComponent.CleanupAllCustomPostProcesses();
 
             LocalVolumetricFogManager.manager.ReleaseAtlas();
 

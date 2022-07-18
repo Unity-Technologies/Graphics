@@ -39,4 +39,10 @@ void DecodeFromDecalPrepass(uint2 positionSS, out DecalPrepassData decalPrepassD
     DecodeFromDecalPrepass(decalBuffer, decalPrepassData);
 }
 
+float DecodeAngleFade(float cosAngle, float2 angleFade)
+{
+    // See equation in DecalSystem.cs - simplified to a madd mul madd here
+    return saturate((cosAngle*cosAngle + 1.25) * cosAngle * angleFade.x + angleFade.y);
+}
+
 #endif // UNITY_DECAL_PREPASS_BUFFER_INCLUDED

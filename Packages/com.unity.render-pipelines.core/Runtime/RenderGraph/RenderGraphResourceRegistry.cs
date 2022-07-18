@@ -111,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (handle.fallBackResource != TextureHandle.nullHandle.handle)
                     return GetTextureResource(handle.fallBackResource).graphicsResource;
                 else if (!texResource.imported)
-                    throw new InvalidOperationException("Trying to use a texture that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+                    throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
             }
 
             return resource;
@@ -138,11 +138,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
-            var resource = GetComputeBufferResource(handle.handle);
+            var bufferResource = GetComputeBufferResource(handle.handle);
+            var resource = bufferResource.graphicsResource;
             if (resource == null)
-                throw new InvalidOperationException("Trying to use a compute buffer that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+                throw new InvalidOperationException("Trying to use a compute buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 
-            return resource.graphicsResource;
+            return resource;
         }
 
         private RenderGraphResourceRegistry()

@@ -380,15 +380,32 @@ namespace UnityEngine.Rendering
         }
 
         #region IDebugDisplaySettingsData
+        /// <summary>
+        /// If are any settings active
+        /// </summary>
         public bool AreAnySettingsActive => volumeCameraEnumIndex > 0 || volumeComponentEnumIndex > 0;
+        /// <summary>
+        /// If post processing is allowed
+        /// </summary>
         public bool IsPostProcessingAllowed => true;
+        /// <summary>
+        /// If lighting is active
+        /// </summary>
         public bool IsLightingActive => true;
-
+        /// <summary>
+        /// Returns if the clear color can be returned
+        /// </summary>
+        /// <param name="color">[In/out]The color </param>
+        /// <returns>True if the screen clear color can  be returned</returns>
         public bool TryGetScreenClearColor(ref Color color)
         {
             return false;
         }
 
+        /// <summary>
+        /// Creates the panel
+        /// </summary>
+        /// <returns>The panel tha is created</returns>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);
