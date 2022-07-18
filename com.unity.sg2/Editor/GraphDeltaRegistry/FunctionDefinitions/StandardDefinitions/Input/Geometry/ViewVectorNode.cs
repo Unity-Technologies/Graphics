@@ -59,9 +59,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Tangent",
-@"  basisTransform.x = TangentWS;
-    basisTransform.y = BitangentWS;
-    basisTransform.z = NormalWS;
+@"  basisTransform[0] = TangentWS;
+    basisTransform[1] = BitangentWS;
+    basisTransform[2] = NormalWS;
     Out = CameraPosWS - GetAbsolutePositionWS(PositionWS);
     if(!IsPerspectiveProjection())
     {
