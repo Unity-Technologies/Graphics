@@ -3,15 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 
-#ifndef PROBE_VOLUMES_SAMPLING_MODE
-// Default to sampling probe volumes at native atlas encoding mode.
-// Users can override this by defining PROBE_VOLUMES_SAMPLING_MODE before including LightLoop.hlsl
-// TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
-// as there are other parameters such as bilateral filtering, additive blending, and normal bias
-// that we will want to disable for a low quality high performance mode.
-#define PROBE_VOLUMES_SAMPLING_MODE SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE
-#endif
-
 #ifndef PROBE_VOLUMES_BILATERAL_FILTERING_MODE
 // Default to filtering probe volumes with mode specified in ShaderConfig.cs
 // Users can override this by defining PROBE_VOLUMES_BILATERAL_FILTERING_MODE before including LightLoop.hlsl
