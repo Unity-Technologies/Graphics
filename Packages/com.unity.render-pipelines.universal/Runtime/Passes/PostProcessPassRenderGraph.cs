@@ -923,6 +923,7 @@ namespace UnityEngine.Rendering.Universal
             internal int passIndex;
             internal RenderTextureDescriptor sourceDescriptor;
             internal Matrix4x4[] prevVP;
+            internal Matrix4x4 currVP;
             internal float intensity;
             internal float clamp;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -936,6 +937,8 @@ namespace UnityEngine.Rendering.Universal
         const int PREV_VP_MATRIX_SIZE = 1;
 #endif
         internal static Matrix4x4[] prevVP = new Matrix4x4[PREV_VP_MATRIX_SIZE];
+        internal static Matrix4x4 currVP;
+
         public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref RenderingData renderingData)
         {
             var cameraData = renderingData.cameraData;
@@ -987,6 +990,7 @@ namespace UnityEngine.Rendering.Universal
                 var view = cameraData.GetViewMatrix();
                 var viewProj = proj * view;
 
+                currVP = viewProj;
                 if (m_ResetHistory)
                     prevVP[0] = viewProj;
                 else
@@ -1002,6 +1006,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = material;
                 passData.passIndex = (int)m_MotionBlur.quality.value;
                 passData.sourceDescriptor = m_Descriptor;
+                passData.currVP = currVP;
                 passData.prevVP = prevVP;
                 passData.intensity = m_MotionBlur.intensity.value;
                 passData.clamp = m_MotionBlur.clamp.value;
@@ -1018,8 +1023,10 @@ namespace UnityEngine.Rendering.Universal
                         data.material.SetMatrixArray("_PrevViewProjMStereo", data.prevVP);
                     else
 #endif
-                    data.material.SetMatrix("_PrevViewProjM", data.prevVP[0]);
-
+                    {
+                        data.material.SetMatrix("_PrevViewProjM", data.prevVP[0]);
+                        data.material.SetMatrix("_ViewProjM", data.currVP);
+                    }
                     data.material.SetFloat("_Intensity", data.intensity);
                     data.material.SetFloat("_Clamp", data.clamp);
 

@@ -96,13 +96,6 @@ namespace UnityEngine.Rendering.Universal
         {
             bool isPreviewCamera = renderingData.cameraData.isPreviewCamera;
             bool applyPostProcessing = renderingData.cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
-            // If Camera's PostProcessing is enabled and if there any enabled PostProcessing requires depth texture as shader read resource (Motion Blur/DoF)
-            bool cameraHasPostProcessingWithDepth = applyPostProcessing && renderingData.cameraData.postProcessingRequiresDepthTexture;
-#if UNITY_EDITOR
-            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-#else
-            bool isGizmosEnabled = false;
-#endif
             bool requiresDepthPrepass = RequireDepthPrepass(ref renderingData, renderPassInputs);
 
             createColorTexture = (rendererFeatures.Count != 0 && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera;
@@ -463,8 +456,6 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-#else
-            bool isGizmosEnabled = false;
 #endif
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
@@ -501,7 +492,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             if (drawGizmos)
-                DrawRenderGraphGizmos(renderGraph, frameResources.backBufferColor, frameResources.backBufferColor, GizmoSubset.PostImageEffects, ref renderingData);
+                DrawRenderGraphGizmos(renderGraph, frameResources.backBufferColor, m_ActiveRenderGraphDepth, GizmoSubset.PostImageEffects, ref renderingData);
 
             // Invalidating the textures so they wouldn't be accessed
             m_ActiveRenderGraphColor = TextureHandle.nullHandle;

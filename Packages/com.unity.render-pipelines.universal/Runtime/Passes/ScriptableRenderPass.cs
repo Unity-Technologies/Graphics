@@ -677,6 +677,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation
         /// </summary>
+        /// <param name="renderGraph"></param>
         /// <param name="renderingData"></param>
         public virtual void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
         {

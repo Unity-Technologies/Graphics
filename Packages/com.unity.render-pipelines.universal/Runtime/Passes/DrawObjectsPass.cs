@@ -7,7 +7,6 @@ using UnityEngine.Profiling;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
-    /// <summary>
     /// Draw  objects into the given color and depth target
     ///
     /// You can use this pass to render objects that have a material and/or shader
@@ -19,7 +18,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderStateBlock m_RenderStateBlock;
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
         string m_ProfilerTag;
+
+        /// <summary>
+        /// Profiling sampler
+        /// </summary>
         protected ProfilingSampler m_ProfilingSampler;
+
         bool m_IsOpaque;
 
         /// <summary>
@@ -197,6 +201,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Shared pass data
+        /// </summary>
         protected class PassData
         {
             internal TextureHandle m_Albedo;
@@ -242,6 +249,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Initialize the shared pass data.
+        /// </summary>
+        /// <param name="passData"></param>
         protected void InitPassData(ref PassData passData)
         {
             passData.m_IsOpaque = m_IsOpaque;
@@ -251,6 +262,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.m_ProfilingSampler = m_ProfilingSampler;
         }
 
+        /// <summary>
+        /// Shared DrawObject RenderGraph render function
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="context"></param>
+        /// <param name="isRenderingLayersPass"></param>
         protected static void RenderGraphRenderFunc(PassData data, RenderGraphContext context, bool isRenderingLayersPass)
         {
             ref var renderingData = ref data.m_RenderingData;
