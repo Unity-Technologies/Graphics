@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	xDDY.x = dpdy[ma.y]; xDDY.y = dpdy[ma.z];
 	yCoords.x = Position[me.y]; yCoords.y = Position[me.z];
 	yDDX.x = dpdx[me.y]; yDDX.y = dpdx[me.z];
-	yDDY.x = dpdy[me.y]; yDDY.y = dpdy[me.z];	
+	yDDY.x = dpdy[me.y]; yDDY.y = dpdy[me.z];
 	// project+fetch
 	Node_X = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, xCoords, xDDX, xDDY);
 	Node_Y = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, yCoords, yDDX, yDDY);
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	// make local support
 	w = saturate( (w-0.5773)/(1.0-0.5773));
 	// shape transition
-	w = pow( w, float2(contrast/8.0, contrast/8.0) );
+	w = pow( w, float2(Contrast/8.0, Contrast/8.0) );
 	// blend and return
 	XYZ = (Node_X*w.x + Node_Y*w.y) / (w.x + w.y);",
                     new ParameterDescriptor[]
