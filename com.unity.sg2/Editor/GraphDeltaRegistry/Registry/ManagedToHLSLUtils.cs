@@ -107,8 +107,12 @@ namespace unity.shadergraph.utils
             return ParametricToHLSL(name, length, height, data);
         }
 
-        internal static bool CanBeLocal(object o)
+        internal static bool CanValueBeLocal(object o)
         {
+            if (o == null)
+            {
+                return true;
+            }
             switch (o)
             {
                 case Texture:

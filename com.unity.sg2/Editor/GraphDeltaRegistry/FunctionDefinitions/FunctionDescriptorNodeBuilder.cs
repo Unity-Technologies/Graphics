@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 }
                 else if (param.Usage == GraphType.Usage.In
                     || param.Usage == GraphType.Usage.Static
-                    || param.Usage == GraphType.Usage.Local && !ManagedToHLSLUtils.CanBeLocal(param.DefaultValue))
+                    || param.Usage == GraphType.Usage.Local && !ManagedToHLSLUtils.CanValueBeLocal(param.DefaultValue))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
