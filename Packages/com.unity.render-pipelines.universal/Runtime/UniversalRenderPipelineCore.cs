@@ -1033,6 +1033,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for editor visualization. </summary>
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
 
+        /// <summary> Keyword used for foveated rendering. </summary>
+        public static readonly string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
+
         /// <summary> Keyword used for applying scale and bias. </summary>
         public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 

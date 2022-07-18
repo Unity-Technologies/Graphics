@@ -65,6 +65,11 @@ namespace UnityEngine.Experimental.Rendering
         static public bool singlePassAllowed { get; set; } = true;
 
         /// <summary>
+        /// Cached value of SystemInfo.foveatedRenderingCaps.
+        /// </summary>
+        static public FoveatedRenderingCaps foveatedRenderingCaps { get; set; }
+
+        /// <summary>
         /// If true, the system will log some information about the layout to the console.
         /// </summary>
         static public bool dumpDebugInfo { get; set; } = false;
@@ -83,6 +88,8 @@ namespace UnityEngine.Experimental.Rendering
             s_PassAllocator = passAllocator;
 
             RefreshDeviceInfo();
+
+            foveatedRenderingCaps = SystemInfo.foveatedRenderingCaps;
 
             if (occlusionMeshPS != null)
                 s_OcclusionMeshMaterial = CoreUtils.CreateEngineMaterial(occlusionMeshPS);
@@ -383,6 +390,7 @@ namespace UnityEngine.Experimental.Rendering
                 renderTargetDesc        = rtDesc,
                 cullingParameters       = cullingParameters,
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
+                foveatedRenderingInfo   = xrRenderPass.foveatedRenderingInfo,
                 multipassId             = s_Layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
