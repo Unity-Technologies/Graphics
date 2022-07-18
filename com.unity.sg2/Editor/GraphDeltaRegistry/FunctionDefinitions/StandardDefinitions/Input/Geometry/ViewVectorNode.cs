@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "ViewVectorWorld",
+                    "World",
 @"  Out = CameraPosWS - GetAbsolutePositionWS(PositionWS);
     if(!IsPerspectiveProjection())
     {
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ViewVectorObject",
+                    "Object",
 @"  Out = CameraPosWS - GetAbsolutePositionWS(PositionWS);
     if(!IsPerspectiveProjection())
     {
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ViewVectoView",
+                    "View",
 @"  if(IsPerspectiveProjection())
     {
         Out = -PositionVS;
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ViewVectorTangent",
+                    "Tangent",
 @"  basisTransform.x = TangentWS;
     basisTransform.y = BitangentWS;
     basisTransform.z = NormalWS;
@@ -91,10 +91,10 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "View Vector",
             selectableFunctions: new()
             {
-                { "ViewVectorWorld", "World" },
-                { "ViewVectorObject", "Object" },
-                { "ViewVectoView", "View" },
-                { "ViewVectorTangent", "Tangent" }
+                { "World", "World" },
+                { "Object", "Object" },
+                { "View", "View" },
+                { "Tangent", "Tangent" }
             },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

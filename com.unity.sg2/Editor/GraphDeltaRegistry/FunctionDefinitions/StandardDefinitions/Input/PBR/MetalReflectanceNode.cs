@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "MetalReflectanceIron",
+                    "Iron",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceSilver",
+                    "Silver",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceAluminium",
+                    "Aluminium",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceGold",
+                    "Gold",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceCopper",
+                    "Copper",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceChromium",
+                    "Chromium",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceNickel",
+                    "Nickel",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceTitanium",
+                    "Titanium",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceCobalt",
+                    "Cobalt",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectancePlatinum",
+                    "Platinum",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceBrass",
+                    "Brass",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceLead",
+                    "Lead",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceTin",
+                    "Tin",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceSteel",
+                    "Steel",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceBronze",
+                    "Bronze",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MetalReflectanceTungsten",
+                    "Tungsten",
                     "    Out = metal;",
                     new ParameterDescriptor[]
                     {
@@ -166,22 +166,22 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Metal Reflectance",
             selectableFunctions: new()
             {
-                { "MetalReflectanceIron", "Iron" },
-                { "MetalReflectanceSilver", "Silver" },
-                { "MetalReflectanceAluminium", "Aluminium" },
-                { "MetalReflectanceGold", "Gold" },
-                { "MetalReflectanceCopper", "Copper" },
-                { "MetalReflectanceChromium", "Chromium" },
-                { "MetalReflectanceNickel", "Nickel" },
-                { "MetalReflectanceTitanium", "Titanium" },
-                { "MetalReflectanceCobalt", "Cobalt" },
-                { "MetalReflectancePlatinum", "Platinum" },
-                { "MetalReflectanceBrass", "Brass" },
-                { "MetalReflectanceLead", "Lead" },
-                { "MetalReflectanceTin", "Tin" },
-                { "MetalReflectanceSteel", "Steel" },
-                { "MetalReflectanceBronze", "Bronze" },
-                { "MetalReflectanceTungsten", "Tungsten" }
+                { "Iron", "Iron" },
+                { "Silver", "Silver" },
+                { "Aluminium", "Aluminium" },
+                { "Gold", "Gold" },
+                { "Copper", "Copper" },
+                { "Chromium", "Chromium" },
+                { "Nickel", "Nickel" },
+                { "Titanium", "Titanium" },
+                { "Cobalt", "Cobalt" },
+                { "Platinum", "Platinum" },
+                { "Brass", "Brass" },
+                { "Lead", "Lead" },
+                { "Tin", "Tin" },
+                { "Steel", "Steel" },
+                { "Bronze", "Bronze" },
+                { "Tungsten", "Tungsten" }
             },
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

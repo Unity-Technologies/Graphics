@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "NormalFromTexture3Samples",
+                    "3Samples",
 @"  //3 sample version - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "NormalFromTexture4Samples",
+                    "4Samples",
 @"  //4 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "NormalFromTexture8Samples",
+                    "8Samples",
 @"  //8 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
@@ -156,9 +156,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal From Texture",
             selectableFunctions: new()
              {
-                { "NormalFromTexture3Samples", "3 Samples" },
-                { "NormalFromTexture4Samples", "4 Samples" },
-                { "NormalFromTexture8Samples", "8 Samples" }
+                { "3Samples", "3 Samples" },
+                { "4Samples", "4 Samples" },
+                { "8Samples", "8 Samples" }
              },
             parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(

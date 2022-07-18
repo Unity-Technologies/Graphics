@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "SimpleNoiseDeterministic",
+            "Deterministic",
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_SimpleNoise_ValueNoise_Deterministic",
@@ -121,8 +121,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "value noise" },
             selectableFunctions: new()
             {
-                { "SimpleNoiseDeterministic", "Deterministic" },
-                { "SimpleNoiseLegacySine", "Legacy Sine" }
+                { "Deterministic", "Deterministic" },
+                { "LegacySine", "Legacy Sine" }
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

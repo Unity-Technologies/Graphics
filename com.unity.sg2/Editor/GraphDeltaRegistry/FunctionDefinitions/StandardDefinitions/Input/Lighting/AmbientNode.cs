@@ -8,10 +8,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"Color_Sky = Ambient_Sky;
-Equator = Ambient_Equator;
-Ground = Ambient_Ground;
-",
+@"    Color_Sky = Ambient_Sky;
+    Equator = Ambient_Equator;
+    Ground = Ambient_Ground;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Color_Sky", TYPE.Vec3, GraphType.Usage.Out),

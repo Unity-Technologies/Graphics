@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "SampleTexture2DArrayStandard",
+                    "Standard",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY(TextureArray.tex, Sampler.samplerstate, UV, Index);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleTexture2DArrayLOD",
+                    "LOD",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY_LOD(TextureArray.tex, Sampler.samplerstate, UV, Index, LOD);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleTexture2DArrayGradient",
+                    "Gradient",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY_GRAD(TextureArray.tex, Sampler.samplerstate, UV, Index, DDX, DDY);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleTexture2DArrayBias",
+                    "Bias",
 @"  RGBA = SAMPLE_TEXTURE2D_ARRAY_BIAS(TextureArray.tex, Sampler.samplerstate, UV, Index, Bias);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
@@ -127,10 +127,10 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Sample Texture 2D Array",
             selectableFunctions: new()
             {
-                { "SampleTexture2DArrayStandard", "Standard" },
-                { "SampleTexture2DArrayLOD", "LOD" },
-                { "SampleTexture2DArrayGradient", "Gradient" },
-                { "SampleTexture2DArrayBias", "Bias" }
+                { "Standard", "Standard" },
+                { "LOD", "LOD" },
+                { "Gradient", "Gradient" },
+                { "Bias", "Bias" }
             },
             parameters: new ParameterUIDescriptor[14] {
                 new ParameterUIDescriptor(

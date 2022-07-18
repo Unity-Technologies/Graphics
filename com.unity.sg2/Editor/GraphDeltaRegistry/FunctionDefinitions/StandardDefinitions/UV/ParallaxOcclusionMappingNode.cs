@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "ParallaxOcclusionMappingRed",
+            "Red",
             new FunctionDescriptor[] {
 /* TODO: There's a lot of code that needs to exist outside this main body function in order for this to work.
 struct PerPixelHeightDisplacementParam
@@ -42,7 +42,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_ARGUMENTS
 */
                 new(
-                    "ParallaxOcclusionMappingRed",
+                    "Red",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -109,7 +109,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_ARGUMENTS
 */
                 new(
-                    "ParallaxOcclusionMappingGreen",
+                    "Green",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -176,7 +176,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_ARGUMENTS
 */
                 new(
-                    "ParallaxOcclusionMappingBlue",
+                    "Blue",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -243,7 +243,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
 #undef POM_USER_DATA_ARGUMENTS
 */
                 new(
-                    "ParallaxOcclusionMappingAlpha",
+                    "Alpha",
 @"  //TODO: Need to know how to handle float vs half version of GetDisplacementObjectScale
     ViewDir = ViewDirTS * GetDisplacementObjectScale_float().xzy;
     MaxHeight = Amplitude * 0.01; // cm in the interface
@@ -292,10 +292,10 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
             hasPreview: false,
             selectableFunctions: new()
             {
-                { "ParallaxOcclusionMappingRed", "Red" },
-                { "ParallaxOcclusionMappingGreen", "Green" },
-                { "ParallaxOcclusionMappingBlue", "Blue" },
-                { "ParallaxOcclusionMappingAlpha", "Alpha" }
+                { "Red", "Red" },
+                { "Green", "Green" },
+                { "Blue", "Blue" },
+                { "Alpha", "Alpha" }
             },
             parameters: new ParameterUIDescriptor[11] {
                 new ParameterUIDescriptor(

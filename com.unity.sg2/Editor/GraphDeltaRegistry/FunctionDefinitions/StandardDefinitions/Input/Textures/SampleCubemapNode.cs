@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "SampleReflectedCubemapLOD",
+                    "LOD",
 @"    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleReflectedCubemapStandard",
+                    "Standard",
 @"    RGBA = SAMPLE_TEXTURECUBE(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal));
     RGB = RGBA.rgb;
     R = RGBA.r;
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleReflectedCubemapBias",
+                    "Bias",
 @"    RGBA = SAMPLE_TEXTURECUBE_BIAS(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), Bias);
     RGB = RGBA.rgb;
     R = RGBA.r;
@@ -92,9 +92,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Sample Reflected Cubemap",
             selectableFunctions: new()
             {
-                { "SampleReflectedCubemapLOD", "LOD" },
-                { "SampleReflectedCubemapStanard", "Standard" },
-                { "SampleReflectedCubemapBias", "Bias" }
+                { "LOD", "LOD" },
+                { "Stanard", "Standard" },
+                { "Bias", "Bias" }
             },
             parameters: new ParameterUIDescriptor[12] {
                 new ParameterUIDescriptor(
