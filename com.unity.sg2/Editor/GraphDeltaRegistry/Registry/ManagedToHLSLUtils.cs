@@ -109,7 +109,22 @@ namespace unity.shadergraph.utils
 
         internal static bool CanBeLocal(object o)
         {
-            return string.IsNullOrEmpty(ToHLSL(o));
+            switch (o)
+            {
+                case Texture:
+                case UnityEditor.ShaderGraph.Defs.ReferenceValueDescriptor:
+                    return false;
+                case Gradient: return true;
+            }
+            try
+            {
+                ManagedToParametric(o, out _, out _, out _, out _);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // TODO: It's probably better to simulate an HLSL type in C#, have that HLSL type definition own its ToHLSL method ->
