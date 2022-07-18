@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         }
 
 
-        static Color SampleMaterialColor(Material material)
+        internal static Color SampleMaterialColor(Material material)
         {
             var outputTexture = DrawMaterialToTexture(material);
             try

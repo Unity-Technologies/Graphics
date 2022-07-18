@@ -196,7 +196,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         primitive = GraphType.Primitive.Float,
                         precision = GraphType.Precision.Fixed
                     },
-                    registry);
+                    registry,
+                    source: ContextEntryEnumTags.DataSource.Global);
             }
 
             var context = GetNode(contextNode);

@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         private static ShaderGraphRegistry s_instance = null;
 
-        private ShaderGraphRegistry()
+        internal ShaderGraphRegistry()
         {
             Registry = new();
             NodeUIInfo = new();
