@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using unity.shadergraph.utils;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -220,18 +221,21 @@ namespace UnityEditor.ShaderGraph.Defs
             foreach (var param in functionDescriptor.Parameters)
             {
                 var shaderType = ShaderTypeForParameter(container, param, fallbackType);
-                if (param.Usage == Usage.In ||
-                    param.Usage == Usage.Static)
+
+                if (param.Usage == Usage.Out)
+                {
+                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                }
+                else if (param.Usage == GraphType.Usage.In
+                    || param.Usage == GraphType.Usage.Static
+                    || param.Usage == GraphType.Usage.Local && ManagedToHLSLUtils.CanBeLocal(param.DefaultValue))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
                 else if(param.Usage == Usage.Local)
                 {
-                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name);
-                }
-                else if (param.Usage == Usage.Out)
-                {
-                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                    var init = ManagedToHLSLUtils.ToHLSL(param.DefaultValue);
+                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name, init);
                 }
                 else
                 {

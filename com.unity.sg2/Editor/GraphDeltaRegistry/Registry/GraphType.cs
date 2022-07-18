@@ -236,17 +236,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var length = GraphTypeHelpers.GetLength(data);
             int l = Mathf.Clamp((int)length, 1, 4);
             int h = Mathf.Clamp((int)height, 1, 4);
+            string name = ((ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name;
+            var values = GraphTypeHelpers.GetComponents(data).ToArray();
 
-            string result = $"{((ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
-
-            for (int i = 0; i < l * h; ++i)
-            {
-                result += $"{GraphTypeHelpers.GetComponent(data, i)}";
-                if (i != l * h - 1)
-                    result += ", ";
-            }
-            result += ")";
-            return result;
+            return unity.shadergraph.utils.ManagedToHLSLUtils.ParametricToHLSL(name, l, h, values);
         }
 
         ShaderFoundry.ShaderType ITypeDefinitionBuilder.GetShaderType(FieldHandler data, ShaderFoundry.ShaderContainer container, Registry registry)

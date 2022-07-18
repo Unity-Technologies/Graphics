@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
     if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
-    normalSample = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV), channeMask);
+    normalSample = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV), channelMask);
     va.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
     vb.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
     Out = normalize(cross(va.xyz, vb.xyz));
