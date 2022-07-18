@@ -39,7 +39,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             minSize = new Vector2(130, 130);
             // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
             maxSize = new Vector2(1000, 1000);
-            size = minSize;
+            if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
+                size = minSize;
 
             m_MainPreviewView.Initialize(size);
 

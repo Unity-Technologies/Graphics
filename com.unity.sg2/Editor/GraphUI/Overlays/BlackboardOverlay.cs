@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Overlays;
 using UnityEngine;
@@ -32,7 +33,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // TODO: The overlays should be persisting the size and driving the main preview size
                     minSize = new Vector2(100, 100);
                     maxSize = new Vector2(1000, 1000);
-                    size = new Vector2(300, 300);
+                    if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
+                        size = new Vector2(300, 400);
 
                     return m_BlackboardView;
                 }
