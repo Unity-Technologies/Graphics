@@ -33,6 +33,11 @@ namespace UnityEditor.VFX.Block
                     || e.name == "arcSequencer"))
                     yield return p;
 
+                if (compositionPosition == AttributeCompositionMode.Blend)
+                    yield return allSlots.FirstOrDefault(o => o.name == "blendPosition");
+                if (compositionDirection == AttributeCompositionMode.Blend)
+                    yield return allSlots.FirstOrDefault(o => o.name == "blendDirection");
+
                 var transform = allSlots.FirstOrDefault(o => o.name == "arcSphere_sphere_transform").exp;
                 var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;
                 var radius = allSlots.FirstOrDefault(o => o.name == "arcSphere_sphere_radius").exp;
