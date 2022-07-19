@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,6 +13,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         MainPreviewView m_MainPreviewView;
 
+        /// <summary>
+        /// Is set in ShaderGraphEditorWindow::InitializeOverlayWindows to a function of the preview manager
+        /// </summary>
+        public Func<Texture> getCachedMainPreviewTexture;
+
         public override VisualElement CreatePanelContent()
         {
             var emptyPlaceholder = new VisualElement();
@@ -21,16 +27,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return emptyPlaceholder;
 
             m_MainPreviewView = new MainPreviewView(window.GraphTool.Dispatcher);
-            if (m_MainPreviewView != null)
-            {
-                m_MainPreviewView.AddToClassList("MainPreviewView");
-                m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
-                size = new Vector2(125, 125);
-                window.SetMainPreviewReference(m_MainPreviewView);
-                return m_MainPreviewView;
-            }
+            m_MainPreviewView.AddToClassList("MainPreviewView");
+            m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
 
-            return emptyPlaceholder;
+            window.SetMainPreviewReference(m_MainPreviewView);
+            var cachedTexture = getCachedMainPreviewTexture?.Invoke();
+            if (cachedTexture != null)
+                m_MainPreviewView.mainPreviewTexture = cachedTexture;
+
+            // TODO: The overlays should be persisting the size and driving the main preview size
+            minSize = new Vector2(130, 130);
+            // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
+            maxSize = new Vector2(1000, 1000);
+            if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
+                size = minSize;
+
+            m_MainPreviewView.Initialize(size);
+
+            return m_MainPreviewView;
         }
     }
 }

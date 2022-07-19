@@ -29,11 +29,11 @@ namespace UnityEditor.ShaderGraph.Utils
             {
                 if (!string.IsNullOrEmpty(m_SerializedMesh))
                 {
-                    var textureHelper = new MeshHelper();
-                    EditorJsonUtility.FromJsonOverwrite(m_SerializedMesh, textureHelper);
+                    var meshHelper = new MeshHelper();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedMesh, meshHelper);
                     m_SerializedMesh = null;
                     m_Guid = null;
-                    m_Mesh = textureHelper.mesh;
+                    m_Mesh = meshHelper.mesh;
                 }
                 else if (!string.IsNullOrEmpty(m_Guid) && m_Mesh == null)
                 {
