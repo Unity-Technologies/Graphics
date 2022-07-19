@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderFoundry;
@@ -135,13 +136,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             List<GradientAlphaKey> alphas = new();
             for (int i = 0; i < colorCount; ++i)
             {
-                field.GetField(GradientType.kColor(i), out GradientColorKey colorKey);
-                colors.Add(colorKey);
+                colors.Add(GetColorKey(field, i));
             }
+
             for (int i = 0; i < alphaCount; ++i)
             {
-                field.GetField(GradientType.kAlpha(i), out GradientAlphaKey alphaKey);
-                alphas.Add(alphaKey);
+                alphas.Add(GetAlphaKey(field, i));
             }
 
             var result = new Gradient();
@@ -157,10 +157,52 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             field.AddSubField(GradientType.kAlphaCount, gradient.alphaKeys.Length);
 
             for (int i = 0; i < 8 && i < gradient.colorKeys.Length; ++i)
-                field.AddSubField(GradientType.kColor(i), gradient.colorKeys[i]);
+                SetColorKey(field, i, gradient.colorKeys[i]);
 
             for (int i = 0; i < 8 && i < gradient.alphaKeys.Length; ++i)
-                field.AddSubField(GradientType.kAlpha(i), gradient.alphaKeys[i]);
+                SetAlphaKey(field, i, gradient.alphaKeys[i]);
+        }
+
+        internal static void SetColorKey(FieldHandler field, int idx, GradientColorKey colorKey)
+        {
+            var vec4Value = (Vector4)colorKey.color;
+            vec4Value.w = colorKey.time;
+
+            var sub = field.GetSubField<Vector4>(GradientType.kColor(idx))
+                ?? field.AddSubField(GradientType.kColor(idx), vec4Value, true);
+            sub.SetData(vec4Value);
+        }
+
+        internal static GradientColorKey GetColorKey(FieldHandler field, int idx)
+        {
+            var sub = field.GetSubField<Vector4>(GradientType.kColor(idx));
+            if (sub is null) return default;
+
+            var packedValue = sub.GetData();
+            var colorKey = new GradientColorKey();
+            colorKey.time = packedValue.w;
+            packedValue.w = 1;
+            colorKey.color = packedValue;
+            return colorKey;
+        }
+
+        internal static void SetAlphaKey(FieldHandler field, int idx, GradientAlphaKey alphaKey)
+        {
+            var vec2Value = new Vector2(alphaKey.alpha, alphaKey.time);
+
+            var sub = field.GetSubField<Vector2>(GradientType.kAlpha(idx))
+                ?? field.AddSubField(GradientType.kAlpha(idx), vec2Value, true);
+            sub.SetData(vec2Value);
+        }
+
+        internal static GradientAlphaKey GetAlphaKey(FieldHandler field, int idx)
+        {
+            var sub = field.GetSubField<Vector2>(GradientType.kAlpha(idx));
+            if (sub is null) return default;
+
+            var packedValue = sub.GetData();
+            var colorKey = new GradientAlphaKey {alpha = packedValue.x, time = packedValue.y};
+            return colorKey;
         }
     }
 
@@ -188,10 +230,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             field.AddSubField(kGradientMode, GradientMode.Blend);
             field.AddSubField(kColorCount, 2);
             field.AddSubField(kAlphaCount, 2);
-            field.AddSubField(kColor(0), new GradientColorKey(Color.black, 0));
-            field.AddSubField(kColor(1), new GradientColorKey(Color.white, 1));
-            field.AddSubField(kAlpha(0), new GradientAlphaKey(1, 0));
-            field.AddSubField(kAlpha(1), new GradientAlphaKey(1, 1));
+            GradientTypeHelpers.SetColorKey(field, 0, new GradientColorKey(Color.black, 0));
+            GradientTypeHelpers.SetColorKey(field, 1, new GradientColorKey(Color.white, 1));
+            GradientTypeHelpers.SetAlphaKey(field, 0, new GradientAlphaKey(1, 0));
+            GradientTypeHelpers.SetAlphaKey(field, 1, new GradientAlphaKey(1, 1));
 
             // TODO: Precision; the Gradient type we use in Functions.hlsl does not handle precision, despite surrounding shader code.
             // Ideally, we could just generate the complete Gradient Struct per precision type, instead of using the one from Functions.hlsl;
