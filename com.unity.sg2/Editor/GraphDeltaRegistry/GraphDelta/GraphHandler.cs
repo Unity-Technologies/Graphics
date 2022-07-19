@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             graphDelta.GetNode(name, registry);
 
         public void RemoveNode(string name) =>
-            graphDelta.RemoveNode(name);
+            graphDelta.RemoveNode(name, registry);
 
         public IEnumerable<NodeHandler> GetNodes() =>
             graphDelta.GetNodes(registry);

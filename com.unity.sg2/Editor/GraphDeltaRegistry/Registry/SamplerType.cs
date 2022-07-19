@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
 using UnityEngine;
 
@@ -48,9 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         #endregion
 
         private static string GetUniqueSamplerName(FieldHandler field)
-        {
-            return field.ID.FullPath.Replace(".", "_");
-        }
+            => ElementID.FromString(field.ID.ParentPath).LocalPath;
 
         public enum Filter { Point, Linear, Trilinear }
         public enum Wrap { Clamp, Repeat, Mirror, MirrorOnce } // optionally can be per component- can be added later.
