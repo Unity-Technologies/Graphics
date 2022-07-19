@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "LOD",
+                    "LODfunction",
 @"    RGBA = SAMPLE_TEXTURE3D_LOD(Texture.tex, Sampler.samplerstate, UV, LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
             selectableFunctions: new()
             {
                 { "Standard", "Standard" },
-                { "LOD", "LOD" }
+                { "LODfunction", "LOD" }
             },
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
