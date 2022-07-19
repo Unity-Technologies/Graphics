@@ -47,6 +47,16 @@ namespace UnityEditor.Rendering.PostProcessing
             }
         }
 
+#if UNITY_2021_3_OR_NEWER
+        static bool IsObsolete(NamedBuildTarget namedBuildTarget)
+        {
+            var attrs = typeof(NamedBuildTarget)
+                .GetField(namedBuildTarget.ToString())
+                .GetCustomAttributes(typeof(ObsoleteAttribute), false);
+
+            return attrs != null && attrs.Length > 0;
+        }
+#else
         static bool IsObsolete(BuildTargetGroup group)
         {
             var attrs = typeof(BuildTargetGroup)
@@ -55,5 +65,6 @@ namespace UnityEditor.Rendering.PostProcessing
 
             return attrs != null && attrs.Length > 0;
         }
+#endif
     }
 }
