@@ -1,7 +1,3 @@
-
-
-
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Defs
