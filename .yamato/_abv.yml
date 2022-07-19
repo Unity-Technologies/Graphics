@@ -26,7 +26,7 @@ all_project_ci_trunk:
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
 graphics_repo_nightly_trunk:
-    name: Graphics repo nightly on trunk
+    name: Templates and PPV2 on trunk
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -164,7 +164,7 @@ all_project_ci_CUSTOM-REVISION:
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 graphics_repo_nightly_CUSTOM-REVISION:
-    name: Graphics repo nightly on CUSTOM-REVISION
+    name: Templates and PPV2 on CUSTOM-REVISION
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
