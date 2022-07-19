@@ -43,7 +43,11 @@ namespace UnityEditor.Rendering.PostProcessing
                 list.Add(k_Define);
                 defines = list.Aggregate((a, b) => a + ";" + b);
 
+#if UNITY_2021_3_OR_NEWER
+                PlayerSettings.SetScriptingDefineSymbols(target, defines);
+#else
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
+#endif
             }
         }
 
