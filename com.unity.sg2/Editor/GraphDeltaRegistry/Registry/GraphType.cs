@@ -349,20 +349,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var srcSize = srcType.IsVector ? srcType.VectorDimension : srcType.IsMatrix ? srcType.MatrixColumns * srcType.MatrixRows : 1;
             var dstSize = dstType.IsVector ? dstType.VectorDimension : dstType.IsMatrix ? dstType.MatrixColumns * dstType.MatrixRows : 1;
 
-            string body = $"Out = {srcType.Name} {{ ";
-
-            for (int i = 0; i < dstSize; ++i)
+            string body = "";
+            if (srcType.IsScalar || dstType.IsScalar || srcSize >= dstSize)
             {
-                if (i < srcSize)
-                {
-                    if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
-                    if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
-                    if (dstType.IsScalar) body += $"In";
-                }
-                else body += "0";
-                if (i != dstSize - 1) body += ", ";
+                //honestly HLSL automatic casting solves this for most cases
+                body = $"Out = In; ";
             }
-            body += " };";
+            else
+            {
+                body = $"Out = {dstType.Name} ( ";
+
+                for (int i = 0; i < dstSize; ++i)
+                {
+                    if (i < srcSize)
+                    {
+                        if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
+                        if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
+                        if (dstType.IsScalar) body += $"In";
+                    }
+                    else body += "0";
+                    if (i != dstSize - 1) body += ", ";
+                }
+                body += " );";
+            }
 
             builder.AddLine(body);
             return builder.Build();
