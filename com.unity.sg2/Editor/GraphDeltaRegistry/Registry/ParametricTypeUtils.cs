@@ -4,46 +4,10 @@
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
-namespace unity.shadergraph.utils
+namespace UnityEditor.ShaderGraph.Defs
 {
-    internal static class ManagedToHLSLUtils
+    internal static class ParametricTypeUtils
     {
-        static string ColorKeyToHLSL(GradientColorKey key) => $"float4({key.color.r},{key.color.g},{key.color.b},{key.time})";
-        static string AlphaKeyToHLSL(GradientAlphaKey key) => $"float2({key.alpha},{key.time})";
-        internal static string GradientToHLSL(UnityEngine.Gradient val)
-        {
-            var colorCount = val.colorKeys.Length;
-            var alphaCount = val.alphaKeys.Length;
-            var gradientMode = val.mode;
-
-
-            string alpha = "";
-            string color = "";
-            for (int i = 0; i < 8; ++i)
-            {
-                var localColor = "float4(0,0,0,0)";
-                var localAlpha = "float2(0,0)";
-
-                if (i < colorCount)
-                {
-                    var colorKey = val.colorKeys[i];
-                    localColor = ColorKeyToHLSL(colorKey);
-                }
-                if (i < alphaCount)
-                {
-                    var alphaKey = val.alphaKeys[i];
-                    localAlpha = AlphaKeyToHLSL(alphaKey);
-                }
-
-
-                color += localColor + (i < 7 ? ", " : "");
-                alpha += localAlpha + (i < 7 ? ", " : "");
-            }
-
-            return $"NewGradient({(int)gradientMode}, {colorCount}, {alphaCount}, {color}, {alpha})";
-        }
-
-
         internal static string ParametricToHLSL(string name, int length, int height, float[] data)
         {
             string result = name + "(";
@@ -101,24 +65,20 @@ namespace unity.shadergraph.utils
                 name += $"x{height}";
         }
 
-        internal static string ManagedParametricToHLSL(object ovalue)
+        internal static string ManagedToParametricToHLSL(object ovalue)
         {
+            if (ovalue == null)
+                return null;
+
             ManagedToParametric(ovalue, out var name, out var length, out var height, out var data);
             return ParametricToHLSL(name, length, height, data);
         }
 
-        internal static bool CanValueBeLocal(object o)
+        internal static bool CouldBeParametric(object o)
         {
             if (o == null)
             {
                 return true;
-            }
-            switch (o)
-            {
-                case Texture:
-                case UnityEditor.ShaderGraph.Defs.ReferenceValueDescriptor:
-                    return false;
-                case Gradient: return true;
             }
             try
             {
@@ -128,27 +88,6 @@ namespace unity.shadergraph.utils
             catch
             {
                 return false;
-            }
-        }
-
-        // TODO: It's probably better to simulate an HLSL type in C#, have that HLSL type definition own its ToHLSL method ->
-        // Should revisit this to the benefit of the scripting APIs, ShaderFoundry, GTF Constants, Descriptors, and TypeDefinitions;
-        // there is some significant pain that can be eased there.
-        internal static string ToHLSL(object o)
-        {
-            try
-            {
-                switch (o)
-                {
-                    case Gradient og: return GradientToHLSL(og);
-                    default: return ManagedParametricToHLSL(o);
-                    // case Texture: Can't convert directly to HLSL because it must be promoted to a property first- there is no inline conversion.
-                    // case ReferenceValueDescriptor: Can't convert directly to HLSL because it must be pulled from a uniform- there is no inline conversion.
-                }
-            }
-            catch
-            {
-                return null;
             }
         }
     }

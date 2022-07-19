@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using unity.shadergraph.utils;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -228,13 +227,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 }
                 else if (param.Usage == GraphType.Usage.In
                     || param.Usage == GraphType.Usage.Static
-                    || param.Usage == GraphType.Usage.Local && !ManagedToHLSLUtils.CanValueBeLocal(param.DefaultValue))
+                    || param.Usage == GraphType.Usage.Local && !ParametricTypeUtils.CouldBeParametric(param.DefaultValue))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
                 else if(param.Usage == Usage.Local)
                 {
-                    var init = ManagedToHLSLUtils.ToHLSL(param.DefaultValue);
+                    var init = ParametricTypeUtils.ManagedToParametricToHLSL(param.DefaultValue);
                     shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name, init);
                 }
                 else

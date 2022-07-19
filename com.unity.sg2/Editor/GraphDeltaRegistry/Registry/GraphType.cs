@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -239,7 +240,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string name = ((ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name;
             var values = GraphTypeHelpers.GetComponents(data).ToArray();
 
-            return unity.shadergraph.utils.ManagedToHLSLUtils.ParametricToHLSL(name, l, h, values);
+            return ParametricTypeUtils.ParametricToHLSL(name, l, h, values);
         }
 
         ShaderFoundry.ShaderType ITypeDefinitionBuilder.GetShaderType(FieldHandler data, ShaderFoundry.ShaderContainer container, Registry registry)
