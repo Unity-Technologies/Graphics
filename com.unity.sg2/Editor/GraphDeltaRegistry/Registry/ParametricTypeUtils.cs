@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             return result;
         }
 
-        internal static void ManagedToParametric(object ovalue, out string name, out int length, out int height, out float[] data)
+        private static void ManagedToParametric(object ovalue, out string name, out int length, out int height, out float[] data)
         {
             name = "float";
             height = 1;
@@ -74,7 +74,12 @@ namespace UnityEditor.ShaderGraph.Defs
             return ParametricToHLSL(name, length, height, data);
         }
 
-        internal static bool CouldBeParametric(object o)
+        internal static bool IsParametric(ParameterDescriptor desc)
+        {
+            return desc.TypeDescriptor is ParametricTypeDescriptor && CouldBeParametric(desc.DefaultValue);
+        }
+
+        private static bool CouldBeParametric(object o)
         {
             if (o == null)
             {

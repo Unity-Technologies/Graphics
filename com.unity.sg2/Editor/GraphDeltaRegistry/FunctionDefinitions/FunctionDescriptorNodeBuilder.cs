@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 }
                 else if (param.Usage == GraphType.Usage.In
                     || param.Usage == GraphType.Usage.Static
-                    || param.Usage == GraphType.Usage.Local && !ParametricTypeUtils.CouldBeParametric(param.DefaultValue))
+                    || param.Usage == GraphType.Usage.Local && !ParametricTypeUtils.IsParametric(param))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
