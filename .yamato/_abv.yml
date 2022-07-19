@@ -26,7 +26,7 @@ all_project_ci_2021.3:
       -  path: .yamato/_abv.yml#General_Checks_2021.3
          rerun: on_new_revision
 graphics_repo_nightly_2021.3:
-    name: Graphics repo nightly on 2021.3
+    name: Pack & Test all templates on 2021.3
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{2021_3.changeset.id}}'
@@ -152,7 +152,7 @@ all_project_ci_CUSTOM-REVISION:
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 graphics_repo_nightly_CUSTOM-REVISION:
-    name: Graphics repo nightly on CUSTOM-REVISION
+    name: Pack & Test all templates on CUSTOM-REVISION
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
