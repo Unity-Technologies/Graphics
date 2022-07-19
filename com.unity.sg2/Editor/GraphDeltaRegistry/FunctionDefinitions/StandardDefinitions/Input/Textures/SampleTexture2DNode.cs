@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "LOD",
+                    "LODfunction",
 @"    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "Bias",
+                    "Biasfunction",
 @"    RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), Bias);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
@@ -123,9 +123,9 @@ namespace UnityEditor.ShaderGraph.Defs
             selectableFunctions: new()
             {
                 { "Standard", "Standard" },
-                { "LOD", "LOD" },
+                { "LODfunction", "LOD" },
                 { "Gradient", "Gradient" },
-                { "Bias", "Bias" }
+                { "Biasfunction", "Bias" }
             },
             parameters: new ParameterUIDescriptor[13] {
                 new ParameterUIDescriptor(
