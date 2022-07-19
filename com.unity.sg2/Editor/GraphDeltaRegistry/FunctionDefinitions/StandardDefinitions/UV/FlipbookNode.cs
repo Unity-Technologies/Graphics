@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "FlipOp",
+                    "Flip",
 @"  Tile = fmod(Tile, Width * Height);
     tileCount = float2(1.0, 1.0) / float2(Width, Height);
     tileXY.x = InvertY * Height - (floor(Tile * tileCount.x) + InvertY * 1);
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendOp",
+                    "Blend",
 @"  Blend = frac(Tile);
     tileCount.x = 1.0 / Width;
 	tileCount.y = 1.0 / Height;
@@ -78,8 +78,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[2] { "atlas", "animation" },
             selectableFunctions: new()
             {
-                { "Flip", "FlipOp" },
-                { "Blend", "BlendOp" }
+                { "Flip", "Flip" },
+                { "Blend", "Blend" }
             },
             parameters: new ParameterUIDescriptor[9] {
                 new ParameterUIDescriptor(
