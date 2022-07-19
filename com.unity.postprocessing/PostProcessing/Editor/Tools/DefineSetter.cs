@@ -10,14 +10,25 @@ namespace UnityEditor.Rendering.PostProcessing
 
         static DefineSetter()
         {
+#if UNITY_2021_3_OR_NEWER
+            var targets = Enum.GetValues(typeof(NamedBuildTarget))
+                .Cast<NamedBuildTarget>()
+                .Where(x => x != NamedBuildTarget.Unknown)
+                .Where(x => !IsObsolete(x));
+#else
             var targets = Enum.GetValues(typeof(BuildTargetGroup))
                 .Cast<BuildTargetGroup>()
                 .Where(x => x != BuildTargetGroup.Unknown)
                 .Where(x => !IsObsolete(x));
+#endif
 
             foreach (var target in targets)
             {
+#if UNITY_2021_3_OR_NEWER
+                var defines = PlayerSettings.GetScriptingDefineSymbols(target).Trim();
+#else
                 var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(target).Trim();
+#endif
 
                 var list = defines.Split(';', ' ')
                     .Where(x => !string.IsNullOrEmpty(x))
