@@ -41,39 +41,6 @@ PostProcessing_Win_DX11_playmode_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
-PostProcessing_Win_DX11_editmode_mono_Linear_trunk:
-    name: PostProcessing on Win_DX11_editmode_mono_Linear on version trunk
-    agent:
-        type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
-    variables:
-        CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        TEST_FILTER: .*
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        UTR_VERSION: "current"
-    commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
 PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
     name: PostProcessing on Win_DX11_Standalone_mono_Linear on version trunk
     agent:
@@ -168,39 +135,6 @@ PostProcessing_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/PostProcessing_Tests/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-PostProcessing_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
-    name: PostProcessing on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
-    variables:
-        CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: custom_revision_not_set
-        TEST_FILTER: .*
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        UTR_VERSION: "current"
-    commands:
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
     artifacts:
         logs:
             paths:

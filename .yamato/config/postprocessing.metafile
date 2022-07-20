@@ -4,8 +4,8 @@ project:
 test_platforms:
   - type: playmode
     allow_cache: False
-  - type: editmode
-    allow_cache: False
+  # - type: editmode
+  #   allow_cache: False
   - type: Standalone
     allow_cache: False
     utr_flags:
@@ -67,7 +67,7 @@ jobs:
         test_platforms:
           - Standalone
           - playmode
-          - editmode
+          # - editmode
       - platform: Win
         api: DX12
         build_config: mono
@@ -110,12 +110,12 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-      - platform: Linux
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - editmode
+      # - platform: Linux
+      #   api: Vulkan
+      #   build_config: mono
+      #   color_space: Linear
+      #   test_platforms:
+      #     - editmode
 
   - name: <PROJECT_NAME>
     dependencies:
