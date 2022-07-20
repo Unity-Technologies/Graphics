@@ -1149,6 +1149,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
+        public static KeywordDescriptor ProbeVolumesEncoding = new KeywordDescriptor()
+        {
+            displayName = "Probe Volumes Encoding",
+            referenceName = "PROBE_VOLUMES_ENCODING",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Spherical Harmonics L0", referenceName = "SPHERICAL_HARMONICS_L0" },
+                new KeywordEntry() { displayName = "Spherical Harmonics L1", referenceName = "SPHERICAL_HARMONICS_L1" },
+                new KeywordEntry() { displayName = "Spherical Harmonics L2", referenceName = "SPHERICAL_HARMONICS_L2" },
+            }
+        };
+
         public static KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
         {
             displayName = "Surface Type Transparent",

@@ -4,6 +4,8 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+        #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
@@ -74,7 +76,21 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                 // Convert to specific view section of atlas.
                 uvw = uvw * _TextureViewScale + _TextureViewBias;
 
-            #if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+            #if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+                ProbeVolumeSphericalHarmonicsL0 coefficients;
+                ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL0, coefficients);
+                ProbeVolumeSampleAccumulateSphericalHarmonicsL0(uvw, 1.0f, coefficients);
+                ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL0(coefficients);
+                float4 valueShAr = float4(0, 0, 0, saturate((coefficients.data[0].x - _ValidRange.x) * _ValidRange.y));
+                float4 valueShAg = float4(0, 0, 0, saturate((coefficients.data[0].y - _ValidRange.x) * _ValidRange.y));
+                float4 valueShAb = float4(0, 0, 0, saturate((coefficients.data[0].z - _ValidRange.x) * _ValidRange.y));
+
+                float4 valueShBr = 0.0f;
+                float4 valueShBg = 0.0f;
+                float4 valueShBb = 0.0f;
+                float4 valueShC = 0.0f;
+
+            #elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
                 ProbeVolumeSphericalHarmonicsL1 coefficients;
                 ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL1, coefficients);
                 ProbeVolumeSampleAccumulateSphericalHarmonicsL1(uvw, 1.0f, coefficients);
@@ -88,7 +104,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                 float4 valueShBb = 0.0f;
                 float4 valueShC = 0.0f;
 
-            #elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+            #elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
                 ProbeVolumeSphericalHarmonicsL2 coefficients;
                 ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL2, coefficients);
                 ProbeVolumeSampleAccumulateSphericalHarmonicsL2(uvw, 1.0f, coefficients);
@@ -102,6 +118,8 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                 float4 valueShBb = saturate((coefficients.data[5] - _ValidRange.x) * _ValidRange.y);
                 float4 valueShC = saturate((coefficients.data[6] - _ValidRange.x) * _ValidRange.y);
 
+            #else
+                #error "Unsupported Probe Volumes atlas encoding";
             #endif
 
                 float valueValidity = saturate((ProbeVolumeSampleValidity(uvw) - _ValidRange.x) * _ValidRange.y);

@@ -19,11 +19,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int GetDataSHL01Length(int i);
         int GetDataSHL2Length(int i);
+        int GetDataValidityLength(int i);
         int GetDataOctahedralDepthLength(int i);
 
+        void SetDataSHL01(int i, ComputeBuffer buffer);
+        void SetDataSHL2(int i, ComputeBuffer buffer);
+        void SetDataValidity(int i, ComputeBuffer buffer);
         void SetDataOctahedralDepth(int i, ComputeBuffer buffer);
 
-        public void EnsureVolumeBuffers(int i);
         public ref ProbeVolumePipelineData GetPipelineData(int i);
 
         // Dynamic GI

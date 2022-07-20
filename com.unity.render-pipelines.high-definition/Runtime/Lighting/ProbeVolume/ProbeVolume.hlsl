@@ -3,6 +3,21 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 
+#ifndef PROBE_VOLUMES_SAMPLING_MODE
+// Default to sampling probe volumes at native atlas encoding mode.
+// Users can override this by defining PROBE_VOLUMES_SAMPLING_MODE before including LightLoop.hlsl
+// TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
+// as there are other parameters such as bilateral filtering, additive blending, and normal bias
+// that we will want to disable for a low quality high performance mode.
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#endif
+#endif
+
 #ifndef PROBE_VOLUMES_BILATERAL_FILTERING_MODE
 // Default to filtering probe volumes with mode specified in ShaderConfig.cs
 // Users can override this by defining PROBE_VOLUMES_BILATERAL_FILTERING_MODE before including LightLoop.hlsl
@@ -233,30 +248,30 @@ float3 ProbeVolumeEvaluateSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSpher
 
 void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 normalWS, float3 backNormalWS, float3 reflectionDirectionWS, float3 viewDirectionWS, uint renderingLayers, float weightHierarchy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float3 reflectionProbeNormalizationLighting, out float reflectionProbeNormalizationWeight)
 {
-    if (_ProbeVolumeSamplingMode == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0)
-    {
-        ProbeVolumeSphericalHarmonicsL0 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
-        reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, coefficients);
-    }
-    else if (_ProbeVolumeSamplingMode == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1)
-    {
-        ProbeVolumeSphericalHarmonicsL1 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
-        reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
-    }
-    else if (_ProbeVolumeSamplingMode == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2)
-    {
-        ProbeVolumeSphericalHarmonicsL2 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
-        reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
-    }
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    ProbeVolumeSphericalHarmonicsL0 coefficients;
+    ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
+    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, coefficients);
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    ProbeVolumeSphericalHarmonicsL1 coefficients;
+    ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
+    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    ProbeVolumeSphericalHarmonicsL2 coefficients;
+    ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
+    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
+
+#else
+    #error "Unsupported Probe Volumes atlas encoding";
+#endif
 
     reflectionProbeNormalizationWeight = weightHierarchy * ProbeVolumeGetReflectionProbeNormalizationWeight();
 }

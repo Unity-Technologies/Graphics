@@ -773,8 +773,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
             RenderTargetIdentifier probeVolumeAtlasSHRTHandle, bool infiniteBounces,
             PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe,
-            ProbeVolumeDynamicGIMixedLightMode mixedLightMode, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
+            ProbeVolumeDynamicGIMixedLightMode mixedLightMode, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding,
+            ProbeVolumesEncodingModes encodingMode)
         {
+            ProbeVolume.EnsureVolumeBuffers(probeVolume, encodingMode);
+
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume, radianceEncoding);
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
             {
@@ -1167,7 +1170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / size.z
             ));
 
-            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
             var resolutionAndSliceCount = new Vector4(
                 size.x,
                 size.y,
@@ -1232,8 +1235,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool InitializePropagationInputBuffers(ProbeVolumeHandle probeVolume)
         {
-            probeVolume.EnsureVolumeBuffers();
-
             var dataVersion = probeVolume.GetDataVersion();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 
