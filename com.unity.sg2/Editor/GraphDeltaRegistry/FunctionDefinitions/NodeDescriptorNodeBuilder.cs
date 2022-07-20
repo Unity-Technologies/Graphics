@@ -220,18 +220,21 @@ namespace UnityEditor.ShaderGraph.Defs
             foreach (var param in functionDescriptor.Parameters)
             {
                 var shaderType = ShaderTypeForParameter(container, param, fallbackType);
-                if (param.Usage == Usage.In ||
-                    param.Usage == Usage.Static)
+
+                if (param.Usage == Usage.Out)
+                {
+                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                }
+                else if (param.Usage == GraphType.Usage.In
+                    || param.Usage == GraphType.Usage.Static
+                    || param.Usage == GraphType.Usage.Local && !ParametricTypeUtils.IsParametric(param))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
                 else if(param.Usage == Usage.Local)
                 {
-                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name);
-                }
-                else if (param.Usage == Usage.Out)
-                {
-                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                    var init = ParametricTypeUtils.ManagedToParametricToHLSL(param.DefaultValue);
+                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name, init);
                 }
                 else
                 {

@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "Fast",
-                    "Out = In * (-0.1784 * abs(x) - 0.0663 * x * x + 1.0301);",
+                    "Fast", // Accurate in the range of In = [1, 1]
+                    "Out = In * (-0.1784 * abs(In) - 0.0663 * In * In + 1.0301);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("In", TYPE.Vector, Usage.In),

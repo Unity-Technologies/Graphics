@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -64,17 +63,21 @@ namespace UnityEditor.ShaderGraph.Defs
                 var port = data.GetPort(param.Name);
                 var field = port.GetTypeField();
                 var shaderType = registry.GetShaderType(field, container);
-                if (param.Usage == GraphType.Usage.In || param.Usage == GraphType.Usage.Static)
+
+                if (param.Usage == GraphType.Usage.Out)
+                {
+                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                }
+                else if (param.Usage == GraphType.Usage.In
+                    || param.Usage == GraphType.Usage.Static
+                    || param.Usage == GraphType.Usage.Local && !ParametricTypeUtils.IsParametric(param))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
                 else if (param.Usage == GraphType.Usage.Local)
                 {
-                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name);
-                }
-                else if (param.Usage == GraphType.Usage.Out)
-                {
-                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                    var init = ParametricTypeUtils.ManagedToParametricToHLSL(param.DefaultValue);
+                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name, init);
                 }
                 else
                 {
