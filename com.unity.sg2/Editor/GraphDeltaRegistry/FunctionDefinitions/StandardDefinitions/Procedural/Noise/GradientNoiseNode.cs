@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "GradientNoiseDeterministic",
+            "Deterministic",
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_GradientNoise_Deterministic_Dir",
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "GradientNoiseDeterministic",
+                    "Deterministic",
 @"	p = UV * Scale;
 	ip = floor(p);
 	fp = frac(p);
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "GradientNoiseLegacyMod",
+                    "LegacyMod",
 @"	p = UV * Scale;
 	ip = floor(p);
 	fp = frac(p);
@@ -125,8 +125,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "perlin noise" },
             selectableFunctions: new()
             {
-                { "GradientNoiseDeterministic", "Deterministic" },
-                { "GradientNoiseLegacyMod", "Legacy Mod" }
+                { "Deterministic", "Deterministic" },
+                { "LegacyMod", "Legacy Mod" }
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

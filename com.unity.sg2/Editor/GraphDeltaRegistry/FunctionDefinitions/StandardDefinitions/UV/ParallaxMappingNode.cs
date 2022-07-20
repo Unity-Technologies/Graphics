@@ -10,10 +10,10 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "ParallaxMappingRed",
+            "Red",
             functions: new FunctionDescriptor[] {
                 new(
-                    "ParallaxMappingRed",
+                    "Red",
                     "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ParallaxMappingGreen",
+                    "Green",
                     "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ParallaxMappingBlue",
+                    "Blue",
                     "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ParallaxMappingAlpha",
+                    "Alpha",
                     "    ParallaxUVs = Heightmap.GetTransformedUV(UVs) + ParallaxMappingChannel(TEXTURE2D_ARGS(Heightmap.tex, HeightmapSampler.samplerstate), ViewDirectionTS, Amplitude * 0.01, Heightmap.GetTransformedUV(UVs), channel);",
                     new ParameterDescriptor[]
                     {
@@ -96,10 +96,10 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             selectableFunctions: new()
             {
-                { "ParallaxMappingRed", "Red" },
-                { "ParallaxMappingGreen", "Green" },
-                { "ParallaxMappingBlue", "Blue" },
-                { "ParallaxMappingAlpha", "Alpha" }
+                { "Red", "Red" },
+                { "Green", "Green" },
+                { "Blue", "Blue" },
+                { "Alpha", "Alpha" }
             },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

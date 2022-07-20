@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "RotateRadians",
+                    "Radians",
 @"    UV -= Center;
 	sincos(Rotation, s, c);
 	rMatrix[0].x = c;
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "RotateDegrees",
+                    "Degrees",
 @"    Rotation = radians(Rotation);
     UV -= Center;
 	sincos(Rotation, s, c);
@@ -66,8 +66,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {
-                { "RotateRadians", "Radians" },
-                { "RotateDegrees", "Degrees" }
+                { "Radians", "Radians" },
+                { "Degrees", "Degrees" }
             },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

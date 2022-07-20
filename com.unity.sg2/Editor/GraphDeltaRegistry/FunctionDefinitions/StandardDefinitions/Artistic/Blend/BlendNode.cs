@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "BlendBurn",
+                    "Burn",
 @"    Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendDarken",
+                    "Darken",
 @"    Out = min(Blend, Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendDifference",
+                    "Difference",
 @"    Out = abs(Blend - Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendDodge",
+                    "Dodge",
 @"    Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendDivide",
+                    "Divide",
 @"    Out = Base / (Blend + 0.000000000001);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendExclusion",
+                    "Exclusion",
 @"    Out = Blend + Base - (2.0 * Blend * Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendHardLight",
+                    "HardLight",
 @"    zeroOrOne = step(Blend, 0.5);
     Out = (2.0 * Base * Blend) * zeroOrOne + (1 - zeroOrOne) * (1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendHardMix",
+                    "HardMix",
 @"    Out = step(1 - Base, Blend);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendLighten",
+                    "Lighten",
 @"    Out = max(Blend, Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendLinearBurn",
+                    "LinearBurn",
 @"    Out = Base + Blend - 1.0;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendLinearDodge",
+                    "LinearDodge",
 @"    Out = Base + Blend;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendLinearLight",
+                    "LinearLight",
 @"    Out = Blend < 0.5 ? max(Base + (2 * Blend) - 1, 0) : min(Base + 2 * (Blend - 0.5), 1);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendLinearLightAddSub",
+                    "LinearLightAddSub",
 @"    Out = Blend + 2.0 * Base - 1.0;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendMultiply",
+                    "Multiply",
 @"    Out = Base * Blend;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendNegation",
+                    "Negation",
 @"    Out = 1.0 - abs(1.0 - Blend - Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -210,7 +210,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendOverlay",
+                    "Overlay",
 @"    zeroOrOne = step(Base, 0.5);
     Out = (2.0 * Base * Blend) * zeroOrOne + (1 - zeroOrOne) * (1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);	",
@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendPinLight",
+                    "PinLight",
 @"    check = step (0.5, Blend);
     Out = (check * max(2.0 * (Base - 0.5), Blend)) + (1.0 - check) * min(2.0 * Base, Blend);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);	",
@@ -240,7 +240,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendScreen",
+                    "Screen",
 @"    Out = 1.0 - (1.0 - Blend) * (1.0 - Base);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
                     new ParameterDescriptor[]
@@ -253,7 +253,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendSoftLight",
+                    "SoftLight",
 
 @"    zeroOrOne = step(0.5, Blend);
     Out = (sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend)) * zeroOrOne + (1 - zeroOrOne) * (2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend));
@@ -269,7 +269,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendSubtract",
+                    "Subtract",
 
 @"    Out = Base - Blend;
     if (UseOpacity) Out = lerp(Base, Out, Opacity);",
@@ -283,7 +283,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendVividLight",
+                    "VividLight",
 @"    Base = clamp(Base, 0.000001, 0.999999);
     zeroOrOne = step(0.5, Base);
     Out = (Blend / (2.0 * (1.0 - Base))) * zeroOrOne + (1 - zeroOrOne) * (1.0 - (1.0 - Blend) / (2.0 * Base));
@@ -299,7 +299,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "BlendOverwrite",
+                    "Overwrite",
                     "    Out = lerp(Base, Blend, Opacity);",
                     new ParameterDescriptor[]
                     {
@@ -321,28 +321,28 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[20] { "burn", "darken", "difference", "dodge", "divide", "exclusion", "hard light", "hard mix", "linear burn", "linear dodge", "linear light", "multiply", "negate", "overlay", "pin light", "screen", "soft light", "subtract", "vivid light", "overwrite" },
             selectableFunctions: new()
             {
-                { "BlendBurn", "Burn" },
-                { "BlendDarken", "Darken" },
-                { "BlendDifference", "Difference" },
-                { "BlendDodge", "Dodge" },
-                { "BlendDivide", "Divide" },
-                { "BlendExclusion", "Exclusion" },
-                { "BlendHardLight", "Hard Light" },
-                { "BlendHardMix", "Hard Mix" },
-                { "BlendLighten", "Lighten" },
-                { "BlendLinearBurn", "Linear Burn" },
-                { "BlendLinearDodge", "Linear Dodge" },
-                { "BlendLinearLight", "Linear Light" },
-                { "BlendLinearLightAddSub", "Linear Light Add Sub" },
-                { "BlendMultiply", "Multiply" },
-                { "BlendNegation", "Negation" },
-                { "BlendOverlay", "Overlay" },
-                { "BlendPinLight", "Pin Light" },
-                { "BlendScreen", "Screen" },
-                { "BlendSoftLight", "Soft Light" },
-                { "BlendSubtract", "Subtract" },
-                { "BlendVividLight", "Vivid Light" },
-                { "BlendOverwrite", "Overwrite" }
+                { "Burn", "Burn" },
+                { "Darken", "Darken" },
+                { "Difference", "Difference" },
+                { "Dodge", "Dodge" },
+                { "Divide", "Divide" },
+                { "Exclusion", "Exclusion" },
+                { "HardLight", "Hard Light" },
+                { "HardMix", "Hard Mix" },
+                { "Lighten", "Lighten" },
+                { "LinearBurn", "Linear Burn" },
+                { "LinearDodge", "Linear Dodge" },
+                { "LinearLight", "Linear Light" },
+                { "LinearLightAddSub", "Linear Light Add Sub" },
+                { "Multiply", "Multiply" },
+                { "Negation", "Negation" },
+                { "Overlay", "Overlay" },
+                { "PinLight", "Pin Light" },
+                { "Screen", "Screen" },
+                { "SoftLight", "Soft Light" },
+                { "Subtract", "Subtract" },
+                { "VividLight", "Vivid Light" },
+                { "Overwrite", "Overwrite" }
             },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "SampleTriplanarDefault",
+                    "Default",
                     //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call
 @"  Node_UV = Position * Tile;
     Node_Blend = SafePositivePow_float(Normal, min(Blend, floor(log2(Min_float())/log2(1/sqrt(3)))) );
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleTriplanarNormal",
+                    "NormalMap",
                     //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call
 @"  Node_UV = Position * Tile;
     Node_Blend = SafePositivePow_float(Normal, min(Blend, floor(log2(Min_float())/log2(1/sqrt(3)))) );
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleTriplanar2Samples",
+                    "TwoSamples",
 @"  //Credit Inigo Quilez: https://iquilezles.org/www/articles/biplanar/biplanar.htm
     Position *= Tile;
     Position.yz = -Position.yz;
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	// make local support
 	w = saturate( (w-0.5773)/(1.0-0.5773));
 	// shape transition
-	w = pow( w, float2(contrast/8.0, contrast/8.0) );
+	w = pow( w, float2(Contrast/8.0, Contrast/8.0) );
 	// blend and return
 	XYZ = (Node_X*w.x + Node_Y*w.y) / (w.x + w.y);",
                     new ParameterDescriptor[]
@@ -150,9 +150,9 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[3] { "project", "box mapping", "round cube mapping" },
             selectableFunctions: new()
             {
-                { "SampleTriplanarDefault", "Default" },
-                { "SampleTriplanarNormal", "Normal" },
-                { "SampleTriplanar2Samples", "2 Samples" }
+                { "Default", "Default" },
+                { "NormalMap", "Normal Map" },
+                { "TwoSamples", "2 Samples" }
             },
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(

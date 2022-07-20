@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "RectangleFastest",
+                    "Fastest",
 
 @"    w.x = Width;
 	w.y = Height;
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "RectangleNicest",
+                    "Nicest",
 
 @"    UV = UV * 2.0 - 1.0;
     w.x = Width;
@@ -70,8 +70,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "square" },
             selectableFunctions: new()
             {
-                { "RectangleFastest", "Fastest" },
-                { "RectangleNicest", "Nicest" }
+                { "Fastest", "Fastest" },
+                { "Nicest", "Nicest" }
             },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

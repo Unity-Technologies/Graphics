@@ -8,20 +8,19 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"temp1.x = UNITY_MATRIX_M[0].x;
-temp1.y = UNITY_MATRIX_M[1].x;
-temp1.z = UNITY_MATRIX_M[2].x;
-temp2.x = UNITY_MATRIX_M[0].y;
-temp2.y = UNITY_MATRIX_M[1].y;
-temp2.z = UNITY_MATRIX_M[2].y;
-temp3.x = UNITY_MATRIX_M[0].z;
-temp3.y = UNITY_MATRIX_M[1].z;
-temp3.z = UNITY_MATRIX_M[2].z;
-Scale.x = length(temp1);
-Scale.y = length(temp2);
-Scale.z = length(temp3);
-Position = SHADERGRAPH_OBJECT_POSITION;
-",
+@"    temp1.x = UNITY_MATRIX_M[0].x;
+    temp1.y = UNITY_MATRIX_M[1].x;
+    temp1.z = UNITY_MATRIX_M[2].x;
+    temp2.x = UNITY_MATRIX_M[0].y;
+    temp2.y = UNITY_MATRIX_M[1].y;
+    temp2.z = UNITY_MATRIX_M[2].y;
+    temp3.x = UNITY_MATRIX_M[0].z;
+    temp3.y = UNITY_MATRIX_M[1].z;
+    temp3.z = UNITY_MATRIX_M[2].z;
+    Scale.x = length(temp1);
+    Scale.y = length(temp2);
+    Scale.z = length(temp3);
+    Position = SHADERGRAPH_OBJECT_POSITION;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Out),
