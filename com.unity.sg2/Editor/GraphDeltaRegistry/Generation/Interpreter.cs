@@ -430,10 +430,15 @@ namespace UnityEditor.ShaderGraph.Generation
                                                                         ShaderContainer container,
                                                                         ref ShaderFunction.Builder mainBodyFunctionBuilder,
                                                                         string convertedTypeName,
-                                                                        ref ShaderFunctionRegistry shaderFunctions)
+                                                                        ref ShaderFunctionRegistry shaderFunctions,
+                                                                        string toConvertNameOverride = null)
         {
             var connectedNode = fromPort.GetNode();
             var toConvert = $"SYNTAX_{connectedNode.ID.LocalPath}_{fromPort.ID.LocalPath}";
+            if(toConvertNameOverride != null)
+            {
+                toConvert = toConvertNameOverride;
+            }
             var converted = $"CONVERT_{connectedNode.ID.LocalPath}_{fromPort.ID.LocalPath}";
             var cast = registry.GetCast(fromPort, toPort);
             var castFunction = cast.GetShaderCast(fromPort.GetTypeField(), toPort.GetTypeField(), container, registry);
@@ -478,7 +483,14 @@ namespace UnityEditor.ShaderGraph.Generation
                             var connectedNode = connectedPort.GetNode();
                             if (connectedNode.HasMetadata("_contextDescriptor"))
                             {
-                                argument = $"In.{connectedPort.ID.LocalPath.Replace("out_", "")}";
+                                argument = ApplyConversionAndReturnConvertedVariable(connectedPort,
+                                                                                     port,
+                                                                                     registry,
+                                                                                     container,
+                                                                                     ref mainBodyFunctionBuilder,
+                                                                                     param.Type.Name,
+                                                                                     ref shaderFunctions,
+                                                                                     $"In.{connectedPort.ID.LocalPath.Replace("out_", "")}");
                             }
                             else
                             {
