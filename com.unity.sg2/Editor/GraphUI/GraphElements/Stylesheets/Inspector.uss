@@ -34,3 +34,14 @@
 .model-inspector-view__container .unity-inspector-element {
     padding: 0;
 }
+
+.unity-overlay__resizable-content-container {
+    min-width: 200px;
+    min-height: 100px;
+
+    max-width: 500;
+    max-height: 1000;
+
+    width: 150px;
+    height: 200px;
+}

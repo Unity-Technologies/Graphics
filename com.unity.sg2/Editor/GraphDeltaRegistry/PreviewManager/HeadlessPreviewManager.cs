@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Unity.Profiling;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.Utils;
@@ -12,6 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /// <summary>
     /// This class encapsulates all functionality related to generating preview render and shader data from a node graph
+    /// TODO: Pack all the render info. in each Request() function into a struct so that its more visible what data is needed and function calls are slimmer
     /// </summary>
     public class HeadlessPreviewManager
     {
@@ -106,8 +108,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         int mainPreviewHeight => m_MainPreviewData.renderTexture.height;
 
         string m_OutputContextNodeName;
-
-        bool m_MainPreviewWasResized;
 
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
@@ -439,11 +439,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             if (width != mainPreviewWidth || height != mainPreviewHeight)
             {
-                // Main Preview window was resized, need to re-render at new size
-                m_MainPreviewData.renderTexture.width = height;
-                m_MainPreviewData.renderTexture.height = width;
-                mainPreviewMaterial = null;
-                m_MainPreviewWasResized = true;
+                ResizeMainPreview(width, height);
                 return PreviewOutputState.Updating;
             }
 
@@ -464,6 +460,28 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return PreviewOutputState.Updating;
         }
 
+        void ResizeMainPreview(int width, int height)
+        {
+            if (m_MainPreviewData.renderTexture != null)
+                Object.DestroyImmediate(m_MainPreviewData.renderTexture, true);
+
+            // This will queue it up for re-render
+            m_MainPreviewData.isRenderOutOfDate = true;
+
+            // Main Preview window was resized, RTs cannot be resized so create a new one
+            m_MainPreviewData.renderTexture =
+                new RenderTexture(
+                width,
+                height,
+                16,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Default
+                ) { hideFlags = HideFlags.HideAndDontSave };
+
+            m_MainPreviewData.renderTexture.Create();
+            m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
+        }
+
         /// <summary>
         /// Used to get image associated with the final output of the active graph.
         /// </summary>
@@ -481,15 +499,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             errorMessages = null;
             mainPreviewTexture = null;
 
+            // Assign it to the currently output texture
+            mainPreviewTexture = m_MainPreviewData.texture;
+
             if (width != mainPreviewWidth || height != mainPreviewHeight)
-            {
-                // Main Preview window was resized, need to re-render at new size
-                m_MainPreviewData.renderTexture.width = height;
-                m_MainPreviewData.renderTexture.height = width;
-                mainPreviewTexture = m_CompilingTexture;
-                m_MainPreviewWasResized = true;
-                return PreviewOutputState.Updating;
-            }
+                ResizeMainPreview(width, height);
 
             if (meshToRender != m_MainPreviewMesh
                 || !Mathf.Approximately(mainPreviewScale, m_MainPreviewScale)
@@ -501,7 +515,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 m_MainPreviewRotation = mainPreviewRotation;
                 m_PreventMainPreviewRotation = preventRotation;
                 m_MainPreviewData.isRenderOutOfDate = true;
-                mainPreviewTexture = m_CompilingTexture;
                 return PreviewOutputState.Updating;
             }
 
@@ -518,7 +531,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 mainPreviewTexture = m_MainPreviewData.texture;
                 return PreviewOutputState.Complete;
             }
-            else if (m_MainPreviewData.isRenderOutOfDate || m_MainPreviewWasResized)
+            else if (m_MainPreviewData.isRenderOutOfDate)
             {
                 UpdateRenderData(m_MainPreviewData);
                 if (m_MainPreviewData.hasShaderError)
@@ -574,7 +587,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         16,
                         RenderTextureFormat.ARGB32,
                         RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave },
-                isShaderOutOfDate = true,
+                isShaderOutOfDate = true
             };
 
             m_CachedPreviewData.Add(m_OutputContextNodeName, m_MainPreviewData);
@@ -690,6 +703,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             // TODO: (Sai) Support for rendering 3D node previews
             // Node previews
+            if (previewToUpdate != m_MainPreviewData)
             {
                 if (previewToUpdate.currentRenderMode == PreviewRenderMode.Preview2D)
                     RenderPreview(previewToUpdate, m_SceneResources.quad, Matrix4x4.identity);
@@ -705,16 +719,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // Main preview
             if (previewToUpdate == m_MainPreviewData)
             {
-                if (m_MainPreviewWasResized)
-                {
-                    if (m_MainPreviewData.renderTexture != null)
-                        Object.DestroyImmediate(m_MainPreviewData.renderTexture, true);
-                    m_MainPreviewData.renderTexture = new RenderTexture((int)mainPreviewWidth, (int)mainPreviewHeight, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                    m_MainPreviewData.renderTexture.Create();
-                    m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
-                    m_MainPreviewWasResized = false;
-                }
-
                 var mesh = m_MainPreviewMesh;
                 var preventRotation = m_PreventMainPreviewRotation;
                 if (!mesh)
@@ -727,7 +731,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
 
                 var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_MainPreviewRotation);
-                var scale = 1.0f;
+                var scale = m_MainPreviewScale;
                 previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
@@ -776,6 +780,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 RenderTexture.active = previousRenderTexture;
                 renderData.texture = renderData.renderTexture;
+                //renderData.texture = DrawRTToTexture(renderData.renderTexture);
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
 
