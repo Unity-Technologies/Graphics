@@ -1,3 +1,4 @@
+using System.Text;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -6,25 +7,33 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         internal static string ParametricToHLSL(string name, int length, int height, float[] data)
         {
-            string result = name + "(";
+            StringBuilder result = new StringBuilder();
+
+            result.Append(name);
+            result.Append('(');
 
             for (int i = 0; i < length * height; ++i)
             {
-                result += $"{data[i]}";
-                if (i != length * height - 1)
-                    result += ", ";
+                result.Append(data[i]);
+                result.Append(", ");
             }
-            result += ")";
-            return result;
+            result.Length -= 2;
+            result.Append(')');
+            return result.ToString();
         }
 
-        private static void ManagedToParametric(object ovalue, out string name, out int length, out int height, out float[] data)
+        internal static bool ManagedToParametric(object ovalue, out string name, out int length, out int height, out float[] data)
         {
             name = "float";
             height = 1;
             switch (ovalue)
             {
-                default: throw new System.Exception("Type not supported.");
+                default:
+                    name = null;
+                    length = -1;
+                    height = -1;
+                    data = null;
+                    return false;
 
                 case Vector4 v4: length = 4; data = new float[] { v4.x, v4.y, v4.z, v4.w }; break;
                 case Vector3 v3: length = 3; data = new float[] { v3.x, v3.y, v3.z }; break;
@@ -59,6 +68,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 name += $"{length}";
             if (height > 1)
                 name += $"x{height}";
+
+            return true;
         }
 
         internal static string ManagedToParametricToHLSL(object ovalue)
@@ -77,19 +88,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         private static bool CouldBeParametric(object o)
         {
-            if (o == null)
-            {
-                return true;
-            }
-            try
-            {
-                ManagedToParametric(o, out _, out _, out _, out _);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return o == null || ManagedToParametric(o, out _, out _, out _, out _);
         }
     }
 }
