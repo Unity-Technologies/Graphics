@@ -353,7 +353,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             if (srcType.IsScalar || dstType.IsScalar || srcSize >= dstSize)
             {
                 //honestly HLSL automatic casting solves this for most cases
-                body = $"Out = In; ";
+                body = $"Out = ({dstType.Name}) In; ";
             }
             else
             {
