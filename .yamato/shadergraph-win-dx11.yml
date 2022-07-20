@@ -11,7 +11,7 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk:
     name: ShaderGraph on Win_DX11_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -78,7 +78,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_trunk:
     name: ShaderGraph on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -145,7 +145,7 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -212,7 +212,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
