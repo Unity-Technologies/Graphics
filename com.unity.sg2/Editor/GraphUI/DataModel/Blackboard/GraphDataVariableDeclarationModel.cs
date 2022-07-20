@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
         /// false otherwise.
         /// </summary>
-        public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel.Stencil).IsExposable(DataType);
+        public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel?.Stencil)?.IsExposable(DataType) ?? false;
 
         public override bool IsExposed
         {
