@@ -1,18 +1,57 @@
-.MainPreviewView {
-    width: 125px;
-    height: 125px;
+#unity-overlay
+{
+    align-items: center;
+    align-content: center;
+    display: flex;
+
+    position-type: absolute;
+    position-left: 0;
+    position-top: 0;
+    position-right: 0;
+    position-bottom: 0;
+
+    min-width: 130;
+    min-height: 130;
+
+    width: 130;
+    height: 130;
+}
+
+OverlayResizerGroup
+{
     min-width: 100px;
     min-height: 100px;
+
+    max-width: 1000;
+    max-height: 1000;
+
+    width: 130px;
+    height: 130px;
+
+    background-color: red;
+}
+
+.MainPreviewView
+{
+    padding: 2;
+    min-width: 100px;
+    min-height: 100px;
+
     border-radius: 6px;
     border-top-width: 1px;
     border-bottom-width: 1px;
     border-left-width: 1px;
     border-right-width: 1px;
     border-color: rgb(25,25,25);
+    align-self: center;
+    align-content: stretch;
+    align-items: stretch;
+    flex-grow: 1;
 }
 
 #previewImage {
-    align-self: center;
-    width: 120px;
-    height: 120px;
+    align-self: stretch;
+    align-content: stretch;
+    align-items: stretch;
+    flex-grow: 1;
 }

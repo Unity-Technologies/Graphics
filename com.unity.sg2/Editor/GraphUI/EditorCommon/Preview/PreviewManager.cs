@@ -11,6 +11,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
 
+    /// <summary>
+    /// Manager class for node and master previews
+    /// Layer that handles the interaction between GTF/Editor and the HeadlessPreviewManager
+    /// </summary>
     public class PreviewManager
     {
         bool m_IsInitialized;
@@ -19,6 +23,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get => m_IsInitialized;
             set => m_IsInitialized = value;
+        }
+
+        // Gets set to true when user selects the "Sprite" preview mesh in main preview
+        bool m_LockMainPreviewRotation;
+
+        public bool LockMainPreviewRotation
+        {
+            set => m_LockMainPreviewRotation = value;
         }
 
         HeadlessPreviewManager m_PreviewHandlerInstance;
@@ -35,6 +47,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         MainPreviewData m_MainPreviewData;
 
         string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
+
+        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
+        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
 
         internal void Initialize(
             GraphModelStateComponent graphModelStateComponent,
@@ -59,11 +74,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
             m_MainPreviewData = graphModel.MainPreviewData;
-            m_MainPreviewView.Initialize(m_MainPreviewData);
 
             // Initialize the headless preview
-            m_PreviewHandlerInstance.Initialize(m_MainContextNodeName,
-                new Vector2(m_MainPreviewData.width, m_MainPreviewData.height));
+            m_PreviewHandlerInstance.Initialize(m_MainContextNodeName, m_MainPreviewView.PreviewSize);
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
@@ -203,11 +216,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (IsMainContextNode(nodeModel))
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
-                        m_MainPreviewData.width,
-                        m_MainPreviewData.height,
+                        PreviewWidth,
+                        PreviewHeight,
                         m_MainPreviewData.mesh,
                         m_MainPreviewData.scale,
-                        m_MainPreviewData.preventRotation,
+                        m_LockMainPreviewRotation,
                         m_MainPreviewData.rotation,
                         out var updatedTexture,
                         out var shaderMessages);
@@ -230,7 +243,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             }
                         }
                     }
-
                 }
                 else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {
@@ -268,11 +280,31 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         }
 
-        public void OnPreviewMeshChanged()
+        public Texture GetCachedMainPreviewTexture()
         {
-            OnNodeFlowChanged(m_MainContextNodeName);
+            m_PreviewHandlerInstance.RequestMainPreviewTexture(
+                PreviewWidth,
+                PreviewHeight,
+                m_MainPreviewData.mesh,
+                m_MainPreviewData.scale,
+                m_LockMainPreviewRotation,
+                m_MainPreviewData.rotation,
+                out var cachedMainPreviewTexture,
+                out var shaderMessages);
+
+            return cachedMainPreviewTexture;
         }
 
+
+        /// <summary>
+        /// This can be called when the main preview's mesh, zoom, rotation etc. changes and a re-render is required
+        /// </summary>
+        public void OnMainPreviewDataChanged()
+        {
+            m_DirtyNodes.Add(m_MainContextNodeName);
+        }
+
+        // TODO: Implement changing preview mode
         public void OnPreviewModeChanged(string nodeName, PreviewRenderMode newPreviewMode) { }
 
 
@@ -310,8 +342,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_NodeLookupTable.Add(nodeName, nodeGuid);
         }
 
-        // TODO: Make private and call this by OnNodeFlowChanged
-        public void OnNodeRemoved(String nodeName)
+        void OnNodeRemoved(String nodeName)
         {
             m_DirtyNodes.Remove(nodeName);
             m_NodeLookupTable.Remove(nodeName);

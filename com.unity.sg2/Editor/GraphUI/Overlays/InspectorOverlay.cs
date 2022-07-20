@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Overlays;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SGInspectorOverlay()
         {
             minSize = new Vector2(100, 100);
-            maxSize = Vector2.positiveInfinity;
+            maxSize = new Vector2(1000, 1000);
         }
 
         /// <inheritdoc />
@@ -34,7 +35,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_InspectorView.AddToClassList(ModelInspectorView.ussClassName);
                     m_InspectorView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
                     m_InspectorView.AddStylesheet("Inspector.uss");
-                    size = new Vector2(300, 300);
+
+                    // TODO: The overlays should be persisting the size and driving the main preview size
+                    minSize = new Vector2(100, 100);
+                    maxSize = new Vector2(1000, 1000);
+                    if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
+                        size = new Vector2(300, 300);
+
                     return m_InspectorView;
                 }
             }

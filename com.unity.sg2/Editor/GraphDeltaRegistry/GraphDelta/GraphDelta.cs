@@ -154,7 +154,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 throw new InvalidOperationException("Failed to retrieve node handle with name: " + id.FullPath);
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
-            if (!nodeHandler.HasMetadata("_CustomizationPointName"))
+            var cpn = nodeHandler.GetField<string>("_CustomizationPointName");
+            if (cpn == null) //Is this an old ContextNode?
             {
                 nodeHandler.ClearLayerData(k_concrete);
                 nodeHandler.DefaultLayer = k_concrete;
@@ -187,8 +188,25 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return m_data.GetHandler(id, this, registry).ToNodeHandler();
         }
 
-        public void RemoveNode(ElementID id)
+        public void RemoveNode(ElementID id, Registry registry)
         {
+            var node = GetNode(id, registry);
+            foreach(var port in node.GetPorts())
+            {
+                var removedEdges = m_data.edges.Where(e => e.Output.Equals(port.ID) || e.Input.Equals(port.ID));
+                foreach(var removedEdge in removedEdges)
+                {
+                    RemoveEdge(removedEdge.Output, removedEdge.Input, registry);
+                }
+                if (port.IsInput)
+                {
+                    var removedDefaults = m_data.defaultConnections.Where(c => c.Input.Equals(port.ID));
+                    foreach(var removedDefault in removedDefaults)
+                    {
+                        RemoveDefaultConnection(removedDefault.Context, removedDefault.Input, registry);
+                    }
+                }
+            }
             m_data.RemoveHandler(k_user, id);
         }
 
@@ -414,11 +432,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             NodeHandler output = AddNode(sourceNode.GetRegistryKey(), copiedNodeID, registry);
             m_data.CopyDataBranch(sourceNode, output);
             return output;
-        }
-
-        public void RemoveNode(string id)
-        {
-            m_data.RemoveHandler(id);
         }
 
     }

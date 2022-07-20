@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
 using UnityEngine;
 
@@ -108,7 +109,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             => RegistryFlags.Type;
 
         public static string GetUniqueUniformName(FieldHandler data)
-            => data.ID.FullPath.Replace('.', '_') + "_Tex";
+            => ElementID.FromString(data.ID.ParentPath).LocalPath;
 
         private static string GetUniquePropertyName(FieldHandler data)
             => $"Property_{GetUniqueUniformName(data)}";
