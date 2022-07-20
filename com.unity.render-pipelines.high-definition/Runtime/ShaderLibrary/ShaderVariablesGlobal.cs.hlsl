@@ -149,7 +149,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ProbeVolumeBilateralFilterWeight;
     uint _EnableDecalLayers;
     float2 _ProbeVolumeBilateralFilterOctahedralDepthParameters;
-    int _ProbeVolumeSamplingMode;
+    float _Pad8;
     float _Pad9;
     float4 _ProbeVolumeReflectionProbeNormalizationParameters;
     int _TransparentCameraOnlyMotionVectors;

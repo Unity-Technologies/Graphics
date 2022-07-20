@@ -635,7 +635,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeBuffer SHL2Buffer;
         public ComputeBuffer ValidityBuffer;
 
-        public int BuffersDataVersion;
+        public int BuffersDataHash;
 
         public Vector3 Scale;
         public Vector3 Bias;
@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static ProbeVolumePipelineData Empty => new ProbeVolumePipelineData
         {
-            BuffersDataVersion = -1,
+            BuffersDataHash = -1,
             UsedAtlasKey = ProbeVolume.ProbeVolumeAtlasKey.empty,
             EngineDataIndex = -1,
         };
@@ -949,24 +949,34 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        internal void EnsureVolumeBuffers()
+        public static void EnsureVolumeBuffers(ProbeVolumeHandle probeVolume, ProbeVolumesEncodingModes encodingMode)
         {
-            if (pipelineData.BuffersDataVersion == probeVolumeAsset.dataVersion)
+            ref var bakedLightingPipelineData = ref probeVolume.GetPipelineData();
+
+            var dataHash = probeVolume.GetDataVersion();
+            dataHash = dataHash * 23 + encodingMode.GetHashCode();
+
+            if (bakedLightingPipelineData.BuffersDataHash == dataHash)
                 return;
+            
+            EnsureBuffer<float>(ref bakedLightingPipelineData.SHL01Buffer, probeVolume.DataSHL01Length);
+            probeVolume.SetDataSHL01(bakedLightingPipelineData.SHL01Buffer);
 
-            EnsureBuffer<float>(ref pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
-            SetBuffer(pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01);
-
-            if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+            if (encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
             {
-                EnsureBuffer<float>(ref pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
-                SetBuffer(pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2);
+                EnsureBuffer<float>(ref bakedLightingPipelineData.SHL2Buffer, probeVolume.DataSHL2Length);
+                probeVolume.SetDataSHL2(bakedLightingPipelineData.SHL2Buffer);
+            }
+            else if (bakedLightingPipelineData.SHL2Buffer != null)
+            {
+                bakedLightingPipelineData.SHL2Buffer.Release();
+                bakedLightingPipelineData.SHL2Buffer = null;
             }
 
-            EnsureBuffer<float>(ref pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity.Length);
-            SetBuffer(pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity);
+            EnsureBuffer<float>(ref bakedLightingPipelineData.ValidityBuffer, probeVolume.DataValidityLength);
+            probeVolume.SetDataValidity(bakedLightingPipelineData.ValidityBuffer);
 
-            pipelineData.BuffersDataVersion = probeVolumeAsset.dataVersion;
+            bakedLightingPipelineData.BuffersDataHash = dataHash;
         }
 
         public static void CleanupBuffers(ProbeVolumeHandle probeVolume)
@@ -976,7 +986,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupBuffer(pipelineData.SHL01Buffer);
             CleanupBuffer(pipelineData.SHL2Buffer);
             CleanupBuffer(pipelineData.ValidityBuffer);
-            pipelineData.BuffersDataVersion = -1;
+            pipelineData.BuffersDataHash = -1;
         }
 
         // returns true if released it
@@ -1361,9 +1371,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var resolution = new Vector3Int(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
 
-            // TODO: Support other encodings based on settings.
-            const int sliceCount = 7;
-            // var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            // Always output full SHL2
+            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
 
             var rtHandle = RTHandles.Alloc(
                 width: (int)resolution.x,
