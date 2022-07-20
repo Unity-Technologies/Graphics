@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -10,36 +9,98 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
-using Edge = UnityEditor.GraphToolsFoundation.Overdrive.Edge;
+
+using SerializedMesh = UnityEditor.ShaderGraph.Utils.SerializableMesh;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public enum PropagationDirection
-    {
-        Upstream,
-        Downstream
-    }
-
     [Serializable]
     class MainPreviewData
     {
+        string m_GraphModelGuid;
+
+        string ScaleUserPrefKey => m_GraphModelGuid + "." + ChangePreviewZoomCommand.UserPrefsKey;
+        string RotationUserPrefKey => m_GraphModelGuid + "." + ChangePreviewRotationCommand.UserPrefsKey;
+        string MeshUserPrefKey => m_GraphModelGuid + "." + ChangePreviewMeshCommand.UserPrefsKey;
+
+        public MainPreviewData(string graphAssetGuid)
+        {
+            // Get graph asset guid so we can search for user prefs attached to this asset (if any)
+            m_GraphModelGuid = graphAssetGuid;
+
+            // Get scale from prefs if present
+            scale = EditorPrefs.GetFloat(ScaleUserPrefKey, 1.0f);
+
+            // Get rotation from prefs if present
+            var rotationJson = EditorPrefs.GetString(RotationUserPrefKey, string.Empty);
+            if (rotationJson != string.Empty)
+                m_Rotation = StringToQuaternion(rotationJson);
+
+            // Get mesh from prefs if present
+            var meshJson = EditorPrefs.GetString(MeshUserPrefKey, string.Empty);
+            if (meshJson != string.Empty)
+               EditorJsonUtility.FromJsonOverwrite(meshJson, serializedMesh);
+        }
+
+        public static Quaternion StringToQuaternion(string sQuaternion)
+        {
+            // Remove the parentheses
+            if (sQuaternion.StartsWith("(") && sQuaternion.EndsWith(")"))
+            {
+                sQuaternion = sQuaternion.Substring(1, sQuaternion.Length - 2);
+            }
+
+            // split the items
+            string[] sArray = sQuaternion.Split(',');
+
+            // store as a Vector3
+            Quaternion result = new Quaternion(
+                float.Parse(sArray[0]),
+                float.Parse(sArray[1]),
+                float.Parse(sArray[2]),
+                float.Parse(sArray[3]));
+
+            return result;
+        }
+
         [SerializeField]
-        private SerializableMesh serializedMesh = new ();
-        public bool preventRotation;
-
-        public int width = 125;
-        public int height = 125;
+        private SerializedMesh serializedMesh = new ();
 
         [NonSerialized]
-        public Quaternion rotation = Quaternion.identity;
+        Quaternion m_Rotation = Quaternion.identity;
+
+        public Quaternion rotation
+        {
+            get => m_Rotation;
+            set
+            {
+                m_Rotation = value;
+                EditorPrefs.SetString(RotationUserPrefKey, rotation.ToString());
+            }
+        }
+
 
         [NonSerialized]
-        public float scale = 1f;
+        float m_Scale = 1.0f;
+
+        public float scale
+        {
+            get => m_Scale;
+            set
+            {
+                m_Scale = value;
+                EditorPrefs.SetFloat(ScaleUserPrefKey, m_Scale);
+            }
+        }
 
         public Mesh mesh
         {
             get => serializedMesh.mesh;
-            set => serializedMesh.mesh = value;
+            set
+            {
+                serializedMesh.mesh = value;
+                EditorPrefs.SetString(MeshUserPrefKey, EditorJsonUtility.ToJson(serializedMesh));
+            }
         }
     }
 
@@ -50,7 +111,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
         [SerializeField]
-        private MainPreviewData mainPreviewData = new(); // TODO: This should wrap a UserPrefs entry instead of being stored here.
+        private MainPreviewData mainPreviewData;
         [SerializeField]
         private bool isSubGraph = false;
 
@@ -122,6 +183,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 InitializeContextFromTarget(target.value);
             }
+
+            mainPreviewData = new(Guid.ToString());
         }
 
         private void InitializeContextFromTarget(Target target)
