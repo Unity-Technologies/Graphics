@@ -46,8 +46,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 PartList.InsertPartAfter(portContainerPartName, part);
             }
 
-
-
             m_StaticFieldParts = new(name, m_GraphDataNodeModel, this, ussClassName);
 
             var isNonPreviewableType = false;

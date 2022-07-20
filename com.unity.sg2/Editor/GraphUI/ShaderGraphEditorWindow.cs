@@ -18,20 +18,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected GraphViewStateObserver m_GraphViewStateObserver;
 
-        MainPreviewView m_MainPreviewView;
-
-        internal BlackboardView m_BlackboardView;
-
-        // We setup a reference to the MainPreview when the overlay containing it is created
-        // We do this because the resources needed to initialize the preview are not available at overlay creation time
-        internal void SetMainPreviewReference(MainPreviewView mainPreviewView)
-        {
-            m_MainPreviewView = mainPreviewView;
-        }
+        protected BlackboardView m_BlackboardView;
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
         bool m_WasWindowCloseCancelledInDirtyState;
+
+        public bool wasWindowClosedInDirtyState => m_WasWindowCloseCancelledInDirtyState;
 
         // This flag gets set by tests to close the editor window directly without prompts to save the dirty asset
         internal bool shouldCloseWindowNoPrompt = false;
@@ -200,9 +193,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
             var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
-            m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewModel.GraphModelState);
+            m_PreviewManager = new PreviewManager();
             m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewModel.GraphModelState, m_PreviewManager);
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
+
+            // Initialize the graph tool
+            m_GraphTool.Initialize(m_PreviewManager, this);
 
             return shaderGraphView;
         }
@@ -239,14 +235,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
 
             base.Update();
-
-            if (m_PreviewManager is { IsInitialized: false })
-            {
-                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
-                var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
-                shaderGraphModel.graphModelStateComponent = GraphView.GraphViewModel.GraphModelState;
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_BlackboardView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
-            }
 
             m_PreviewManager?.Update();
         }

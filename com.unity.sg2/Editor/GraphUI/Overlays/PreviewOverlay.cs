@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string k_OverlayID = "Preview";
 
         MainPreviewView m_MainPreviewView;
+        public MainPreviewView MainPreviewView => m_MainPreviewView;
 
         public override VisualElement CreatePanelContent()
         {
@@ -26,7 +27,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_MainPreviewView.AddToClassList("MainPreviewView");
                 m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
                 size = new Vector2(125, 125);
-                window.SetMainPreviewReference(m_MainPreviewView);
                 return m_MainPreviewView;
             }
 

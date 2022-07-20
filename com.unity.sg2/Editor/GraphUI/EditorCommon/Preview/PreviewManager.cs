@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine;
@@ -35,21 +36,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
 
-        internal PreviewManager(GraphModelStateComponent graphModelStateComponent)
+        internal void Initialize(
+            GraphModelStateComponent graphModelStateComponent,
+            ShaderGraphModel graphModel,
+            MainPreviewView mainPreviewView,
+            bool wasWindowCloseCancelled)
         {
+            // Can be null when the editor window is opened to the onboarding page
+            if (graphModel == null)
+                return;
+
             m_GraphModelStateComponent = graphModelStateComponent;
 
             m_PreviewHandlerInstance = new HeadlessPreviewManager();
 
             m_DirtyNodes = new HashSet<string>();
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
-        }
-
-        internal void Initialize(ShaderGraphModel graphModel, MainPreviewView mainPreviewView, bool wasWindowCloseCancelled)
-        {
-            // Can be null when the editor window is opened to the onboarding page
-            if (graphModel == null)
-                return;
 
             m_IsInitialized = true;
             m_GraphModel = graphModel;
@@ -91,6 +93,102 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
         }
 
+        internal void UpdateReferencesAfterUndoRedo(
+            GraphModelStateComponent graphModelStateComponent,
+            ShaderGraphModel graphModel)
+        {
+            m_GraphModelStateComponent = graphModelStateComponent;
+            m_GraphModel = graphModel;
+
+            m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
+        }
+
+        /// <summary>
+        ///  Called to reinitialize the textures for the previews when the graph is saved
+        /// </summary>
+        internal void HandleGraphReload(
+            GraphModelStateComponent graphModelStateComponent,
+            ShaderGraphModel graphModel,
+            MainPreviewView mainPreviewView)
+        {
+            m_GraphModelStateComponent = graphModelStateComponent;
+            m_GraphModel = graphModel;
+            m_MainPreviewView = mainPreviewView;
+
+            UpdateAllNodePreviewTextures();
+        }
+
+        internal void UpdateAllNodePreviewTextures()
+        {
+            using (var stateUpdater = m_GraphModelStateComponent.UpdateScope)
+            {
+                foreach (var (nodeName, nodeGuid) in m_NodeLookupTable)
+                {
+                    m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
+                    if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+                    {
+                        m_PreviewHandlerInstance.RequestNodePreviewTexture(nodeName, out var nodeRenderOutput, out var shaderMessages, graphDataNodeModel.NodePreviewMode);
+                        graphDataNodeModel.OnPreviewTextureUpdated(nodeRenderOutput);
+
+                        stateUpdater.MarkChanged(graphDataNodeModel);
+                    }
+                }
+            }
+        }
+
+        // Called after an undo/redo to cleanup any stale references to data that no longer exists on graph
+        internal void PostUndoRedoConsistencyCheck()
+        {
+            // Remove any nodes from the preview manager that are no longer on graph
+            foreach (var (nodeName, nodeGuid) in m_NodeLookupTable)
+            {
+                m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
+                if(nodeModel == null)
+                    OnNodeFlowChanged(nodeName, true);
+            }
+
+            // Add any nodes to the preview manager that are newly on graph
+            foreach (var graphNodeModel in m_GraphModel.NodeModels)
+            {
+                if(!m_NodeLookupTable.ContainsValue(graphNodeModel.Guid)
+                    && graphNodeModel is GraphDataNodeModel graphDataNodeModel)
+                    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+            }
+        }
+
+        // Called after a port value or blackboard value change is undone/redone to handle updating preview values accordingly
+        internal void HandleConstantValueUndoRedo(BaseShaderGraphConstant oldConstant)
+        {
+            var nodeWriter = m_GraphModel.GraphHandler.GetNode(oldConstant.NodeName);
+            m_NodeLookupTable.TryGetValue(oldConstant.NodeName, out var nodeGuid);
+            m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
+
+            if (nodeWriter != null && nodeModel is GraphDataNodeModel graphDataNodeModel)
+            {
+                foreach (var portConstant in graphDataNodeModel.InputConstantsById.Values)
+                {
+                    if (portConstant is BaseShaderGraphConstant updatedConstant
+                        && updatedConstant.PortName == oldConstant.PortName)
+                    {
+                        OnLocalPropertyChanged(oldConstant.NodeName, oldConstant.PortName, portConstant.ObjectValue);
+                        return;
+                    }
+                }
+            }
+
+            foreach (var declarationModel in m_GraphModel.VariableDeclarations)
+            {
+                if (oldConstant == declarationModel.InitializationModel)
+                {
+                    if (oldConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
+                    {
+                        OnGlobalPropertyChanged(oldConstant.PortName, declarationModel.InitializationModel.ObjectValue);
+                        return;
+                    }
+                }
+            }
+        }
+
         public void Update()
         {
             var updatedNodes = new List<string>();
@@ -101,6 +199,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
 
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
+                // TODO: Main preview doesnt get removed from dirty nodes when a vector3 node is connected currrently
                 if (IsMainContextNode(nodeModel))
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
@@ -142,7 +241,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // We just need to update the texture on this side regardless of what happens
                         graphDataNodeModel.OnPreviewTextureUpdated(nodeRenderOutput);
 
-                        using var graphUpdater = m_GraphModelStateComponent.UpdateScope;
+                        using(var graphUpdater = m_GraphModelStateComponent.UpdateScope)
                         {
                             graphUpdater.MarkChanged(nodeModel);
                         }
@@ -242,7 +341,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var impactedNodes = m_PreviewHandlerInstance.SetLocalProperty(nodeName, propertyName, newValue);
             foreach (var downstreamNode in impactedNodes)
             {
-                m_DirtyNodes.Add(downstreamNode);
+                // Need to do this check because we can get the property context as a connected node but we don't want to process it like any other node
+                if(downstreamNode != m_GraphModel.BlackboardContextName)
+                    m_DirtyNodes.Add(downstreamNode);
             }
         }
 

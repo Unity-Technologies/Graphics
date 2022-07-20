@@ -1,15 +1,36 @@
+using System;
+using System.Linq;
+using System.Windows.Input;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Toolbars;
+using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ShaderGraphGraphTool: BaseGraphTool
+    class ShaderGraphGraphTool : BaseGraphTool
     {
         public static readonly string toolName = "Shader Graph";
 
         public ShaderGraphGraphTool()
         {
             Name = toolName;
+        }
+
+        PreviewManager m_PreviewManager;
+        ShaderGraphEditorWindow m_EditorWindow;
+
+        public bool wasGraphSaved { get; set; }
+
+        // Get any dependencies that we need
+        // (can't use constructor cause GTF uses a helper to initialize the GraphTool that abstracts it away)
+        public void Initialize(
+            PreviewManager previewManager,
+            ShaderGraphEditorWindow editorWindow)
+        {
+            m_PreviewManager = previewManager;
+            m_EditorWindow = editorWindow;
         }
 
         /// <summary>
@@ -20,6 +41,95 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override IToolbarProvider GetToolbarProvider()
         {
             return new ShaderGraphMainToolbarProvider();
+        }
+
+        protected override void InitDispatcher()
+        {
+            Dispatcher = new ShaderGraphCommandDispatcher(HandleGraphLoad, HandleUndoRedo);
+        }
+
+        T GetStateComponentOfType<T>()
+        {
+            var stateComponents = ToolState.State.AllStateComponents;
+            return (T)stateComponents.FirstOrDefault(stateComponent => stateComponent is T);
+        }
+
+        void HandleUndoRedo(UndoableCommand commandBeingUndoneRedone)
+        {
+            var graphModelStateComponent = GetStateComponentOfType<GraphModelStateComponent>();
+            var shaderGraphModel = m_EditorWindow.Asset.GraphModel as ShaderGraphModel;
+
+            m_PreviewManager.UpdateReferencesAfterUndoRedo(graphModelStateComponent, shaderGraphModel);
+
+            // Handling nodes being added/removed
+            m_PreviewManager.PostUndoRedoConsistencyCheck();
+
+            switch (commandBeingUndoneRedone)
+            {
+                // Handling edge connections that may have changed
+                case CreateEdgeCommand createEdgeCommand:
+                    var graphDataNodeModel = createEdgeCommand.ToPortModel.NodeModel as GraphDataNodeModel;
+                    m_PreviewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
+                    break;
+
+                // Handling value changes in ports
+                case UpdateConstantValueCommand updateConstantValueCommand:
+                    m_PreviewManager.HandleConstantValueUndoRedo(updateConstantValueCommand.Constant as BaseShaderGraphConstant);
+                    break;
+            }
+
+            // TODO: Handling value changes in blackboard items
+            // TODO: Handling target settings changes
+        }
+
+        void HandleGraphLoad(LoadGraphCommand loadGraphCommand)
+        {
+            var windowClosedInDirtyState = m_EditorWindow.wasWindowClosedInDirtyState;
+            BlackboardView blackboardView = null;
+            MainPreviewView mainPreviewView = null;
+
+            m_EditorWindow.TryGetOverlay(SGBlackboardOverlay.k_OverlayID, out var blackboard);
+            if (blackboard is SGBlackboardOverlay blackboardOverlay)
+                blackboardView = blackboardOverlay.BlackboardView;
+
+            m_EditorWindow.TryGetOverlay(PreviewOverlay.k_OverlayID, out var preview);
+            if (preview is PreviewOverlay previewOverlay)
+                mainPreviewView = previewOverlay.MainPreviewView;
+
+            var graphView = m_EditorWindow.GraphView;
+
+            var graphModelStateComponent = GetStateComponentOfType<GraphModelStateComponent>();
+            var graphViewStateComponent = GetStateComponentOfType<GraphViewStateComponent>();
+            var selectionStateComponent = GetStateComponentOfType<SelectionStateComponent>();
+            var undoStateComponent = GetStateComponentOfType<UndoStateComponent>();
+
+            var shaderGraphModel = loadGraphCommand.GraphModel as ShaderGraphModel;
+            // If handling a fresh load and not a reimport after a save
+            if (!wasGraphSaved)
+            {
+                m_PreviewManager.Initialize(
+                    graphModelStateComponent,
+                    shaderGraphModel,
+                    mainPreviewView,
+                    windowClosedInDirtyState);
+
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(
+                    graphView,
+                    blackboardView,
+                    m_PreviewManager,
+                    shaderGraphModel,
+                    Dispatcher,
+                    graphModelStateComponent,
+                    graphViewStateComponent,
+                    selectionStateComponent,
+                    undoStateComponent);
+            }
+            else // if handling a graph reimport due to a save
+            {
+                m_PreviewManager.HandleGraphReload(graphModelStateComponent, shaderGraphModel, mainPreviewView);
+            }
+
+            wasGraphSaved = false;
         }
 
         protected override IOverlayToolbarProvider CreateToolbarProvider(string toolbarId)

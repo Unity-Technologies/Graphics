@@ -126,6 +126,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
+            if (graphTool is ShaderGraphGraphTool shaderGraphGraphTool)
+                shaderGraphGraphTool.wasGraphSaved = true;
+
             if (graphAsset.ShaderGraphModel.IsSubGraph)
             {
                 SaveSubGraphImplementation(graphTool);
