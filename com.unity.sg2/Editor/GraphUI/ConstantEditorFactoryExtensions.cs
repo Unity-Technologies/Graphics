@@ -34,7 +34,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return builder.BuildDefaultConstantEditor(constant);
                 }
 
-                // TODO (Joe): Default should be identity matrix
                 return new MatrixConstantPropertyField(constant, builder.ConstantOwner, builder.CommandTarget, (int)height, builder.Label);
             }
 
