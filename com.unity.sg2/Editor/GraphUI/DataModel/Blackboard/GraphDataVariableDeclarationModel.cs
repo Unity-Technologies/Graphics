@@ -99,6 +99,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
                 }
+
+                if (DataType == ShaderGraphExampleTypes.Matrix2 ||
+                    DataType == ShaderGraphExampleTypes.Matrix3 ||
+                    DataType == ShaderGraphExampleTypes.Matrix4)
+                {
+                    InitializationModel.ObjectValue = Matrix4x4.identity;
+                }
             }
         }
     }
