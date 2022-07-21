@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 
 // Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
-using CoreRendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using CoreRendererList = UnityEngine.Rendering.RendererList;
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
