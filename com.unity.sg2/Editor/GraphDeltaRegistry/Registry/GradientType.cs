@@ -1,13 +1,14 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderFoundry;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-
     internal class SampleGradientNode : INodeDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new() { Name = "SampleGradient", Version = 1 };
+        public RegistryKey GetRegistryKey() => new() {Name = "SampleGradient", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
         public const string kGradient = "Gradient";
@@ -108,6 +109,46 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     public static class GradientTypeHelpers
     {
+        #region Serializable Key Wrappers
+
+        [Serializable]
+        struct SerializableColorKey
+        {
+            [SerializeField]
+            Color color;
+
+            [SerializeField]
+            float time;
+
+            public SerializableColorKey(GradientColorKey colorKey)
+            {
+                color = colorKey.color;
+                time = colorKey.time;
+            }
+
+            public GradientColorKey ToGradientColorKey() => new(color, time);
+        }
+
+        [Serializable]
+        struct SerializableAlphaKey
+        {
+            [SerializeField]
+            float alpha;
+
+            [SerializeField]
+            float time;
+
+            public SerializableAlphaKey(GradientAlphaKey alphaKey)
+            {
+                alpha = alphaKey.alpha;
+                time = alphaKey.time;
+            }
+
+            public GradientAlphaKey ToGradientAlphaKey() => new(alpha, time);
+        }
+
+        #endregion
+
         public static Gradient GetGradient(FieldHandler field)
         {
             // This is possible when duplicating/cloning a variable declaration model
@@ -135,13 +176,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             List<GradientAlphaKey> alphas = new();
             for (int i = 0; i < colorCount; ++i)
             {
-                field.GetField(GradientType.kColor(i), out GradientColorKey colorKey);
-                colors.Add(colorKey);
+                colors.Add(GetColorKey(field, i));
             }
+
             for (int i = 0; i < alphaCount; ++i)
             {
-                field.GetField(GradientType.kAlpha(i), out GradientAlphaKey alphaKey);
-                alphas.Add(alphaKey);
+                alphas.Add(GetAlphaKey(field, i));
             }
 
             var result = new Gradient();
@@ -152,15 +192,41 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static void SetGradient(FieldHandler field, Gradient gradient)
         {
-            field.AddSubField(GradientType.kGradientMode, gradient.mode);
-            field.AddSubField(GradientType.kColorCount, gradient.colorKeys.Length);
-            field.AddSubField(GradientType.kAlphaCount, gradient.alphaKeys.Length);
+            field.GetSubField<GradientMode>(GradientType.kGradientMode).SetData(gradient.mode);
+            field.GetSubField<int>(GradientType.kColorCount).SetData(gradient.colorKeys.Length);
+            field.GetSubField<int>(GradientType.kAlphaCount).SetData(gradient.alphaKeys.Length);
 
             for (int i = 0; i < 8 && i < gradient.colorKeys.Length; ++i)
-                field.AddSubField(GradientType.kColor(i), gradient.colorKeys[i]);
+                SetColorKey(field, i, gradient.colorKeys[i]);
 
             for (int i = 0; i < 8 && i < gradient.alphaKeys.Length; ++i)
-                field.AddSubField(GradientType.kAlpha(i), gradient.alphaKeys[i]);
+                SetAlphaKey(field, i, gradient.alphaKeys[i]);
+        }
+
+        internal static void SetColorKey(FieldHandler field, int idx, GradientColorKey colorKey)
+        {
+            var serializableKey = new SerializableColorKey(colorKey);
+            (field.GetSubField<SerializableColorKey>(GradientType.kColor(idx))
+                ?? field.AddSubField(GradientType.kColor(idx), serializableKey)).SetData(serializableKey);
+        }
+
+        internal static GradientColorKey GetColorKey(FieldHandler field, int idx)
+        {
+            return (field.GetSubField<SerializableColorKey>(GradientType.kColor(idx))?.GetData()
+                ?? default).ToGradientColorKey();
+        }
+
+        internal static void SetAlphaKey(FieldHandler field, int idx, GradientAlphaKey alphaKey)
+        {
+            var serializableKey = new SerializableAlphaKey(alphaKey);
+            (field.GetSubField<SerializableAlphaKey>(GradientType.kAlpha(idx))
+                ?? field.AddSubField(GradientType.kAlpha(idx), serializableKey)).SetData(serializableKey);
+        }
+
+        internal static GradientAlphaKey GetAlphaKey(FieldHandler field, int idx)
+        {
+            return (field.GetSubField<SerializableAlphaKey>(GradientType.kAlpha(idx))?.GetData()
+                ?? default).ToGradientAlphaKey();
         }
     }
 
@@ -188,10 +254,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             field.AddSubField(kGradientMode, GradientMode.Blend);
             field.AddSubField(kColorCount, 2);
             field.AddSubField(kAlphaCount, 2);
-            field.AddSubField(kColor(0), new GradientColorKey(Color.black, 0));
-            field.AddSubField(kColor(1), new GradientColorKey(Color.white, 1));
-            field.AddSubField(kAlpha(0), new GradientAlphaKey(1, 0));
-            field.AddSubField(kAlpha(1), new GradientAlphaKey(1, 1));
+            GradientTypeHelpers.SetColorKey(field, 0, new GradientColorKey(Color.black, 0));
+            GradientTypeHelpers.SetColorKey(field, 1, new GradientColorKey(Color.white, 1));
+            GradientTypeHelpers.SetAlphaKey(field, 0, new GradientAlphaKey(1, 0));
+            GradientTypeHelpers.SetAlphaKey(field, 1, new GradientAlphaKey(1, 1));
 
             // TODO: Precision; the Gradient type we use in Functions.hlsl does not handle precision, despite surrounding shader code.
             // Ideally, we could just generate the complete Gradient Struct per precision type, instead of using the one from Functions.hlsl;
@@ -275,5 +341,3 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
     }
 }
-
-
