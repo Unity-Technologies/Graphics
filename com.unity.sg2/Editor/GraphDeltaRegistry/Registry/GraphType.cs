@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static void SetAsMat3(FieldHandler field, Matrix4x4 val)
         {
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < 3; ++i)
                 SetAsVec3(field, val.GetColumn(i), i);
         }
 
