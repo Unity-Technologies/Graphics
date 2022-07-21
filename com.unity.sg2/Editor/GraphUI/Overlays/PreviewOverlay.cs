@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_MainPreviewView.AddToClassList("MainPreviewView");
             m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
 
-            window.SetMainPreviewReference(m_MainPreviewView);
             var cachedTexture = getCachedMainPreviewTexture?.Invoke();
             if (cachedTexture != null)
                 m_MainPreviewView.mainPreviewTexture = cachedTexture;
@@ -43,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
                 size = minSize;
 
-            m_MainPreviewView.Initialize(size);
+            m_MainPreviewView.Initialize(size, getCachedMainPreviewTexture);
 
             return m_MainPreviewView;
         }

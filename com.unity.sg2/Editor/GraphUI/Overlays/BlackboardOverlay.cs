@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string k_OverlayID = "sg-Blackboard";
 
         BlackboardView m_BlackboardView;
+        public BlackboardView BlackboardView => m_BlackboardView;
 
         /// <inheritdoc />
         public override VisualElement CreatePanelContent()

@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (value != null)
                 {
                     m_PreviewTextureImage.image = value;
-                    this.MarkDirtyRepaint();
+                    m_PreviewTextureImage.MarkDirtyRepaint();
                 }
             }
         }
@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         Dictionary<string, Mesh> m_PreviewMeshIndex = new();
 
         ContextualMenuManipulator m_ContextualMenuManipulator;
+        Func<Texture> m_GetCachedPreviewTexture;
 
         public MainPreviewView(Dispatcher dispatcher)
         {
@@ -75,7 +76,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 owningOverlay.UnregisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
                 owningOverlay.RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+
+                owningOverlay.RegisterCallback<MouseUpEvent>(MouseUp);
             }
+        }
+
+        void MouseUp(MouseUpEvent evt)
+        {
+            Debug.Log("Test");
         }
 
         void BuildPreviewMeshIndex()
@@ -92,9 +100,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public void Initialize(Vector2 previewSize)
+        public void Initialize(Vector2 previewSize, Func<Texture> getCachedPreviewTexture)
         {
             m_PreviewSize = previewSize;
+            m_GetCachedPreviewTexture = getCachedPreviewTexture;
         }
 
         Image CreatePreview(Texture inputTexture)
@@ -177,15 +186,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnGeometryChangedEvent(GeometryChangedEvent evt)
         {
-            var currentWidth = this.style.width;
-            var currentHeight = this.style.height;
+            var currentWidth = this.style.width.value.value;
+            var currentHeight = this.style.height.value.value;
 
             var targetWidth = new Length(evt.newRect.width, LengthUnit.Pixel);
             var targetHeight = new Length(evt.newRect.height, LengthUnit.Pixel);
 
-            this.style.width = targetWidth;
-            this.style.height = targetHeight;
+            if (Mathf.Abs(currentWidth - targetWidth.value) < 2 && Mathf.Abs(currentHeight - targetHeight.value) < 2)
+                return;
 
+            style.width = targetWidth;
+            style.height = targetHeight;
+
+            m_PreviewSize = evt.newRect.size;
+
+            mainPreviewTexture = m_GetCachedPreviewTexture?.Invoke();
+
+            // TODO: Figure out why this doesn't work but directly fetching the texture does
             //var changePreviewSizeCommand = new ChangePreviewSizeCommand(evt.newRect.size);
             //m_CommandDispatcher.Dispatch(changePreviewSizeCommand);
         }

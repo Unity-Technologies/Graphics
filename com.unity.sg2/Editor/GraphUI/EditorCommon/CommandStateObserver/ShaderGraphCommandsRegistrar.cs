@@ -62,20 +62,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Shader Graph commands
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,
-                graphTool.UndoStateComponent,
+                undoStateComponent,
                 graphViewModel.GraphModelState);
 
-            PreviewCommandsRegistrar.RegisterCommandHandlers(graphTool, previewManager, shaderGraphModel, commandDispatcher, graphViewModel);
+            PreviewCommandsRegistrar.RegisterCommandHandlers(undoStateComponent, graphModelStateComponent, previewManager, shaderGraphModel, commandDispatcher);
 
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeActiveTargetsCommand>(
                 ChangeActiveTargetsCommand.DefaultCommandHandler,
-                graphTool.UndoStateComponent,
+                undoStateComponent,
                 graphViewModel.GraphModelState
             );
 
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeTargetSettingsCommand>(
                 ChangeTargetSettingsCommand.DefaultCommandHandler,
-                graphTool.UndoStateComponent,
+                undoStateComponent,
                 graphViewModel.GraphModelState
             );
 
@@ -135,7 +135,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoStateComponent,
                 graphModelStateComponent);
         }
-
-
     }
 }

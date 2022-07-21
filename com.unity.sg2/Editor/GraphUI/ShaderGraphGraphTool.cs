@@ -78,7 +78,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     break;
             }
 
-            // TODO: Handling value changes in blackboard items
+            m_PreviewManager.UpdateAllNodePreviewTextures();
+
             // TODO: Handling target settings changes
         }
 

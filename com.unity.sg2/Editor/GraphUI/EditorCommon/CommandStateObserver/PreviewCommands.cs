@@ -11,16 +11,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public static class PreviewCommandsRegistrar
     {
         public static void RegisterCommandHandlers(
-            BaseGraphTool graphTool,
+            UndoStateComponent undoStateComponent,
+            GraphModelStateComponent graphModelStateComponent,
             PreviewManager previewManager,
             ShaderGraphModel shaderGraphModel,
-            CommandDispatcher commandDispatcher,
-            GraphViewModel graphViewModel)
+            CommandDispatcher commandDispatcher)
         {
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewExpandedCommand>(
                 ChangePreviewExpandedCommand.DefaultCommandHandler,
-                graphTool.UndoStateComponent,
-                graphViewModel.GraphModelState,
+                undoStateComponent,
+                graphModelStateComponent,
                 previewManager
             );
 
@@ -50,8 +50,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewModeCommand>(
                 ChangePreviewModeCommand.DefaultCommandHandler,
-                graphTool.UndoStateComponent,
-                graphViewModel.GraphModelState,
+                undoStateComponent,
+                graphModelStateComponent,
                 previewManager
             );
         }

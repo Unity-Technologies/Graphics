@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
 
         [NonSerialized]
-        public GraphModelStateComponent graphModelStateComponent;
+        GraphModelStateComponent m_GraphModelStateComponent;
 
         #region CopyPasteData
         [NonSerialized]
@@ -521,7 +521,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             }
                             if (edgeModel != null)
                             {
-                                using (var graphModelStateUpdater = graphModelStateComponent.UpdateScope)
+                                using (var graphModelStateUpdater = m_GraphModelStateComponent.UpdateScope)
                                 {
                                     graphModelStateUpdater?.MarkNew(edgeModel);
                                 }

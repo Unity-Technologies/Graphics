@@ -126,6 +126,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
             m_SceneResources = new PreviewSceneResources();
+            m_SceneResources.camera.forceIntoRenderTexture = true;
         }
 
         public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
@@ -479,7 +480,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 ) { hideFlags = HideFlags.HideAndDontSave };
 
             m_MainPreviewData.renderTexture.Create();
-            m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
         }
 
         /// <summary>
@@ -763,7 +763,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 // Mesh is invalid for VFXTarget
                 // TODO: We should handle this more gracefully
-                //if (renderData != m_MainPreviewData /*|| !isOnlyVFXTarget*/)
+                //if (!isOnlyVFXTarget*/)
                 //{
                     m_SceneResources.camera.targetTexture = temp;
                     Graphics.DrawMesh(mesh, transform, renderData.material, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
@@ -780,12 +780,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 RenderTexture.active = previousRenderTexture;
                 renderData.texture = renderData.renderTexture;
-                //renderData.texture = DrawRTToTexture(renderData.renderTexture);
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
 
                 renderData.isRenderOutOfDate = false;
             }
+        }
+
+        static Texture2D DrawRTToTexture(RenderTexture renderTexture)
+        {
+            var prevActive = RenderTexture.active;
+            RenderTexture.active = renderTexture;
+            Texture2D output = new(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+            Rect readPixels = new(0, 0, output.width, output.height);
+            output.ReadPixels(readPixels, 0, 0);
+            output.Apply();
+            RenderTexture.active = prevActive;
+            return output;
         }
 
         bool CheckForErrors(PreviewData renderData)

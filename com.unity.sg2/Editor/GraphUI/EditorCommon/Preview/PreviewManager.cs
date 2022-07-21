@@ -6,6 +6,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -47,6 +48,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         MainPreviewData m_MainPreviewData;
 
         string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
+
+        // Defines how many times a node/main preview will try to update its preview before the update loop stops
+        const int k_PreviewUpdateCycleMax = 50;
+        Dictionary<string, int> m_CycleCountChecker = new ();
 
         int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
         int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
@@ -152,9 +157,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // Called after an undo/redo to cleanup any stale references to data that no longer exists on graph
         internal void PostUndoRedoConsistencyCheck()
         {
+            var keys = m_NodeLookupTable.Keys.ToList();
+            var values = m_NodeLookupTable.Values.ToList();
             // Remove any nodes from the preview manager that are no longer on graph
-            foreach (var (nodeName, nodeGuid) in m_NodeLookupTable)
+            for(var index = 0; index < m_NodeLookupTable.Count; index++)
             {
+                var nodeGuid = values[index];
+                var nodeName = keys[index];
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 if(nodeModel == null)
                     OnNodeFlowChanged(nodeName, true);
@@ -173,27 +182,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal void HandleConstantValueUndoRedo(BaseShaderGraphConstant oldConstant)
         {
             var nodeWriter = m_GraphModel.GraphHandler.GetNode(oldConstant.NodeName);
+            // Validate that if this constant was associated with a node, that node wasn't deleted
+            Assert.IsNotNull(nodeWriter);
+
+            var propertyContextName = Registry.ResolveKey<PropertyContext>().Name;
+
+            // Port values changes on a node being undone/redone
             m_NodeLookupTable.TryGetValue(oldConstant.NodeName, out var nodeGuid);
             m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
-
-            if (nodeWriter != null && nodeModel is GraphDataNodeModel graphDataNodeModel)
+            if (nodeModel is GraphDataNodeModel graphDataNodeModel
+                && graphDataNodeModel.graphDataName != propertyContextName)
             {
-                foreach (var portConstant in graphDataNodeModel.InputConstantsById.Values)
+                foreach (var currentPortConstant in graphDataNodeModel.InputConstantsById.Values)
                 {
-                    if (portConstant is BaseShaderGraphConstant updatedConstant
+                    if (currentPortConstant is BaseShaderGraphConstant updatedConstant
                         && updatedConstant.PortName == oldConstant.PortName)
                     {
-                        OnLocalPropertyChanged(oldConstant.NodeName, oldConstant.PortName, portConstant.ObjectValue);
+                        OnLocalPropertyChanged(oldConstant.NodeName, oldConstant.PortName, currentPortConstant.ObjectValue);
                         return;
                     }
                 }
             }
-
-            foreach (var declarationModel in m_GraphModel.VariableDeclarations)
+            else // TODO: Blackboard value changes are not piped through correctly
             {
-                if (oldConstant == declarationModel.InitializationModel)
+                // Blackboard item changes being undone/redone
+                foreach (var declarationModel in m_GraphModel.VariableDeclarations)
                 {
-                    if (oldConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
+                    if (declarationModel is GraphDataVariableDeclarationModel graphDataVariableDeclarationModel
+                        && oldConstant.PortName == graphDataVariableDeclarationModel.graphDataName)
                     {
                         OnGlobalPropertyChanged(oldConstant.PortName, declarationModel.InitializationModel.ObjectValue);
                         return;
@@ -229,20 +245,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // Headless preview manager handles assigning correct texture in case of completion, error state, still updating etc.
                         // We just need to update the texture on this side regardless of what happens
                         m_MainPreviewView.mainPreviewTexture = updatedTexture;
-
-                        // Node is updated, remove from dirty list
-                        if (previewOutputState == HeadlessPreviewManager.PreviewOutputState.Complete)
-                            updatedNodes.Add(nodeName);
-                        if (previewOutputState == HeadlessPreviewManager.PreviewOutputState.ShaderError)
-                        {
-                            updatedNodes.Add(nodeName);
-                            // TODO: Handle displaying main preview errors
-                            foreach (var errorMessage in shaderMessages)
-                            {
-                                Debug.Log(errorMessage);
-                            }
-                        }
                     }
+
+                    HandlePreviewUpdateRequest(previewOutputState, updatedNodes, nodeName, shaderMessages, m_CycleCountChecker);
                 }
                 else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {
@@ -257,27 +262,54 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             graphUpdater.MarkChanged(nodeModel);
                         }
-
-                        // Node is updated, remove from dirty list
-                        if (previewOutputState == HeadlessPreviewManager.PreviewOutputState.Complete)
-                            updatedNodes.Add(nodeName);
-                        if (previewOutputState == HeadlessPreviewManager.PreviewOutputState.ShaderError)
-                        {
-                            updatedNodes.Add(nodeName);
-                            // TODO: Handle displaying error badges on nodes
-                            foreach (var errorMessage in shaderMessages)
-                            {
-                                Debug.Log(errorMessage);
-                            }
-                        }
                     }
+                    HandlePreviewUpdateRequest(previewOutputState, updatedNodes, nodeName, shaderMessages, m_CycleCountChecker);
                 }
             }
 
-            // Clean up any nodes that were successfully updated from the dirty list
+            // Clean up any nodes that were successfully updated from the dirty list and cycle checker
             foreach (var updatedNode in updatedNodes)
+            {
                 m_DirtyNodes.Remove(updatedNode);
+                m_CycleCountChecker.Remove(updatedNode);
+            }
+        }
 
+        static void HandlePreviewUpdateRequest(
+            HeadlessPreviewManager.PreviewOutputState previewOutputState,
+            List<string> updatedNodes,
+            string nodeName,
+            ShaderMessage[] shaderMessages,
+            Dictionary<string, int> cycleCountChecker)
+        {
+            switch (previewOutputState)
+            {
+                // Node is updated, remove from dirty list
+                case HeadlessPreviewManager.PreviewOutputState.Complete:
+                    updatedNodes.Add(nodeName);
+                    break;
+                case HeadlessPreviewManager.PreviewOutputState.ShaderError:
+                    updatedNodes.Add(nodeName);
+
+                    // TODO: Handle displaying main preview errors
+                    foreach (var errorMessage in shaderMessages)
+                        Debug.Log(errorMessage);
+                    break;
+                case HeadlessPreviewManager.PreviewOutputState.Updating:
+                    if(cycleCountChecker.ContainsKey(nodeName))
+                        cycleCountChecker[nodeName]++;
+                    else
+                        cycleCountChecker[nodeName] = 1;
+
+                    // Node is cycling, toss it out of the update loop and print to log
+                    if (cycleCountChecker[nodeName] > k_PreviewUpdateCycleMax)
+                    {
+                        updatedNodes.Add(nodeName);
+                        Debug.LogWarning("Node: " + nodeName + " was cycling infinitely trying to update its preview, forcibly removed from update loop.");
+                    }
+
+                    break;
+            }
         }
 
         public Texture GetCachedMainPreviewTexture()
@@ -346,6 +378,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_DirtyNodes.Remove(nodeName);
             m_NodeLookupTable.Remove(nodeName);
+            m_CycleCountChecker.Remove(nodeName);
         }
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)
