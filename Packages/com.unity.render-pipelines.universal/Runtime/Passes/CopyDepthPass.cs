@@ -33,15 +33,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
         /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
+        /// <param name="copyToDepth">Controls whether it should do a copy to a depth format target.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
+        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             m_PassData = new PassData();
-            CopyToDepth = false;
+            CopyToDepth = copyToDepth;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
-            m_CopyResolvedDepth = false;
+            m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
         }
 
@@ -175,7 +176,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     isGameViewFinalTarget |= destination.nameID == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
-                bool yflip = (copyToDepth || !isSourceYflipped && !isGameViewFinalTarget) && SystemInfo.graphicsUVStartsAtTop;
+                bool yflip = !isSourceYflipped && !isGameViewFinalTarget && SystemInfo.graphicsUVStartsAtTop;
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
                 cmd.SetViewport(new Rect(0, 0, cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
