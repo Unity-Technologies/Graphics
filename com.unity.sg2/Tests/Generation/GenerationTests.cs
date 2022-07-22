@@ -10,6 +10,7 @@ using static UnityEditor.ShaderGraph.GraphDelta.IContextDescriptor;
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
 using System.Linq;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphType;
 
 namespace UnityEditor.ShaderGraph.Generation.UnitTests
 {
@@ -43,9 +44,9 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
 
-            CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
-            foreach (var descriptor in descriptors)
-                LogDescriptor(descriptor);
+            //CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
+            //foreach (var descriptor in descriptors)
+            //    LogDescriptor(descriptor);
 
             graph.AddNode<TestAddNode>("Add1").SetPortField("In1", "c0", 1f); //(1,0,0,0)
             graph.AddNode<TestAddNode>("Add2").SetPortField("In2", "c1", 1f); //(0,1,0,0)
@@ -89,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             ("Add3", new Color(1,1,0,1)),
         };
 
-    [Test]
+        [Test]
         [TestCaseSource("testAsIsSource")]
         public static void TestGraphAsIs((string nodeToCompile, Color expectedColor) input)
         {
@@ -362,6 +363,47 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                 throw e;
             }
 
+        }
+
+
+        [Test]
+        public void TestAllCasts()
+        {
+            registry.Register<TestOutputNode>();
+            registry.Register<TestInputNode>();
+            List<Length> allCombos = new List<Length>();
+            foreach(var l in Enum.GetValues(typeof(Length)))
+            {
+                allCombos.Add((Length)l);
+            }
+
+            foreach(var c in allCombos)
+            {
+                var outNodeString = $"Test_Out_{c.ToString()}";
+                GraphTypeHelpers.InitGraphType(graph.AddNode<TestOutputNode>(outNodeString).AddPort<GraphType>("Out", false, registry).GetTypeField(), length: c);
+                foreach(var c2 in allCombos)
+                {
+                    var inNodeString = $"Test_In_{c2.ToString()}_{c.ToString()}";
+                    var inNode = graph.AddNode<TestInputNode>(inNodeString);
+                    GraphTypeHelpers.InitGraphType(inNode.AddPort<GraphType>("In", true, registry).GetTypeField(), length: c2);
+                    GraphTypeHelpers.InitGraphType(inNode.AddPort<GraphType>("Out", false, registry).GetTypeField(), length: c2);
+                    if(graph.TestConnection(outNodeString, "Out", inNodeString, "In", registry))
+                    {
+                        graph.AddEdge($"{outNodeString}.Out", $"{inNodeString}.In");
+                        try
+                        {
+                            var shaderString = Interpreter.GetShaderForNode(graph.GetNode(inNodeString), graph, registry, out _);
+                            var shader = MakeShader(shaderString);
+                            var rt = DrawToTex(shader);
+                        }
+                        catch(Exception e)
+                        {
+                            Debug.LogError($"Failed to convert from {c.ToString()} to {c2.ToString()} despite passing TestConnection");
+                            throw e;
+                        }
+                    }
+                }
+            }
         }
 
     }
