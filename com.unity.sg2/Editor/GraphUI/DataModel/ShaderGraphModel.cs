@@ -631,7 +631,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Action<IVariableDeclarationModel, IConstant> initializationCallback)
         {
             // If the guid starts with a number, it will produce an invalid identifier in HLSL.
-            var variableDeclarationName = "_" + graphDataVar.Guid;
+            var fieldName = "_" + graphDataVar.Guid;
+            var displayName = GenerateGraphVariableDeclarationUniqueName(variableName);
 
             var propertyContext = GraphHandler.GetNode(BlackboardContextName);
             Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
@@ -640,11 +641,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ContextBuilder.AddReferableEntry(
                 propertyContext,
                 variableDataType.GetBackingDescriptor(),
-                variableDeclarationName,
+                fieldName,
                 GraphHandler.registry,
                 isExposed ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
                 source: isExposed ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
-                displayName: variableDeclarationName);
+                displayName: displayName);
 
             try
             {
@@ -656,13 +657,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             graphDataVar.contextNodeName = BlackboardContextName;
-            graphDataVar.graphDataName = variableDeclarationName;
+            graphDataVar.graphDataName = fieldName;
 
             if (guid.Valid)
                 graphDataVar.Guid = guid;
             graphDataVar.GraphModel = this;
             graphDataVar.DataType = variableDataType;
-            graphDataVar.Title = GenerateGraphVariableDeclarationUniqueName(variableName);
+            graphDataVar.Title = displayName;
             graphDataVar.IsExposed = isExposed;
             graphDataVar.Modifiers = modifierFlags;
 

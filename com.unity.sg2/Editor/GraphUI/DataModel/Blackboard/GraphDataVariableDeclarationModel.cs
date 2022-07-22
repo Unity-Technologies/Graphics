@@ -35,6 +35,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
+        public override void Rename(string newName)
+        {
+            base.Rename(newName); // Result is assigned to Title, can be different from newName (i.e. numbers at end)
+            contextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
+        }
+
         ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
         PortHandler contextEntry => shaderGraphModel.GraphHandler
