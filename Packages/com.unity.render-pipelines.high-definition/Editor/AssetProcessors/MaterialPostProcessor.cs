@@ -9,6 +9,7 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -203,13 +204,16 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (Time.renderedFrameCount > 0)
                 {
+                    if (!HDRenderPipeline.isReady)
+                        return;
+
                     bool reimportAllHDShaderGraphsTriggered = false;
                     bool reimportAllMaterialsTriggered = false;
                     bool fileExist = true;
                     // We check the file existence only once to avoid IO operations every frame.
                     if (s_NeedToCheckProjSettingExistence)
                     {
-                        fileExist = System.IO.File.Exists("ProjectSettings/HDRPProjectSettings.asset");
+                        fileExist = System.IO.File.Exists(HDProjectSettings.filePath);
                         s_NeedToCheckProjSettingExistence = false;
                     }
 
@@ -373,7 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // Materials (.mat) post processing:
-                if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
                 if (material == null)
@@ -469,7 +473,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: Maybe systematically remove from s_CreateAssets just in case
 
                 //upgrade
-                while (assetVersion.version < latestVersion)
+                while (assetVersion.version >= 0 && assetVersion.version < latestVersion)
                 {
                     k_Migrations[assetVersion.version](material, id);
                     assetVersion.version++;
