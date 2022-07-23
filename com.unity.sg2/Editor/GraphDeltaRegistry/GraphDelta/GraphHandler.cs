@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
 using UnityEngine;
+using UnityEngine.Profiling;
 using static UnityEditor.ShaderGraph.Configuration.CPGraphDataProvider;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
@@ -178,6 +179,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
+        private void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
+        {
+            Profiler.BeginSample("Add single entry");
+            ContextBuilder.AddReferableEntry(context,
+                new ContextEntry
+                {
+                    fieldName = desc.name,
+                    height = desc.type.IsMatrix ? (GraphType.Height)desc.type.MatrixRows : GraphType.Height.One,
+                    length = desc.type.IsVector ? (GraphType.Length)desc.type.VectorDimension : GraphType.Length.One,
+                    primitive = GraphType.Primitive.Float,
+                    precision = GraphType.Precision.Fixed
+                },
+                registry,
+                source: ContextEntryEnumTags.DataSource.Global);
+            Profiler.EndSample();
+        }
+
+
         public void RebuildContextData(
             ElementID contextNode,
             ITargetProvider target,
@@ -185,21 +204,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string cpName,
             bool input)
         {
-            void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
-            {
-                ContextBuilder.AddReferableEntry(context,
-                    new ContextEntry
-                    {
-                        fieldName = desc.name,
-                        height = desc.type.IsMatrix ? (GraphType.Height)desc.type.MatrixRows : GraphType.Height.One,
-                        length = desc.type.IsVector ? (GraphType.Length)desc.type.VectorDimension : GraphType.Length.One,
-                        primitive = GraphType.Primitive.Float,
-                        precision = GraphType.Precision.Fixed
-                    },
-                    registry,
-                    source: ContextEntryEnumTags.DataSource.Global);
-            }
-
+            
             var context = GetNode(contextNode);
             if(context == null)
             {
@@ -210,14 +215,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             context.DefaultLayer = GraphDelta.k_concrete;
 
             GatherProviderCPIO(target, out var descriptors);
+            Profiler.BeginSample("Iterate over gathered CustomizationPoint inputs and outputs");
             foreach(var descriptor in descriptors)
             {
+                Profiler.BeginSample("Foreach Descriptor");
                 if(descriptor.templateName.Equals(templateName, StringComparison.OrdinalIgnoreCase))
                 {
+                    Profiler.BeginSample("Foreach CustomizationPoint");
                     foreach(var cpio in descriptor.CPIO)
                     {
                         if(cpio.customizationPointName.Equals(cpName, StringComparison.OrdinalIgnoreCase))
                         {
+                            Profiler.BeginSample("Foreach Entry");
                             if(input)
                             {
                                 foreach(var i in cpio.inputs)
@@ -232,12 +241,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                     AddEntry(context, o);
                                 }
                             }
+                            Profiler.EndSample();
                             context.AddField("_CustomizationPointName", cpName);
                             return;
                         }
                     }
+                    Profiler.EndSample();
                 }
+                Profiler.EndSample();
             }
+            Profiler.EndSample();
         }
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges)

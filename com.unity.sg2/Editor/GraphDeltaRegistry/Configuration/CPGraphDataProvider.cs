@@ -5,16 +5,23 @@ namespace UnityEditor.ShaderGraph.Configuration
 {
     public static class CPGraphDataProvider
     {
-        public struct CPDataEntryDescriptor
+        public class CPDataEntryDescriptor
         {
             public string name;
             internal ShaderType type;
         }
 
-        public struct TemplateDataDescriptor
+        public class TestForGC
+        {
+            public string customizationPointName;
+            public List<CPDataEntryDescriptor> inputs;
+            public List<CPDataEntryDescriptor> outputs;
+        }
+
+        public class TemplateDataDescriptor
         {
             public string templateName;
-            public List<(string customizationPointName, List<CPDataEntryDescriptor> inputs, List<CPDataEntryDescriptor> outputs)> CPIO;
+            public List<TestForGC> CPIO;
         }
 
         public static void GatherProviderCPIO(ITargetProvider targetProvider, out List<TemplateDataDescriptor> descriptors)
@@ -25,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Configuration
 
             foreach(var template in templateProvider.GetTemplates(new ShaderContainer()))
             {
-                var cpDescs = new List<(string, List<CPDataEntryDescriptor>, List<CPDataEntryDescriptor>)>();
+                var cpDescs = new List<TestForGC>();
                 foreach(var cp in template.CustomizationPoints())
                 {
                     var inputs = new List<CPDataEntryDescriptor>();
@@ -41,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Configuration
                         outputs.Add(new CPDataEntryDescriptor { name = output.Name, type = output.Type });
                     }
 
-                    cpDescs.Add((cp.Name, inputs, outputs));
+                    cpDescs.Add(new TestForGC() { customizationPointName = cp.Name, inputs = inputs, outputs = outputs });
                 }
                 descriptors.Add(new TemplateDataDescriptor { templateName = template.Name, CPIO = cpDescs });
             }

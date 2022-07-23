@@ -1,35 +1,56 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
+
+    internal class ElementIDComparer : IEqualityComparer<ElementID>
+    {
+        public bool Equals(ElementID x, ElementID y)
+        {
+            return x.Equals(y);
+        }
+
+        public int GetHashCode(ElementID obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
+
     [Serializable]
     public struct ElementID
     {
         [SerializeField]
-        private List<string> m_path;
+        private string[] m_path;
         [field: SerializeField]
         public string FullPath { get; private set; }
-        public string LocalPath => m_path.Count >= 1 ? m_path[m_path.Count - 1] : "";
+        public string LocalPath => m_path.Length >= 1 ? m_path[m_path.Length - 1] : "";
         public string ParentPath => FullPath.Substring(0, Mathf.Max(FullPath.LastIndexOf('.'),0));
+
+        public override int GetHashCode()
+        {
+            return ((IStructuralEquatable)m_path).GetHashCode(StringComparer.Create(CultureInfo.InvariantCulture, false));
+        }
 
         public ElementID(string id)
         {
-            m_path = new List<string>() { id };
+            m_path = new string[] { id };
             FullPath = id;
         }
 
         public ElementID(IEnumerable<string> path)
         {
-            m_path = new List<string>();
+            m_path = new string[path.Count()];
             FullPath = "";
             int i = 0;
             foreach (string p in path)
             {
-                m_path.Add(p);
+                m_path[i] = p;
 
                 if (i == 0)
                 {
@@ -45,27 +66,29 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID(ElementID parent, IEnumerable<string> localPath)
         {
-            m_path = new List<string>();
-            if (parent.m_path != null)
+            m_path = new string[parent.m_path.Length + localPath.Count()];
+            int i;
+            for(i = 0; i < parent.m_path.Length; ++i)
             {
-                m_path.AddRange(parent.m_path);
+                m_path[i] = parent.m_path[i];
             }
             FullPath = parent.FullPath;
             foreach (string p in localPath)
             {
-                m_path.Add(p);
+                m_path[i] = p;
+                i++;
                 FullPath += "." + p;
             }
         }
 
         public bool Equals(ElementID other)
         {
-            if (m_path.Count != other.m_path.Count)
+            if (m_path.Length != other.m_path.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < m_path.Count; ++i)
+            for (int i = 0; i < m_path.Length; ++i)
             {
                 if (m_path[i].CompareTo(other.m_path[i]) != 0)
                 {
@@ -85,19 +108,19 @@ namespace UnityEditor.ContextLayeredDataStorage
         public bool IsSubpathOf(ElementID other)
         {
             //special case for root, empty string is always a subpath
-            if(m_path.Count == 1 && m_path[0].Length == 0)
+            if(m_path.Length == 1 && m_path[0].Length == 0)
             {
                 return true;
             }
 
-            if (m_path.Count >= other.m_path.Count)
+            if (m_path.Length >= other.m_path.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < m_path.Count; ++i)
+            for (int i = 0; i < m_path.Length; ++i)
             {
-                if (m_path[i].CompareTo(other.m_path[i]) != 0)
+                if (string.CompareOrdinal(m_path[i],other.m_path[i]) != 0)
                 {
                     return false;
                 }
@@ -108,9 +131,9 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public bool IsImmediateSubpathOf(ElementID other)
         {
-            if(m_path.Count == 1 && m_path[0].Length == 0)
+            if(m_path.Length == 1 && m_path[0].Length == 0)
             {
-                if (other.m_path.Count > 1)
+                if (other.m_path.Length > 1)
                 {
                     return false;
                 }
@@ -119,7 +142,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                     return true;
                 }
             }
-            return (m_path.Count + 1 == other.m_path.Count) && IsSubpathOf(other);
+            return (m_path.Length + 1 == other.m_path.Length) && IsSubpathOf(other);
         }
 
         public static ElementID FromString(string path)
@@ -181,8 +204,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID Rename(string toRename, string newName)
         {
-            string[] newPath = new string[m_path.Count];
-            for (int i = 0; i < m_path.Count; i++)
+            string[] newPath = new string[m_path.Length];
+            for (int i = 0; i < m_path.Length; i++)
             {
                 if (m_path[i].Equals(toRename))
                 {
