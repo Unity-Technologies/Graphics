@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Unity.Profiling;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.Utils;
@@ -183,6 +184,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         /// <summary>
+        /// Returns true if the node needs either its shaders or its preview render regenerated
+        /// </summary>
+        /// <param name="nodeName"> ID of the node we are trying to identify as dirty or not </param>
+        /// <returns></returns>
+        public bool IsNodeDirty(string nodeName)
+        {
+            if (m_CachedPreviewData.TryGetValue(nodeName, out var previewData))
+            {
+                return previewData.isRenderOutOfDate || previewData.isShaderOutOfDate;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Used to change the Value of global properties like Time, Blackboard Properties, Render Pipeline Intrinsics etc.
         /// </summary>
         /// <returns> List of names describing all nodes that were affected by this change </returns>
@@ -204,6 +220,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     var downStreamNodeName = downStreamNode.ID.LocalPath;
                     if (m_CachedPreviewData.TryGetValue(downStreamNodeName, out var nodePreviewData))
                     {
+                        // TODO: Set values on MPB when we can expose and promote properties instead of regenerating shader
                         nodePreviewData.isShaderOutOfDate = true;
                         impactedNodes.Add(downStreamNode.ID.LocalPath);
                     }
@@ -318,7 +335,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     UpdateShaderData(previewData);
                     UpdateRenderData(previewData);
                     nodeRenderOutput = m_CompilingTexture;
-
                     return PreviewOutputState.Updating;
                 }
                 // Ran into error compiling the preview shader

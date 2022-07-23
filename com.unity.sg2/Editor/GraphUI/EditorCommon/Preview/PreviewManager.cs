@@ -18,14 +18,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public class PreviewManager
     {
-        bool m_IsInitialized;
-
-        public bool IsInitialized
-        {
-            get => m_IsInitialized;
-            set => m_IsInitialized = value;
-        }
-
         // Gets set to true when user selects the "Sprite" preview mesh in main preview
         bool m_LockMainPreviewRotation;
 
@@ -73,7 +65,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_DirtyNodes = new HashSet<string>();
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
 
-            m_IsInitialized = true;
             m_GraphModel = graphModel;
 
             // Initialize the main preview
@@ -108,7 +99,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         static bool IsMainContextNode(IGraphElementModel nodeModel)
         {
-            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
+            return nodeModel is GraphDataContextNodeModel contextNode
+                    && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
         }
 
         internal void UpdateReferencesAfterUndoRedo(
@@ -133,17 +125,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_GraphModel = graphModel;
             m_MainPreviewView = mainPreviewView;
 
-            UpdateAllNodePreviewTextures();
+            ReassignAllNodePreviewTextures();
         }
 
-        internal void UpdateAllNodePreviewTextures()
+        /// <summary>
+        /// After a save or an undo/redo, all the GTF node views get recreated so we gotta go through and reassign any cached node preview textures
+        /// </summary>
+        internal void ReassignAllNodePreviewTextures()
         {
             using (var stateUpdater = m_GraphModelStateComponent.UpdateScope)
             {
                 foreach (var (nodeName, nodeGuid) in m_NodeLookupTable)
                 {
                     m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
-                    if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+                    // Don't update the node right away if it is dirty
+                    if (nodeModel is GraphDataNodeModel graphDataNodeModel
+                        && !m_PreviewHandlerInstance.IsNodeDirty(graphDataNodeModel.graphDataName))
                     {
                         m_PreviewHandlerInstance.RequestNodePreviewTexture(nodeName, out var nodeRenderOutput, out var shaderMessages, graphDataNodeModel.NodePreviewMode);
                         graphDataNodeModel.OnPreviewTextureUpdated(nodeRenderOutput);
@@ -211,6 +208,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     if (declarationModel is GraphDataVariableDeclarationModel graphDataVariableDeclarationModel
                         && oldConstant.PortName == graphDataVariableDeclarationModel.graphDataName)
                     {
+                        declarationModel.InitializationModel.ObjectValue = declarationModel.InitializationModel.ObjectValue;
                         OnGlobalPropertyChanged(oldConstant.PortName, declarationModel.InitializationModel.ObjectValue);
                         return;
                     }
@@ -251,6 +249,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
                 else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {
+                    // TODO: For some reason, when we undo/redo the constant value changes the request to regenerate shader doesn't always make it through, flag gets flipped before reaching here
                     var previewOutputState = m_PreviewHandlerInstance.RequestNodePreviewTexture(nodeName, out var nodeRenderOutput, out var shaderMessages);
                     if (nodeRenderOutput != graphDataNodeModel.PreviewTexture)
                     {
@@ -305,6 +304,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     if (cycleCountChecker[nodeName] > k_PreviewUpdateCycleMax)
                     {
                         updatedNodes.Add(nodeName);
+                        cycleCountChecker.Remove(nodeName);
                         Debug.LogWarning("Node: " + nodeName + " was cycling infinitely trying to update its preview, forcibly removed from update loop.");
                     }
 
@@ -357,14 +357,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_DirtyNodes.Add(nodeName);
                 var impactedNodes = m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
                 foreach (var downstreamNode in impactedNodes)
-                {
                     m_DirtyNodes.Add(downstreamNode);
-                }
             }
         }
 
         public void OnNodeAdded(String nodeName, SerializableGUID nodeGuid)
         {
+            // Need to do this check because we can get the property context as a connected node but we don't want to process it like any other node
+            if(nodeName == m_GraphModel.BlackboardContextName)
+                return;
+
             if (m_NodeLookupTable.ContainsKey(nodeName))
                 return;
 
@@ -394,9 +396,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var impactedNodes = m_PreviewHandlerInstance.SetGlobalProperty(propertyName, newValue, variableNodeNames);
             foreach (var downstreamNode in impactedNodes)
-            {
                 m_DirtyNodes.Add(downstreamNode);
-            }
         }
 
         public void OnLocalPropertyChanged(string nodeName, string propertyName, object newValue)
@@ -404,11 +404,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_DirtyNodes.Add(nodeName);
             var impactedNodes = m_PreviewHandlerInstance.SetLocalProperty(nodeName, propertyName, newValue);
             foreach (var downstreamNode in impactedNodes)
-            {
-                // Need to do this check because we can get the property context as a connected node but we don't want to process it like any other node
-                if(downstreamNode != m_GraphModel.BlackboardContextName)
-                    m_DirtyNodes.Add(downstreamNode);
-            }
+                m_DirtyNodes.Add(downstreamNode);
         }
 
         /// <summary>

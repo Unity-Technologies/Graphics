@@ -72,13 +72,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_PreviewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
                     break;
 
+                case DeleteEdgeCommand deleteEdgeCommand:
+                    foreach (var edgeModel in deleteEdgeCommand.Models)
+                    {
+                        var tPortNodeModel = edgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                        m_PreviewManager.OnNodeFlowChanged(tPortNodeModel.graphDataName);
+                    }
+                    break;
+
                 // Handling value changes in ports
                 case UpdateConstantValueCommand updateConstantValueCommand:
                     m_PreviewManager.HandleConstantValueUndoRedo(updateConstantValueCommand.Constant as BaseShaderGraphConstant);
                     break;
             }
 
-            m_PreviewManager.UpdateAllNodePreviewTextures();
+            m_PreviewManager.ReassignAllNodePreviewTextures();
 
             // TODO: Handling target settings changes
         }

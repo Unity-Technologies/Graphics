@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public GraphDataEdgeModel()
         {
-            m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.Selectable);
         }
     }
 }

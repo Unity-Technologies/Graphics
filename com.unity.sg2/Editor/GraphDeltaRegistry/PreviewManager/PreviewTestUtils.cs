@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static void SaveRTToDisk(RenderTexture renderTexture, string assetPath = "")
         {
             if (assetPath == "")
-                assetPath = Application.dataPath;
+                assetPath = Application.dataPath + "/Texture.png";
             var debugTexture = DrawRTToTexture(renderTexture);
             byte[] bytes = debugTexture.EncodeToPNG();
             File.WriteAllBytes(assetPath, bytes);
