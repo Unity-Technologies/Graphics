@@ -18,7 +18,6 @@ public class PlayerMovement : MonoBehaviour
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
 
-
     Vector3 velocity;
     bool isGrounded;
 
@@ -75,7 +74,7 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 move = transform.right * x + transform.forward * z;
 
-        controller.Move(move * speed * Time.deltaTime);
+        controller.Move(speed * Time.deltaTime * move);
 
         if (jumpPressed && isGrounded)
         {

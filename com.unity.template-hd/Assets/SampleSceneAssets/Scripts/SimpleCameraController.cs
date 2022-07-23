@@ -271,7 +271,7 @@ namespace UnityTemplateProjects
         {
 #if ENABLE_INPUT_SYSTEM
             bool canRotate = Mouse.current != null ? Mouse.current.rightButton.isPressed : false;
-            canRotate |= Gamepad.current != null ? Gamepad.current.rightStick.ReadValue().magnitude > 0 : false;
+            canRotate |= Gamepad.current != null && Gamepad.current.rightStick.ReadValue().magnitude > 0;
             return canRotate;
 #else
             return Input.GetMouseButton(1);
