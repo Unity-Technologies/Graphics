@@ -565,11 +565,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (zTest != null)
                     materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
 
-                bool showTransparentCullMode = transparentCullMode != null && doubleSidedEnable.floatValue == 0;
+                bool showTransparentCullMode = transparentCullMode != null;
                 if (transparentBackfaceEnable != null)
                     showTransparentCullMode &= transparentBackfaceEnable.floatValue == 0;
+
                 if (showTransparentCullMode)
-                    materialEditor.ShaderProperty(transparentCullMode, Styles.transparentCullModeText);
+                {
+                    if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && transparentCullMode != null)
+                        materialEditor.ShaderProperty(transparentCullMode, Styles.transparentCullModeText);
+                    else
+                    {
+                        EditorGUI.BeginDisabledGroup(true);
+                        EditorGUILayout.Popup(Styles.transparentCullModeText, 0, new string[] { "Off" });
+                        EditorGUI.EndDisabledGroup();
+                    }
+                }
 
                 EditorGUI.indentLevel--;
             }

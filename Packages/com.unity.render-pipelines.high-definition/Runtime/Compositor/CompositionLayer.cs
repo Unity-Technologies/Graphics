@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
 
             // check and fix RT handle
-            if (m_OutputTarget != OutputTarget.CameraStack && m_RTHandle == null)
+            if (m_OutputTarget != OutputTarget.CameraStack && m_RTHandle == null && m_RenderTarget != null)
             {
                 m_RTHandle = RTHandles.Alloc(m_RenderTarget);
             }

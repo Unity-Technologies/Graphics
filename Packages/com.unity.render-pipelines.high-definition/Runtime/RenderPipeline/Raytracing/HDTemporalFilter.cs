@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texWidth;
             public int texHeight;
             public int viewCount;
+            public Vector4 historySizeAndScale;
 
             // Denoising parameters
             public float historyValidity;
@@ -128,9 +129,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
 
-                // History buffers
-                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
-                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
+                // Grab and import the history buffers
+                var historyDepth = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
+                var historyNormal = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
+                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(historyDepth));
+                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(historyNormal));
+                passData.historySizeAndScale = (historyDepth != null && historyNormal != null) ? HDRenderPipeline.EvaluateRayTracingHistorySizeAndScale(hdCamera, historyDepth) : Vector4.one;
 
                 // Output buffers
                 passData.validationBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "ValidationTexture" }));
@@ -165,6 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._HistoryValidity, data.historyValidity);
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
+                        ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._HistorySizeAndScale, data.historySizeAndScale);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.validateHistoryKernel, HDShaderIDs._ValidationBufferRW, data.validationBuffer);

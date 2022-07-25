@@ -171,7 +171,12 @@ void ReflectionUpscale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 group
     float4 lowResCol1 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap1));
     float4 lowResCol2 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap2));
     float4 lowResCol3 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap3));
+    float4 highResColor = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
+
+    // Because of the bilateral upscale process, we need to make sure that if all weights were 1.0, we need keep the final weight to 1.0 (precision issues).
+    float combinedWeight = lowResCol0.w * lowResCol1.w * lowResCol2.w * lowResCol3.w;
+    highResColor.w = max(combinedWeight, highResColor.w);
 
     // Bilateral upscale and output the result
-    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(fullResolution)] = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
+    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(fullResolution)] = highResColor;
 }

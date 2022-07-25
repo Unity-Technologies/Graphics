@@ -173,6 +173,8 @@ namespace UnityEngine
                 worldAnchorToLight = -transform.forward;
 
             Vector3 projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
+            if(projectOnGround.magnitude < 0.0001f)
+                projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up + axes.right * 0.0001f);
             projectOnGround.Normalize();
 
             float extractedYaw = Vector3.SignedAngle(axes.forward, projectOnGround, axes.up);

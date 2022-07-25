@@ -76,4 +76,17 @@ bool RayTracingGBufferIsLit(float rayDistance)
 {
     return rayDistance > 0.0;
 }
+
+float3 RayTracingHSVClamp(float3 color, float clampValue)
+{
+    // Convert to HSV space
+    float3 hsvColor = RgbToHsv(color);
+
+    // Expose and clamp the final color
+    hsvColor.z = clamp(hsvColor.z, 0.0, clampValue);
+
+    // Convert back to HSV space
+    return HsvToRgb(hsvColor);
+}
+
 #endif // RAY_TRACING_COMMON_HLSL

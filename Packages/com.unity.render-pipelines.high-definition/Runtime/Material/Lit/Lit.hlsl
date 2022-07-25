@@ -714,6 +714,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #ifdef LIGHT_LAYERS
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    // Channels xyz are not written to because of the ColorMask
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
 #endif
 
