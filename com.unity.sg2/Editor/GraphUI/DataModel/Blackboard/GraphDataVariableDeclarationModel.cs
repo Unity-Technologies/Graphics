@@ -85,6 +85,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        public override void Rename(string newName)
+        {
+            base.Rename(newName); // Result is assigned to Title, can be different from newName (i.e. numbers at end)
+            contextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
+        }
+
         public override void CreateInitializationValue()
         {
             if (string.IsNullOrEmpty(contextNodeName) || string.IsNullOrEmpty(graphDataName))
