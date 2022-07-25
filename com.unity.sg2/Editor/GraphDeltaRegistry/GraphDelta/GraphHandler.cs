@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
-        private void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
+        private void AddEntry(NodeHandler context, CPEntryDescriptor desc)
         {
             Profiler.BeginSample("Add single entry");
             ContextBuilder.AddReferableEntry(context,
@@ -243,6 +243,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                             }
                             Profiler.EndSample();
                             context.AddField("_CustomizationPointName", cpName);
+                            Profiler.EndSample();
+                            Profiler.EndSample();
+                            Profiler.EndSample();
                             return;
                         }
                     }
