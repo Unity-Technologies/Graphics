@@ -7,7 +7,6 @@
   * [13 / Unity 2022.1](whats-new-13.md)
 * Features
   * [Features List](HDRP-Features.md)
-  * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP.md)
   * [Upgrading to HDRP](Upgrading-To-HDRP.md)
