@@ -154,7 +154,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
         model: rtx2080
       standalone_build:

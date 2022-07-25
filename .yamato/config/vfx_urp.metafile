@@ -44,7 +44,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
       editmode:
         type: Unity::VM
@@ -52,12 +52,12 @@ platforms:
         flavor: b1.large
       playmode:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
       standalone:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
       standalone_build:
         type: Unity::VM
