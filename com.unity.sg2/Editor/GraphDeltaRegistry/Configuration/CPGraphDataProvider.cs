@@ -5,16 +5,23 @@ namespace UnityEditor.ShaderGraph.Configuration
 {
     public static class CPGraphDataProvider
     {
-        public struct CPDataEntryDescriptor
+        public class CPEntryDescriptor
         {
             public string name;
             internal ShaderType type;
         }
 
-        public struct TemplateDataDescriptor
+        public class CPDataDescriptor
+        {
+            public string customizationPointName;
+            public List<CPEntryDescriptor> inputs;
+            public List<CPEntryDescriptor> outputs;
+        }
+
+        public class TemplateDataDescriptor
         {
             public string templateName;
-            public List<(string customizationPointName, List<CPDataEntryDescriptor> inputs, List<CPDataEntryDescriptor> outputs)> CPIO;
+            public List<CPDataDescriptor> CPIO;
         }
 
         public static void GatherProviderCPIO(ITargetProvider targetProvider, out List<TemplateDataDescriptor> descriptors)
@@ -25,23 +32,23 @@ namespace UnityEditor.ShaderGraph.Configuration
 
             foreach(var template in templateProvider.GetTemplates(new ShaderContainer()))
             {
-                var cpDescs = new List<(string, List<CPDataEntryDescriptor>, List<CPDataEntryDescriptor>)>();
+                var cpDescs = new List<CPDataDescriptor>();
                 foreach(var cp in template.CustomizationPoints())
                 {
-                    var inputs = new List<CPDataEntryDescriptor>();
-                    var outputs = new List<CPDataEntryDescriptor>();
+                    var inputs = new List<CPEntryDescriptor>();
+                    var outputs = new List<CPEntryDescriptor>();
 
                     foreach(var input in cp.Inputs)
                     {
-                        inputs.Add(new CPDataEntryDescriptor { name = input.Name, type = input.Type});
+                        inputs.Add(new CPEntryDescriptor { name = input.Name, type = input.Type});
                     }
 
                     foreach(var output in cp.Outputs)
                     {
-                        outputs.Add(new CPDataEntryDescriptor { name = output.Name, type = output.Type });
+                        outputs.Add(new CPEntryDescriptor { name = output.Name, type = output.Type });
                     }
 
-                    cpDescs.Add((cp.Name, inputs, outputs));
+                    cpDescs.Add(new CPDataDescriptor() { customizationPointName = cp.Name, inputs = inputs, outputs = outputs });
                 }
                 descriptors.Add(new TemplateDataDescriptor { templateName = template.Name, CPIO = cpDescs });
             }
