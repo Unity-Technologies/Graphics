@@ -178,7 +178,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 bool yflip = !isSourceYflipped && !isGameViewFinalTarget && SystemInfo.graphicsUVStartsAtTop;
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                cmd.SetViewport(new Rect(0, 0, cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
+                if (isGameViewFinalTarget)
+                    cmd.SetViewport(cameraData.pixelRect);
+                else
+                    cmd.SetViewport(new Rect(0, 0, cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
