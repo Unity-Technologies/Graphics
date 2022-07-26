@@ -1388,6 +1388,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = renderingData.cameraData;
                 passData.material = material;
                 passData.toneMappingMode = m_Tonemapping.mode.value;
+                passData.isHdr = hdr;
 
                 builder.SetRenderFunc((UberPostPassData data, RenderGraphContext context) =>
                 {
