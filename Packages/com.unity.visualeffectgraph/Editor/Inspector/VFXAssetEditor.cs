@@ -119,13 +119,25 @@ class VisualEffectAssetEditor : Editor
         }
         else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
+            var window = VFXViewWindow.GetWindow(vfxAsset, false);
+            if (window == null)
+            {
+                window = VFXViewWindow.GetWindow(vfxAsset, true);
+                window.LoadAsset(vfxAsset, null);
+            }
+            window.Focus();
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
+            var window = VFXViewWindow.GetWindow(resource, false);
+            if (window == null)
+            {
+                window = VFXViewWindow.GetWindow(resource, true);
+                window.LoadResource(resource, null);
+            }
+            window.Focus();
             return true;
         }
         else if (obj is Material || obj is ComputeShader)

@@ -25,6 +25,11 @@ namespace UnityEditor.VFX
             UnityEditor.VFX.Migration.ActivationToControlTrack.SanitizePlayable(importedAssets);
 #endif
 
+            if (deletedAssets.Any())
+            {
+                VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.UpdateHistory());
+            }
+
             foreach (var assetPath in importedAssets)
             {
                 bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
