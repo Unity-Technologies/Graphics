@@ -136,6 +136,12 @@ public class DocChecker : EditorWindow
 
     void GenerateDocumentation()
     {
+        if (!Directory.Exists(outputFolder))
+        {
+            EditorUtility.DisplayDialog("Invalid Output Folder", "Please provide a valid output folder", "Ok");
+            return;
+        }
+
         FindMissingDocs();
     }
 
