@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "MatrixConstructionRow",
+                    "Row",
 
 @"    Out4x4[0] = M0;
     Out4x4[1] = M1;
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "MatrixConstructionColumn",
+                    "Column",
 @"    Out4x4[0].x = M0.x; Out4x4[0].y = M1.x; Out4x4[0].z = M2.x; Out4x4[0].w = M3.x;
     Out4x4[1].x = M0.y; Out4x4[1].y = M1.y; Out4x4[1].z = M2.y; Out4x4[1].w = M3.y;
     Out4x4[2].x = M0.z; Out4x4[2].y = M1.z; Out4x4[2].z = M2.z; Out4x4[2].w = M3.z;
@@ -68,8 +68,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[3] { "create", "build", "construct" },
             selectableFunctions: new()
             {
-                { "MatrixConstructionRow", "Row" },
-                { "MatrixConstructionColumn", "Column" }
+                { "Row", "Row" },
+                { "Column", "Column" }
             },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[7] {

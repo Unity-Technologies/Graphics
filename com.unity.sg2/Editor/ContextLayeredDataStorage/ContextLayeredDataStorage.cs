@@ -17,7 +17,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         [NonSerialized]
         internal readonly LayerList m_layerList;
         [NonSerialized]
-        protected Dictionary<string, Element> m_flatStructureLookup;
+        protected Dictionary<ElementID, Element> m_flatStructureLookup;
         protected IEnumerable<(string layerName, Element root)> LayerList
         {
             get
@@ -29,7 +29,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        public IEnumerable<(string, Element)> FlatStructureLookup
+        public IEnumerable<(ElementID, Element)> FlatStructureLookup
         {
             get
             {
@@ -40,10 +40,11 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
+        
         public ContextLayeredDataStorage()
         {
             m_layerList = new LayerList(this);
-            m_flatStructureLookup = new Dictionary<string, Element>();
+            m_flatStructureLookup = new Dictionary<ElementID, Element>(new ElementIDComparer());
             m_metadata = new MetadataCollection();
             AddDefaultLayers();
         }
@@ -309,7 +310,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             foreach(var elem in src.Children)
             {
                 var recurse = elem.MakeCopy();
-                recurse.ID = $"{dst.ID.FullPath}{elem.ID.FullPath.Replace(src.ID.FullPath, "")}";
+                recurse.ID = ElementID.FromString($"{dst.ID.FullPath}{elem.ID.FullPath.Replace(src.ID.FullPath, "")}");
                 AddChild(dst,recurse);
                 UpdateFlattenedStructureAdd(recurse);
                 CopyDataBranch(elem, recurse);
@@ -325,7 +326,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public DataReader Search(ElementID lookup)
         {
-            if(m_flatStructureLookup.TryGetValue(lookup.FullPath, out Element reference))
+            if(m_flatStructureLookup.TryGetValue(lookup, out Element reference))
             {
                 return reference.GetReader();
             }
@@ -634,12 +635,12 @@ namespace UnityEditor.ContextLayeredDataStorage
                 catch
                 {
                     Debug.LogError($"Could not deserialize the data on element {data.id} of type {data.valueType}");
-                    output = new Element(data.id, this);
+                    output = new Element(ElementID.FromString(data.id), this);
                 }
             }
             else
             {
-                output = new Element(data.id, this);
+                output = new Element(ElementID.FromString(data.id), this);
             }
 
             try
@@ -660,7 +661,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal void UpdateFlattenedStructureAdd(Element addedElement)
         {
-            string id = addedElement.ID.FullPath;
+            ElementID id = addedElement.ID;
             if(m_flatStructureLookup.TryGetValue(id, out Element elem))
             {
                 if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
@@ -679,11 +680,11 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
-                m_flatStructureLookup[removedElementId.FullPath] = replacement;
+                m_flatStructureLookup[removedElementId] = replacement;
             }
             else
             {
-                m_flatStructureLookup.Remove(removedElementId.FullPath);
+                m_flatStructureLookup.Remove(removedElementId);
             }
         }
 

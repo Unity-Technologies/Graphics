@@ -9,11 +9,10 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 @"#if SHADERGRAPH_PREVIEW
-Direction = half3(-0.5, -0.5, 0);
+    Direction = half3(-0.5, -0.5, 0);
 #else
-Direction = SHADERGRAPH_MAIN_LIGHT_DIRECTION();
-#endif
-",
+    Direction = SHADERGRAPH_MAIN_LIGHT_DIRECTION();
+#endif",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Direction", TYPE.Vec3, GraphType.Usage.Out)

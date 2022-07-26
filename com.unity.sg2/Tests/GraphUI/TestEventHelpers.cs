@@ -301,7 +301,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         bool ExecuteCommand(string command)
         {
-            return m_Window.SendEvent(new Event { type = EventType.ExecuteCommand, commandName = command });
+            return m_Window.SendEvent(EditorGUIUtility.CommandEvent(command));
         }
 
         public static void TestAllElements(VisualElement container, Action<VisualElement> test)

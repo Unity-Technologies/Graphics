@@ -1,5 +1,7 @@
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -9,16 +11,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public class MatrixPart : AbstractStaticPortPart
     {
-        const string k_MatrixPartTemplate = "StaticPortParts/MatrixPart";
-        const string k_MatrixRowClass = "sg-matrix-row";
-        const string k_MatrixElementClass = "sg-matrix-element";
-        const string k_MatrixContainerName = "sg-matrix-container";
-
-        VisualElement m_Root;
-        FloatField[,] m_MatrixElementFields; // row, col
+        MatrixField m_MatrixField;
         readonly int m_Size;
 
-        public override VisualElement Root => m_Root;
+        public override VisualElement Root => m_MatrixField;
 
         public MatrixPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, int size)
             : base(name, model, ownerElement, parentClassName, portName)
@@ -26,43 +22,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Size = size;
         }
 
-        void CreateMatrixElementUIs(VisualElement container, int size)
-        {
-            m_MatrixElementFields = new FloatField[size, size];
-
-            for (var i = 0; i < size; i++)
-            {
-                var rowVisualElement = new VisualElement();
-                rowVisualElement.AddToClassList(k_MatrixRowClass);
-
-                for (var j = 0; j < size; j++)
-                {
-                    // UpdatePartFromModel will immediately update field's value.
-                    var fieldVisualElement = new FloatField {name = $"{k_MatrixElementClass}-{i}-{j}", value = 0};
-
-                    fieldVisualElement.AddToClassList(k_MatrixElementClass);
-                    fieldVisualElement.RegisterValueChangedCallback(OnMatrixElementChanged);
-                    fieldVisualElement.tooltip = $"Element {i}, {j}";
-
-                    m_MatrixElementFields[i, j] = fieldVisualElement;
-                    rowVisualElement.Add(fieldVisualElement);
-                }
-
-                container.Add(rowVisualElement);
-            }
-        }
-
-        void OnMatrixElementChanged(ChangeEvent<float> change)
+        void OnMatrixChanged(ChangeEvent<Matrix4x4> change)
         {
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
 
             var values = new float[m_Size * m_Size];
+            var write = 0;
             for (var i = 0; i < m_Size; i++)
             {
                 for (var j = 0; j < m_Size; j++)
                 {
-                    var flatIndex = i * m_Size + j;
-                    values[flatIndex] = m_MatrixElementFields[i, j].value;
+                    values[write++] = change.newValue[j, i];
                 }
             }
 
@@ -75,28 +45,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void BuildPartUI(VisualElement parent)
         {
-            m_Root = new VisualElement {name = PartName};
-            GraphElementHelper.LoadTemplateAndStylesheet(m_Root, k_MatrixPartTemplate, PartName);
+            m_MatrixField = new MatrixField(size: m_Size) {name = PartName};
+            m_MatrixField.RegisterValueChangedCallback(OnMatrixChanged);
 
-            CreateMatrixElementUIs(m_Root.Q<VisualElement>(k_MatrixContainerName), m_Size);
-
-            parent.Add(m_Root);
+            parent.Add(m_MatrixField);
         }
 
         protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            for (var i = 0; i < m_Size; i++)
+            var typeField = reader.GetTypeField();
+            var matrixValue = m_Size switch
             {
-                for (var j = 0; j < m_Size; j++)
-                {
-                    var flatIndex = i * m_Size + j;
-                    var field = reader.GetTypeField();
-                    float value = 0;
-                    if (field != null)
-                        value = GraphTypeHelpers.GetComponent(reader.GetTypeField(), flatIndex);
-                    m_MatrixElementFields[i, j].SetValueWithoutNotify(value);
-                }
-            }
+                4 => GraphTypeHelpers.GetAsMat4(typeField),
+                3 => GraphTypeHelpers.GetAsMat3(typeField),
+                2 => GraphTypeHelpers.GetAsMat2(typeField),
+                _ => Matrix4x4.zero,
+            };
+
+            m_MatrixField.SetValueWithoutNotify(matrixValue);
         }
     }
 }

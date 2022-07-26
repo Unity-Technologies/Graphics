@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "ReciprocalDefault",
+                    "Default",
                     "    Out = 1.0/In;",
                     new ParameterDescriptor[]
                     {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ReciprocalFast",
+                    "Fast",
                     "    Out = rcp(In);",
                     new ParameterDescriptor[]
                     {
@@ -39,8 +39,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[2] { "rcp", "divide" },
             selectableFunctions: new()
             {
-                { "ReciprocalDefault", "Default" },
-                { "ReciprocalFast", "Fast" }
+                { "Default", "Default" },
+                { "Fast", "Fast" }
             },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

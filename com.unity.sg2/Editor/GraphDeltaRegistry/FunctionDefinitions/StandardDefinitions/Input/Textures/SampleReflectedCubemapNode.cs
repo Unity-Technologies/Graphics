@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class SampleRawCubemapNode : IStandardNode
+    internal class SampleRelfectedCubemapNode : IStandardNode
     {
-        public static string Name => "SampleCubemap";
+        public static string Name => "SampleReflectedCubemap";
         public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
@@ -13,8 +13,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "SampleCubemapLOD",
-@"    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, Dir, LOD);
+                    "LODfunction",
+@"    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
@@ -23,7 +23,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                        new ParameterDescriptor("Dir", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.ObjectSpace_ViewDirection),
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.ObjectSpace_Normal),
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                         new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -35,8 +36,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleCubemapStandard",
-@"    RGBA = SAMPLE_TEXTURECUBE(Cube.tex, Sampler.samplerstate, Dir);
+                    "Standard",
+@"    RGBA = SAMPLE_TEXTURECUBE(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal));
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
@@ -45,7 +46,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                        new ParameterDescriptor("Dir", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                         new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
@@ -56,8 +58,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SampleCubemapBias",
-@"    RGBA = SAMPLE_TEXTURECUBE_BIAS(Cube.tex, Sampler.samplerstate, Dir, Bias);
+                    "Biasfunction",
+@"    RGBA = SAMPLE_TEXTURECUBE_BIAS(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), Bias);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
@@ -66,7 +68,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                        new ParameterDescriptor("Dir", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+                        new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
+                        new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
                         new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -83,24 +86,28 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Samples a Cubemap.",
+            tooltip: "Samples a Cubemap with a reflection vector.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "texcube" },
-            displayName: "Sample Cubemap",
+            displayName: "Sample Reflected Cubemap",
             selectableFunctions: new()
             {
-                { "SampleCubemapLOD", "LOD" },
-                { "SampleCubemapStanard", "Standard" },
-                { "SampleCubemapBias", "Bias" }
+                { "LODfunction", "LOD" },
+                { "Standard", "Standard" },
+                { "Biasfunction", "Bias" }
             },
-            parameters: new ParameterUIDescriptor[11] {
+            parameters: new ParameterUIDescriptor[12] {
                 new ParameterUIDescriptor(
                     name: "Cube",
                     tooltip: "the cubemap asset to sample"
                 ),
                 new ParameterUIDescriptor(
-                    name: "Dir",
-                    tooltip: "the direction vector used to sample the cubemap"
+                    name: "ViewDir",
+                    tooltip: "the vector that points toward the camera"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Normal",
+                    tooltip: "the surface normal of the model"
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

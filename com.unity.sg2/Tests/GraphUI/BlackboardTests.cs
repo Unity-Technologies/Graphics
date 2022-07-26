@@ -5,12 +5,11 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.Overlays;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using Assert = UnityEngine.Assertions.Assert;
-using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
@@ -76,23 +75,50 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return null;
         }
 
-        [UnityTest]
-        public IEnumerator TestBlackboardLoadsWithCorrectFieldType()
+        static readonly (string, Type)[] ExpectedFieldTypes =
         {
+            // name of item in blackboard create menu, type of initialization field (or null if it should not exist)
+            ("Create Integer", typeof(IntegerField)),
+            ("Create Float", typeof(FloatField)),
+            ("Create Boolean", typeof(Toggle)),
+            ("Create Vector 2", typeof(Vector2Field)),
+            ("Create Vector 3", typeof(Vector3Field)),
+            ("Create Vector 4", typeof(Vector4Field)),
+            ("Create Color", typeof(ColorField)),
+            ("Create Matrix 2", typeof(MatrixField)),
+            ("Create Matrix 3", typeof(MatrixField)),
+            ("Create Matrix 4", typeof(MatrixField)),
+            ("Create Gradient", typeof(GradientField)),
+            ("Create Texture2D", typeof(ObjectField)),
+            ("Create Texture2DArray", typeof(ObjectField)),
+            ("Create Texture3D", typeof(ObjectField)),
+            ("Create Cubemap", typeof(ObjectField)),
+            // ("Create SamplerStateData", null), TODO (Joe): TBD in GSG-1217
+        };
+
+        [UnityTest]
+        public IEnumerator TestPropertyLoadsWithCorrectFieldType(
+            [ValueSource(nameof(ExpectedFieldTypes))] (string, Type) testCase
+        )
+        {
+            var (createItemName, fieldType) = testCase;
+
             void ValidateCreatedField()
             {
                 var view = GetFirstBlackboardElementOfType<GraphDataBlackboardVariablePropertyView>();
-                if (view == null)
+                Assert.IsNotNull(view, "View for created property was not found");
+
+                var field = view.Q<BaseModelPropertyField>(className: "ge-inline-value-editor");
+                if (fieldType is null)
                 {
-                    Assert.IsFalse(true);
-                    throw new Exception("Unreachable");
+                    Assert.IsNull(field, "Created blackboard item should not have an Initialization field");
                 }
-
-                var field = view.Q<ConstantField>(className: "ge-inline-value-editor");
-                Assert.IsNotNull(field, "Created blackboard item should contain an Initialization field");
-
-                var firstChild = field.Children().First();
-                Assert.IsTrue(firstChild is FloatField, "Float property should have a float field");
+                else
+                {
+                    Assert.IsNotNull(field, "Created blackboard item should have an Initialization field");
+                    var firstChild = field.Children().First();
+                    Assert.IsTrue(firstChild.GetType().IsAssignableFrom(fieldType), $"Property created with \"{createItemName}\" should have field of type {fieldType.Name}");
+                }
             }
 
             {
@@ -101,8 +127,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 var createMenu = new List<Stencil.MenuItem>();
                 stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
 
-                var floatItem = createMenu.FirstOrDefault(i => i.name == "Create Float");
-                Assert.IsNotNull(floatItem, "Blackboard create menu must contain a \"Create Float\" item");
+                var floatItem = createMenu.FirstOrDefault(i => i.name == createItemName);
+                Assert.IsNotNull(floatItem, $"\"{createItemName}\" item from test case was not found in Blackboard create menu. Are the test cases up-to-date?");
 
                 floatItem.action.Invoke();
                 yield return null;

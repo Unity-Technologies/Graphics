@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-"Out = max(0, FaceSign.x);",
+"    Out = max(0, FaceSign.x);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out),
