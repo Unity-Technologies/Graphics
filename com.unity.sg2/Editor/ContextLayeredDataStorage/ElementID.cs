@@ -34,7 +34,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public override int GetHashCode()
         {
-            return ((IStructuralEquatable)m_path).GetHashCode(StringComparer.Create(CultureInfo.InvariantCulture, false));
+            return ((IStructuralEquatable)m_path).GetHashCode(StringComparer.Ordinal);
         }
 
         public ElementID(string id)

@@ -691,7 +691,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                     {
                         returnedElements.Add(child.ID);
                     }
-                    else if(searchID.IsSubpathOf(child.ID))
+                    else if(child.ID.IsSubpathOf(searchID) || child.ID.Equals(searchID))
                     {
                         workingSet.Push(child);
                     }
@@ -706,23 +706,17 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal IEnumerable<Element> GetChildren(ElementID id)
         {
-            var search = SearchRelative(m_flatStructure, id);
-            HashSet<ElementID> children = new HashSet<ElementID>(new ElementIDComparer());
-            if (search != null)
+            //var search = SearchRelative(m_flatStructure, id);
+            //if (search != null)
+            //{
+            //    foreach (var c in search.Children)
+            //    {
+            //        children.Add(c.ID); //the partial search might already encompass this and the initial search doesnt need to happen
+            //    }
+            //}
+            foreach(var c in FlatStructurePartialSearch(id))
             {
-                foreach (var c in search.Children)
-                {
-                    children.Add(c.ID); //the partial search might already encompass this and the initial search doesnt need to happen
-                }
-            }
-            foreach(var p in FlatStructurePartialSearch(id))
-            {
-                children.Add(p.ID);
-            }
-
-            foreach(var cid in children)
-            {
-                yield return m_flatStructureLookup[cid];
+                yield return m_flatStructureLookup[c.ID];
             }
         }
 
