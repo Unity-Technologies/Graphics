@@ -1306,6 +1306,5 @@ Shader "HDRP/LayeredLit"
         }
     }
 
-    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "UnityEditor.Rendering.HighDefinition.LayeredLitGUI"
 }

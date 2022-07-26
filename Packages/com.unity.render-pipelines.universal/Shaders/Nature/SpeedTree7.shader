@@ -223,6 +223,5 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
     }
 
     Dependency "BillboardShader" = "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
-    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "SpeedTreeMaterialInspector"
 }

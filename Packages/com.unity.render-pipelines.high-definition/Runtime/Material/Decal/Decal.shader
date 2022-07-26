@@ -300,7 +300,5 @@ Shader "HDRP/Decal"
         }
 
     }
-
-    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.DecalUI"
 }

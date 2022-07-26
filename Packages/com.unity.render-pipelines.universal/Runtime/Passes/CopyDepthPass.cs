@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
         /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
         /// <param name="copyToDepth">Controls whether it should do a copy to a depth format target.</param>
+        /// <param name="copyResolvedDepth">Set to true if the source depth is MSAA resolved.</param>
         /// <seealso cref="RenderPassEvent"/>
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
         {

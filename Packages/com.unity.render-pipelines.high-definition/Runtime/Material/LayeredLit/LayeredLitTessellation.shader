@@ -1363,6 +1363,5 @@ Shader "HDRP/LayeredLitTessellation"
         }
     }
 
-    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "UnityEditor.Rendering.HighDefinition.LayeredLitGUI"
 }

@@ -362,6 +362,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// Check whether RenderRequest is supported
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="data"></param>
+        /// <typeparam name="RequestData"></typeparam>
+        /// <returns></returns>
         protected override bool IsRenderRequestSupported<RequestData>(Camera camera, RequestData data)
         {
             if (data is StandardRequest)
@@ -372,6 +379,13 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        /// <summary>
+        /// Process a render request
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="camera"></param>
+        /// <param name="renderRequest"></param>
+        /// <typeparam name="RequestData"></typeparam>
         protected override void ProcessRenderRequests<RequestData>(ScriptableRenderContext context, Camera camera, RequestData renderRequest)
         {
             StandardRequest standardRequest = renderRequest as StandardRequest;
@@ -1639,11 +1653,29 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        /// <summary>
+        /// Data structure describing the data for a specific render request
+        /// </summary>
         public class SingleCameraRequest
         {
+            /// <summary>
+            /// Target texture
+            /// </summary>
             public RenderTexture destination = null;
+
+            /// <summary>
+            /// Target texture mip level
+            /// </summary>
             public int mipLevel = 0;
+
+            /// <summary>
+            /// Target texture cubemap face
+            /// </summary>
             public CubemapFace face = CubemapFace.Unknown;
+
+            /// <summary>
+            /// Target texture slice
+            /// </summary>
             public int slice = 0;
         }
     }

@@ -509,12 +509,23 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            // Decal DBuffer
-            if (stripTool.StripMultiCompile(
-                m_DBufferMRT1, ShaderFeatures.DBufferMRT1,
-                m_DBufferMRT2, ShaderFeatures.DBufferMRT2,
-                m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
-                return true;
+            if (IsGLDevice(compilerData))
+            {
+                // Decal DBuffer is not supported on gl
+                if (compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT1) ||
+                    compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT2) ||
+                    compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
+                    return true;
+            }
+            else
+            {
+                // Decal DBuffer
+                if (stripTool.StripMultiCompile(
+                    m_DBufferMRT1, ShaderFeatures.DBufferMRT1,
+                    m_DBufferMRT2, ShaderFeatures.DBufferMRT2,
+                    m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
+                    return true;
+            }
 
             if (IsGLDevice(compilerData))
             {
