@@ -374,7 +374,10 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             List<Length> allCombos = new List<Length>();
             foreach(var l in Enum.GetValues(typeof(Length)))
             {
-                allCombos.Add((Length)l);
+                if ((int)l > 0)
+                {
+                    allCombos.Add((Length)l);
+                }
             }
 
             foreach(var c in allCombos)
@@ -399,6 +402,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                         catch(Exception e)
                         {
                             Debug.LogError($"Failed to convert from {c.ToString()} to {c2.ToString()} despite passing TestConnection");
+                            Debug.LogError(e.StackTrace);
                             throw e;
                         }
                     }
