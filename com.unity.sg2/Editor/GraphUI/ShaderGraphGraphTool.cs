@@ -105,8 +105,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             m_PreviewManager.ReassignAllNodePreviewTextures();
-
-            // TODO: Handling target settings changes
         }
 
         internal void HandleGraphLoad(LoadGraphCommand loadGraphCommand)
