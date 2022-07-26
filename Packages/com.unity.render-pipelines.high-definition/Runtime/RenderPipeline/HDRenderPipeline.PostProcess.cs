@@ -129,7 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowsMidtonesHighlights m_ShadowsMidtonesHighlights;
         ColorCurves m_Curves;
         FilmGrain m_FilmGrain;
-        PathTracing m_PathTracing;
 
         // Prefetched frame settings (updated on every frame)
         bool m_StopNaNFS;
@@ -339,7 +338,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
             m_Curves = stack.GetComponent<ColorCurves>();
             m_FilmGrain = stack.GetComponent<FilmGrain>();
-            m_PathTracing = stack.GetComponent<PathTracing>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
@@ -360,7 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing) || camera.IsTAAUEnabled();
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
-            m_AntialiasingFS &= !m_PathTracing.enable.value;
+            m_AntialiasingFS &= !camera.IsPathTracingEnabled();
 
             // Sanity check, cant run dlss unless the pass is not null
             m_DLSSPassEnabled = m_DLSSPass != null && camera.IsDLSSEnabled();
@@ -455,15 +453,15 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle backBuffer,
             TextureHandle sunOcclusionTexture,
             CullingResults cullResults,
-            HDCamera hdCamera)
+            HDCamera hdCamera,
+            bool postProcessIsFinalPass)
         {
-            bool postPRocessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
             TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(renderGraph, hdCamera, cullResults, prepassOutput);
-            TextureHandle dest = postPRocessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
+            TextureHandle dest = postProcessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, false, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
 
             var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : renderGraph.defaultResources.blackTextureXR;
-            bool flipYInPostProcess = postPRocessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            bool flipYInPostProcess = postProcessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
@@ -530,7 +528,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
-                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !m_PathTracing.enable.value)
+                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !hdCamera.IsPathTracingEnabled())
                 {
                     RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
                 }
@@ -578,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = RobustContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
             }
 
-            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess);
+            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess, postProcessIsFinalPass);
 
             bool currFrameIsTAAUpsampled = hdCamera.IsTAAUEnabled();
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
@@ -2248,6 +2246,21 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note: The DoF sampling is performed in normalized space in the shader, so we don't need any scaling for half/quarter resoltion.
         }
 
+        static float GetDoFResolutionMaxMip(in DepthOfFieldParameters dofParameters)
+        {
+            // For low sample counts & resolution scales, the DoF result looks very different from base resolutions (even if we scale the sample distance).
+            // Thus, here we try to enforce a maximum mip to clamp to depending on the the resolution scale.
+            switch (dofParameters.resolution)
+            {
+                case DepthOfFieldResolution.Full:
+                    return 4.0f;
+                case DepthOfFieldResolution.Half:
+                    return 3.0f;
+                default:
+                    return 2.0f;
+            }
+        }
+
         static int GetDoFDilationPassCount(in DepthOfFieldParameters dofParameters, in float dofScale, in float nearMaxBlur)
         {
             return Mathf.CeilToInt((nearMaxBlur * dofScale + 2) / 4f);
@@ -2590,7 +2603,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherFarKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farMaxBlur * scale, barrelClipping, farMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params1, new Vector4(farSamples, farMaxBlur * scale, barrelClipping, farMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(GetDoFResolutionMaxMip(dofParameters), 0, 0, 0));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
@@ -2653,7 +2667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherNearKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearMaxBlur * scale, barrelClipping, nearMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params1, new Vector4(nearSamples, nearMaxBlur * scale, barrelClipping, nearMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
@@ -2949,7 +2963,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                hdCamera.IsPathTracingEnabled() &&
                 hdCamera.camera.cameraType != CameraType.Preview &&
                 m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
 
@@ -4968,9 +4982,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle afterPostProcessTexture;
             public TextureHandle alphaTexture;
             public TextureHandle destination;
+            public bool postProcessIsFinalPass;
         }
 
-        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, BlueNoise blueNoise, bool flipY)
+        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, BlueNoise blueNoise, bool flipY, bool postProcessIsFinalPass)
         {
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
@@ -5004,6 +5019,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
                 passData.alphaTexture = builder.ReadTexture(alphaTexture);
                 passData.destination = builder.WriteTexture(finalRT);
+                passData.postProcessIsFinalPass = postProcessIsFinalPass;
 
                 builder.SetRenderFunc(
                     (FinalPassData data, RenderGraphContext ctx) =>
@@ -5106,7 +5122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // When post process is not the final pass, we render at (0,0) so that subsequent rendering does not have to bother about viewports.
                         // Final viewport is handled in the final blit in this case
-                        if (!HDUtils.PostProcessIsFinalPass(data.hdCamera))
+                        if (!data.postProcessIsFinalPass)
                         {
                             backBufferRect.x = backBufferRect.y = 0;
                         }

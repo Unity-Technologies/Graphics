@@ -280,7 +280,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
                 }
 
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, sunOcclusionTexture, cullingResults, hdCamera);
+               bool postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera, aovRequest);                
+               TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, sunOcclusionTexture, cullingResults, hdCamera, postProcessIsFinalPass);
 
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
@@ -293,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
                 // Because of this, we need another blit here to the final render target at the right viewport.
-                if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
+                if (!postProcessIsFinalPass)
                 {
                     hdCamera.ExecuteCaptureActions(m_RenderGraph, postProcessDest);
 

@@ -137,13 +137,26 @@ A double-sided surface with Transmission enabled.
 <a name="hair"></a>
 ## Hair
 
-Path tracing gives human hair a volumetric look. To do this, path tracing calculates the multiple scattering events that happen in a full head of hair. It is particularly effective for lighter hair tones.
+# Hair
 
-You can only use path tracing with hair you create with the [Hair Master Stack](master-stack-hair.md). The Hair Master Stack provides two hair Material Types. Path tracing works with the **Physical** Type.
+Path tracing gives human hair a volumetric look. To do this, path tracing calculates the multiple scattering events that happen in a full head of hair. It is particularly effective for lighter hair tones. 
+
+You can only use path tracing with hair you create with the [Hair Master Stack](master-stack-hair.md). The Hair Master Stack provides two hair Material Types. Path tracing works with the **Physical** Type. 
 
 **Tip:** The second Material Type, **Approximate**, does not work with path tracing. You can learn more about it in [The Approximate Material Type](master-stack-hair.md#hair-approximate).
 
 If you create hair using ribbons, it won’t work with path tracing in Unity. For path tracing to work with hair, you must use cards or tube geometry. For more information, see [Geometry type](master-stack-hair.md\#hair-geometry).
+
+##  Path tracing and automatic histogram exposure
+Path tracing creates noise that changes the minimum and maximum values that HDRP uses for automatic, histogram-based [exposure](Override-Exposure.md). You can visualize this when you use the [RGB Histogram](Render-Pipeline-Debug-Window.md#LightingPanel) to debug the exposure in your scene.
+
+This is especially visible in the first few un-converged frames that have the highest level of noise. However, this does not affect the exposure of the final converged frame.
+
+If there is any noise that affects the exposure in the final converged frame, adjust the following properties in the [Automatic Histogram](Override-Exposure.md#AutomaticHistogram) override to set the exposure to your desired range:
+
+* **Limit Min**
+
+* **Limit Max**
 
 ## Limitations
 

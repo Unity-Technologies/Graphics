@@ -718,6 +718,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
         }
 
+        internal bool IsPathTracingEnabled()
+        {
+            var pathTracing = volumeStack.GetComponent<PathTracing>();
+            return pathTracing ? pathTracing.enable.value : false;
+        }
+
         internal bool UpsampleHappensBeforePost()
         {
             return IsDLSSEnabled() || IsTAAUEnabled();
@@ -732,7 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || IsTAAUEnabled();
+            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || IsTAAUEnabled()) && !IsPathTracingEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -833,7 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled();
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
