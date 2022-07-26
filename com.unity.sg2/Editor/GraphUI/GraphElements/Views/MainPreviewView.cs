@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             BuildPreviewMeshIndex();
 
-            this.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
         void OnAttachToPanel(AttachToPanelEvent evt)
@@ -76,14 +76,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 owningOverlay.UnregisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
                 owningOverlay.RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
-
-                owningOverlay.RegisterCallback<MouseUpEvent>(MouseUp);
             }
-        }
-
-        void MouseUp(MouseUpEvent evt)
-        {
-            Debug.Log("Test");
         }
 
         void BuildPreviewMeshIndex()
