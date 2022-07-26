@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "VoronoiDeterministic",
+            "Deterministic",
             functions: new FunctionDescriptor[] {
                 new(
                     "Unity_Voronoi_RandomVector_Deterministic",
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "VoronoiDeterministic",
+                    "Deterministic",
 @"    g = floor(UV * CellDensity);
 	f = frac(UV * CellDensity);
 	for (int y = -1; y <= 1; y++)
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "VoronoiLegacySine",
+                    "LegacySine",
 @"    g = floor(UV * CellDensity);
 	f = frac(UV * CellDensity);
 	for (int y = -1; y <= 1; y++)
@@ -129,8 +129,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "worley noise" },
             selectableFunctions: new()
             {
-                { "VoronoiDeterministic", "Deterministic" },
-                { "VoronoiLegacySine", "Legacy Sine" }
+                { "Deterministic", "Deterministic" },
+                { "LegacySine", "Legacy Sine" }
             },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

@@ -3,17 +3,17 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 namespace UnityEditor.ShaderGraph.Defs
 {
 
-    internal class TexelSizeNode : IStandardNode
+    internal class TextureSizeNode : IStandardNode
     {
-        public static string Name => "TexelSize";
+        public static string Name => "TextureSize";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"Width = Texture.texelSize.z;
-Height = Texture.texelSize.w;
-TexelWidth = Texture.texelSize.x;
-TexelHeight = Texture.texelSize.y;",
+@"    Width = Texture.texelSize.z;
+    Height = Texture.texelSize.w;
+    TexelWidth = Texture.texelSize.x;
+    TexelHeight = Texture.texelSize.y;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),

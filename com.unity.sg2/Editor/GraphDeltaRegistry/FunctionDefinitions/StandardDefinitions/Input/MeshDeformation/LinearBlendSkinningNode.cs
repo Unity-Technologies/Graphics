@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class LinearBlendSkinningNode : IStandardNode
     {
         static string Name = "LinearBlendSkinning";
-        static int Version = 1;
+        static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 //TODO: How to handle Unity_LinearBlendSkinning_float being float or half
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
 /* the body code depends on this code existing
 uniform StructuredBuffer<float3x4> _SkinMatrices;
-        
+
 void Unity_LinearBlendSkinning_float(uint4 indices, float4 weights, float3 positionIn, float3 normalIn, float3 tangentIn, out float3 positionOut, out float3 normalOut, out float3 tangentOut)
 {
     positionOut = 0;
@@ -28,7 +28,7 @@ void Unity_LinearBlendSkinning_float(uint4 indices, float4 weights, float3 posit
             float3 vtransformed = mul(skinMatrix, float4(positionIn, 1));
             float3 ntransformed = mul(skinMatrix, float4(normalIn, 0));
             float3 ttransformed = mul(skinMatrix, float4(tangentIn, 0));
-        
+
             positionOut += vtransformed * weights[i];
             normalOut   += ntransformed * weights[i];
             tangentOut  += ttransformed * weights[i];

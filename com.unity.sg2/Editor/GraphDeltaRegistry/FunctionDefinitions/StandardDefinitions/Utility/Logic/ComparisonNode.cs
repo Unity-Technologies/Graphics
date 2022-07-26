@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "ComparisonEqual",
+                    "Equal",
                     "    Out = A == B;",
                     new ParameterDescriptor[]
                     {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ComparisonNotEqual",
+                    "NotEqual",
                     "    Out = A != B;",
                     new ParameterDescriptor[]
                     {
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ComparisonLess",
+                    "Less",
                     "    Out = A < B;",
                     new ParameterDescriptor[]
                     {
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ComparisonLessOrEqual",
+                    "LessOrEqual",
                     "    Out = A <= B;",
                     new ParameterDescriptor[]
                     {
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ComparisonGreater",
+                    "Greater",
                     "    Out = A > B;",
                     new ParameterDescriptor[]
                     {
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ComparisonGreaterOrEqual",
+                    "GreaterOrEqual",
                     "    Out = A >= B;",
                     new ParameterDescriptor[]
                     {
@@ -83,12 +83,12 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             selectableFunctions: new()
             {
-                { "ComparisonEqual", "== Equal" },
-                { "ComparisonNotEqual", "!= NotEqual" },
-                { "ComparisonLess", "< Less" },
-                { "ComparisonLessOrEqual", "<= Less Or Equal" },
-                { "ComparisonGreater", "> Greater" },
-                { "ComparisonGreaterOrEqual", ">= Greater Or Equal" },
+                { "Equal", "== Equal" },
+                { "NotEqual", "!= NotEqual" },
+                { "Less", "< Less" },
+                { "LessOrEqual", "<= Less Or Equal" },
+                { "Greater", "> Greater" },
+                { "GreaterOrEqual", ">= Greater Or Equal" },
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

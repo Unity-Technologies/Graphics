@@ -1,9 +1,11 @@
+//#define HANDLER_PROFILING
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
 using UnityEngine;
+using UnityEngine.Profiling;
 using static UnityEditor.ShaderGraph.Configuration.CPGraphDataProvider;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
@@ -178,6 +180,28 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
+        private void AddEntry(NodeHandler context, CPEntryDescriptor desc)
+        {
+#if HANDLER_PROFILING
+            Profiler.BeginSample("Add single entry");
+#endif
+            ContextBuilder.AddReferableEntry(context,
+                new ContextEntry
+                {
+                    fieldName = desc.name,
+                    height = desc.type.IsMatrix ? (GraphType.Height)desc.type.MatrixRows : GraphType.Height.One,
+                    length = desc.type.IsVector ? (GraphType.Length)desc.type.VectorDimension : GraphType.Length.One,
+                    primitive = GraphType.Primitive.Float,
+                    precision = GraphType.Precision.Fixed
+                },
+                registry,
+                source: ContextEntryEnumTags.DataSource.Global);
+#if HANDLER_PROFILING
+            Profiler.EndSample();
+#endif
+        }
+
+
         public void RebuildContextData(
             ElementID contextNode,
             ITargetProvider target,
@@ -185,21 +209,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string cpName,
             bool input)
         {
-            void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
-            {
-                ContextBuilder.AddReferableEntry(context,
-                    new ContextEntry
-                    {
-                        fieldName = desc.name,
-                        height = desc.type.IsMatrix ? (GraphType.Height)desc.type.MatrixRows : GraphType.Height.One,
-                        length = desc.type.IsVector ? (GraphType.Length)desc.type.VectorDimension : GraphType.Length.One,
-                        primitive = GraphType.Primitive.Float,
-                        precision = GraphType.Precision.Fixed
-                    },
-                    registry,
-                    source: ContextEntryEnumTags.DataSource.Global);
-            }
-
+            
             var context = GetNode(contextNode);
             if(context == null)
             {
@@ -210,14 +220,26 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             context.DefaultLayer = GraphDelta.k_concrete;
 
             GatherProviderCPIO(target, out var descriptors);
+#if HANDLER_PROFILING
+            Profiler.BeginSample("Iterate over gathered CustomizationPoint inputs and outputs");
+#endif
             foreach(var descriptor in descriptors)
             {
+#if HANDLER_PROFILING
+                Profiler.BeginSample("Foreach Descriptor");
+#endif
                 if(descriptor.templateName.Equals(templateName, StringComparison.OrdinalIgnoreCase))
                 {
+#if HANDLER_PROFILING
+                    Profiler.BeginSample("Foreach CustomizationPoint");
+#endif
                     foreach(var cpio in descriptor.CPIO)
                     {
                         if(cpio.customizationPointName.Equals(cpName, StringComparison.OrdinalIgnoreCase))
                         {
+#if HANDLER_PROFILING
+                            Profiler.BeginSample("Foreach Entry");
+#endif
                             if(input)
                             {
                                 foreach(var i in cpio.inputs)
@@ -233,11 +255,26 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 }
                             }
                             context.AddField("_CustomizationPointName", cpName);
+#if HANDLER_PROFILING
+                            Profiler.EndSample();
+                            Profiler.EndSample();
+                            Profiler.EndSample();
+                            Profiler.EndSample();
+#endif
                             return;
                         }
                     }
+#if HANDLER_PROFILING
+                    Profiler.EndSample();
+#endif
                 }
+#if HANDLER_PROFILING
+                Profiler.EndSample();
+#endif
             }
+#if HANDLER_PROFILING
+            Profiler.EndSample();
+#endif
         }
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges)

@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "NormalBlendDefault",
+                    "Default",
 @"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
 	Out = SafeNormalize(Out);",
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "NormalBlendReoriented",
+                    "Reoriented",
 @"    t += A;
     u *= B;
     Out = (t / t.z) * dot(t, u) - u;",
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "NormalBlendDefaultO",
+                    "DefaultO",
 @"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
 	Out = lerp(A, SafeNormalize(Out), Opacity);",
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "NormalBlendReorientedO",
+                    "ReorientedO",
 @"    t += A;
     u *= B;
     Out = lerp( A, ((t / t.z) * dot(t, u) - u), Opacity);",
@@ -78,10 +78,10 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal Blend",
             selectableFunctions: new()
             {
-                { "NormalBlendDefault", "Whiteout" },
-                { "NormalBlendReoriented", "Reoriented" },
-                { "NormalBlendDefaultO", "Whiteout Opacity" },
-                { "NormalBlendReorientedO", "Reoriented Opacity" }
+                { "Default", "Whiteout" },
+                { "Reoriented", "Reoriented" },
+                { "DefaultO", "Whiteout Opacity" },
+                { "ReorientedO", "Reoriented Opacity" }
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

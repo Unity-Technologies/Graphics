@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "NormalFromHeightTangent",
+                    "Tangent",
 @"  worldDerivativeX = ddx(PositionWS);
     crossY = cross(ddy(PositionWS), NormalWS);
     d = dot(worldDerivativeX, crossY);
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "NormalFromHeightWorld",
+                    "World",
 @"  TangentMatrix[0] = TangentWS;
     TangentMatrix[1] = BitangentWS;
     TangentMatrix[2] = NormalWS;
@@ -71,8 +71,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal From Height",
             selectableFunctions: new()
             {
-                { "NormalFromHeightTangent", "Tangent" },
-                { "NormalFromHeightWorld", "World" },
+                { "Tangent", "Tangent" },
+                { "World", "World" },
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "ExponentialBaseE",
+                    "BaseE",
                     "    Out = exp(In);",
                     new ParameterDescriptor[]
                     {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "ExponentialBase2",
+                    "Base2",
                     "    Out = exp2(In);",
                     new ParameterDescriptor[]
                     {
@@ -39,8 +39,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {
-                { "ExponentialBaseE", "BaseE" },
-                { "ExponentialBase2", "Base2" }
+                { "BaseE", "BaseE" },
+                { "Base2", "Base2" }
             },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

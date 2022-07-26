@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("Range", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
             }
         );
 

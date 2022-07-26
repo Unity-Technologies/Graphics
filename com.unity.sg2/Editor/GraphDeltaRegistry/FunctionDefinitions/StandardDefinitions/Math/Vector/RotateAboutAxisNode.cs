@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "RotateAboutAxisRadians",
+                    "Radians",
 @"    sincos(Rotation, s, c);
     one_minus_c = 1.0 - c;
     Axis = normalize(Axis);
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "RotateAboutAxisDegrees",
+                    "Degrees",
 @"    Rotation = radians(Rotation);
     sincos(Rotation, s, c);
     one_minus_c = 1.0 - c;
@@ -77,8 +77,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Rotate About Axis",
             selectableFunctions: new()
             {
-                { "RotateAboutAxisRadians", "Radians" },
-                { "RotateAboutAxisDegrees", "Degrees" }
+                { "Radians", "Radians" },
+                { "Degrees", "Degrees" }
             },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

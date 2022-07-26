@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "SceneDepthLinear01",
+                    "Linear01",
                     "Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);",
                     new ParameterDescriptor[]
                     {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SceneDepthRaw",
+                    "Raw",
                     "Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);",
                     new ParameterDescriptor[]
                     {
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SceneDepthEye",
+                    "Eye",
 @"if (unity_OrthoParams.w == 1.0)
 {
 Out = LinearEyeDepth(ComputeWorldSpacePosition(UV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
@@ -57,9 +57,9 @@ Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
             displayName: "Scene Depth",
             selectableFunctions: new()
             {
-                { "SceneDepthLinear01", "Linear01" },
-                { "SceneDepthRaw", "Raw" },
-                { "SceneDepthEye", "Eye" }
+                { "Linear01", "Linear01" },
+                { "Raw", "Raw" },
+                { "Eye", "Eye" }
             },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

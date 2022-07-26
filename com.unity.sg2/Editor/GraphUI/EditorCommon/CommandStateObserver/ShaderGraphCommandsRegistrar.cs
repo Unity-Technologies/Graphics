@@ -45,11 +45,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphViewModel.SelectionState,
                 previewManager);
 
-            dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, RenameElementCommand>(
-                ShaderGraphCommandOverrides.HandleGraphElementRenamed,
-                graphViewModel.GraphViewState,
-                previewManager);
-
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, UpdateConstantValueCommand>(
                 ShaderGraphCommandOverrides.HandleUpdateConstantValue,
                 graphTool.UndoStateComponent,

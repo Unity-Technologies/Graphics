@@ -94,33 +94,33 @@ namespace UnityEditor.ShaderGraph.Defs
         }
 
         public static readonly ReferenceValueDescriptor WorldSpace = new("");
-        public static readonly ReferenceValueDescriptor WorldSpace_Normal = new("");
-        public static readonly ReferenceValueDescriptor WorldSpace_Tangent = new("");
-        public static readonly ReferenceValueDescriptor WorldSpace_Bitangent = new("");
-        public static readonly ReferenceValueDescriptor WorldSpace_ViewDirection = new("");
-        public static readonly ReferenceValueDescriptor WorldSpace_Position = new("");
+        public static readonly ReferenceValueDescriptor WorldSpace_Normal = new("WorldSpaceNormal");
+        public static readonly ReferenceValueDescriptor WorldSpace_Tangent = new("WorldSpaceTangent");
+        public static readonly ReferenceValueDescriptor WorldSpace_Bitangent = new("WorldSpaceBiTangent");
+        public static readonly ReferenceValueDescriptor WorldSpace_ViewDirection = new("WorldSpaceViewDirection");
+        public static readonly ReferenceValueDescriptor WorldSpace_Position = new("WorldSpacePosition");
         public static readonly ReferenceValueDescriptor WorldSpace_CameraPosition = new("");
 
         public static readonly ReferenceValueDescriptor ObjectSpace = new("");
         public static readonly ReferenceValueDescriptor ObjectSpace_Normal = new("ObjectSpaceNormal");
         public static readonly ReferenceValueDescriptor ObjectSpace_Tangent = new("ObjectSpaceTangent");
-        public static readonly ReferenceValueDescriptor ObjectSpace_Bitangent = new("");
-        public static readonly ReferenceValueDescriptor ObjectSpace_ViewDirection = new("");
+        public static readonly ReferenceValueDescriptor ObjectSpace_Bitangent = new("ObjectSpaceBiTangent");
+        public static readonly ReferenceValueDescriptor ObjectSpace_ViewDirection = new("ObjectSpaceViewDirection");
         public static readonly ReferenceValueDescriptor ObjectSpace_Position = new("ObjectSpacePosition");
 
         public static readonly ReferenceValueDescriptor ViewSpace = new("");
-        public static readonly ReferenceValueDescriptor ViewSpace_Normal = new("");
-        public static readonly ReferenceValueDescriptor ViewSpace_Tangent = new("");
-        public static readonly ReferenceValueDescriptor ViewSpace_Bitangent = new("");
-        public static readonly ReferenceValueDescriptor ViewSpace_ViewDirection = new("");
-        public static readonly ReferenceValueDescriptor ViewSpace_Position = new("");
+        public static readonly ReferenceValueDescriptor ViewSpace_Normal = new("ViewSpaceNormal");
+        public static readonly ReferenceValueDescriptor ViewSpace_Tangent = new("ViewSpaceTangent");
+        public static readonly ReferenceValueDescriptor ViewSpace_Bitangent = new("ViewSpaceBiTangent");
+        public static readonly ReferenceValueDescriptor ViewSpace_ViewDirection = new("ViewSpaceViewDirection");
+        public static readonly ReferenceValueDescriptor ViewSpace_Position = new("ViewSpacePosition");
 
         public static readonly ReferenceValueDescriptor TangentSpace = new("");
-        public static readonly ReferenceValueDescriptor TangentSpace_Normal = new("");
-        public static readonly ReferenceValueDescriptor TangentSpace_Tangent = new("");
-        public static readonly ReferenceValueDescriptor TangentSpace_Bitangent = new("");
-        public static readonly ReferenceValueDescriptor TangentSpace_ViewDirection = new("");
-        public static readonly ReferenceValueDescriptor TangentSpace_Position = new("");
+        public static readonly ReferenceValueDescriptor TangentSpace_Normal = new("TangentSpaceNormal");
+        public static readonly ReferenceValueDescriptor TangentSpace_Tangent = new("TangentSpaceTangent");
+        public static readonly ReferenceValueDescriptor TangentSpace_Bitangent = new("TangentSpaceBiTangent");
+        public static readonly ReferenceValueDescriptor TangentSpace_ViewDirection = new("TangentSpaceViewDirection");
+        public static readonly ReferenceValueDescriptor TangentSpace_Position = new("TangentSpacePosition");
 
         public static readonly ReferenceValueDescriptor UV0 = new("uv0");
         public static readonly ReferenceValueDescriptor UV1 = new("uv1");
@@ -166,14 +166,14 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static readonly ReferenceValueDescriptor Fog = new("");
 
-        public static readonly ReferenceValueDescriptor Vertex_Color = new("");
-        public static readonly ReferenceValueDescriptor FaceSign = new("");
-        public static readonly ReferenceValueDescriptor TimeParameters = new("");
-        public static readonly ReferenceValueDescriptor VertexID = new("");
-        public static readonly ReferenceValueDescriptor BoneIndices = new("");
-        public static readonly ReferenceValueDescriptor BoneWeights1 = new("");
+        public static readonly ReferenceValueDescriptor Vertex_Color = new("VertexColor");
+        public static readonly ReferenceValueDescriptor FaceSign = new("FaceSign");
+        public static readonly ReferenceValueDescriptor TimeParameters = new("TimeParameters");
+        public static readonly ReferenceValueDescriptor VertexID = new("VertexID");
+        public static readonly ReferenceValueDescriptor BoneIndices = new("BoneIndices");
+        public static readonly ReferenceValueDescriptor BoneWeights1 = new("BoneWeights");
 
-        public static readonly ReferenceValueDescriptor ScreenPosition = new("");
+        public static readonly ReferenceValueDescriptor ScreenPosition = new("ScreenPosition");
         public static readonly ReferenceValueDescriptor ScreenPosition_Default = new("");
         public static readonly ReferenceValueDescriptor ScreenPosition_Raw = new("");
         public static readonly ReferenceValueDescriptor ScreenPosition_Center = new("");
