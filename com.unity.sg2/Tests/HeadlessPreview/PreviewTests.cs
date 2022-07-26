@@ -870,5 +870,64 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             material = previewMgr.RequestNodePreviewMaterial("SubgraphNode");
             Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(material));
         }
+
+        [Test]
+        public void MultiplyNodeTest()
+        {
+            var registry = new Registry();
+            var graphHandler = new GraphHandler(registry);
+            var previewMgr = new HeadlessPreviewManager();
+
+            var mat3 = new FunctionDescriptor("Matrix3", "Out = float3x3(1,0,0,0,1,0,0,0,1);", new ParameterDescriptor[] { new("Out", TYPE.Mat3, GraphType.Usage.Out) });
+            var vec3 = new FunctionDescriptor("Vector3", "Out = float3(1,0,0);", new ParameterDescriptor[] { new("Out", TYPE.Vec3, GraphType.Usage.Out) });
+
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
+            registry.Register<MultiplyNode>();
+            var mulKey = Registry.ResolveKey<MultiplyNode>();
+            var matKey = registry.Register(mat3);
+            var vecKey = registry.Register(vec3);
+
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
+
+            var matNode = graphHandler.AddNode(matKey, "matrixNode");
+            var vecNode = graphHandler.AddNode(vecKey, "vectorNode");
+            var mulNode = graphHandler.AddNode(mulKey, "multiplyNode");
+
+            var material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+
+            var matPort = matNode.GetPort("Out");
+            var vecPort = vecNode.GetPort("Out");
+
+            var portA = mulNode.GetPort(MultiplyNode.kInputA);
+            var portB = mulNode.GetPort(MultiplyNode.kInputB);
+
+            graphHandler.AddEdge(vecPort.ID, portB.ID); // vec * nothing
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+
+            graphHandler.AddEdge(vecPort.ID, portA.ID); // vec * vec
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+
+            graphHandler.AddEdge(matPort.ID, portA.ID); // mat * vec
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(1, 0, 0, 1), SampleMaterialColor(material));
+
+            graphHandler.AddEdge(matPort.ID, portB.ID); // mat * mat
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(1, 0, 0, 1), SampleMaterialColor(material));
+        }
     }
 }
