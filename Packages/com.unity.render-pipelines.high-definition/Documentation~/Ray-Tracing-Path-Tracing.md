@@ -137,6 +137,8 @@ A double-sided surface with Transmission enabled.
 <a name="hair"></a>
 ## Hair
 
+# Hair
+
 Path tracing gives human hair a volumetric look. To do this, path tracing calculates the multiple scattering events that happen in a full head of hair. It is particularly effective for lighter hair tones.
 
 You can only use path tracing with hair you create with the [Hair Master Stack](master-stack-hair.md). The Hair Master Stack provides two hair Material Types. Path tracing works with the **Physical** Type.

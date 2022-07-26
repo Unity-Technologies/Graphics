@@ -840,6 +840,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            public bool HasEmissivePass
+            {
+                get
+                {
+                    return m_cachedProjectorEmissivePassValue != -1;
+                }
+            }
+
             public int DrawOrder => m_CachedDrawOrder;
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
@@ -990,6 +998,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DecalsVisibleThisFrame = QueryCullResults(cullRequest, cullResults);
             foreach (var pair in m_DecalSets)
                 pair.Value.EndCull(cullRequest[pair.Key]);
+        }
+
+        public bool HasAnyForwardEmissive()
+        {
+            foreach (var decalSet in m_DecalSetsRenderList)
+            {
+                if (decalSet.HasEmissivePass)
+                    return true;
+            }
+            return false;
         }
 
         public void RenderIntoDBuffer(CommandBuffer cmd)

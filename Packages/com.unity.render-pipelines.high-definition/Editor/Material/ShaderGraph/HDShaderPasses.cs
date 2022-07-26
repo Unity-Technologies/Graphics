@@ -813,6 +813,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 Comp = "Always",
                 Pass = "Replace",
             }) },
+            { RenderState.ColorMask("ColorMask [_LightLayersMaskBuffer4] 4") },
+            { RenderState.ColorMask("ColorMask [_LightLayersMaskBuffer5] 5") },
         };
 
         #endregion

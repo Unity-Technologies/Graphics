@@ -103,9 +103,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
             if (_RayTracingClampingFlag)
             {
                 // In the case of the sky we always want to operate the clamping in hsv space (reflections and indirect diffuse)
-                finalColor = RgbToHsv(finalColor);
-                finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-                finalColor = HsvToRgb(finalColor);
+                finalColor = RayTracingHSVClamp(finalColor, _RaytracingIntensityClamp);
             }
         }
     }
@@ -119,14 +117,8 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
             // Expose, clamp and inverse exposure. Though depending on the signal nature we go for different clamping strategies
             if (_RaytracingPreExposition)
             {
-                // Convert to HSV space
-                finalColor = RgbToHsv(finalColor);
-
-                // Expose and clamp the final color
-                finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-
-                // Convert back to HSV space
-                finalColor = HsvToRgb(finalColor);
+                // Clamp in HSV space
+                finalColor = RayTracingHSVClamp(finalColor, _RaytracingIntensityClamp);
             }
             else
             {
@@ -179,14 +171,8 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         // Expose, clamp and inverse exposure. Though depending on the signal nature we go for different clamping strategies
         if (_RaytracingPreExposition)
         {
-            // Convert to HSV space
-            finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
-
-            // Expose and clamp the final color
-            finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-
-            // Convert back to HSV space
-            finalColor = HsvToRgb(finalColor);
+            // Clamp in HSV space
+            finalColor = RayTracingHSVClamp(finalColor * GetCurrentExposureMultiplier(), _RaytracingIntensityClamp);
         }
         else
         {

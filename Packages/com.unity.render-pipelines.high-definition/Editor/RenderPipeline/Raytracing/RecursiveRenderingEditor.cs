@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MinSmoothness;
         SerializedDataParameter m_RayMiss;
         SerializedDataParameter m_LastBounce;
+        SerializedDataParameter m_AmbientProbeDimmer;
 
         public override void OnEnable()
         {
@@ -29,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));
             m_LastBounce = Unpack(o.Find(x => x.lastBounce));
+            m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays in meters.");
@@ -64,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                             EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
                             PropertyField(m_RayMiss);
                             PropertyField(m_LastBounce);
+                            PropertyField(m_AmbientProbeDimmer);
                         }
                     }
                 }
