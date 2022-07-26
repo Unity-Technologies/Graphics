@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.URP
 
         public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
-            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader);
+            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);
             material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
         }
