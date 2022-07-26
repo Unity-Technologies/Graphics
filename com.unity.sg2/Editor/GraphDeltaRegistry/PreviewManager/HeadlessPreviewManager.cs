@@ -208,26 +208,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var hlslName = Mock_GetHLSLNameForGlobalProperty(propertyName);
             SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, propertyName, newPropertyValue);
 
-            var impactedNodes = new List<string>();
+            var allImpactedNodes = new List<string>();
 
-            // Property nodes/referrables are mapped to nodes and can be retrieved as such
             foreach (var variableNode in variableNodeList)
             {
-                var propertyNode = m_GraphHandle.GetNode(variableNode);
-
-                foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(propertyNode))
-                {
-                    var downStreamNodeName = downStreamNode.ID.LocalPath;
-                    if (m_CachedPreviewData.TryGetValue(downStreamNodeName, out var nodePreviewData))
-                    {
-                        // TODO: Set values on MPB when we can expose and promote properties instead of regenerating shader
-                        nodePreviewData.isShaderOutOfDate = true;
-                        impactedNodes.Add(downStreamNode.ID.LocalPath);
-                    }
-                }
+                // TODO: Set values on MPB when we can expose and promote properties instead of regenerating shader
+                var downStreamNodes = MarkNodeForShaderRebuild(variableNode);
+                allImpactedNodes.AddRange(downStreamNodes);
             }
 
-            return impactedNodes;
+            return allImpactedNodes;
         }
 
         /// <summary>
@@ -248,16 +238,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, hlslName, newPropertyValue, portReader);
 
-                var sourceNode = m_GraphHandle.GetNode(nodeName);
-                var impactedNodes = new List<string>();
-                foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
-                {
-                    var downStreamNodeName = downStreamNode.ID.LocalPath;
-                    impactedNodes.Add(downStreamNodeName);
-
-                    m_CachedPreviewData[downStreamNodeName].isShaderOutOfDate = true;
-                }
-
+                var impactedNodes = MarkNodeForShaderRebuild(nodeName);
                 return impactedNodes;
             }
 
@@ -278,33 +259,41 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             var impactedNodes = new List<string>();
 
-            var sourceNode = m_GraphHandle.GetNode(nodeName);
-            if (m_CachedPreviewData.ContainsKey(nodeName))
+            if (m_CachedPreviewData.ContainsKey(nodeName) && wasNodeDeleted)
             {
-                if (wasNodeDeleted)
-                {
-                    // Node was deleted, get rid of the preview data associated with it
-                    m_CachedPreviewData.Remove(nodeName);
-                }
-                else
-                {
-                    // TODO: Will we handle node bypassing directly in GetDownstreamNodes()?
-                    var previewData = m_CachedPreviewData[nodeName];
-                    previewData.isShaderOutOfDate = true;
-                }
+                // Node was deleted, get rid of the preview data associated with it
+                m_CachedPreviewData.Remove(nodeName);
             }
 
+            var sourceNode = m_GraphHandle.GetNode(nodeName);
+            // TODO: Will we handle node bypassing directly in GetDownstreamNodes()?
             if (sourceNode != null)
-            {
-                foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
-                {
-                    if (m_CachedPreviewData.TryGetValue(downStreamNode.ID.LocalPath, out var downStreamNodeData))
-                    {
-                        downStreamNodeData.isShaderOutOfDate = true;
-                    }
+                impactedNodes = MarkNodeForShaderRebuild(nodeName);
 
-                    impactedNodes.Add(downStreamNode.ID.LocalPath);
+            return impactedNodes;
+        }
+
+        /// <summary>
+        /// Marks the affected node and any nodes downstream of it for shader rebuild
+        /// </summary>
+        /// <param name="nodeName"> Name of the source node that needs shader rebuild </param>
+        /// <returns></returns>
+        List<string> MarkNodeForShaderRebuild(string nodeName)
+        {
+            if(m_CachedPreviewData.TryGetValue(nodeName, out var previewData))
+                previewData.isShaderOutOfDate = true;
+
+            var dirtyNode = m_GraphHandle.GetNode(nodeName);
+            var impactedNodes = new List<string>();
+
+            foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(dirtyNode))
+            {
+                if (m_CachedPreviewData.TryGetValue(downStreamNode.ID.LocalPath, out var downStreamNodeData))
+                {
+                    downStreamNodeData.isShaderOutOfDate = true;
                 }
+
+                impactedNodes.Add(downStreamNode.ID.LocalPath);
             }
 
             return impactedNodes;

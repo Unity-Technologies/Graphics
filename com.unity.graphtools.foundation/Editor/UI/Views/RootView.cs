@@ -40,12 +40,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="window">The <see cref="EditorWindow"/> containing this view.</param>
         /// <param name="graphTool">The tool hosting this view.</param>
-        protected RootView(EditorWindow window, BaseGraphTool graphTool)
+        /// GTF-EDIT: Added parameter to constructor to allow for exposing dispatcher instance to use
+        protected RootView(EditorWindow window, BaseGraphTool graphTool, Dispatcher dispatcher = null)
         {
             focusable = true;
 
             GraphTool = graphTool;
-            Dispatcher = new CommandDispatcher();
+            Dispatcher = dispatcher ?? new CommandDispatcher();
             Window = window;
 
             AddToClassList(ussClassName);

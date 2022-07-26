@@ -35,8 +35,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="window">The <see cref="EditorWindow"/> containing this view.</param>
         /// <param name="parentGraphView">The <see cref="GraphView"/> linked to this blackboard.</param>
-        public BlackboardView(EditorWindow window, GraphView parentGraphView)
-            : base(window, parentGraphView.GraphTool)
+        /// GTF-EDIT: Added parameter to constructor to allow for exposing dispatcher instance to use
+        public BlackboardView(EditorWindow window, GraphView parentGraphView, CommandDispatcher dispatcher = null)
+            : base(window, parentGraphView.GraphTool, dispatcher)
         {
             Model = new BlackboardViewModel(parentGraphView, GraphTool.HighlighterState);
 

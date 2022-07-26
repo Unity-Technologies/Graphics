@@ -207,11 +207,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override BlackboardView CreateBlackboardView()
         {
-            if (GraphView != null)
+            if (GraphView != null && GraphTool is ShaderGraphGraphTool graphTool)
             {
                 // TODO: (Sai) GTF should allow for a neater way to substitute a selection handler of our own
-                m_BlackboardView = new BlackboardView(this, GraphView);
+                m_BlackboardView = new BlackboardView(this, GraphView, new ShaderGraphCommandDispatcher(graphTool.HandleGraphLoad, graphTool.HandleUndoRedo));
                 m_BlackboardView.ViewSelection.DetachFromView();
+
                 var viewSelection = new SGBlackboardViewSelection(m_BlackboardView, m_BlackboardView.BlackboardViewModel);
                 viewSelection.AttachToView();
                 m_BlackboardView.ViewSelection = viewSelection;

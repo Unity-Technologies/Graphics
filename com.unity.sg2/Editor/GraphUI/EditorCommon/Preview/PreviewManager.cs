@@ -169,9 +169,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Add any nodes to the preview manager that are newly on graph
             foreach (var graphNodeModel in m_GraphModel.NodeModels)
             {
-                if(!m_NodeLookupTable.ContainsValue(graphNodeModel.Guid)
-                    && graphNodeModel is GraphDataNodeModel graphDataNodeModel)
-                    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+                if (!m_NodeLookupTable.ContainsValue(graphNodeModel.Guid))
+                {
+                    if(graphNodeModel is GraphDataNodeModel graphDataNodeModel)
+                        OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+
+                    foreach (var edgeModel in graphNodeModel.GetConnectedEdges())
+                    {
+                        if(edgeModel.ToPort.NodeModel is GraphDataNodeModel toPortNodeModel
+                            && toPortNodeModel != graphNodeModel)
+                            OnNodeFlowChanged(toPortNodeModel.graphDataName);
+                    }
+                }
             }
         }
 
@@ -214,6 +223,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
             }
+        }
+
+        // When target settings are changed, we need to re-generate everything
+        internal void HandleTargetSettingsChanged()
+        {
+            foreach (var (nodeName, nodeGuid) in m_NodeLookupTable)
+                OnNodeFlowChanged(nodeName);
         }
 
         public void Update()
@@ -354,11 +370,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
             else
             {
-                m_DirtyNodes.Add(nodeName);
                 var impactedNodes = m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
                 foreach (var downstreamNode in impactedNodes)
-                    m_DirtyNodes.Add(downstreamNode);
+                    // If this is either a node with a preview or a the main preview, mark it as dirty so we can re-generate preview output
+                    if(DoesNodeHavePreview(downstreamNode))
+                        m_DirtyNodes.Add(downstreamNode);
             }
+        }
+
+        bool DoesNodeHavePreview(String nodeName)
+        {
+            m_NodeLookupTable.TryGetValue(nodeName, out var nodeGuid);
+            var isNodeWithPreview = m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel) && nodeModel is GraphDataNodeModel { HasPreview: true };
+            var isMainContextNode = IsMainContextNode(nodeModel);
+            return isNodeWithPreview || isMainContextNode;
         }
 
         public void OnNodeAdded(String nodeName, SerializableGUID nodeGuid)

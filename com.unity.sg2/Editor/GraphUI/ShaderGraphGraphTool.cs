@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Windows.Input;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Toolbars;
 using UnityEngine.Assertions;
@@ -54,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return (T)stateComponents.FirstOrDefault(stateComponent => stateComponent is T);
         }
 
-        void HandleUndoRedo(UndoableCommand commandBeingUndoneRedone)
+        internal void HandleUndoRedo(UndoableCommand commandBeingUndoneRedone)
         {
             var graphModelStateComponent = GetStateComponentOfType<GraphModelStateComponent>();
             var shaderGraphModel = m_EditorWindow.Asset.GraphModel as ShaderGraphModel;
@@ -72,17 +73,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_PreviewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
                     break;
 
+                // GTF is weird and has multiple commands for delete handling across nodes, edges, blackboard items etc...
                 case DeleteEdgeCommand deleteEdgeCommand:
                     foreach (var edgeModel in deleteEdgeCommand.Models)
                     {
-                        var tPortNodeModel = edgeModel.ToPort.NodeModel as GraphDataNodeModel;
-                        m_PreviewManager.OnNodeFlowChanged(tPortNodeModel.graphDataName);
+                        var toPortNodeModel = edgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                        m_PreviewManager.OnNodeFlowChanged(toPortNodeModel.graphDataName);
+                    }
+                    break;
+
+                // Hence we need to respond to both types of commands for full coverage
+                case DeleteElementsCommand deleteElementsCommand:
+                    foreach (var model in deleteElementsCommand.Models)
+                    {
+                        if (model is GraphDataEdgeModel graphDataEdgeModel)
+                        {
+                            var toPortNodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                            m_PreviewManager.OnNodeFlowChanged(toPortNodeModel.graphDataName);
+                        }
                     }
                     break;
 
                 // Handling value changes in ports
                 case UpdateConstantValueCommand updateConstantValueCommand:
                     m_PreviewManager.HandleConstantValueUndoRedo(updateConstantValueCommand.Constant as BaseShaderGraphConstant);
+                    break;
+
+                case ChangeTargetSettingsCommand changeTargetSettingsCommand:
+                    m_PreviewManager.HandleTargetSettingsChanged();
                     break;
             }
 
@@ -91,7 +109,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Handling target settings changes
         }
 
-        void HandleGraphLoad(LoadGraphCommand loadGraphCommand)
+        internal void HandleGraphLoad(LoadGraphCommand loadGraphCommand)
         {
             var windowClosedInDirtyState = m_EditorWindow.wasWindowClosedInDirtyState;
             BlackboardView blackboardView = null;
