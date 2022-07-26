@@ -44,12 +44,9 @@ namespace UnityEditor.ContextLayeredDataStorage
         public virtual IEnumerable<DataReader> GetChildren()
         {
             Element e = Element;
-            foreach (var (key, value) in e.owner.FlatStructureLookup)
+            foreach(var c in e.owner.GetChildren(e.ID))
             {
-                if (e.ID.IsImmediateSubpathOf(key))
-                {
-                    yield return new DataReader(value);
-                }
+                yield return c.GetReader();
             }
         }
 
