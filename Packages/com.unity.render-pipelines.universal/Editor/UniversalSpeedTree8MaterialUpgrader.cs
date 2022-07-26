@@ -14,6 +14,9 @@ namespace UnityEditor.Rendering.Universal
         }
         static public void UniversalSpeedTree8MaterialFinalizer(Material mat)
         {
+            if (mat == null)
+                return;
+
             SpeedTree8MaterialFinalizer(mat);
 
             if (mat.HasFloat("_TwoSided"))
