@@ -13,10 +13,6 @@ namespace UnityEditor.Rendering.Universal
         {
             static bool s_PostProcessingWarningShown = false;
 
-            static readonly CED.IDrawer PostProcessingWarningInit = CED.Group(
-                (serialized, owner) => s_PostProcessingWarningShown = false
-            );
-
             private static readonly CED.IDrawer PostProcessingWarningDrawer = CED.Conditional(
                 (serialized, owner) => IsAnyRendererHasPostProcessingEnabled(serialized, UniversalRenderPipeline.asset) && serialized.renderPostProcessing.boolValue,
                 (serialized, owner) =>
@@ -105,33 +101,40 @@ namespace UnityEditor.Rendering.Universal
                 )
             );
 
-            public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                CameraUI.Rendering.Styles.header,
-                Expandable.Rendering,
-                k_ExpandedState,
-                FoldoutOption.Indent,
-                PostProcessingWarningInit,
-                CED.Group(
-                    DrawerRenderingRenderer
-                    ),
-                BaseCameraRenderTypeDrawer,
-                OverlayCameraRenderTypeDrawer,
-                CED.Group(
-                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
-                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
-                )
-            );
+            public static readonly CED.IDrawer Drawer;
 
-            public static readonly CED.IDrawer DrawerPreset = CED.FoldoutGroup(
-                CameraUI.Rendering.Styles.header,
-                Expandable.Rendering,
-                k_ExpandedState,
-                FoldoutOption.Indent,
-                CED.Group(
-                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
-                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
-                )
-            );
+            public static readonly CED.IDrawer DrawerPreset;
+
+            static Rendering()
+            {
+                Drawer = CED.FoldoutGroup(
+                    CameraUI.Rendering.Styles.header,
+                    Expandable.Rendering,
+                    k_ExpandedState,
+                    FoldoutOption.Indent,
+                    (serialized, owner) => s_PostProcessingWarningShown = false,
+                    CED.Group(
+                        DrawerRenderingRenderer
+                        ),
+                    BaseCameraRenderTypeDrawer,
+                    OverlayCameraRenderTypeDrawer,
+                    CED.Group(
+                        CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                        CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                    )
+                );
+
+                DrawerPreset = CED.FoldoutGroup(
+                    CameraUI.Rendering.Styles.header,
+                    Expandable.Rendering,
+                    k_ExpandedState,
+                    FoldoutOption.Indent,
+                    CED.Group(
+                        CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                        CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                    )
+                );
+            }
 
             static void DrawerRenderingRenderer(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {

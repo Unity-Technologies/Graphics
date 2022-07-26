@@ -354,15 +354,11 @@ namespace UnityEditor.Rendering
         public static void DrawSplitter(bool isBoxed = false)
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
-            float xMin = rect.xMin;
 
             // Splitter rect should be full-width
-            rect = ToFullWidth(rect);
-
-            if (isBoxed)
+            if (!isBoxed)
             {
-                rect.xMin = xMin == 7.0 ? 4.0f : EditorGUIUtility.singleLineHeight;
-                rect.width -= 1;
+                rect = ToFullWidth(rect);
             }
 
             if (Event.current.type != EventType.Repaint)
@@ -373,11 +369,23 @@ namespace UnityEditor.Rendering
                 : new Color(0.12f, 0.12f, 0.12f, 1.333f));
         }
 
-        private static Rect ToFullWidth(Rect rect)
+        /// <summary>Draw a splitter separator which is used after drawing a fouldout header.</summary>
+        /// <param name="isBoxed">[Optional] add margin if the splitter is boxed</param>
+        internal static void DrawFoldoutEndSplitter(bool isBoxed = false)
         {
-            rect.xMin = 0f;
-            rect.width += 4f;
-            return rect;
+            var rect = GUILayoutUtility.GetRect(1f, 1f);
+
+            if (!isBoxed)
+            {
+                rect = ToFullWidth(rect);
+            }
+
+            if (Event.current.type != EventType.Repaint)
+                return;
+
+            EditorGUI.DrawRect(rect, !EditorGUIUtility.isProSkin
+                ? new Color(0.73f, 0.73f, 0.73f, 1.333f)
+                : new Color(0.19f, 0.19f, 0.19f, 1.333f));
         }
 
         /// <summary>Draw a header</summary>
@@ -403,7 +411,7 @@ namespace UnityEditor.Rendering
             // Background rect should be full-width
             backgroundRect = ToFullWidth(backgroundRect);
 
-            DrawBackground(backgroundRect);
+            DrawBackground(backgroundRect, false);
 
             // Title
             EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
@@ -412,12 +420,18 @@ namespace UnityEditor.Rendering
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
         /// <param name="state"> The state of the header </param>
-        /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
+        /// <param name="isBoxed"> [optional] is the header contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOption"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
+        /// <param name="isTitleHeader"> [optional] is this a title header, this setting controls the color used for the foldout </param>
+        /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
+        /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
+        /// <param name="customMenuContextAction">[optional] Delegate which adds items to a generic menu when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOption = null)
-            => DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, hasMoreOptions, toggleMoreOption);
+        public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOption = null, bool isTitleHeader = false, string documentationURL = "", Action<Vector2> contextAction = null, Action<GenericMenu> customMenuContextAction = null)
+            => DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, hasMoreOptions, toggleMoreOption, isTitleHeader, documentationURL, contextAction, customMenuContextAction);
+
+
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -425,12 +439,15 @@ namespace UnityEditor.Rendering
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
+        /// <param name="isTitleHeader"> [optional] is this a title header, this setting controls the color used for the foldout </param>
         /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
         /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
+        /// <param name="customMenuContextAction">[optional] Delegate which adds items to a generic menu when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
+        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, bool isTitleHeader = false, string documentationURL = "", Action<Vector2> contextAction = null, Action<GenericMenu> customMenuContextAction = null)
         {
             const float height = 17f;
+            const float iconRectSize = 13f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
             if (backgroundRect.xMin != 0) // Fix for material editor
                 backgroundRect.xMin = 1 + 15f * (EditorGUI.indentLevel + 1);
@@ -442,22 +459,23 @@ namespace UnityEditor.Rendering
 
             var foldoutRect = backgroundRect;
             foldoutRect.y += 1f;
-            foldoutRect.width = 13f;
-            foldoutRect.height = 13f;
+            foldoutRect.width = iconRectSize;
+            foldoutRect.height = iconRectSize;
             foldoutRect.x = labelRect.xMin + k_IndentMargin * (EditorGUI.indentLevel - 1); //fix for presset
-
-            // Background rect should be full-width
-            backgroundRect = ToFullWidth(backgroundRect);
 
             if (isBoxed)
             {
                 labelRect.xMin += 5;
                 foldoutRect.xMin += 5;
-                backgroundRect.xMin = xMin == 7.0 ? 4.0f : EditorGUIUtility.singleLineHeight;
-                backgroundRect.width -= 1;
+            }
+            else
+            {
+                // Background rect should be full-width
+                backgroundRect = ToFullWidth(backgroundRect);
+
             }
 
-            DrawBackground(backgroundRect);
+            DrawBackground(backgroundRect, isTitleHeader);
 
             // Title
             EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
@@ -466,41 +484,16 @@ namespace UnityEditor.Rendering
             state = GUI.Toggle(foldoutRect, state, GUIContent.none, EditorStyles.foldout);
 
             // Context menu
-            var menuIcon = CoreEditorStyles.paneOptionsIcon;
             var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, 16, 16);
 
-            // Add context menu for "Additional Properties"
-            if (contextAction == null && hasMoreOptions != null)
-            {
-                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
-            }
+            contextAction = CreateMenuContextAction(contextAction, hasMoreOptions, toggleMoreOptions, customMenuContextAction);
 
-            if (contextAction != null)
-            {
-                if (GUI.Button(menuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
-                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
-            }
+            CreateContextMenu(menuRect, contextAction);
 
             // Documentation button
             ShowHelpButton(menuRect, documentationURL, title);
 
-            var e = Event.current;
-
-            if (e.type == EventType.MouseDown)
-            {
-                if (backgroundRect.Contains(e.mousePosition))
-                {
-                    if (e.button != 0 && contextAction != null)
-                        contextAction(e.mousePosition);
-                    else if (e.button == 0)
-                    {
-                        state = !state;
-                        e.Use();
-                    }
-
-                    e.Use();
-                }
-            }
+            state = HandleEvent(state, backgroundRect, contextAction);
 
             return state;
         }
@@ -547,6 +540,7 @@ namespace UnityEditor.Rendering
         public static bool DrawSubHeaderFoldout(GUIContent title, bool state, bool isBoxed = false)
         {
             const float height = 17f;
+            const float iconRectSize = 13f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
 
             var labelRect = backgroundRect;
@@ -556,18 +550,18 @@ namespace UnityEditor.Rendering
             var foldoutRect = backgroundRect;
             foldoutRect.y += 1f;
             foldoutRect.x += k_IndentMargin * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
-            foldoutRect.width = 13f;
-            foldoutRect.height = 13f;
+            foldoutRect.width = iconRectSize;
+            foldoutRect.height = iconRectSize;
 
-            // Background rect should be full-width
-            backgroundRect = ToFullWidth(backgroundRect);
 
             if (isBoxed)
             {
                 labelRect.xMin += 5;
                 foldoutRect.xMin += 5;
-                backgroundRect.xMin = EditorGUIUtility.singleLineHeight;
-                backgroundRect.width -= 3;
+            }
+            else
+            {
+                backgroundRect = ToFullWidth(backgroundRect);
             }
 
             // Title
@@ -576,37 +570,11 @@ namespace UnityEditor.Rendering
             // Active checkbox
             state = GUI.Toggle(foldoutRect, state, GUIContent.none, EditorStyles.foldout);
 
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && backgroundRect.Contains(e.mousePosition) && e.button == 0)
-            {
-                state = !state;
-                e.Use();
-            }
+            state = HandleEvent(state, backgroundRect, null);
 
             return state;
         }
 
-        /// <summary>Draw a header toggle like in Volumes</summary>
-        /// <param name="title"> The title of the header </param>
-        /// <param name="group"> The group of the header </param>
-        /// <param name="activeField">The active field</param>
-        /// <param name="contextAction">The context action</param>
-        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
-        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
-        /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
-            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
-
-        /// <summary>Draw a header toggle like in Volumes</summary>
-        /// <param name="title"> The title of the header </param>
-        /// <param name="group"> The group of the header </param>
-        /// <param name="activeField">The active field</param>
-        /// <param name="contextAction">The context action</param>
-        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
-        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
-        /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
-            => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
 
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
@@ -616,11 +584,15 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="customMenuContextAction">Delegate which adds items to a generic menu.</param>
+        /// <param name="isBoxed">States if the header toggle should be boxed.</param>
+        /// <param name="isTitleHeader"> [optional] is this a title header, this setting controls the color used for the foldout </param>
+        /// <param name="shouldUpdate">States if the group and active field should update before usage and apply changes to them.</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
-            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL);
+        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null, Action<GenericMenu> customMenuContextAction = null, bool isBoxed = false, bool isTitleHeader = false, bool shouldUpdate = true)
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, customMenuContextAction, isBoxed, isTitleHeader, shouldUpdate);
 
-        private static void GetHeaderToggleRects(out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect)
+        private static void GetHeaderToggleRects(bool isBoxed, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect)
         {
             backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
 
@@ -639,8 +611,11 @@ namespace UnityEditor.Rendering
             toggleRect.width = 13f;
             toggleRect.height = 13f;
 
-            // Background rect should be full-width
-            backgroundRect = ToFullWidth(backgroundRect);
+            if (!isBoxed)
+            {
+                // Background rect should be full-width
+                backgroundRect = ToFullWidth(backgroundRect);
+            }
         }
 
         /// <summary>Draw a header toggle like in Volumes</summary>
@@ -651,25 +626,37 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="customMenuContextAction">Delegate which adds items to a generic menu.</param>
+        /// <param name="isBoxed">States if the header toggle should be boxed.</param>
+        /// <param name="isTitleHeader"> [optional] is this a title header, this setting controls the color used for the foldout </param>
+        /// <param name="shouldUpdate">States if the group and active field should update before usage and apply changes to them.</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
+        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null, Action<GenericMenu> customMenuContextAction = null, bool isBoxed = false, bool isTitleHeader = false, bool shouldUpdate = true)
         {
-            GetHeaderToggleRects(out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
-            DrawBackground(backgroundRect);
+            GetHeaderToggleRects(isBoxed, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
+            DrawBackground(backgroundRect, isTitleHeader);
 
             // Title
             using (new EditorGUI.DisabledScope(!activeField.boolValue))
                 EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
 
-            // Foldout
-            group.serializedObject.Update();
-            group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
-            group.serializedObject.ApplyModifiedProperties();
+            if (shouldUpdate)
+            {
+                // Foldout
+                group.serializedObject.Update();
+                group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
+                group.serializedObject.ApplyModifiedProperties();
 
-            // Active checkbox
-            activeField.serializedObject.Update();
-            activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
-            activeField.serializedObject.ApplyModifiedProperties();
+                // Active checkbox
+                activeField.serializedObject.Update();
+                activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+                activeField.serializedObject.ApplyModifiedProperties();
+            }
+            else
+            {
+                group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
+                activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+            }
 
             contextAction = ContextMenu(title, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, labelRect);
             group.isExpanded = HandleEvents(contextAction, backgroundRect, group.isExpanded);
@@ -695,7 +682,7 @@ namespace UnityEditor.Rendering
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggleFoldout(GUIContent title, bool foldoutExpanded, SerializedProperty toogleProperty, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
-            GetHeaderToggleRects(out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
+            GetHeaderToggleRects(false, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
 
             DrawBackground(backgroundRect);
 
@@ -742,21 +729,14 @@ namespace UnityEditor.Rendering
 
         private static Action<Vector2> ContextMenu(GUIContent title, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL, Rect labelRect)
         {
+            const float menuRectSize = 16f;
+
             // Context menu
-            var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
-            var contextMenuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, 16, 16);
+            var contextMenuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, menuRectSize, menuRectSize);
 
-            if (contextAction == null && hasMoreOptions != null)
-            {
-                // If no contextual menu add one for the additional properties.
-                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
-            }
+            contextAction = CreateMenuContextAction(contextAction, hasMoreOptions, toggleMoreOptions, null);
 
-            if (contextAction != null)
-            {
-                if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
-                    contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
-            }
+            CreateContextMenu(contextMenuRect, contextAction);
 
             // Documentation button
             ShowHelpButton(contextMenuRect, documentationURL, title);
@@ -771,37 +751,80 @@ namespace UnityEditor.Rendering
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         public static void DrawSectionHeader(GUIContent title, string documentationURL = null, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
         {
-            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
-            float iconSize = 16f;
+            const float height = 17f;
+            const float menuRectSize = 16f;
+            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, height));
 
-            var contextMenuRect = new Rect(backgroundRect.xMax - (iconSize + 5), backgroundRect.y + iconSize + 8f, iconSize, iconSize);
+            var contextMenuRect = new Rect(backgroundRect.xMax - (menuRectSize + 5), backgroundRect.y + menuRectSize + 8f, menuRectSize, menuRectSize);
 
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUILayout.LabelField(title, CoreEditorStyles.sectionHeaderStyle);
 
-                // Context menu
-                var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
-                if (contextAction != null)
-                {
-                    if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
-                        contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
-                }
+                CreateContextMenu(contextMenuRect,  contextAction);
                 ShowHelpButton(contextMenuRect, documentationURL, title);
             }
 
-            // Handle events
+            HandleEvent(false, contextMenuRect, contextAction);
+        }
+
+        static void DrawBackground(Rect backgroundRect, bool isTitleHeader)
+        {
+            // Background
+            float backgroundTint = isTitleHeader ? (EditorGUIUtility.isProSkin ? 0.24f : 0.78f) : (EditorGUIUtility.isProSkin ? 0.1f : 1f);
+            EditorGUI.DrawRect(backgroundRect, new Color(backgroundTint, backgroundTint, backgroundTint, isTitleHeader ? 1f : 0.2f));
+        }
+
+        static Rect ToFullWidth(Rect rect)
+        {
+            rect.xMin = 0f;
+            rect.width += 4f;
+            return rect;
+        }
+
+        static Action<Vector2> CreateMenuContextAction(Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, Action<GenericMenu> customMenuContextAction)
+        {
+            if (contextAction == null && (hasMoreOptions != null || customMenuContextAction != null))
+            {
+                // If no contextual menu add one for the additional properties.
+                contextAction = pos =>
+                {
+                    var menu = new GenericMenu();
+                    if (customMenuContextAction != null)
+                        customMenuContextAction(menu);
+                    if (hasMoreOptions != null)
+                        AddAdditionalPropertiesContext(menu, hasMoreOptions, toggleMoreOptions);
+                    menu.DropDown(new Rect(pos, Vector2.zero));
+                };
+            }
+            return contextAction;
+        }
+
+        static void CreateContextMenu(Rect contextMenuRect, Action<Vector2> contextAction)
+        {
+            // Context menu
+            if (contextAction != null)
+            {
+                if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                    contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+            }
+        }
+
+        static bool HandleEvent(bool state, Rect activationRect, Action<Vector2> contextAction)
+        {
             var e = Event.current;
 
-            if (e.type == EventType.MouseDown)
+            if (e.type == EventType.MouseDown && activationRect.Contains(e.mousePosition))
             {
-                if (contextMenuRect.Contains(e.mousePosition))
-                {
-                    // Right click: Context menu
-                    contextAction?.Invoke(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
-                    e.Use();
-                }
+                // Left click: Expand/Collapse
+                if (e.button == 0)
+                    state = !state;
+                // Right click: Context menu
+                else if (contextAction != null)
+                    contextAction(e.mousePosition);
+                e.Use();
             }
+            return state;
         }
 
         static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
@@ -818,14 +841,10 @@ namespace UnityEditor.Rendering
                 Help.BrowseURL(documentationURL);
         }
 
-        static void OnContextClick(Vector2 position, Func<bool> hasMoreOptions, Action toggleMoreOptions)
+        static void AddAdditionalPropertiesContext(GenericMenu menu, Func<bool> hasMoreOptions, Action toggleMoreOptions)
         {
-            var menu = new GenericMenu();
-
             menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
             menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
-
-            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         static readonly GUIContent[][] k_DrawVector6_Label =

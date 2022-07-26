@@ -44,7 +44,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 )
             );
 
-            public static readonly CED.IDrawer Drawer = CED.AdditionalPropertiesFoldoutGroup(CameraUI.Rendering.Styles.header, Expandable.Rendering, k_ExpandedState, AdditionalProperties.Rendering, k_AdditionalPropertiesState, RenderingDrawer, Draw_Rendering_Advanced);
+            public static readonly CED.IDrawer Drawer;
+
+            static Rendering()
+            {
+                Drawer = CED.AdditionalPropertiesFoldoutGroup(
+                    CameraUI.Rendering.Styles.header,
+                    Expandable.Rendering, k_ExpandedState,
+                    AdditionalProperties.Rendering, k_AdditionalPropertiesState,
+                    RenderingDrawer, Draw_Rendering_Advanced);
+            }
 
             internal static void RegisterEditor(HDCameraEditor editor)
             {
