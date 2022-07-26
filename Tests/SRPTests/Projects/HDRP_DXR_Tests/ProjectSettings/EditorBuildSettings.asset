@@ -434,4 +434,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/8003_FarPlaneCulling.unity
     guid: 531302efb75a33f409e705a90c451ddf
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10001_TerrainReflectionPerf/10001_TerrainReflectionPerf.unity
+    guid: d0b04a339d816d647a4ae5de58b883b7
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10002_TerrainReflectionQuality/10002_TerrainReflectionQuality.unity
+    guid: 49fbcf86265d96e47a1bc94434c5c51c
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10003_TerrainShadow/10003_TerrainShadow.unity
+    guid: 7637fa387d5f1214b867a85c2ae6e6f6
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10004_TerrainPathTracing/10004_TerrainPathTracing.unity
+    guid: 17783bea5cb403942948935bef51f927
   m_configObjects: {}

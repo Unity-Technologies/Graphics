@@ -49,23 +49,32 @@ namespace UnityEngine.Rendering.HighDefinition
         public NativeArray<float4> displacementBufferCPU;
     }
 
+    /// <summary>
+    /// Structure that holds all the data that allows us to define the water spectrum.
+    /// </summary>
     public struct WaterSpectrumParameters
     {
         // The number of bands that are actually evaluated
-        public int numActiveBands;
+        internal int numActiveBands;
 
         // Value that defines the patch sizes of the bands (up to 4)
-        public Vector4 patchSizes;
+        internal Vector4 patchSizes;
 
         // The wind speed, orientation and weight used to evaluate the Phillips spectrum
-        public Vector4 patchWindSpeed;
+        internal Vector4 patchWindSpeed;
 
         // Value that defines the wind directionality to each patch (up to 4)
-        public Vector4 patchWindDirDampener;
+        internal Vector4 patchWindDirDampener;
 
         // The wind orientation (in degrees) for each band
-        public Vector4 patchWindOrientation;
+        internal Vector4 patchWindOrientation;
 
+        /// <summary>
+        /// Compare two WaterSpectrumParameters for equality.
+        /// </summary>
+        /// <param name="a">The first WaterSpectrumParameters to compare.</param>
+        /// <param name="b">The second WaterSpectrumParameters to compare.</param>
+        /// <returns>True if the WaterSpectrumParameters are both equal (or both null), false otherwise.</returns>
         public static bool operator ==(WaterSpectrumParameters a, WaterSpectrumParameters b)
         {
             return (a.numActiveBands == b.numActiveBands)
@@ -75,6 +84,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 && (a.patchWindOrientation == b.patchWindOrientation);
         }
 
+        /// <summary>
+        /// Compare two WaterSpectrumParameters for inequality.
+        /// </summary>
+        /// <param name="a">The first WaterSpectrumParameters to compare.</param>
+        /// <param name="b">The second WaterSpectrumParameters to compare.</param>
+        /// <returns>True if the WaterSpectrumParameters are not equal, false otherwise.</returns>
         public static bool operator !=(WaterSpectrumParameters a, WaterSpectrumParameters b)
         {
             return (a.numActiveBands != b.numActiveBands)
@@ -84,36 +99,48 @@ namespace UnityEngine.Rendering.HighDefinition
                 || (a.patchWindOrientation != b.patchWindOrientation);
         }
 
+        /// <summary>
+        /// Get an appropriate hash value for this NPath.
+        /// </summary>
+        /// <returns>A hash value for this NPath.</returns>
         public override int GetHashCode() { return base.GetHashCode(); }
 
+
+        /// <summary>Returns true if the WaterSpectrumParameters is equal to a given WaterSpectrumParameters, false otherwise.</summary>
+        /// <param name="o">Right hand side argument to compare equality with.</param>
+        /// <returns>The result of the equality comparison.</returns>
         public override bool Equals(object o)
         {
-            return false;
+            return o is WaterSpectrumParameters other && this == other;
         }
+
     }
 
+    /// <summary>
+    /// Structure that holds all the data that allows us to render the water surface from the spectrum.
+    /// </summary>
     public struct WaterRenderingParameters
     {
         // System simulation time
-        public float simulationTime;
+        internal float simulationTime;
 
         // The per-band amplitude multiplier
-        public Vector4 patchAmplitudeMultiplier;
+        internal Vector4 patchAmplitudeMultiplier;
 
         // The current speed
-        public Vector4 patchCurrentSpeed;
+        internal Vector4 patchCurrentSpeed;
 
         // The current orientation
-        public Vector4 patchCurrentOrientation;
+        internal Vector4 patchCurrentOrientation;
 
         // The fade start for each band
-        public Vector4 patchFadeStart;
+        internal Vector4 patchFadeStart;
 
         // The fade distance for each band
-        public Vector4 patchFadeDistance;
+        internal Vector4 patchFadeDistance;
 
         // The fade value for each band
-        public Vector4 patchFadeValue;
+        internal Vector4 patchFadeValue;
     }
 
     internal class WaterSimulationResources

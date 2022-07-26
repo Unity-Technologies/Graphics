@@ -265,9 +265,9 @@ namespace UnityEditor.Rendering.Universal
         static void DrawLightingAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
-            EditorGUILayout.PropertyField(serialized.supportsLightLayers, Styles.supportsLightLayers);
+            EditorGUILayout.PropertyField(serialized.useRenderingLayers, Styles.useRenderingLayers);
 
-            if (serialized.supportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(serialized.asset, out var unsupportedGraphicsApisMessage))
+            if (serialized.useRenderingLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(serialized.asset, out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
         }
 

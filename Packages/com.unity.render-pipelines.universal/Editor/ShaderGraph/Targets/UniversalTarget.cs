@@ -968,7 +968,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthNormalsOnly(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
-                keywords = new KeywordCollection(),
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.GBufferNormalsOct },
                 includes = CoreIncludes.DepthNormalsOnly,
 
                 // Custom Interpolator Support
@@ -2034,6 +2034,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
             referenceName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Ambient Occlusion",
+            referenceName = "_SCREEN_SPACE_OCCLUSION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

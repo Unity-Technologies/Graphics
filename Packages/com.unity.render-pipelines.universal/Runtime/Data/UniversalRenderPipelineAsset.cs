@@ -1285,7 +1285,16 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
         /// </summary>
+        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
         public bool supportsLightLayers
+        {
+            get { return m_SupportsLightLayers; }
+        }
+
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports rendering layers for lights, false otherwise.
+        /// </summary>
+        public bool useRenderingLayers
         {
             get { return m_SupportsLightLayers; }
         }
@@ -1578,7 +1587,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>
         /// Returns asset texture resources

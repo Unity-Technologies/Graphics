@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -13,23 +15,7 @@ namespace UnityEditor.Rendering.Universal
 
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
 
-        public SerializedProperty lightLayerName0;
-        public SerializedProperty lightLayerName1;
-        public SerializedProperty lightLayerName2;
-        public SerializedProperty lightLayerName3;
-        public SerializedProperty lightLayerName4;
-        public SerializedProperty lightLayerName5;
-        public SerializedProperty lightLayerName6;
-        public SerializedProperty lightLayerName7;
-
-        public SerializedProperty decalLayerName0;
-        public SerializedProperty decalLayerName1;
-        public SerializedProperty decalLayerName2;
-        public SerializedProperty decalLayerName3;
-        public SerializedProperty decalLayerName4;
-        public SerializedProperty decalLayerName5;
-        public SerializedProperty decalLayerName6;
-        public SerializedProperty decalLayerName7;
+        public SerializedProperty renderingLayerNames;
 
         public SerializedProperty stripDebugVariants;
         public SerializedProperty stripUnusedPostProcessingVariants;
@@ -38,6 +24,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripScreenCoordOverrideVariants;
 
         public SerializedProperty enableRenderGraph;
+
+        public ReorderableList renderingLayerNameList;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
@@ -52,24 +40,7 @@ namespace UnityEditor.Rendering.Universal
                     throw new System.Exception($"Target object has an invalid object, objects must be of type {typeof(UniversalRenderPipelineGlobalSettings)}");
             }
 
-
-            lightLayerName0 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName0);
-            lightLayerName1 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName1);
-            lightLayerName2 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName2);
-            lightLayerName3 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName3);
-            lightLayerName4 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName4);
-            lightLayerName5 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName5);
-            lightLayerName6 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName6);
-            lightLayerName7 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName7);
-
-            decalLayerName0 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName0);
-            decalLayerName1 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName1);
-            decalLayerName2 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName2);
-            decalLayerName3 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName3);
-            decalLayerName4 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName4);
-            decalLayerName5 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName5);
-            decalLayerName6 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName6);
-            decalLayerName7 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.decalLayerName7);
+            renderingLayerNames = serializedObject.FindProperty("m_RenderingLayerNames");
 
             stripDebugVariants = serializedObject.FindProperty("m_StripDebugVariants");
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
@@ -80,6 +51,42 @@ namespace UnityEditor.Rendering.Universal
             stripScreenCoordOverrideVariants = serializedObject.FindProperty("m_StripScreenCoordOverrideVariants");
 
             enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
+
+            renderingLayerNameList = new ReorderableList(serializedObject, renderingLayerNames, false, false, true, true)
+            {
+                drawElementCallback = OnDrawElement,
+                onCanRemoveCallback = (ReorderableList list) => list.IsSelected(list.count - 1) && !list.IsSelected(0),
+                onCanAddCallback = (ReorderableList list) => list.count < 32,
+                onAddCallback = OnAddElement,
+            };
+        }
+
+        void OnAddElement(ReorderableList list)
+        {
+            int index = list.count;
+            list.serializedProperty.arraySize = list.count + 1;
+            list.serializedProperty.GetArrayElementAtIndex(index).stringValue = GetDefaultLayerName(index);
+        }
+
+        void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused)
+        {
+            // For some reason given rect is not centered
+            rect.y += 2.5f;
+
+            SerializedProperty element = renderingLayerNameList.serializedProperty.GetArrayElementAtIndex(index);
+
+            EditorGUI.PropertyField(rect, element, EditorGUIUtility.TrTextContent($"Layer {index}"), true);
+
+            if (element.stringValue == "")
+            {
+                element.stringValue = GetDefaultLayerName(index);
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        string GetDefaultLayerName(int index)
+        {
+            return index == 0 ? "Default" : $"Layer {index}";
         }
     }
 }

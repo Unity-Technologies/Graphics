@@ -2,8 +2,10 @@
 // Defines
 //-------------------------------------------------------------------------------------
 
+#ifndef SHADER_STAGE_RAY_TRACING
 // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
 #define SURFACE_GRADIENT
+#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
@@ -46,14 +48,9 @@ CBUFFER_END
 #ifdef _ALPHATEST_ON
 TEXTURE2D(_TerrainHolesTexture);
 SAMPLER(sampler_TerrainHolesTexture);
-
-void ClipHoles(float2 uv)
-{
-    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-    DoAlphaTest(hole, 0.5);
-}
 #endif
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
 // Vertex height displacement
 #ifdef HAVE_MESH_MODIFICATION
 
@@ -103,8 +100,8 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #endif
     return input;
 }
-
 #endif // HAVE_MESH_MODIFICATION
+#endif // !defined(SHADER_STAGE_RAY_TRACING)
 
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
@@ -115,8 +112,10 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #undef _AlbedoAffectEmissive
 #undef _EmissiveExposureWeight
 
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
+#endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
 
 void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData);
@@ -139,15 +138,18 @@ float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS
 #endif
 }
 
-void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
 {
+    ZERO_INITIALIZE(SurfaceData, surfaceData);
+    ZERO_INITIALIZE(BuiltinData, builtinData);
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
     float2 terrainNormalMapUV = (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
     input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
 #endif
 
 #ifdef _ALPHATEST_ON
-    ClipHoles(input.texCoord0.xy);
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, input.texCoord0.xy).r;
+    GENERIC_ALPHA_TEST(hole, 0.5);
 #endif
 
     // terrain lightmap uvs are always taken from uv0
@@ -203,8 +205,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // This need to be init here to quiet the compiler in case of decal, but can be override later.
     surfaceData.specularOcclusion = 1.0;
 
-#ifdef DECAL_SURFACE_GRADIENT
-
+#if defined(DECAL_SURFACE_GRADIENT) && !defined(SHADER_STAGE_RAY_TRACING)
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
     #if HAVE_DECALS
@@ -229,14 +230,14 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-#else // DECAL_SURFACE_GRADIENT
+#else // defined(DECAL_SURFACE_GRADIENT) && !defined(SHADER_STAGE_RAY_TRACING)
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 #endif
 
-#if HAVE_DECALS
+#if HAVE_DECALS && !defined(SHADER_STAGE_RAY_TRACING)
     if (_EnableDecals)
     {
         float alpha = 1.0; // unused
@@ -250,7 +251,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     float3 bentNormalWS = surfaceData.normalWS;
 
-#ifdef DEBUG_DISPLAY
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         TerrainLitDebug(input.texCoord0.xy, surfaceData.baseColor);
@@ -268,4 +269,6 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
+
+    RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

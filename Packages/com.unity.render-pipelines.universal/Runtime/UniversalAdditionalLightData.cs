@@ -54,10 +54,10 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     [URPHelpURL("universal-additional-light-data")]
-    public class UniversalAdditionalLightData : MonoBehaviour, IAdditionalData
+    public class UniversalAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         // Version 0 means serialized data before the version field.
-        [SerializeField] int m_Version = 1;
+        [SerializeField] int m_Version = 2;
         internal int version
         {
             get => m_Version;
@@ -89,12 +89,25 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // The layer(s) this light belongs too.
+        [Obsolete("This is obsolete, please use m_RenderingLayerMask instead.", false)]
         [SerializeField] LightLayerEnum m_LightLayerMask = LightLayerEnum.LightLayerDefault;
 
+        [Obsolete("This is obsolete, please use renderingLayerMask instead.", false)]
         public LightLayerEnum lightLayerMask
         {
             get { return m_LightLayerMask; }
             set { m_LightLayerMask = value; }
+        }
+
+        [SerializeField] uint m_RenderingLayers = 1;
+
+        /// <summary>
+        /// Specifies which rendering layers this light will affect.
+        /// </summary>
+        public uint renderingLayers
+        {
+            get { return m_RenderingLayers; }
+            set { m_RenderingLayers = value; }
         }
 
         [SerializeField] bool m_CustomShadowLayers = false;
@@ -109,10 +122,21 @@ namespace UnityEngine.Rendering.Universal
         // The layer(s) used for shadow casting.
         [SerializeField] LightLayerEnum m_ShadowLayerMask = LightLayerEnum.LightLayerDefault;
 
+        [Obsolete("This is obsolete, please use shadowRenderingLayerMask instead.", false)]
         public LightLayerEnum shadowLayerMask
         {
             get { return m_ShadowLayerMask; }
             set { m_ShadowLayerMask = value; }
+        }
+
+        [SerializeField] uint m_ShadowRenderingLayers = 1;
+        /// <summary>
+        /// Specifies which rendering layers this light shadows will affect.
+        /// </summary>
+        public uint shadowRenderingLayers
+        {
+            get { return m_ShadowRenderingLayers; }
+            set { m_ShadowRenderingLayers = value; }
         }
 
         [Tooltip("Controls the size of the cookie mask currently assigned to the light.")]
@@ -141,6 +165,24 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_SoftShadowQuality;
             set => m_SoftShadowQuality = value;
+        }
+
+        /// <inheritdoc/>
+        public void OnBeforeSerialize()
+        {
+        }
+
+        /// <inheritdoc/>
+        public void OnAfterDeserialize()
+        {
+            if (m_Version < 2)
+            {
+#pragma warning disable 618 // Obsolete warning
+                m_RenderingLayers = (uint)m_LightLayerMask;
+                m_ShadowRenderingLayers = (uint)m_ShadowLayerMask;
+#pragma warning restore 618 // Obsolete warning
+                m_Version = 2;
+            }
         }
     }
 }

@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // We keep this property for the migration code
         [FormerlySerializedAs("planarReflectionTextureSize")]
         [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead.", false)]
-        internal PlanarReflectionAtlasResolution planarReflectionAtlasSize;
+        public PlanarReflectionAtlasResolution planarReflectionAtlasSize;
 
         // We keep this property for the migration code
         [SerializeField, Obsolete("There is no more texture array for cube reflection probes, use reflection probe atlases properties instead.", false)]

@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.Universal
         {
             NormalWorldSpace,
             MotionVectors,
+            BlitSource,
         }
 
         [SerializeField]
@@ -50,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
         public UniversalSampleBufferNode()
         {
             name = "URP Sample Buffer";
-            synonyms = new string[] { "normal", "motion vector" };
+            synonyms = new string[] { "normal", "motion vector", "blit" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -73,6 +74,10 @@ namespace UnityEditor.Rendering.Universal
                     AddSlot(new Vector2MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector2.zero, ShaderStageCapability.Fragment));
                     channelCount = 2;
                     break;
+                case BufferType.BlitSource:
+                    AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Color.black, ShaderStageCapability.Fragment));
+                    channelCount = 4;
+                    break;
             }
 
             RemoveSlotsNameNotMatching(new[]
@@ -80,6 +85,25 @@ namespace UnityEditor.Rendering.Universal
                 k_ScreenPositionSlotId,
                 k_OutputSlotId,
             });
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (generationMode.IsPreview())
+                return;
+
+            if (bufferType == BufferType.BlitSource)
+            {
+                properties.AddShaderProperty(new Texture2DShaderProperty
+                {
+                    // Make it compatible with Blitter.cs calls
+                    overrideReferenceName = "_BlitTexture",
+                    displayName = "_BlitTexture",
+                    hidden = true,
+                    generatePropertyBlock = true,
+                    isMainTexture = true,
+                });
+            }
         }
 
         string GetFunctionName() => $"Unity_Universal_SampleBuffer_{bufferType}_$precision";
@@ -106,6 +130,10 @@ namespace UnityEditor.Rendering.Universal
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine($"return LOAD_TEXTURE2D_X_LOD(_MotionVectorTexture, pixelCoords, 0).xy;");
                                 break;
+                            case BufferType.BlitSource:
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine($"return LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0);");
+                                break;
                             default:
                                 s.AppendLine("return 0.0;");
                                 break;
@@ -128,6 +156,7 @@ namespace UnityEditor.Rendering.Universal
                             case BufferType.MotionVectors:
                                 s.AppendLine("return uv * 2 - 1;");
                                 break;
+                            case BufferType.BlitSource:
                             default:
                                 s.AppendLine("return 0.0;");
                                 break;

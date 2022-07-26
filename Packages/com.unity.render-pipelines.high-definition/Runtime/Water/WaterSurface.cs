@@ -906,7 +906,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return rendering;
         }
 
-        public bool IsInfinite()
+        internal bool IsInfinite()
         {
             return (surfaceType == WaterSurfaceType.OceanSeaLake) ? geometryType == WaterGeometryType.Infinite : false;
         }

@@ -292,7 +292,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If the event has not been registered the unsubscribe will do nothing
             RenderPipelineManager.activeRenderPipelineTypeChanged -= ShowWizardFirstTime;
 
-            if (!CanShowWizard())
+            if (!HDRenderPipeline.isReady)
             {
                 // Delay the show of the wizard for the first time that the user is using HDRP
                 RenderPipelineManager.activeRenderPipelineTypeChanged += ShowWizardFirstTime;

@@ -5,13 +5,15 @@
 TEXTURE2D_X_FLOAT(_CameraRenderingLayersTexture);
 SAMPLER(sampler_CameraRenderingLayersTexture);
 
-float SampleSceneRenderingLayer(float2 uv)
+uint SampleSceneRenderingLayer(float2 uv)
 {
-    return SAMPLE_TEXTURE2D_X(_CameraRenderingLayersTexture, sampler_CameraRenderingLayersTexture, UnityStereoTransformScreenSpaceTex(uv)).r;
+    float renderingLayer = SAMPLE_TEXTURE2D_X(_CameraRenderingLayersTexture, sampler_CameraRenderingLayersTexture, UnityStereoTransformScreenSpaceTex(uv)).r;
+    return DecodeMeshRenderingLayer(renderingLayer);
 }
 
 uint LoadSceneRenderingLayer(uint2 uv)
 {
-    return DecodeMeshRenderingLayer(LOAD_TEXTURE2D_X(_CameraRenderingLayersTexture, uv).r);
+    float renderingLayer = LOAD_TEXTURE2D_X(_CameraRenderingLayersTexture, uv).r;
+    return DecodeMeshRenderingLayer(renderingLayer);
 }
 #endif

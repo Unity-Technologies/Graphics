@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
         public static bool RequireRenderingLayers(UniversalRendererData universalRendererData, int msaaSampleCount,
             out Event combinedEvent, out MaskSize combinedMaskSize)
         {
-            combinedEvent = Event.DepthNormalPrePass;
+            combinedEvent = Event.Opaque;
             combinedMaskSize = MaskSize.Bits8;
 
             bool isDeferred = universalRendererData.renderingMode == RenderingMode.Deferred;
@@ -48,8 +48,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Rendering layers can not use MSSA resolve, because it encodes integer
-            if (msaaSampleCount > 1 && combinedEvent == Event.Opaque)
+            if (msaaSampleCount > 1 && combinedEvent == Event.Opaque && !isDeferred)
                 combinedEvent = Event.DepthNormalPrePass;
+
+            // Make sure texture has enough bits to encode all rendering layers in urp global settings
+            if (UniversalRenderPipelineGlobalSettings.instance)
+            {
+                int count = UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames.Length;
+                MaskSize maskSize = RenderingLayerUtils.GetMaskSize(count);
+                combinedMaskSize = Combine(combinedMaskSize, maskSize);
+            }
 
             return result;
         }
@@ -81,6 +89,14 @@ namespace UnityEngine.Rendering.Universal
             // Rendering layers can not use MSSA resolve, because it encodes integer
             if (msaaSampleCount > 1 && combinedEvent == Event.Opaque)
                 combinedEvent = Event.DepthNormalPrePass;
+
+            // Make sure texture has enough bits to encode all rendering layers in urp global settings
+            if (UniversalRenderPipelineGlobalSettings.instance)
+            {
+                int count = UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames.Length;
+                MaskSize maskSize = RenderingLayerUtils.GetMaskSize(count);
+                combinedMaskSize = Combine(combinedMaskSize, maskSize);
+            }
 
             return result;
         }
@@ -121,19 +137,36 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Converts light layers to rendering layers.
+        /// Masks rendering layers with those that available in urp global settings.
         /// </summary>
-        public static uint ToRenderingLayers(LightLayerEnum lightLayers)
+        public static uint ToValidRenderingLayers(uint renderingLayers)
         {
-            return (uint)lightLayers;
+            if (UniversalRenderPipelineGlobalSettings.instance)
+            {
+                uint validRenderingLayers = UniversalRenderPipelineGlobalSettings.instance.validRenderingLayers;
+                return validRenderingLayers & renderingLayers;
+            }
+            return renderingLayers;
         }
 
-        /// <summary>
-        /// Converts decal layers to rendering layers.
-        /// </summary>
-        public static uint ToRenderingLayers(DecalLayerEnum decalLayers)
+        static MaskSize GetMaskSize(int bits)
         {
-            return (uint)decalLayers << 8;
+            int bytes = (bits + 7) / 8;
+            switch (bytes)
+            {
+                case 0:
+                    return MaskSize.Bits8;
+                case 1:
+                    return MaskSize.Bits8;
+                case 2:
+                    return MaskSize.Bits16;
+                case 3:
+                    return MaskSize.Bits24;
+                case 4:
+                    return MaskSize.Bits32;
+                default:
+                    return MaskSize.Bits32;
+            }
         }
 
         static int GetBits(MaskSize maskSize)
