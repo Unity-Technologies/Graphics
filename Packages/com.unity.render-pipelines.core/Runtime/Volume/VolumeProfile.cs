@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
     /// An Asset which holds a set of settings to use with a <see cref="Volume"/>.
     /// </summary>
     [CoreRPHelpURL("Volume-Profile", "com.unity.render-pipelines.high-definition")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/VolumeProfile Icon.asset")]
     public sealed class VolumeProfile : ScriptableObject
     {
         /// <summary>
