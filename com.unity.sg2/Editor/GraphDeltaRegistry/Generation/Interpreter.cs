@@ -439,7 +439,8 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 toConvert = toConvertNameOverride;
             }
-            var converted = $"CONVERT_{connectedNode.ID.LocalPath}_{fromPort.ID.LocalPath}";
+            var node = toPort.GetNode();
+            var converted = $"CONVERT_{node.ID.LocalPath}_{toPort.ID.LocalPath}";
             var cast = registry.GetCast(fromPort, toPort);
             var castFunction = cast.GetShaderCast(fromPort.GetTypeField(), toPort.GetTypeField(), container, registry);
 
