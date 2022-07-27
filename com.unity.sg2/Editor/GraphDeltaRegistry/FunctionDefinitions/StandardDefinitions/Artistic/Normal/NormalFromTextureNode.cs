@@ -14,15 +14,15 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "ThreeSamples",
-@"  //3 sample version - only works on square textures
+@"    //3 sample version - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);
     normalSample = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV), channelMask);
-    va.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
-    vb.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
+    va.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
+    vb.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
     Out = normalize(cross(va.xyz, vb.xyz));
     if (OutputSpace==1)
     {
@@ -41,6 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
+                        new ParameterDescriptor("offsetU", TYPE.Vec2, Usage.Local),
+                        new ParameterDescriptor("offsetV", TYPE.Vec2, Usage.Local),
                         new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                         new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
@@ -53,16 +55,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "FourSamples",
-@"  //4 samples - only works on square textures
+@"    //4 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
     if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
-    va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);//Bottom
-    va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask);//Top
-    vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask);//Right
-    vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y - Offset)), channelMask);//Left
+    va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x - Offset, UV.y)), channelMask);//Bottom
+    va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x + Offset, UV.y)), channelMask);//Top
+    vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y + Offset)), channelMask);//Right
+    vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y - Offset)), channelMask);//Left
     Out.x = va.x - va.y;
     Out.y = vb.x - vb.y;
     Out.z = 1.0f / Strength;
@@ -96,19 +98,19 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "EightSamples",
-@"  //8 samples - only works on square textures
+@"    //8 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
     if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV - Offset), channelMask);                   // top left
-    va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);   	  // left
-    va.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
-    va.w = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y - Offset)), channelMask);   	  // top
-    vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask);   	  // bottom
-    vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y - Offset)), channelMask);// top right
-    vb.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask);   	  // right
+    va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x - Offset, UV.y)), channelMask);   	  // left
+    va.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
+    va.w = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y - Offset)), channelMask);   	  // top
+    vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y + Offset)), channelMask);   	  // bottom
+    vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x + Offset, UV.y - Offset)), channelMask);// top right
+    vb.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x + Offset, UV.y)), channelMask);   	  // right
     vb.w = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV + Offset), channelMask);  				  // bottom right
     // Compute dx using Sobel:
     Out.x = -(vb.y + 2*vb.z + vb.w -va.x - 2*va.y - va.z);
