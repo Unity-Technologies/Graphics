@@ -108,6 +108,31 @@ public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
+        public bool CastExists(PortHandler from, PortHandler to)
+        {
+            var possible = builders.Values.OfType<ICastDefinitionBuilder>().Where(e => e.GetTypeConversionMapping().Equals((from.GetRegistryKey(), to.GetRegistryKey())));
+            foreach(var p in possible)
+            {
+                if(p.CanConvert(from.GetTypeField(), to.GetTypeField()))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        internal ICastDefinitionBuilder GetCast(PortHandler from, PortHandler to)
+        {
+            var possible = builders.Values.OfType<ICastDefinitionBuilder>().Where(e => e.GetTypeConversionMapping().Equals((from.GetRegistryKey(), to.GetRegistryKey())));
+            foreach (var p in possible)
+            {
+                if (p.CanConvert(from.GetTypeField(), to.GetTypeField()))
+                {
+                    return p;
+                }
+            }
+            return null;
+        }
 
         public bool Register<T>() where T : IRegistryEntry
         {

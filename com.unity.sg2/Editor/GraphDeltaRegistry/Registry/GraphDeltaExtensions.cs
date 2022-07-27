@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var dstNodeHandler = handler.GetNode(dstNode);
             var dstPortHandler = dstNodeHandler.GetPort(dstPort);
             var srcPortHandler = handler.GetNode(srcNode).GetPort(srcPort);
-            return registry.CastExists(dstPortHandler.GetTypeField().GetRegistryKey(), srcPortHandler.GetTypeField().GetRegistryKey());
+            return registry.CastExists(srcPortHandler, dstPortHandler);
         }
 
         public static bool TryConnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort)
