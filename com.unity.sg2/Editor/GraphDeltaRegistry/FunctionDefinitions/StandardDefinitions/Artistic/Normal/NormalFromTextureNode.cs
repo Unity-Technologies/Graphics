@@ -41,8 +41,6 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                        new ParameterDescriptor("offsetU", TYPE.Vec2, Usage.Local),
-                        new ParameterDescriptor("offsetV", TYPE.Vec2, Usage.Local),
                         new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                         new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
