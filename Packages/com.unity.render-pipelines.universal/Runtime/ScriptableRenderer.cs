@@ -1650,7 +1650,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // on platforms that support Load and Store actions having the clear flag means that the action will be DontCare, which is something we want when the color target is bound the first time
                     // (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget) check below ensures camera UI's clearFlag is respected when targeting built-in backbuffer.
-                    if (SystemInfo.usesLoadStoreActions && passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                    if (SystemInfo.usesLoadStoreActions && new RenderTargetIdentifier(passColorAttachment.nameID, 0, depthSlice: 0) != BuiltinRenderTextureType.CameraTarget)
                         finalClearFlag |= renderPass.clearFlag;
 
                     finalClearColor = cameraData.backgroundColor;
