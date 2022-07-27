@@ -422,7 +422,12 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="SortingCriteria"/>
         public SortingCriteria defaultOpaqueSortFlags;
 
-        internal XRPass xr;
+        /// <summary>
+        /// XRPass holds the render target information and a list of XRView.
+        /// XRView contains the parameters required to render (projection and view matrices, viewport, etc)
+        /// </summary>
+        public XRPass xr { get; internal set; }
+
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
         /// <summary>
