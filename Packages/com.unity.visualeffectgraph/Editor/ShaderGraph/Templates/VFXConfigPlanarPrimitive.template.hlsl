@@ -20,7 +20,11 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     #if HAS_STRIPS
         id += VFX_GET_INSTANCE_ID(i) * 8192;
         const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
-        const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
+
+        index = id / vertexPerStripCount; // stripIndex. Needed by VFXInitInstancing
+        $splice(VFXInitInstancing)
+
+        const StripData stripData = GetStripDataFromStripIndex(index, instanceIndex);
         uint relativeIndexInStrip = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
 
         uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
@@ -39,7 +43,9 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
-    $splice(VFXInitInstancingCompute)
+    #if !HAS_STRIPS
+    $splice(VFXInitInstancing)
+    #endif
 
     ContextData contextData = instancingContextData[instanceActiveIndex];
     uint systemSeed = contextData.systemSeed;
@@ -49,11 +55,12 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
-    index = indirectBuffer[index];
+    index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
     #endif
 
     element.index = index;
     element.instanceIndex = instanceIndex;
+    element.instanceActiveIndex = instanceActiveIndex;
 
     // Configure planar Primitive
     float4 uv = 0;

@@ -49,8 +49,8 @@ namespace UnityEditor.VFX
                 var gpuMapper = new VFXExpressionMapper();
                 if (IsPerCamera(sortCriterion))
                 {
-                    gpuMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
-                    gpuMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
+                    gpuMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
+                    gpuMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
                 }
 
                 if (sortCriterion == SortCriteria.Custom)
@@ -68,14 +68,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (GetData().IsAttributeStored(VFXAttribute.Alive))
-                    yield return "USE_DEAD_LIST_COUNT";
+                if(IsPerCamera(sortCriterion))
+                    yield return "HAVE_VFX_MODIFICATION"; //For correct handling of instanced matrices
                 foreach (string additionalDef in GetSortingAdditionalDefines(sortCriterion))
                 {
                     yield return additionalDef;
                 }
                 yield return "SORTING_SIGN " + (revertSorting ? -1 : 1);
-
             }
         }
     }

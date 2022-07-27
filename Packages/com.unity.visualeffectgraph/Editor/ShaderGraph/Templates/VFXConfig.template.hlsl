@@ -3,7 +3,6 @@ $splice(VFXDefineSpace)
 
 //VFXDefines splice
 $splice(VFXDefines)
-
 #define NULL_GEOMETRY_INPUT defined(HAVE_VFX_PLANAR_PRIMITIVE)
 
 // Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
@@ -72,6 +71,7 @@ struct AttributesElement
 {
     uint index;
     uint instanceIndex;
+    uint instanceActiveIndex;
     // Internal attributes sub-struct used by VFX code-gen property mapping.
     InternalAttributesElement attributes;
 
@@ -156,8 +156,9 @@ void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
     uint instanceIndex = element.instanceIndex;
+    uint instanceActiveIndex = element.instanceActiveIndex;
 #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[instanceIndex];
+    GraphValues graphValues = graphValuesBuffer[instanceActiveIndex];
 #endif
 
     InternalAttributesElement attributes;
@@ -190,7 +191,7 @@ bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout Attribut
 {
     GetElementData(element);
     #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[element.instanceIndex];
+    GraphValues graphValues = graphValuesBuffer[element.instanceActiveIndex];
     #endif
     InternalAttributesElement attributes = element.attributes;
 
@@ -247,7 +248,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
     );
 
 #if VFX_LOCAL_SPACE
-    elementToWorld = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), elementToWorld);
+    elementToWorld = mul(GetSGVFXUnityObjectToWorld(), elementToWorld);
 #else
     elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
 #endif
@@ -269,7 +270,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
     );
 
 #if VFX_LOCAL_SPACE
-    worldToElement = mul(worldToElement, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
+    worldToElement = mul(worldToElement,GetSGVFXUnityWorldToObject());
 #else
     worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
 #endif
@@ -296,7 +297,7 @@ float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement el
     uint elementIndex = element.index;
     uint vertexId = input.vertexID;
     uint elementToVFXBaseIndex;
-    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex, element.currentFrameIndex))
+    if (TryGetElementToVFXBaseIndex(elementIndex, element.instanceIndex, elementToVFXBaseIndex, element.currentFrameIndex))
     {
         cPreviousPos = VFXGetPreviousClipPosition(elementToVFXBaseIndex, vertexId);
     }
@@ -310,7 +311,7 @@ VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, A
 #if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
     uint elementIndex = element.index;
     uint elementToVFXBaseIndex;
-    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex, element.currentFrameIndex))
+    if (TryGetElementToVFXBaseIndex(elementIndex, element.instanceIndex, elementToVFXBaseIndex, element.currentFrameIndex))
     {
         float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
         input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;

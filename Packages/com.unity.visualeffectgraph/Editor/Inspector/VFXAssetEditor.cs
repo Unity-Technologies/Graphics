@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-
+using System.ComponentModel;
 using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
@@ -312,9 +312,14 @@ class VisualEffectAssetEditor : Editor
             initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
             instancingModeProperty = resourceObject.FindProperty("m_Infos.m_InstancingMode");
             instancingCapacityProperty = resourceObject.FindProperty("m_Infos.m_InstancingCapacity");
-            instancingDisabledReasonProperty = resourceObject.FindProperty("m_Infos.m_InstancingDisabledReason");
+        }
+        if (targets?.Length > 0)
+        {
+            targetObject = new SerializedObject(targets);
+            instancingDisabledReasonProperty = targetObject.FindProperty("m_Infos.m_InstancingDisabledReason");
         }
     }
+
 
     PreviewRenderUtility m_PreviewUtility;
 
@@ -523,6 +528,7 @@ class VisualEffectAssetEditor : Editor
     SerializedProperty initialEventName;
     SerializedProperty instancingModeProperty;
     SerializedProperty instancingCapacityProperty;
+    SerializedObject targetObject;
     SerializedProperty instancingDisabledReasonProperty;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
@@ -875,7 +881,9 @@ class VisualEffectAssetEditor : Editor
         bool forceDisabled = disabledReason != VFXInstancingDisabledReason.None;
         if (forceDisabled)
         {
-            EditorGUILayout.HelpBox("Instancing not available:\n- Unknown reason", MessageType.Info);
+            System.Text.StringBuilder reasonString = new System.Text.StringBuilder("Instancing not available:");
+            GetInstancingDisabledReasons(reasonString, disabledReason);
+            EditorGUILayout.HelpBox(reasonString.ToString(), MessageType.Info);
         }
 
         VFXInstancingMode instancingMode = forceDisabled ? VFXInstancingMode.Disabled : (VFXInstancingMode)instancingModeProperty.intValue;
@@ -895,6 +903,33 @@ class VisualEffectAssetEditor : Editor
             instancingCapacityProperty.intValue = System.Math.Max(instancingCapacity, 1);
             resourceObject.ApplyModifiedProperties();
         }
+    }
+
+    void GetInstancingDisabledReasons(System.Text.StringBuilder reasonString, VFXInstancingDisabledReason disabledReasonMask)
+    {
+        if (disabledReasonMask == VFXInstancingDisabledReason.Unknown)
+        {
+            GetInstancingDisabledReason(reasonString, VFXInstancingDisabledReason.Unknown);
+        }
+        else
+        {
+            Enum.GetValues(typeof(VFXInstancingDisabledReason))
+                .Cast<VFXInstancingDisabledReason>()
+                .Where(x => x != VFXInstancingDisabledReason.None && disabledReasonMask.HasFlag(x))
+                .ToList()
+                .ForEach(x => GetInstancingDisabledReason(reasonString, x));
+        }
+    }
+
+    void GetInstancingDisabledReason(System.Text.StringBuilder reasonString, VFXInstancingDisabledReason disabledReasonFlag)
+    {
+        reasonString.AppendLine();
+        reasonString.Append("- ");
+
+        Type type = disabledReasonFlag.GetType();
+        var memberInfo = type.GetMember(type.GetEnumName(disabledReasonFlag));
+        var descriptionAttribute = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() as DescriptionAttribute;
+        reasonString.Append(descriptionAttribute?.Description ?? disabledReasonFlag.ToString());
     }
 }
 
