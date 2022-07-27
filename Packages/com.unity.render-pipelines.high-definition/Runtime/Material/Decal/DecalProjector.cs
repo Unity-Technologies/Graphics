@@ -385,7 +385,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RegisterDecalVisibilityUpdatePrefabStage(PrefabStage stage = null)
-            => SceneView.duringSceneGui += UpdateDecalVisibilityPrefabStage;
+        {
+            SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStage;
+            SceneView.duringSceneGui += UpdateDecalVisibilityPrefabStage;
+        }
 
         void UnregisterDecalVisibilityUpdatePrefabStage()
             => SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStage;

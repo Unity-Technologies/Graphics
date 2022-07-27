@@ -220,7 +220,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Handle scene visibility
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
             UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateLocalVolumetricFogVisibility;
+            SceneView.duringSceneGui -= UpdateLocalVolumetricFogVisibilityPrefabStage;
             SceneView.duringSceneGui += UpdateLocalVolumetricFogVisibilityPrefabStage;
 #endif
         }
