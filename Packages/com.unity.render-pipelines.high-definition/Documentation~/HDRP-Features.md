@@ -1,13 +1,14 @@
 # High Definition Render Pipeline overview
 
 This is a high level overview of all the features you can use in the High Definition Render Pipeline (HDRP). This document presents the features in the following categories:
-
 - [Project](#Project)
 - [Material](#Material)
 - [Lighting](#Lighting)
 - [Camera](#Camera)
 - [Tools](#Tools)
 - [Programming](#Programming)
+
+To compare feature support between render pipelines, see [Render pipeline feature comparison](https://docs.unity3d.com/Manual/render-pipelines-feature-comparison.html).
 
 <a name="Project"></a>
 
