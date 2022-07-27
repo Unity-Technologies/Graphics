@@ -101,6 +101,20 @@ float3x3 GetVFXToViewRotMatrix() { return mul(VFXGetWorldToViewRotMatrix(), (flo
 float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFXGetViewWorldPosition(), 1.0f)).xyz; }
 #endif
 
+
+float3 VFXSafeNormalize(float3 v)
+{
+    float sqrLength = max(VFX_FLT_MIN, dot(v, v));
+    return v * rsqrt(sqrLength);
+}
+
+float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
+{
+    float3 outVec = cross(v1, v2);
+    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
+    return outVec;
+}
+
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
 float4 SampleTexture(VFXSampler2D s, float2 coords)
@@ -225,7 +239,7 @@ float3 GetNormalFromSDF(VFXSampler3D s, float3 uvw, float level = 0.0f)
     float3 normal;
     if (outsideDist > 0.5f) // Check whether point is outside the box
     {
-        normal = normalize(uvw - 0.5f);
+        normal = VFXSafeNormalize(uvw - 0.5f);
     }
     else
     {
@@ -233,7 +247,7 @@ float3 GetNormalFromSDF(VFXSampler3D s, float3 uvw, float level = 0.0f)
         float3 dir = SampleSDFDerivatives(s, projUVW, level);
         if (dist < 0)
             dir = -dir;
-        normal =  normalize(dir);
+        normal =  VFXSafeNormalize(dir);
     }
     return normal;
 }
@@ -594,19 +608,6 @@ float4x4 GetVFXToElementMatrix(float3 axisX, float3 axisY, float3 axisZ, float3 
         float4(rotAndScale[1], pos.y),
         float4(rotAndScale[2], pos.z),
         float4(0, 0, 0, 1));
-}
-
-float3 VFXSafeNormalize(float3 v)
-{
-    float sqrLength = max(VFX_FLT_MIN, dot(v, v));
-    return v * rsqrt(sqrLength);
-}
-
-float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
-{
-    float3 outVec = cross(v1, v2);
-    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
-    return outVec;
 }
 
 /////////////////////

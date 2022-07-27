@@ -355,26 +355,41 @@ void CopyTextures(uint3 id: SV_DispatchThreadID)
 [numthreads(4, 4, 4)]
 void SurfaceClosing(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= size.x-1 || id.y >= size.y-1 || id.z >= size.z-1)
+    if (id.x >= size.x || id.y >= size.y || id.z >= size.z)
         return;
     const uint size_max = Max3(size.x, size.y, size.z);
     const float currentSignScore = signMap[id.xyz]-threshold;
+    const float3 halfTexel = float3(0.5f, 0.5f, 0.5f);
+    //Close on open borders
+    if(currentSignScore > 0)
+    {
+        if(any(size - id == 1) || any(id == 0))
+        {
+            const bool3 borderUp = size - id == 1;
+            const bool3 borderDown =  id == 0;
+            const float3 offset = borderUp * halfTexel - borderDown * halfTexel + halfTexel;
+            voxels[id.xyz] = float4( (float3(id.xyz) + offset) / size_max, 1.0f);
+        }
+    }
+    if(any(id - size == 1))
+        return;
+    //Close on sign switch
     if(abs(currentSignScore/threshold) < 0.1f)
     {
         if(currentSignScore*(signMap[id.xyz + uint3(1,0,0)] - threshold) < 0)
         {
             const uint3 writeCoord = id.xyz + (currentSignScore < 0 ? uint3(1,0,0) : uint3(0,0,0));
-            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + halfTexel) / size_max, 1.0f);
         }
         if(currentSignScore*(signMap[id.xyz + uint3(0,1,0)] - threshold) < 0)
         {
             const uint3 writeCoord = id.xyz + (currentSignScore < 0 ? uint3(0,1,0) : uint3(0,0,0));
-            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + halfTexel) / size_max, 1.0f);
         }
         if(currentSignScore*(signMap[id.xyz + uint3(0,0,1)] - threshold) < 0)
         {
             const uint3 writeCoord = id.xyz + (currentSignScore < 0 ? uint3(0,0,1) : uint3(0,0,0));
-            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + halfTexel) / size_max, 1.0f);
         }
     }
 }
