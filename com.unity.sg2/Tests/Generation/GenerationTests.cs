@@ -43,9 +43,9 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
 
-            CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
-            foreach (var descriptor in descriptors)
-                LogDescriptor(descriptor);
+            //CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
+            //foreach (var descriptor in descriptors)
+            //    LogDescriptor(descriptor);
 
             graph.AddNode<TestAddNode>("Add1").SetPortField("In1", "c0", 1f); //(1,0,0,0)
             graph.AddNode<TestAddNode>("Add2").SetPortField("In2", "c1", 1f); //(0,1,0,0)

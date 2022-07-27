@@ -31,8 +31,17 @@ namespace UnityEditor.ShaderGraph.Generation
             switch(builder)
             {
                 case GraphType _:
-                    var init = builder.GetInitializerList(port.GetTypeField(), registry);
-                    return init.Substring(init.IndexOf('('));
+                    var field = port.GetTypeField();
+                    if ((int)GraphTypeHelpers.GetLength(field) > 1)
+                    {
+                         var val = GraphTypeHelpers.GetAsVec4(port.GetTypeField());
+                        return $"({val.x}, {val.y}, {val.z}, {val.w})";
+                    }
+                    else
+                    {
+                        var val = GraphTypeHelpers.GetAsFloat(port.GetTypeField());
+                        return $"{val}";
+                    }
                 case BaseTextureType _:
                     return "\"white\" {}";
                 default:

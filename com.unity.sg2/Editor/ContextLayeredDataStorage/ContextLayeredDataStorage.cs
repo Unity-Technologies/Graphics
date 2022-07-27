@@ -18,6 +18,8 @@ namespace UnityEditor.ContextLayeredDataStorage
         internal readonly LayerList m_layerList;
         [NonSerialized]
         protected Dictionary<ElementID, Element> m_flatStructureLookup;
+        [NonSerialized]
+        protected Element m_flatStructure;
         protected IEnumerable<(string layerName, Element root)> LayerList
         {
             get
@@ -45,6 +47,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             m_layerList = new LayerList(this);
             m_flatStructureLookup = new Dictionary<ElementID, Element>(new ElementIDComparer());
+            m_flatStructure = new Element<int>("", -1, this);
             m_metadata = new MetadataCollection();
             AddDefaultLayers();
         }
@@ -659,6 +662,64 @@ namespace UnityEditor.ContextLayeredDataStorage
             return output;
         }
 
+        private void ReplaceData(Element root, ElementID idToReplace, Element toReplaceWith)
+        {
+            var toReplace = SearchRelative(root, idToReplace);
+            if(toReplace != null)
+            {
+                toReplaceWith.Parent = toReplace.Parent;
+                toReplaceWith.Children = toReplace.Children;
+                toReplaceWith.Parent.Children.Remove(toReplace);
+                foreach(var child in toReplace.Children)
+                {
+                    child.Parent = toReplaceWith;
+                }
+            }
+        }
+
+        private IEnumerable<Element> FlatStructurePartialSearch(ElementID searchID)
+        {
+            Stack<Element> workingSet = new Stack<Element>();
+            HashSet<ElementID> returnedElements = new HashSet<ElementID>(new ElementIDComparer());
+            workingSet.Push(m_flatStructure);
+            while(workingSet.Count > 0)
+            {
+                var current = workingSet.Pop();
+                foreach(var child in current.Children)
+                {
+                    if(searchID.IsImmediateSubpathOf(child.ID))
+                    {
+                        returnedElements.Add(child.ID);
+                    }
+                    else if(child.ID.IsSubpathOf(searchID) || child.ID.Equals(searchID))
+                    {
+                        workingSet.Push(child);
+                    }
+                }
+            }
+
+            foreach(var cid in returnedElements)
+            {
+                yield return m_flatStructureLookup[cid];
+            }
+        }
+
+        internal IEnumerable<Element> GetChildren(ElementID id)
+        {
+            //var search = SearchRelative(m_flatStructure, id);
+            //if (search != null)
+            //{
+            //    foreach (var c in search.Children)
+            //    {
+            //        children.Add(c.ID); //the partial search might already encompass this and the initial search doesnt need to happen
+            //    }
+            //}
+            foreach(var c in FlatStructurePartialSearch(id))
+            {
+                yield return m_flatStructureLookup[c.ID];
+            }
+        }
+
         internal void UpdateFlattenedStructureAdd(Element addedElement)
         {
             ElementID id = addedElement.ID;
@@ -666,12 +727,14 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
                 {
+                    ReplaceData(m_flatStructure, id, addedElement.MakeCopy());
                     m_flatStructureLookup[id] = addedElement;
                 }
             }
             else
             {
                 m_flatStructureLookup.Add(id, addedElement);
+                AddData(m_flatStructure, id, out _);
             }
         }
 
@@ -680,11 +743,14 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
+                ReplaceData(m_flatStructure, removedElementId, replacement.MakeCopy());
                 m_flatStructureLookup[removedElementId] = replacement;
             }
             else
             {
+                m_metadata.Remove(removedElementId.FullPath);
                 m_flatStructureLookup.Remove(removedElementId);
+                RemoveData(m_flatStructure, removedElementId);
             }
         }
 
