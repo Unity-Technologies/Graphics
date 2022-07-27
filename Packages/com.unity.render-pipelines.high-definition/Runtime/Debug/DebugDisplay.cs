@@ -1226,6 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ExposureDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode to validate the exposure." };
             public static readonly NameAndTooltip ExposureDisplayMaskOnly = new() { name = "Display Mask Only", tooltip = "Display only the metering mask in the picture-in-picture. When disabled, the mask is visible after weighting the scene color instead." };
             public static readonly NameAndTooltip ExposureShowTonemapCurve = new() { name = "Show Tonemap Curve", tooltip = "Overlay the tonemap curve to the histogram debug view." };
+            public static readonly NameAndTooltip DisplayHistogramSceneOverlay = new () { name = "Show Scene Overlay", tooltip = "Display the scene overlay showing pixels excluded by the exposure computation via histogram." };
             public static readonly NameAndTooltip ExposureCenterAroundExposure = new() { name = "Center Around Exposure", tooltip = "Center the histogram around the current exposure value." };
             public static readonly NameAndTooltip ExposureDisplayRGBHistogram = new() { name = "Display RGB Histogram", tooltip = "Display the Final Image Histogram as an RGB histogram instead of just luminance." };
             public static readonly NameAndTooltip DebugExposureCompensation = new() { name = "Debug Exposure Compensation", tooltip = "Set an additional exposure on top of your current exposure for debug purposes." };
@@ -1381,6 +1382,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                 isHiddenCallback = () => data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.HistogramView,
                                 children =
                                 {
+                                    new DebugUI.BoolField()
+                                    {
+                                        nameAndTooltip = LightingStrings.DisplayHistogramSceneOverlay,
+                                        getter = () => data.lightingDebugSettings.displayOnSceneOverlay,
+                                        setter = value => data.lightingDebugSettings.displayOnSceneOverlay = value
+                                    },
                                     new DebugUI.BoolField()
                                     {
                                         nameAndTooltip = LightingStrings.ExposureShowTonemapCurve,
