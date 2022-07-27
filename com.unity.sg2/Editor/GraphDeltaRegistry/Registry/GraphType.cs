@@ -72,11 +72,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static int GetAsInt(FieldHandler field) =>
             (int)GetComponent(field, 0);
 
-        public static Vector2 GetAsVec2(FieldHandler field) =>
-            new(GetComponent(field, 0), GetComponent(field, 1));
+        public static Vector2 GetAsVec2(FieldHandler field, int col = 0) =>
+            new(
+                GetComponent(field, 0 + col * 2),
+                GetComponent(field, 1 + col * 2)
+            );
 
-        public static Vector3 GetAsVec3(FieldHandler field) =>
-            new(GetComponent(field, 0), GetComponent(field, 1), GetComponent(field, 2));
+        public static Vector3 GetAsVec3(FieldHandler field, int col = 0) =>
+            new(
+                GetComponent(field, 0 + col * 3),
+                GetComponent(field, 1 + col * 3),
+                GetComponent(field, 2 + col * 3)
+            );
 
         public static Vector4 GetAsVec4(FieldHandler field, int col = 0) =>
             new(
@@ -85,6 +92,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GetComponent(field, 2 + col * 4),
                 GetComponent(field, 3 + col * 4)
             );
+
+        public static Matrix4x4 GetAsMat2(FieldHandler field) =>
+            new(
+                GetAsVec2(field, 0),
+                GetAsVec2(field, 1),
+                Vector4.zero,
+                Vector4.zero
+            );
+
+        public static Matrix4x4 GetAsMat3(FieldHandler field) =>
+            new(
+                GetAsVec3(field, 0),
+                GetAsVec3(field, 1),
+                GetAsVec3(field, 2),
+                Vector4.zero
+            );
+
         public static Matrix4x4 GetAsMat4(FieldHandler field) =>
             new(
                 GetAsVec4(field, 0),
@@ -114,14 +138,26 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static void SetAsInt(FieldHandler field, int val) =>
             SetComponent(field, 0, val);
 
-        public static void SetAsVec2(FieldHandler field, Vector2 val) =>
-            SetComponents(field, 0, val.x, val.y);
+        public static void SetAsVec2(FieldHandler field, Vector2 val, int col = 0) =>
+            SetComponents(field, col * 2, val.x, val.y);
 
-        public static void SetAsVec3(FieldHandler field, Vector3 val) =>
-            SetComponents(field, 0, val.x, val.y, val.z);
+        public static void SetAsVec3(FieldHandler field, Vector3 val, int col = 0) =>
+            SetComponents(field, col * 3, val.x, val.y, val.z);
 
         public static void SetAsVec4(FieldHandler field, Vector4 val, int col = 0) =>
             SetComponents(field, col * 4, val.x, val.y, val.z, val.w);
+
+        public static void SetAsMat2(FieldHandler field, Matrix4x4 val)
+        {
+            for (int i = 0; i < 2; ++i)
+                SetAsVec2(field, val.GetColumn(i), i);
+        }
+
+        public static void SetAsMat3(FieldHandler field, Matrix4x4 val)
+        {
+            for (int i = 0; i < 3; ++i)
+                SetAsVec3(field, val.GetColumn(i), i);
+        }
 
         public static void SetAsMat4(FieldHandler field, Matrix4x4 val)
         {
@@ -343,20 +379,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var srcSize = srcType.IsVector ? srcType.VectorDimension : srcType.IsMatrix ? srcType.MatrixColumns * srcType.MatrixRows : 1;
             var dstSize = dstType.IsVector ? dstType.VectorDimension : dstType.IsMatrix ? dstType.MatrixColumns * dstType.MatrixRows : 1;
 
-            string body = $"Out = {srcType.Name} {{ ";
-
-            for (int i = 0; i < dstSize; ++i)
+            string body = "";
+            if (srcType.IsScalar || dstType.IsScalar || srcSize >= dstSize)
             {
-                if (i < srcSize)
-                {
-                    if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
-                    if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
-                    if (dstType.IsScalar) body += $"In";
-                }
-                else body += "0";
-                if (i != dstSize - 1) body += ", ";
+                //honestly HLSL automatic casting solves this for most cases
+                body = $"Out = ({dstType.Name}) In; ";
             }
-            body += " };";
+            else
+            {
+                body = $"Out = {dstType.Name} ( ";
+
+                for (int i = 0; i < dstSize; ++i)
+                {
+                    if (i < srcSize)
+                    {
+                        if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
+                        if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
+                        if (dstType.IsScalar) body += $"In";
+                    }
+                    else body += "0";
+                    if (i != dstSize - 1) body += ", ";
+                }
+                body += " );";
+            }
 
             builder.AddLine(body);
             return builder.Build();

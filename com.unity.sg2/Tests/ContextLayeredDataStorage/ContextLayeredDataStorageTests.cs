@@ -448,7 +448,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             //will only return the _immediate_ children of a reader (at least in the base DataReader case).
             //That means, if "d" were contained in this structure, it could be returned. But since its not
             //here, and "d.e" wont be seen as an immediate child, its ignored. 
-            Assert.IsTrue(copied.GetChildren().Count() == 0);
+            Assert.AreEqual(0, copied.GetChildren().Count());
             //This part though seems to go against that; "c" has no children, why can you getchild on "d.e"
             //and get a correct value? Currently, getchild just appends the rest of the localID onto c's
             //full path ID, and then just searches the graph for that, which will search for "a.b.c.d.e"
@@ -473,7 +473,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             copied = copied.GetChild("c");
             Assert.NotNull(copied);
             Assert.AreEqual(35.4f, copied.GetData<float>());
-            Assert.IsTrue(copied.GetChildren().Count() == 0);
+            Assert.AreEqual(0, copied.GetChildren().Count());
             copied = copied.GetChild("d.e");
             Assert.NotNull(copied);
             Assert.AreEqual(true, copied.GetData<bool>());

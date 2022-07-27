@@ -9,6 +9,34 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
+        private class ShaderFunctionRegistry : List<ShaderFunction>
+        {
+            public void EnsureFunctionPresent(ShaderFunction function)
+            {
+                bool alreadyContained = false;
+                foreach(var f in this)
+                {
+                    if(FunctionsAreEqual(f, function))
+                    {
+                        alreadyContained = true;
+                        break;
+                    }
+                }
+                if(!alreadyContained)
+                {
+                    Add(function);
+                }
+            }
+
+            public void EnsureFunctionsPresent(IEnumerable<ShaderFunction> functions)
+            {
+                foreach(var f in functions)
+                {
+                    EnsureFunctionPresent(f);
+                }
+            }
+            
+        }
         /// <summary>
         /// There's a collection of required and potentially useful pieces of data
         /// that are cached as a part of the preview management.
@@ -171,7 +199,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.LocalPath}Main", outputType);
 
-            var shaderFunctions = new List<ShaderFunction>();
+            var shaderFunctions = new ShaderFunctionRegistry();
             var includes = new List<ShaderFoundry.IncludeDescriptor>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
@@ -209,11 +237,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 blockBuilder.AddType(type);
             }
-            foreach(var func in shaderFunctions)
-            {
-                blockBuilder.AddFunction(func);
-            }
-            // TODO: https://github.com/Unity-Technologies/Graphics/pull/7079 and following changes in Graphics repo
+             // TODO: https://github.com/Unity-Technologies/Graphics/pull/7079 and following changes in Graphics repo
             // will allow includes to be added directly to ShaderFunctions instead.
             foreach (var include in includes)
             {
@@ -241,7 +265,7 @@ namespace UnityEditor.ShaderGraph.Generation
                             }
                             else
                             {
-                                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
+                                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = {ApplyConversionAndReturnConvertedVariable(connectedPort, port, registry, container, ref mainBodyFunctionBuilder, port.GetShaderType(registry, container).Name, ref shaderFunctions)};");
                             }
                         }
                         else // not connected.
@@ -254,6 +278,11 @@ namespace UnityEditor.ShaderGraph.Generation
                         mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{rootNode.ID.LocalPath}_{port.ID.LocalPath};");
                     }
                 }
+            }
+
+            foreach (var func in shaderFunctions)
+            {
+                blockBuilder.AddFunction(func);
             }
 
             mainBodyFunctionBuilder.AddLine("return output;");
@@ -395,6 +424,32 @@ namespace UnityEditor.ShaderGraph.Generation
             return true;
         }
 
+        private static string ApplyConversionAndReturnConvertedVariable(PortHandler fromPort,
+                                                                        PortHandler toPort,
+                                                                        Registry registry,
+                                                                        ShaderContainer container,
+                                                                        ref ShaderFunction.Builder mainBodyFunctionBuilder,
+                                                                        string convertedTypeName,
+                                                                        ref ShaderFunctionRegistry shaderFunctions,
+                                                                        string toConvertNameOverride = null)
+        {
+            var connectedNode = fromPort.GetNode();
+            var toConvert = $"SYNTAX_{connectedNode.ID.LocalPath}_{fromPort.ID.LocalPath}";
+            if(toConvertNameOverride != null)
+            {
+                toConvert = toConvertNameOverride;
+            }
+            var converted = $"CONVERT_{connectedNode.ID.LocalPath}_{fromPort.ID.LocalPath}";
+            var cast = registry.GetCast(fromPort, toPort);
+            var castFunction = cast.GetShaderCast(fromPort.GetTypeField(), toPort.GetTypeField(), container, registry);
+
+            mainBodyFunctionBuilder.AddLine($"{convertedTypeName} {converted};");
+            mainBodyFunctionBuilder.AddLine($"{castFunction.Name}({toConvert}, {converted});");
+            shaderFunctions.EnsureFunctionPresent(castFunction);
+            return converted;
+
+        }
+
         private static void ProcessNode(NodeHandler node,
             ref ShaderContainer container,
             ref List<StructField> inputVariables,
@@ -402,56 +457,15 @@ namespace UnityEditor.ShaderGraph.Generation
             ref List<(string, UnityEngine.Texture)> defaultTextures, // replace this with a generalized default properties solution.
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
-            ref List<ShaderFunction> shaderFunctions,
+            ref ShaderFunctionRegistry shaderFunctions,
             ref List<ShaderFoundry.IncludeDescriptor> includes,
             Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
-            List<ShaderFunction> localDependencies = new();
             List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
             var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
 
-            // Process functions and prevent from adding duplicates
-            if (dependencies.localFunctions != null)
-                localDependencies.AddRange(dependencies.localFunctions);
-            localDependencies.Add(func);
-            foreach (var function in localDependencies)
-            {
-                bool shouldAdd = true;
-                foreach (var existing in shaderFunctions)
-                {
-                    if (FunctionsAreEqual(existing, function))
-                    {
-                        shouldAdd = false;
-                        break;
-                    }
-                }
-                if (shouldAdd)
-                {
-                    shaderFunctions.Add(function);
-                }
-            }
-
-            // Process includes and prevent from adding duplicates
-            if (dependencies.includes != null)
-                localIncludes.AddRange(dependencies.includes);
-            foreach (var include in localIncludes)
-            {
-                bool shouldAdd = true;
-                foreach (var existing in includes)
-                {
-                    if (existing.Value == include.Value)
-                    {
-                        shouldAdd = false;
-                        break;
-                    }
-                }
-                if (shouldAdd)
-                {
-                    includes.Add(include);
-                }
-            }
-
+            
             string arguments = "";
             foreach (var param in func.Parameters)
             {
@@ -469,11 +483,18 @@ namespace UnityEditor.ShaderGraph.Generation
                             var connectedNode = connectedPort.GetNode();
                             if (connectedNode.HasMetadata("_contextDescriptor"))
                             {
-                                argument = $"In.{connectedPort.ID.LocalPath.Replace("out_", "")}";
+                                argument = ApplyConversionAndReturnConvertedVariable(connectedPort,
+                                                                                     port,
+                                                                                     registry,
+                                                                                     container,
+                                                                                     ref mainBodyFunctionBuilder,
+                                                                                     param.Type.Name,
+                                                                                     ref shaderFunctions,
+                                                                                     $"In.{connectedPort.ID.LocalPath.Replace("out_", "")}");
                             }
                             else
                             {
-                                argument = $"SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+                                argument = ApplyConversionAndReturnConvertedVariable(connectedPort, port, registry, container, ref mainBodyFunctionBuilder, param.Type.Name, ref shaderFunctions);
                             }
                         }
                         else // not connected.
@@ -516,6 +537,30 @@ namespace UnityEditor.ShaderGraph.Generation
             mainBodyFunctionBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
 
 
+            // Process functions and prevent from adding duplicates
+            if (dependencies.localFunctions != null)
+                shaderFunctions.EnsureFunctionsPresent(dependencies.localFunctions);
+            shaderFunctions.EnsureFunctionPresent(func);
+
+            // Process includes and prevent from adding duplicates
+            if (dependencies.includes != null)
+                localIncludes.AddRange(dependencies.includes);
+            foreach (var include in localIncludes)
+            {
+                bool shouldAdd = true;
+                foreach (var existing in includes)
+                {
+                    if (existing.Value == include.Value)
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd)
+                {
+                    includes.Add(include);
+                }
+            }
         }
 
         private static string ConvertToFloat3(ShaderType type, string name)

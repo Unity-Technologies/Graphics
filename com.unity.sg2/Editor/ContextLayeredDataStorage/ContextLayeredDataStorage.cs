@@ -17,7 +17,9 @@ namespace UnityEditor.ContextLayeredDataStorage
         [NonSerialized]
         internal readonly LayerList m_layerList;
         [NonSerialized]
-        protected Dictionary<string, Element> m_flatStructureLookup;
+        protected Dictionary<ElementID, Element> m_flatStructureLookup;
+        [NonSerialized]
+        protected Element m_flatStructure;
         protected IEnumerable<(string layerName, Element root)> LayerList
         {
             get
@@ -29,7 +31,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        public IEnumerable<(string, Element)> FlatStructureLookup
+        public IEnumerable<(ElementID, Element)> FlatStructureLookup
         {
             get
             {
@@ -40,10 +42,12 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
+        
         public ContextLayeredDataStorage()
         {
             m_layerList = new LayerList(this);
-            m_flatStructureLookup = new Dictionary<string, Element>();
+            m_flatStructureLookup = new Dictionary<ElementID, Element>(new ElementIDComparer());
+            m_flatStructure = new Element<int>("", -1, this);
             m_metadata = new MetadataCollection();
             AddDefaultLayers();
         }
@@ -309,7 +313,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             foreach(var elem in src.Children)
             {
                 var recurse = elem.MakeCopy();
-                recurse.ID = $"{dst.ID.FullPath}{elem.ID.FullPath.Replace(src.ID.FullPath, "")}";
+                recurse.ID = ElementID.FromString($"{dst.ID.FullPath}{elem.ID.FullPath.Replace(src.ID.FullPath, "")}");
                 AddChild(dst,recurse);
                 UpdateFlattenedStructureAdd(recurse);
                 CopyDataBranch(elem, recurse);
@@ -325,7 +329,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public DataReader Search(ElementID lookup)
         {
-            if(m_flatStructureLookup.TryGetValue(lookup.FullPath, out Element reference))
+            if(m_flatStructureLookup.TryGetValue(lookup, out Element reference))
             {
                 return reference.GetReader();
             }
@@ -634,12 +638,12 @@ namespace UnityEditor.ContextLayeredDataStorage
                 catch
                 {
                     Debug.LogError($"Could not deserialize the data on element {data.id} of type {data.valueType}");
-                    output = new Element(data.id, this);
+                    output = new Element(ElementID.FromString(data.id), this);
                 }
             }
             else
             {
-                output = new Element(data.id, this);
+                output = new Element(ElementID.FromString(data.id), this);
             }
 
             try
@@ -658,19 +662,79 @@ namespace UnityEditor.ContextLayeredDataStorage
             return output;
         }
 
+        private void ReplaceData(Element root, ElementID idToReplace, Element toReplaceWith)
+        {
+            var toReplace = SearchRelative(root, idToReplace);
+            if(toReplace != null)
+            {
+                toReplaceWith.Parent = toReplace.Parent;
+                toReplaceWith.Children = toReplace.Children;
+                toReplaceWith.Parent.Children.Remove(toReplace);
+                foreach(var child in toReplace.Children)
+                {
+                    child.Parent = toReplaceWith;
+                }
+            }
+        }
+
+        private IEnumerable<Element> FlatStructurePartialSearch(ElementID searchID)
+        {
+            Stack<Element> workingSet = new Stack<Element>();
+            HashSet<ElementID> returnedElements = new HashSet<ElementID>(new ElementIDComparer());
+            workingSet.Push(m_flatStructure);
+            while(workingSet.Count > 0)
+            {
+                var current = workingSet.Pop();
+                foreach(var child in current.Children)
+                {
+                    if(searchID.IsImmediateSubpathOf(child.ID))
+                    {
+                        returnedElements.Add(child.ID);
+                    }
+                    else if(child.ID.IsSubpathOf(searchID) || child.ID.Equals(searchID))
+                    {
+                        workingSet.Push(child);
+                    }
+                }
+            }
+
+            foreach(var cid in returnedElements)
+            {
+                yield return m_flatStructureLookup[cid];
+            }
+        }
+
+        internal IEnumerable<Element> GetChildren(ElementID id)
+        {
+            //var search = SearchRelative(m_flatStructure, id);
+            //if (search != null)
+            //{
+            //    foreach (var c in search.Children)
+            //    {
+            //        children.Add(c.ID); //the partial search might already encompass this and the initial search doesnt need to happen
+            //    }
+            //}
+            foreach(var c in FlatStructurePartialSearch(id))
+            {
+                yield return m_flatStructureLookup[c.ID];
+            }
+        }
+
         internal void UpdateFlattenedStructureAdd(Element addedElement)
         {
-            string id = addedElement.ID.FullPath;
+            ElementID id = addedElement.ID;
             if(m_flatStructureLookup.TryGetValue(id, out Element elem))
             {
                 if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
                 {
+                    ReplaceData(m_flatStructure, id, addedElement.MakeCopy());
                     m_flatStructureLookup[id] = addedElement;
                 }
             }
             else
             {
                 m_flatStructureLookup.Add(id, addedElement);
+                AddData(m_flatStructure, id, out _);
             }
         }
 
@@ -679,11 +743,14 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
-                m_flatStructureLookup[removedElementId.FullPath] = replacement;
+                ReplaceData(m_flatStructure, removedElementId, replacement.MakeCopy());
+                m_flatStructureLookup[removedElementId] = replacement;
             }
             else
             {
-                m_flatStructureLookup.Remove(removedElementId.FullPath);
+                m_metadata.Remove(removedElementId.FullPath);
+                m_flatStructureLookup.Remove(removedElementId);
+                RemoveData(m_flatStructure, removedElementId);
             }
         }
 

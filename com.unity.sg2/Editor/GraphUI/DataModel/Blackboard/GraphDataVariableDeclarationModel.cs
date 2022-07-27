@@ -3,6 +3,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -56,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
         /// false otherwise.
         /// </summary>
-        public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel.Stencil).IsExposable(DataType);
+        public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel?.Stencil)?.IsExposable(DataType) ?? false;
 
         public override bool IsExposed
         {
@@ -84,6 +85,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        public override void Rename(string newName)
+        {
+            base.Rename(newName); // Result is assigned to Title, can be different from newName (i.e. numbers at end)
+            contextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
+        }
+
         public override void CreateInitializationValue()
         {
             if (string.IsNullOrEmpty(contextNodeName) || string.IsNullOrEmpty(graphDataName))
@@ -97,6 +104,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
                     cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
+                }
+
+                if (DataType == ShaderGraphExampleTypes.Matrix2 ||
+                    DataType == ShaderGraphExampleTypes.Matrix3 ||
+                    DataType == ShaderGraphExampleTypes.Matrix4)
+                {
+                    InitializationModel.ObjectValue = Matrix4x4.identity;
                 }
             }
         }
