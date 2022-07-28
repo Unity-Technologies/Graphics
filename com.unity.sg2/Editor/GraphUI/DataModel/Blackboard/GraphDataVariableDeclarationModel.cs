@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -37,18 +38,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
-        PortHandler contextEntry => shaderGraphModel.GraphHandler
+        public PortHandler ContextEntry => shaderGraphModel.GraphHandler
             .GetNode(contextNodeName)
             .GetPort(graphDataName);
 
         public ContextEntryEnumTags.DataSource ShaderDeclaration
         {
             get =>
-                contextEntry
+                ContextEntry
                     .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
                     .GetData();
             set =>
-                contextEntry
+                ContextEntry
                     .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
                     .SetData(value);
         }
@@ -68,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return false;
                 }
 
-                return contextEntry
+                return ContextEntry
                     .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
                     .GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
             }
@@ -79,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     value = false;
                 }
 
-                contextEntry
+                ContextEntry
                     .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
                     .SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
             }
@@ -88,7 +89,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override void Rename(string newName)
         {
             base.Rename(newName); // Result is assigned to Title, can be different from newName (i.e. numbers at end)
-            contextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
+            ContextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
         }
 
         public override void CreateInitializationValue()
@@ -114,5 +115,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
         }
+
+        static void SetSubFieldSafe<T>(FieldHandler field, string key, T value)
+        {
+            var subField = field.GetSubField(key);
+            if (subField != null)
+            {
+                subField.SetData(value);
+            }
+            else
+            {
+                field.AddSubField(key, value);
+            }
+        }
+
+        static T GetSubFieldOrDefault<T>(FieldHandler field, string key, T defaultValue)
+        {
+            var subField = field.GetSubField(key);
+            return subField != null ? subField.GetData<T>() : defaultValue;
+        }
+
+        // TODO: naming - also this seems like it exposes way too much detail
+        internal void SetPropSubField<T>(string key, T value) =>
+            SetSubFieldSafe(ContextEntry.GetPropertyDescription(), key, value);
+
+        internal void SetTypeSubField<T>(string key, T value) =>
+            SetSubFieldSafe(ContextEntry.GetTypeField(), key, value);
+
+        internal T GetPropSubFieldOrDefault<T>(string key, T defaultValue = default) =>
+            GetSubFieldOrDefault(ContextEntry.GetPropertyDescription(), key, defaultValue);
+
+        internal T GetTypeSubFieldOrDefault<T>(string key, T defaultValue = default) =>
+            GetSubFieldOrDefault(ContextEntry.GetTypeField(), key, defaultValue);
     }
 }

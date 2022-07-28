@@ -1,28 +1,43 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class SetShaderDeclarationCommand : UndoableCommand
+    public class SetVariableSettingsCommand : UndoableCommand
     {
-        readonly ContextEntryEnumTags.DataSource m_DataSource;
         readonly GraphDataVariableDeclarationModel m_Model;
 
-        // Note: ModelPropertyField expects this signature
-        public SetShaderDeclarationCommand(
-            ContextEntryEnumTags.DataSource dataSource,
-            GraphDataVariableDeclarationModel model)
+        // TODO: This doesn't seem right.
+        // Really the solution is probably to move this further into the model and not the command handler.
+        readonly VariableUpdater m_Callback;
+
+        public delegate void VariableUpdater(GraphDataVariableDeclarationModel model);
+
+        public SetVariableSettingsCommand(
+            GraphDataVariableDeclarationModel model,
+            VariableUpdater callback
+        )
         {
-            m_DataSource = dataSource;
             m_Model = model;
-            UndoString = "Set Shader Declaration";
+            m_Callback = callback;
         }
+
+        public static SetVariableSettingsCommand SetTypeSubField<T>(
+            GraphDataVariableDeclarationModel model,
+            string key,
+            T value
+        ) => new(model, m => m.SetTypeSubField(key, value));
+
+        public static SetVariableSettingsCommand SetPropertyDescriptionSubField<T>(
+            GraphDataVariableDeclarationModel model,
+            string key,
+            T value
+        ) => new(model, m => m.SetPropSubField(key, value));
 
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
-            SetShaderDeclarationCommand command)
+            SetVariableSettingsCommand command)
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
@@ -31,7 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             using (var graphUpdater = graphModelState.UpdateScope)
             {
-                command.m_Model.ShaderDeclaration = command.m_DataSource;
+                command.m_Callback(command.m_Model);
                 graphUpdater.MarkChanged(command.m_Model);
             }
         }
