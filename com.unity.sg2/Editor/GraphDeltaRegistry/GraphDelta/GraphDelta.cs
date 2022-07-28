@@ -207,6 +207,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     }
                 }
             }
+            // Clear data from concrete layer as well
+            node.ClearLayerData(k_concrete);
+
             m_data.RemoveHandler(k_user, id);
         }
 

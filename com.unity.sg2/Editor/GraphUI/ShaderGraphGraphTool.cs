@@ -10,7 +10,7 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ShaderGraphGraphTool : BaseGraphTool
+    internal class ShaderGraphGraphTool : BaseGraphTool
     {
         public static readonly string toolName = "Shader Graph";
 

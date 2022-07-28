@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Assert = UnityEngine.Assertions.Assert;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
@@ -256,6 +258,39 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return m_TestInteractionHelper.SelectAndCopyNodes(nodeModels);
 
             Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 4);
+        }
+
+        [UnityTest]
+        public IEnumerator TestPortValueChangeUndoRedo()
+        {
+            // Create Add nodes
+            yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+
+            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add") as GraphDataNodeModel;
+            var portModels = nodeModel.InputConstantsById;
+            var firstPort = portModels.FirstOrDefault();
+
+            var nodeUI = m_Window.GetNodeUIByName(m_GraphView, "Add");
+            Assert.IsNotNull(nodeUI);
+
+            var xPort = nodeUI.Q<FloatField>("unity-x-input");
+            xPort.Focus();
+
+            m_TestEventHelper.SimulateKeyPress(KeyCode.Alpha1);
+
+            yield return null;
+
+            // We need to call the preview managers update loop as the window will not be ticking during this test
+            m_Window.previewManager.Update();
+            m_Window.previewManager.Update();
+
+            var nodePreviewMaterial = m_Window.previewManager.GetPreviewMaterialForNode(nodeModel.graphDataName);
+            Assert.AreEqual(new Color(1, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            Undo.PerformUndo();
+
+            nodePreviewMaterial = m_Window.previewManager.GetPreviewMaterialForNode(nodeModel.graphDataName);
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
         }
 
         /*

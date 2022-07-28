@@ -158,15 +158,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             vector4Item.action.Invoke();
             yield return null;
 
-            // Drag and drop to create variable node
-            var blackboardField = GetFirstBlackboardElementOfType<BlackboardField>();
-            m_TestEventHelper.SendMouseDownEvent(blackboardField);
-            m_TestEventHelper.SendMouseDragEvent(blackboardField, m_GraphView);
-            m_TestEventHelper.SendDragEnterEvent(m_GraphView);
-            yield return null;
+            var variableDeclaration = m_GraphView.GraphModel.VariableDeclarations.FirstOrDefault();
+            Assert.IsNotNull(variableDeclaration);
 
             var graphViewCenterPosition = TestEventHelpers.GetScreenPosition(m_Window, m_GraphView, true);
-            m_TestEventHelper.SendDragPerformEvent(graphViewCenterPosition);
+
+            // Create variable node
+            var command = new CreateNodeCommand();
+            command.WithNodeOnGraph(variableDeclaration, graphViewCenterPosition);
+            m_GraphView.Dispatch(command);
 
             yield return null;
 
@@ -242,6 +242,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 graphDataVariable.VariableDeclarationModel.InitializationModel,
                 new Vector4(1, 0, 0, 0),
                 graphDataVariable.VariableDeclarationModel));
+
+            m_Window.previewManager.Update();
+            m_Window.previewManager.Update();
 
             var nodePreviewMaterial = m_Window.previewManager.GetPreviewMaterialForNode(graphDataVariable.graphDataName);
             Assert.IsNotNull(nodePreviewMaterial);

@@ -365,10 +365,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (previewData.isShaderOutOfDate)
                 {
                     UpdateShaderData(previewData);
-
-                    // Ran into error compiling the preview shader
-                    return previewData.hasShaderError ? null : previewData.material;
                 }
+                if (previewData.isRenderOutOfDate)
+                {
+                    UpdateRenderData(previewData);
+                }
+
+                // If ran into error compiling the preview shader, return nothing
+                return previewData.hasShaderError ? null : previewData.material;
             }
             else
             {
@@ -576,6 +580,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 mainPreviewShaderCode = m_MainPreviewData.shaderString;
                 return PreviewOutputState.Complete;
             }
+        }
+
+        /// <summary>
+        /// Called when the current graph can end its session and release any held resources
+        /// </summary>
+        public void Cleanup()
+        {
+            m_SceneResources.Dispose();
         }
 
         void AddMainPreviewData(string contextNodeName, Vector2 mainPreviewSize)

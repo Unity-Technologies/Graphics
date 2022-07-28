@@ -3,6 +3,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.VersionControl;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
@@ -19,6 +20,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_PreviewManager = new PreviewManager();
             m_GraphViewStateObserver = new GraphViewStateObserver(testGraphView.GraphViewModel.GraphModelState, m_PreviewManager);
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
+
+            // Initialize the graph tool
+            m_GraphTool.Initialize(m_PreviewManager, this);
 
             return testGraphView;
         }
@@ -40,7 +44,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             return null;
         }
-
 
         /// <summary>
         /// Returns all instances of node with this name
@@ -97,5 +100,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             return outEdgeModels;
         }
+
+        public GraphDataNode GetNodeUIByName(GraphView shaderGraphView, string nodeName)
+        {
+            var nodeUIList = shaderGraphView.Query<GraphDataNode>().ToList();
+            foreach (var nodeUI in nodeUIList)
+            {
+                if (nodeUI.Model is NodeModel nodeModel && nodeModel.Title == nodeName)
+                    return nodeUI;
+            }
+
+            return null;
+        }
+
     }
 }

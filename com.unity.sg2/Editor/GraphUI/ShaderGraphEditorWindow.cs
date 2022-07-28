@@ -10,8 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphEditorWindow : GraphViewEditorWindow
     {
-        ShaderGraphGraphTool m_GraphTool;
-
         MainPreviewView m_MainPreviewView;
 
         protected PreviewManager m_PreviewManager;
@@ -19,6 +17,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected GraphViewStateObserver m_GraphViewStateObserver;
 
         protected BlackboardView m_BlackboardView;
+
+        internal ShaderGraphGraphTool m_GraphTool;
 
         internal IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
@@ -71,6 +71,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDisable()
         {
+            m_PreviewManager.Cleanup();
+
             if (!shouldCloseWindowNoPrompt && !PromptSaveIfDirtyOnQuit())
             {
                 // User does not want to close the window.

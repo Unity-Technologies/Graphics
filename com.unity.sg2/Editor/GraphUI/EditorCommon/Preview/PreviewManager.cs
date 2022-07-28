@@ -232,6 +232,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 OnNodeFlowChanged(nodeName);
         }
 
+        internal void Cleanup()
+        {
+            m_PreviewHandlerInstance.Cleanup();
+        }
+
         public void Update()
         {
             var updatedNodes = new List<string>();
