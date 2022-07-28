@@ -11,6 +11,60 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     public static class GraphTypeHelpers
     {
+        private static int truncate(int a, int b) => a == 1 ? b : b == 1 ? a : Mathf.Min(a, b);
+
+        private static IEnumerable<PortHandler> GetGraphTypePorts(NodeHandler node)
+        {
+            return node.GetPorts().Where(e => e.GetTypeField()?.GetRegistryKey().Name == GraphType.kRegistryKey.Name);
+        }
+
+        private static FieldHandler GetConnectedField(PortHandler port)
+        {
+            return port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
+        }
+
+        private static void CalcAnyDimForNode(NodeHandler node, out int length, out int height)
+        {
+            length = 1;
+            height = 1;
+
+            // Length.Any and Height.Any are determined based on input fields of the node.
+            var inputPorts = GetGraphTypePorts(node).Where(e => e.IsInput);
+            var connectedFields = inputPorts.Select(e => GetConnectedField(e)).Where(e => e != null);
+
+            foreach (var field in connectedFields)
+            {
+                var fieldLength = Mathf.Max(1, (int)GetLength(field));    //sanitize Any (which is -1).
+                var fieldHeight = Mathf.Max(1, (int)GetHeight(field));
+                length = truncate(length, fieldLength);                   // scalars always lose in truncation.
+                height = truncate(truncate(length, height), fieldHeight); // height squares down by length.
+            }
+        }
+        internal static void ResolveAnyForNode(NodeHandler node)
+        {
+            CalcAnyDimForNode(node, out var anyLength, out var anyHeight);
+
+            foreach (var port in GetGraphTypePorts(node))
+            {
+                var field = port.GetTypeField();
+                var length = GetLength(field);
+                var height = GetHeight(field);
+
+                // resolve the Any if present.
+                if (length == GraphType.Length.Any) length = (GraphType.Length)anyLength;
+                if (height == GraphType.Height.Any) height = (GraphType.Height)anyHeight;
+                // TODO: Primitive/Precision, etc.
+
+                InitGraphType(port.GetTypeField(), length: length, height: height);
+            }
+        }
+
+        public static void AddAnyPort(NodeHandler node, string name, bool isInput, Registry registry)
+        {
+            var field = node.AddPort<GraphType>(name, isInput, registry).GetTypeField();
+            InitGraphType(field, length:GraphType.Length.Any, height: GraphType.Height.Any);
+        }
+
         public static void InitGraphType(FieldHandler field, GraphType.Length length = GraphType.Length.Four, GraphType.Precision precision = GraphType.Precision.Single, GraphType.Primitive primitive = GraphType.Primitive.Float, GraphType.Height height = GraphType.Height.One)
         {
             field.GetSubField<GraphType.Length>(GraphType.kLength).SetData(length);
@@ -337,7 +391,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var dstHgt = GraphTypeHelpers.GetHeight(dst);
             var dstLen = GraphTypeHelpers.GetLength(dst);
 
-            return srcHgt == dstHgt || srcHgt == GraphType.Height.One && srcLen >= dstLen;
+
+            return
+                srcHgt == dstHgt ||
+                srcHgt >= dstHgt && srcLen >= dstLen ||
+                srcHgt == GraphType.Height.One && srcLen >= dstLen ||
+                srcHgt == GraphType.Height.One && srcLen == GraphType.Length.One;
+
         }
 
         private static string MatrixCompNameFromIndex(int i, int d)

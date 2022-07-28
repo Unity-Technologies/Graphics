@@ -25,8 +25,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private static void GetDim(FieldHandler field, out int length, out int height)
         {
-            height = (int)GraphTypeHelpers.GetLength(field);
-            length = (int)GraphTypeHelpers.GetHeight(field);
+            height = (int)GraphTypeHelpers.GetHeight(field);
+            length = (int)GraphTypeHelpers.GetLength(field);
         }
 
         private static bool calcResolve(NodeHandler node, out int length, out int height)
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GetDim(field, out var fieldLength, out var fieldHeight);
                 length = truncate(length, fieldLength);
                 height = truncate(truncate(length, height), fieldHeight);
-                hasVector |= GraphTypeHelpers.IsVector(field);
+                hasVector |= fieldLength > 1 && fieldHeight == 1;
             }
             return hasVector;
         }
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 int length = resolvedLength;
                 int height = hasVector ? 1 : resolvedHeight;
-                var connectedField = port.GetConnectedPorts().FirstOrDefault()?.GetTypeField();
+                var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
 
                 // If we're an input port, our type changes based on truncation rules.
                 if (port.IsInput && connectedField != null)
