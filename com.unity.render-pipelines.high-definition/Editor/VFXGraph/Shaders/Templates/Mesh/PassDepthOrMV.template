@@ -5,7 +5,11 @@
 struct ps_input
 {		
 	float4 pos : SV_POSITION;
+	#if USE_FLIPBOOK_INTERPOLATION
+	float4 uv : TEXCOORD0;
+	#else
 	float2 uv : TEXCOORD0;	
+	#endif
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : COLOR2;
     #endif
