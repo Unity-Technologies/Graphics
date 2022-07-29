@@ -3,52 +3,33 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class SetVariableSettingsCommand : UndoableCommand
+    class SetVariableSettingCommand : UndoableCommand
     {
         readonly GraphDataVariableDeclarationModel m_Model;
+        readonly GraphDataVariableSetting m_Setting;
+        readonly object m_Value;
 
-        // TODO: This doesn't seem right.
-        // Really the solution is probably to move this further into the model and not the command handler.
-        readonly VariableUpdater m_Callback;
-
-        public delegate void VariableUpdater(GraphDataVariableDeclarationModel model);
-
-        public SetVariableSettingsCommand(
-            GraphDataVariableDeclarationModel model,
-            VariableUpdater callback
-        )
+        public SetVariableSettingCommand(GraphDataVariableDeclarationModel model, GraphDataVariableSetting setting, object value)
         {
             m_Model = model;
-            m_Callback = callback;
+            m_Setting = setting;
+            m_Value = value;
         }
-
-        public static SetVariableSettingsCommand SetTypeSubField<T>(
-            GraphDataVariableDeclarationModel model,
-            string key,
-            T value
-        ) => new(model, m => m.SetTypeSubField(key, value));
-
-        public static SetVariableSettingsCommand SetPropertyDescriptionSubField<T>(
-            GraphDataVariableDeclarationModel model,
-            string key,
-            T value
-        ) => new(model, m => m.SetPropSubField(key, value));
 
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
-            SetVariableSettingsCommand command)
+            SetVariableSettingCommand command)
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
                 undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using (var graphUpdater = graphModelState.UpdateScope)
-            {
-                command.m_Callback(command.m_Model);
-                graphUpdater.MarkChanged(command.m_Model);
-            }
+            using var graphUpdater = graphModelState.UpdateScope;
+            // TODO: The model can and should do this
+            command.m_Setting.Setter(command.m_Value);
+            graphUpdater.MarkChanged(command.m_Model);
         }
     }
 }
