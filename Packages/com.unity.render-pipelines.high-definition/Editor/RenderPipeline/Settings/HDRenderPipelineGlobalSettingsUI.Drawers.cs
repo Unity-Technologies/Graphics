@@ -178,9 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition
         #endregion // Custom Post Processes
 
         #region Volume Profiles
-        static Editor m_CachedDefaultVolumeProfileEditor;
-        static Editor m_CachedLookDevVolumeProfileEditor;
-        static int m_CurrentVolumeProfileInstanceID;
 
         static readonly CED.IDrawer VolumeSection = CED.Group(
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.volumeComponentsLabel, Documentation.GetPageLink(DocumentationUrls.k_Volumes))),
@@ -191,6 +188,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
+            if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
+                return;
+
             using (new EditorGUI.IndentLevelScope())
             {
                 var oldWidth = EditorGUIUtility.labelWidth;
@@ -203,10 +203,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     var oldAssetValue = serialized.defaultVolumeProfile.objectReferenceValue;
                     EditorGUILayout.PropertyField(serialized.defaultVolumeProfile, Styles.defaultVolumeProfileLabel);
                     asset = serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
-                    if (asset == null && oldAssetValue != null)
+                    if (asset == null)
                     {
-                        Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
-                        serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
+                        if (oldAssetValue != null)
+                        {
+                            Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
+                            serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
+                        }
+                        else
+                        {
+                            asset = globalSettings.GetOrCreateDefaultVolumeProfile();
+                        }
                     }
 
                     if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
@@ -216,17 +223,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 if (asset != null)
                 {
-                    // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
-                    if (m_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && m_CachedDefaultVolumeProfileEditor != null)
-                    {
-                        m_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
-                        m_CachedDefaultVolumeProfileEditor = null;
-                    }
+                    var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(asset);
 
-                    Editor.CreateCachedEditor(asset, Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_CachedDefaultVolumeProfileEditor);
                     bool oldEnabled = GUI.enabled;
                     GUI.enabled = AssetDatabase.IsOpenForEdit(asset);
-                    m_CachedDefaultVolumeProfileEditor.OnInspectorGUI();
+                    editor.OnInspectorGUI();
                     GUI.enabled = oldEnabled;
                 }
 
@@ -238,10 +239,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     var oldAssetValue = serialized.lookDevVolumeProfile.objectReferenceValue;
                     EditorGUILayout.PropertyField(serialized.lookDevVolumeProfile, Styles.lookDevVolumeProfileLabel);
                     lookDevAsset = serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile;
-                    if (lookDevAsset == null && oldAssetValue != null)
+                    if (lookDevAsset == null)
                     {
-                        Debug.Log("LookDev Volume Profile Asset cannot be null. Rolling back to previous value.");
-                        serialized.lookDevVolumeProfile.objectReferenceValue = oldAssetValue;
+                        if (oldAssetValue != null)
+                        {
+                            Debug.Log("LookDev Volume Profile Asset cannot be null. Rolling back to previous value.");
+                            serialized.lookDevVolumeProfile.objectReferenceValue = oldAssetValue;
+                        }
+                        else
+                        {
+                            lookDevAsset = globalSettings.GetOrAssignLookDevVolumeProfile();
+                        }
                     }
 
                     if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
@@ -251,10 +259,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 if (lookDevAsset != null)
                 {
-                    Editor.CreateCachedEditor(lookDevAsset, Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_CachedLookDevVolumeProfileEditor);
+                    var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(lookDevAsset);
+
                     bool oldEnabled = GUI.enabled;
                     GUI.enabled = AssetDatabase.IsOpenForEdit(lookDevAsset);
-                    m_CachedLookDevVolumeProfileEditor.OnInspectorGUI();
+                    editor.OnInspectorGUI();
                     GUI.enabled = oldEnabled;
 
                     if (lookDevAsset.Has<VisualEnvironment>())
