@@ -68,6 +68,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/019_CustomSimulate.unity
     guid: ffbf1ce97ab782b43b4ec8f431e5a0ab
+  - enabled: 0
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/020_PrefabInstanciation.unity
+    guid: 4fad57eaceb460845ade4ee59dd02745
   - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
@@ -98,4 +101,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/104_ShaderGraphGenerationFTP.unity
     guid: febb29da98ad14a4d89b7679f8e53848
+  - enabled: 1
+    path: Assets/GraphicsTests/Instancing/Instancing512.unity
+    guid: 73939114e75ef4f4f8e9ffb3df23b104
+  - enabled: 1
+    path: Assets/GraphicsTests/Instancing/InstancingBatch.unity
+    guid: 6226140a2b65b294fbe0a07b323ab6c0
   m_configObjects: {}

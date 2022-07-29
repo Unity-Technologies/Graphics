@@ -5,12 +5,18 @@
 #include "HLSLSupport.cginc"
 
 #define NB_THREADS_PER_GROUP 64
+#define VFX_USE_INSTANCING 1
+#define VFX_INSTANCING_BATCH_INDIRECTION 1
+#define VFX_INSTANCING_FIXED_SIZE stripCount
 
 CBUFFER_START(params)
     uint dispatchWidth;
     uint stripCount;
     uint particlePerStripCount;
+    float4 instancingConstants;
 CBUFFER_END
+
+#include "VFXInstancing.hlsl"
 
 RWStructuredBuffer<uint> stripDataBuffer;
 
@@ -22,8 +28,12 @@ void UpdateParticleStrip(uint3 groupId          : SV_GroupID,
 {
     uint stripIndex = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 
-    if (stripIndex < stripCount)
+    if (stripIndex < stripCount * (uint)instancingActiveCount)
     {
+        uint instanceIndex, instanceActiveIndex;
+        stripIndex = VFXInitInstancing(stripIndex, instanceIndex, instanceActiveIndex);
+        stripIndex += instanceIndex * stripCount;
+
         bool isEmpty = (STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) & ~1) == ~1;
         STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) = isEmpty ? 0 : (STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + STRIP_DATA(STRIP_MIN_ALIVE, stripIndex)) % particlePerStripCount;
         STRIP_DATA(STRIP_NEXT_INDEX, stripIndex) = isEmpty ? 0 : STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) - STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) + 1;

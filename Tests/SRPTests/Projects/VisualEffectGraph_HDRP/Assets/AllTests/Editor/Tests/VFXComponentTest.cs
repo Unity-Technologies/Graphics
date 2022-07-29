@@ -380,22 +380,22 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
-            //Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode due to the closure
+            //Assert.DoesNotThrow(() => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode due to the closure
             int maxFrame = 512;
-            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f && maxFrame-- > 0)
+            while (VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f && maxFrame-- > 0)
                 yield return null;
 
-            Assert.GreaterOrEqual(VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
+            Assert.GreaterOrEqual(VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
 
             vfxComponent.enabled = false;
             vfxComponent.enabled = true;
             yield return null;
 
             maxFrame = 64;
-            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime > 1.0f && maxFrame-- > 0)
+            while (VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime > 1.0f && maxFrame-- > 0)
                 yield return null;
 
-            Assert.Less(VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
+            Assert.Less(VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
 
             yield return new ExitPlayMode();
         }
@@ -422,7 +422,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+            Assert.DoesNotThrow(() => VFXTestCommon.GetSpawnerState(vfxComponent, 0));
 
             yield return null;
 
@@ -439,7 +439,7 @@ namespace UnityEditor.VFX.Test
             Debug.unityLogger.logEnabled = false;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             Debug.unityLogger.logEnabled = true;
-            Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
+            Assert.Throws(typeof(IndexOutOfRangeException), () => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
 
         [UnityTest]
@@ -827,7 +827,7 @@ namespace UnityEditor.VFX.Test
             int maxFrameCount = 1024;
             while (maxFrameCount-- > 0)
             {
-                var spawnerState = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+                var spawnerState = VFXTestCommon.GetSpawnerState(vfx, 0u);
                 if (spawnerState.totalTime > spawnerLimit)
                     break;
                 yield return null;
@@ -862,7 +862,7 @@ namespace UnityEditor.VFX.Test
             }
             yield return null;
 
-            var spawnerStateFinal = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+            var spawnerStateFinal = VFXTestCommon.GetSpawnerState(vfx, 0u);
             Assert.IsTrue(spawnerStateFinal.totalTime > spawnerLimit); //Check there isn't any reset time
             Assert.IsTrue(vfx.HasVector2(exposedName));
             Assert.AreEqual(expectedValue.x, vfx.GetVector2(exposedName).x); Assert.AreEqual(expectedValue.y, vfx.GetVector2(exposedName).y);
@@ -888,7 +888,7 @@ namespace UnityEditor.VFX.Test
                 GameObject.DestroyImmediate(editor);
 
                 yield return null;
-                spawnerStateFinal = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+                spawnerStateFinal = VFXTestCommon.GetSpawnerState(vfx, 0u);
 
                 Assert.IsTrue(spawnerStateFinal.totalTime > spawnerLimit); //Check there isn't any reset time
                 Assert.IsTrue(vfx.HasVector2(exposedName));

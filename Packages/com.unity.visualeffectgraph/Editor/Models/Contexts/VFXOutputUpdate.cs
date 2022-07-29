@@ -131,8 +131,8 @@ namespace UnityEditor.VFX
                 }
 
                 //Since it's a compute shader without renderer associated, these entries aren't automatically sent
-                expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
-                expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
+                expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
+                expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
                 if (m_Output.HasCustomSortingCriterion())
                 {
                     var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
@@ -202,6 +202,9 @@ namespace UnityEditor.VFX
             {
                 foreach (var d in base.additionalDefines)
                     yield return d;
+
+                // Output Update need to handle local to world matrix for each instance
+                yield return "HAVE_VFX_MODIFICATION";
 
                 yield return "INDIRECT_BUFFER_COUNT " + bufferCount;
 

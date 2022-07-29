@@ -1125,7 +1125,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(camera, cmd);
+                    VFX.VFXManager.ProcessCameraCommand(camera, cmd, new VFX.VFXCameraXRSettings(), renderingData.cullResults);
 #endif
                 }
 
