@@ -15,8 +15,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public const string kFloatMode = "FloatMode";
-        public const string kFloatSliderMin = "SliderMin";
-        public const string kFloatSliderMax = "SliderMax";
+        public const string kRangeMin = "RangeMin";
+        public const string kRangeMax = "RangeMax";
 
         public const string kIsColor = "IsColor";
         public const string kIsHdr = "IsHdr";

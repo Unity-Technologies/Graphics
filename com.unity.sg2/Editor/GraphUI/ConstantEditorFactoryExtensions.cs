@@ -3,7 +3,6 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -37,26 +36,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return new MatrixConstantPropertyField(constant, builder.ConstantOwner, builder.CommandTarget, (int)height, builder.Label);
             }
 
-            if (builder.ConstantOwner is GraphDataPortModel graphDataPort)
+            switch (builder.ConstantOwner)
             {
-                ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
-
-                var length = constant.GetLength();
-                var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-                var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey, nodeReader);
-                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
-
-                if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
+                case GraphDataPortModel graphDataPort:
                 {
-                    return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip);
-                }
-            }
+                    ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
 
-            if (builder.ConstantOwner is GraphDataVariableDeclarationModel declarationModel &&
-                declarationModel.DataType == ShaderGraphExampleTypes.Color)
-            {
-                var colorMode = declarationModel.GetSettingByName("Mode").GetAs<GraphDataVariableDeclarationModel.ColorMode>();
-                return BuildColorConstantEditor(builder, constant, "", builder.Label, "", colorMode is GraphDataVariableDeclarationModel.ColorMode.HDR);
+                    var length = constant.GetLength();
+                    var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
+                    var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey, nodeReader);
+                    var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
+
+                    if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
+                    {
+                        return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip);
+                    }
+
+                    break;
+                }
+                case GraphDataVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
+                {
+                    var isHdr = VariableSettings.colorMode.Get(declarationModel) is VariableSettings.ColorMode.HDR;
+                    return BuildColorConstantEditor(builder, constant, "", builder.Label, "", isHdr);
+                }
             }
 
             // Try/Catch maybe.

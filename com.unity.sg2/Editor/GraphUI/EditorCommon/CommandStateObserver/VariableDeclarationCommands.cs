@@ -27,8 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
-            // TODO: The model can and should do this
-            command.m_Setting.Setter(command.m_Value);
+            command.m_Setting.Set(command.m_Model, command.m_Value);
             graphUpdater.MarkChanged(command.m_Model);
         }
     }

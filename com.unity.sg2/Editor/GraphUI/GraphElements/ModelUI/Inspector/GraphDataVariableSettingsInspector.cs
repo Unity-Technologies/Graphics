@@ -11,12 +11,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public GraphDataVariableSettingField(
             ICommandTarget commandTarget,
-            IModel model,
+            GraphDataVariableDeclarationModel model,
             VariableSetting s
         )
             : base(commandTarget, model, null, s.Label, null,
-                (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand((GraphDataVariableDeclarationModel) model, s, newValue)),
-                _ => (T)s.Getter()) { }
+                (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand(model, s, newValue)),
+                _ => (T)s.Get(model)) { }
     }
 
     public class GraphDataVariableSettingsInspector : SGFieldsInspector
