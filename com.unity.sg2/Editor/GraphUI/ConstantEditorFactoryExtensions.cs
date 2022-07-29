@@ -52,17 +52,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            if (builder.ConstantOwner is VariableDeclarationModel declarationModel &&
+            if (builder.ConstantOwner is GraphDataVariableDeclarationModel declarationModel &&
                 declarationModel.DataType == ShaderGraphExampleTypes.Color)
             {
-                return BuildColorConstantEditor(builder, constant, "", builder.Label, "");
+                var colorMode = declarationModel.GetSettingByName("Mode").GetAs<GraphDataVariableDeclarationModel.ColorMode>();
+                return BuildColorConstantEditor(builder, constant, "", builder.Label, "", colorMode is GraphDataVariableDeclarationModel.ColorMode.HDR);
             }
 
             // Try/Catch maybe.
             return builder.BuildDefaultConstantEditor(constant);
         }
 
-        static BaseModelPropertyField BuildColorConstantEditor(IConstantEditorBuilder builder, GraphTypeConstant constant, string propertyName, string label, string tooltip)
+        static BaseModelPropertyField BuildColorConstantEditor(IConstantEditorBuilder builder, GraphTypeConstant constant, string propertyName, string label, string tooltip, bool hdr = false)
         {
             var length = constant.GetLength();
 
@@ -101,6 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (constantEditor.PropertyField is ColorField colorField)
             {
                 colorField.showAlpha = (int)length == 4;
+                colorField.hdr = hdr;
             }
 
             return constantEditor;

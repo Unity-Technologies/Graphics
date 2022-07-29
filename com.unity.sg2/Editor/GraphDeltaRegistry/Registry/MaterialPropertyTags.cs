@@ -1,16 +1,17 @@
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    // TODO: figure out naming
     public static class MaterialPropertyTags
     {
         public const string kPropertyDescription = "PropertyDescription";
 
         public enum FloatMode
         {
-            Default,
-            Integer,  // Use the Integer property type
+            Default,  // Do not change the generated type
             Slider,   // Use the Range property type
-            Enum      // Use the Float property type and add the [Enum] attribute
+
+            // TODO (Joe): Handle the remaining modes from SG1
+            // Integer,
+            // Enum,
         }
 
         public const string kFloatMode = "FloatMode";

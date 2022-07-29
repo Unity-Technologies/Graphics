@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public GraphDataVariableSettingField(
             ICommandTarget commandTarget,
             IModel model,
-            GraphDataVariableSetting s
+            VariableSetting s
         )
             : base(commandTarget, model, null, s.Label, null,
                 (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand((GraphDataVariableDeclarationModel) model, s, newValue)),
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public GraphDataVariableSettingsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName) { }
 
-        BaseModelPropertyField MakeSettingField(GraphDataVariableSetting s)
+        BaseModelPropertyField MakeSettingField(VariableSetting s)
         {
             var fieldTypeParam = s.SettingType;
             var fieldType = typeof(GraphDataVariableSettingField<>).MakeGenericType(fieldTypeParam);

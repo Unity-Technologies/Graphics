@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -9,8 +10,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     // Represents a configurable parameter that affects shader generation.
     // (Anything that isn't dependent on the variable type should be a regular property.)
-    internal class GraphDataVariableSetting
+    internal class VariableSetting
     {
+        // TODO: Hide
         public string Label;
         public Type SettingType;
         public Action<object> Setter;
@@ -21,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         #region Factory Methods
 
-        public static GraphDataVariableSetting FromSubField<T>(Func<FieldHandler> fieldProvider, string label, string key, T defaultValue = default) =>
+        public static VariableSetting FromSubField<T>(Func<FieldHandler> fieldProvider, string label, string key, T defaultValue = default) =>
             new()
             {
                 Label = label,
@@ -48,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             };
 
         // Consider including the <T> even when it can be inferred for readability.
-        public static GraphDataVariableSetting WithType<T>(string label, Func<T> typedGetter, Action<T> typedSetter) =>
+        public static VariableSetting OfType<T>(string label, Func<T> typedGetter, Action<T> typedSetter) =>
             new() {Label = label, SettingType = typeof(T), Getter = () => typedGetter(), Setter = value => typedSetter((T)value)};
 
         #endregion
@@ -87,18 +89,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public PortHandler ContextEntry => shaderGraphModel.GraphHandler
             .GetNode(contextNodeName)
             .GetPort(graphDataName);
-
-        public ContextEntryEnumTags.DataSource ShaderDeclaration
-        {
-            get =>
-                ContextEntry
-                    .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
-                    .GetData();
-            set =>
-                ContextEntry
-                    .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
-                    .SetData(value);
-        }
 
         /// <summary>
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
@@ -164,27 +154,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public enum ColorMode { Default, HDR }
 
+        internal VariableSetting GetSettingByName(string label)
+        {
+            return GetSettings().FirstOrDefault(s => s.Label == label);
+        }
+
         // We can change how exactly these get exposed. In hindsight, the only thing that has any business calling the
         // setter is probably a command handler -- and even they can go through the model.
-        internal IEnumerable<GraphDataVariableSetting> GetSettings()
+        // These are primarily consumed by the inspector but could really be shown anywhere.
+        internal IEnumerable<VariableSetting> GetSettings()
         {
             var props = new Func<FieldHandler>(() => ContextEntry.GetPropertyDescription());
 
             if (DataType == TypeHandle.Float)
             {
-                var mode = GraphDataVariableSetting.FromSubField<MaterialPropertyTags.FloatMode>(props, "Mode", MaterialPropertyTags.kFloatMode);
+                var mode = VariableSetting.FromSubField<MaterialPropertyTags.FloatMode>(props, "Mode", MaterialPropertyTags.kFloatMode);
                 yield return mode;
 
                 if (mode.Getter.Invoke() is MaterialPropertyTags.FloatMode.Slider)
                 {
-                    yield return GraphDataVariableSetting.FromSubField<float>(props, "Min", MaterialPropertyTags.kFloatSliderMin);
-                    yield return GraphDataVariableSetting.FromSubField<float>(props, "Max", MaterialPropertyTags.kFloatSliderMax);
+                    yield return VariableSetting.FromSubField<float>(props, "Min", MaterialPropertyTags.kFloatSliderMin);
+                    yield return VariableSetting.FromSubField<float>(props, "Max", MaterialPropertyTags.kFloatSliderMax);
                 }
             }
 
             if (DataType == ShaderGraphExampleTypes.Color)
             {
-                yield return GraphDataVariableSetting.WithType<ColorMode>(
+                yield return VariableSetting.OfType<ColorMode>(
                     label: "Mode",
                     typedGetter: () =>
                     {
@@ -202,13 +198,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (DataType == ShaderGraphExampleTypes.SamplerStateTypeHandle)
             {
-                yield return GraphDataVariableSetting.FromSubField<SamplerStateType.Filter>(() => ContextEntry.GetTypeField(), "Filter", SamplerStateType.kFilter);
-                yield return GraphDataVariableSetting.FromSubField<SamplerStateType.Wrap>(() => ContextEntry.GetTypeField(), "Wrap", SamplerStateType.kWrap);
+                yield return VariableSetting.FromSubField<SamplerStateType.Filter>(() => ContextEntry.GetTypeField(), "Filter", SamplerStateType.kFilter);
+                yield return VariableSetting.FromSubField<SamplerStateType.Wrap>(() => ContextEntry.GetTypeField(), "Wrap", SamplerStateType.kWrap);
             }
 
             if (IsExposable)
             {
-                yield return GraphDataVariableSetting.WithType<ContextEntryEnumTags.DataSource>(
+                yield return VariableSetting.OfType<ContextEntryEnumTags.DataSource>(
                     label: "Shader Declaration",
                     typedGetter: () => ContextEntry
                         .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
