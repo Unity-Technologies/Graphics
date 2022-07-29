@@ -59,7 +59,7 @@ MonoBehaviour:
       cookieTexArraySize: 16
       planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 32
-      reflectionCubemapSize: 256
+      reflectionCubemapSize: 512
       reflectionCacheCompressed: 1
       reflectionProbeFormat: 74
       skyReflectionSize: 1024
@@ -140,6 +140,7 @@ MonoBehaviour:
       singlePass: 1
       occlusionMesh: 1
       cameraJitter: 0
+      allowMotionBlur: 1
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
       NearBlurMaxRadius:
