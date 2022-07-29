@@ -813,71 +813,22 @@ namespace UnityEditor.Rendering.Universal
 #endif
         }
 
-        static bool TryGetRenderPipelineAssetsForBuildTarget(BuildTarget buildTarget, List<UniversalRenderPipelineAsset> urps)
-        {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            if (qualitySettings == null)
-                return false;
-
-            var property = qualitySettings.FindProperty("m_QualitySettings");
-            if (property == null)
-                return false;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
-
-            for (int i = 0; i < property.arraySize; i++)
-            {
-                bool isExcluded = false;
-
-                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
-                if (excludedTargetPlatforms == null)
-                    return false;
-
-                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
-                {
-                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
-                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
-                    {
-                        Debug.Log($"Excluding quality level {QualitySettings.names[i]} from stripping."); // TODO: remove after QA
-                        isExcluded = true;
-                        break;
-                    }
-                }
-
-                if (!isExcluded)
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-            }
-
-            return true;
-        }
-
         private static void FetchAllSupportedFeatures()
         {
-            List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
-            urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-
-            // TODO: Replace once we have official API for filtering urps per build target
-            if (!TryGetRenderPipelineAssetsForBuildTarget(EditorUserBuildSettings.activeBuildTarget, urps))
+            using (ListPool<UniversalRenderPipelineAsset>.Get(out var urps))
             {
-                // Fallback
-                Debug.LogWarning("Shader stripping per enabled quality levels failed! Stripping will use all quality levels. Please report a bug!");
-                for (int i = 0; i < QualitySettings.names.Length; i++)
+                EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urps);
+                s_SupportedFeaturesList.Clear();
+
+                foreach (UniversalRenderPipelineAsset urp in urps)
                 {
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-                }
-            }
+                    if (urp != null)
+                    {
+                        int rendererCount = urp.m_RendererDataList.Length;
 
-            s_SupportedFeaturesList.Clear();
-
-            foreach (UniversalRenderPipelineAsset urp in urps)
-            {
-                if (urp != null)
-                {
-                    int rendererCount = urp.m_RendererDataList.Length;
-
-                    for (int i = 0; i < rendererCount; ++i)
-                        s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                        for (int i = 0; i < rendererCount; ++i)
+                            s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                    }
                 }
             }
         }
