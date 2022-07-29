@@ -29,20 +29,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Getter = () =>
                 {
                     var field = fieldProvider.Invoke();
-                    var subField = field.GetSubField(key);
-                    return subField != null ? subField.GetData<T>() : defaultValue;
+                    var subField = field.GetSubField<T>(key);
+                    return subField != null ? subField.GetData() : defaultValue;
                 },
                 Setter = value =>
                 {
                     var field = fieldProvider.Invoke();
-                    var subField = field.GetSubField(key);
+                    var subField = field.GetSubField<T>(key);
                     if (subField != null)
                     {
-                        subField.SetData(value);
+                        subField.SetData((T)value);
                     }
                     else
                     {
-                        field.AddSubField(key, value);
+                        field.AddSubField(key, (T)value);
                     }
                 },
             };
@@ -175,10 +175,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var mode = GraphDataVariableSetting.FromSubField<MaterialPropertyTags.FloatMode>(props, "Mode", MaterialPropertyTags.kFloatMode);
                 yield return mode;
 
-                if (mode.Getter() is MaterialPropertyTags.FloatMode.Slider)
+                if (mode.Getter.Invoke() is MaterialPropertyTags.FloatMode.Slider)
                 {
-                    yield return GraphDataVariableSetting.FromSubField<MaterialPropertyTags.FloatMode>(props, "Min", MaterialPropertyTags.kFloatSliderMin);
-                    yield return GraphDataVariableSetting.FromSubField<MaterialPropertyTags.FloatMode>(props, "Max", MaterialPropertyTags.kFloatSliderMax);
+                    yield return GraphDataVariableSetting.FromSubField<float>(props, "Min", MaterialPropertyTags.kFloatSliderMin);
+                    yield return GraphDataVariableSetting.FromSubField<float>(props, "Max", MaterialPropertyTags.kFloatSliderMax);
                 }
             }
 
@@ -187,10 +187,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 yield return GraphDataVariableSetting.WithType<ColorMode>(
                     label: "Mode",
                     typedGetter: () =>
-                        ContextEntry.GetPropertyDescription().GetField<bool>(MaterialPropertyTags.kIsHdr) ? ColorMode.HDR : ColorMode.Default,
+                    {
+                        var isHdr = ContextEntry.GetPropertyDescription()?.GetSubField<bool>(MaterialPropertyTags.kIsHdr)?.GetData() ?? false;
+                        return isHdr ? ColorMode.HDR : ColorMode.Default;
+                    },
                     typedSetter: value =>
-                        ContextEntry.GetPropertyDescription().GetSubField<bool>(MaterialPropertyTags.kIsHdr).SetData(value is ColorMode.HDR)
-                );
+                    {
+                        var propDescription = ContextEntry.GetPropertyDescription();
+                        var field = propDescription.GetSubField<bool>(MaterialPropertyTags.kIsHdr) ??
+                            propDescription.AddSubField(MaterialPropertyTags.kIsHdr, false);
+                        field.SetData(value is ColorMode.HDR);
+                    });
             }
 
             if (DataType == ShaderGraphExampleTypes.SamplerStateTypeHandle)
