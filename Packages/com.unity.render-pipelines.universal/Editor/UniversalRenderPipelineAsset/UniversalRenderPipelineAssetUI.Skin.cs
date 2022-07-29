@@ -71,6 +71,7 @@ namespace UnityEditor.Rendering.Universal
             // Additional lighting settings
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Makes the render pipeline include mixed-lighting Shader Variants in the build.");
             public static GUIContent useRenderingLayers = EditorGUIUtility.TrTextContent("Use Rendering Layers", "When enabled, you can configure specific Lights to affect only specific GameObjects. For the Deferred Rendering Path, Unity allocates an extra render target.");
+            public static GUIContent supportsLightCookies = EditorGUIUtility.TrTextContent("Light Cookies", "Makes the render pipeline include light cookies Shader Variants in the build.");
 
             // Shadow settings
             public static GUIContent shadowWorkingUnitText = EditorGUIUtility.TrTextContent("Working Unit", "The unit in which Unity measures the shadow cascade distances. The exception is Max Distance, which will still be in meters.");

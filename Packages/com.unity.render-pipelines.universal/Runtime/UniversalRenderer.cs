@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
 
+            if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false)
             {
                 var settings = LightCookieManager.Settings.Create();
                 var asset = UniversalRenderPipeline.asset;

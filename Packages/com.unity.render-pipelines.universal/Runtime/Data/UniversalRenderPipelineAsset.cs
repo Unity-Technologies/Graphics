@@ -464,6 +464,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
+        [SerializeField] bool m_SupportsLightCookies = true;
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
@@ -1280,6 +1281,14 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting
         {
             get { return m_MixedLightingSupported; }
+        }
+
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports light cookies, false otherwise.
+        /// </summary>
+        public bool supportsLightCookies
+        {
+            get { return m_SupportsLightCookies; }
         }
 
         /// <summary>

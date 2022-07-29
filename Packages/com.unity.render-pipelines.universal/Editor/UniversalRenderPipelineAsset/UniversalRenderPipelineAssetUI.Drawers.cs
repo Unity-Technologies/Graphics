@@ -241,7 +241,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
-            disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+            disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled || !serialized.supportsLightCookies.boolValue;
 
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
@@ -266,6 +266,7 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorGUILayout.PropertyField(serialized.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
             EditorGUILayout.PropertyField(serialized.useRenderingLayers, Styles.useRenderingLayers);
+            EditorGUILayout.PropertyField(serialized.supportsLightCookies, Styles.supportsLightCookies);
 
             if (serialized.useRenderingLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(serialized.asset, out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
