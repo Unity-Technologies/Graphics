@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Configuration;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -145,34 +146,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             graphHandlerBox.Init(graph);
             this.isSubGraph = isSubGraph;
+            if (!isSubGraph)
+            {
+                Targets.Add(ShaderGraphAssetUtils.GetUniversalTarget());
+            }
 
             // Generate context nodes as needed.
             // TODO: This should be handled by a more generalized synchronization step.
-            var contextNames = GraphHandler
-                .GetNodes()
-                .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
-                .Select(nodeHandler => nodeHandler.ID.LocalPath)
-                .ToList();
-
-            foreach (var localPath in contextNames)
-            {
-                try
-                {
-                    GraphHandler.ReconcretizeNode(localPath);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
-
-                if (!NodeModels.Any(nodeModel =>
-                        nodeModel is GraphDataContextNodeModel contextNodeModel &&
-                        contextNodeModel.graphDataName == localPath))
-                {
-                    this.CreateGraphDataContextNode(localPath);
-                }
-            }
+            this.CreateGraphDataContextNode("VertOut");
+            this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextNode);
         }
+
 
         public override void OnEnable()
         {
@@ -183,24 +167,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 InitializeContextFromTarget(target.value);
             }
-
+            GraphHandler.ReconcretizeAll();
             mainPreviewData = new(Guid.ToString());
         }
 
-        private void InitializeContextFromTarget(Target target)
+        internal void InitializeContextFromTarget(Target target)
         {
-            foreach (var node in NodeModels)
+            // TODO: we can assume we're using the standard SG config for now, but this is not good.
+            GraphHandler.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
+            GraphHandler.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
+            GraphHandler.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
+            GraphHandler.RebuildContextData(ShaderGraphAssetUtils.kMainEntryContextNode, target, "UniversalPipeline", "SurfaceDescription", false);
+
+            foreach (var contextNode in NodeModels.OfType<GraphDataContextNodeModel>())
             {
-                if (node is GraphDataContextNodeModel nodeModel && nodeModel.graphDataName ==  BlackboardContextName)
-                {
-                    // TODO: How to get template name and CustomizationPoint name from target?
-                    GraphHandler.RebuildContextData(
-                        nodeModel.graphDataName,
-                        target,
-                        "UniversalPipeline",
-                        "SurfaceDescription",
-                        true);
-                }
+                contextNode.DefineNode();
             }
         }
 

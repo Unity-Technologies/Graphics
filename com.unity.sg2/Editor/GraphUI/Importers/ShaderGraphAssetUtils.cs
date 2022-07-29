@@ -15,16 +15,58 @@ namespace UnityEditor.ShaderGraph
 {
     public static class ShaderGraphAssetUtils
     {
+        public static readonly string kMainEntryContextNode = Registry.ResolveKey<Defs.ShaderGraphContext>().Name;
+
+        internal static Target GetUniversalTarget() // Temp code.
+        {
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
+            {
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if (!target.isHidden)
+                    return target;
+            }
+            return null;
+        }
+
+        // TODO: Factory for different types of initial creations- this is modified to use URP for now.
         public static ShaderGraphAsset CreateNewAssetGraph(bool isSubGraph)
         {
             var defaultRegistry = ShaderGraphRegistry.Instance.Registry;
-            var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
+
+            // TODO: these are deprecated, but we're using the names for immediate compatibility.
             var propertyKey = Registry.ResolveKey<PropertyContext>();
+
             GraphHandler graph = new(defaultRegistry);
             graph.AddContextNode(propertyKey.Name);
-            graph.AddContextNode(contextKey);
-            graph.ReconcretizeAll();
+            if (isSubGraph)
+            {
+                // subgraphs get a blank output context node, for now using the name of the old contextDescriptor.
+                graph.AddContextNode(kMainEntryContextNode);
+            }
+            else //initialize a URP Graph.
+            {
+                // Conventional shadergraphs have these 4 contexts
+                graph.AddContextNode("VertIn");
+                graph.AddContextNode("VertOut");
+                graph.AddContextNode("FragIn");
+                graph.AddContextNode(kMainEntryContextNode);
 
+                // Mapped to these customization points:
+                var target = GetUniversalTarget();
+                graph.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
+                graph.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
+                graph.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
+                graph.RebuildContextData(kMainEntryContextNode, target, "UniversalPipeline", "SurfaceDescription", false);
+
+                // Though we should be more procedural and be using this: to get the corresponding names.
+                // CPGraphDataProvider.GatherProviderCPIO(target, out var descriptors);
+            }
+            graph.ReconcretizeAll();
+            // Setup the GTF Model, it will default to using a universal target for now.
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             asset.CreateGraph(typeof(ShaderGraphStencil));
             asset.ShaderGraphModel.Init(graph, isSubGraph);
@@ -58,13 +100,14 @@ namespace UnityEditor.ShaderGraph
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
             asset.ShaderGraphModel.OnEnable();
+            var graphHandler = asset.ShaderGraphModel.GraphHandler;
 
             if (!asset.ShaderGraphModel.IsSubGraph)
             {
-                // build shader and setup supplementary assets
-                var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
-                var node = asset.ShaderGraphModel.GraphHandler.GetNode(key.Name);
-                string shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
+                // TODO: SGModel should know what it's entry point is for creating a shader.
+                var node = graphHandler.GetNode(kMainEntryContextNode);
+                var shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
+
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
                 Material mat = new(shader);
                 foreach (var def in defaultTextures)
