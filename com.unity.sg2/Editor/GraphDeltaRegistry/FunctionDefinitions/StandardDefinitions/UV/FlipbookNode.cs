@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "creates a flipbook, or texture sheet animation",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[2] { "atlas", "animation" },
             selectableFunctions: new()
             {

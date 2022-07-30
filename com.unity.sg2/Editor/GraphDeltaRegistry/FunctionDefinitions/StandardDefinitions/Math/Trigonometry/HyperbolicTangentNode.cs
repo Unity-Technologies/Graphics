@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Hyperbolic Tangent",
             tooltip: "Calculates the hyperbolic tangent of the input.",
-            categories: new string[2] { "Math", "Trigonometry" },
+            category: "Math/Trigonometry",
             synonyms: new string[1] { "tanh" },
             selectableFunctions: new()
             {

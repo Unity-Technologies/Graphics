@@ -28,7 +28,7 @@ SelfTexture3D = SelfTexture3DRef;
             Version,
             Name,
             tooltip: "Return a custom render texture.",
-            categories: new string[] { "Utility", "Custom Render Texture" },
+            category: "Utility/Custom Render Texture",
             synonyms: new string[0] { },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

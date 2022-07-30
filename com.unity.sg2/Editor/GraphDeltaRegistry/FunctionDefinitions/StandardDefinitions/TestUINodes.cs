@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the location of the point in object, view, world, or tangent space.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[1] { "location" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string[] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             displayName: "Test Referrables Node",
             hasPreview: false,
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph.Defs
             name: Name,
             version: Version,
             tooltip: String.Empty,
-            categories: new string[] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             displayName: "Test Node with Inner Deps",
             hasPreview: false,
@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph.Defs
             name: Name,
             version: Version,
             tooltip: String.Empty,
-            categories: new string[] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             displayName: "Test Node with Include",
             hasPreview: false,
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             displayName: "Test MultiFunction Node",
             hasPreview: false,
@@ -378,7 +378,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -403,7 +403,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -430,7 +430,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -457,7 +457,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -484,7 +484,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -511,7 +511,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -538,7 +538,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -565,7 +565,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -589,7 +589,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string[1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true
         );
@@ -616,7 +616,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[] {
@@ -659,7 +659,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
@@ -700,7 +700,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[1] {
@@ -736,7 +736,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: new string [1] { "Test" },
+            category: "Test",
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[1] {
@@ -771,7 +771,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name + "(V2)",
             tooltip: string.Empty,
-            categories: new[] { "Test", "Upgradeable", "V2" },
+            category: "Test/Upgradeable/V2",
             synonyms: Array.Empty<string>()
         );
     }
@@ -796,7 +796,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name + "(V3)",
             tooltip: string.Empty,
-            categories: new[] { "Test", "Upgradeable", "V3" },
+            category: "Test/Upgradeable/V3",
             synonyms: Array.Empty<string>()
         );
     }

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Dot Product",
             tooltip: "Calculates the dot product of two input vectors.",
-            categories: new string[2] { "Math", "Vector" },
+            category: "Math/Vector",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

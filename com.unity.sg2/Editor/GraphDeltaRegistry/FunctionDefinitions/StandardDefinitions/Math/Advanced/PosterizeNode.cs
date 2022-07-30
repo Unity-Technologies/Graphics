@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Quantizes the value of the input.",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[1] { "quantize" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

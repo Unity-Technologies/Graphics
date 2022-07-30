@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "creates a normal from a height value",
-            categories: new string[2] { "Artistic", "Normal" },
+            category: "Artistic/Normal",
             synonyms: new string[2] { "convert to normal", "bump map" },
             displayName: "Normal From Height",
             selectableFunctions: new()

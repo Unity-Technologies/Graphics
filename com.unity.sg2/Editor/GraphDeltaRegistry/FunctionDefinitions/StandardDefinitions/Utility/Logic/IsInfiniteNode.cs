@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Is Infinite",
             tooltip: "Checks if the input In is an infinite value.",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             synonyms: new string[0],
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

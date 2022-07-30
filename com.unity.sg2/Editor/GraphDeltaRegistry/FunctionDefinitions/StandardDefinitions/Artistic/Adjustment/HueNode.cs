@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Changes the hue of a color.",
-            categories: new string[2] { "Artistic", "Adjustment" },
+            category: "Artistic/Adjustment",
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {

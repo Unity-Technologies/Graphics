@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Matrix Transpose",
             tooltip: "Calculates the transposed value of the input matrix.",
-            categories: new string[2] { "Math", "Matrix" },
+            category: "Math/Matrix",
             synonyms: new string[1] { "Transpose" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

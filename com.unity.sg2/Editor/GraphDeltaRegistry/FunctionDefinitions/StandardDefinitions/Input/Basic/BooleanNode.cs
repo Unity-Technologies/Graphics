@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "a true/false check box",
-            categories: new string[2] { "Input", "Basic" },
+            category: "Input/Basic",
             synonyms: new string[5] { "switch", "true", "false", "on", "off" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

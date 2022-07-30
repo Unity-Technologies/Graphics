@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "converts a grayscale value to a black and white value with a dither pattern",
-            categories: new string[2] { "Artistic", "Filter" },
+            category: "Artistic/Filter",
             synonyms: new string[4] { "half tone", "noise", "diffusion", "bayer grid" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

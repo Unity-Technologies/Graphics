@@ -52,7 +52,7 @@ Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
             Version,
             Name,
             tooltip: "Gets the camera's depth buffer.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             synonyms: new string[2] { "zbuffer", "zdepth" },
             displayName: "Scene Depth",
             selectableFunctions: new()

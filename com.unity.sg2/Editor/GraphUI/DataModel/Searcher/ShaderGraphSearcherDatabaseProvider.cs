@@ -40,24 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return databases;
         }
 
-        // TODO: (Sai) If we were to specify the category path directly as the path string i.e.
-        // "Artistic/Color" instead of {"Artistic", "Color"} then we could avoid doing this
-        private static string GetCategoryPath(NodeUIDescriptor uiDescriptor)
-        {
-            var categoryPath = String.Empty;
-            var categoryData = uiDescriptor.Categories.ToList();
-            for (var i = 0; i < categoryData.Count; ++i)
-            {
-                var pathPiece = categoryData[i];
-                categoryPath += pathPiece;
-                if (i != categoryData.Count - 1)
-                    categoryPath += "/";
-            }
-
-            return categoryPath;
-        }
-
-        internal static List<SearcherItem> GetNodeSearcherItems(IGraphModel graphModel)
+        SearcherDatabaseBase CreateNodeDatabaseFromRegistry(IGraphModel graphModel)
         {
             var searcherItems = new List<SearcherItem>();
             if (graphModel is ShaderGraphModel shaderGraphModel)
@@ -98,7 +81,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             )
                         )
                         {
-                            CategoryPath = GetCategoryPath(uiHints),
+                            CategoryPath = nodeUIDescriptor.Category,
                             Synonyms = uiHints.Synonyms.ToArray()
                         };
                         namesAddedToSearcher.Add(searcherItemName);

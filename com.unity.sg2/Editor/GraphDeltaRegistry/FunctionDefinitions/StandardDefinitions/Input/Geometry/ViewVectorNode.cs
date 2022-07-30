@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Creates a vector from the current point to the camera position (not normalized)",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[2] { "eye vector", "camera vector" },
             displayName: "View Vector",
             selectableFunctions: new()

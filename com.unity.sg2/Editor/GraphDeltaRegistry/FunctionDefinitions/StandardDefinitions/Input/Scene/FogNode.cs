@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the scene's Fog parameters.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "stereo", "3d" },
             parameters: new ParameterUIDescriptor[3] {

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the color of the current point.",//vertec or point?
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[0] { },
             displayName: "Vertex Color",
             parameters: new ParameterUIDescriptor[1] {

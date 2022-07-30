@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets a constantly increasing value used for animated effects.",
-            categories: new string[2] { "Input", "Basic" },
+            category: "Input/Basic",
             synonyms: new string[1] { "delta" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[5] {

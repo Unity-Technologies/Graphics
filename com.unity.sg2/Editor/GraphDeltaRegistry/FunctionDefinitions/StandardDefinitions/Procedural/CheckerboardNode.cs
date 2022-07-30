@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Creates a pattern of alternating colored squares.",
-            categories: new string[1] { "Procedural" },
+            category: "Procedural",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

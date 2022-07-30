@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Square Root",
             tooltip: "Calculates the square root of the input.",
-            categories: new string[2] { "Math", "Basic" },
+            category: "Math/Basic",
             synonyms: new string[1] { "sqrt" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

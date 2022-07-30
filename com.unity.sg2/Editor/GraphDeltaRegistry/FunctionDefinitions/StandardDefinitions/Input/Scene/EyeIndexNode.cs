@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the Eye Index when stereo rendering is enabled.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "stereo", "3d" },
             parameters: new ParameterUIDescriptor[1] {

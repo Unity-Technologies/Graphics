@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Normal Reconstruct Z",
             tooltip: "Creates a normal from X and Y components.",
-            categories: new string[2] { "Artistic", "Normal" },
+            category: "Artistic/Normal",
             synonyms: new string[1] { "derive z" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

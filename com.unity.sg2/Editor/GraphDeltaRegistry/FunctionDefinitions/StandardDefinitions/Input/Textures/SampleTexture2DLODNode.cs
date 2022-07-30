@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Samples a 2D Texture with a specified level of detail (LOD).",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[2] { "tex2dlod", "mip" },
             displayName: "Sample Texture 2D LOD",
             selectableFunctions: new ()

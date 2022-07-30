@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Checks if all components of the input In are non-zero values",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             synonyms: new string[0],
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

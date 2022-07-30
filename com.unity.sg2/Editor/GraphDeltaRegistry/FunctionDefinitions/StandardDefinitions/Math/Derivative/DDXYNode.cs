@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the sum of both partial derivatives of the input.",
-            categories: new string[2] { "Math", "Derivative" },
+            category: "Math/Derivative",
             synonyms: new string[2] { "derivative", "slope" },
             selectableFunctions: new()
             {

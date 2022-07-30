@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the location of the point in object, view, world, or tangent space.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[1] { "location" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

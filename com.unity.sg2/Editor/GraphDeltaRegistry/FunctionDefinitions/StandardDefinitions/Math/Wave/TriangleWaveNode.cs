@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Triangle Wave",
             tooltip: "creates a linear wave form with triangular shapes",
-            categories: new string[2] { "Math", "Wave" },
+            category: "Math/Wave",
             synonyms: new string[1] { "sawtooth wave" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

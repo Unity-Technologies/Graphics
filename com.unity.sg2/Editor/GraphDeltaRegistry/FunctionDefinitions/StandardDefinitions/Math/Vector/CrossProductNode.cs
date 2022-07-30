@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Cross Product",
             tooltip: "Calculates a vector that is perpendicular to the two input vectors.",
-            categories: new string[2] { "Math", "Vector" },
+            category: "Math/Vector",
             synonyms: new string[1] { "perpendicular" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

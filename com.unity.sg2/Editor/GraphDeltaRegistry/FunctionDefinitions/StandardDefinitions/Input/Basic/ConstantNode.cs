@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Returns the selected constant value (pi, tau, phi, e, or sqrt2).",
-            categories: new string[2] { "Input", "Basic" },
+            category: "Input/Basic",
             synonyms: new string[3] { "PI", "TAU", "PHI" },
             hasPreview: false,
             selectableFunctions: new()
