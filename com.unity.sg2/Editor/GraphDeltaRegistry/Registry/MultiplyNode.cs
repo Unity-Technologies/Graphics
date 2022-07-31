@@ -28,9 +28,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 GraphTypeHelpers.InitGraphType(
                     port.GetTypeField(),
+                    primitive:GraphType.Primitive.Float,
                     lengthDynamic: true,
                     heightDynamic: true,
-                    primitiveDynamic: true,
+                    primitiveDynamic: false,
                     precisionDynamic: true);
             }
 
