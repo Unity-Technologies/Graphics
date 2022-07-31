@@ -260,14 +260,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.OnConnection(selfConnectedPortModel, otherConnectedPortModel);
             if (selfConnectedPortModel.Direction == PortDirection.Input)
+            {
                 DefineNode();
+                selfConnectedPortModel.ResetColor(); // why?
+            }
         }
 
         public override void OnDisconnection(IPortModel selfConnectedPortModel, IPortModel otherConnectedPortModel)
         {
             base.OnDisconnection(selfConnectedPortModel, otherConnectedPortModel);
             if (selfConnectedPortModel.Direction == PortDirection.Input)
+            {
                 DefineNode();
+                selfConnectedPortModel.ResetColor();
+            }
         }
 
         protected override void OnDefineNode()
