@@ -106,10 +106,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var pre = field.GetSubField<GraphType.Precision>(GraphType.kPrecision);
             var pri = field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive);
 
-            // TODO: Remove these.
-            field.GetSubField<bool>(GraphType.kDynamicLength).SetData(lengthDynamic);
-            field.GetSubField<bool>(GraphType.kDynamicHeight).SetData(heightDynamic);
-
             len.SetData(length);
             hgt.SetData(height);
             pre.SetData(precision);
@@ -336,8 +332,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kLength = "Length";
         public const string kHeight = "Height";
         public const string kDynamic = "Dynamic";
-        public const string kDynamicLength = "DynamicLength";
-        public const string kDynamicHeight = "DynamicHeight";
 
         // TODO: this is used by the interpreter and filled out by the context builder,
         // should be moved into a CLDS header when possible.
@@ -353,10 +347,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // TODO: Length should start at 1.
             field.AddSubField(kLength, Length.Four, true).AddSubField(kDynamic, false, true);
             field.AddSubField(kHeight, Height.One, true).AddSubField(kDynamic, false, true);
-
-            // TODO: remove this.
-            field.AddSubField(kDynamicLength, false, true);
-            field.AddSubField(kDynamicHeight, false, true);
 
             // ensure we have enough allocated.
             for (int i = 0; i < 16; ++i)
