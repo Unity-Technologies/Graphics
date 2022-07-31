@@ -76,7 +76,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
 
                 // TODO: primitive & precision
-                GraphTypeHelpers.InitGraphType(port.GetTypeField(), length:(GraphType.Length)length, height:(GraphType.Height)height);
+                GraphTypeHelpers.InitGraphType(
+                    port.GetTypeField(),
+                    length:(GraphType.Length)length,
+                    height:(GraphType.Height)height,
+                    lenDynamic:true,
+                    hgtDynamic:true);
             }
         }
 

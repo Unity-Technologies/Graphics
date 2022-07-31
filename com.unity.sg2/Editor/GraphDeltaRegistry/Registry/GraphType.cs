@@ -11,12 +11,28 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     public static class GraphTypeHelpers
     {
-        public static void InitGraphType(FieldHandler field, GraphType.Length length = GraphType.Length.Four, GraphType.Precision precision = GraphType.Precision.Single, GraphType.Primitive primitive = GraphType.Primitive.Float, GraphType.Height height = GraphType.Height.One)
+        public static void InitGraphType(
+            FieldHandler field,
+            GraphType.Length length,
+            GraphType.Precision precision = GraphType.Precision.Single,
+            GraphType.Primitive primitive = GraphType.Primitive.Float,
+            GraphType.Height height = GraphType.Height.One,
+            bool lenDynamic = false,
+            bool hgtDynamic = false)
         {
             field.GetSubField<GraphType.Length>(GraphType.kLength).SetData(length);
             field.GetSubField<GraphType.Height>(GraphType.kHeight).SetData(height);
             field.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(precision);
             field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(primitive);
+            field.GetSubField<bool>(GraphType.kDynamicLength).SetData(lenDynamic);
+            field.GetSubField<bool>(GraphType.kDynamicHeight).SetData(hgtDynamic);
+
+        }
+
+        public static void GetDynamic(FieldHandler field, out bool len, out bool hgt)
+        {
+            len = field.GetSubField<bool>(GraphType.kDynamicLength).GetData();
+            hgt = field.GetSubField<bool>(GraphType.kDynamicHeight).GetData();
         }
 
         public static GraphType.Precision GetPrecision(FieldHandler field) =>
@@ -224,6 +240,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kPrecision = "Precision";
         public const string kLength = "Length";
         public const string kHeight = "Height";
+        public const string kDynamicLength = "DynamicLength";
+        public const string kDynamicHeight = "DynamicHeight";
 
         // TODO: this is used by the interpreter and filled out by the context builder,
         // should be moved into a CLDS header when possible.
@@ -233,25 +251,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void BuildType(FieldHandler field, Registry registry)
         {
-            // default initialize to a float4;
+            // TODO: Default initialization should be a non-dynamic scalar single precision float.
             field.AddSubField(kPrecision, Precision.Single, true);
             field.AddSubField(kPrimitive, Primitive.Float, true);
+            // TODO: Length should start at 1.
             field.AddSubField(kLength, Length.Four, true);
             field.AddSubField(kHeight, Height.One, true);
 
+            field.AddSubField(kDynamicLength, false, true);
+            field.AddSubField(kDynamicHeight, false, true);
 
-            var lenField = field.GetSubField<Length>(kLength);
-            var hgtField = field.GetSubField<Height>(kHeight);
-            var length = Length.Four;
-            var height = Height.One;
-
-            // read userdata and make sure we have enough fields.
-            if (lenField != null) length = lenField.GetData();
-            if (hgtField != null) height = hgtField.GetData();
-
-            // ensure that enough subfield values exist to represent userdata's current data.
-            // we could just ignore userData though and just fill out all 16 possible components...
-            for (int i = 0; i < (int)length * (int)height; ++i)
+            // ensure we have enough allocated.
+            for (int i = 0; i < 16; ++i)
                 GraphTypeHelpers.SetComponent(field, i, 0);
         }
 
@@ -262,8 +273,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var primitive = GraphTypeHelpers.GetPrimitive(src);
             var precision = GraphTypeHelpers.GetPrecision(src);
             var data = GraphTypeHelpers.GetComponents(src).ToArray();
+            GraphTypeHelpers.GetDynamic(src, out var lenDynamic, out var hgtDynamic);
 
-            GraphTypeHelpers.InitGraphType(dst, length, precision, primitive, height);
+            GraphTypeHelpers.InitGraphType(dst, length, precision, primitive, height, lenDynamic, hgtDynamic);
             GraphTypeHelpers.SetComponents(dst, 0, data);
         }
 
@@ -331,18 +343,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool CanConvert(FieldHandler src, FieldHandler dst)
         {
-            var srcHgt = GraphTypeHelpers.GetHeight(src);
-            var srcLen = GraphTypeHelpers.GetLength(src);
+            var srcHgt = (int)GraphTypeHelpers.GetHeight(src);
+            var srcLen = (int)GraphTypeHelpers.GetLength(src);
 
-            var dstHgt = GraphTypeHelpers.GetHeight(dst);
-            var dstLen = GraphTypeHelpers.GetLength(dst);
+            var dstHgt = (int)GraphTypeHelpers.GetHeight(dst);
+            var dstLen = (int)GraphTypeHelpers.GetLength(dst);
 
+            GraphTypeHelpers.GetDynamic(dst, out var dynLen, out var dynHgt);
 
-            return
-                srcHgt == dstHgt ||
-                srcHgt >= dstHgt && srcLen >= dstLen ||
-                srcHgt == GraphType.Height.One && srcLen >= dstLen ||
-                srcHgt == GraphType.Height.One && srcLen == GraphType.Length.One;
+            // Scalar source/from can promote, larger truncates
+            // if it's dynamc, we assume the other ports will truncate instead.
+            return srcHgt == 1 && srcLen == 1 ||
+                (srcLen >= dstLen || dynLen) && (srcHgt >= dstHgt || dynHgt);
+                //srcHgt == dstHgt ||
+                //srcHgt >= dstHgt && srcLen >= dstLen ||
+                //srcHgt == 1 && srcLen >= dstLen ||
+                //srcHgt == 1 && srcLen == 1;
 
         }
 
