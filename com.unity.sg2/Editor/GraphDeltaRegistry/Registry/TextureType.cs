@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             node.AddPort<SamplerStateType>(kSampler, true, registry);
             var color = node.AddPort<GraphType>(kOutput, false, registry).GetTypeField();
             GraphTypeHelpers.InitGraphType(uv, GraphType.Length.Two);
-            GraphTypeHelpers.InitGraphType(color);
+            GraphTypeHelpers.InitGraphType(color, GraphType.Length.Four);
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies deps)
