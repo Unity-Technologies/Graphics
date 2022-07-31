@@ -23,10 +23,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             length = (int)GetLength(field);
         }
 
-        private static bool calcResolve(NodeHandler node, out int length, out int height)
+        private static bool calcResolve(NodeHandler node, out int length, out int height, out int precision, out int primitive)
         {
             length = 1;
             height = 1;
+            precision = 1;
+            primitive = 1;
 
             // Use only input ports who are actually graphType.
             var inputPorts = node.GetPorts().Where(e => e.IsInput && e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name);
@@ -36,8 +38,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 GetDim(field, out var fieldLength, out var fieldHeight);
                 length = truncate(length, fieldLength);
-                height = truncate(truncate(length, height), fieldHeight);
+                height = truncate(truncate(length, height), fieldHeight); // height truncates by length also.
+
+                // special case- if there is any non-matrix connection, the output dynamic ports will also be nonMatrix.
                 hasVector |= fieldHeight == 1;
+
+                // precision and primitive type always promote.
+                precision = Mathf.Max(precision, (int)GetPrecision(field));
+                primitive = Mathf.Max(primitive, (int)GetPrimitive(field));
             }
             return hasVector;
         }
@@ -47,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static void ResolveDynamicPorts(NodeHandler node)
         {
             // TODO: Resolve precision/primitive too.
-            bool hasVector = calcResolve(node, out var resolvedLength, out var resolvedHeight);
+            bool hasVector = calcResolve(node, out var resolvedLength, out var resolvedHeight, out var resolvedPrecision, out var resolvedPrimitive);
 
             // foreach graphType port.
             foreach (var port in node.GetPorts().Where(e => e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name))
@@ -58,9 +66,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GetDim(field, out var length, out var height);
                 GetDynamic(field, out var isLenDyn, out var isHgtDyn, out var isPrecisionDyn, out var isPrimDyn);
 
-
                 length = isLenDyn ? resolvedLength : length;
                 height = isHgtDyn ? resolvedHeight : height;
+                precision = isPrecisionDyn ? (GraphType.Precision)resolvedPrecision : precision;
+                primitive = isPrimDyn ? (GraphType.Primitive)resolvedPrimitive : primitive;
 
                 // resolvedHeight only applies for matrices-- if we are connected to a non-matrix we need to ignore it.
                 var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
@@ -277,8 +286,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public RegistryKey GetRegistryKey() => kRegistryKey;
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-        public enum Precision { Fixed, Half, Single, Any }
-        public enum Primitive { Bool, Int, Float, Any }
+        public enum Precision { Fixed = 1, Half = 2, Single = 3, Any = -1 }
+        public enum Primitive { Bool = 1, Int = 2, Float = 3, Any = -1 }
         public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
         public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
 
