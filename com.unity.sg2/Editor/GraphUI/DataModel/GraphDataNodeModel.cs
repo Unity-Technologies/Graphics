@@ -261,8 +261,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnConnection(selfConnectedPortModel, otherConnectedPortModel);
             if (selfConnectedPortModel.Direction == PortDirection.Input)
             {
-                DefineNode();
-                selfConnectedPortModel.ResetColor(); // why?
+                DefineNode(); // TODO: This doesn't seem to work.
             }
         }
 
@@ -272,7 +271,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (selfConnectedPortModel.Direction == PortDirection.Input)
             {
                 DefineNode();
-                selfConnectedPortModel.ResetColor();
             }
         }
 
