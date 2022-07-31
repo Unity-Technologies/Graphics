@@ -73,7 +73,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             registryKey,
                             registry.GetDefaultTopology(registryKey)
                         );
-                        string searcherItemName = registryKey.Name;
+                        string searcherItemName = uiHints.DisplayName;
+                        // fallback to the registry name if there is no display name
+                        if (string.IsNullOrEmpty(searcherItemName))
+                            searcherItemName = registryKey.Name;
                         if (namesAddedToSearcher.Contains(searcherItemName))
                         {
                             // If there is already a SearcherItem with the current
@@ -81,10 +84,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             Debug.LogWarning($"Not adding \"{searcherItemName}\" to the searcher. A searcher item with this name already exists.");
                             continue;
                         }
-                        var searcherItem = new RegistryNodeSearcherItem(
-                            graphModel,
-                            registryKey,
-                            searcherItemName
+                        SearcherItem searcherItem = new GraphNodeModelSearcherItem(
+                            name: searcherItemName,
+                            null,
+                            creationData => graphModel.CreateGraphDataNode(
+                                registryKey,
+                                searcherItemName,
+                                creationData.Position,
+                                creationData.Guid,
+                                creationData.SpawnFlags
+                            )
                         )
                         {
                             CategoryPath = GetCategoryPath(uiHints),
