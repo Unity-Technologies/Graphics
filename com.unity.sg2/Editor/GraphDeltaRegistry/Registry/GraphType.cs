@@ -351,15 +351,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             GraphTypeHelpers.GetDynamic(dst, out var dynLen, out var dynHgt);
 
-            // Scalar source/from can promote, larger truncates
-            // if it's dynamc, we assume the other ports will truncate instead.
-            return srcHgt == 1 && srcLen == 1 ||
+            return
+                srcHgt == 1 && srcLen == 1 || // scalars can always promote to anything.
+                srcHgt == 1 && dstHgt == 1 || // vectors can truncate/zero-fill promote to other vectors.
+                // otherwise we truncate per dimension unless one of those dimensions is dynamic.
                 (srcLen >= dstLen || dynLen) && (srcHgt >= dstHgt || dynHgt);
-                //srcHgt == dstHgt ||
-                //srcHgt >= dstHgt && srcLen >= dstLen ||
-                //srcHgt == 1 && srcLen >= dstLen ||
-                //srcHgt == 1 && srcLen == 1;
-
+            // TODO: Can we just allow universal convertibility w/zero fill?
         }
 
         private static string MatrixCompNameFromIndex(int i, int d)
