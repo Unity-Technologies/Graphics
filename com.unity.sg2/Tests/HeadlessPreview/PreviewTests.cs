@@ -919,12 +919,15 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kInputB).GetTypeField()));
             Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
 
-            // Matrix2 x Scalar should make the output a Matrix2.
+            // Matrix2 x Scalar should make the output a Vec2.
+            // // scalar promotes to (2,2), gets rotated and scaled by the Matrix2 to (4,4), but when samples becomes (1,1) = Green.
             Assert.IsTrue(graphHandler.TryConnect("scalarNode", "Out", "multiplyNode", MultiplyNode.kInputB));
             graphHandler.ReconcretizeAll();
-            // We can't material test this because matrix doesn't autoconvert to a color.
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(material));
             Assert.AreEqual(GraphType.Length.Two, GraphTypeHelpers.GetLength(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
-            Assert.AreEqual(GraphType.Height.Two, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+            Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
 
 
             // Vector x Scalar should do a scalar operation, meaning our half-pink vector should become pink

@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 // resolvedHeight only applies for matrices-- if we are connected to a non-matrix we need to ignore it.
                 var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
                 if (!port.IsInput && hasVector || // output port will always resolve to vector if one of the input ports does.
+                    port.IsInput && connectedField == null && hasVector || // as will disconnected input ports.
                     port.IsInput && connectedField != null && GetHeight(connectedField) == GraphType.Height.One)
                         height = 1;
 
