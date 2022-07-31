@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GetDim(field, out var fieldLength, out var fieldHeight);
                 length = truncate(length, fieldLength);
                 height = truncate(truncate(length, height), fieldHeight);
-                hasVector |= fieldLength > 1 && fieldHeight == 1;
+                hasVector |= fieldHeight == 1;
             }
             return hasVector;
         }
