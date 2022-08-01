@@ -41,6 +41,8 @@ graphics_repo_nightly_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
          rerun: on_new_revision
+      -  path: .yamato/all-urp_template.yml#URP_Template_trunk
+         rerun: on_new_revision
 all_project_ci_nightly_trunk:
     name: Nightly on trunk
     variables:
@@ -174,6 +176,8 @@ graphics_repo_nightly_CUSTOM-REVISION:
       -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_template.yml#URP_Template_CUSTOM-REVISION
          rerun: on_new_revision
 all_project_ci_nightly_CUSTOM-REVISION:
     name: Nightly on CUSTOM-REVISION
