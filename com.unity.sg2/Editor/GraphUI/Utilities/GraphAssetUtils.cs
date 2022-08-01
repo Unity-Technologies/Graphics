@@ -34,18 +34,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 null);
         }
 
-        [MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateBlankGraphInProjectWindow()
-        {
-            var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
-            newGraphAction.isBlank = true;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                0,
-                newGraphAction,
-                $"{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}",
-                null,
-                null);
-        }
+        //[MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        //public static void CreateBlankGraphInProjectWindow()
+        //{
+        //    var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+        //    newGraphAction.isBlank = true;
+        //    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+        //        0,
+        //        newGraphAction,
+        //        $"{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}",
+        //        null,
+        //        null);
+        //}
 
         [MenuItem("Assets/Create/Shader Graph 2/Blank Shader SubGraph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         public static void CreateBlankSubGraphInProjectWindow()
