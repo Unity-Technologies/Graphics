@@ -26,6 +26,7 @@ editor_pinning_config:
     type: Unity::VM
     image: package-ci/ubuntu:v2.0.0-947723
     flavor: b1.small
+  skip_checkout: true
   use_predefined_variables: True
   commands:
     - pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
@@ -38,7 +39,9 @@ editor_pinning_config:
     - git config --global user.name "noreply@unity3d.com"
     - git config --global user.email "noreply@unity3d.com"
     - git checkout $GIT_BRANCH
-    - python3 .yamato/script/editor_scripts/update_revisions.py --track 2020.3 --ono-branch $ONO_BRANCH_2020_3 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1 --vcs git
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
+    - git -C gfx-sdet-tools rev-parse HEAD
+    - python3 gfx-sdet-tools/scripts/update_revisions.py --track 2020.3 --unity-branch $ONO_BRANCH_2020_3 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1 --vcs git
   triggers:
     recurring:
       - branch: 10.x.x/release
