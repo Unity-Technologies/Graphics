@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     node,
                     registry);
             }
+
+            GraphTypeHelpers.ResolveDynamicPorts(node);
         }
 
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(

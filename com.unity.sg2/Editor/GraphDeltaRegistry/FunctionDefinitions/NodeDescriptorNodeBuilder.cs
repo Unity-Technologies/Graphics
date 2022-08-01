@@ -131,6 +131,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     node,
                     registry);
             }
+
+            GraphTypeHelpers.ResolveDynamicPorts(node);
         }
 
         private static ShaderType GetShaderTypeForParametricTypeDescriptor(
