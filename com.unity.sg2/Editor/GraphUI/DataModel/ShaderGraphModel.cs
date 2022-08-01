@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             }
             var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
-            outputNode.Title = !isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
+            outputNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
         }
 
 
@@ -167,6 +167,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             foreach (var target in Targets)
             {
+                // at most there is only one target right now, so this solution is not robust.
                 InitializeContextFromTarget(target.value);
             }
             GraphHandler.ReconcretizeAll();
@@ -176,10 +177,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal void InitializeContextFromTarget(Target target)
         {
             // TODO: we can assume we're using the standard SG config for now, but this is not good.
-            GraphHandler.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
-            GraphHandler.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
-            GraphHandler.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
-            GraphHandler.RebuildContextData(ShaderGraphAssetUtils.kMainEntryContextName, target, "UniversalPipeline", "SurfaceDescription", false);
+            ShaderGraphAssetUtils.RebuildContextNodes(GraphHandler, target);
 
             foreach (var contextNode in NodeModels.OfType<GraphDataContextNodeModel>())
             {

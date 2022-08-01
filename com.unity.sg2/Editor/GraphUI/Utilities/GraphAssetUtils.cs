@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void CreateURPGraphInProjectWindow()
         {
             var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+            newGraphAction.callback = URPTargetUtils.ConfigureURPLit;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,

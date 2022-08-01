@@ -17,19 +17,13 @@ namespace UnityEditor.ShaderGraph
         public static readonly string kBlackboardContextName = Registry.ResolveKey<PropertyContext>().Name;
         public static readonly string kMainEntryContextName = Registry.ResolveKey<Defs.ShaderGraphContext>().Name;
 
-        internal static Target GetUniversalTarget() // Temp code.
+        internal static void RebuildContextNodes(GraphHandler graph, Target target)
         {
-            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
-            foreach (var type in targetTypes)
-            {
-                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
-                    continue;
-
-                var target = (Target)Activator.CreateInstance(type);
-                if (!target.isHidden)
-                    return target;
-            }
-            return null;
+            // This should be consistent for all legacy targets.
+            graph.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
+            graph.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
+            graph.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
+            graph.RebuildContextData(kMainEntryContextName, target, "UniversalPipeline", "SurfaceDescription", false);
         }
 
         internal delegate Target GraphHandlerInitializationCallback(GraphHandler graph);
@@ -54,24 +48,19 @@ namespace UnityEditor.ShaderGraph
             }
             else // otherwise we are a URP graph.
             {
+                // Conventional shadergraphs with targets will always have these context nodes.
+                graph.AddContextNode("VertIn");
+                graph.AddContextNode("VertOut");
+                graph.AddContextNode("FragIn");
+                graph.AddContextNode(kMainEntryContextName);
+
                 if (init != null)
                 {
                     target = init.Invoke(graph);
                 }
                 else
                 {
-                    target = GetUniversalTarget();
-                    // Conventional shadergraphs have these 4 contexts
-                    graph.AddContextNode("VertIn");
-                    graph.AddContextNode("VertOut");
-                    graph.AddContextNode("FragIn");
-                    graph.AddContextNode(kMainEntryContextName);
-
-                    // Mapped to these customization points:
-                    graph.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
-                    graph.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
-                    graph.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
-                    graph.RebuildContextData(kMainEntryContextName, target, "UniversalPipeline", "SurfaceDescription", false);
+                    target = URPTargetUtils.ConfigureURPLit(graph);
                 }
                 // Though we should be more procedural and be using this: to get the corresponding names, eg:
                 // CPGraphDataProvider.GatherProviderCPIO(target, out var descriptors);
