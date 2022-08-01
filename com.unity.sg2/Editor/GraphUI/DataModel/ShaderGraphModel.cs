@@ -142,19 +142,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool isCutOperation;
         #endregion CopyPasteData
 
-        public void Init(GraphHandler graph, bool isSubGraph)
+        internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
             graphHandlerBox.Init(graph);
             this.isSubGraph = isSubGraph;
-            if (!isSubGraph)
+            if (!isSubGraph && target != null)
             {
-                Targets.Add(ShaderGraphAssetUtils.GetUniversalTarget());
-            }
+                Targets.Add(target);
+                // all target-based graphs have a Vert
+                var vertNode = this.CreateGraphDataContextNode("VertOut");
+                vertNode.Title = "Vertex Stage";
+                vertNode.Position = new Vector2(0, -180);
 
-            // Generate context nodes as needed.
-            // TODO: This should be handled by a more generalized synchronization step.
-            this.CreateGraphDataContextNode("VertOut");
-            this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextNode);
+            }
+            var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
+            outputNode.Title = !isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
         }
 
 
@@ -177,7 +179,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphHandler.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
             GraphHandler.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
             GraphHandler.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
-            GraphHandler.RebuildContextData(ShaderGraphAssetUtils.kMainEntryContextNode, target, "UniversalPipeline", "SurfaceDescription", false);
+            GraphHandler.RebuildContextData(ShaderGraphAssetUtils.kMainEntryContextName, target, "UniversalPipeline", "SurfaceDescription", false);
 
             foreach (var contextNode in NodeModels.OfType<GraphDataContextNodeModel>())
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor.AssetImporters;
 using UnityEditor.ShaderGraph.Generation;
@@ -9,13 +9,13 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph
 {
     public static class ShaderGraphAssetUtils
     {
-        public static readonly string kMainEntryContextNode = Registry.ResolveKey<Defs.ShaderGraphContext>().Name;
+        public static readonly string kBlackboardContextName = Registry.ResolveKey<PropertyContext>().Name;
+        public static readonly string kMainEntryContextName = Registry.ResolveKey<Defs.ShaderGraphContext>().Name;
 
         internal static Target GetUniversalTarget() // Temp code.
         {
@@ -32,44 +32,55 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
+        internal delegate Target GraphHandlerInitializationCallback(GraphHandler graph);
+
         // TODO: Factory for different types of initial creations- this is modified to use URP for now.
-        public static ShaderGraphAsset CreateNewAssetGraph(bool isSubGraph)
+        internal static ShaderGraphAsset CreateNewAssetGraph(bool isSubGraph, bool isBlank, GraphHandlerInitializationCallback init = null)
         {
             var defaultRegistry = ShaderGraphRegistry.Instance.Registry;
-
-            // TODO: these are deprecated, but we're using the names for immediate compatibility.
-            var propertyKey = Registry.ResolveKey<PropertyContext>();
-
+            Target target = null;
             GraphHandler graph = new(defaultRegistry);
-            graph.AddContextNode(propertyKey.Name);
+
+
+            graph.AddContextNode(kBlackboardContextName);
             if (isSubGraph)
             {
                 // subgraphs get a blank output context node, for now using the name of the old contextDescriptor.
-                graph.AddContextNode(kMainEntryContextNode);
+                graph.AddContextNode(kMainEntryContextName);
             }
-            else //initialize a URP Graph.
+            else if (isBlank) // blank shadergraph gets the fallback context node for output.
             {
-                // Conventional shadergraphs have these 4 contexts
-                graph.AddContextNode("VertIn");
-                graph.AddContextNode("VertOut");
-                graph.AddContextNode("FragIn");
-                graph.AddContextNode(kMainEntryContextNode);
+                graph.AddContextNode(Registry.ResolveKey<Defs.ShaderGraphContext>());
+            }
+            else // otherwise we are a URP graph.
+            {
+                if (init != null)
+                {
+                    target = init.Invoke(graph);
+                }
+                else
+                {
+                    target = GetUniversalTarget();
+                    // Conventional shadergraphs have these 4 contexts
+                    graph.AddContextNode("VertIn");
+                    graph.AddContextNode("VertOut");
+                    graph.AddContextNode("FragIn");
+                    graph.AddContextNode(kMainEntryContextName);
 
-                // Mapped to these customization points:
-                var target = GetUniversalTarget();
-                graph.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
-                graph.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
-                graph.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
-                graph.RebuildContextData(kMainEntryContextNode, target, "UniversalPipeline", "SurfaceDescription", false);
-
-                // Though we should be more procedural and be using this: to get the corresponding names.
+                    // Mapped to these customization points:
+                    graph.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
+                    graph.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
+                    graph.RebuildContextData("FragIn", target, "UniversalPipeline", "SurfaceDescription", true);
+                    graph.RebuildContextData(kMainEntryContextName, target, "UniversalPipeline", "SurfaceDescription", false);
+                }
+                // Though we should be more procedural and be using this: to get the corresponding names, eg:
                 // CPGraphDataProvider.GatherProviderCPIO(target, out var descriptors);
             }
             graph.ReconcretizeAll();
             // Setup the GTF Model, it will default to using a universal target for now.
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             asset.CreateGraph(typeof(ShaderGraphStencil));
-            asset.ShaderGraphModel.Init(graph, isSubGraph);
+            asset.ShaderGraphModel.Init(graph, isSubGraph, target);
             return asset;
         }
 
@@ -87,9 +98,9 @@ namespace UnityEditor.ShaderGraph
             return asset;
         }
 
-        public static void HandleCreate(string path, bool isSubGraph = false) // TODO: TargetSettingsObject as param
+        internal static void HandleCreate(string path, bool isSubGraph = false, bool isBlank = false, GraphHandlerInitializationCallback init = null) // TODO: TargetSettingsObject as param
         {
-            HandleSave(path, CreateNewAssetGraph(isSubGraph));
+            HandleSave(path, CreateNewAssetGraph(isSubGraph, isBlank, init));
         }
 
         public static void HandleImport(AssetImportContext ctx)
@@ -105,7 +116,7 @@ namespace UnityEditor.ShaderGraph
             if (!asset.ShaderGraphModel.IsSubGraph)
             {
                 // TODO: SGModel should know what it's entry point is for creating a shader.
-                var node = graphHandler.GetNode(kMainEntryContextNode);
+                var node = graphHandler.GetNode(kMainEntryContextName);
                 var shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
 
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
