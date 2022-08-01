@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     EnsureFunctionPresent(f);
                 }
             }
-            
+
         }
         /// <summary>
         /// There's a collection of required and potentially useful pieces of data
@@ -439,7 +439,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 toConvert = toConvertNameOverride;
             }
-            var converted = $"CONVERT_{connectedNode.ID.LocalPath}_{fromPort.ID.LocalPath}";
+            var converted = $"CONVERT_{toPort.GetNode().ID.LocalPath}_{toPort.ID.LocalPath}";
             var cast = registry.GetCast(fromPort, toPort);
             var castFunction = cast.GetShaderCast(fromPort.GetTypeField(), toPort.GetTypeField(), container, registry);
 
@@ -465,7 +465,7 @@ namespace UnityEditor.ShaderGraph.Generation
             List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
             var func = nodeBuilder.GetShaderFunction(node, container, registry, out var dependencies);
 
-            
+
             string arguments = "";
             foreach (var param in func.Parameters)
             {
