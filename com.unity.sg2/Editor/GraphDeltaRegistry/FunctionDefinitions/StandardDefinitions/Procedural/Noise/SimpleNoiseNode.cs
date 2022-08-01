@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SimpleNoiseDeterministic",
+                    "Deterministic",
 @"    Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*Scale, sample1);
     Out = sample1 * 0.125;
     Unity_SimpleNoise_ValueNoise_Deterministic(UV.xy*(Scale * 0.5), sample2);
@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     }
                 ),
                 new(
-                    "SimpleNoiseLegacySine",
+                    "LegacySine",
 @"    Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*Scale, sample1);
     Out = sample1 * 0.125;
     Unity_SimpleNoise_ValueNoise_LegacySine(UV.xy*(Scale * 0.5), sample2);
