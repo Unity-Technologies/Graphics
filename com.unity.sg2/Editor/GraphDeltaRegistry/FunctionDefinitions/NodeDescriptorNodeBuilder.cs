@@ -17,6 +17,15 @@ namespace UnityEditor.ShaderGraph.Defs
     /// </summary>
     internal class NodeDescriptorNodeBuilder : INodeDefinitionBuilder
     {
+
+        // Regex pattern for updating function calls in body code.
+        // Assumes
+        //   - first character must be either a alpha or _
+        //   - all other characters are alphanums and _ only
+        //   - space is allowed between function name and (
+        //   - closing ) is not required for match
+        //   - will match in comments
+        private static readonly string FUNCTION_CALL_PATTERN = @"([a-zA-Z_][a-zA-Z0-9_]*)\s*\(";
         public static readonly string SELECTED_FUNCTION_FIELD_NAME = "selected-function-name";
 
         private readonly NodeDescriptor m_nodeDescriptor;
@@ -62,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Dictionary<string, string>functionNameToModifiedBody = new();
             foreach (FunctionDescriptor fd in nodeDescriptor.Functions)
             {
-                string newBody = UpdateBodyCode(functionNameToCodeName, fd);
+                string newBody = LocalizeFunctionCalls(functionNameToCodeName, fd);
                 functionNameToModifiedBody[fd.Name] = newBody;
             }
 
@@ -71,17 +80,38 @@ namespace UnityEditor.ShaderGraph.Defs
             m_functionNameToModifiedBody = functionNameToModifiedBody;
         }
 
-        private string UpdateBodyCode(
-            Dictionary<string, string> functionNameToCodeName,
+        /// <summary>
+        /// Returns the given FunctionDescriptor's body code with function calls
+        /// that match keys in functionNameToRewrittenFunctionName replaced with
+        /// the associated value in functionNameToRewrittenFunctionName.
+        ///
+        /// Example
+        /// If functionNameToRewrittenFunctionName contains
+        /// [MyFuncName, NewFuncName]
+        /// functionDescriptor.Body will have all calls like MyFuncName(...)
+        /// replaced with NewFuncName(...).
+        /// </summary>
+        private static string LocalizeFunctionCalls(
+            Dictionary<string, string> functionNameToRewrittenFunctionName,
             FunctionDescriptor functionDescriptor)
         {
-            var newBody = functionDescriptor.Body;
-            foreach (var nameBinding in functionNameToCodeName)
-            {
-                newBody = Regex.Replace(newBody, nameBinding.Key, nameBinding.Value);
-
-            }
-            return newBody;
+            // Find all places in the body code that match FUNCTION_CALL_PATTERN
+            // and repalce if the value is a key in functionNameToRewrittenFunctionName.
+            string matchReplaceBody = Regex.Replace(
+                functionDescriptor.Body,
+                FUNCTION_CALL_PATTERN,
+                (Match match) =>
+                {
+                    // the value of the first capturing group is the function name
+                    var functionName = match.Groups[1].Value;
+                    // NOTE - To avoid checking keywords for match, we assume
+                    // that language keywords (Eg. "if") are not in functionNameToRewrittenFunctionName.
+                    return functionNameToRewrittenFunctionName.ContainsKey(functionName) ?
+                        functionNameToRewrittenFunctionName[functionName] + "(" :
+                        match.Value;
+                }
+            );
+            return matchReplaceBody;
         }
 
         /// <summary>
