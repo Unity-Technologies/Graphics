@@ -13,7 +13,6 @@ editor-pinning-update:
         type: Unity::VM
         image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
-    skip_checkout: true
     variables:
         CI: true
     commands:

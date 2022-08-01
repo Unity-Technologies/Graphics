@@ -26,7 +26,6 @@ editor_pinning_config:
     type: Unity::VM
     image: package-ci/ubuntu:v2.0.0-947723
     flavor: b1.small
-  skip_checkout: true
   use_predefined_variables: True
   commands:
     - pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
