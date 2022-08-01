@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
+using System.Collections;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -72,11 +73,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 primitive = isPrimDyn ? (GraphType.Primitive)resolvedPrimitive : primitive;
 
                 // resolvedHeight only applies for matrices-- if we are connected to a non-matrix we need to ignore it.
-                var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
-                if (!port.IsInput && hasVector || // output port will always resolve to vector if one of the input ports does.
-                    port.IsInput && connectedField == null && hasVector || // as will disconnected input ports.
-                    port.IsInput && connectedField != null && GetHeight(connectedField) == GraphType.Height.One)
-                        height = 1;
+                if (isHgtDyn)
+                {
+                    var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
+                    if (!port.IsInput && hasVector || // output port will always resolve to vector if one of the input ports does.
+                        port.IsInput && connectedField == null && hasVector || // as will disconnected input ports.
+                        port.IsInput && connectedField != null && GetHeight(connectedField) == GraphType.Height.One)
+                            height = 1;
+                }
 
                 InitGraphType(
                     field,
@@ -114,8 +118,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             len.GetSubField<bool>(GraphType.kDynamic).SetData(lengthDynamic);
             hgt.GetSubField<bool>(GraphType.kDynamic).SetData(heightDynamic);
-            pre.GetSubField<bool>(GraphType.kDynamic).SetData(primitiveDynamic);
-            pri.GetSubField<bool>(GraphType.kDynamic).SetData(precisionDynamic);
+            pre.GetSubField<bool>(GraphType.kDynamic).SetData(precisionDynamic);
+            pri.GetSubField<bool>(GraphType.kDynamic).SetData(primitiveDynamic);
 
         }
 
@@ -272,6 +276,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             for (int i = 0; i < 4; ++i)
                 SetAsVec4(field, val.GetColumn(i), i);
         }
+
+        public static bool SetByManaged(FieldHandler f, object o)
+        {
+            GetDim(f, out int _, out int h);
+
+            switch(o)
+            {
+                case Vector4 v4: SetAsVec3(f, v4); break;
+                case Vector3 v3: SetAsVec3(f, v3); break;
+                case Vector2 v2: SetAsVec2(f, v2); break;
+                case float: case bool: case int: // TODO: Better capture for this case.
+                    SetAsFloat(f, (float)o); break;
+                case IEnumerable<float> e:
+                    SetComponents(f, 0, e.ToArray()); break;
+                case Matrix4x4 m4:
+                    switch(h)
+                    {
+                        case 1: SetAsVec4(f, m4.GetColumn(0)); break;
+                        case 2: SetAsMat2(f, m4); break;
+                        case 3: SetAsMat3(f, m4); break;
+                        case 4: SetAsMat4(f, m4); break;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
     }
 
     /// <summary>
@@ -345,8 +377,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // TODO: Default initialization should be a non-dynamic scalar single precision float.
             field.AddSubField(kPrecision, Precision.Single, true).AddSubField(kDynamic, false, true);
             field.AddSubField(kPrimitive, Primitive.Float, true).AddSubField(kDynamic, false, true);
-            // TODO: Length should start at 1.
-            field.AddSubField(kLength, Length.Four, true).AddSubField(kDynamic, false, true);
+            field.AddSubField(kLength, Length.One, true).AddSubField(kDynamic, false, true);
             field.AddSubField(kHeight, Height.One, true).AddSubField(kDynamic, false, true);
 
             // ensure we have enough allocated.
