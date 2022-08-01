@@ -172,40 +172,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 var lightSettings = serialized.renderPipelineSettings.lightLoopSettings;
 
-                lightSettings.maxLocalVolumetricFogSize.intValue = (int)(LocalVolumetricFogResolution)EditorGUILayout.EnumPopup(Styles.maxLocalVolumetricFogSizeStyle, (LocalVolumetricFogResolution)lightSettings.maxLocalVolumetricFogSize.intValue);
-
                 EditorGUILayout.PropertyField(lightSettings.maxLocalVolumetricFogOnScreen, Styles.maxLocalVolumetricFogOnScreenStyle);
                 lightSettings.maxLocalVolumetricFogOnScreen.intValue = Mathf.Clamp(lightSettings.maxLocalVolumetricFogOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleLocalVolumetricFogCount);
-
-                if (lightSettings.maxLocalVolumetricFogSize.hasMultipleDifferentValues || lightSettings.maxLocalVolumetricFogOnScreen.hasMultipleDifferentValues)
-                    EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
-                else
-                {
-                    long currentCache = Texture3DAtlas.GetApproxCacheSizeInByte(
-                        lightSettings.maxLocalVolumetricFogSize.intValue,
-                        lightSettings.maxLocalVolumetricFogOnScreen.intValue,
-                        LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
-                        true
-                    );
-
-                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
-                    {
-                        int count = Texture3DAtlas.GetMaxElementCountForWeightInByte(
-                            HDRenderPipeline.k_MaxCacheSize,
-                            lightSettings.maxLocalVolumetricFogSize.intValue,
-                            lightSettings.maxLocalVolumetricFogOnScreen.intValue,
-                            LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
-                            true
-                        );
-                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), count);
-                        EditorGUILayout.HelpBox(message, MessageType.Error);
-                    }
-                    else
-                    {
-                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                        EditorGUILayout.HelpBox(message, MessageType.Info);
-                    }
-                }
                 EditorGUI.indentLevel--;
             }
 

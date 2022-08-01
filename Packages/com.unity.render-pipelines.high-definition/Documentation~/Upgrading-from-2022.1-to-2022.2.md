@@ -50,3 +50,13 @@ Path traced images can now be denoised using industry standard denoisers, and to
 Another noteworthy change: continuation (indirect) rays used to be shot recursively, from the closesthit() function. Now, they are spawned from the ray generation shader, effectively replacing recursion with a loop. This allows to reach higher path depth than before, and to reflect this the Maximum Depth property has been upped from 10 to 32.
 
 Incidentally, part of the code has been refactored, including the private Path Tracing material API, and any custom shaders relying on this API will need an update.
+
+## Local Volumetric Fog
+
+The local volumetric fog system was completely rewritten to improve the performances, flexibility and artistic workflow.
+
+This update removes the limit regarding the size of the 3D texture in the local volumetric fog mask value. A change was also made in the voxelization algorithm causing slightly different look on local volumetric fogs that can be corrected by increasing a bit the blend distance.
+
+Also, note that the 3D texture atlas storing the fog mask textures is gone, and with it, the 3D texture copy executed each time the source texture was changed.
+
+Additionally, because the 3D atlas was removed, HDRP doesn't automatically generates mipmaps for your 3D textures anymore. This can cause texture aliasing when the volume is small on the screen, to fix that, please enable mipmaps on your 3D textures.
