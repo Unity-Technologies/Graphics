@@ -406,7 +406,7 @@ platforms:
           - command: find_instabilities || exit 0
 
   OSX_Apple_Silicon:
-    name: OSX
+    name: OSX_Apple_Silicon
     os: macos
     components:
       - editor
