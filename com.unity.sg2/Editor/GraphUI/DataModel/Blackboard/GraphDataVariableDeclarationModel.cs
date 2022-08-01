@@ -103,6 +103,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        /// <summary>
+        /// Gets the settings applicable to this variable declaration.
+        /// </summary>
         internal IEnumerable<VariableSetting> GetSettings()
         {
             if (DataType == TypeHandle.Float)

@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         )
             : base(commandTarget, model, null, s.Label, null,
                 (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand(model, s, newValue)),
-                _ => (T)s.Get(model)) { }
+                _ => (T)s.GetAsObject(model)) { }
     }
 
     public class GraphDataVariableSettingsInspector : SGFieldsInspector

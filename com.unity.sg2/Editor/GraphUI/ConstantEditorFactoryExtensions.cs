@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
                 case GraphDataVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
                 {
-                    var isHdr = VariableSettings.colorMode.Get(declarationModel) is VariableSettings.ColorMode.HDR;
+                    var isHdr = VariableSettings.colorMode.GetTyped(declarationModel) is VariableSettings.ColorMode.HDR;
                     return BuildColorConstantEditor(builder, constant, "", builder.Label, "", isHdr);
                 }
             }

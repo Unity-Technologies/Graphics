@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Model = model;
             m_Setting = setting;
             m_Value = value;
+
+            UndoString = $"Change {setting.Label}";
         }
 
         public static void DefaultCommandHandler(
@@ -27,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
-            command.m_Setting.Set(command.m_Model, command.m_Value);
+            command.m_Setting.SetAsObject(command.m_Model, command.m_Value);
             graphUpdater.MarkChanged(command.m_Model);
         }
     }
