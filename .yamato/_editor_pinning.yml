@@ -26,7 +26,9 @@ editor-pinning-update:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/update_revisions.py --track 2022.1 --ono-branch $ONO_BRANCH_2022_1 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1
+      -  git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
+      -  cd gfx-sdet-tools && git rev-parse HEAD
+      -  python3 gfx-sdet-tools/scripts/update_revisions.py --track 2022.1 --unity-branch $ONO_BRANCH_2022_1 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1
     triggers:
         recurring:
           -  branch: 2022.1/staging
