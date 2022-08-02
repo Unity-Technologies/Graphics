@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
         //   - closing ) is not required for match
         //   - will match in comments
         private static readonly string FUNCTION_CALL_PATTERN = @"([a-zA-Z_][a-zA-Z0-9_]*)\s*\(";
+
         public static readonly string SELECTED_FUNCTION_FIELD_NAME = "selected-function-name";
 
         private readonly NodeDescriptor m_nodeDescriptor;
@@ -33,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Defs
         private readonly Dictionary<string, FunctionDescriptor> m_nameToFunction;
         private readonly Dictionary<string, string> m_functionNameToShaderFunctionName;
         private readonly Dictionary<string, string> m_functionNameToModifiedBody;
+
+        internal FunctionDescriptor? SelectedFunction { get; private set; }
 
         internal NodeDescriptorNodeBuilder(NodeDescriptor nodeDescriptor)
         {
@@ -78,6 +81,33 @@ namespace UnityEditor.ShaderGraph.Defs
             m_nameToFunction = nameToFunction;
             m_functionNameToShaderFunctionName = functionNameToCodeName;
             m_functionNameToModifiedBody = functionNameToModifiedBody;
+        }
+
+        private FunctionDescriptor? DeterminSelectedFunction(
+            NodeDescriptor nodeDescriptor,
+            NodeHandler nodeHandler
+        )
+        {
+            // if there aren't any functions available to choose from
+            if (nodeDescriptor.Functions.Count < 1)
+                return null;
+
+
+            foreach (FunctionDescriptor fd in nodeDescriptor.Functions)
+            {
+                // set the first function as the default function by default
+                if (m_defaultFunction == null)
+                {
+                    m_defaultFunction = fd;
+                }
+                // if the FD is the specified main, set it as the default
+                if (fd.Name.Equals(m_nodeDescriptor.MainFunction))
+                {
+                    m_defaultFunction = fd;
+                }
+                nameToFunction[fd.Name] = fd;
+                functionNameToCodeName[fd.Name] = $"{m_nodeDescriptor.Name}_{fd.Name}";
+            }
         }
 
         /// <summary>
@@ -257,9 +287,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 {
                     shaderFunctionBuilder.AddOutput(shaderType, param.Name);
                 }
-                else if (param.Usage == GraphType.Usage.In
-                    || param.Usage == GraphType.Usage.Static
-                    || param.Usage == GraphType.Usage.Local && !ParametricTypeUtils.IsParametric(param))
+                else if (param.Usage == Usage.In
+                    || param.Usage == Usage.Static
+                    || param.Usage == Usage.Local && !ParametricTypeUtils.IsParametric(param))
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
@@ -296,16 +326,16 @@ namespace UnityEditor.ShaderGraph.Defs
         }
 
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
-            NodeHandler node,
-            ShaderContainer container,
+            NodeHandler nodeHandler,
+            ShaderContainer shaderContainer,
             Registry registry,
             out INodeDefinitionBuilder.Dependencies deps)
         {
             // find the selected function
             FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
-            if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
+            if (nodeHandler.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
             {
-                string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
+                string functionName = nodeHandler.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
                 if (m_nameToFunction.ContainsKey(functionName))
                 {
                     selectedFunction = m_nameToFunction[functionName];
@@ -313,13 +343,13 @@ namespace UnityEditor.ShaderGraph.Defs
             }
 
             // determine the dynamic fallback type
-            var fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
+            var fallbackType = NodeBuilderUtils.FallbackTypeResolver(nodeHandler);
 
             // make shader functions for each internal function descriptor
             Dictionary<string, ShaderFunction> nameToShaderFunction = new();
             foreach (FunctionDescriptor fd in m_nodeDescriptor.Functions)
             {
-                ShaderFunction shaderFunction = BuildShaderFunction(container, fd, fallbackType);
+                ShaderFunction shaderFunction = BuildShaderFunction(shaderContainer, fd, fallbackType);
                 nameToShaderFunction[fd.Name] = shaderFunction;
             }
 
@@ -338,7 +368,7 @@ namespace UnityEditor.ShaderGraph.Defs
             deps.includes = new List<ShaderFoundry.IncludeDescriptor>();
             foreach (FunctionDescriptor fd in m_nodeDescriptor.Functions)
             {
-                AddIncludesFromFunctionDescriptor(container, fd, deps.includes);
+                AddIncludesFromFunctionDescriptor(shaderContainer, fd, deps.includes);
             }
 
             return nameToShaderFunction[selectedFunction.Name];
