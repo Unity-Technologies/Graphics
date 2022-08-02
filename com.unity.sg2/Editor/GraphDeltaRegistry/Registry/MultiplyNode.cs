@@ -28,8 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     new(name: MultiplyNode.kInputB, tooltip: "Input B"),
                     new(name: MultiplyNode.kOutput,
                     tooltip: isMatrixMultiplication ? "mul(A, B)" : "A * B")
-                },
-                displayName: isMatrixMultiplication ? "Multiply (Matrix)" : "Multiply (Component)"
+                }
             );
         }
     }
