@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override IReadOnlyList<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
         {
             var databases = base.GetGraphElementsSearcherDatabases(graphModel).ToList();
-            databases.Add(CreateNodeDatabaseFromRegistry(graphModel));
+            databases.Add(CreateNodeDatabase(graphModel));
             return databases;
         }
 
@@ -54,22 +54,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
 
-        private SearcherDatabaseBase CreateNodeDatabaseFromRegistry(IGraphModel graphModel)
+        private SearcherDatabaseBase CreateNodeDatabase(IGraphModel graphModel)
         {
             var searcherItems = new List<SearcherItem>();
-            if (graphModel is ShaderGraphModel shaderGraphModel &&
-                shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
+            if (graphModel is ShaderGraphModel shaderGraphModel)
+                //&&
+                //shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
             {
                 // Keep track of all the names that have been added to the SearcherItem list.
                 // Having conflicting names in the SearcherItem list causes errors
                 // in the SearcherDatabase initialization.
                 HashSet<string> namesAddedToSearcher = new();
-                var registry = shaderGraphStencil.GetRegistry();
+                var registry = shaderGraphModel.RegistryInstance;
                 foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
                 {
                     if (shaderGraphModel.ShouldBeInSearcher(registryKey))
                     {
-                        var uiHints = shaderGraphStencil.GetUIHints(
+                        var uiHints = registry.GetNodeUIDescriptor(
                             registryKey,
                             registry.GetDefaultTopology(registryKey)
                         );

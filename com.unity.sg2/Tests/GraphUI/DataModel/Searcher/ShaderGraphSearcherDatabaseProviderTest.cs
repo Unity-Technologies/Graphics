@@ -15,7 +15,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             //ShaderGraphModel shaderGraphModel = new ShaderGraphModel();
             //shaderGraphModel.Stencil = new ShaderGraphStencil();
             //IGraphModel graphModel = new ShaderGraphModel();
-
         }
 
         [Test]
