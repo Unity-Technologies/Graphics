@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
     A = In.a;",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                new ParameterDescriptor("In", TYPE.Vec4, Usage.In),
                 new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("B", TYPE.Float, Usage.Out),

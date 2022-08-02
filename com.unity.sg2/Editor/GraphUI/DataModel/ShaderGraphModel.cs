@@ -302,9 +302,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>True if the ports can be connected, false otherwise.</returns>
         bool TestConnection(GraphDataPortModel src, GraphDataPortModel dst)
         {
-            return GraphHandler.TestConnection(dst.owner.graphDataName,
-                dst.graphDataName, src.owner.graphDataName,
-                src.graphDataName, RegistryInstance.Registry);
+            return GraphHandler.TestConnection(
+                src.owner.graphDataName, src.graphDataName,
+                dst.owner.graphDataName, dst.graphDataName,
+                RegistryInstance.Registry);
         }
 
         /// <summary>
