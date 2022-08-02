@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -37,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
-        public PortHandler ContextEntry => shaderGraphModel.GraphHandler
+        internal PortHandler ContextEntry => shaderGraphModel.GraphHandler
             .GetNode(contextNodeName)
             .GetPort(graphDataName);
 
@@ -100,6 +102,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     InitializationModel.ObjectValue = Matrix4x4.identity;
                 }
+
+                if (DataType == ShaderGraphExampleTypes.Color)
+                {
+                    ContextEntry.AddField(ContextEntryEnumTags.kIsColor, true);
+                }
             }
         }
 
@@ -112,7 +119,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 yield return VariableSettings.floatMode;
 
-                if (VariableSettings.floatMode.GetTyped(this) is MaterialPropertyTags.FloatMode.Slider)
+                if (VariableSettings.floatMode.GetTyped(this) is ContextEntryEnumTags.FloatDisplayType.Slider)
                 {
                     yield return VariableSettings.rangeMin;
                     yield return VariableSettings.rangeMax;

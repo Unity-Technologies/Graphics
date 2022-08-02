@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
+using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -51,23 +52,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         #region Float
 
-        public static readonly VariableSetting<MaterialPropertyTags.FloatMode> floatMode =
-            CreateFromSubField<MaterialPropertyTags.FloatMode>(
-                model => model.ContextEntry.GetPropertyDescription(),
-                MaterialPropertyTags.kFloatMode,
-                "Mode");
+        public static readonly VariableSetting<FloatDisplayType> floatMode =
+            CreateFromContextEntryTag<FloatDisplayType>(kFloatDisplayType, "Mode");
+
         public static readonly VariableSetting<float> rangeMin =
-            CreateFromSubField(
-                model => model.ContextEntry.GetPropertyDescription(),
-                MaterialPropertyTags.kRangeMin,
-                "Min",
-                0.0f);
+            CreateFromContextEntryTag(kFloatRangeMin, "Min", defaultValue: 0.0f);
+
         public static readonly VariableSetting<float> rangeMax =
-            CreateFromSubField(
-                model => model.ContextEntry.GetPropertyDescription(),
-                MaterialPropertyTags.kRangeMax,
-                "Max",
-                1.0f);
+            CreateFromContextEntryTag(kFloatRangeMax, "Max", defaultValue: 1.0f);
 
         #endregion
 
@@ -79,14 +71,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             label: "Mode",
             getter: model =>
             {
-                var isHdr = model.ContextEntry.GetPropertyDescription()?.GetSubField<bool>(MaterialPropertyTags.kIsHdr)?.GetData() ?? false;
+                var isHdr = model.ContextEntry.GetField<bool>(kIsHdr)?.GetData() ?? false;
                 return isHdr ? ColorMode.HDR : ColorMode.Default;
             },
             setter: (model, value) =>
             {
-                var propDescription = model.ContextEntry.GetPropertyDescription();
-                var field = propDescription.GetSubField<bool>(MaterialPropertyTags.kIsHdr) ??
-                    propDescription.AddSubField(MaterialPropertyTags.kIsHdr, false);
+                var field = model.ContextEntry.GetField<bool>(kIsHdr) ??
+                    model.ContextEntry.AddField(kIsHdr, false);
+
                 field.SetData(value is ColorMode.HDR);
             });
 
@@ -95,38 +87,39 @@ namespace UnityEditor.ShaderGraph.GraphUI
         #region Sampler State
 
         public static readonly VariableSetting samplerStateFilter =
-            CreateFromSubField<SamplerStateType.Filter>(
-                model => model.ContextEntry.GetTypeField(),
-                SamplerStateType.kFilter,
-                "Filter");
+            CreateFromSubField<SamplerStateType.Filter>(model => model.ContextEntry.GetTypeField(), SamplerStateType.kFilter, "Filter");
+
         public static readonly VariableSetting samplerStateWrap =
-            CreateFromSubField<SamplerStateType.Wrap>(
-                model => model.ContextEntry.GetTypeField(),
-                SamplerStateType.kWrap,
-                "Wrap");
+            CreateFromSubField<SamplerStateType.Filter>(model => model.ContextEntry.GetTypeField(), SamplerStateType.kWrap, "Wrap");
 
         #endregion
 
         #region Shared
 
-        public static readonly VariableSetting<ContextEntryEnumTags.DataSource> shaderDeclaration = new(
-            label: "Shader Declaration",
-            getter: model => model.ContextEntry
-                .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
-                .GetData(),
-            setter: (model, value) => model.ContextEntry
-                .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
-                .SetData(value));
+        public static readonly VariableSetting<DataSource> shaderDeclaration =
+            CreateFromContextEntryTag<DataSource>(kDataSource, "Shader Declaration");
 
         #endregion
+
+        static VariableSetting<T> CreateFromContextEntryTag<T>(string key, string label, T defaultValue = default) =>
+            new(
+                label: label,
+                getter: model =>
+                {
+                    var field = model.ContextEntry.GetField<T>(key);
+                    return field == null ? defaultValue : field.GetData();
+                },
+                setter: (model, value) =>
+                {
+                    (model.ContextEntry.GetField<T>(key) ?? model.ContextEntry.AddField<T>(key)).SetData(value);
+                });
 
         static VariableSetting<T> CreateFromSubField<T>(
             Func<GraphDataVariableDeclarationModel, FieldHandler> fieldProvider,
             string key,
             string label,
-            T defaultValue = default)
-        {
-            return new VariableSetting<T>(
+            T defaultValue = default) =>
+            new(
                 label: label,
                 getter: model =>
                 {
@@ -147,6 +140,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         field.AddSubField(key, value);
                     }
                 });
-        }
     }
 }
