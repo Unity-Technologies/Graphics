@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             return hasPreviewableOutputPort && GraphTypeHelpers.GetHeight(typeField) == GraphType.Height.One;
         }
 
-        static readonly Color BadImageResults = new(1, 1, 0, 1);
+        static readonly Color BadImageResults = new(1, 0, 1, 1);
         static readonly RegistryKey MatrixDeterminant = new RegistryKey { Name = "MatrixDeterminant", Version = 1 };
         static readonly RegistryKey SampleCube = new RegistryKey { Name = "SampleReflectedCubemap", Version = 1 };
         static readonly RegistryKey SampleTex2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };

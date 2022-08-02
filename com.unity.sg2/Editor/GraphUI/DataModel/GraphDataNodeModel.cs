@@ -256,6 +256,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewShaderIsCompiling = true;
         }
 
+        public override void OnConnection(IPortModel selfConnectedPortModel, IPortModel otherConnectedPortModel)
+        {
+            base.OnConnection(selfConnectedPortModel, otherConnectedPortModel);
+            if (selfConnectedPortModel.Direction == PortDirection.Input)
+            {
+                DefineNode(); // TODO: This doesn't seem to work.
+            }
+        }
+
+        public override void OnDisconnection(IPortModel selfConnectedPortModel, IPortModel otherConnectedPortModel)
+        {
+            base.OnDisconnection(selfConnectedPortModel, otherConnectedPortModel);
+            if (selfConnectedPortModel.Direction == PortDirection.Input)
+            {
+                DefineNode();
+            }
+        }
+
         protected override void OnDefineNode()
         {
             if (!TryGetNodeHandler(out var nodeReader))
