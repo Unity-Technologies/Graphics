@@ -125,6 +125,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_GraphModel = graphModel;
             m_MainPreviewView = mainPreviewView;
 
+            m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
+
             ReassignAllNodePreviewTextures();
         }
 
@@ -209,7 +211,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
             }
-            else // TODO: Blackboard value changes are not piped through correctly
+            else
             {
                 // Blackboard item changes being undone/redone
                 foreach (var declarationModel in m_GraphModel.VariableDeclarations)
