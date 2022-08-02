@@ -290,7 +290,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PortMappings.Clear();
 
             // TODO: Convert this to a NodePortsPart maybe?
-            foreach (var portReader in nodeReader.GetPorts())
+            foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
             {
                 if (!portReader.IsHorizontal)
                     continue;

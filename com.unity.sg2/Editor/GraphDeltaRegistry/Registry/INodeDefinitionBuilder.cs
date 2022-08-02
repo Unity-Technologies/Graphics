@@ -19,12 +19,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Registry registry,
             out Dependencies outputs);
 
-        static PortHandler CopyPort(PortHandler srcPort, NodeHandler dstNode, Registry registry)
+        static PortHandler CopyPort(PortHandler srcPort, NodeHandler dstNode, Registry registry, string overrideName = null)
         {
             if (!srcPort.IsHorizontal)
                 return null;
 
-            var dstPort = dstNode.AddPort(srcPort.LocalID, srcPort.IsInput, srcPort.IsHorizontal);
+            var dstPort = dstNode.AddPort(overrideName != null ? overrideName : srcPort.LocalID, srcPort.IsInput, srcPort.IsHorizontal);
             var dstField = dstPort.AddTypeField();
             ITypeDefinitionBuilder.CopyTypeField(srcPort.GetTypeField(), dstField, registry);
             return dstPort;

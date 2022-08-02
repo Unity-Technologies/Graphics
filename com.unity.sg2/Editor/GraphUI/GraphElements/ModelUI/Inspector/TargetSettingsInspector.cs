@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Serialization;
@@ -133,20 +133,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var labelField = new LabelPropertyField("Active Targets", m_OwnerElement.RootView);
             propertyFieldList.Add(labelField);
 
-            m_TargetListPropertyField =
-                new TargetSettingsListPropertyField<JsonData<Target>>(
-                m_OwnerElement.RootView,
-                m_GraphTargets,
-                GetTargetDisplayNames,
-                GetTargetDisplayName,
-                TargetAddedCallback,
-                OnTargetSelectionChanged,
-                OnTargetRemoved,
-                true,
-                true) { name = "sg-active-targets-list" };
-            m_TargetListPropertyField.AddStylesheet("TargetSettingsList.uss");
+            // TODO: Multi-Target support needs more architecting, disabling the ability to change targets for now.
+            //m_TargetListPropertyField =
+            //    new TargetSettingsListPropertyField<JsonData<Target>>(
+            //    m_OwnerElement.RootView,
+            //    m_GraphTargets,
+            //    GetTargetDisplayNames,
+            //    GetTargetDisplayName,
+            //    TargetAddedCallback,
+            //    OnTargetSelectionChanged,
+            //    OnTargetRemoved,
+            //    true,
+            //    true) { name = "sg-active-targets-list" };
+            //m_TargetListPropertyField.AddStylesheet("TargetSettingsList.uss");
 
-            propertyFieldList.Add(m_TargetListPropertyField);
+            //propertyFieldList.Add(m_TargetListPropertyField);
 
             foreach (var activeTarget in m_GraphTargets)
             {
