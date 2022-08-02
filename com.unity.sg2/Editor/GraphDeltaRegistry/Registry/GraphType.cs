@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public static class GraphTypeHelpers
     {
         #region DynamicPortResolution
-        private static int truncate(int a, int b) // scalars always lose.
+        private static int Truncate(int a, int b) // scalars always lose.
             => Mathf.Max(
                 a <= 1 ? b : b <= 1 ? a : // scalars always lose
                 Mathf.Min(a, b),          // otherwise smallest wins
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             length = (int)GetLength(field);
         }
 
-        private static bool calcResolve(NodeHandler node, out int length, out int height, out int precision, out int primitive)
+        private static bool CalcResolve(NodeHandler node, out int length, out int height, out int precision, out int primitive)
         {
             length = 1;
             height = 1;
@@ -38,8 +38,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             foreach (var field in connectedFields)
             {
                 GetDim(field, out var fieldLength, out var fieldHeight);
-                length = truncate(length, fieldLength);
-                height = truncate(truncate(length, height), fieldHeight); // height truncates by length also.
+                length = Truncate(length, fieldLength);
+                height = Truncate(Truncate(length, height), fieldHeight); // height truncates by length also.
 
                 // special case- if there is any non-matrix connection, the output dynamic ports will also be nonMatrix.
                 hasVector |= fieldHeight == 1;
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static void ResolveDynamicPorts(NodeHandler node)
         {
             // TODO: Resolve precision/primitive too.
-            bool hasVector = calcResolve(node, out var resolvedLength, out var resolvedHeight, out var resolvedPrecision, out var resolvedPrimitive);
+            bool hasVector = CalcResolve(node, out var resolvedLength, out var resolvedHeight, out var resolvedPrecision, out var resolvedPrimitive);
 
             // foreach graphType port.
             foreach (var port in node.GetPorts().Where(e => e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name))
@@ -286,8 +286,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 case Vector4 v4: SetAsVec3(f, v4); break;
                 case Vector3 v3: SetAsVec3(f, v3); break;
                 case Vector2 v2: SetAsVec2(f, v2); break;
-                case float: case bool: case int: // TODO: Better capture for this case.
-                    SetAsFloat(f, (float)o); break;
+                case float: case bool: case int:
+                    SetAsFloat(f, System.Convert.ToSingle(o)); break;
                 case IEnumerable<float> e:
                     SetComponents(f, 0, e.ToArray()); break;
                 case Matrix4x4 m4:
