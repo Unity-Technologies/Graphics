@@ -18,7 +18,8 @@ CTYPE Nearest(TEXTURE2D_X(_InputTexture), float2 UV)
 
 CTYPE Bilinear(TEXTURE2D_X(_InputTexture), float2 UV)
 {
-    return Sample(TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler), UV);
+    float2 ScaledUV = ClampAndScaleUVForBilinear(UV);
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ScaledUV, 0).CTYPE_SWIZZLE;
 }
 
 CTYPE CatmullRomFourSamples(TEXTURE2D_X(_InputTexture), float2 UV)
