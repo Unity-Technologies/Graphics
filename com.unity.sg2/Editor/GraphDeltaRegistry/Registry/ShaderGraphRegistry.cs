@@ -116,6 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             #endregion
 
             // TODO: remove these, but keep until equivalents are working correctly.
+            Register(new MultiplyNode(), new MultiplyNodeUI());
             Register(new SampleGradientNode());
             Register(new SamplerStateExampleNode());
             Register(new SimpleTextureNode());

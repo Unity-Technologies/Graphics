@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
+using System.Collections;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -11,12 +12,123 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     public static class GraphTypeHelpers
     {
-        public static void InitGraphType(FieldHandler field, GraphType.Length length = GraphType.Length.Four, GraphType.Precision precision = GraphType.Precision.Single, GraphType.Primitive primitive = GraphType.Primitive.Float, GraphType.Height height = GraphType.Height.One)
+        #region DynamicPortResolution
+        private static int Truncate(int a, int b) // scalars always lose.
+            => Mathf.Max(
+                a <= 1 ? b : b <= 1 ? a : // scalars always lose
+                Mathf.Min(a, b),          // otherwise smallest wins
+                1);                       // sanitize.
+        private static void GetDim(FieldHandler field, out int length, out int height)
         {
-            field.GetSubField<GraphType.Length>(GraphType.kLength).SetData(length);
-            field.GetSubField<GraphType.Height>(GraphType.kHeight).SetData(height);
-            field.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(precision);
-            field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(primitive);
+            height = (int)GetHeight(field);
+            length = (int)GetLength(field);
+        }
+
+        private static bool CalcResolve(NodeHandler node, out int length, out int height, out int precision, out int primitive)
+        {
+            length = 1;
+            height = 1;
+            precision = 1;
+            primitive = 1;
+
+            // Use only input ports who are actually graphType.
+            var inputPorts = node.GetPorts().Where(e => e.IsInput && e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name);
+            var connectedFields = inputPorts.Select(e => e.GetConnectedPorts().FirstOrDefault()?.GetTypeField()).Where(e => e != null);
+            bool hasVector = inputPorts.Count() != connectedFields.Count();
+            foreach (var field in connectedFields)
+            {
+                GetDim(field, out var fieldLength, out var fieldHeight);
+                length = Truncate(length, fieldLength);
+                height = Truncate(Truncate(length, height), fieldHeight); // height truncates by length also.
+
+                // special case- if there is any non-matrix connection, the output dynamic ports will also be nonMatrix.
+                hasVector |= fieldHeight == 1;
+
+                // precision and primitive type always promote.
+                precision = Mathf.Max(precision, (int)GetPrecision(field));
+                primitive = Mathf.Max(primitive, (int)GetPrimitive(field));
+            }
+            return hasVector;
+        }
+
+        #endregion
+
+        public static void ResolveDynamicPorts(NodeHandler node)
+        {
+            // TODO: Resolve precision/primitive too.
+            bool hasVector = CalcResolve(node, out var resolvedLength, out var resolvedHeight, out var resolvedPrecision, out var resolvedPrimitive);
+
+            // foreach graphType port.
+            foreach (var port in node.GetPorts().Where(e => e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name))
+            {
+                var field = port.GetTypeField();
+                var precision = GetPrecision(field);
+                var primitive = GetPrimitive(field);
+                GetDim(field, out var length, out var height);
+                GetDynamic(field, out var isLenDyn, out var isHgtDyn, out var isPrecisionDyn, out var isPrimDyn);
+
+                length = isLenDyn ? resolvedLength : length;
+                height = isHgtDyn ? resolvedHeight : height;
+                precision = isPrecisionDyn ? (GraphType.Precision)resolvedPrecision : precision;
+                primitive = isPrimDyn ? (GraphType.Primitive)resolvedPrimitive : primitive;
+
+                // resolvedHeight only applies for matrices-- if we are connected to a non-matrix we need to ignore it.
+                if (isHgtDyn)
+                {
+                    var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
+                    if (!port.IsInput && hasVector || // output port will always resolve to vector if one of the input ports does.
+                        port.IsInput && connectedField == null && hasVector || // as will disconnected input ports.
+                        port.IsInput && connectedField != null && GetHeight(connectedField) == GraphType.Height.One)
+                            height = 1;
+                }
+
+                InitGraphType(
+                    field,
+                    length: (GraphType.Length)length,
+                    height: (GraphType.Height)height,
+                    precision: precision,
+                    primitive: primitive,
+                    lengthDynamic: isLenDyn,
+                    heightDynamic: isHgtDyn,
+                    primitiveDynamic: isPrimDyn,
+                    precisionDynamic: isPrecisionDyn);
+            }
+        }
+
+        public static void InitGraphType(
+            FieldHandler field,
+            GraphType.Length length = GraphType.Length.One,
+            GraphType.Precision precision = GraphType.Precision.Single,
+            GraphType.Primitive primitive = GraphType.Primitive.Float,
+            GraphType.Height height = GraphType.Height.One,
+            bool lengthDynamic = false,
+            bool heightDynamic = false,
+            bool primitiveDynamic = false,
+            bool precisionDynamic = false)
+        {
+            var len = field.GetSubField<GraphType.Length>(GraphType.kLength);
+            var hgt = field.GetSubField<GraphType.Height>(GraphType.kHeight);
+            var pre = field.GetSubField<GraphType.Precision>(GraphType.kPrecision);
+            var pri = field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive);
+
+            len.SetData(length);
+            hgt.SetData(height);
+            pre.SetData(precision);
+            pri.SetData(primitive);
+
+            len.GetSubField<bool>(GraphType.kDynamic).SetData(lengthDynamic);
+            hgt.GetSubField<bool>(GraphType.kDynamic).SetData(heightDynamic);
+            pre.GetSubField<bool>(GraphType.kDynamic).SetData(precisionDynamic);
+            pri.GetSubField<bool>(GraphType.kDynamic).SetData(primitiveDynamic);
+
+        }
+
+        public static void GetDynamic(FieldHandler field, out bool length, out bool height, out bool precision, out bool primitive)
+        {
+            length = field.GetSubField(GraphType.kLength).GetSubField<bool>(GraphType.kDynamic).GetData();
+            height = field.GetSubField(GraphType.kHeight).GetSubField<bool>(GraphType.kDynamic).GetData();
+            precision = field.GetSubField(GraphType.kPrecision).GetSubField<bool>(GraphType.kDynamic).GetData();
+            primitive = field.GetSubField(GraphType.kPrimitive).GetSubField<bool>(GraphType.kDynamic).GetData();
         }
 
         public static GraphType.Precision GetPrecision(FieldHandler field) =>
@@ -164,6 +276,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             for (int i = 0; i < 4; ++i)
                 SetAsVec4(field, val.GetColumn(i), i);
         }
+
+        public static bool SetByManaged(FieldHandler f, object o)
+        {
+            GetDim(f, out int _, out int h);
+
+            switch(o)
+            {
+                case Vector4 v4: SetAsVec3(f, v4); break;
+                case Vector3 v3: SetAsVec3(f, v3); break;
+                case Vector2 v2: SetAsVec2(f, v2); break;
+                case float: case bool: case int:
+                    SetAsFloat(f, System.Convert.ToSingle(o)); break;
+                case IEnumerable<float> e:
+                    SetComponents(f, 0, e.ToArray()); break;
+                case Matrix4x4 m4:
+                    switch(h)
+                    {
+                        case 1: SetAsVec4(f, m4.GetColumn(0)); break;
+                        case 2: SetAsMat2(f, m4); break;
+                        case 3: SetAsMat3(f, m4); break;
+                        case 4: SetAsMat4(f, m4); break;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
     }
 
     /// <summary>
@@ -175,8 +315,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public RegistryKey GetRegistryKey() => kRegistryKey;
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
-        public enum Precision { Fixed, Half, Single, Any }
-        public enum Primitive { Bool, Int, Float, Any }
+        public enum Precision { Fixed = 1, Half = 2, Single = 3, Any = -1 }
+        public enum Primitive { Bool = 1, Int = 2, Float = 3, Any = -1 }
         public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
         public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
 
@@ -224,6 +364,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kPrecision = "Precision";
         public const string kLength = "Length";
         public const string kHeight = "Height";
+        public const string kDynamic = "Dynamic";
 
         // TODO: this is used by the interpreter and filled out by the context builder,
         // should be moved into a CLDS header when possible.
@@ -233,25 +374,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void BuildType(FieldHandler field, Registry registry)
         {
-            // default initialize to a float4;
-            field.AddSubField(kPrecision, Precision.Single, true);
-            field.AddSubField(kPrimitive, Primitive.Float, true);
-            field.AddSubField(kLength, Length.Four, true);
-            field.AddSubField(kHeight, Height.One, true);
+            // TODO: Default initialization should be a non-dynamic scalar single precision float.
+            field.AddSubField(kPrecision, Precision.Single, true).AddSubField(kDynamic, false, true);
+            field.AddSubField(kPrimitive, Primitive.Float, true).AddSubField(kDynamic, false, true);
+            field.AddSubField(kLength, Length.One, true).AddSubField(kDynamic, false, true);
+            field.AddSubField(kHeight, Height.One, true).AddSubField(kDynamic, false, true);
 
-
-            var lenField = field.GetSubField<Length>(kLength);
-            var hgtField = field.GetSubField<Height>(kHeight);
-            var length = Length.Four;
-            var height = Height.One;
-
-            // read userdata and make sure we have enough fields.
-            if (lenField != null) length = lenField.GetData();
-            if (hgtField != null) height = hgtField.GetData();
-
-            // ensure that enough subfield values exist to represent userdata's current data.
-            // we could just ignore userData though and just fill out all 16 possible components...
-            for (int i = 0; i < (int)length * (int)height; ++i)
+            // ensure we have enough allocated.
+            for (int i = 0; i < 16; ++i)
                 GraphTypeHelpers.SetComponent(field, i, 0);
         }
 
@@ -262,8 +392,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var primitive = GraphTypeHelpers.GetPrimitive(src);
             var precision = GraphTypeHelpers.GetPrecision(src);
             var data = GraphTypeHelpers.GetComponents(src).ToArray();
+            GraphTypeHelpers.GetDynamic(src, out var lengthDynamic, out var heightDynamic, out var precisionDynamic, out var primitiveDynamic);
 
-            GraphTypeHelpers.InitGraphType(dst, length, precision, primitive, height);
+
+            GraphTypeHelpers.InitGraphType(
+                dst,
+                length: length,
+                height: height,
+                precision: precision,
+                primitive: primitive,
+                lengthDynamic: lengthDynamic,
+                heightDynamic: heightDynamic,
+                primitiveDynamic: precisionDynamic,
+                precisionDynamic: primitiveDynamic);
+
             GraphTypeHelpers.SetComponents(dst, 0, data);
         }
 
@@ -331,13 +473,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool CanConvert(FieldHandler src, FieldHandler dst)
         {
-            var srcHgt = GraphTypeHelpers.GetHeight(src);
-            var srcLen = GraphTypeHelpers.GetLength(src);
+            var srcHgt = (int)GraphTypeHelpers.GetHeight(src);
+            var srcLen = (int)GraphTypeHelpers.GetLength(src);
 
-            var dstHgt = GraphTypeHelpers.GetHeight(dst);
-            var dstLen = GraphTypeHelpers.GetLength(dst);
+            var dstHgt = (int)GraphTypeHelpers.GetHeight(dst);
+            var dstLen = (int)GraphTypeHelpers.GetLength(dst);
 
-            return srcHgt == dstHgt || srcHgt == GraphType.Height.One && srcLen >= dstLen;
+            GraphTypeHelpers.GetDynamic(dst, out var dynLen, out var dynHgt, out _, out _);
+
+            return
+                srcHgt == 1 && srcLen == 1 || // scalars can always promote to anything.
+                srcHgt == 1 && dstHgt == 1 || // vectors can truncate/zero-fill promote to other vectors.
+                // otherwise we truncate per dimension unless one of those dimensions is dynamic.
+                (srcLen >= dstLen || dynLen) && (srcHgt >= dstHgt || dynHgt);
+            // TODO: Can we just allow universal convertibility w/zero fill?
         }
 
         private static string MatrixCompNameFromIndex(int i, int d)

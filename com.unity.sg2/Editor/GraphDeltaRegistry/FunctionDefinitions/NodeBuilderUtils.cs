@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
+
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal static class NodeBuilderUtils
@@ -91,37 +93,45 @@ namespace UnityEditor.ShaderGraph.Defs
 
             ParametricTypeDescriptor paramType = (ParametricTypeDescriptor)param.TypeDescriptor;
 
+            bool isPrecisionDynamic = paramType.Precision == GraphType.Precision.Any;
+            bool isPrimitiveDynamic = paramType.Primitive == GraphType.Primitive.Any;
+            bool isHeightDynamic = paramType.Height == GraphType.Height.Any;
+            bool isLengthDynamic = paramType.Length == GraphType.Length.Any;
+
             // A new type descriptor with all Any values replaced.
             ParametricTypeDescriptor resolvedType = new(
-                paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
-                paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
-                paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,
-                paramType.Height == GraphType.Height.Any ? fallbackType.Height : paramType.Height
+                isPrecisionDynamic ? fallbackType.Precision : paramType.Precision,
+                isPrimitiveDynamic ? fallbackType.Primitive : paramType.Primitive,
+                isHeightDynamic ? fallbackType.Length : paramType.Length,
+                isLengthDynamic ? fallbackType.Height : paramType.Height
             );
-
-            // TODO (Brett) Use GraphType.GraphTypeHelpers to do this instead!
-            // TODO Specifically, InitGraphType does this thing.
-
             // Set the port's parameters from the resolved type.
             var typeField = port.GetTypeField();
-            typeField.GetSubField<GraphType.Length>(GraphType.kLength).SetData(resolvedType.Length);
-            typeField.GetSubField<GraphType.Height>(GraphType.kHeight).SetData(resolvedType.Height);
-            typeField.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(resolvedType.Precision);
-            typeField.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(resolvedType.Primitive);
 
             // TODO(Liz) : should be metadata
             if (param.Usage is GraphType.Usage.Static) typeField.AddSubField("IsStatic", true);
             if (param.Usage is GraphType.Usage.Local) typeField.AddSubField("IsLocal", true);
 
-            if (param.DefaultValue is IEnumerable)
-            {
-                int i = 0;
-                foreach (var val in param.DefaultValue as IEnumerable)
-                {
-                    typeField.SetField<float>($"c{i++}", (float)val);
-                }
-            }
+            GraphTypeHelpers.InitGraphType(
+                typeField,
+                length: resolvedType.Length,
+                height: resolvedType.Height,
+                primitive: resolvedType.Primitive,
+                precision: resolvedType.Precision,
+                lengthDynamic: isLengthDynamic,
+                heightDynamic: isHeightDynamic,
+                primitiveDynamic: isPrimitiveDynamic,
+                precisionDynamic: isPrecisionDynamic);
 
+            if (param.DefaultValue != null
+                && param.DefaultValue is not ReferenceValueDescriptor // there is special handling for these
+                && !GraphTypeHelpers.SetByManaged(typeField, param.DefaultValue))
+            {
+                var defName = node.GetRegistryKey().Name;
+                var paramName = param.Name;
+                var typeName = param.DefaultValue.GetType().ToString();
+                throw new System.Exception($"Default Value of type {typeName} for parameter {paramName} of node definition {defName} is not valid.");
+            }
             return port;
         }
 

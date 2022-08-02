@@ -9,7 +9,7 @@ using UnityEngine;
 namespace UnityEditor.ContextLayeredDataStorage
 {
 
-    internal class ElementIDComparer : IEqualityComparer<ElementID>
+    public class ElementIDComparer : IEqualityComparer<ElementID>
     {
         public bool Equals(ElementID x, ElementID y)
         {

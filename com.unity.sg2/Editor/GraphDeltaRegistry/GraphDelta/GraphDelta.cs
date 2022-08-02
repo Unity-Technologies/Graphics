@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public bool ReconcretizeNode(ElementID id, Registry registry)
+        public bool ReconcretizeNode(ElementID id, Registry registry, bool propagate = true)
         {
             //temporary workaround for old code
             if (registry == null)
@@ -163,18 +163,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodeHandler.DefaultLayer = k_user;
             }
 
-            try
+            if (propagate)
             {
-                foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
+                try
                 {
-                    ReconcretizeNode(downstream.ID, registry);
+                    foreach (var downstream in GetConnectedDownstreamNodes(id, registry).ToList()) //we are modifying the collection, hence .ToList
+                    {
+                        ReconcretizeNode(downstream.ID, registry);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
                 }
             }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
             return builder != null;
         }
 

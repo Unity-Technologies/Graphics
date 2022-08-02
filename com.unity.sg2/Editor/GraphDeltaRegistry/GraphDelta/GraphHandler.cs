@@ -1,6 +1,7 @@
 //#define HANDLER_PROFILING
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
@@ -104,6 +105,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public bool ReconcretizeNode(string name)
             => graphDelta.ReconcretizeNode(name, registry);
 
+        public bool ReconcretizeNodeNoPropagation(string name)
+        => graphDelta.ReconcretizeNode(name, registry, false);
+
         [Obsolete("GetNodeReader is obsolete - Use GetNode now", false)]
         public NodeHandler GetNodeReader(string name) =>
             graphDelta.GetNode(name, registry);
@@ -145,9 +149,50 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             graphDelta.RemoveDefaultConnection(contextEntryName, portInput, registry);
         }
 
+        private List<ElementID> GetNodesTopologically()
+        {
+            List<ElementID> result = new();
+            HashSet<ElementID> visited = new(new ElementIDComparer());
+            Dictionary<ElementID, HashSet<ElementID>> dependencyList = new(new ElementIDComparer());
+
+            // prepass the dependency list so our runtime is o(v+e) instead of o(v*e)
+            foreach (var edge in graphDelta.m_data.edges)
+            {
+                var key = new ElementID(edge.Input.ParentPath);
+                var toAdd = new ElementID(edge.Output.ParentPath);
+                if (!dependencyList.ContainsKey(key))
+                    dependencyList.Add(key, new(new ElementIDComparer()));
+                dependencyList[key].Add(toAdd);
+            }
+
+            void TopoSort(ElementID nodeID)
+            {
+                if (!visited.Contains(nodeID))
+                visited.Add(nodeID);
+                if (dependencyList.TryGetValue(nodeID, out var upstreamNodeIDs))
+                {
+                    foreach (var upstreamNodeID in upstreamNodeIDs)
+                    {
+                        if (!visited.Contains(upstreamNodeID))
+                            TopoSort(upstreamNodeID);
+                    }
+                }
+
+                result.Add(nodeID);
+            }
+
+            foreach(var nodeID in GetNodes().Select(e => e.ID.FullPath))
+                if(!visited.Contains(nodeID))
+                    TopoSort(nodeID);
+
+            return result;
+        }
+
+
+
         public void ReconcretizeAll()
         {
-            foreach (var name in GetNodes().Select(e => e.ID.LocalPath).ToList())
+            foreach(var name in GetNodesTopologically())
             {
                 var node = GetNode(name);
                 if (node != null)
@@ -159,12 +204,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         {
                             if (builder.GetRegistryFlags() == RegistryFlags.Func)
                             {
-                                ReconcretizeNode(node.ID.FullPath);
+                                ReconcretizeNodeNoPropagation(node.ID.FullPath);
                             }
 
                             if (builder.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name)
                             {
-                                ReconcretizeNode(node.ID.FullPath);
+                                ReconcretizeNodeNoPropagation(node.ID.FullPath);
                             }
                         }
                     }
@@ -180,7 +225,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
-        private void AddEntry(NodeHandler context, CPEntryDescriptor desc)
+        private void AddEntry(NodeHandler context, CPEntryDescriptor desc, bool isInput)
         {
 #if HANDLER_PROFILING
             Profiler.BeginSample("Add single entry");
@@ -195,12 +240,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     precision = GraphType.Precision.Fixed
                 },
                 registry,
-                source: ContextEntryEnumTags.DataSource.Global);
+                source: isInput ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant);
 #if HANDLER_PROFILING
             Profiler.EndSample();
 #endif
         }
-
 
         public void RebuildContextData(
             ElementID contextNode,
@@ -209,7 +253,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string cpName,
             bool input)
         {
-            
+
             var context = GetNode(contextNode);
             if(context == null)
             {
@@ -244,14 +288,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                             {
                                 foreach(var i in cpio.inputs)
                                 {
-                                    AddEntry(context, i);
+                                    AddEntry(context, i, true);
                                 }
                             }
                             else
                             {
                                 foreach(var o in cpio.outputs)
                                 {
-                                    AddEntry(context, o);
+                                    AddEntry(context, o, false);
                                 }
                             }
                             context.AddField("_CustomizationPointName", cpName);

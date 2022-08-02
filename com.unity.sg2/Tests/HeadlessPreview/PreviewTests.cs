@@ -870,5 +870,89 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             material = previewMgr.RequestNodePreviewMaterial("SubgraphNode");
             Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(material));
         }
+
+        [Test]
+        public void MultiplyNodeTest()
+        {
+            var registry = new Registry();
+            var graphHandler = new GraphHandler(registry);
+            var previewMgr = new HeadlessPreviewManager();
+
+            // simple rotation matrix.
+            var mat3 = new FunctionDescriptor("Matrix2", "Out = float2x2(0,2,2,0);", new ParameterDescriptor[] { new("Out", TYPE.Mat2, GraphType.Usage.Out) });
+            // red colored RGB vector.
+            var vec3 = new FunctionDescriptor("Vector3", "Out = float3(.5,0,.5);", new ParameterDescriptor[] { new("Out", TYPE.Vec3, GraphType.Usage.Out) });
+            // Scalar.
+            var scal = new FunctionDescriptor("Scalar", "Out = 2;", new ParameterDescriptor[] { new("Out", TYPE.Float, GraphType.Usage.Out) });
+
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
+            registry.Register<MultiplyNode>();
+            var mulKey = Registry.ResolveKey<MultiplyNode>();
+            var matKey = registry.Register(mat3);
+            var vecKey = registry.Register(vec3);
+            var scaKey = registry.Register(scal);
+
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
+
+            var matNode = graphHandler.AddNode(matKey, "matrixNode");
+            var vecNode = graphHandler.AddNode(vecKey, "vectorNode");
+            var scaNode = graphHandler.AddNode(scaKey, "scalarNode");
+            var mulNode = graphHandler.AddNode(mulKey, "multiplyNode");
+
+            // default/base.
+            var material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+
+            // connect the matrix node
+            Assert.IsTrue(graphHandler.TryConnect("matrixNode", "Out", "multiplyNode", MultiplyNode.kInputA));
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+
+            // Matrix2 results in the other input and the output becoming length 2 vectors.
+            Assert.AreEqual(GraphType.Length.Two, GraphTypeHelpers.GetLength(mulNode.GetPort(MultiplyNode.kInputB).GetTypeField()));
+            Assert.AreEqual(GraphType.Length.Two, GraphTypeHelpers.GetLength(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+            Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kInputB).GetTypeField()));
+            Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+
+            // Matrix2 x Scalar should make the output a Vec2.
+            // // scalar promotes to (2,2), gets rotated and scaled by the Matrix2 to (4,4), but when samples becomes (1,1) = Green.
+            Assert.IsTrue(graphHandler.TryConnect("scalarNode", "Out", "multiplyNode", MultiplyNode.kInputB));
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(material));
+            Assert.AreEqual(GraphType.Length.Two, GraphTypeHelpers.GetLength(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+            Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+
+
+            // Vector x Scalar should do a scalar operation, meaning our half-pink vector should become pink
+            graphHandler.Disconnect("matrixNode", "Out", "multiplyNode", MultiplyNode.kInputA);
+            Assert.IsTrue(graphHandler.TryConnect("vectorNode", "Out", "multiplyNode", MultiplyNode.kInputA));
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(1, 0, 1, 1), SampleMaterialColor(material));
+            Assert.AreEqual(GraphType.Length.Three, GraphTypeHelpers.GetLength(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+            Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+
+            // Matrix x Vector should both truncate the Vector to half-red,
+            // then result in a rotation to half-green,
+            // which the matrix then scales to green.
+            graphHandler.Disconnect("vectorNode", "Out", "multiplyNode", MultiplyNode.kInputA);
+            graphHandler.Disconnect("scalarNode", "Out", "multiplyNode", MultiplyNode.kInputB);
+            Assert.IsTrue(graphHandler.TryConnect("matrixNode", "Out", "multiplyNode", MultiplyNode.kInputA));
+            Assert.IsTrue(graphHandler.TryConnect("vectorNode", "Out", "multiplyNode", MultiplyNode.kInputB));
+            graphHandler.ReconcretizeAll();
+            previewMgr.NotifyNodeFlowChanged("multiplyNode");
+            material = previewMgr.RequestNodePreviewMaterial("multiplyNode");
+            Assert.AreEqual(new Color(0, 1, 0, 1), SampleMaterialColor(material));
+            Assert.AreEqual(GraphType.Length.Two, GraphTypeHelpers.GetLength(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+            Assert.AreEqual(GraphType.Height.One, GraphTypeHelpers.GetHeight(mulNode.GetPort(MultiplyNode.kOutput).GetTypeField()));
+        }
     }
 }
