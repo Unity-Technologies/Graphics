@@ -2,9 +2,36 @@ using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
+
+    internal class MultiplyNodeUI : INodeUIDescriptorBuilder
+    {
+        public NodeUIDescriptor CreateDescriptor(NodeHandler node)
+        {
+            var key = node.GetRegistryKey();
+
+            bool isMatrixMultiplication =
+            GraphTypeHelpers.GetHeight(node.GetPort(MultiplyNode.kInputA).GetTypeField()) != GraphType.Height.One ||
+            GraphTypeHelpers.GetHeight(node.GetPort(MultiplyNode.kInputB).GetTypeField()) != GraphType.Height.One;
+
+            return new NodeUIDescriptor(
+                name: key.Name,
+                version: key.Version,
+                tooltip: "Calculates the value of input A multiplied by input B.",
+                categories: new string[] { "Math", "Basic" },
+                synonyms: new string[] { "multiplication", "*", "times", "x", "product" },
+                parameters: new ParameterUIDescriptor[] {
+                    new(name: MultiplyNode.kInputA, tooltip: "Input A"),
+                    new(name: MultiplyNode.kInputB, tooltip: "Input B"),
+                    new(name: MultiplyNode.kOutput,
+                    tooltip: isMatrixMultiplication ? "mul(A, B)" : "A * B")
+                }
+            );
+        }
+    }
 
     internal class MultiplyNode : INodeDefinitionBuilder
     {
@@ -14,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         #region Names
         public readonly static string kInputA = "A";
         public readonly static string kInputB = "B";
-        public readonly static string kOutput = "Output";
+        public readonly static string kOutput = "Out";
         #endregion
 
         void INodeDefinitionBuilder.BuildNode(NodeHandler node, Registry registry)
