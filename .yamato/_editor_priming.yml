@@ -27,7 +27,7 @@ editor:priming:2022.1:Win:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:Win:
@@ -50,7 +50,7 @@ editor:priming:CUSTOM-REVISION:Win:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:Win:
@@ -96,7 +96,7 @@ editor:priming:2022.1:OSX:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:OSX:
@@ -119,7 +119,7 @@ editor:priming:CUSTOM-REVISION:OSX:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:OSX:
@@ -165,7 +165,7 @@ editor:priming:2022.1:OSX_Apple_Silicon:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:OSX_Apple_Silicon:
@@ -188,7 +188,7 @@ editor:priming:CUSTOM-REVISION:OSX_Apple_Silicon:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:OSX_Apple_Silicon:
@@ -234,7 +234,7 @@ editor:priming:2022.1:Linux:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:Linux:
@@ -257,7 +257,7 @@ editor:priming:CUSTOM-REVISION:Linux:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:Linux:
@@ -303,7 +303,7 @@ editor:priming:2022.1:Android:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:Android:
@@ -326,7 +326,7 @@ editor:priming:CUSTOM-REVISION:Android:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:Android:
@@ -372,7 +372,7 @@ editor:priming:2022.1:XRQuest:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:XRQuest:
@@ -395,7 +395,7 @@ editor:priming:CUSTOM-REVISION:XRQuest:
       -  sudo apt install unity-downloader-cli
       -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:XRQuest:
@@ -439,9 +439,9 @@ editor:priming:2022.1:iPhone:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp -c ios  > unity_revision.txt
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c ios -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:iPhone:
@@ -462,9 +462,9 @@ editor:priming:CUSTOM-REVISION:iPhone:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp -c ios  > unity_revision.txt
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c ios -c il2cpp  > unity_revision.txt
     artifacts:
-        unity_revision.zip:
+        revisions:
             paths:
               -  "unity_revision.txt"
 editor:priming:test_min_editor:iPhone:
@@ -484,7 +484,7 @@ editor:priming:test_min_editor:iPhone:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o macos --wait --skip-download -c editor -c il2cpp -c ios  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o macos --wait --skip-download -c editor -c iOS -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:

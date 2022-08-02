@@ -1,46 +1,47 @@
 editor_priming_agent: package_ci_ubuntu_small
 editor_pin_agent: package_ci_ubuntu_small
 
+editor_priming_config:
+  use_predefined_variables: True
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu:v2.0.0-947723
+    flavor: b1.small
+  skip_checkout: true
+  commands:
+    - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+    - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+    - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+    - sudo apt update
+    - sudo apt install unity-downloader-cli
+    - unity-downloader-cli -u $CUSTOM_REVISION -o <PLATFORM_OS> --wait --skip-download <COMPONENTS> > unity_revision.txt
+  add_artifacts:
+    - artifacts.revisions.paths: "unity_revision.txt"
+
 # EDITOR PINNING
 
 editor_versions_file: .yamato/_latest_editor_versions_TRACK.metafile
-
-platforms: # Components to have unity-downloader-cli to trigger.
-  - name: Win
-    os: windows
-    components:
-      - editor
-      - il2cpp
-  - name: OSX
-    os: macos
-    components:
-      - editor
-      - il2cpp
-  - name: OSX_Apple_Silicon
-    os: macos
-    components:
-      - editor
-      - il2cpp
-  - name: Linux
-    os: linux
-    components:
-      - editor
-      - il2cpp
-  - name: Android
-    os: windows
-    components:
-      - editor
-      - il2cpp
-      - android
-  - name: XRQuest
-    os: windows
-    components:
-      - editor
-      - il2cpp
-      - android
-  - name: iPhone
-    os: macos
-    components:
-      - editor
-      - il2cpp
-      - ios
+editor_pinning_config:
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu:v2.0.0-947723
+    flavor: b1.small
+  use_predefined_variables: True
+  commands:
+    - pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+    - pip3 install ruamel.yaml
+    - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+    - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+    - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+    - sudo apt update
+    - sudo apt install unity-downloader-cli
+    - git config --global user.name "noreply@unity3d.com"
+    - git config --global user.email "noreply@unity3d.com"
+    - git checkout $GIT_BRANCH
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
+    - cd gfx-sdet-tools && git rev-parse HEAD
+    - python3 gfx-sdet-tools/scripts/update_revisions.py --track 2022.1 --unity-branch $ONO_BRANCH_2022_1 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1
+  triggers:
+    recurring:
+      - branch: 2022.1/staging
+        frequency: 21 * * ?
