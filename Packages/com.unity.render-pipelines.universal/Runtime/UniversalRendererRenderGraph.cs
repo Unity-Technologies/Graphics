@@ -431,8 +431,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
             {
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(cameraData.camera, renderingData.cameraData);
-                m_MotionVectorPass.Render(renderGraph, in frameResources.motionVectorColor, in frameResources.motionVectorDepth, data, ref renderingData);
+                m_MotionVectorPass.Render(renderGraph, in frameResources.motionVectorColor, in frameResources.motionVectorDepth, ref renderingData);
             }
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?

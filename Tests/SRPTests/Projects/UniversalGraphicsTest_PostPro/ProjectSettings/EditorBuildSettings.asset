@@ -51,6 +51,9 @@ EditorBuildSettings:
     path: Assets/Scenes/093_TonemappingACESLDR.unity
     guid: 46788dd77b1c63144b05ad4e2bbe58d5
   - enabled: 1
+    path: Assets/Scenes/095_CameraMotionBlur.unity
+    guid: 9e498e31909a6427582110fd758d2f9d
+  - enabled: 1
     path: Assets/Scenes/100_BloomHDR.unity
     guid: 5bc15ee9dd5b1fc4aaecb48fb9ae2d94
   - enabled: 1

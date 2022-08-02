@@ -922,26 +922,14 @@ namespace UnityEngine.Rendering.Universal
             internal Material material;
             internal int passIndex;
             internal RenderTextureDescriptor sourceDescriptor;
-            internal Matrix4x4[] prevVP;
-            internal Matrix4x4 currVP;
+            internal Camera camera;
+            internal XRPass xr;
             internal float intensity;
             internal float clamp;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            internal bool singlePass;
-#endif
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-        const int PREV_VP_MATRIX_SIZE = 2;
-#else
-        const int PREV_VP_MATRIX_SIZE = 1;
-#endif
-        internal static Matrix4x4[] prevVP = new Matrix4x4[PREV_VP_MATRIX_SIZE];
-        internal static Matrix4x4 currVP;
-
-        public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref RenderingData renderingData)
+        public void RenderMotionBlur(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
         {
-            var cameraData = renderingData.cameraData;
             var material = m_Materials.cameraMotionBlur;
 
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
@@ -952,53 +940,6 @@ namespace UnityEngine.Rendering.Universal
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_MotionBlurTarget", true, FilterMode.Bilinear);
 
-
-            if (!m_PrevVPMatricesMap.TryGetValue(cameraData.camera.GetInstanceID(), out var prevVPMatricies))
-                m_PrevVPMatricesMap.Add(cameraData.camera.GetInstanceID(), new Matrix4x4[PREV_VP_MATRIX_SIZE]);
-
-            if (prevVPMatricies?.Length != PREV_VP_MATRIX_SIZE)
-                prevVPMatricies = new Matrix4x4[PREV_VP_MATRIX_SIZE];
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
-            {
-                var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
-                var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
-                if (m_ResetHistory)
-                {
-                    prevVP[0] = viewProj0;
-                    prevVP[1] = viewProj1;
-                }
-                else
-                    prevVP = prevVPMatricies;
-
-                prevVPMatricies[0] = viewProj0;
-                prevVPMatricies[1] = viewProj1;
-            }
-            else
-#endif
-            {
-                int prevViewProjMIdx = 0;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    prevViewProjMIdx = cameraData.xr.multipassId;
-#endif
-                // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-                // relies on SetupCameraProperties instead of handling its own matrices.
-                // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-                var proj = cameraData.GetProjectionMatrix();
-                var view = cameraData.GetViewMatrix();
-                var viewProj = proj * view;
-
-                currVP = viewProj;
-                if (m_ResetHistory)
-                    prevVP[0] = viewProj;
-                else
-                    prevVP[0] = prevVPMatricies[prevViewProjMIdx];
-
-                prevVPMatricies[prevViewProjMIdx] = viewProj;
-            }
-
             using (var builder = renderGraph.AddRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
                 passData.destinationTexture = builder.UseColorBuffer(destination, 0);
@@ -1006,33 +947,23 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = material;
                 passData.passIndex = (int)m_MotionBlur.quality.value;
                 passData.sourceDescriptor = m_Descriptor;
-                passData.currVP = currVP;
-                passData.prevVP = prevVP;
+                passData.camera = cameraData.camera;
+                passData.xr = cameraData.xr;
                 passData.intensity = m_MotionBlur.intensity.value;
                 passData.clamp = m_MotionBlur.clamp.value;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                passData.singlePass = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
-#endif
                 builder.SetRenderFunc((MotionBlurPassData data, RenderGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var sourceDesc = data.sourceDescriptor;
                     RTHandle sourceTextureHdl = data.sourceTexture;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    if (data.singlePass)
-                        data.material.SetMatrixArray("_PrevViewProjMStereo", data.prevVP);
-                    else
-#endif
-                    {
-                        data.material.SetMatrix("_PrevViewProjM", data.prevVP[0]);
-                        data.material.SetMatrix("_ViewProjM", data.currVP);
-                    }
+
+                    UpdateMotionBlurMatrices(ref data.material, data.camera, data.xr);
+
                     data.material.SetFloat("_Intensity", data.intensity);
                     data.material.SetFloat("_Clamp", data.clamp);
 
                     PostProcessUtils.SetSourceSize(cmd, sourceDesc);
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, data.passIndex);
+                    Blitter.BlitCameraTexture(cmd, data.sourceTexture, data.destinationTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, data.passIndex);
                 });
 
                 return;
@@ -1512,7 +1443,7 @@ namespace UnityEngine.Rendering.Universal
 
             if(useMotionBlur)
             {
-                RenderMotionBlur(renderGraph, in currentSource, out var MotionBlurTarget, ref renderingData);
+                RenderMotionBlur(renderGraph, in currentSource, out var MotionBlurTarget, ref renderingData.cameraData);
                 currentSource = MotionBlurTarget;
             }
 
@@ -1565,8 +1496,6 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderUberPost(renderGraph, in currentSource, in postProcessingTarget, in lutTexture, ref renderingData);
             }
-
-            m_ResetHistory = false;
         }
     }
 }

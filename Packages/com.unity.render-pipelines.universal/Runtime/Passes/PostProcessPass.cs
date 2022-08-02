@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_Destination;
         RTHandle m_Depth;
         RTHandle m_InternalLut;
+        RTHandle m_MotionVectors;
         RTHandle m_CameraTargetHandle;
         RTHandle m_FullCoCTexture;
         RTHandle m_HalfCoCTexture;
@@ -78,8 +79,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_UseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
-        private Dictionary<int, Matrix4x4[]> m_PrevVPMatricesMap = new Dictionary<int, Matrix4x4[]>();
-        bool m_ResetHistory;
+
         int m_DitheringTextureIndex;
         RenderTargetIdentifier[] m_MRT2;
         Vector4[] m_BokehKernel;
@@ -165,7 +165,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_MRT2 = new RenderTargetIdentifier[2];
-            m_ResetHistory = true;
             base.useNativeRenderPass = false;
 
             m_BlitMaterial = postProcessParams.blitMaterial;
@@ -230,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="hasFinalPass"></param>
         /// <param name="enableSRGBConversion"></param>
         /// <param name="hasExternalPostPasses"></param>
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, in RTHandle motionVectors, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -238,6 +237,7 @@ namespace UnityEngine.Rendering.Universal
             m_Source = source;
             m_Depth = depth;
             m_InternalLut = internalLut;
+            m_MotionVectors = motionVectors;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
@@ -294,11 +294,6 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
         }
 
-        public void ResetHistory()
-        {
-            m_ResetHistory = true;
-        }
-
         public bool CanRunOnTile()
         {
             // Check builtin & user effects here
@@ -346,8 +341,6 @@ namespace UnityEngine.Rendering.Universal
                     Render(cmd, ref renderingData);
                 }
             }
-
-            m_ResetHistory = false;
         }
 
         RenderTextureDescriptor GetCompatibleDescriptor()
@@ -387,7 +380,16 @@ namespace UnityEngine.Rendering.Universal
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
-            int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
+            // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
+            // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
+            // to tweaking the value here.
+            bool useTemporalAA = cameraData.IsTemporalAAEnabled();
+#if URP_EXPERIMENTAL_TAA_ENABLE
+            if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
+                TemporalAA.ValidateAndWarn(ref cameraData);
+#endif
+
+            int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
             if (m_UseSwapBuffer && amountOfPassesRemaining > 0)
             {
@@ -475,12 +477,23 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // Temporal Anti Aliasing
+            if (useTemporalAA)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
+                {
+                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref cameraData, source, destination, m_MotionVectors.rt);
+                    Swap(ref renderer);
+                }
+            }
+
+
             // Motion blur
             if (useMotionBlur)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(ref cameraData, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(cmd, GetSource(), GetDestination(), ref cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -895,65 +908,49 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         #region Motion Blur
-#if ENABLE_VR && ENABLE_XR_MODULE
-        // Hold the stereo matrices to avoid allocating arrays every frame
-        internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
-#endif
-        void DoMotionBlur(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
+
+        public static readonly int kShaderPropertyId_ViewProjM = Shader.PropertyToID("_ViewProjM");
+        public static readonly int kShaderPropertyId_PrevViewProjM = Shader.PropertyToID("_PrevViewProjM");
+        public static readonly int kShaderPropertyId_ViewProjMStereo = Shader.PropertyToID("_ViewProjMStereo");
+        public static readonly int kShaderPropertyId_PrevViewProjMStereo = Shader.PropertyToID("_PrevViewProjMStereo");
+
+        internal static void UpdateMotionBlurMatrices(ref Material material, Camera camera, XRPass xr)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            const int PREV_VP_MATRIX_SIZE = 2;
-#else
-            const int PREV_VP_MATRIX_SIZE = 1;
-#endif
-            var material = m_Materials.cameraMotionBlur;
-            if (!m_PrevVPMatricesMap.TryGetValue(cameraData.camera.GetInstanceID(), out var prevVPMatricies))
-                m_PrevVPMatricesMap.Add(cameraData.camera.GetInstanceID(), new Matrix4x4[PREV_VP_MATRIX_SIZE]);
+            MotionVectorsPersistentData motionData = null;
 
-            if (prevVPMatricies?.Length != PREV_VP_MATRIX_SIZE)
-                prevVPMatricies = new Matrix4x4[PREV_VP_MATRIX_SIZE];
+            if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                motionData = additionalCameraData.motionVectorsPersistentData;
+
+            if (motionData == null)
+                return;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+            if (xr.enabled && xr.singlePassEnabled)
             {
-                var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
-                var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
-                if (m_ResetHistory)
-                {
-                    viewProjMatrixStereo[0] = viewProj0;
-                    viewProjMatrixStereo[1] = viewProj1;
-                    material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
-                }
-                else
-                    material.SetMatrixArray("_PrevViewProjMStereo", prevVPMatricies);
-
-                prevVPMatricies[0] = viewProj0;
-                prevVPMatricies[1] = viewProj1;
+                material.SetMatrixArray(kShaderPropertyId_PrevViewProjMStereo, motionData.previousViewProjectionStereo);
+                material.SetMatrixArray(kShaderPropertyId_ViewProjMStereo, motionData.viewProjectionStereo);
             }
             else
 #endif
             {
-                int prevViewProjMIdx = 0;
+                int viewProjMIdx = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    prevViewProjMIdx = cameraData.xr.multipassId;
+                if (xr.enabled)
+                    viewProjMIdx = xr.multipassId;
 #endif
-                // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-                // relies on SetupCameraProperties instead of handling its own matrices.
-                // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-                var proj = cameraData.GetProjectionMatrix();
-                var view = cameraData.GetViewMatrix();
-                var viewProj = proj * view;
 
-                material.SetMatrix("_ViewProjM", viewProj);
-
-                if (m_ResetHistory)
-                    material.SetMatrix("_PrevViewProjM", viewProj);
-                else
-                    material.SetMatrix("_PrevViewProjM", prevVPMatricies[prevViewProjMIdx]);
-
-                prevVPMatricies[prevViewProjMIdx] = viewProj;
+                // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
+                material.SetMatrix(kShaderPropertyId_PrevViewProjM, motionData.previousViewProjectionStereo[viewProjMIdx]);
+                material.SetMatrix(kShaderPropertyId_ViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
             }
+        }
+
+
+        void DoMotionBlur(CommandBuffer cmd, RTHandle source, RTHandle destination, ref CameraData cameraData)
+        {
+            var material = m_Materials.cameraMotionBlur;
+
+            UpdateMotionBlurMatrices(ref material, cameraData.camera, cameraData.xr);
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
@@ -1486,6 +1483,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
+            public readonly Material temporalAntialiasing;
             public readonly Material scalingSetup;
             public readonly Material easu;
             public readonly Material uber;
@@ -1501,6 +1499,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
+                temporalAntialiasing = Load(data.shaders.temporalAntialiasingPS);
                 scalingSetup = Load(data.shaders.scalingSetupPS);
                 easu = Load(data.shaders.easuPS);
                 uber = Load(data.shaders.uberPostPS);
@@ -1532,6 +1531,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.Destroy(cameraMotionBlur);
                 CoreUtils.Destroy(paniniProjection);
                 CoreUtils.Destroy(bloom);
+                CoreUtils.Destroy(temporalAntialiasing);
                 CoreUtils.Destroy(scalingSetup);
                 CoreUtils.Destroy(easu);
                 CoreUtils.Destroy(uber);

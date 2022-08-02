@@ -476,6 +476,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
                 // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
+                // TODO: Transparents might have force Z write option in the future.
                 EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
@@ -990,10 +991,29 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyColorPass);
             }
 
-            if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
+            // Temporal Anti-alias (TAA) persistent data (over frame)
+            if (cameraData.taaPersistentData != null)
             {
-                SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
+                if (cameraData.IsTemporalAAEnabled())
+                {
+                    bool xrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+#endif
+                    bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
 
+                    // Fill new history with current frame
+                    if(allocation)
+                        cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
+                }
+                else
+                    cameraData.taaPersistentData.DeallocateTargets();
+            }
+
+            // Motion vectors
+            // TAA in postprocess requires it to function. Force motion vec pass for TAA.
+            if (renderPassInputs.requiresMotionVectors || cameraData.IsTemporalAAEnabled())
+            {
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
@@ -1003,8 +1023,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
 
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera, cameraData);
-                m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth, data);
+                m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
                 EnqueuePass(m_MotionVectorPass);
             }
 
@@ -1067,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
                     bool doSRGBConversion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConversion);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, m_MotionVectorColor, applyFinalPostProcessing, doSRGBConversion);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -1120,7 +1139,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, m_MotionVectorColor, false, false);
                 EnqueuePass(postProcessPass);
             }
 

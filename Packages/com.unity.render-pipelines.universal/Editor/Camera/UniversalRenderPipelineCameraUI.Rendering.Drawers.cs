@@ -59,13 +59,22 @@ namespace UnityEditor.Rendering.Universal
                     (serialized, owner) => !serialized.antialiasing.hasMultipleDifferentValues,
                     CED.Group(
                         GroupOption.Indent,
-                        CED.Conditional(
-                            (serialized, owner) => (AntialiasingMode)serialized.antialiasing.intValue ==
-                            AntialiasingMode.SubpixelMorphologicalAntiAliasing,
-                            CED.Group(
-                                DrawerRenderingSMAAQuality
-                            )
-                        )
+                        new[]{
+                            CED.Conditional(
+                                (serialized, owner) => (AntialiasingMode)serialized.antialiasing.intValue ==
+                                AntialiasingMode.SubpixelMorphologicalAntiAliasing,
+                                CED.Group(
+                                    DrawerRenderingSMAAQuality
+                                )),
+#if URP_EXPERIMENTAL_TAA_ENABLE
+                            CED.Conditional(
+                                (serialized, owner) => (AntialiasingMode)serialized.antialiasing.intValue ==
+                                AntialiasingMode.TemporalAntiAliasing,
+                                CED.Group(
+                                    DrawerRenderingTAAQuality
+                                ))
+#endif
+                        }
                     )
                     ),
                 CED.Group(
@@ -215,6 +224,29 @@ namespace UnityEditor.Rendering.Universal
                 if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
                     EditorGUILayout.HelpBox(Styles.SMAANotSupported, MessageType.Warning);
             }
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+            static void DrawerRenderingTAAQuality(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            {
+                var urpCamEditor = owner as UniversalRenderPipelineCameraEditor;
+                if (urpCamEditor?.camera?.TryGetComponent<UniversalAdditionalCameraData>(out var urpAddCamData) != null)
+                {
+                    ref var taa = ref urpAddCamData.taaSettings;
+
+                    var result = (TemporalAAQuality)EditorGUILayout.EnumPopup(Styles.antialiasingQuality, taa.quality);
+                    if(result != taa.quality)
+                        taa.quality = result;
+
+                    taa.frameInfluence = EditorGUILayout.Slider( nameof(taa.frameInfluence), taa.frameInfluence, 0, 1);
+
+                    var rect = GUILayoutUtility.GetRect(Styles.taaResetHistory, GUIStyle.none);
+                    rect.x = rect.x + 32;
+                    rect.width = rect.width - 32;
+                    if (GUI.Button(rect, Styles.taaResetHistory))
+                        taa.resetHistoryFrames += 2; // XR both eyes
+                }
+            }
+#endif
 
             static void DrawerRenderingRenderPostProcessing(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
