@@ -361,6 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
             deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
 
             return deferredParameters;
         }
@@ -422,6 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float lodBias;
             public int rayMissfallbackHierarchy;
             public int lastBouncefallbackHierarchy;
+            public float ambientProbeDimmer;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -463,6 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lodBias = settings.textureLodBias.value;
                 passData.rayMissfallbackHierarchy = (int)settings.rayMiss.value;
                 passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
+                passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -508,7 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
                         data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissfallbackHierarchy;
                         data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBouncefallbackHierarchy;
-
+                        data.shaderVariablesRayTracingCB._RayTracingAmbientProbeDimmer = data.ambientProbeDimmer;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data

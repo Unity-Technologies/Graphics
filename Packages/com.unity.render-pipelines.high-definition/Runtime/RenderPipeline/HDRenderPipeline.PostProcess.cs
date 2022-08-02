@@ -2192,11 +2192,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofPrefilterCS.EnableKeyword("HIGH_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("HIGH_QUALITY");
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
             else
             {
                 parameters.dofPrefilterCS.EnableKeyword("LOW_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("LOW_QUALITY");
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
 
             if (bothLayersActive || nearLayerActive)

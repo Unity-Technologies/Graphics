@@ -144,6 +144,13 @@ void SampleBakedGI(
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
 #elif !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) // With APV if we aren't a lightmap we do nothing. We will default to Ambient Probe in lightloop code if APV is disabled
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+
+    // We only want to apply the ray tracing ambient probe dimmer on the ambient probe
+    // and legacy light probes (and obviously only in the ray tracing shaders).
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        bakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
+        backBakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
+    #endif
 #endif
 }
 

@@ -360,6 +360,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
 
+                if (material == null)
+                    continue;
+
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
                     // Check first if the HDRP shadergraph assigned needs a migration:

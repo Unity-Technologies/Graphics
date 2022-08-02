@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float minSmoothness;
             public int rayMissFallbackHiearchy;
             public int lastBounceFallbackHiearchy;
+            public float ambientProbeDimmer;
 
             // Other data
             public RayTracingAccelerationStructure accelerationStructure;
@@ -109,6 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.minSmoothness = recursiveSettings.minSmoothness.value;
                 passData.rayMissFallbackHiearchy = (int)recursiveSettings.rayMiss.value;
                 passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounce.value;
+                passData.ambientProbeDimmer = recursiveSettings.ambientProbeDimmer.value;
 
                 // Other data
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -149,6 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissFallbackHiearchy;
                         data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHiearchy;
+                        data.shaderVariablesRayTracingCB._RayTracingAmbientProbeDimmer = data.ambientProbeDimmer;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Fecth the temporary buffers we shall be using

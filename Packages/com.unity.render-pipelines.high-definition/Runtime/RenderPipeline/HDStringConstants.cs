@@ -228,6 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
         public static readonly int _StencilCmp = Shader.PropertyToID("_StencilCmp");
 
+        public static readonly int _LightLayersMaskBuffer4 = Shader.PropertyToID("_LightLayersMaskBuffer4");
+        public static readonly int _LightLayersMaskBuffer5 = Shader.PropertyToID("_LightLayersMaskBuffer5");
+
         public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
 
         public static readonly int _ClearColor = Shader.PropertyToID("_ClearColor");
@@ -611,6 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Denoising
         public static readonly int _EnableExposureControl = Shader.PropertyToID("_EnableExposureControl");
+        public static readonly int _HistorySizeAndScale = Shader.PropertyToID("_HistorySizeAndScale");
         public static readonly int _HistoryBuffer = Shader.PropertyToID("_HistoryBuffer");
         public static readonly int _HistoryBuffer0 = Shader.PropertyToID("_HistoryBuffer0");
         public static readonly int _HistoryBuffer1 = Shader.PropertyToID("_HistoryBuffer1");

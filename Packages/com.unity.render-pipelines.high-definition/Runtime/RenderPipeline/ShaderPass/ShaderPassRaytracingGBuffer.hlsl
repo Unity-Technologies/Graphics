@@ -43,7 +43,6 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     standardLitData.specularOcclusion = 1.0;
     standardLitData.normalWS = fragInput.tangentToWorld[2];
     standardLitData.coatMask = 0.0;
-    standardLitData.emissiveAndBaked = builtinData.emissiveColor;
 #endif
 
     // Then export it to the gbuffer
