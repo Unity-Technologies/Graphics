@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
                 //, "NormalTS", "BaseColor"
                 if (!port.IsInput && !shouldExclude) //temp: Filter context outputs.
-                    INodeDefinitionBuilder.CopyPort(port, node, registry);
+                    INodeDefinitionBuilder.CopyPort(port, node, registry, port.LocalID.Replace("out_", ""));
             }
 
             // Dropdowns will need to be some kind of switch type probably, can easily make an editor/driver for that.

@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
-        private void AddEntry(NodeHandler context, CPEntryDescriptor desc)
+        private void AddEntry(NodeHandler context, CPEntryDescriptor desc, bool isInput)
         {
 #if HANDLER_PROFILING
             Profiler.BeginSample("Add single entry");
@@ -240,12 +240,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     precision = GraphType.Precision.Fixed
                 },
                 registry,
-                source: ContextEntryEnumTags.DataSource.Global);
+                source: isInput ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant);
 #if HANDLER_PROFILING
             Profiler.EndSample();
 #endif
         }
-
 
         public void RebuildContextData(
             ElementID contextNode,
@@ -289,14 +288,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                             {
                                 foreach(var i in cpio.inputs)
                                 {
-                                    AddEntry(context, i);
+                                    AddEntry(context, i, true);
                                 }
                             }
                             else
                             {
                                 foreach(var o in cpio.outputs)
                                 {
-                                    AddEntry(context, o);
+                                    AddEntry(context, o, false);
                                 }
                             }
                             context.AddField("_CustomizationPointName", cpName);

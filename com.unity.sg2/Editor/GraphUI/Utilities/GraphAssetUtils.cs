@@ -7,31 +7,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class GraphAssetUtils
     {
-        public class CreateGraphAssetAction : ProjectWindowCallback.EndNameEditAction
+        internal class CreateGraphAssetAction : ProjectWindowCallback.EndNameEditAction
         {
+            internal bool isBlank = false;
+            internal bool isSubGraph = false;
+            internal ShaderGraphAssetUtils.GraphHandlerInitializationCallback callback = null;
+
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                ShaderGraphAssetUtils.HandleCreate(pathName);
+                ShaderGraphAssetUtils.HandleCreate(pathName, isSubGraph, isBlank, callback);
                 var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
                 Selection.activeObject = obj;
             }
         }
 
-        public class CreateSubGraphAssetAction : ProjectWindowCallback.EndNameEditAction
-        {
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                ShaderGraphAssetUtils.HandleCreate(pathName, true);
-                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
-                Selection.activeObject = obj;
-            }
-        }
-
-        [MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateBlankGraphInProjectWindow()
+        [MenuItem("Assets/Create/Shader Graph 2/URP Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        public static void CreateURPGraphInProjectWindow()
         {
             var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
-
+            newGraphAction.callback = URPTargetUtils.ConfigureURPLit;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
@@ -40,10 +34,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 null);
         }
 
+        //[MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        //public static void CreateBlankGraphInProjectWindow()
+        //{
+        //    var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+        //    newGraphAction.isBlank = true;
+        //    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+        //        0,
+        //        newGraphAction,
+        //        $"{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}",
+        //        null,
+        //        null);
+        //}
+
         [MenuItem("Assets/Create/Shader Graph 2/Blank Shader SubGraph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         public static void CreateBlankSubGraphInProjectWindow()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<CreateSubGraphAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+            newGraphAction.isSubGraph = true;
 
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,

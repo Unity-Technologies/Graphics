@@ -21,7 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             m_GraphView = m_Window.GraphView as TestGraphView;
 
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateSubGraphAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            newGraphAction.isSubGraph = true;
             newGraphAction.Action(0, testAssetPath, "");
             var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));

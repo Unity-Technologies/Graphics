@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Configuration;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -141,38 +142,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool isCutOperation;
         #endregion CopyPasteData
 
-        public void Init(GraphHandler graph, bool isSubGraph)
+        internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
             graphHandlerBox.Init(graph);
             this.isSubGraph = isSubGraph;
-
-            // Generate context nodes as needed.
-            // TODO: This should be handled by a more generalized synchronization step.
-            var contextNames = GraphHandler
-                .GetNodes()
-                .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
-                .Select(nodeHandler => nodeHandler.ID.LocalPath)
-                .ToList();
-
-            foreach (var localPath in contextNames)
+            if (!isSubGraph && target != null)
             {
-                try
-                {
-                    GraphHandler.ReconcretizeNode(localPath);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
+                Targets.Add(target);
+                // all target-based graphs have a Vert
+                var vertNode = this.CreateGraphDataContextNode("VertOut");
+                vertNode.Title = "Vertex Stage";
+                vertNode.Position = new Vector2(0, -180);
 
-                if (!NodeModels.Any(nodeModel =>
-                        nodeModel is GraphDataContextNodeModel contextNodeModel &&
-                        contextNodeModel.graphDataName == localPath))
-                {
-                    this.CreateGraphDataContextNode(localPath);
-                }
             }
+            var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
+            outputNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
         }
+
 
         public override void OnEnable()
         {
@@ -181,26 +167,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             foreach (var target in Targets)
             {
+                // at most there is only one target right now, so this solution is not robust.
                 InitializeContextFromTarget(target.value);
             }
-
+            GraphHandler.ReconcretizeAll();
             mainPreviewData = new(Guid.ToString());
         }
 
-        private void InitializeContextFromTarget(Target target)
+        internal void InitializeContextFromTarget(Target target)
         {
-            foreach (var node in NodeModels)
+            // TODO: we can assume we're using the standard SG config for now, but this is not good.
+            ShaderGraphAssetUtils.RebuildContextNodes(GraphHandler, target);
+
+            foreach (var contextNode in NodeModels.OfType<GraphDataContextNodeModel>())
             {
-                if (node is GraphDataContextNodeModel nodeModel && nodeModel.graphDataName ==  BlackboardContextName)
-                {
-                    // TODO: How to get template name and CustomizationPoint name from target?
-                    GraphHandler.RebuildContextData(
-                        nodeModel.graphDataName,
-                        target,
-                        "UniversalPipeline",
-                        "SurfaceDescription",
-                        true);
-                }
+                contextNode.DefineNode();
             }
         }
 
