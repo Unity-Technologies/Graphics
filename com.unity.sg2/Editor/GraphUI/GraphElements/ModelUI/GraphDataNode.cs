@@ -106,6 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 !isNonPreviewableType &&
                 m_GraphDataNodeModel is not GraphDataContextNodeModel;
 
+            // TODO: Give NodePreviewPart a handle to PreviewManager or a callback it can use
             if (shouldShowPreview)
                 m_NodePreviewPart = new NodePreviewPart(
                     "node-preview",

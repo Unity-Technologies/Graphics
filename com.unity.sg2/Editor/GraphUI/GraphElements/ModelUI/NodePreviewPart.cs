@@ -51,8 +51,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewExpanded);
 
             parent.Add(Root);
+
+            // TODO: Get callback to inform preview manager that this node preview part requests an update
         }
 
+        // This should serve as entry point for any changes either in graph/undo-redo/save
+        // Can directly handle requesting for latest preview data from here
+        // Shouldn't need to do anything except just asking for a new texture, should be on preview manager to figure out if somethings changed and if needs regenerate, or can just hand back the cached texture
         protected override void UpdatePartFromModel()
         {
             // Don't need to do this for node previews in Searcher
