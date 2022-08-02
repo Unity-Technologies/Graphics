@@ -1,8 +1,6 @@
 
 
 
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -11,7 +9,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public GraphDataEdgeModel()
         {
-            m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.Selectable);
         }
     }
 }
