@@ -250,9 +250,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightDimmer == value)
                     return;
 
+                m_LightDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
+
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).lightDimmer = m_LightDimmer;
-                m_LightDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
             }
         }
 
@@ -689,6 +690,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_IncludeForRayTracing == value)
                     return;
+
+                m_IncludeForRayTracing = value;
 
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).includeForRayTracing = m_IncludeForRayTracing;
@@ -2674,10 +2677,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_IESPoint = m_IESPoint;
             data.m_IESSpot = m_IESSpot;
             data.m_IncludeForRayTracing = m_IncludeForRayTracing;
-            data.m_AreaLightShadowCone = m_AreaLightShadowCone;
-            data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
-            data.m_InteractsWithSky = m_InteractsWithSky;
-            data.m_AngularDiameter = m_AngularDiameter;
             data.m_AreaLightShadowCone = m_AreaLightShadowCone;
             data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
             data.m_InteractsWithSky = m_InteractsWithSky;

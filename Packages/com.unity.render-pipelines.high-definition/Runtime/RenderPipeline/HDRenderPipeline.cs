@@ -2339,7 +2339,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref HDCullingResults cullingResults
         )
         {
-            if (camera.cameraType == CameraType.Reflection)
+            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
             {
 #if UNITY_2020_2_OR_NEWER
                 ScriptableRenderContext.EmitGeometryForCamera(camera);
