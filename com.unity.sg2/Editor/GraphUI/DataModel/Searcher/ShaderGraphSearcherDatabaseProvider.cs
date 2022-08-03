@@ -24,7 +24,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override IReadOnlyList<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
         {
             var databases = base.GetGraphElementsSearcherDatabases(graphModel).ToList();
-            databases.Add(CreateNodeDatabase(graphModel));
+            List<SearcherItem> searcherItems = GetNodeSearcherItems(graphModel);
+            SearcherDatabase db = new(searcherItems);
+            databases.Add(db);
             return databases;
         }
 
@@ -32,7 +34,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override IReadOnlyList<SearcherDatabaseBase> GetVariableTypesSearcherDatabases()
         {
             var databases = base.GetVariableTypesSearcherDatabases().ToList();
-            databases.Add(CreateTypeDatabaseFromRegistry());
+            List<SearcherItem> searcherItems = GetTypeSearcherItems();
+            SearcherDatabase db = new(searcherItems);
+            databases.Add(db);
             return databases;
         }
 
@@ -53,13 +57,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return categoryPath;
         }
 
-
-        private SearcherDatabaseBase CreateNodeDatabase(IGraphModel graphModel)
+        internal static List<SearcherItem> GetNodeSearcherItems(IGraphModel graphModel)
         {
             var searcherItems = new List<SearcherItem>();
             if (graphModel is ShaderGraphModel shaderGraphModel)
-                //&&
-                //shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
             {
                 // Keep track of all the names that have been added to the SearcherItem list.
                 // Having conflicting names in the SearcherItem list causes errors
@@ -78,10 +79,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // fallback to the registry name if there is no display name
                         if (string.IsNullOrEmpty(searcherItemName))
                             searcherItemName = registryKey.Name;
+                        // If there is already a SearcherItem with the current name,
+                        // warn and skip.
                         if (namesAddedToSearcher.Contains(searcherItemName))
                         {
-                            // If there is already a SearcherItem with the current
-                            // name, warn and skip.
                             Debug.LogWarning($"Not adding \"{searcherItemName}\" to the searcher. A searcher item with this name already exists.");
                             continue;
                         }
@@ -105,16 +106,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
             }
-            return new SearcherDatabase(searcherItems);
+            return searcherItems;
         }
 
-        private SearcherDatabaseBase CreateTypeDatabaseFromRegistry()
+        internal static List<SearcherItem> GetTypeSearcherItems()
         {
             // TODO: Retrieve types from registry, map to type handles.
-            return new SearcherDatabase(new List<SearcherItem>
+            return  new List<SearcherItem>
             {
                 new TypeSearcherItem("TODO", TypeHandle.Float)
-            });
+            };
         }
     }
 }

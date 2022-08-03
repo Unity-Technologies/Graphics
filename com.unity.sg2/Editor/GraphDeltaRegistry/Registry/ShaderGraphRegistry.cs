@@ -5,13 +5,15 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    class ShaderGraphRegistry
+    internal class ShaderGraphRegistry
     {
         private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
         private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";
         private static readonly string GET_UD_METHOD_NAME = "get_NodeUIDescriptor";
         private static readonly string GET_VERSION_METHOD_NAME = "get_Version";
 
+        // TODO (Brett) I'd prefer if this were called `DefaultInstance` or
+        // TODO (Brett) something else that implies what is loaded into it.
         internal static ShaderGraphRegistry Instance
         {
             get
@@ -124,6 +126,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
 
             #region IStandardNode
+
+            // TODO (Brett) I think that higher level application logic should
+            // TODO (Brett) determine which nodes are loaded into the ShaderGraphRegistry.
+            // TODO (Brett) I would like this code to be moved into the tool assembly.
+
             // Register nodes from IStandardNode implementers.
             var interfaceType = typeof(IStandardNode);
             var types = AppDomain.CurrentDomain.GetAssemblies()
@@ -179,7 +186,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         var msg = $"IStandard node {t} has no node or function descriptor. It was not registered.";
                         Debug.LogWarning(msg);
                     }
-
                 }
             }
             #endregion
