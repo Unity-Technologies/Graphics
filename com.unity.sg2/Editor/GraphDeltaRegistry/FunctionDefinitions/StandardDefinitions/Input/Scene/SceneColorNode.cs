@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Scene Color",
             tooltip: "Gets the camera's color buffer.",
             category: "Input/Scene",
             hasPreview: false,

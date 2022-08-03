@@ -122,6 +122,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "creates a smooth, non-tiling noise pattern using a gradient lattice",
             category: "Procedural/Noise",
+            displayName: "Gradient Noise",
             synonyms: new string[1] { "perlin noise" },
             selectableFunctions: new()
             {

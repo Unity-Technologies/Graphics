@@ -120,6 +120,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Samples a 2D Texture.",
             category: "Input/Texture",
             synonyms: new string[1] { "tex2d" },
+            displayName: "Sample Texture 2D",
             selectableFunctions: new()
             {
                 { "Standard", "Standard" },

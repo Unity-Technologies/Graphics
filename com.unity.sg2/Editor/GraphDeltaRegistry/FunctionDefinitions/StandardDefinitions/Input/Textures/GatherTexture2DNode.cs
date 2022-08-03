@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Takes 4 samples (red channel only) to use for bilinear interpolation during sampling.",
             category: "Input/Texture",
             synonyms: new string[0],
-            displayName: "Gather Textuire 2D",
+            displayName: "Gather Texture 2D",
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "Texture",
