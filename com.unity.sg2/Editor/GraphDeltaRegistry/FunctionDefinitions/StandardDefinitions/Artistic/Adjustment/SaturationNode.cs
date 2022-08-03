@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Saturation",
             tooltip: "adjusts the color intensity",
-            categories: new string[2] { "Artistic", "Adjustment" },
+            category: "Artistic/Adjustment",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

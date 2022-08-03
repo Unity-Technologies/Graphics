@@ -65,7 +65,7 @@ void Unity_LinearBlendSkinning_float(uint4 indices, float4 weights, float3 posit
             Name,
             displayName: "Linear Blend Skinning",
             tooltip: "Applies linear blend vertex skinning in the vertex shader.",
-            categories: new string[2] { "Input", "Mesh Deformation" },
+            category: "Input/Mesh Deformation",
             hasPreview: false,
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[6] {

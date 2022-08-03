@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates a new value for In. Uses the Out Min Max as a range and lerps between the In Min Max values.",
-            categories: new string[2] { "Math", "Range" },
+            category: "Math/Range",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "The location on the screen of the current pixel.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[0] {},
             displayName: "Screen Position",
             parameters: new ParameterUIDescriptor[2] {

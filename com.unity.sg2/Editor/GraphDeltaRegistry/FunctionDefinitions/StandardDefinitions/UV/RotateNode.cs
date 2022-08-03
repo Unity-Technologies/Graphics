@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "rotates UVs around a pivot point ",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {

@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Uses a slider to give a float value between a given min and max value.",
-            categories: new string[2] { "Input", "Basic" },
+            category: "Input/Basic",
             synonyms: new string[0] { },
             hasPreview:false,
             parameters: new ParameterUIDescriptor[2] {

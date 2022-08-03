@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Checks whether the value of In is equal to or greater than the value of Edge.",
-            categories: new string[2] { "Math", "Round" },
+            category: "Math/Round",
             synonyms: new string[1] { "quantize" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the direction of the main directional light in the scene.",
-            categories: new string[2] { "Input", "Lighting" },
+            category: "Input/Lighting",
             hasPreview: false,
             synonyms: new string[1] { "sun" },
             parameters: new ParameterUIDescriptor[1] {

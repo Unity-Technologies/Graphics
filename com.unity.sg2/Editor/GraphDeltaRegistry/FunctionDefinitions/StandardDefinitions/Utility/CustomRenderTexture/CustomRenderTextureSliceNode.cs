@@ -25,7 +25,7 @@ Texture3DSlice = CustomRenderTexture3DSliceRef;
             Version,
             Name,
             tooltip: "Return the indexes of the current cubemap face or the current 3d slice.",
-            categories: new string[] { "Utility", "Custom Render Texture" },
+            category: "Utility/Custom Render Texture",
             synonyms: new string[0] {},
             displayName: "Slice Index / Cubemap Face",
             hasPreview: false,

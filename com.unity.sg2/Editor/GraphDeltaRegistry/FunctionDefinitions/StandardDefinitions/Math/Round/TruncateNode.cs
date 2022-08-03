@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates an integer, or whole number, from the input.",
-            categories: new string[2] { "Math", "Round" },
+            category: "Math/Round",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

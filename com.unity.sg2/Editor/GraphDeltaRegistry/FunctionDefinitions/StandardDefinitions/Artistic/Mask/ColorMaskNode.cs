@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Color Mask",
             tooltip: "Creates a mask where the input values match the selected color.",
-            categories: new string[2] { "Artistic", "Mask" },
+            category: "Artistic/Mask",
             synonyms: new string[1] { "intensity" },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

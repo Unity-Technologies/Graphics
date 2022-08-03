@@ -38,13 +38,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 1,
                  "DEFAULT_NAME",
                  "DEFAULT_TOOLTIP",
-                new string[] { "DEFAULT_CATEGORY" },
+                "DEFAULT_CATEGORY",
                 new string[] { },
                 "DEFAULT_DISPLAY_NAME",
                 true,
                 new Dictionary<string, string> { },
                 new ParameterUIDescriptor[] {}
-                );
+            );
         }
     }
 }

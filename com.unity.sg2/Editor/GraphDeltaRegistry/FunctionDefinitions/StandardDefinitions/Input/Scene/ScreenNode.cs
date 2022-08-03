@@ -22,7 +22,7 @@ Height = ScreenParams.y;",
             Version,
             Name,
             tooltip: "Provides access to the screen's width and height parameters.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[2] {

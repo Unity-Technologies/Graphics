@@ -94,11 +94,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             bool didRead = nodeReader.TryGetField("In.TypeField.Length", out GraphType.Length len);
             Assert.IsTrue(didRead);
 
-            // EXPECT that both In and Out are concretized into length = 4 (default)
-            Assert.AreEqual(GraphType.Length.Four, len);
+            // EXPECT that both In and Out are concretized into length = 1 (default)
+            Assert.AreEqual(GraphType.Length.One, len);
             didRead = nodeReader.TryGetField("Out.TypeField.Length", out len);
             Assert.IsTrue(didRead);
-            Assert.AreEqual(GraphType.Length.Four, len);
+            Assert.AreEqual(GraphType.Length.One, len);
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 {
                     new ParameterDescriptor(
                         "In",
-                        TYPE.Vector,
+                        TYPE.Vec4,
                         GraphType.Usage.In,
                         new float[] { 1F, 1F, 3F, 1F }
                     ),

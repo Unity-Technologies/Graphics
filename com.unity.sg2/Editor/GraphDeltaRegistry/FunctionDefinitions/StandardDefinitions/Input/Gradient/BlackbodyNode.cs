@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "samples a Gradient that simulates the effect of black body radiation",
-            categories: new string[2] { "Input", "Gradient" },
+            category: "Input/Gradient",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

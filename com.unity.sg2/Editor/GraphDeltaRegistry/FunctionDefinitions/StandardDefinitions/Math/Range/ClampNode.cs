@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Prevents an input value from going below the specified min or above the specified max.",
-            categories: new string[2] { "Math", "Range" },
+            category: "Math/Range",
             synonyms: new string[1] { "limit" },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

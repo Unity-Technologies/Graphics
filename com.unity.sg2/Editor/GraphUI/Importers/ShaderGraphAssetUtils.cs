@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph
                         version: 1,
                         name: assetID,
                         tooltip: "TODO: This should come from the SubGraphModel",
-                        categories: new string[] { "SubGraphs" },
+                        category: "SubGraphs",
                         synonyms: new string[] { "SubGraph" },
                         displayName: fileName,
                         hasPreview: true,

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Normal Strength",
             tooltip: "changes the intensity of a tangent space normal",
-            categories: new string[2] { "Artistic", "Normal" },
+            category: "Artistic/Normal",
             synonyms: new string[1] { "intensity" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "creates a cell noise pattern using ranomly-placed points as cell centers",
-            categories: new string[2] { "Procedural", "Noise" },
+            category: "Procedural/Noise",
             synonyms: new string[1] { "worley noise" },
             selectableFunctions: new()
             {

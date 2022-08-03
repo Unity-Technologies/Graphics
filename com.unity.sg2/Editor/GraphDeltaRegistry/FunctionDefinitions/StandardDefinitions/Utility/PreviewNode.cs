@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets a preview of the shader at a specific point in the graph.",
-            categories: new string[1] { "Utility" },
+            category: "Utility",
             synonyms: new string[1] { "triangle wave" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

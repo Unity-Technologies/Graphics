@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Reciprocal Square Root",
             tooltip: "divides 1 by the square root of the input",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[2] { "rsqrt", "inversesqrt" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

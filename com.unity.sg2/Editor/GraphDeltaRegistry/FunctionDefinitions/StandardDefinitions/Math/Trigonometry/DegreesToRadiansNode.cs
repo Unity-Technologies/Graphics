@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Degrees To Radians",
             tooltip: "converts degrees to radians",
-            categories: new string[2] { "Math", "Trigonometry" },
+            category: "Math/Trigonometry",
             synonyms: new string[3] { "degtorad", "radians", "convert" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

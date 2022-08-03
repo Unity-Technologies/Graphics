@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Samples a 2D Texture Array.",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[3] { "stack", "pile", "tex2darray" },
             displayName: "Sample Texture 2D Array",
             selectableFunctions: new()

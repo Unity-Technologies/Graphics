@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the logarithm of the input.",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {

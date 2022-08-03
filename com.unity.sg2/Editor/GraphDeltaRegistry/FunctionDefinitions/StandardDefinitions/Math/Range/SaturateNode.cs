@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Clamps the input to a value between 0 and 1.",
-            categories: new string[2] { "Math", "Range" },
+            category: "Math/Range",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Creates a normal from multiple samples of a height map.",
-            categories: new string[2] { "Artistic", "Normal" },
+            category: "Artistic/Normal",
             synonyms: new string[2] { "convert to normal", "bump map" },
             displayName: "Normal From Texture",
             selectableFunctions: new()

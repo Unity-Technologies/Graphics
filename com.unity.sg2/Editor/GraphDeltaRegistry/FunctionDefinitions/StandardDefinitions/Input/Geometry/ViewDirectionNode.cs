@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets a normalized vector from the current point to the camera position.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[2] { "eye direction", "camera direction" },
             displayName: "View Direction",
             parameters: new ParameterUIDescriptor[2] {

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates a blend of values between input A and input B using the value of input T.",
-            categories: new string[2] { "Math", "Interpolation" },
+            category: "Math/Interpolation",
             synonyms: new string[5] { "Mix", "Blend", "Interpolate", "Extrapolate", "Linear Interpolate" },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

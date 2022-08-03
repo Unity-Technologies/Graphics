@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "a constant, single-channel, whole number value",
-            categories: new string[2] { "Input", "Basic" },
+            category: "Input/Basic",
             synonyms: new string[1] { "whole number" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
