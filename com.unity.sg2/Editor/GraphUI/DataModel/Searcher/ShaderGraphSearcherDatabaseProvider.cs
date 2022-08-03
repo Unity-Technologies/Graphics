@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return databases;
         }
 
-        SearcherDatabaseBase CreateNodeDatabaseFromRegistry(IGraphModel graphModel)
+        internal static List<SearcherItem> GetNodeSearcherItems(IGraphModel graphModel)
         {
             var searcherItems = new List<SearcherItem>();
             if (graphModel is ShaderGraphModel shaderGraphModel)
@@ -54,11 +54,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     if (shaderGraphModel.ShouldBeInSearcher(registryKey))
                     {
-                        var uiHints = registry.GetNodeUIDescriptor(
+                        var uiInfo = registry.GetNodeUIDescriptor(
                             registryKey,
                             registry.GetDefaultTopology(registryKey)
                         );
-                        string searcherItemName = uiHints.DisplayName;
+                        string searcherItemName = uiInfo.DisplayName;
                         // fallback to the registry name if there is no display name
                         if (string.IsNullOrEmpty(searcherItemName))
                             searcherItemName = registryKey.Name;
@@ -81,8 +81,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             )
                         )
                         {
-                            CategoryPath = nodeUIDescriptor.Category,
-                            Synonyms = uiHints.Synonyms.ToArray()
+                            CategoryPath = uiInfo.Category,
+                            Synonyms = uiInfo.Synonyms.ToArray()
                         };
                         namesAddedToSearcher.Add(searcherItemName);
                         searcherItems.Add(searcherItem);
