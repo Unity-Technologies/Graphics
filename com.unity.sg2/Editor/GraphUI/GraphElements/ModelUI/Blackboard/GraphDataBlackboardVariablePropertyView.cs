@@ -13,7 +13,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 AddExposedToggle();
             }
 
-            AddInitializationField();
+            if (graphDataModel.HasEditableInitialization)
+            {
+                AddInitializationField();
+            }
+
             AddTooltipField();
         }
     }

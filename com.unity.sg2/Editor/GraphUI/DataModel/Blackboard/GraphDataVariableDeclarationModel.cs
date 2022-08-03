@@ -75,6 +75,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        public bool HasEditableInitialization => DataType != ShaderGraphExampleTypes.SamplerStateTypeHandle;
+
         public override void Rename(string newName)
         {
             base.Rename(newName); // Result is assigned to Title, can be different from newName (i.e. numbers at end)
