@@ -31,12 +31,23 @@ namespace UnityEditor.ShaderGraph.Defs
 
         private readonly NodeDescriptor m_nodeDescriptor;
         private readonly FunctionDescriptor? m_defaultFunction;
+        private FunctionDescriptor? m_selectedFunction;
         private readonly Dictionary<string, FunctionDescriptor> m_nameToFunction;
         private readonly Dictionary<string, string> m_functionNameToShaderFunctionName;
         private readonly Dictionary<string, string> m_functionNameToModifiedBody;
 
-        internal FunctionDescriptor? SelectedFunction { get; private set; }
+        internal FunctionDescriptor? SelectedFunction {
+            get { return m_selectedFunction; }
+            set { m_selectedFunction = value; }
+        }
 
+        /// <summary>
+        /// Sets up the uniformed version of the node from a a NodeDescriptor.
+        /// 
+        /// The constructed builder has no information that would be derived from
+        /// the graph state (Eg. the selected function).
+        /// </summary>
+        /// <param name="nodeDescriptor"></param>
         internal NodeDescriptorNodeBuilder(NodeDescriptor nodeDescriptor)
         {
             m_nodeDescriptor = nodeDescriptor; // copy
@@ -52,96 +63,49 @@ namespace UnityEditor.ShaderGraph.Defs
             }
 
             Dictionary<string, FunctionDescriptor> nameToFunction = new();
-            Dictionary<string, string> functionNameToCodeName = new();
+            Dictionary<string, string> functionNameToShaderFunctionName = new();
+            Dictionary<string, string> functionNameToModifiedBody = new();
 
             foreach (FunctionDescriptor fd in nodeDescriptor.Functions)
             {
                 // set the first function as the default function by default
                 if (m_defaultFunction == null)
-                {
                     m_defaultFunction = fd;
-                }
                 // if the FD is the specified main, set it as the default
                 if (fd.Name.Equals(m_nodeDescriptor.MainFunction))
-                {
                     m_defaultFunction = fd;
-                }
                 nameToFunction[fd.Name] = fd;
-                functionNameToCodeName[fd.Name] = $"{m_nodeDescriptor.Name}_{fd.Name}";
+                functionNameToShaderFunctionName[fd.Name] = $"{m_nodeDescriptor.Name}_{fd.Name}";
             }
 
             // modify the body code for all functions
-            Dictionary<string, string>functionNameToModifiedBody = new();
             foreach (FunctionDescriptor fd in nodeDescriptor.Functions)
             {
-                string newBody = LocalizeFunctionCalls(functionNameToCodeName, fd);
+                string newBody = LocalizeFunctionCalls(functionNameToShaderFunctionName, fd);
                 functionNameToModifiedBody[fd.Name] = newBody;
             }
 
+            // no graph data at this point so make the selected function and
+            // default function the same
+            m_selectedFunction = m_defaultFunction;
+
             m_nameToFunction = nameToFunction;
-            m_functionNameToShaderFunctionName = functionNameToCodeName;
+            m_functionNameToShaderFunctionName = functionNameToShaderFunctionName;
             m_functionNameToModifiedBody = functionNameToModifiedBody;
         }
 
-        private FunctionDescriptor? DeterminSelectedFunction(
-            NodeDescriptor nodeDescriptor,
-            NodeHandler nodeHandler
-        )
+        public RegistryKey GetRegistryKey()
         {
-            // if there aren't any functions available to choose from
-            if (nodeDescriptor.Functions.Count < 1)
-                return null;
-
-
-            foreach (FunctionDescriptor fd in nodeDescriptor.Functions)
+            return new RegistryKey
             {
-                // set the first function as the default function by default
-                if (m_defaultFunction == null)
-                {
-                    m_defaultFunction = fd;
-                }
-                // if the FD is the specified main, set it as the default
-                if (fd.Name.Equals(m_nodeDescriptor.MainFunction))
-                {
-                    m_defaultFunction = fd;
-                }
-                nameToFunction[fd.Name] = fd;
-                functionNameToCodeName[fd.Name] = $"{m_nodeDescriptor.Name}_{fd.Name}";
-            }
+                Name = m_nodeDescriptor.Name,
+                Version = m_nodeDescriptor.Version
+            };
         }
 
-        /// <summary>
-        /// Returns the given FunctionDescriptor's body code with function calls
-        /// that match keys in functionNameToRewrittenFunctionName replaced with
-        /// the associated value in functionNameToRewrittenFunctionName.
-        ///
-        /// Example
-        /// If functionNameToRewrittenFunctionName contains
-        /// [MyFuncName, NewFuncName]
-        /// functionDescriptor.Body will have all calls like MyFuncName(...)
-        /// replaced with NewFuncName(...).
-        /// </summary>
-        private static string LocalizeFunctionCalls(
-            Dictionary<string, string> functionNameToRewrittenFunctionName,
-            FunctionDescriptor functionDescriptor)
+        public RegistryFlags GetRegistryFlags()
         {
-            // Find all places in the body code that match FUNCTION_CALL_PATTERN
-            // and repalce if the value is a key in functionNameToRewrittenFunctionName.
-            string matchReplaceBody = Regex.Replace(
-                functionDescriptor.Body,
-                FUNCTION_CALL_PATTERN,
-                (Match match) =>
-                {
-                    // the value of the first capturing group is the function name
-                    var functionName = match.Groups[1].Value;
-                    // NOTE - To avoid checking keywords for match, we assume
-                    // that language keywords (Eg. "if") are not in functionNameToRewrittenFunctionName.
-                    return functionNameToRewrittenFunctionName.ContainsKey(functionName) ?
-                        functionNameToRewrittenFunctionName[functionName] + "(" :
-                        match.Value;
-                }
-            );
-            return matchReplaceBody;
+            return RegistryFlags.Func;
         }
 
         /// <summary>
@@ -158,32 +122,49 @@ namespace UnityEditor.ShaderGraph.Defs
         /// </param>
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            /**
-             * The NodeDescriptor may have multiple functions defined.
-             * The currently selected FunctionDescriptor name is stored as
-             * field in the node data.
-             **/
-
             // if there is no default function return without changing the node.
             if (m_defaultFunction == null) return;
 
-            FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
-
-            // check node metadata for a selected function name
-            if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
+            // The NodeDescriptor may have multiple functions defined.
+            // The currently selected FunctionDescriptor name is stored as
+            // field in the node data.
+            FieldHandler selectedFunctionFieldHandler = node.GetField(SELECTED_FUNCTION_FIELD_NAME);
+            if (selectedFunctionFieldHandler == null)
             {
-                string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
-                if (m_nameToFunction.ContainsKey(functionName))
+                node.AddField(SELECTED_FUNCTION_FIELD_NAME, m_selectedFunction, true);
+            }
+            else
+            {
+                var selectedFunctionName = selectedFunctionFieldHandler.GetData<string>();
+                if (!m_nameToFunction.ContainsKey(selectedFunctionName))
                 {
-                    selectedFunction = m_nameToFunction[functionName];
+                    Debug.LogWarning($"Cannot select function with name {selectedFunctionName}. No FunctionDescriptor with this name available.");
+                }
+                else
+                {
+                    m_selectedFunction = m_nameToFunction[selectedFunctionName];
                 }
             }
+
+            //FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
+            //node.AddField<string>(SELECTED_FUNCTION_FIELD_NAME, )
+            //string selectedFunctioName = node.GetField(SELECTED_FUNCTION_FIELD_NAME).GetData<string>();
+
+            // check node metadata for a selected function name
+            //if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
+            //{
+            //    string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
+            //    if (m_nameToFunction.ContainsKey(functionName))
+            //    {
+            //        selectedFunction = m_nameToFunction[functionName];
+            //    }
+            //}
 
             // determine a fallback type
             ParametricTypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
 
             // setup the node topology
-            foreach (var param in selectedFunction.Parameters)
+            foreach (var param in ((FunctionDescriptor)m_selectedFunction).Parameters)
             {
                 NodeBuilderUtils.ParameterDescriptorToField(
                     param,
@@ -193,136 +174,6 @@ namespace UnityEditor.ShaderGraph.Defs
             }
 
             GraphTypeHelpers.ResolveDynamicPorts(node);
-        }
-
-        private static ShaderType GetShaderTypeForParametricTypeDescriptor(
-            ShaderContainer container,
-            ParametricTypeDescriptor resolvedType)
-        {
-            var height = resolvedType.Height;
-            var length = resolvedType.Length;
-            var primitive = resolvedType.Primitive;
-            var precision = resolvedType.Precision;
-
-            int l = Mathf.Clamp((int)length, 1, 4);
-            int h = Mathf.Clamp((int)height, 1, 4);
-
-            string name = "float";
-
-            switch (primitive)
-            {
-                case Primitive.Bool: name = "bool"; break;
-                case Primitive.Int: name = "int"; break;
-                case Primitive.Float:
-                    switch (precision)
-                    {
-                        case Precision.Fixed: name = "float"; break;
-                        case Precision.Half: name = "half"; break;
-                    }
-                    break;
-            }
-
-            var shaderType = ShaderType.Scalar(container, name);
-            if (h != 1 && l != 1)
-            {
-                shaderType = ShaderType.Matrix(container, shaderType, l, h);
-            }
-            else if (h != 1 || l != 1)
-            {
-                shaderType = ShaderType.Vector(container, shaderType, Mathf.Max(l, h));
-            }
-            return shaderType;
-        }
-
-        private static ShaderType ShaderTypeForParameter(
-            ShaderContainer container,
-            ParameterDescriptor parameter,
-            ParametricTypeDescriptor fallbackType)
-        {
-            switch (parameter.TypeDescriptor)
-            {
-                case ParametricTypeDescriptor paramType:
-                    ParametricTypeDescriptor resolvedType = new(
-                        paramType.Precision == Precision.Any ? fallbackType.Precision : paramType.Precision,
-                        paramType.Primitive == Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
-                        paramType.Length == Length.Any ? fallbackType.Length : paramType.Length,
-                        paramType.Height == Height.Any ? fallbackType.Height : paramType.Height
-                    );
-                    return GetShaderTypeForParametricTypeDescriptor(container, resolvedType);
-                case SamplerStateTypeDescriptor:
-                    return container._UnitySamplerState;
-                case TextureTypeDescriptor textureType:
-                    return textureType.TextureType switch
-                    {
-                        BaseTextureType.TextureType.Texture3D => container._UnityTexture3D,
-                        BaseTextureType.TextureType.Texture2DArray => container._UnityTexture2DArray,
-                        BaseTextureType.TextureType.CubeMap => container._UnityTextureCube,
-                        _ => container._UnityTexture2D,
-                    };
-                case GradientTypeDescriptor:
-                    var gradientBuilder = new ShaderType.StructBuilder(container, "Gradient");
-                    gradientBuilder.DeclaredExternally();
-                    return gradientBuilder.Build();
-                default:
-                    throw new Exception($"Parameter ({parameter.Name}) does not have an equivalent shader type.");
-            }
-        }
-
-        private ShaderFunction BuildShaderFunction(
-            ShaderContainer container,
-            FunctionDescriptor functionDescriptor,
-            ParametricTypeDescriptor fallbackType)
-        {
-            // Get a shader function builder
-            var shaderFunctionBuilder = new ShaderFunction.Builder(
-                container,
-                m_functionNameToShaderFunctionName[functionDescriptor.Name]);
-
-            // Set up the vars in the shader function.
-            foreach (var param in functionDescriptor.Parameters)
-            {
-                var shaderType = ShaderTypeForParameter(container, param, fallbackType);
-
-                if (param.Usage == Usage.Out)
-                {
-                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
-                }
-                else if (param.Usage == Usage.In
-                    || param.Usage == Usage.Static
-                    || param.Usage == Usage.Local && !ParametricTypeUtils.IsParametric(param))
-                {
-                    shaderFunctionBuilder.AddInput(shaderType, param.Name);
-                }
-                else if(param.Usage == Usage.Local)
-                {
-                    var init = ParametricTypeUtils.ManagedToParametricToHLSL(param.DefaultValue);
-                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name, init);
-                }
-                else
-                {
-                    throw new Exception($"No ShaderFunction parameter type for {param.Usage}");
-                }
-            }
-
-            // Add the shader function body.
-            shaderFunctionBuilder.AddLine(m_functionNameToModifiedBody[functionDescriptor.Name]);
-
-
-            // Return the results of ShaderFoundry's build.
-            return shaderFunctionBuilder.Build();
-        }
-
-        private void AddIncludesFromFunctionDescriptor(
-            ShaderContainer shaderContainer,
-            FunctionDescriptor fd,
-            List<ShaderFoundry.IncludeDescriptor> includes)
-        {
-            foreach (string include in fd.Includes)
-            {
-                var builder = new ShaderFoundry.IncludeDescriptor.Builder(shaderContainer, include);
-                var includeDescriptor = builder.Build();
-                includes.Add(includeDescriptor);
-            }
         }
 
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
@@ -374,18 +225,168 @@ namespace UnityEditor.ShaderGraph.Defs
             return nameToShaderFunction[selectedFunction.Name];
         }
 
-        public RegistryKey GetRegistryKey()
+        private static ShaderType GetShaderTypeForParametricTypeDescriptor(
+            ShaderContainer container,
+            ParametricTypeDescriptor resolvedType)
         {
-            return new RegistryKey
+            var height = resolvedType.Height;
+            var length = resolvedType.Length;
+            var primitive = resolvedType.Primitive;
+            var precision = resolvedType.Precision;
+
+            int l = Mathf.Clamp((int)length, 1, 4);
+            int h = Mathf.Clamp((int)height, 1, 4);
+
+            string name = "float";
+
+            switch (primitive)
             {
-                Name = m_nodeDescriptor.Name,
-                Version = m_nodeDescriptor.Version
-            };
+                case Primitive.Bool: name = "bool"; break;
+                case Primitive.Int: name = "int"; break;
+                case Primitive.Float:
+                    switch (precision)
+                    {
+                        case Precision.Fixed: name = "float"; break;
+                        case Precision.Half: name = "half"; break;
+                    }
+                    break;
+            }
+
+            var shaderType = ShaderType.Scalar(container, name);
+            if (h != 1 && l != 1)
+            {
+                shaderType = ShaderType.Matrix(container, shaderType, l, h);
+            }
+            else if (h != 1 || l != 1)
+            {
+                shaderType = ShaderType.Vector(container, shaderType, Mathf.Max(l, h));
+            }
+            return shaderType;
         }
 
-        public RegistryFlags GetRegistryFlags()
+        private ShaderFunction BuildShaderFunction(
+            ShaderContainer container,
+            FunctionDescriptor functionDescriptor,
+            ParametricTypeDescriptor fallbackType)
         {
-            return RegistryFlags.Func;
+            // Get a shader function builder
+            var shaderFunctionBuilder = new ShaderFunction.Builder(
+                container,
+                m_functionNameToShaderFunctionName[functionDescriptor.Name]);
+
+            // Set up the vars in the shader function.
+            foreach (var param in functionDescriptor.Parameters)
+            {
+                var shaderType = ShaderTypeForParameter(container, param, fallbackType);
+
+                if (param.Usage == Usage.Out)
+                {
+                    shaderFunctionBuilder.AddOutput(shaderType, param.Name);
+                }
+                else if (param.Usage == Usage.In
+                    || param.Usage == Usage.Static
+                    || param.Usage == Usage.Local && !ParametricTypeUtils.IsParametric(param))
+                {
+                    shaderFunctionBuilder.AddInput(shaderType, param.Name);
+                }
+                else if (param.Usage == Usage.Local)
+                {
+                    var init = ParametricTypeUtils.ManagedToParametricToHLSL(param.DefaultValue);
+                    shaderFunctionBuilder.AddVariableDeclarationStatement(shaderType, param.Name, init);
+                }
+                else
+                {
+                    throw new Exception($"No ShaderFunction parameter type for {param.Usage}");
+                }
+            }
+
+            // Add the shader function body.
+            shaderFunctionBuilder.AddLine(m_functionNameToModifiedBody[functionDescriptor.Name]);
+
+
+            // Return the results of ShaderFoundry's build.
+            return shaderFunctionBuilder.Build();
+        }
+
+        private void AddIncludesFromFunctionDescriptor(
+            ShaderContainer shaderContainer,
+            FunctionDescriptor fd,
+            List<ShaderFoundry.IncludeDescriptor> includes)
+        {
+            foreach (string include in fd.Includes)
+            {
+                var builder = new ShaderFoundry.IncludeDescriptor.Builder(shaderContainer, include);
+                var includeDescriptor = builder.Build();
+                includes.Add(includeDescriptor);
+            }
+        }
+
+        /// <summary>
+        /// Returns the given FunctionDescriptor's body code with function calls
+        /// that match keys in functionNameToRewrittenFunctionName replaced with
+        /// the associated value in functionNameToRewrittenFunctionName.
+        ///
+        /// Example
+        /// If functionNameToRewrittenFunctionName contains
+        /// [MyFuncName, NewFuncName]
+        /// functionDescriptor.Body will have all calls like MyFuncName(...)
+        /// replaced with NewFuncName(...).
+        /// </summary>
+        private static string LocalizeFunctionCalls(
+            Dictionary<string, string> functionNameToRewrittenFunctionName,
+            FunctionDescriptor functionDescriptor)
+        {
+            // Find all places in the body code that match FUNCTION_CALL_PATTERN
+            // and repalce if the value is a key in functionNameToRewrittenFunctionName.
+            string matchReplaceBody = Regex.Replace(
+                functionDescriptor.Body,
+                FUNCTION_CALL_PATTERN,
+                (Match match) =>
+                {
+                    // the value of the first capturing group is the function name
+                    var functionName = match.Groups[1].Value;
+                    // NOTE - To avoid checking keywords for match, we assume
+                    // that language keywords (Eg. "if") are not in functionNameToRewrittenFunctionName.
+                    return functionNameToRewrittenFunctionName.ContainsKey(functionName) ?
+                        functionNameToRewrittenFunctionName[functionName] + "(" :
+                        match.Value;
+                }
+            );
+            return matchReplaceBody;
+        }
+
+        private static ShaderType ShaderTypeForParameter(
+            ShaderContainer container,
+            ParameterDescriptor parameter,
+            ParametricTypeDescriptor fallbackType)
+        {
+            switch (parameter.TypeDescriptor)
+            {
+                case ParametricTypeDescriptor paramType:
+                    ParametricTypeDescriptor resolvedType = new(
+                        paramType.Precision == Precision.Any ? fallbackType.Precision : paramType.Precision,
+                        paramType.Primitive == Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
+                        paramType.Length == Length.Any ? fallbackType.Length : paramType.Length,
+                        paramType.Height == Height.Any ? fallbackType.Height : paramType.Height
+                    );
+                    return GetShaderTypeForParametricTypeDescriptor(container, resolvedType);
+                case SamplerStateTypeDescriptor:
+                    return container._UnitySamplerState;
+                case TextureTypeDescriptor textureType:
+                    return textureType.TextureType switch
+                    {
+                        BaseTextureType.TextureType.Texture3D => container._UnityTexture3D,
+                        BaseTextureType.TextureType.Texture2DArray => container._UnityTexture2DArray,
+                        BaseTextureType.TextureType.CubeMap => container._UnityTextureCube,
+                        _ => container._UnityTexture2D,
+                    };
+                case GradientTypeDescriptor:
+                    var gradientBuilder = new ShaderType.StructBuilder(container, "Gradient");
+                    gradientBuilder.DeclaredExternally();
+                    return gradientBuilder.Build();
+                default:
+                    throw new Exception($"Parameter ({parameter.Name}) does not have an equivalent shader type.");
+            }
         }
     }
 }
