@@ -115,16 +115,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         internal IEnumerable<VariableSetting> GetSettings()
         {
-            if (DataType == TypeHandle.Float)
-            {
-                yield return VariableSettings.floatMode;
-
-                if (VariableSettings.floatMode.GetTyped(this) is ContextEntryEnumTags.FloatDisplayType.Slider)
-                {
-                    yield return VariableSettings.rangeMin;
-                    yield return VariableSettings.rangeMax;
-                }
-            }
+            // TODO (Joe): Enable slider mode when Range(min, max) display type can be generated.
+            // if (DataType == TypeHandle.Float)
+            // {
+            //     yield return VariableSettings.floatMode;
+            //
+            //     if (VariableSettings.floatMode.GetTyped(this) is ContextEntryEnumTags.FloatDisplayType.Slider)
+            //     {
+            //         yield return VariableSettings.rangeMin;
+            //         yield return VariableSettings.rangeMax;
+            //     }
+            // }
 
             if (DataType == ShaderGraphExampleTypes.Color)
             {

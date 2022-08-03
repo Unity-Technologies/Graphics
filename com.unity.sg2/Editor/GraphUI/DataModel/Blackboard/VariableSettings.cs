@@ -86,11 +86,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         #region Sampler State
 
-        public static readonly VariableSetting samplerStateFilter =
+        public static readonly VariableSetting<SamplerStateType.Filter> samplerStateFilter =
             CreateFromSubField<SamplerStateType.Filter>(model => model.ContextEntry.GetTypeField(), SamplerStateType.kFilter, "Filter");
 
-        public static readonly VariableSetting samplerStateWrap =
-            CreateFromSubField<SamplerStateType.Filter>(model => model.ContextEntry.GetTypeField(), SamplerStateType.kWrap, "Wrap");
+        public static readonly VariableSetting<SamplerStateType.Wrap> samplerStateWrap =
+            CreateFromSubField<SamplerStateType.Wrap>(model => model.ContextEntry.GetTypeField(), SamplerStateType.kWrap, "Wrap");
 
         #endregion
 
