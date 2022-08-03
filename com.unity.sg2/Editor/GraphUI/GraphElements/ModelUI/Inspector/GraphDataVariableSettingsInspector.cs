@@ -40,6 +40,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return graphDataModel.GetSettings().Select(MakeSettingField);
         }
 
-        public override bool IsEmpty() => false;
+        public override bool IsEmpty() => !GetFields().Any();
     }
 }
