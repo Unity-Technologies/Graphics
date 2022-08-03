@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Contrast",
             tooltip: "a constant, single-channel, whole number value",
             categories: new string[2] { "Input", "Basic" },
             synonyms: new string[1] { "whole number" },

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             categories: new string[2] { "Input", "Geometry" },
             hasPreview:false,
             synonyms: new string[0] { },
-            displayName: "Vertex Color",
+            displayName: "Vertex ID",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
