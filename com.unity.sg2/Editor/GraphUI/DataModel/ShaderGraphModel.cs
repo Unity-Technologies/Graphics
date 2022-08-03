@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     class MainPreviewData
     {
         string m_GraphModelGuid;
-
         string ScaleUserPrefKey => m_GraphModelGuid + "." + ChangePreviewZoomCommand.UserPrefsKey;
         string RotationUserPrefKey => m_GraphModelGuid + "." + ChangePreviewRotationCommand.UserPrefsKey;
         string MeshUserPrefKey => m_GraphModelGuid + "." + ChangePreviewMeshCommand.UserPrefsKey;
@@ -670,15 +669,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return nodeRequiresTime;
         }
 
-        public static bool ShouldElementBeVisibleToSearcher(ShaderGraphModel shaderGraphModel, RegistryKey elementRegistryKey)
+        public bool ShouldBeInSearcher(RegistryKey registryKey)
         {
             try
             {
-                var nodeBuilder = shaderGraphModel.RegistryInstance.GetNodeBuilder(elementRegistryKey);
+                var nodeBuilder = RegistryInstance.GetNodeBuilder(registryKey);
                 var registryFlags = nodeBuilder.GetRegistryFlags();
-
-                // commented out that bit cause it throws an exception for some elements at the moment
-                return registryFlags.HasFlag(RegistryFlags.Func) /*|| registry.GetDefaultTopology(elementRegistryKey) == null*/;
+                return registryFlags.HasFlag(RegistryFlags.Func);
             }
             catch (Exception exception)
             {

@@ -12,10 +12,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphStencil : Stencil
     {
         public const string Name = "ShaderGraph";
-
         public const string DefaultGraphAssetName = "NewShaderGraph";
         public const string GraphExtension = "sg2";
-
         public const string DefaultSubGraphAssetName = "NewShaderSubGraph";
         public const string SubGraphExtension = "sg2subgraph";
 
@@ -26,8 +24,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal static readonly string[] sections = {"Properties", "Keywords"};
 
         public override IEnumerable<string> SectionNames => sections;
-
-        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
         public ShaderGraphStencil()
         {
