@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Creates a 4-sided polygon with rounded corners.",
-            categories: new string[2] { "Procedural", "Shape" },
+            category: "Procedural/Shape",
             synonyms: new string[1] { "square" },
             displayName: "Rounded Rectangle",
             parameters: new ParameterUIDescriptor[5] {

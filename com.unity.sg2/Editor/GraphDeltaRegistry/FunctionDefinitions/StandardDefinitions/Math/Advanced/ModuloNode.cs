@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the remainder of dividing input A by input B.",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[2] { "fmod", "%" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

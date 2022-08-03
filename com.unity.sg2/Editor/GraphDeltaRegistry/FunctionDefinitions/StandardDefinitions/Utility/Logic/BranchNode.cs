@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "provides a dynamic branch to the shader. Both sides of the branch will be evaluated",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             synonyms: new string[3] { "switch", "if", "else" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[4] {

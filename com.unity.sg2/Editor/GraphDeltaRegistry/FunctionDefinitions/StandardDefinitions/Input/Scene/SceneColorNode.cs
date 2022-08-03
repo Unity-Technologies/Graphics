@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the camera's color buffer.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[1] { "screen buffer" },
             parameters: new ParameterUIDescriptor[2] {

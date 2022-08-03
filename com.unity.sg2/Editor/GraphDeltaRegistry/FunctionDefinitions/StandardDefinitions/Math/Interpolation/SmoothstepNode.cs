@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the selected interpolation between 0 and 1.",
-            categories: new string[2] { "Math", "Interpolation" },
+            category: "Math/Interpolation",
             synonyms: new string[1] { "curve" },
             selectableFunctions: new()
             {

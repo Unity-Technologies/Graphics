@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Applies a radial shear warping effect to the UVs, similar to a wave.",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[0] { },
             displayName:"Radial Shear",
             parameters: new ParameterUIDescriptor[5] {

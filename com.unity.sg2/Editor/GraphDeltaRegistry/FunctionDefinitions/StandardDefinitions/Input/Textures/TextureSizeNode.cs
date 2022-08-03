@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gets the dimensions of the texture in texels and also the dimensions of each texel in 0-1 UV space.",
             displayName: "Texture Size",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[1] { "texture size" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[5] {

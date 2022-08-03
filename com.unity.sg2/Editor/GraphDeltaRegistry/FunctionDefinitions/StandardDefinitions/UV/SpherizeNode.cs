@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Applies a spherical warping effect to the input UVs, similar to a fisheye camera lens.",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

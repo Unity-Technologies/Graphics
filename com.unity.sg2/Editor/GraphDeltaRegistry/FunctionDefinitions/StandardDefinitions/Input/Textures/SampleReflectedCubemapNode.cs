@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Samples a Cubemap with a reflection vector.",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[1] { "texcube" },
             displayName: "Sample Reflected Cubemap",
             selectableFunctions: new()

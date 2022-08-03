@@ -53,7 +53,7 @@ void Unity_ComputeDeformedVertex(uint vertexID, out float3 positionOut, out floa
             Name,
             displayName: "Compute Deformation",
             tooltip: "Passes computed deformation data to the vertex shader.",
-            categories: new string[2] { "Input", "Mesh Deformation" },
+            category: "Input/Mesh Deformation",
             hasPreview: false,
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[3] {

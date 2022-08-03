@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "White Balance",
             tooltip: "adjusts temperature and tint",
-            categories: new string[2] { "Artistic", "Adjustment" },
+            category: "Artistic/Adjustment",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

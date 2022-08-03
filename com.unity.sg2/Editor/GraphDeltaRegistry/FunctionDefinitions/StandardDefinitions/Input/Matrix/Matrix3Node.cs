@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Matrix 3x3",
             tooltip: "creates a static 3x3 matrix",
-            categories: new string[2] { "Input", "Matrix" },
+            category: "Input/Matrix",
             synonyms: new string[0],
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

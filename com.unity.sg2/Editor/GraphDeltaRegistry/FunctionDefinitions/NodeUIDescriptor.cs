@@ -19,13 +19,13 @@ namespace UnityEditor.ShaderGraph.Defs
         public IReadOnlyDictionary<string, string> SelectableFunctions { get; }
         public IReadOnlyCollection<ParameterUIDescriptor> Parameters { get; }
         public IReadOnlyCollection<string> Synonyms { get; }
-        public IReadOnlyCollection<string> Categories { get; }
+        public string Category { get; }
 
         public NodeUIDescriptor(
             int version,
             string name, // should match the name in a FunctionDesctriptor
             string tooltip,
-            string[] categories,
+            string category,
             string[] synonyms,
             string displayName = null,
             bool hasPreview = true, // By default we assume all nodes should have previews,
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
             DisplayName = displayName ?? name;
             Tooltip = tooltip;
             Synonyms = synonyms.ToList().AsReadOnly();
-            Categories = categories.ToList().AsReadOnly();
+            Category = category;
             HasPreview = hasPreview;
             var functionDictionary = selectableFunctions ?? new Dictionary<string, string>();
             SelectableFunctions = new ReadOnlyDictionary<string, string>(functionDictionary);

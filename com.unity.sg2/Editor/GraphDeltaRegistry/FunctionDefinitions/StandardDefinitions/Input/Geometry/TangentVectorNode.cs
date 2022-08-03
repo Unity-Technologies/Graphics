@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets a tangent vector in the selected space.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[0] { },
             displayName: "Tangent Vector",
             parameters: new ParameterUIDescriptor[2] {

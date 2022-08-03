@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the partial derivative of the input in relation to the screen-space x-coordinate.",
-            categories: new string[2] { "Math", "Derivative" },
+            category: "Math/Derivative",
             synonyms: new string[2] { "derivative", "slope" },
             selectableFunctions: new()
             {

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Checks if the current face is facing the camera.",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             hasPreview: false,
             synonyms: new string[2] { "face", "side" },
             parameters: new ParameterUIDescriptor[1] {

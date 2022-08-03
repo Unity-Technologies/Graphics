@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Hyperbolic Cosine",
             tooltip: "Calculates the hyperbolic cosine of the input.",
-            categories: new string[2] { "Math", "Trigonometry" },
+            category: "Math/Trigonometry",
             synonyms: new string[1] { "cosh" },
             selectableFunctions: new()
             {

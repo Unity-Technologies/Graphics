@@ -28,7 +28,7 @@ TextureDepth = CustomRenderTextureDepthRef;
             Version,
             Name,
             tooltip: "Return the width, height and depth of the custom texture.",
-            categories: new string[] { "Utility", "Custom Render Texture" },
+            category: "Utility/Custom Render Texture",
             synonyms: new string[0] { },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

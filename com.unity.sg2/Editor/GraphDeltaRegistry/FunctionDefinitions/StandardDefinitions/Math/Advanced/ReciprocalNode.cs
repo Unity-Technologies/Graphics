@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "returns one divided by the input",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[2] { "rcp", "divide" },
             selectableFunctions: new()
             {

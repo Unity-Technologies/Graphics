@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Defines a Texture 3D Asset.",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[1] { "volume" },
             displayName: "Texture 3D Asset",
             hasPreview: false,

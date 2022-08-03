@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Provides the unique id of individual instances or zero when instances aren't in use.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[0] { },
             displayName: "Instance ID",
             hasPreview:false,

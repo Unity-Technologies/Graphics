@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Parallax Mapping",
             tooltip: "creates a parallax effect that displaces a Material's UVs to create the illusion of depth",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[1] { "offset mapping" },
             hasPreview: false,
             selectableFunctions: new()

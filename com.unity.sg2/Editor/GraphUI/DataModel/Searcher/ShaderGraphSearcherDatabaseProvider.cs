@@ -40,23 +40,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return databases;
         }
 
-        // TODO: (Sai) If we were to specify the category path directly as the path string i.e.
-        // "Artistic/Color" instead of {"Artistic", "Color"} then we could avoid doing this
-        private static string GetCategoryPath(NodeUIDescriptor uiDescriptor)
-        {
-            var categoryPath = String.Empty;
-            var categoryData = uiDescriptor.Categories.ToList();
-            for (var i = 0; i < categoryData.Count; ++i)
-            {
-                var pathPiece = categoryData[i];
-                categoryPath += pathPiece;
-                if (i != categoryData.Count - 1)
-                    categoryPath += "/";
-            }
-
-            return categoryPath;
-        }
-
         internal static List<SearcherItem> GetNodeSearcherItems(IGraphModel graphModel)
         {
             var searcherItems = new List<SearcherItem>();
@@ -71,11 +54,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     if (shaderGraphModel.ShouldBeInSearcher(registryKey))
                     {
-                        var uiHints = registry.GetNodeUIDescriptor(
+                        var uiInfo = registry.GetNodeUIDescriptor(
                             registryKey,
                             registry.GetDefaultTopology(registryKey)
                         );
-                        string searcherItemName = uiHints.DisplayName;
+                        string searcherItemName = uiInfo.DisplayName;
                         // fallback to the registry name if there is no display name
                         if (string.IsNullOrEmpty(searcherItemName))
                             searcherItemName = registryKey.Name;
@@ -98,8 +81,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             )
                         )
                         {
-                            CategoryPath = GetCategoryPath(uiHints),
-                            Synonyms = uiHints.Synonyms.ToArray()
+                            CategoryPath = uiInfo.Category,
+                            Synonyms = uiInfo.Synonyms.ToArray()
                         };
                         namesAddedToSearcher.Add(searcherItemName);
                         searcherItems.Add(searcherItem);

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the texture coordinates from the selected channel.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[3] { "texcoords", "coords", "coordinates" },
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

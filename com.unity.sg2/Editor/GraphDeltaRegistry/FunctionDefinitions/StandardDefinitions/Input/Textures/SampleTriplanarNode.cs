@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Sample Triplanar",
             tooltip: "Samples a texture three times and projects in front/back, top/bottom, and left/right.",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[3] { "project", "box mapping", "round cube mapping" },
             selectableFunctions: new()
             {

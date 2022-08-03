@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Samples a 2D Texture.",
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             synonyms: new string[1] { "tex2d" },
             selectableFunctions: new()
             {

@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Divides input A by input B.",
-            categories: new string[2] { "Math", "Basic" },
+            category: "Math/Basic",
             synonyms: new string[3] { "division", "/", "divided by" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

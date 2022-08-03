@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "returns true if either of the inputs are true",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             synonyms: new string[1] { "||" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {
