@@ -72,7 +72,35 @@ SHOutgoingRadiosityWithProjectedConstantsPacked ReadBakedSH(uint readIndex)
     const uint SH_STRIDE_L01 = 4 * 3;
     const uint SH_STRIDE_L2 = (9 * 3) - SH_STRIDE_L01;
 
-#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+   outgoingRadiosity.data[0] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        0.0
+    );
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
+    outgoingRadiosity.data[0] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 3]  // shAr.x
+    );
+    outgoingRadiosity.data[1] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 4], // shAr.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 5], // shAr.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 6], // shAg.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 7]  // shAg.y
+    );
+    outgoingRadiosity.data[2] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 8], // shAg.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 9], // shAb.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 10], // shAb.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 11]  // shAb.z
+    );
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     outgoingRadiosity.data[0] = float4(
         _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
         _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
@@ -117,7 +145,7 @@ SHOutgoingRadiosityWithProjectedConstantsPacked ReadBakedSH(uint readIndex)
     );
 
 #else
-    // #error "Unsupported Probe Volumes atlas encoding";
+    #error "Unsupported Probe Volumes atlas encoding";
 #endif
 
     return outgoingRadiosity;
@@ -125,7 +153,16 @@ SHOutgoingRadiosityWithProjectedConstantsPacked ReadBakedSH(uint readIndex)
 
 void WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(uint3 writeIndex, SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked, float validity)
 {
-#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(outgoingRadiosityProjectedConstantsPacked.data[0].xyz, validity);
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = outgoingRadiosityProjectedConstantsPacked.data[0];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = outgoingRadiosityProjectedConstantsPacked.data[1];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = outgoingRadiosityProjectedConstantsPacked.data[2];
+    // Validity shouldn't change from the initial state so in the case when it's not packed with other coefficients we can skip writing to that slice.
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = outgoingRadiosityProjectedConstantsPacked.data[0];
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = outgoingRadiosityProjectedConstantsPacked.data[1];
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = outgoingRadiosityProjectedConstantsPacked.data[2];
@@ -135,7 +172,7 @@ void WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(uint3 writeIndex,
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6)] = float4(outgoingRadiosityProjectedConstantsPacked.data[6].xyz, validity);
 
 #else
-    // #error "Unsupported Probe Volumes atlas encoding";
+    #error "Unsupported Probe Volumes atlas encoding";
 #endif
 }
 

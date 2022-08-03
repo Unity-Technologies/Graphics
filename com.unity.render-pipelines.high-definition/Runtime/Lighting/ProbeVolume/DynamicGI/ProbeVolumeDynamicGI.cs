@@ -1060,18 +1060,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var c5 = new Vector4(ambientProbe[2, 4], ambientProbe[2, 5], ambientProbe[2, 6], ambientProbe[2, 7]) * multiplier;
             var c6 = new Vector4(ambientProbe[0, 8], ambientProbe[1, 8], ambientProbe[2, 8], 0f) * multiplier;
 
-            /*
-            // Denormalize Quadratic term:
-            c3.z /= 3f;
-            c4.z /= 3f;
-            c5.z /= 3f;
-
-            // Denormalize DC term:
-            c0.w += c3.z;
-            c1.w += c4.z;
-            c2.w += c5.z;
-            */
-
             s_AmbientProbe[0] = c0;
             s_AmbientProbe[1] = c1;
             s_AmbientProbe[2] = c2;

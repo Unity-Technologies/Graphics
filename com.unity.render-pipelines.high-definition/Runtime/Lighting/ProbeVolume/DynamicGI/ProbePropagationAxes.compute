@@ -164,30 +164,30 @@ SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, ui
     SHIncomingIrradiance shIncomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradiance);
     float weightHierarchy = 0.0;
+    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked;
+    ZERO_INITIALIZE(SHOutgoingRadiosityWithProjectedConstantsPacked, outgoingRadiosityProjectedConstantsPacked);
 
 #if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-    // #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0"
-    // TODO:
-    // ProbeVolumeSphericalHarmonicsL0 coefficients;
-    // ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL0(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    ProbeVolumeSphericalHarmonicsL0 coefficients;
+    ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL0(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    outgoingRadiosityProjectedConstantsPacked.data[0] = coefficients.data[0];
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    // #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1"
-    // TODO:
-    // ProbeVolumeSphericalHarmonicsL1 coefficients;
-    // ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    ProbeVolumeSphericalHarmonicsL1 coefficients;
+    ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    [unroll] for (int i = 0; i < 3; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i]; }
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
     ProbeVolumeSphericalHarmonicsL2 coefficients;
     ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL2(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    [unroll] for (int i = 0; i < 7; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i]; }
+#endif
 
     float skyWeight = 1 - weightHierarchy;
-    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked;
-    [unroll] for (int i = 0; i < SH_PACKED_COEFFICIENT_COUNT; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i] + _AmbientProbe[i] * skyWeight; }
+    [unroll] for (int j = 0; j < SH_PACKED_COEFFICIENT_COUNT; ++j) { outgoingRadiosityProjectedConstantsPacked.data[j] += _AmbientProbe[j] * skyWeight; }
     SHOutgoingRadiosityWithProjectedConstants outgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(outgoingRadiosityProjectedConstantsPacked);
     SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(outgoingRadiosityProjectedConstants);
     shIncomingIrradiance = SHIncomingIrradianceCompute(bakedOutgoingRadiosity);
-#endif
 
     return shIncomingIrradiance;
 }

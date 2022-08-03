@@ -1571,7 +1571,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         internal void DrawProbeVolumeDebugSHPreview(ProbeVolume probeVolume, Camera camera)
         {
-            if (!m_SupportProbeVolume) { return; }
+            if (!m_SupportProbeVolume || probeVolumeAtlas == null) { return; }
 
             Material debugMaterial = GetDebugSHPreviewMaterial();
             if (debugMaterial == null) { return; }
