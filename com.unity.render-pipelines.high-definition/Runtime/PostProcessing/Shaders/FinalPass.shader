@@ -67,11 +67,16 @@ Shader "Hidden/HDRP/FinalPass"
             return Nearest(_InputTexture, UV);
         #else
             #if BILINEAR
-                return Bilinear(_InputTexture, UV);
+                float2 inputTextureTexelSize = 1.0 / (_ViewPortSize.xy * _RTHandleScale.xy);
+                return Bilinear(_InputTexture, UV, inputTextureTexelSize);
             #elif CATMULL_ROM_4
                 return CatmullRomFourSamples(_InputTexture, UV);
             #elif LANCZOS
-                return Lanczos(_InputTexture, UV, _ViewPortSize.xy);
+                float4 inputTextureSize = float4(_ViewPortSize.xy * _RTHandleScale.xy, 1.0 / (_ViewPortSize.xy * _RTHandleScale.xy));
+                const int BORDER_PIXEL_SIZE = 3; // A size of 3 to guard one lanczos window radius.
+                float2 borderPixelSizeUV = _ViewPortSize.zw * (float)BORDER_PIXEL_SIZE;
+                bool isBorderPixel = any(UV <= borderPixelSizeUV) || any(UV >= (1.0 - borderPixelSizeUV));
+                return isBorderPixel ? Bilinear(_InputTexture, UV, inputTextureSize.zw) : Lanczos(_InputTexture, UV, inputTextureSize.xy);
             #else
                 return Nearest(_InputTexture, UV);
             #endif
