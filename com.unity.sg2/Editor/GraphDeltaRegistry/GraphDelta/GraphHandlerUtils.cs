@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     {
                         if (otherContextAreLeaf == false || !graph.GetNode(upstreamNodeID).HasMetadata("_contextDescriptor"))
                         {
+                            // TODO: Tail recursion if perf ends up being bad in live use-cases.
                             TopoSort(graph, upstreamNodeID, ref visited, ref result, dependencyList, otherContextAreLeaf);
                         }
                         else // add the context node, but don't recurse- we're treating it as a leaf.
@@ -32,6 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                             // and that you're processing context nodes to generate blocks-- each context node
                             // owns its own subtree/graph evaluation of nodes that feed into it, so we don't
                             // need to know about anything upstream of this.
+                            // TODO: We should probably consider refactoring so that the context node structure is less critical.
 
                             // We still need to include the context node though, since its ports typically represent the
                             // input structure for the previous context node-- see Interpreter.cs:214, EvaluateGraphAndPopulateDescriptors(...)
@@ -49,6 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return graph.graphDelta.GetDefaultConnection(entryName, graph.registry)?.GetNode()?.ID ?? "";
         }
 
+        // Build a reverse adjacency list for the graph.
         internal static Dictionary<ElementID, HashSet<ElementID>> BuildDependencyList(GraphHandler graph)
         {
             var comparer = new ElementIDComparer();
@@ -87,9 +90,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             List<ElementID> result = new();
             HashSet<ElementID> visited = new(new ElementIDComparer());
-            var dependencyList = depList ?? BuildDependencyList(graph);
 
-            TopoSort(graph, node, ref visited, ref result, depList, otherContextAreLeaf);
+            TopoSort(graph, node, ref visited, ref result, depList ?? BuildDependencyList(graph), otherContextAreLeaf);
             return result;
         }
 
@@ -100,11 +102,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             List<ElementID> result = new();
             HashSet<ElementID> visited = new(new ElementIDComparer());
-            var dependencyList = depList ?? BuildDependencyList(graph);
 
             foreach (var nodeID in graph.GetNodes().Select(e => e.ID.FullPath))
                 if (!visited.Contains(nodeID))
-                    TopoSort(graph, nodeID, ref visited, ref result, dependencyList, otherContextAreLeaf);
+                    TopoSort(graph, nodeID, ref visited, ref result, depList ?? BuildDependencyList(graph), otherContextAreLeaf);
 
             return result;
         }

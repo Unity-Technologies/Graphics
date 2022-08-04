@@ -1,19 +1,10 @@
-using System;
 using NUnit.Framework;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph.GraphDelta;
-using System.Linq;
 using UnityEditor.ShaderGraph.HeadlessPreview.UnitTests;
-using UnityEngine.TestTools;
-using static UnityEditor.VersionControl.Message;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
 {
-
-    // TODO: Consider async compile/rendering, need to wait until thread is done and results are returned
-    // https://forum.unity.com/threads/support-for-async-await-in-tests.787853/#post-6838493
-
     [TestFixture]
     class TopologyPreviewTests
     {
@@ -32,9 +23,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
         static readonly RegistryKey SampleTex2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };
         static readonly RegistryKey lerp = new RegistryKey { Name = "Lerp", Version = 1 };
         static readonly RegistryKey add = new RegistryKey { Name = "Add", Version = 1 };
-
-
-
 
         // The following topology tests that topological sorting where upstream dependencies
         // have dependencies on each other-- it's important that any generated variable names
