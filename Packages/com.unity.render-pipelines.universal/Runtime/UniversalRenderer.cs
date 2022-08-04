@@ -154,13 +154,13 @@ namespace UnityEngine.Rendering.Universal
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-#if PLATFORM_WINRT
-        // XRTODO: Remove this platform specific code and its usages when platform abstraction system is in place.
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+        // XRTODO: Remove this platform specific code(runs on Quest and HL).
         static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
-        internal static bool IsRunningHololens()
+        internal static bool IsRunningXRMobile()
         {
             var platform = Application.platform;
-            if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64)
+            if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
             {
                 XR.XRDisplaySubsystem display = null;
                 SubsystemManager.GetInstances(displaySubsystemList);
@@ -220,9 +220,9 @@ namespace UnityEngine.Rendering.Universal
             this.stripShadowsOffVariants = true;
             this.stripAdditionalLightOffVariants = true;
 #if ENABLE_VR && ENABLE_VR_MODULE
-#if PLATFORM_WINRT
-            // AdditionalLightOff variant is available on HL platform due to performance consideration.
-            this.stripAdditionalLightOffVariants = !IsRunningHololens();
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+            // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
+            this.stripAdditionalLightOffVariants = !IsRunningXRMobile();
 #endif
 #endif
 
