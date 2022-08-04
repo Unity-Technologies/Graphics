@@ -17,8 +17,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             SGR.InitializeDefaults();
         }
 
-        // whether or not a node will require another node to coerce the value to a vector for testing preview compilation.
-
         static readonly Color BadImageResults = new(1, 0, 1, 1);
         static readonly RegistryKey SampleTex2d = new RegistryKey { Name = "SampleTexture2D", Version = 1 };
         static readonly RegistryKey lerp = new RegistryKey { Name = "Lerp", Version = 1 };
