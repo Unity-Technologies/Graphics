@@ -1197,7 +1197,7 @@ namespace UnityEngine.Rendering.Universal
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
             // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
-            if (IsGLESDevice())
+            if (IsGLESDevice() && msaaDepthResolve)
                 return false;
 
             return supportsDepthCopy || msaaDepthResolve;
