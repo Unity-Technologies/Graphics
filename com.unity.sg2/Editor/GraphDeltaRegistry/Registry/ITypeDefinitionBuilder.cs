@@ -23,8 +23,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal static string GetUniqueUniformName(FieldHandler field)
         {
             return "_" + field.ID.ParentPath.Replace('.', '_');
-            //=> data.ID.FullPath.Replace('.', '_') + "_Tex";
-            //=> ElementID.FromString(data.ID.ParentPath).LocalPath;
         }
     }
 }
