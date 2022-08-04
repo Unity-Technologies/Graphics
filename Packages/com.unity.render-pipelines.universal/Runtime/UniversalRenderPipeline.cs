@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.Universal
             XRSystem.SetDisplayMSAASamples(msaaSamples);
             XRSystem.SetRenderScale(asset.renderScale);
 
-            Shader.globalRenderPipeline = "UniversalPipeline";
+            Shader.globalRenderPipeline = k_ShaderTagName;
 
             Lightmapping.SetDelegate(lightsDelegate);
 
@@ -234,7 +234,8 @@ namespace UnityEngine.Rendering.Universal
 
             base.Dispose(disposing);
 
-            Shader.globalRenderPipeline = "";
+            Shader.globalRenderPipeline = string.Empty;
+
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
             XRSystem.Dispose();
