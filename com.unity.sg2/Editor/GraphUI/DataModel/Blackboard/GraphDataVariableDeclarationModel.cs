@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -37,21 +39,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
-        PortHandler contextEntry => shaderGraphModel.GraphHandler
+        internal PortHandler ContextEntry => shaderGraphModel.GraphHandler
             .GetNode(contextNodeName)
             .GetPort(graphDataName);
-
-        public ContextEntryEnumTags.DataSource ShaderDeclaration
-        {
-            get =>
-                contextEntry
-                    .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
-                    .GetData();
-            set =>
-                contextEntry
-                    .GetField<ContextEntryEnumTags.DataSource>(ContextEntryEnumTags.kDataSource)
-                    .SetData(value);
-        }
 
         /// <summary>
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
@@ -68,7 +58,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return false;
                 }
 
-                return contextEntry
+                return ContextEntry
                     .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
                     .GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
             }
@@ -79,16 +69,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     value = false;
                 }
 
-                contextEntry
+                ContextEntry
                     .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
                     .SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
             }
         }
 
+        public bool HasEditableInitialization => DataType != ShaderGraphExampleTypes.SamplerStateTypeHandle;
+
         public override void Rename(string newName)
         {
             base.Rename(newName); // Result is assigned to Title, can be different from newName (i.e. numbers at end)
-            contextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
+            ContextEntry.GetField<string>(ContextEntryEnumTags.kDisplayName).SetData(Title);
         }
 
         public override void CreateInitializationValue()
@@ -112,6 +104,45 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     InitializationModel.ObjectValue = Matrix4x4.identity;
                 }
+
+                if (DataType == ShaderGraphExampleTypes.Color)
+                {
+                    ContextEntry.AddField(ContextEntryEnumTags.kIsColor, true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the settings applicable to this variable declaration.
+        /// </summary>
+        internal IEnumerable<VariableSetting> GetSettings()
+        {
+            // TODO (Joe): Enable slider mode when Range(min, max) display type can be generated.
+            // if (DataType == TypeHandle.Float)
+            // {
+            //     yield return VariableSettings.floatMode;
+            //
+            //     if (VariableSettings.floatMode.GetTyped(this) is ContextEntryEnumTags.FloatDisplayType.Slider)
+            //     {
+            //         yield return VariableSettings.rangeMin;
+            //         yield return VariableSettings.rangeMax;
+            //     }
+            // }
+
+            if (DataType == ShaderGraphExampleTypes.Color)
+            {
+                yield return VariableSettings.colorMode;
+            }
+
+            if (DataType == ShaderGraphExampleTypes.SamplerStateTypeHandle)
+            {
+                yield return VariableSettings.samplerStateFilter;
+                yield return VariableSettings.samplerStateWrap;
+            }
+
+            if (IsExposable)
+            {
+                yield return VariableSettings.shaderDeclaration;
             }
         }
     }

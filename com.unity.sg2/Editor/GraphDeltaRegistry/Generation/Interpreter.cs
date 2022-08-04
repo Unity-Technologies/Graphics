@@ -111,11 +111,37 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
-        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables, ref List<(string, UnityEngine.Texture)> defaultTextures)
+        static void EvaluateBlockReferrables(
+            NodeHandler rootNode,
+            Registry registry,
+            ShaderContainer container,
+            ref List<StructField> outputVariables,
+            ref List<StructField> inputVariables,
+            ref List<(string, UnityEngine.Texture)> defaultTextures)
+        {
+            var isContext = rootNode.HasMetadata("_contextDescriptor");
+            foreach (var port in rootNode.GetPorts())
+            {
+                if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
+                {
+                    BuildPropertyAttributes(port, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
+                }
+            }
+        }
+
+        static void BuildPropertyAttributes(
+            PortHandler port,
+            Registry registry,
+            ShaderContainer container,
+            ref List<StructField> outputVariables,
+            ref List<StructField> inputVariables,
+            ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var name = port.ID.LocalPath;
-            var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
-            var varOutBuilder = new StructField.Builder(container, name, type);
+            var portTypeField = port.GetTypeField();
+            var shaderType = registry.GetTypeBuilder(portTypeField.GetRegistryKey()).GetShaderType(portTypeField, container, registry);
+            var varOutBuilder = new StructField.Builder(container, name, shaderType);
+
             var usage = PropertyBlockUsage.Excluded;
             var usageField = port.GetField <PropertyBlockUsage>(kPropertyBlockUsage);
             if(usageField != null)
@@ -127,7 +153,23 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 case PropertyBlockUsage.Included:
                     propertyData = new PropertyAttribute { DefaultValue = port.GetDefaultValueString(registry, container), DisplayName = port.GetDisplayNameString(), Exposed = true };
-                    var varInBuilder = new StructField.Builder(container, name, type);
+                    var varInBuilder = new StructField.Builder(container, name, shaderType);
+
+                    if (portTypeField.GetRegistryKey().Name == GraphType.kRegistryKey.Name)
+                    {
+                        var isColor = GraphTypeHelpers.GetLength(portTypeField) >= GraphType.Length.Three &&
+                            (port.GetField<bool>(kIsColor)?.GetData() ?? false);
+
+                        if (isColor)
+                        {
+                            varInBuilder.AddAttribute(new ShaderAttribute.Builder(container, "Color").Build());
+                            if (port.GetField<bool>(kIsHdr)?.GetData() ?? false)
+                            {
+                                varInBuilder.AddAttribute(new ShaderAttribute.Builder(container, "HDR").Build());
+                            }
+                        }
+                    }
+
                     SimpleSampleBuilder.MarkAsProperty(container, varInBuilder, propertyData);
                     inputVariables.Add(varInBuilder.Build());
                     break;
@@ -141,7 +183,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if(source != DataSource.Constant)
                     {
                         propertyData = new PropertyAttribute { DataSource = UniformDataSource.Global, UniformName = port.LocalID, Exposed = false };
-                        var varInputBuilder = new StructField.Builder(container, name, type);
+                        var varInputBuilder = new StructField.Builder(container, name, shaderType);
                         SimpleSampleBuilder.MarkAsProperty(container, varInputBuilder, propertyData);
                         inputVariables.Add(varInputBuilder.Build());
                     }
@@ -150,7 +192,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     break;
             }
 
-            if (port.GetTypeField().GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
+            if (portTypeField.GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
             {
                 var fieldHandler = port.GetTypeField();
                 var tex = BaseTextureType.GetTextureAsset(fieldHandler);
@@ -186,13 +228,8 @@ namespace UnityEditor.ShaderGraph.Generation
             var outputVariables = new List<StructField>();
             bool isContext = rootNode.HasMetadata("_contextDescriptor");
             //Evaluate outputs for this block based on root nodes "outputs/endpoints" (horizontal input ports)
-            foreach (var port in rootNode.GetPorts())
-            {
-                if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
-                {
-                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
-                }
-            }
+            EvaluateBlockReferrables(rootNode, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
+
             //Create output type from evaluated root node outputs
             var outputType = BuildStructFromVariables(container, $"{BlockName}Output", outputVariables, blockBuilder);
 
