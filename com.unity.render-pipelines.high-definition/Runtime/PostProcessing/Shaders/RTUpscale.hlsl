@@ -4,21 +4,27 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-CTYPE Sample(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 UV)
+CTYPE SampleNearest(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 UV)
 {
     float2 ScaledUV = ClampAndScaleUVForPoint(UV);
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, _InputTextureSampler, ScaledUV, 0).CTYPE_SWIZZLE;
 }
 
+CTYPE SampleBilinear(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 UV, float2 texelSize)
+{
+    float2 ScaledUV = ClampAndScaleUVForBilinear(UV, texelSize);
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, _InputTextureSampler, ScaledUV, 0).CTYPE_SWIZZLE;
+}
+
 CTYPE Nearest(TEXTURE2D_X(_InputTexture), float2 UV)
 {
-    return Sample(TEXTURE2D_X_ARGS(_InputTexture, s_point_clamp_sampler), UV);
+    return SampleNearest(TEXTURE2D_X_ARGS(_InputTexture, s_point_clamp_sampler), UV);
 }
 
 
-CTYPE Bilinear(TEXTURE2D_X(_InputTexture), float2 UV)
+CTYPE Bilinear(TEXTURE2D_X(_InputTexture), float2 UV, float2 texelSize)
 {
-    return Sample(TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler), UV);
+    return SampleBilinear(TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler), UV, texelSize);
 }
 
 CTYPE CatmullRomFourSamples(TEXTURE2D_X(_InputTexture), float2 UV)
@@ -105,19 +111,19 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV, float2 textureSize)
     float4 accumulation = 0;
 
     // Corners are dropped (similarly to what Jimenez suggested for Bicubic)
-    accumulation += float4(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), 1) * weight0.x * weight23.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), 1) * weight1.x * weight1.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV0.y)), 1) * weight1.x * weight23.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV2.y)), 1) * weight1.x * weight4.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV_2.y)), 1) * weight23.x * weight0.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV_1.y)), 1) * weight23.x * weight1.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV0.y)), 1) * weight23.x * weight23.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV2.y)), 1) * weight23.x * weight4.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV3.y)), 1) * weight23.x * weight5.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV2.x, UV_1.y)), 1) * weight4.x * weight1.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV2.x, UV0.y)), 1) * weight4.x * weight23.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV2.x, UV2.y)), 1) * weight4.x * weight4.y;
-    accumulation += float4(Bilinear(_InputTexture, float2(UV3.x, UV0.y)), 1) * weight5.x * weight23.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV_2.x, UV0.y), TexelSize), 1) * weight0.x * weight23.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y), TexelSize), 1) * weight1.x * weight1.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV0.y), TexelSize), 1) * weight1.x * weight23.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV2.y), TexelSize), 1) * weight1.x * weight4.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV_2.y), TexelSize), 1) * weight23.x * weight0.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV_1.y), TexelSize), 1) * weight23.x * weight1.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV0.y), TexelSize), 1) * weight23.x * weight23.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV2.y), TexelSize), 1) * weight23.x * weight4.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV0.x, UV3.y), TexelSize), 1) * weight23.x * weight5.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV2.x, UV_1.y), TexelSize), 1) * weight4.x * weight1.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV2.x, UV0.y), TexelSize), 1) * weight4.x * weight23.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV2.x, UV2.y), TexelSize), 1) * weight4.x * weight4.y;
+    accumulation += float4(Bilinear(_InputTexture, float2(UV3.x, UV0.y), TexelSize), 1) * weight5.x * weight23.y;
 
     return accumulation.xyz /= accumulation.w;
 #else
@@ -126,19 +132,19 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV, float2 textureSize)
     CTYPE colorAccumulation = 0;
     float weightAccumulation = 0;
 
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), weight0.x * weight23.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), weight1.x * weight1.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV0.y)), weight1.x * weight23.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV2.y)), weight1.x * weight4.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_2.y)), weight23.x * weight0.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_1.y)), weight23.x * weight1.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV0.y)), weight23.x * weight23.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV2.y)), weight23.x * weight4.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV3.y)), weight23.x * weight5.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV_1.y)), weight4.x * weight1.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV0.y)), weight4.x * weight23.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV2.y)), weight4.x * weight4.y, colorAccumulation, weightAccumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV3.x, UV0.y)), weight5.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_2.x, UV0.y), TexelSize), weight0.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y), TexelSize), weight1.x * weight1.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV0.y), TexelSize), weight1.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV2.y), TexelSize), weight1.x * weight4.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_2.y), TexelSize), weight23.x * weight0.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_1.y), TexelSize), weight23.x * weight1.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV0.y), TexelSize), weight23.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV2.y), TexelSize), weight23.x * weight4.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV3.y), TexelSize), weight23.x * weight5.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV_1.y), TexelSize), weight4.x * weight1.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV0.y), TexelSize), weight4.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV2.y), TexelSize), weight4.x * weight4.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV3.x, UV0.y), TexelSize), weight5.x * weight23.y, colorAccumulation, weightAccumulation);
 
     return colorAccumulation /= weightAccumulation;
 #endif
