@@ -134,10 +134,10 @@ SHIncomingIrradiance SHIncomingIrradianceComputeFromBasisAxisHit(BasisAxisHit ba
     return irradiance;
 }
 
-#define SH_FROM_BASIS_MODE_MONTE_CARLO (0)
-#define SH_FROM_BASIS_MODE_SAMPLE_PEAKS (1)
-#define SH_FROM_BASIS_MODE_ZH_FIT (2)
-#define SH_FROM_BASIS_MODE SH_FROM_BASIS_MODE_ZH_FIT
+#define SH_FROM_RBF_MODE_MONTE_CARLO (0)
+#define SH_FROM_RBF_MODE_SAMPLE_PEAKS (1)
+#define SH_FROM_RBF_MODE_ZH_FIT (2)
+#define SH_FROM_RBF_MODE SH_FROM_RBF_MODE_ZH_FIT
 
 SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
 {
