@@ -31,15 +31,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
         private readonly NodeDescriptor m_nodeDescriptor;
         private readonly FunctionDescriptor? m_defaultFunction;
-        private FunctionDescriptor? m_selectedFunction;
         private readonly Dictionary<string, FunctionDescriptor> m_nameToFunction;
         private readonly Dictionary<string, string> m_functionNameToShaderFunctionName;
         private readonly Dictionary<string, string> m_functionNameToModifiedBody;
-
-        internal FunctionDescriptor? SelectedFunction {
-            get { return m_selectedFunction; }
-            set { m_selectedFunction = value; }
-        }
 
         /// <summary>
         /// Sets up the uniformed version of the node from a a NodeDescriptor.
@@ -85,10 +79,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 functionNameToModifiedBody[fd.Name] = newBody;
             }
 
-            // no graph data at this point so make the selected function and
-            // default function the same
-            m_selectedFunction = m_defaultFunction;
-
             m_nameToFunction = nameToFunction;
             m_functionNameToShaderFunctionName = functionNameToShaderFunctionName;
             m_functionNameToModifiedBody = functionNameToModifiedBody;
@@ -122,49 +112,37 @@ namespace UnityEditor.ShaderGraph.Defs
         /// </param>
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            // if there is no default function return without changing the node.
+            // If there is no default function return without changing the node.
             if (m_defaultFunction == null) return;
 
             // The NodeDescriptor may have multiple functions defined.
             // The currently selected FunctionDescriptor name is stored as
             // field in the node data.
-            FieldHandler selectedFunctionFieldHandler = node.GetField(SELECTED_FUNCTION_FIELD_NAME);
-            if (selectedFunctionFieldHandler == null)
+
+            FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
+
+            // on the concrete layer, the selected function is the default
+            node.AddField(SELECTED_FUNCTION_FIELD_NAME, selectedFunction.Name, true);
+
+            // Get the consolodated value for the selected function field
+            // this must be defined because it was added, at least, to the
+            // concrete layer, above.
+            FieldHandler selectedFunctionField = node.GetField<string>(SELECTED_FUNCTION_FIELD_NAME);
+            string selectedFunctionName = selectedFunctionField.GetData<string>();
+            if (!m_nameToFunction.ContainsKey(selectedFunctionName))
             {
-                node.AddField(SELECTED_FUNCTION_FIELD_NAME, m_selectedFunction, true);
+                Debug.LogWarning($"Cannot select function with name {selectedFunctionName}. No FunctionDescriptor with this name available.");
             }
             else
             {
-                var selectedFunctionName = selectedFunctionFieldHandler.GetData<string>();
-                if (!m_nameToFunction.ContainsKey(selectedFunctionName))
-                {
-                    Debug.LogWarning($"Cannot select function with name {selectedFunctionName}. No FunctionDescriptor with this name available.");
-                }
-                else
-                {
-                    m_selectedFunction = m_nameToFunction[selectedFunctionName];
-                }
+                selectedFunction = m_nameToFunction[selectedFunctionName];
             }
-
-            //FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
-            //node.AddField<string>(SELECTED_FUNCTION_FIELD_NAME, )
-            //string selectedFunctioName = node.GetField(SELECTED_FUNCTION_FIELD_NAME).GetData<string>();
-
-            // check node metadata for a selected function name
-            //if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
-            //{
-            //    string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
-            //    if (m_nameToFunction.ContainsKey(functionName))
-            //    {
-            //        selectedFunction = m_nameToFunction[functionName];
-            //    }
-            //}
 
             // determine a fallback type
             ParametricTypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
 
             // setup the node topology
-            foreach (var param in ((FunctionDescriptor)m_selectedFunction).Parameters)
+            foreach (var param in selectedFunction.Parameters)
             {
                 NodeBuilderUtils.ParameterDescriptorToField(
                     param,

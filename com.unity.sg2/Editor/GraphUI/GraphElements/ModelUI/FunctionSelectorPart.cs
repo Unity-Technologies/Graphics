@@ -12,12 +12,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private readonly GraphDataNodeModel m_graphDataNodeModel;
         private VisualElement m_rootVisualElement;
         private readonly Dictionary<string, string> m_choiceToKey;
+        private readonly string m_selectedFunctionName;
 
         public FunctionSelectorPart(
             string name,
             IGraphElementModel model,
             IModelView ownerElement,
             string parentClassName,
+            string selectedFunctioName,
             IReadOnlyDictionary<string, string> options) : base(name, model, ownerElement, parentClassName)
         {
             // Invert the options because the values are displayed.
@@ -26,8 +28,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_choiceToKey[options[key]] = key;
             }
-            
             m_graphDataNodeModel = model as GraphDataNodeModel;
+            m_selectedFunctionName = selectedFunctioName;
         }
 
         protected override void BuildPartUI(VisualElement parent)
@@ -39,10 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 rootClassName: ROOT_CLASS_NAME);
             var uxmlField = m_rootVisualElement.Q<DropdownField>("function-selector-part");
             uxmlField.choices = m_choiceToKey.Keys.ToList();
-
-            // TODO (Brett) Change this to be the right selection
-            uxmlField.value = uxmlField.choices[0];
-
+            uxmlField.value = m_selectedFunctionName;
             uxmlField.RegisterCallback<ChangeEvent<string>>(HandleSelectionChange);
             parent.Add(m_rootVisualElement);
         }

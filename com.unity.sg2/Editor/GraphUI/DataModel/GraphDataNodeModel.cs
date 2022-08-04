@@ -228,7 +228,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
             string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-            FieldHandler selectedFunctionField = nodeHandler.GetField(fieldName);
+            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(fieldName);
             if (selectedFunctionField == null)
             {
                 Debug.LogError("Unable to update selected function. Node has no selected function field.");
