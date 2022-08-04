@@ -13,7 +13,7 @@ The following illustration shows the frame rendering loop of the URP Universal R
 
 ![URP Universal Renderer, Forward Rendering Path](Images/Graphics/Rendering_Flowchart.png)
 
-When the [render pipeline is active in Graphics Settings](configuring-universalrp-for-use.md), Unity uses URP to render all Cameras in your Project, including game and Scene view cameras, Reflection Probes, and the preview windows in your Inspectors.
+When the [render pipeline is active in Graphics Settings](InstallURPIntoAProject.md), Unity uses URP to render all Cameras in your Project, including game and Scene view cameras, Reflection Probes, and the preview windows in your Inspectors.
 
 The URP renderer executes a Camera loop for each Camera, which performs the following steps:
 

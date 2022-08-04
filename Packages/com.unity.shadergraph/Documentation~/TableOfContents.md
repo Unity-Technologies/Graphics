@@ -67,7 +67,6 @@
         * [Flip](Flip-Node)
         * [Split](Split-Node)
         * [Swizzle](Swizzle-Node)
-        * [Branch On Input Connection](Branch-On-Input-Connection-Node)
     * [Input](Input-Nodes)
         * Basic
             * [Boolean](Boolean-Node)

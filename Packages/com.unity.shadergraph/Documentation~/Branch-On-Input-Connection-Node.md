@@ -38,35 +38,35 @@ To use the Branch On Input Connection node in a Subgraph:
     > [!NOTE]
     > If you disable **Use Custom Binding**, you can't connect your Property node to the Branch On Input Connection node. If you've already made a connection, the Unity Editor breaks the connection and displays a warning on the node.
 
-4. In the **Label** field, enter the label for the default value that should display on your Subgraph node's port binding in its parent Shader Graph. For more information on port bindings, see [Port Bindings](Port-Bindings.md).
+4. In the **Label** field, enter the label for the default value that displays on your Subgraph node's port binding in its parent Shader Graph. For more information on port bindings, see [Port Bindings](Port-Bindings.md).
 
 5. Press Spacebar or right-click and select **Create Node**. Find the **Branch On Input Connection** node in the Create Node Menu, then double-click or press Enter with the node selected to add it to your Subgraph.
 
 6. On your Property node, select the output port and drag its new connection to the Branch On Connection node's **Input** port.
 
-7. To specify the value Shader Graph should use when the **Input** port is connected on the Subgraph node in the parent Shader Graph, connect a node to the **Connected** port. To specify the value that Shader Graph should use when the **Input** port isn't connected, connect another node to the **NotConnected** port.
+7. To specify the value Shader Graph uses when the **Input** port is connected on the Subgraph node in the parent Shader Graph, connect a node to the **Connected** port. To specify the value that Shader Graph uses when the **Input** port isn't connected, connect another node to the **NotConnected** port.
 
-8. To specify how Shader Graph should use your **Connected** or **NotConnected** values in your shader, connect any valid node to the **Output** port on the Branch On Input Connection node.
+8. To specify how Shader Graph uses your **Connected** or **NotConnected** values in your shader, connect any valid node to the **Output** port on the Branch On Input Connection node.
 
 ## Compatibility
 
-[!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
+The Branch On Input Connection [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
 
 
 ## Inputs
 
-[!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
+The Branch On Input Connection [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
 
 | **Name**         | **Type**          | **Description** |
 | :---             | :------           | :----------     |
 | **Input**        | Property          | The property that determines the branching logic in the node, based on its connection state in the parent Shader Graph.      |
 | **Connected**    | Dynamic Vector    | The value to send to the **Out** port when **Input** is connected in the parent Shader Graph.     |
-| **NotConnected** | Dynamic Vector    | The value to send to the **Out** port when **Input** is not connected in the parent Shader Graph. |
+| **NotConnected** | Dynamic Vector    | The value to send to the **Out** port when **Input** isn't connected in the parent Shader Graph. |
 
 
 ## Outputs
 
-[!include[nodes-single-output](./snippets/nodes-single-output.md)] <!-- SINGLE OUTPUT PORT INCLUDE -->
+The Branch On Input Connection [!include[nodes-single-output](./snippets/nodes-single-output.md)] <!-- SINGLE OUTPUT PORT INCLUDE -->
 
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |
@@ -86,7 +86,7 @@ In the following example, a Branch On Input Connection node specifies the defaul
 
 <!-- OPTIONAL. Any nodes that may be related to this node in some way that's worth mentioning -->
 
-[!include[nodes-related](./snippets/nodes-related.md)]
+[!include[nodes-related](./snippets/nodes-related.md)] Branch On Input Connection node:
 
 - [Branch node](Branch-Node.md)
 - [Subgraph node](Sub-graph-Node.md)
