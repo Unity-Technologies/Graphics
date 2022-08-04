@@ -48,8 +48,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kCompare = "Compare";
         #endregion
 
-        private static string GetUniqueSamplerName(FieldHandler field)
-            => ElementID.FromString(field.ID.ParentPath).LocalPath;
 
         public enum Filter { Point, Linear, Trilinear }
         public enum Wrap { Clamp, Repeat, Mirror, MirrorOnce } // optionally can be per component- can be added later.
@@ -133,13 +131,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public string GetInitializerList(FieldHandler field, Registry registry)
         {
-            return $"In.{GetUniqueSamplerName(field)}";
+            return $"In.{ITypeDefinitionBuilder.GetUniqueUniformName(field)}";
         }
 
 
         internal static StructField UniformPromotion(FieldHandler field, ShaderContainer container, Registry registry)
         {
-            var name = GetUniqueSamplerName(field);
+            var name = ITypeDefinitionBuilder.GetUniqueUniformName(field);
 
             var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
             var attributeBuilder = new ShaderAttribute.Builder(container, SamplerStateAttribute.AttributeName);

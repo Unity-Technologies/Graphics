@@ -19,5 +19,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             builder.BuildType(dst, registry);
             builder.CopySubFieldData(src, dst);
         }
+
+        internal static string GetUniqueUniformName(FieldHandler field)
+        {
+            return "_" + field.ID.ParentPath.Replace('.', '_');
+            //=> data.ID.FullPath.Replace('.', '_') + "_Tex";
+            //=> ElementID.FromString(data.ID.ParentPath).LocalPath;
+        }
     }
 }

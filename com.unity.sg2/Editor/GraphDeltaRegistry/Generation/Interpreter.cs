@@ -528,7 +528,7 @@ namespace UnityEditor.ShaderGraph.Generation
                                 inputVariables.Add(field);
 
                                 var tex = BaseTextureType.GetTextureAsset(fieldHandler);
-                                var name = BaseTextureType.GetUniqueUniformName(fieldHandler);
+                                var name = ITypeDefinitionBuilder.GetUniqueUniformName(fieldHandler);
                                 if (tex != null && !defaultTextures.Contains((name, tex)))
                                     defaultTextures.Add((name, tex));
                             }
