@@ -290,9 +290,9 @@ namespace UnityEditor.VFX.UI
 
         public virtual GizmoError GetGizmoError(VisualEffect component)
         {
-            if (m_GizmoedAnchor == null)
-                return GizmoError.NotAvailable;
-            return ((VFXDataAnchorController)m_GizmoedAnchor).GetGizmoError(component);
+            return m_GizmoedAnchor is IGizmoError gizmoController
+                ? gizmoController.GetGizmoError(component)
+                : GizmoError.NotAvailable;
         }
 
         IGizmoable m_GizmoedAnchor;
