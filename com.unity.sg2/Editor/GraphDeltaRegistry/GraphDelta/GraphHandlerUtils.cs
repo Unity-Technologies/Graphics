@@ -14,8 +14,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             in Dictionary<ElementID, HashSet<ElementID>> dependencyList,
             bool otherContextAreLeaf)
         {
-            if (!visited.Contains(nodeID))
-                visited.Add(nodeID);
+            // TODO: Support more variations and use topo sorting for node iteration in more use cases.
+            // TODO: GraphHandler could keep a search cache up to date based on incoming modifications.
+            visited.Add(nodeID);
             if (dependencyList.TryGetValue(nodeID, out var upstreamNodeIDs))
             {
                 foreach (var upstreamNodeID in upstreamNodeIDs)
