@@ -109,20 +109,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Register<GraphTypeAssignment>();
             Register<GradientType>();
             Register<GradientTypeAssignment>();
-            Register<GradientNode>(); // TODO: Needs descriptor or IStandardNode implementation.
-
             Register<BaseTextureType>();
             Register<BaseTextureTypeAssignment>();
             Register<SamplerStateType>();
             Register<SamplerStateAssignment>();
+
+            Register(new MultiplyNode(), new MultiplyNodeUI());
+            Register(new SampleGradientNode());
             #endregion
 
             // TODO: remove these, but keep until equivalents are working correctly.
-            Register(new MultiplyNode(), new MultiplyNodeUI());
-            Register(new SampleGradientNode());
-            Register(new SamplerStateExampleNode());
-            Register(new SimpleTextureNode());
-            Register(new SimpleSampleTexture2DNode());
+            //Register<GradientNode>(); // TODO: https://jira.unity3d.com/browse/GSG-1290
+            //Register(new SamplerStateExampleNode());
+            //Register(new SimpleTextureNode());
+            //Register(new SimpleSampleTexture2DNode());
             Register<ShaderGraphContext>();
 
 

@@ -670,8 +670,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return nodeRequiresTime;
         }
 
+
+        static readonly string[] blacklist = new string[] { "" };
         public bool ShouldBeInSearcher(RegistryKey registryKey)
         {
+            if (blacklist.Contains(registryKey.Name))
+                return false;
             try
             {
                 var nodeBuilder = RegistryInstance.GetNodeBuilder(registryKey);
