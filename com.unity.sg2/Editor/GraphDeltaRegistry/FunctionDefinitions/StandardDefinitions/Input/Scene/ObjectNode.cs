@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Provides access to the current object's position and scale.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "position", "scale" },
             parameters: new ParameterUIDescriptor[2] {

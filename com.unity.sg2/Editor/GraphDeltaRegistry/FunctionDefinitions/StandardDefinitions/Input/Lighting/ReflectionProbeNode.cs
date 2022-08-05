@@ -21,8 +21,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Reflection Probe",
             tooltip: "Gets the sample from the nearest reflection probe.",
-            categories: new string[2] { "Input", "Lighting" },
+            category: "Input/Lighting",
             hasPreview: false,
             synonyms: new string[3] { "light probe", "cube map", "environment" },
             parameters: new ParameterUIDescriptor[4] {

@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Sawtooth Wave",
             tooltip: "creates a wave form with a slow, linear ramp up and then an instant drop",
-            categories: new string[2] { "Math", "Wave" },
+            category: "Math/Wave",
             synonyms: new string[1] { "triangle wave" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

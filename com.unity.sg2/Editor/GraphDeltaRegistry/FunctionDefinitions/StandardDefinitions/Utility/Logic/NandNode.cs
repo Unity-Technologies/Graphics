@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Checks if input A and input B are both false.",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             synonyms: new string[0],
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {

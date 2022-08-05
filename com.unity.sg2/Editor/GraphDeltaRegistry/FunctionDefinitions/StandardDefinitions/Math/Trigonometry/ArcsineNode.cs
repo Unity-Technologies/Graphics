@@ -40,9 +40,8 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Contrast",
             tooltip: "Calculates the arcsine of each component of the input.",
-            categories: new string[2] { "Math", "Trigonometry" },
+            category: "Math/Trigonometry",
             synonyms: new string[1] { "asine" },
             selectableFunctions: new()
             {

@@ -287,7 +287,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
             Name,
             displayName: "Parallax Occlusion Mapping",
             tooltip: "Creates a parallax effect that displaces a material's UVs and depth to create the illusion of depth.",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[1] { "pom" },
             hasPreview: false,
             selectableFunctions: new()

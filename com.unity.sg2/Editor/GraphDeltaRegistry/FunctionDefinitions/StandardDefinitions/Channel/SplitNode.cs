@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Separates the channels of an input vector.",
-            categories: new string[1] { "Channel" },
+            category: "Channel",
             synonyms: new string[1] { "separate" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[5] {

@@ -21,9 +21,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Arctangent2",
+            displayName: "Arctangent 2",
             tooltip: "Calculates the arctangent of input A divided by input B",
-            categories: new string[2] { "Math", "Trigonometry" },
+            category: "Math/Trigonometry",
             synonyms: new string[1] { "atan2" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

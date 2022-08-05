@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the sum of input A and input B.",
-            categories: new string[2] { "Math", "Basic" },
+            category: "Math/Basic",
             synonyms: new string[4] { "Addition", "Sum", "+", "plus" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

@@ -20,10 +20,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the unique ID of each vertex.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             hasPreview:false,
             synonyms: new string[0] { },
-            displayName: "Vertex Color",
+            displayName: "Vertex ID",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",

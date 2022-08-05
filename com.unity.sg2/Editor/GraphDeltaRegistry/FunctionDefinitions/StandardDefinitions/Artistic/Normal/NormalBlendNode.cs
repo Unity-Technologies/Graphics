@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "combines two normals together",
-            categories: new string[2] { "Artistic", "Normal" },
+            category: "Artistic/Normal",
             synonyms: new string[5] { "RNM", "whiteout", "blend", "mix", "combine" },
             displayName: "Normal Blend",
             selectableFunctions: new()

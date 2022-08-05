@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets a vector that defines the direction the point is facing.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[1] { "surface direction" },
             displayName: "Normal Vector",
             parameters: new ParameterUIDescriptor[2] {

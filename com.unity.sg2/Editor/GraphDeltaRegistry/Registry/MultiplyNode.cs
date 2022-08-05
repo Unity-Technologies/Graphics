@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 name: key.Name,
                 version: key.Version,
                 tooltip: "Calculates the value of input A multiplied by input B.",
-                categories: new string[] { "Math", "Basic" },
+                category: "Math/Basic",
                 synonyms: new string[] { "multiplication", "*", "times", "x", "product" },
                 parameters: new ParameterUIDescriptor[] {
                     new(name: MultiplyNode.kInputA, tooltip: "Input A"),

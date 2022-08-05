@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the magnitude, or length, of an input vector.",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[1] { "measure" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

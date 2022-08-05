@@ -86,8 +86,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent);
 
             // Variable declaration commands
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetShaderDeclarationCommand>(
-                SetShaderDeclarationCommand.DefaultCommandHandler,
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetVariableSettingCommand>(
+                SetVariableSettingCommand.DefaultCommandHandler,
                 undoStateComponent,
                 graphModelStateComponent);
         }

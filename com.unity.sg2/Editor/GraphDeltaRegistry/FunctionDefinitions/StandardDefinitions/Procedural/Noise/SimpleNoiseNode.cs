@@ -116,8 +116,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Simple Noise",
             tooltip: "creates a smooth, non-tiling noise pattern using a point lattice",
-            categories: new string[2] { "Procedural", "Noise" },
+            category: "Procedural/Noise",
             synonyms: new string[1] { "value noise" },
             selectableFunctions: new()
             {

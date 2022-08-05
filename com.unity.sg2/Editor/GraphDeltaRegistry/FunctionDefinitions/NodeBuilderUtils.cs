@@ -198,7 +198,6 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             if (param.DefaultValue is ReferenceValueDescriptor referenceValueDescriptor)
             {
-                //portHandler.SetMetadata(PortHandler.kDefaultConnection, referenceValueDescriptor.ContextName);
                 portHandler.Owner.AddDefaultConnection(
                     referenceValueDescriptor.ContextName,
                     portHandler.ID,

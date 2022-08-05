@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override string Name => registryKey.Name;
 
+
         public RegistryNodeSearcherItem(
             IGraphModel graphModel,
             RegistryKey registryKey,
@@ -24,10 +25,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             List<SearcherItem> children = null,
             Func<string> getName = null,
             string help = null
-        ) : base(graphModel, data,  creationData => graphModel.CreateGraphDataNode(registryKey, name, creationData.Position, creationData.Guid, creationData.SpawnFlags), name, children, getName, help)
+        ) : base(
+            graphModel,
+            data,
+            creationData => graphModel.CreateGraphDataNode(registryKey, name, creationData.Position, creationData.Guid, creationData.SpawnFlags),
+            name,
+            children,
+            getName,
+            help)
         {
-
-            // Func<IGraphNodeCreationData, IGraphElementModel> createElement,
             this.registryKey = registryKey;
         }
     }

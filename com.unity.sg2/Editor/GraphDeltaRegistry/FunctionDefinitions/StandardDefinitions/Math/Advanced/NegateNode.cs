@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Multiplies the input by -1.",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[3] { "invert", "opposite", "-" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

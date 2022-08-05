@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Applies a twirl-warping effect to the input UVs, similar to a black hole.",
-            categories: new string[1] { "UV" },
+            category: "UV",
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

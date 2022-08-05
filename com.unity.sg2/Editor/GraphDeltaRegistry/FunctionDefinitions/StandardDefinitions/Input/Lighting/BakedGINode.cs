@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets the Baked GI values of an input mesh.",
-            categories: new string[2] { "Input", "Lighting" },
+            category: "Input/Lighting",
             synonyms: new string[1] { "location" },
             displayName: "Baked GI",
             hasPreview: false,

@@ -152,6 +152,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 m_SceneResources = null;
             }
 
+            m_CachedPreviewData.Clear();
+            m_ShaderMessagesMap.Clear();
             m_PreviewMaterialPropertyBlock.Clear();
         }
 

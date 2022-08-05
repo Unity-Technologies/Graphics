@@ -8,15 +8,15 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
 
     /// <summary>
-    /// GraphDataNodeModel is a model for a node backed by graph data. It can be used for a node on the graph (with
-    /// an assigned graph data name) or a searcher preview (with only an assigned registry key).
+    /// GraphDataNodeModel is a model for a node backed by graph data.
+    /// It can be used for a node on the graph (with an assigned graph data name)
+    /// or a searcher preview (with only an assigned registry key).
     /// </summary>
     public class GraphDataNodeModel : NodeModel, IGraphDataOwner
     {
@@ -24,8 +24,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string m_GraphDataName;
 
         /// <summary>
-        /// Graph data name associated with this node. If null, this node is a searcher preview with type determined
-        /// by the registryKey property.
+        /// Graph data name associated with this node.
+        /// If null, this node is a searcher preview with type determined by the
+        /// registryKey property.
         /// </summary>
         public string graphDataName
         {
@@ -39,10 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var baseDisplayTitle = base.DisplayTitle;
                 if (latestAvailableVersion > currentVersion)
-                {
                     baseDisplayTitle += $" (Legacy v{currentVersion})";
-                }
-
                 return baseDisplayTitle;
             }
         }
@@ -57,7 +55,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get
             {
-                if (!existsInGraphData) return m_PreviewRegistryKey;
+                if (!existsInGraphData)
+                    return m_PreviewRegistryKey;
 
                 Assert.IsTrue(TryGetNodeHandler(out var reader));
                 // Store the registry key to use for node duplication
@@ -115,9 +114,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
                     return true;
                 }
-
                 reader = graphHandler.GetNode(graphDataName);
-
                 return reader != null;
             }
             catch (Exception exception)
@@ -149,11 +146,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public Texture PreviewTexture { get; private set; }
 
         public bool PreviewShaderIsCompiling { get; private set; }
-
-        public GraphDataNodeModel()
-        {
-            NodePreviewMode = PreviewRenderMode.Inherit;
-        }
 
         public bool IsPreviewExpanded
         {
@@ -187,6 +179,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return -1;
                 }
             }
+        }
+
+        public GraphDataNodeModel()
+        {
+            NodePreviewMode = PreviewRenderMode.Inherit;
         }
 
         public void UpgradeToLatestVersion()
@@ -230,9 +227,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void ChangeNodeFunction(string newFunctionName)
         {
             NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
-            nodeHandler.SetMetadata(
-                NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
-                newFunctionName);
+            string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+            if (selectedFunctionField == null)
+            {
+                Debug.LogError("Unable to update selected function. Node has no selected function field.");
+                return;
+            }
+            selectedFunctionField.SetData(newFunctionName);
+            // TODO (Brett) Directly calling reconcretize should not be needed
+            // because the field is set up with reconcretize on change.
+            // See: NodeDescriptorNodeBuilder.BuildNode
             try
             {
                 graphHandler.ReconcretizeNode(graphDataName);

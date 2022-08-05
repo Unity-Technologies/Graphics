@@ -20,9 +20,8 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Contrast",
             tooltip: "rounds the input up to the nearest whole number",
-            categories: new string[2] { "Math", "Round" },
+            category: "Math/Round",
             synonyms: new string[1] { "up" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

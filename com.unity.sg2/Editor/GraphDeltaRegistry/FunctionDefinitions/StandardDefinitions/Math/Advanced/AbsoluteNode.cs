@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "returns the positive version of the input",
-            categories: new string[2] { "Math", "Advanced" },
+            category: "Math/Advanced",
             synonyms: new string[1] { "positive" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

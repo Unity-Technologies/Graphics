@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Calculates the distance between input A and input B.",
-            categories: new string[2] { "Math", "Vector" },
+            category: "Math/Vector",
             synonyms: new string[1] { "length" },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Creates a 4-sided polygon.",
-            categories: new string[2] { "Procedural", "Shape" },
+            category: "Procedural/Shape",
             synonyms: new string[1] { "square" },
             selectableFunctions: new()
             {

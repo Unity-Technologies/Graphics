@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "One Minus",
             tooltip: "subtracts the input from one",
-            categories: new string[2] { "Math", "Range" },
+            category: "Math/Range",
             synonyms: new string[3] { "complement", "invert", "opposite" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

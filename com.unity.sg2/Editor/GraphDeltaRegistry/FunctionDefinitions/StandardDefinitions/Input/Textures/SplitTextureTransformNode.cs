@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Split Texture Transform",
             tooltip: "Separates tiling, offset, and texture data from an input texture.",
             synonyms: new string[0] {},
-            categories: new string[2] { "Input", "Texture" },
+            category: "Input/Texture",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

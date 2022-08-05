@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Gets a bitangent vector in the selected space.",
-            categories: new string[2] { "Input", "Geometry" },
+            category: "Input/Geometry",
             synonyms: new string[1] { "binormal" },
             displayName: "Bitangent Vector",
             parameters: new ParameterUIDescriptor[2] {

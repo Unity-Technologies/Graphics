@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Accesses the scene's ambient color values.",
-            categories: new string[2] { "Input", "Lighting" },
+            category: "Input/Lighting",
             hasPreview: false,
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[3] {

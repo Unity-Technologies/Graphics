@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Returns the decimal value of an input and excludes the integer portion.",
-            categories: new string[2] { "Math", "Range" },
+            category: "Math/Range",
             synonyms: new string[1] { "remainder" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

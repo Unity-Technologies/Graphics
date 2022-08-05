@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "returns the opposite of the input",
-            categories: new string[2] { "Utility", "Logic" },
+            category: "Utility/Logic",
             synonyms: new string[1] { "!" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Converts a normal map texture to a normal vector.",
-            categories: new string[2] { "Artistic", "Normal" },
+            category: "Artistic/Normal",
             synonyms: new string[2] { "expand", "vectorize" },
             displayName: "Normal Unpack",
             selectableFunctions: new()

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Sphere Mask",
             tooltip: "Creates a spherical volume mask that starts at a given position.",
-            categories: new string[2] { "Math", "Vector" },
+            category: "Math/Vector",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

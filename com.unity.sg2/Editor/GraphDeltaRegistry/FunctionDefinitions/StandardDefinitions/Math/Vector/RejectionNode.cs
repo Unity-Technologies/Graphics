@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: "Projects input A onto the plane orthogonal, or perpendicular, to input B.",
-            categories: new string[2] { "Math", "Vector" },
+            category: "Math/Vector",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

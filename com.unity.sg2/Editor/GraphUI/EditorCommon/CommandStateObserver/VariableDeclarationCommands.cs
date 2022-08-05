@@ -1,39 +1,36 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class SetShaderDeclarationCommand : UndoableCommand
+    class SetVariableSettingCommand : UndoableCommand
     {
-        readonly ContextEntryEnumTags.DataSource m_DataSource;
         readonly GraphDataVariableDeclarationModel m_Model;
+        readonly VariableSetting m_Setting;
+        readonly object m_Value;
 
-        // Note: ModelPropertyField expects this signature
-        public SetShaderDeclarationCommand(
-            ContextEntryEnumTags.DataSource dataSource,
-            GraphDataVariableDeclarationModel model)
+        public SetVariableSettingCommand(GraphDataVariableDeclarationModel model, VariableSetting setting, object value)
         {
-            m_DataSource = dataSource;
             m_Model = model;
-            UndoString = "Set Shader Declaration";
+            m_Setting = setting;
+            m_Value = value;
+
+            UndoString = $"Change {setting.Label}";
         }
 
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
-            SetShaderDeclarationCommand command)
+            SetVariableSettingCommand command)
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
                 undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using (var graphUpdater = graphModelState.UpdateScope)
-            {
-                command.m_Model.ShaderDeclaration = command.m_DataSource;
-                graphUpdater.MarkChanged(command.m_Model);
-            }
+            using var graphUpdater = graphModelState.UpdateScope;
+            command.m_Setting.SetAsObject(command.m_Model, command.m_Value);
+            graphUpdater.MarkChanged(command.m_Model);
         }
     }
 }

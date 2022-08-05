@@ -40,8 +40,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 ViewSelection = new ShaderGraphViewSelection(this, GraphViewModel.GraphModelState, GraphViewModel.SelectionState);
 
             GraphViewCommandOverridesRegistrar(this, graphTool.State, m_PreviewManager);
-
-            GraphViewNodeCommandsRegistrar(this, graphTool.State, m_PreviewManager);
         }
 
         /// <summary>

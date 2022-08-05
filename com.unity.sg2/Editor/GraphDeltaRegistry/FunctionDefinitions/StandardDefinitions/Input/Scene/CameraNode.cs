@@ -34,7 +34,7 @@ Height = unity_OrthoParams.y;",
             Version,
             Name,
             tooltip: "Gets a constantly increasing value used for animated effects.",
-            categories: new string[2] { "Input", "Scene" },
+            category: "Input/Scene",
             synonyms: new string[7] { "Position", "Direction", "Orthographic", "NearPlane", "FarPlane", "Width", "Height" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[8] {
