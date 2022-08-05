@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// GraphDataNodeModel is a model for a node backed by graph data. It can be used for a node on the graph (with
     /// an assigned graph data name) or a searcher preview (with only an assigned registry key).
     /// </summary>
-    public class GraphDataNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
+    public class GraphDataNodeModel : NodeModel, IGraphDataOwner
     {
         [SerializeField]
         string m_GraphDataName;
@@ -360,21 +360,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 NodeModel = this,
                 GraphModel = GraphModel
             };
-        }
-
-        public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RequestPreviewUpdate(string listenerID)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetListenerID()
-        {
-            throw new NotImplementedException();
         }
     }
 }
