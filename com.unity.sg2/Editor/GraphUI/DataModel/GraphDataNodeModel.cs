@@ -227,9 +227,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void ChangeNodeFunction(string newFunctionName)
         {
             NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
-            nodeHandler.SetMetadata(
-                NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
-                newFunctionName);
+            string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+            if (selectedFunctionField == null)
+            {
+                Debug.LogError("Unable to update selected function. Node has no selected function field.");
+                return;
+            }
+            selectedFunctionField.SetData(newFunctionName);
+            // TODO (Brett) Directly calling reconcretize should not be needed
+            // because the field is set up with reconcretize on change.
+            // See: NodeDescriptorNodeBuilder.BuildNode
             try
             {
                 graphHandler.ReconcretizeNode(graphDataName);
