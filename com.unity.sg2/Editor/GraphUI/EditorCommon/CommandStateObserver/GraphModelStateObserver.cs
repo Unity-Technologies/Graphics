@@ -38,8 +38,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         if (addedModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
                         {
                             m_PreviewManagerInstance.OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
-                            using var graphUpdater = m_GraphModelStateComponent.UpdateScope;
-                            graphUpdater.MarkChanged(addedModel);
+                            //using var graphUpdater = m_GraphModelStateComponent.UpdateScope;
+                            //graphUpdater.MarkChanged(addedModel);
                         }
                         else if (addedModel is GraphDataEdgeModel graphDataEdgeModel)
                         {

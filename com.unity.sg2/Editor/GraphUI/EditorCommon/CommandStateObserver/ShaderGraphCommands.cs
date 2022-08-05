@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Class for adding commands that are unique to Shader Graph user interactions
     /// </summary>
-    public static class ShaderGraphCommandsRegistrar
+    public static class ShaderGraphCommands
     {
         public static void RegisterCommandHandlers(BaseGraphTool graphTool, PreviewManager previewManager)
         {

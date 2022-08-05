@@ -39,13 +39,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if(window != null)
                 ViewSelection = new ShaderGraphViewSelection(this, GraphViewModel.GraphModelState, GraphViewModel.SelectionState);
 
-            GraphViewCommandOverridesRegistrar(this, graphTool.State, m_PreviewManager);
+            RegisterGraphViewOverrideCommandHandlers(this, graphTool.State, m_PreviewManager);
         }
 
         /// <summary>
-        /// Place to register any commands that are overrides of base GTF commands
+        /// Place to register any commands that are overrides of base GTF commands for the graph view
         /// </summary>
-        static void GraphViewCommandOverridesRegistrar(ShaderGraphView graphView, IState stateStore, PreviewManager previewManager)
+        static void RegisterGraphViewOverrideCommandHandlers(ShaderGraphView graphView, IState stateStore, PreviewManager previewManager)
         {
             var dispatcher = graphView.Dispatcher;
             var undoStateComponent = ShaderGraphEditorWindow.GetStateComponentOfType<UndoStateComponent>(stateStore);
@@ -86,19 +86,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, m_PreviewManager);
             GraphTool.ObserverManager.RegisterObserver(m_GraphModelStateObserver);
 
-            m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, this);
+            m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, Window as ShaderGraphEditorWindow);
             GraphTool.ObserverManager.RegisterObserver(m_ShaderGraphLoadedObserver);
-        }
-
-        // Entry point for initializing any systems that depend on the graph model
-        public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
-        {
-            var shaderGraphEditorWindow = Window as ShaderGraphEditorWindow;
-            Assert.IsNotNull(shaderGraphEditorWindow);
-
-            m_PreviewManager.Initialize(shaderGraphModel, shaderGraphEditorWindow.MainPreviewView, shaderGraphEditorWindow.WasWindowClosedInDirtyState);
-
-            PreviewCommandsRegistrar.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, Dispatcher, GraphViewModel);
         }
     }
 }

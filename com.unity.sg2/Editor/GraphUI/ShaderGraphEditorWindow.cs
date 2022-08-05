@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         ShaderGraphGraphTool m_GraphTool;
 
         MainPreviewView m_MainPreviewView;
-        public MainPreviewView MainPreviewView => m_MainPreviewView;
 
         protected PreviewManager m_PreviewManager = new();
 
@@ -32,8 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
         bool m_WasWindowCloseCancelledInDirtyState;
-
-        public bool WasWindowClosedInDirtyState => m_WasWindowCloseCancelledInDirtyState;
 
         // This flag gets set by tests to close the editor window directly without prompts to save the dirty asset
         internal bool shouldCloseWindowNoPrompt = false;
@@ -67,10 +64,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // Needed to ensure to that on domain reload we go through and actually reinitialize stuff as this flag remains true when reload happens
-            // TODO (Sai): Figure out a better place for command handler registration and preview manager initialization
-            m_PreviewManager.IsInitialized = false;
 
             // Needed to ensure that graph view takes up full window when overlay canvas is present
             rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
@@ -200,7 +193,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override BaseGraphTool CreateGraphTool()
         {
             m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>(WindowID);
-            ShaderGraphCommandsRegistrar.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
+            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 
             return m_GraphTool;
         }
@@ -218,7 +211,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return stateStore.AllStateComponents.FirstOrDefault(stateComponent => stateComponent is T) as T;
         }
 
-        static void BlackboardCommandOverridesRegistrar(BlackboardView blackboardView, IState stateStore, PreviewManager previewManager)
+        static void RegisterBlackboardOverrideCommandHandlers(BlackboardView blackboardView, IState stateStore, PreviewManager previewManager)
         {
             var undoStateComponent = GetStateComponentOfType<UndoStateComponent>(stateStore);
             var graphModelStateComponent = blackboardView.BlackboardViewModel.GraphModelState;
@@ -252,7 +245,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_BlackboardView.ViewSelection = viewSelection;
 
                 // Register blackboard commands
-                BlackboardCommandOverridesRegistrar(m_BlackboardView, m_GraphTool.State, m_PreviewManager);
+                RegisterBlackboardOverrideCommandHandlers(m_BlackboardView, m_GraphTool.State, m_PreviewManager);
             }
             return m_BlackboardView;
         }
@@ -267,6 +260,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override bool CanHandleAssetType(IGraphAsset asset)
         {
             return asset is ShaderGraphAsset;
+        }
+
+        // Entry point for initializing any systems that depend on the graph model
+        public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
+        {
+            m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
+
+            PreviewCommands.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, GraphView.Dispatcher, GraphView.GraphViewModel);
         }
 
         protected override void Update()

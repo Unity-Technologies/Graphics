@@ -7,18 +7,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         ToolStateComponent m_ToolStateComponent;
         GraphModelStateComponent m_GraphModelStateComponent;
-        ShaderGraphView m_ShaderGraphView;
-        PreviewManager m_PreviewManager;
+        ShaderGraphEditorWindow m_ShaderGraphEditorWindow;
 
         public ShaderGraphLoadedObserver(
             ToolStateComponent toolStateComponent,
             GraphModelStateComponent graphModelStateComponent,
-            ShaderGraphView shaderGraphView)
+            ShaderGraphEditorWindow shaderGraphEditorWindow)
             : base(toolStateComponent)
         {
             m_ToolStateComponent = toolStateComponent;
             m_GraphModelStateComponent = graphModelStateComponent;
-            m_ShaderGraphView = shaderGraphView;
+            m_ShaderGraphEditorWindow = shaderGraphEditorWindow;
         }
 
         /// <inheritdoc />
@@ -29,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (obs.UpdateType != UpdateType.None && m_ToolStateComponent.GraphModel is ShaderGraphModel shaderGraphModel)
                 {
                     shaderGraphModel.graphModelStateComponent = m_GraphModelStateComponent;
-                    m_ShaderGraphView.HandleGraphLoad(shaderGraphModel);
+                    m_ShaderGraphEditorWindow.HandleGraphLoad(shaderGraphModel);
                 }
             }
         }

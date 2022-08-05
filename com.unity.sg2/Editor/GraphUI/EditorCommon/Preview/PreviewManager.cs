@@ -18,12 +18,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         bool m_IsInitialized;
 
-        public bool IsInitialized
-        {
-            get => m_IsInitialized;
-            set => m_IsInitialized = value;
-        }
-
         // Gets set to true when user selects the "Sprite" preview mesh in main preview
         bool m_LockMainPreviewRotation;
 
@@ -173,7 +167,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // TODO: Handle displaying main preview errors
                     foreach (var errorMessage in shaderMessages)
                     {
-                        Debug.Log(errorMessage);
+                        Debug.Log(errorMessage.message);
                     }
 
                     break;

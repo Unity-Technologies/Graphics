@@ -8,7 +8,7 @@ using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.HeadlessPreviewMana
 namespace UnityEditor.ShaderGraph.GraphUI
 {
 
-    public static class PreviewCommandsRegistrar
+    public static class PreviewCommands
     {
         public static void RegisterCommandHandlers(
             BaseGraphTool graphTool,
