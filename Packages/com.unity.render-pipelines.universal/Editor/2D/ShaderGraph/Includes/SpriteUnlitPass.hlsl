@@ -27,6 +27,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
+    if (color.a == 0.0)
+        discard;
+
 #if ALPHA_CLIP_THRESHOLD
     clip(color.a - surfaceDescription.AlphaClipThreshold);
 #endif
