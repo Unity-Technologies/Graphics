@@ -8,6 +8,12 @@ using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
+// TODO: Interpreter should be refactored to cache processing state that is shared across
+// many calls to the interpreter. When Async preview goes live especially, there will be a 
+// lot of repeated work in sorting and processing of nodes, many of which can be cached and
+// stitched on demand at various levels. An interpreter that could accept change notifications,
+// eg. when topological changes occur and the halo of those changes, it would be possible to even cache
+// the ShaderFoundry objects as well.
     public static class Interpreter
     {
         private class ShaderFunctionRegistry : List<ShaderFunction>
