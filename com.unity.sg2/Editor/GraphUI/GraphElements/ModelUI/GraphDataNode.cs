@@ -33,20 +33,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
             var nodeUIDescriptor = stencil.GetUIHints(m_GraphDataNodeModel.registryKey, nodeReader);
 
-            // If the node has multiple possible topologies,
-            // show the selector
+            // If the node has multiple possible topologies, show the selector.
             if (nodeUIDescriptor.SelectableFunctions.Count > 0)
             {
+                string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+                string selected = nodeReader.GetField(fieldName).GetData<string>();
                 FunctionSelectorPart part = new (
                     "sg-function-selector",
                     GraphElementModel,
                     this,
                     ussClassName,
+                    selected,
                     nodeUIDescriptor.SelectableFunctions);
                 PartList.InsertPartAfter(portContainerPartName, part);
             }
-
-
 
             m_StaticFieldParts = new(name, m_GraphDataNodeModel, this, ussClassName);
 
