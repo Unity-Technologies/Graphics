@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             = new Defs.NodeUIDescriptor(version: 1,
                 name: "SampleGradient",
                 displayName: "Sample Gradient",
-                category: "Input/Geometry",
+                category: "Input/Gradient",
                 tooltip: "Sample a gradient by the provided time.",
                 synonyms: new string[] {"Gradient"});
 
