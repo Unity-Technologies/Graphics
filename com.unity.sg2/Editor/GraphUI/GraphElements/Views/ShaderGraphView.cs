@@ -40,8 +40,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 ViewSelection = new ShaderGraphViewSelection(this, GraphViewModel.GraphModelState, GraphViewModel.SelectionState);
 
             GraphViewCommandOverridesRegistrar(this, graphTool.State, m_PreviewManager);
+
+            GraphViewNodeCommandsRegistrar(this, graphTool.State, m_PreviewManager);
         }
 
+        /// <summary>
+        /// Place to register any commands that are overrides of base GTF commands
+        /// </summary>
         static void GraphViewCommandOverridesRegistrar(ShaderGraphView graphView, IState stateStore, PreviewManager previewManager)
         {
             var dispatcher = graphView.Dispatcher;

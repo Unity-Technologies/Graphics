@@ -200,7 +200,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override BaseGraphTool CreateGraphTool()
         {
             m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>(WindowID);
-            ShaderGraphCommandsRegistrar.RegisterCommandHandlers(m_GraphTool);
+            ShaderGraphCommandsRegistrar.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 
             return m_GraphTool;
         }

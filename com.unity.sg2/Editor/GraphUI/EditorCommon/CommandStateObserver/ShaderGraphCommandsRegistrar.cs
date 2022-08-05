@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public static class ShaderGraphCommandsRegistrar
     {
-        public static void RegisterCommandHandlers(BaseGraphTool graphTool)
+        public static void RegisterCommandHandlers(BaseGraphTool graphTool, PreviewManager previewManager)
         {
             var stateStore = graphTool.State;
             var dispatcher = graphTool.Dispatcher;
@@ -31,6 +31,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             );
 
             // Node commands
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, SetGraphTypeValueCommand>(
+                SetGraphTypeValueCommand.DefaultCommandHandler,
+                undoStateComponent,
+                graphModelStateComponent,
+                previewManager);
+
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, SetGradientTypeValueCommand>(
+                SetGradientTypeValueCommand.DefaultCommandHandler,
+                undoStateComponent,
+                graphModelStateComponent,
+                previewManager);
+
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,
                 undoStateComponent,
