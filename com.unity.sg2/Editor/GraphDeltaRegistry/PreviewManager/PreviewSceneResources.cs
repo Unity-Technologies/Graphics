@@ -1,6 +1,6 @@
 ﻿using System;
-using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -28,6 +28,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             light.intensity = 1.0f;
             light.enabled = false;
             return lightGO;
+        }
+
+        public void SetTargetRenderTexture(RenderTexture target)
+        {
+            m_Camera.targetTexture = target;
         }
 
         public PreviewSceneResources()

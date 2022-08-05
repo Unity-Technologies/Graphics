@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Registry m_RegistryInstance;
 
-        MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new();
+        MaterialPropertyBlock m_PreviewMaterialPropertyBlock;
 
         Texture2D m_ErrorTexture;
         Texture2D m_CompilingTexture;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         PreviewData m_MainPreviewData;
 
-        Mesh m_MainPreviewMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
+        Mesh m_MainPreviewMesh;
 
         Quaternion m_MainPreviewRotation = Quaternion.identity;
 
@@ -121,17 +121,38 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return tex;
         }
 
-        public HeadlessPreviewManager()
+        public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
         {
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
             m_SceneResources = new PreviewSceneResources();
-        }
 
-        public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
-        {
+            m_PreviewMaterialPropertyBlock = new();
             AddMainPreviewData(contextNodeName, mainPreviewSize);
             InitializeSRPIfNeeded();
+        }
+
+        public void Cleanup()
+        {
+            if (m_ErrorTexture != null)
+            {
+                Object.DestroyImmediate(m_ErrorTexture);
+                m_ErrorTexture = null;
+            }
+
+            if (m_CompilingTexture != null)
+            {
+                m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
+                m_ErrorTexture = null;
+            }
+
+            if (m_SceneResources != null)
+            {
+                m_SceneResources.Dispose();
+                m_SceneResources = null;
+            }
+
+            m_PreviewMaterialPropertyBlock.Clear();
         }
 
         void InitializeSRPIfNeeded()
@@ -576,6 +597,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         void AddMainPreviewData(string contextNodeName, Vector2 mainPreviewSize)
         {
             m_OutputContextNodeName = contextNodeName;
+
+            m_MainPreviewMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
 
             m_MainPreviewData = new PreviewData()
             {

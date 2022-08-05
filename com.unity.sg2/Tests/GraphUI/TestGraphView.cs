@@ -9,8 +9,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         List<GraphElement> m_GraphElements = new();
 
-        public TestGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName, GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
-            : base(window, graphTool, graphViewName, displayMode)
+        public TestGraphView(
+            GraphViewEditorWindow window,
+            BaseGraphTool graphTool,
+            string graphViewName,
+            PreviewManager previewManager,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+            : base(window, graphTool, graphViewName, previewManager, displayMode)
         {
 
         }

@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
@@ -5,26 +6,30 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GraphViewStateObserver : StateObserver
+    /// <summary>
+    /// Watches the graph model for changes and notifies the preview manager when changes occur
+    /// Also handles notifying the graph model for post-copy edge
+    /// </summary>
+    public class GraphModelStateObserver : StateObserver
     {
         PreviewManager m_PreviewManagerInstance;
-        GraphModelStateComponent m_graphModelStateComponent;
+        GraphModelStateComponent m_GraphModelStateComponent;
 
-        public GraphViewStateObserver(GraphModelStateComponent graphModelStateComponent, PreviewManager previewManager) : base(new [] {graphModelStateComponent}, new [] {graphModelStateComponent})
+        public GraphModelStateObserver(GraphModelStateComponent graphModelStateComponent, PreviewManager previewManager) : base(new [] {graphModelStateComponent}, new [] {graphModelStateComponent})
         {
             m_PreviewManagerInstance = previewManager;
-            m_graphModelStateComponent = graphModelStateComponent;
+            m_GraphModelStateComponent = graphModelStateComponent;
         }
 
         public override void Observe()
         {
             // Note: These using statements are necessary to increment last observed version
-            using (var graphViewObservation = this.ObserveState(m_graphModelStateComponent))
+            using (var graphViewObservation = this.ObserveState(m_GraphModelStateComponent))
             {
                 if (graphViewObservation.UpdateType != UpdateType.None
-                    && m_graphModelStateComponent.GraphModel is ShaderGraphModel shaderGraphModel)
+                    && m_GraphModelStateComponent.GraphModel is ShaderGraphModel shaderGraphModel)
                 {
-                    var changeset = m_graphModelStateComponent.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
+                    var changeset = m_GraphModelStateComponent.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
                     var addedModels = changeset.NewModels;
                     var removedModels = changeset.DeletedModels;
 
@@ -33,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         if (addedModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
                         {
                             m_PreviewManagerInstance.OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
-                            using var graphUpdater = m_graphModelStateComponent.UpdateScope;
+                            using var graphUpdater = m_GraphModelStateComponent.UpdateScope;
                             graphUpdater.MarkChanged(addedModel);
                         }
                         else if (addedModel is GraphDataEdgeModel graphDataEdgeModel)
