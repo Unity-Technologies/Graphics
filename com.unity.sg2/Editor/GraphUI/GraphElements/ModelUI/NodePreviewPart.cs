@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class NodePreviewPart : BaseModelViewPart, IPreviewUpdateListener
+    public class NodePreviewPart : BaseModelViewPart
     {
         VisualElement m_Root;
         VisualElement m_CollapseButton;
