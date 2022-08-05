@@ -201,6 +201,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>(WindowID);
             ShaderGraphCommandsRegistrar.RegisterCommandHandlers(m_GraphTool);
+
             return m_GraphTool;
         }
 

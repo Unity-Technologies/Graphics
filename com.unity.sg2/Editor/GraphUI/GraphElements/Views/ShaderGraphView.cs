@@ -87,12 +87,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphTool.ObserverManager.RegisterObserver(m_ShaderGraphLoadedObserver);
         }
 
+        // Entry point for initializing any systems that depend on the graph model
         public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
         {
             var shaderGraphEditorWindow = Window as ShaderGraphEditorWindow;
             Assert.IsNotNull(shaderGraphEditorWindow);
 
             m_PreviewManager.Initialize(shaderGraphModel, shaderGraphEditorWindow.MainPreviewView, shaderGraphEditorWindow.WasWindowClosedInDirtyState);
+
+            PreviewCommandsRegistrar.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, Dispatcher, GraphViewModel);
         }
     }
 }

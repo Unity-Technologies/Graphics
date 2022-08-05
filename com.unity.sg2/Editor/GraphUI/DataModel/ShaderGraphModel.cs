@@ -142,12 +142,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool isCutOperation;
         #endregion CopyPasteData
 
-        /// <summary>
-        /// Initialized by PreviewManager.Initialize()
-        /// Allows node views to request preview updates
-        /// </summary>
-        public Action<string> RequestPreviewUpdateDelegate;
-
         internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
             graphHandlerBox.Init(graph);
