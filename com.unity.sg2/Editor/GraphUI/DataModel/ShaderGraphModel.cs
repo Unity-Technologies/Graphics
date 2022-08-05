@@ -678,7 +678,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             "CustomRenderTextureSlice",
             "ParallaxOcclusionMapping",
             "LinearBlendSkinning",
-            "ReferenceNode"
+            "Reference"
         };
 
         public bool ShouldBeInSearcher(RegistryKey registryKey)
