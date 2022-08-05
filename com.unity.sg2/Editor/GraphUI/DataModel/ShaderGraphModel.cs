@@ -692,7 +692,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (blacklistNodeNames.Contains(registryKey.Name))
                 return false;
             var cat = RegistryInstance.GetNodeUIDescriptor(registryKey).Category;
-            if (blacklistCategories.Contains(cat))
+
+            if (blacklistCategories.Any(e => cat.Contains(e)))
                 return false;
 
             try
