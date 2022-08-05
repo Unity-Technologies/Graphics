@@ -670,8 +670,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return nodeRequiresTime;
         }
 
+        // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290
+        // Should have a feature for managing what types/nodes are exposed i nbuil
+        static readonly string[] blacklist = new string[] {
+            "CustomRenderTextureSelf",
+            "CustomRenderTextureSize",
+            "CustomRenderTextureSlice",
+            "ParallaxOcclusionMapping",
+            "LinearBlendSkinning",
+            "ReferenceNode"
+        };
 
-        static readonly string[] blacklist = new string[] { "" };
         public bool ShouldBeInSearcher(RegistryKey registryKey)
         {
             if (blacklist.Contains(registryKey.Name))
