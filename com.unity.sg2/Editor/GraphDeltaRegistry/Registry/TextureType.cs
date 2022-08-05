@@ -108,11 +108,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public RegistryFlags GetRegistryFlags()
             => RegistryFlags.Type;
 
-        public static string GetUniqueUniformName(FieldHandler data)
-            => ElementID.FromString(data.ID.ParentPath).LocalPath;
-
         private static string GetUniquePropertyName(FieldHandler data)
-            => $"Property_{GetUniqueUniformName(data)}";
+            => $"Property_{ITypeDefinitionBuilder.GetUniqueUniformName(data)}";
 
         public static Texture GetTextureAsset(FieldHandler data)
             => data?.GetSubField<Internal.SerializableTexture>(KAsset).GetData().texture;
@@ -162,13 +159,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public string GetInitializerList(FieldHandler field, Registry registry)
         {
-            string name = GetUniqueUniformName(field);
+            string name = ITypeDefinitionBuilder.GetUniqueUniformName(field);
             return $"In.{name}";
         }
 
         internal static StructField UniformPromotion(FieldHandler field, ShaderContainer container, Registry registry)
         {
-            var name = GetUniqueUniformName(field);
+            var name = ITypeDefinitionBuilder.GetUniqueUniformName(field);
             var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
             var attrBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
             attrBuilder.Param("displayName", GetUniquePropertyName(field));

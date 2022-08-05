@@ -149,50 +149,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             graphDelta.RemoveDefaultConnection(contextEntryName, portInput, registry);
         }
 
-        private List<ElementID> GetNodesTopologically()
-        {
-            List<ElementID> result = new();
-            HashSet<ElementID> visited = new(new ElementIDComparer());
-            Dictionary<ElementID, HashSet<ElementID>> dependencyList = new(new ElementIDComparer());
 
-            // prepass the dependency list so our runtime is o(v+e) instead of o(v*e)
-            foreach (var edge in graphDelta.m_data.edges)
-            {
-                var key = new ElementID(edge.Input.ParentPath);
-                var toAdd = new ElementID(edge.Output.ParentPath);
-                if (!dependencyList.ContainsKey(key))
-                    dependencyList.Add(key, new(new ElementIDComparer()));
-                dependencyList[key].Add(toAdd);
-            }
 
-            void TopoSort(ElementID nodeID)
-            {
-                if (!visited.Contains(nodeID))
-                visited.Add(nodeID);
-                if (dependencyList.TryGetValue(nodeID, out var upstreamNodeIDs))
-                {
-                    foreach (var upstreamNodeID in upstreamNodeIDs)
-                    {
-                        if (!visited.Contains(upstreamNodeID))
-                            TopoSort(upstreamNodeID);
-                    }
-                }
-
-                result.Add(nodeID);
-            }
-
-            foreach(var nodeID in GetNodes().Select(e => e.ID.FullPath))
-                if(!visited.Contains(nodeID))
-                    TopoSort(nodeID);
-
-            return result;
-        }
 
 
 
         public void ReconcretizeAll()
         {
-            foreach(var name in GetNodesTopologically())
+            foreach(var name in GraphHandlerUtils.GetNodesTopologically(this))
             {
                 var node = GetNode(name);
                 if (node != null)
