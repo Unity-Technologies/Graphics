@@ -149,9 +149,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 Targets.Add(target);
                 // all target-based graphs have a Vert
-                var vertNode = this.CreateGraphDataContextNode("VertOut");
-                vertNode.Title = "Vertex Stage";
-                vertNode.Position = new Vector2(0, -180);
+                // TODO: https://jira.unity3d.com/browse/GSG-1290
+                //var vertNode = this.CreateGraphDataContextNode("VertOut");
+                //vertNode.Title = "Vertex Stage";
+                //vertNode.Position = new Vector2(0, -180);
 
             }
             var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);

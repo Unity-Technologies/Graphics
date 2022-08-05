@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {Matrix2, TYPE.Mat2},
                 {Matrix3, TYPE.Mat3},
                 {Matrix4, TYPE.Mat4},
-                {GradientTypeHandle, TYPE.Gradient},
+                // {GradientTypeHandle, TYPE.Gradient}, todo: https://jira.unity3d.com/browse/GSG-1290
                 {Texture2DTypeHandle, TYPE.Texture2D},
                 {Texture2DArrayTypeHandle, TYPE.Texture2DArray},
                 {Texture3DTypeHandle, TYPE.Texture3D},
