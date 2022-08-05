@@ -122,12 +122,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphViewModel.GraphModelState);
 
             // Variable declaration commands
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetShaderDeclarationCommand>(
-                SetShaderDeclarationCommand.DefaultCommandHandler,
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetVariableSettingCommand>(
+                SetVariableSettingCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphViewModel.GraphModelState);
         }
-
-
     }
 }

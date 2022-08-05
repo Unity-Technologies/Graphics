@@ -20,5 +20,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             PerInstance,
             Constant
         }
+
+        public enum FloatDisplayType
+        {
+            Default,
+            Slider,
+        }
+
+        public const string kFloatDisplayType = "FloatDisplayType";
+        public const string kFloatRangeMin = "FloatRangeMin";
+        public const string kFloatRangeMax = "FloatRangeMax";
+
+        public const string kIsColor = "IsColor";
+        public const string kIsHdr = "IsHdr";
     }
 }

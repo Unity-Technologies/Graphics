@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             ("Create Texture2DArray", typeof(ObjectField)),
             ("Create Texture3D", typeof(ObjectField)),
             ("Create Cubemap", typeof(ObjectField)),
-            // ("Create SamplerStateData", null), TODO (Joe): TBD in GSG-1217
+            ("Create SamplerStateData", null),
         };
 
         [UnityTest]
