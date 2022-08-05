@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// GraphDataNodeModel is a model for a node backed by graph data. It can be used for a node on the graph (with
     /// an assigned graph data name) or a searcher preview (with only an assigned registry key).
     /// </summary>
-    public class GraphDataNodeModel : NodeModel, IGraphDataOwner
+    public class GraphDataNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
     {
         [SerializeField]
         string m_GraphDataName;
@@ -289,6 +289,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
             m_PortMappings.Clear();
 
+            // TODO: We need a way to get the preview manager here and store
+
+
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
             {
@@ -360,6 +363,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 NodeModel = this,
                 GraphModel = GraphModel
             };
+        }
+
+        public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RequestPreviewUpdate(string listenerID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetListenerID()
+        {
+            throw new NotImplementedException();
         }
     }
 }

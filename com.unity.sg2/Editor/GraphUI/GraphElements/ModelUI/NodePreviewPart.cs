@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class NodePreviewPart : BaseModelViewPart
+    public class NodePreviewPart : BaseModelViewPart, IPreviewUpdateListener
     {
         VisualElement m_Root;
         VisualElement m_CollapseButton;
@@ -106,12 +106,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewImage.tintColor = isPreviewShaderCompiling ? new Color(1.0f, 1.0f, 1.0f, 0.3f) : Color.white;
         }
 
-        void HandlePreviewTextureUpdated(Texture newPreviewTexture)
+        public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
         {
             if(newPreviewTexture != m_PreviewImage.image && newPreviewTexture != null)
                 m_PreviewImage.image = newPreviewTexture;
             else
                 m_PreviewImage.MarkDirtyRepaint();
+        }
+
+        public void RequestPreviewUpdate(string listenerID)
+        {
+            // TODO: Get graph model and call preview update function
         }
     }
 }
