@@ -289,9 +289,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
             m_PortMappings.Clear();
 
-            // TODO: We need a way to get the preview manager here and store
-
-
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
             {
