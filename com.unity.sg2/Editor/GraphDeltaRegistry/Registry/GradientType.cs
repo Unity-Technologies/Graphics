@@ -1,13 +1,19 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.ShaderFoundry;
-using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal class SampleGradientNode : INodeDefinitionBuilder
     {
+        public static readonly Defs.NodeUIDescriptor kUIDescriptor
+            = new Defs.NodeUIDescriptor(version: 1,
+                name: "SampleGradient",
+                displayName: "Sample Gradient",
+                category: "Input/Gradient",
+                tooltip: "Sample a gradient by the provided time.",
+                synonyms: new string[] {"Gradient"});
+
         public RegistryKey GetRegistryKey() => new() {Name = "SampleGradient", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 

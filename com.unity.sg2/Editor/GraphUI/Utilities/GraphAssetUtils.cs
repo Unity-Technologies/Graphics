@@ -47,19 +47,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //        null);
         //}
 
-        [MenuItem("Assets/Create/Shader Graph 2/Blank Shader SubGraph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateBlankSubGraphInProjectWindow()
-        {
-            var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
-            newGraphAction.isSubGraph = true;
+        // TODO: Reenable for users once subgraphs are behaving correctly again https://jira.unity3d.com/browse/GSG-1290
+        //[MenuItem("Assets/Create/Shader Graph 2/Blank Shader SubGraph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        //public static void CreateBlankSubGraphInProjectWindow()
+        //{
+        //    var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+        //    newGraphAction.isSubGraph = true;
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                0,
-                newGraphAction,
-                $"{ShaderGraphStencil.DefaultSubGraphAssetName}.{ShaderGraphStencil.SubGraphExtension}",
-                null,
-                null);
-        }
+        //    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+        //        0,
+        //        newGraphAction,
+        //        $"{ShaderGraphStencil.DefaultSubGraphAssetName}.{ShaderGraphStencil.SubGraphExtension}",
+        //        null,
+        //        null);
+        //}
 
         private static void SaveImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAsset> SaveAction)
         {
