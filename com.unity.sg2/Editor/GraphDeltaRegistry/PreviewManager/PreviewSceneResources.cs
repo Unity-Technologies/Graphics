@@ -30,11 +30,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return lightGO;
         }
 
-        public void SetTargetRenderTexture(RenderTexture target)
-        {
-            m_Camera.targetTexture = target;
-        }
-
         public PreviewSceneResources()
         {
             m_Scene = EditorSceneManager.NewPreviewScene();
