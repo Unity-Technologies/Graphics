@@ -29,7 +29,7 @@ Shader "Hidden/Debug/ProbeVolumeSHPreview"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+            #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maximumLODLevel;
         public SerializedProperty maximumLODLevelMode;
         public SerializedProperty maximumLODLevelQualityLevel;
-        public SerializedProperty probeVolumeSamplingQuality;
+        public SerializedProperty probeVolumeEncoding;
         public SerializedProperty probeVolumeDynamicGIPropagationQuality;
         public SerializedProperty probeVolumeDynamicGIMaxSimulationsPerFrame;
         public SerializedProperty probeVolumeDynamicGIMixedLightMode;
@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumLODLevel                            = rootData.FindPropertyRelative("maximumLODLevel");
             maximumLODLevelMode                        = rootData.FindPropertyRelative("maximumLODLevelMode");
             maximumLODLevelQualityLevel                = rootData.FindPropertyRelative("maximumLODLevelQualityLevel");
-            probeVolumeSamplingQuality                 = rootData.FindPropertyRelative("probeVolumeSamplingQuality");
+            probeVolumeEncoding                        = rootData.FindPropertyRelative("probeVolumeEncoding");
             probeVolumeDynamicGIPropagationQuality     = rootData.FindPropertyRelative("probeVolumeDynamicGIPropagationQuality");
             probeVolumeDynamicGIMaxSimulationsPerFrame = rootData.FindPropertyRelative("probeVolumeDynamicGIMaxSimulationsPerFrame");
             probeVolumeDynamicGIMixedLightMode         = rootData.FindPropertyRelative("probeVolumeDynamicGIMixedLightMode");

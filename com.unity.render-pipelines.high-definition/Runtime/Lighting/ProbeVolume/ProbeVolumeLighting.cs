@@ -67,6 +67,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    public enum ProbeVolumesEncodingSetting
+    {
+        SHL1 = 1,
+        SHL2 = 2
+    }
+
     [GenerateHLSL]
     internal enum LeakMitigationMode
     {
@@ -1050,8 +1056,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Otherwise, they should just update ShaderConfig to disable probe volumes completely.
             if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
             {
-                var encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeSamplingQuality;
-                CoreUtils.SetKeyword(immediateCmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0", encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL0);
+                var encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeEncoding;
                 CoreUtils.SetKeyword(immediateCmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1", encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL1);
                 CoreUtils.SetKeyword(immediateCmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2", encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2);
 
@@ -1124,7 +1129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.maxSimulationsPerFrameOverride = hdCamera.frameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
                 data.mixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
                 data.radianceEncoding = hdCamera.frameSettings.probeVolumeDynamicGIRadianceEncoding;
-                data.encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeSamplingQuality;
+                data.encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeEncoding;
 
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
@@ -1224,7 +1229,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             float offscreenUploadDistanceSquared = offscreenUploadDistance * offscreenUploadDistance;
 
-            ProbeVolumesEncodingModes encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeSamplingQuality;
+            ProbeVolumesEncodingModes encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeEncoding;
 
             using (new ProfilingScope(immediateCmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {

@@ -4,7 +4,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-        #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+        #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

@@ -446,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void MigrateProbeVolumeQuality(ref FrameSettings cameraFrameSettings)
         {
-            cameraFrameSettings.probeVolumeSamplingQuality = 2;
+            cameraFrameSettings.probeVolumeEncoding = 2;
         }
     }
 }
