@@ -81,8 +81,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal void Register<T>() where T : IRegistryEntry =>
             Registry.Register<T>();
 
-        internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) =>
-            NodeUIInfo.GetNodeUIDescriptor(key, node);
+        internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node = null) =>
+            NodeUIInfo.GetNodeUIDescriptor(key, node ?? GetDefaultTopology(key));
 
         internal NodeHandler GetDefaultTopology(RegistryKey key) =>
             DefaultTopologies.GetNode(key.ToString());
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Register<SamplerStateAssignment>();
 
             Register(new MultiplyNode(), new MultiplyNodeUI());
-            Register(new SampleGradientNode());
+            Register(new SampleGradientNode(), new StaticNodeUIDescriptorBuilder(SampleGradientNode.kUIDescriptor));
             #endregion
 
             // TODO: remove these, but keep until equivalents are working correctly.

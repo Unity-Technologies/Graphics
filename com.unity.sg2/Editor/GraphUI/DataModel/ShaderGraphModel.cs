@@ -672,7 +672,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290
         // Should have a feature for managing what types/nodes are exposed i nbuil
-        static readonly string[] blacklist = new string[] {
+        static readonly string[] blacklistNodeNames = new string[] {
             "CustomRenderTextureSelf",
             "CustomRenderTextureSize",
             "CustomRenderTextureSlice",
@@ -680,13 +680,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
             "LinearBlendSkinning",
             "Reference"
         };
+        static readonly string[] blacklistCategories = new string[]
+        {
+            "DEFAULT_CATEGORY",
+            "Test",
+            "Tests"
+        };
 
         public bool ShouldBeInSearcher(RegistryKey registryKey)
         {
-            if (blacklist.Contains(registryKey.Name))
+            if (blacklistNodeNames.Contains(registryKey.Name))
                 return false;
+            var cat = RegistryInstance.GetNodeUIDescriptor(registryKey).Category;
+            if (blacklistCategories.Contains(cat))
+                return false;
+
             try
             {
+                // TODO: RegistrInstance.Contains(Key)
                 var nodeBuilder = RegistryInstance.GetNodeBuilder(registryKey);
                 var registryFlags = nodeBuilder.GetRegistryFlags();
                 return registryFlags.HasFlag(RegistryFlags.Func);

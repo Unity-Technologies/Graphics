@@ -54,14 +54,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     if (shaderGraphModel.ShouldBeInSearcher(registryKey))
                     {
-                        var uiInfo = registry.GetNodeUIDescriptor(
-                            registryKey,
-                            registry.GetDefaultTopology(registryKey)
-                        );
+                        // Should be part of the registry contract that if a key is registered,
+                        // a valid topology and nodeUIInfo for it will also exist.
+                        var uiInfo = registry.GetNodeUIDescriptor(registryKey);
                         string searcherItemName = uiInfo.DisplayName;
-                        // fallback to the registry name if there is no display name
-                        if (string.IsNullOrEmpty(searcherItemName))
-                            searcherItemName = registryKey.Name;
                         // If there is already a SearcherItem with the current name,
                         // warn and skip.
                         if (namesAddedToSearcher.Contains(searcherItemName))
