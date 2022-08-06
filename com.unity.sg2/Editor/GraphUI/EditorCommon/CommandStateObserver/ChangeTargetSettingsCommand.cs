@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphDelta;
+using System.Linq;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -32,6 +31,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             previewManager.OnNodeFlowChanged(ShaderGraphAssetUtils.kMainEntryContextName);
+            using var graphUpdater = graphModelState.UpdateScope;
+            graphUpdater.MarkChanged(shaderGraphModel.NodeModels.OfType<GraphDataContextNodeModel>());
             // TODO: Consequences of changing a target setting: Discovering any new context node ports, validating all nodes on the graph etc.
         }
     }
