@@ -24,6 +24,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             Debug.Log("ChangeTargetSettingsCommand: Target Settings Change is unimplemented");
 
+            var shaderGraphModel = graphModelState.GraphModel as ShaderGraphModel;
+            foreach (var target in shaderGraphModel.Targets)
+            {
+                shaderGraphModel.InitializeContextFromTarget(target);
+            }
+
             // TODO: Consequences of changing a target setting: Discovering any new context node ports, validating all nodes on the graph etc.
         }
     }

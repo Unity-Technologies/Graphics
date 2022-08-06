@@ -9,7 +9,7 @@ using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 namespace UnityEditor.ShaderGraph.Generation
 {
 // TODO: Interpreter should be refactored to cache processing state that is shared across
-// many calls to the interpreter. When Async preview goes live especially, there will be a 
+// many calls to the interpreter. When Async preview goes live especially, there will be a
 // lot of repeated work in sorting and processing of nodes, many of which can be cached and
 // stitched on demand at various levels. An interpreter that could accept change notifications,
 // eg. when topological changes occur and the halo of those changes, it would be possible to even cache
@@ -96,12 +96,12 @@ namespace UnityEditor.ShaderGraph.Generation
         }
 
 
-        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures)
+        internal static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures, Target target = null)
         {
             List<(string, UnityEngine.Texture)> defaults = new();
             void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
                 => GetBlocks(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
-            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
+            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), target ?? SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
 
             defaultTextures = new();
             defaultTextures.AddRange(defaults);
