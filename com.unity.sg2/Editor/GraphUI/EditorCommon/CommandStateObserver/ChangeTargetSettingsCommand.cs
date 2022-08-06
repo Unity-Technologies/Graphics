@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
+            PreviewManager previewManager,
             ChangeTargetSettingsCommand command)
         {
             using (var undoStateUpdater = undoState.UpdateScope)
@@ -30,6 +31,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphModel.InitializeContextFromTarget(target);
             }
 
+            previewManager.OnNodeFlowChanged(ShaderGraphAssetUtils.kMainEntryContextName);
             // TODO: Consequences of changing a target setting: Discovering any new context node ports, validating all nodes on the graph etc.
         }
     }
