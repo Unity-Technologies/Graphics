@@ -221,6 +221,11 @@ float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int a
     return probeWorldPosition + neighborDirectionWS * neighborAxisLength * _ProbeVolumeDGIMaxNeighborDistance;
 }
 
+#define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
+#define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (1)
+#define BASIS_FROM_SH_MODE_ZH_FIT (2)
+#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
+
 [numthreads(GROUP_SIZE, 1, 1)]
 void PropagateLight(uint3 id : SV_DispatchThreadID)
 {
@@ -322,6 +327,54 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
                     float weight = neighborAxisLookup.propagationWeight;
 
+#if BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
+                    {
+
+                        BasisAxisHit basisAxisNeighborHitWS = basisAxisNeighborHit;
+                        basisAxisNeighborHitWS.mean = mul(basisAxisNeighborHitWS.mean, probeVolumeLtw);
+
+                        const float SOLID_ANGLE_SPHERE = 4.0 * PI;
+                        const float GOLDEN_ANGLE = PI * (3.0 - sqrt(5.0));
+                        const float GOLDEN_ANGLE_HALF = GOLDEN_ANGLE * 0.5;
+                        const int SAMPLE_COUNT = 512;
+                        const float SAMPLE_COUNT_INVERSE = 1.0 / (float)SAMPLE_COUNT;
+                        for (int sampleIndex = 0; sampleIndex < SAMPLE_COUNT; ++sampleIndex)
+                        {
+                            float3 sampleDirectionWS;
+                            {
+                                float offset = (float)sampleIndex + 0.5;
+                                float theta = offset * GOLDEN_ANGLE + GOLDEN_ANGLE_HALF;
+                                float z = -(offset * SAMPLE_COUNT_INVERSE * 2.0 - 1.0);
+                                float r = sqrt(1.0 - z * z);
+
+                                float3 sampleDirectionBasisOS = float3(
+                                    r * cos(theta),
+                                    r * sin(theta),
+                                    z
+                                );               
+
+                                sampleDirectionWS = sampleDirectionBasisOS; // No rotation necessary, we are sampling the whole sphere.
+                            }
+
+                            const float DIFFERENTIAL_AREA = SOLID_ANGLE_SPHERE * SAMPLE_COUNT_INVERSE;
+                            
+                            float3 sampleIncomingRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, sampleDirectionWS);
+
+                            float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+                            float3 basisAxisHitDirectionOS = basisAxisHit.mean;
+                            basisAxisHit.mean = basisAxisHitDirectionWS;
+
+                            // TODO: FINISH LOOKING AT THIS INTEGRAL
+                            incomingHitRadiance += sampleIncomingRadiance
+                                * DIFFERENTIAL_AREA
+                                * ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS)
+                                * ComputeBasisAxisHitEvaluateFromDirection(basisAxisNeighborHitWS, sampleDirectionWS);
+                                //* weight;
+                            basisAxisHit.mean = basisAxisHitDirectionOS; 
+                        }
+                    }
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_ZH_FIT
                     // Because convolution in SH space is cheap (zonal harmonic window component-wise multiplication), we are able to
                     // more accurately capture the integral of incoming irradiance over the hit basis solid angle + weight.
                     // It's important to note that this is an approximation - because our hit axis lobe is not a zonal harmonic - it is an SG or AmbientDice lobe,
@@ -330,7 +383,12 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                     float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
                     ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
                     SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
-                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;
+                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;// * basisAxisHit.amplitude;
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+                    float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;// * basisAxisHit.amplitude;
+#endif
                 }
 #endif
             }
