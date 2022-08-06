@@ -95,7 +95,8 @@ namespace UnityEditor.ShaderGraph.Generation
             surfaceCPDesc = surfaceDescBuilder.Build();
         }
 
-
+        // TODO: Passing in the target directly is not what we want to do here, but having it be live gives us a clearer basis
+        // to refactor from when we introduce targets/templates and explore whether we should abstract all of this from either one.
         internal static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures, Target target = null)
         {
             List<(string, UnityEngine.Texture)> defaults = new();
