@@ -1158,7 +1158,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Spherical Harmonics L0", referenceName = "SPHERICAL_HARMONICS_L0" },
                 new KeywordEntry() { displayName = "Spherical Harmonics L1", referenceName = "SPHERICAL_HARMONICS_L1" },
                 new KeywordEntry() { displayName = "Spherical Harmonics L2", referenceName = "SPHERICAL_HARMONICS_L2" },
             }

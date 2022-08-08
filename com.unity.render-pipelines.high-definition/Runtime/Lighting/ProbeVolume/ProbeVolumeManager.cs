@@ -78,6 +78,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Volumes.RemoveAt(index);
         }
 
+        internal bool TryGetVolumeHandle(ProbeVolume volume, out ProbeVolumeHandle handle)
+        {
+            var index = m_Volumes.IndexOf(volume);
+            if (index != -1)
+            {
+                handle = new ProbeVolumeHandle(this, index);
+                return true;
+            }
+            else
+            {
+                handle = default;
+                return false;
+            }
+        }
+
         public void AddProbeList(IProbeVolumeList list)
         {
             m_AdditionalProbeLists.Add(list);

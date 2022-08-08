@@ -1369,6 +1369,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (propagationPipelineData.buffersDataVersion == -1)
                 return;
 
+            if (!ProbeVolumeManager.manager.TryGetVolumeHandle(this, out var volumeHandle))
+                return;
+
+            EnsureVolumeBuffers(volumeHandle, ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+
             var resolution = new Vector3Int(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
 
             // Always output full SHL2
