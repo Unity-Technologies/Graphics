@@ -78,6 +78,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
+            m_PreviewHandlerInstance.SetActiveTarget(m_GraphModel.ActiveTarget);
 
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)

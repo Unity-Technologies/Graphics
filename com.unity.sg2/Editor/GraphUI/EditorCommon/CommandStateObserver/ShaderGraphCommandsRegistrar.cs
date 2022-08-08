@@ -65,10 +65,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphViewModel.GraphModelState
             );
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeTargetSettingsCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangeTargetSettingsCommand>(
                 ChangeTargetSettingsCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
-                graphViewModel.GraphModelState
+                graphViewModel.GraphModelState,
+                previewManager
             );
 
             // Node UI commands
