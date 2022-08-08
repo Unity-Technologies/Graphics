@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ToolStateComponent toolStateComponent,
             GraphModelStateComponent graphModelStateComponent,
             ShaderGraphEditorWindow shaderGraphEditorWindow)
-            : base(toolStateComponent)
+            : base(new []{ toolStateComponent }, new []{ graphModelStateComponent })
         {
             m_ToolStateComponent = toolStateComponent;
             m_GraphModelStateComponent = graphModelStateComponent;

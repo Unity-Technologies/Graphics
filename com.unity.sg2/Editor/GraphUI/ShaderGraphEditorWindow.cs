@@ -193,8 +193,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override BaseGraphTool CreateGraphTool()
         {
             m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>(WindowID);
-            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
-
             return m_GraphTool;
         }
 
@@ -266,6 +264,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
         {
             m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
+
+            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 
             PreviewCommands.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, GraphView.Dispatcher, GraphView.GraphViewModel);
         }
