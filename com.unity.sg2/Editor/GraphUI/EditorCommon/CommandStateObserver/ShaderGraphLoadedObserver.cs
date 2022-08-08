@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         ToolStateComponent m_ToolStateComponent;
         GraphModelStateComponent m_GraphModelStateComponent;
         ShaderGraphEditorWindow m_ShaderGraphEditorWindow;
+        ShaderGraphModel m_CurrentGraphModelInstance;
 
         public ShaderGraphLoadedObserver(
             ToolStateComponent toolStateComponent,
@@ -25,8 +26,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var obs = this.ObserveState(m_ToolStateComponent))
             {
-                if (obs.UpdateType != UpdateType.None && m_ToolStateComponent.GraphModel is ShaderGraphModel shaderGraphModel)
+                if (obs.UpdateType != UpdateType.None
+                    && m_ToolStateComponent.GraphModel is ShaderGraphModel shaderGraphModel
+                    && m_CurrentGraphModelInstance != shaderGraphModel)
                 {
+                    m_CurrentGraphModelInstance = shaderGraphModel;
                     shaderGraphModel.graphModelStateComponent = m_GraphModelStateComponent;
                     m_ShaderGraphEditorWindow.HandleGraphLoad(shaderGraphModel);
                 }

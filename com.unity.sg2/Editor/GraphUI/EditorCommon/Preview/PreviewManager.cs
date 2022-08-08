@@ -16,8 +16,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public class PreviewManager
     {
-        bool m_IsInitialized;
-
         // Gets set to true when user selects the "Sprite" preview mesh in main preview
         bool m_LockMainPreviewRotation;
 
@@ -26,22 +24,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_LockMainPreviewRotation = value;
         }
 
-        HeadlessPreviewManager m_PreviewHandlerInstance = new();
+        HeadlessPreviewManager m_PreviewHandlerInstance;
 
         GraphModelStateComponent m_GraphModelStateComponent;
 
-        HashSet<string> m_DirtyNodes = new();
+        HashSet<string> m_DirtyNodes;
 
         ShaderGraphModel m_GraphModel;
 
-        Dictionary<string, SerializableGUID> m_NodeLookupTable = new();
+        Dictionary<string, SerializableGUID> m_NodeLookupTable;
 
         MainPreviewView m_MainPreviewView;
         MainPreviewData m_MainPreviewData;
 
         // Defines how many times a node/main preview will try to update its preview before the update loop stops
         const int k_PreviewUpdateCycleMax = 50;
-        Dictionary<string, int> m_CycleCountChecker = new ();
+        Dictionary<string, int> m_CycleCountChecker;
 
         string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
 
@@ -60,9 +58,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (graphModel == null)
                 return;
 
-            m_IsInitialized = true;
             m_GraphModel = graphModel;
             m_GraphModelStateComponent = m_GraphModel.graphModelStateComponent;
+            m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
+            m_CycleCountChecker = new Dictionary<string, int>();
+            m_PreviewHandlerInstance = new HeadlessPreviewManager();
+            m_DirtyNodes = new HashSet<string>();
 
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
@@ -73,8 +74,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
-
-            //graphModel.RequestPreviewUpdateDelegate =
 
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)

@@ -9,6 +9,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         List<GraphElement> m_GraphElements = new();
 
+        // Needed by GTF
+        public TestGraphView(
+            GraphViewEditorWindow window,
+            BaseGraphTool graphTool,
+            string graphViewName,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+            : base(window, graphTool, graphViewName, displayMode)
+        {
+
+        }
+
         public TestGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
