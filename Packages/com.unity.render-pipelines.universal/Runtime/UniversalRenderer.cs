@@ -649,6 +649,9 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraColorTarget(m_ColorBufferSystem.PeekBackBuffer());
 
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+            // Check the createColorTexture logic above: intermediate color texture is not available for preview cameras.
+            // Because intermediate color is not available and copyColor pass requires it, we disable CopyColor pass here.
+            copyColorPass &= !isPreviewCamera;
 
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
