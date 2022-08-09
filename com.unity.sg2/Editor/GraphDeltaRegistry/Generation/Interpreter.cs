@@ -1,12 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
+// TODO: Interpreter should be refactored to cache processing state that is shared across
+// many calls to the interpreter. When Async preview goes live especially, there will be a
+// lot of repeated work in sorting and processing of nodes, many of which can be cached and
+// stitched on demand at various levels. An interpreter that could accept change notifications,
+// eg. when topological changes occur and the halo of those changes, it would be possible to even cache
+// the ShaderFoundry objects as well.
     public static class Interpreter
     {
         private class ShaderFunctionRegistry : List<ShaderFunction>
@@ -88,13 +95,14 @@ namespace UnityEditor.ShaderGraph.Generation
             surfaceCPDesc = surfaceDescBuilder.Build();
         }
 
-
-        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures)
+        // TODO: Passing in the target directly is not what we want to do here, but having it be live gives us a clearer basis
+        // to refactor from when we introduce targets/templates and explore whether we should abstract all of this from either one.
+        internal static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures, Target target = null)
         {
             List<(string, UnityEngine.Texture)> defaults = new();
             void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
                 => GetBlocks(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
-            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
+            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), target ?? SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
 
             defaultTextures = new();
             defaultTextures.AddRange(defaults);
@@ -141,6 +149,16 @@ namespace UnityEditor.ShaderGraph.Generation
             var portTypeField = port.GetTypeField();
             var shaderType = registry.GetTypeBuilder(portTypeField.GetRegistryKey()).GetShaderType(portTypeField, container, registry);
             var varOutBuilder = new StructField.Builder(container, name, shaderType);
+
+            // TODO: This entire step should be deferred to the Type to determine how to process the Property rules,
+            // and also warn on bad property rules.
+            if (port.GetTypeField().GetRegistryKey().Name == SamplerStateType.kRegistryKey.Name)
+            {
+                var inVar = SamplerStateType.UniformPromotion(port.GetTypeField(), container, registry);
+                inputVariables.Add(inVar);
+                outputVariables.Add(varOutBuilder.Build());
+                return;
+            }
 
             var usage = PropertyBlockUsage.Excluded;
             var usageField = port.GetField <PropertyBlockUsage>(kPropertyBlockUsage);
@@ -204,8 +222,22 @@ namespace UnityEditor.ShaderGraph.Generation
             outputVariables.Add(varOutBuilder.Build());
         }
 
-        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder vertexDescBuilder, ref CustomizationPointInstance.Builder surfaceDescBuilder, ref List<(string, UnityEngine.Texture)> defaultTextures, string vertexName, string surfaceName)
+        internal static void EvaluateGraphAndPopulateDescriptors(
+                NodeHandler rootNode,
+                GraphHandler shaderGraph,
+                ShaderContainer container,
+                Registry registry,
+                ref CustomizationPointInstance.Builder vertexDescBuilder,
+                ref CustomizationPointInstance.Builder surfaceDescBuilder,
+                ref List<(string, UnityEngine.Texture)> defaultTextures,
+                string vertexName,
+                string surfaceName,
+                Dictionary<ElementID, HashSet<ElementID>> depList = null
+            )
         {
+            depList ??= GraphHandlerUtils.BuildDependencyList(shaderGraph);
+            var topoList = GraphHandlerUtils.GetUpstreamNodesTopologically(shaderGraph, rootNode.ID, depList, true).Select(e => new NodeHandler(e, shaderGraph.graphDelta, registry)).ToList();
+
 
             /* PSEDUOCODE
              * Given a root node and graph, we need to know if the node isn't a context node.
@@ -238,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
             var shaderFunctions = new ShaderFunctionRegistry();
             var includes = new List<ShaderFoundry.IncludeDescriptor>();
-            foreach(var node in GatherTreeLeafFirst(rootNode))
+            foreach(var node in topoList)
             {
                 //if the node is a context node (and not the root node) we recurse
                 if (node.HasMetadata("_contextDescriptor"))
@@ -246,7 +278,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!node.ID.Equals(rootNode.ID))
                     {
                         //evaluate the upstream context's block
-                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexName, surfaceName);
+                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexName, surfaceName, depList);
                         //create inputs to our block based on the upstream context's outputs
                         foreach (var port in node.GetPorts())
                         {
@@ -335,11 +367,14 @@ namespace UnityEditor.ShaderGraph.Generation
             var cpName = rootNode.GetField<string>("_CustomizationPointName");
             if (!isContext || cpName == null || (cpName != null && cpName.GetData().Equals(surfaceName)))
             {
-                surfaceDescBuilder.BlockInstances.Add(blockDesc);
+                // Prevent duplicates-- by why are we even getting any?
+                if (!surfaceDescBuilder.BlockInstances.Any(e => e.Block.Name == blockDesc.Block.Name))
+                    surfaceDescBuilder.BlockInstances.Add(blockDesc);
             }
             else if(isContext && cpName != null && cpName.GetData().Equals(vertexName))
             {
-                vertexDescBuilder.BlockInstances.Add(blockDesc);
+                if (!vertexDescBuilder.BlockInstances.Any(e => e.Block.Name == blockDesc.Block.Name))
+                    vertexDescBuilder.BlockInstances.Add(blockDesc);
             }
 
             //if the root node was not a context node, then we need to remap an output to the expected customization point output
@@ -547,7 +582,7 @@ namespace UnityEditor.ShaderGraph.Generation
                                 inputVariables.Add(field);
 
                                 var tex = BaseTextureType.GetTextureAsset(fieldHandler);
-                                var name = BaseTextureType.GetUniqueUniformName(fieldHandler);
+                                var name = ITypeDefinitionBuilder.GetUniqueUniformName(fieldHandler);
                                 if (tex != null && !defaultTextures.Contains((name, tex)))
                                     defaultTextures.Add((name, tex));
                             }

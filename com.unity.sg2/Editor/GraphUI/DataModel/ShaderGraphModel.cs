@@ -117,7 +117,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
         internal ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
-        internal List<JsonData<Target>> Targets => targetSettingsBox.Targets;
+        internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
+        internal Target ActiveTarget => Targets.FirstOrDefault();
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
         internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
@@ -149,9 +150,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 Targets.Add(target);
                 // all target-based graphs have a Vert
-                var vertNode = this.CreateGraphDataContextNode("VertOut");
-                vertNode.Title = "Vertex Stage";
-                vertNode.Position = new Vector2(0, -180);
+                // TODO: https://jira.unity3d.com/browse/GSG-1290
+                //var vertNode = this.CreateGraphDataContextNode("VertOut");
+                //vertNode.Title = "Vertex Stage";
+                //vertNode.Position = new Vector2(0, -180);
 
             }
             var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
@@ -669,10 +671,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return nodeRequiresTime;
         }
 
+        // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290
+        // Should have a feature for managing what types/nodes are exposed i nbuil
+        static readonly string[] blacklistNodeNames = new string[] {
+            "CustomRenderTextureSelf",
+            "CustomRenderTextureSize",
+            "CustomRenderTextureSlice",
+            "ParallaxOcclusionMapping",
+            "LinearBlendSkinning",
+            "Reference"
+        };
+        static readonly string[] blacklistCategories = new string[]
+        {
+            "DEFAULT_CATEGORY",
+            "Test",
+            "Tests"
+        };
+
         public bool ShouldBeInSearcher(RegistryKey registryKey)
         {
+            if (blacklistNodeNames.Contains(registryKey.Name))
+                return false;
+            var cat = RegistryInstance.GetNodeUIDescriptor(registryKey).Category;
+
+            if (blacklistCategories.Any(e => cat.Contains(e)))
+                return false;
+
             try
             {
+                // TODO: RegistrInstance.Contains(Key)
                 var nodeBuilder = RegistryInstance.GetNodeBuilder(registryKey);
                 var registryFlags = nodeBuilder.GetRegistryFlags();
                 return registryFlags.HasFlag(RegistryFlags.Func);

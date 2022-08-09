@@ -692,7 +692,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(material));
 
             // check that the material property is found on the shader.
-            var propName = BaseTextureType.GetUniqueUniformName(texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField());
+            var propName = ITypeDefinitionBuilder.GetUniqueUniformName(texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField());
             int propindex = material.shader.FindPropertyIndex(propName);
             Assert.AreNotEqual(-1, propindex);
 

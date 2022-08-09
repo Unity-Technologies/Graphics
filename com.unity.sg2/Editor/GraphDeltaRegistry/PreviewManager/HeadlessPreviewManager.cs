@@ -83,6 +83,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Registry m_RegistryInstance;
 
+        Target m_Target;
+
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock;
 
         Texture2D m_ErrorTexture;
@@ -202,6 +204,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public void SetActiveRegistry(Registry registryInstance)
         {
             m_RegistryInstance = registryInstance;
+        }
+
+        internal void SetActiveTarget(Target target)
+        {
+            m_Target = target;
         }
 
         /// <summary>
@@ -629,7 +636,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
-            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures);
+            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures, m_Target);
             var throwAway = new List<(string, Texture)>(); // gross.
             m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
             m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance, ref throwAway);
@@ -640,7 +647,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Shader GetMainPreviewShaderObject()
         {
             var contextNodeReader = m_GraphHandle.GetNode(m_OutputContextNodeName);
-            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures);
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures, m_Target);
             m_MainPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }

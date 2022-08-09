@@ -410,7 +410,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        private PortHandler GetDefaultConnection(string contextEntryName, Registry registry)
+        internal PortHandler GetDefaultConnection(string contextEntryName, Registry registry)
         {
             foreach (var contextNode in GetContextNodesInOrder(registry))
             {

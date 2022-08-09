@@ -99,14 +99,17 @@ namespace UnityEditor.ShaderGraph
             string json = File.ReadAllText(path, Encoding.UTF8);
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
-            asset.ShaderGraphModel.OnEnable();
-            var graphHandler = asset.ShaderGraphModel.GraphHandler;
+            var sgModel = asset.ShaderGraphModel;
+            sgModel.OnEnable();
+            var graphHandler = sgModel.GraphHandler;
 
-            if (!asset.ShaderGraphModel.IsSubGraph)
+
+
+            if (!sgModel.IsSubGraph)
             {
                 // TODO: SGModel should know what it's entry point is for creating a shader.
                 var node = graphHandler.GetNode(kMainEntryContextName);
-                var shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
+                var shaderCode = Interpreter.GetShaderForNode(node, graphHandler, graphHandler.registry, out var defaultTextures, sgModel.ActiveTarget);
 
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
                 Material mat = new(shader);
@@ -132,7 +135,7 @@ namespace UnityEditor.ShaderGraph
                 var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
 
                 List<Defs.ParameterUIDescriptor> paramDesc = new();
-                foreach (var dec in asset.ShaderGraphModel.VariableDeclarations)
+                foreach (var dec in sgModel.VariableDeclarations)
                 {
                     var displayName = dec.GetVariableName();
                     var identifierName = ((BaseShaderGraphConstant)dec.InitializationModel).PortName;
@@ -151,7 +154,7 @@ namespace UnityEditor.ShaderGraph
                     );
 
                 RegistryKey key = new RegistryKey { Name = assetID, Version = 1 };
-                var nodeBuilder = new Defs.SubGraphNodeBuilder(key, asset.ShaderGraphModel.GraphHandler);
+                var nodeBuilder = new Defs.SubGraphNodeBuilder(key, graphHandler);
                 var nodeUI = new StaticNodeUIDescriptorBuilder(desc);
 
                 ShaderGraphRegistry.Instance.Registry.Unregister(key);
