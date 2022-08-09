@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected PreviewManager m_PreviewManager = new();
 
+        protected PreviewUpdateDispatcher m_PreviewUpdateDispatcher = new();
+
         protected BlackboardView m_BlackboardView;
 
         // We setup a reference to the MainPreview when the overlay containing it is created
@@ -64,11 +66,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // Needed to ensure that graph view takes up full window when overlay canvas is present
-            rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
-            rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
-            rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
 
             InitializeOverlayWindows();
         }
@@ -264,6 +261,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
         {
             m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
+
+            m_PreviewUpdateDispatcher.Initialize();
 
             ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 
