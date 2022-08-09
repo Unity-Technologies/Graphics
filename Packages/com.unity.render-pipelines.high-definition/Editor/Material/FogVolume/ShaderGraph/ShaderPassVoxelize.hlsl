@@ -9,7 +9,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
-uint _VolumeIndex;
+uint _VolumeMaterialDataIndex;
 uint _ViewIndex;
 float3 _CameraRight;
 uint _IsObliqueProjectionMatrix;
@@ -54,7 +54,7 @@ float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 
 float3 GetCubeVertexPosition(uint vertexIndex)
 {
-    return _VolumetricMaterialData[_VolumeIndex].obbVertexPositionWS[vertexIndex];
+    return _VolumetricMaterialData[_VolumeMaterialDataIndex].obbVertexPositionWS[vertexIndex].xyz;
 }
 
 // VertexCubeSlicing needs GetCubeVertexPosition to be declared before
@@ -65,12 +65,17 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
 {
     VertexToFragment output;
 
-    uint sliceCount = _VolumetricMaterialData[_VolumeIndex].sliceCount;
-    uint sliceStartIndex = _VolumetricMaterialData[_VolumeIndex].startSliceIndex;
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    unity_StereoEyeIndex = _ViewIndex;
+#endif
 
-    output.depthSlice = sliceStartIndex + (instanceId % sliceCount) + _ViewIndex * _VBufferSliceCount;
+    uint sliceCount = _VolumetricMaterialData[_VolumeMaterialDataIndex].sliceCount;
+    uint sliceStartIndex = _VolumetricMaterialData[_VolumeMaterialDataIndex].startSliceIndex;
 
-    float sliceDepth = VBufferDistanceToSliceIndex(output.depthSlice);
+    uint sliceIndex = sliceStartIndex + (instanceId % sliceCount);
+    output.depthSlice = sliceIndex + _ViewIndex * _VBufferSliceCount;
+
+    float sliceDepth = VBufferDistanceToSliceIndex(sliceIndex);
 
 #if USE_VERTEX_CUBE_SLICING
 
@@ -83,7 +88,7 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
 #else
 
     output.positionCS = GetQuadVertexPosition(vertexId);
-    output.positionCS.xy = output.positionCS.xy * _VolumetricMaterialData[_VolumeIndex].viewSpaceBounds.zw + _VolumetricMaterialData[_VolumeIndex].viewSpaceBounds.xy;
+    output.positionCS.xy = output.positionCS.xy * _VolumetricMaterialData[_VolumeMaterialDataIndex].viewSpaceBounds.zw + _VolumetricMaterialData[_VolumeMaterialDataIndex].viewSpaceBounds.xy;
     output.positionCS.z = EyeDepthToLinear(sliceDepth, _ZBufferParams);
     output.positionCS.w = 1;
 
@@ -138,7 +143,7 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     float3 albedo;
     float extinction;
 
-    float sliceDepth = VBufferDistanceToSliceIndex(v2f.depthSlice);
+    float sliceDepth = VBufferDistanceToSliceIndex(v2f.depthSlice % _VBufferSliceCount);
     float3 cameraForward = -UNITY_MATRIX_V[2].xyz;
     float sliceDistance = sliceDepth;// / dot(-v2f.viewDirectionWS, cameraForward);
 

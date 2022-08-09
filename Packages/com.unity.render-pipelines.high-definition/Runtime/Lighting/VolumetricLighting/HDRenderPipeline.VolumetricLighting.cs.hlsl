@@ -65,10 +65,12 @@ CBUFFER_END
 // PackingRules = Exact
 struct VolumetricMaterialRenderingData
 {
+    float4 viewSpaceBounds;
     uint startSliceIndex;
     uint sliceCount;
-    float4 viewSpaceBounds;
-    float3 obbVertexPositionWS[8];
+    uint padding0;
+    uint padding1;
+    float4 obbVertexPositionWS[8];
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialDataCBuffer

@@ -11,7 +11,6 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-
     /// <summary>
     /// The UI block that represents fog volume option for materials.
     /// </summary>
@@ -25,13 +24,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty blendMode = null;
 
+        /// <summary>
+        /// Create the UI block for the fog volume material type.
+        /// </summary>
+        /// <param name="expandableBit"></param>
         public FogVolumeUIBlock(ExpandableBit expandableBit) : base(expandableBit, Styles.FogVolumeHeader) {}
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             blendMode = FindProperty(FogVolumeAPI.k_BlendModeProperty);
         }
 
+        /// <summary>
+        /// GUI callback when the header is open
+        /// </summary>
         protected override void OnGUIOpen()
         {
             // Disabled for now since we already have the option in the local volumetric fog.

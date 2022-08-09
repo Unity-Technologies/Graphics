@@ -12,6 +12,7 @@
 
 uint _VolumeCount;
 uint _MaxSliceCount;
+uint _ViewCount;
 
 StructuredBuffer<OrientedBBox> _VolumeBounds;
 StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
@@ -127,7 +128,7 @@ void ComputeCubeVerticesOrder(uint volumeIndex)
     for (i = 0; i < 8; i++)
     {
         float3 vertex = vertexMask[vertexIndicesMap[vertexIndexMapOffset + i]];
-        _VolumetricMaterialData[volumeIndex].obbVertexPositionWS[i] = ComputeCubeVertexPositionRWS(obb, minPositionRWS, vertex);
+        _VolumetricMaterialData[volumeIndex].obbVertexPositionWS[i].xyz = ComputeCubeVertexPositionRWS(obb, minPositionRWS, vertex);
     }
 }
 
@@ -135,12 +136,16 @@ void ComputeCubeVerticesOrder(uint volumeIndex)
 [numthreads(32, 1, 1)]
 void ComputeVolumetricMaterialRenderingParameters(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    if (dispatchThreadId.x >= _VolumeCount)
+    if (dispatchThreadId.x >= _VolumeCount * _ViewCount)
         return;
 
     uint volumeIndex = dispatchThreadId.x % _VolumeCount;
     uint volumeWriteIndex = dispatchThreadId.x;
-    uint xrViewIndex = dispatchThreadId.x / _VolumeCount;
+    uint viewIndex = dispatchThreadId.x / _VolumeCount;
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    unity_StereoEyeIndex = viewIndex;
+#endif
 
     // Sort cube vertices for slicing in vertex
 #if USE_VERTEX_CUBE_SLICING
@@ -205,7 +210,7 @@ void ComputeVolumetricMaterialRenderingParameters(uint3 dispatchThreadId : SV_Di
     _IndirectBufferArguments[volumeWriteIndex * 5 + 1] = sliceCount; // InstanceCount
     _IndirectBufferArguments[volumeWriteIndex * 5 + 2] = 0; // StartIndexLocation
     _IndirectBufferArguments[volumeWriteIndex * 5 + 3] = 0; // BaseVertexLocation
-    _IndirectBufferArguments[volumeWriteIndex * 5 + 3] = 0; // StartInstanceLocation
+    _IndirectBufferArguments[volumeWriteIndex * 5 + 4] = 0; // StartInstanceLocation
 
     _VolumetricMaterialData[volumeWriteIndex].sliceCount = sliceCount;
     _VolumetricMaterialData[volumeWriteIndex].startSliceIndex = startSliceIndex;

@@ -1107,7 +1107,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Volumetric Materials
         public static readonly int _VolumeCount = Shader.PropertyToID("_VolumeCount");
-        public static readonly int _VolumeIndex = Shader.PropertyToID("_VolumeIndex");
+        public static readonly int _VolumeMaterialDataIndex = Shader.PropertyToID("_VolumeMaterialDataIndex");
         public static readonly int _CameraRight = Shader.PropertyToID("_CameraRight");
         public static readonly int _MaxSliceCount = Shader.PropertyToID("_MaxSliceCount");
         public static readonly int _VolumetricIndirectBufferArguments = Shader.PropertyToID("_IndirectBufferArguments");
@@ -1116,6 +1116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricScrollSpeed = Shader.PropertyToID("_ScrollSpeed");
         public static readonly int _VolumetricTiling = Shader.PropertyToID("_Tiling");
         public static readonly int _VolumetricViewIndex = Shader.PropertyToID("_ViewIndex");
+        public static readonly int _VolumetricViewCount = Shader.PropertyToID("_ViewCount");
         public static readonly int _CameraInverseViewProjection_NO = Shader.PropertyToID("_CameraInverseViewProjection_NO");
         public static readonly int _IsObliqueProjectionMatrix = Shader.PropertyToID("_IsObliqueProjectionMatrix");
         public static readonly int _VolumetricMaterialDataCBuffer = Shader.PropertyToID("VolumetricMaterialDataCBuffer");
