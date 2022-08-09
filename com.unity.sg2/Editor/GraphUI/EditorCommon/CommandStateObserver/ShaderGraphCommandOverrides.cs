@@ -238,6 +238,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewManager previewManager,
             UpdateConstantValueCommand updateConstantValueCommand)
         {
+            UpdateConstantValueCommand.DefaultCommandHandler(undoState, graphModelState, updateConstantValueCommand);
+
             var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
             if (updateConstantValueCommand.Constant is not BaseShaderGraphConstant cldsConstant) return;
 

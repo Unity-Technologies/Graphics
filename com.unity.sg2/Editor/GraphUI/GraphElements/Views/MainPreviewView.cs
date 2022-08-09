@@ -10,7 +10,10 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class MainPreviewView : VisualElement
+    /// <summary>
+    ///  Visual element used to contain and display the rendering output of the graph as a whole
+    /// </summary>
+    public class MainPreviewView : VisualElement
     {
         Image m_PreviewTextureImage;
 
