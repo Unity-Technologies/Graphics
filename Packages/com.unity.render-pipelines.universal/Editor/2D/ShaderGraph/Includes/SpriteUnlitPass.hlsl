@@ -28,6 +28,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
+    if (color.a == 0.0)
+        discard;
+
     #if defined(DEBUG_DISPLAY)
     SurfaceData2D surfaceData;
     InitializeSurfaceData(color.rgb, color.a, surfaceData);
