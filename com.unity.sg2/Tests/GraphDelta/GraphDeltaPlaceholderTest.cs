@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.IsTrue(concreteAddPort.Children.Count == 1);
                 var concretePortTypeField = concreteAddPort.Children[0];
                 Assert.NotNull(concretePortTypeField);
-                Assert.IsTrue(concretePortTypeField.Children.Count == 8);
+                Assert.AreEqual(8, concretePortTypeField.Children.Count);
             }
 
             public class TestDescriptor : IContextDescriptor

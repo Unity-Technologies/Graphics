@@ -399,10 +399,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             }
 
+            PortHandler outPort = null;
             while (step != null)
             {
                 yield return step;
-                step = step.GetPort("Out")?.GetConnectedPorts().First()?.GetNode();
+
+                outPort = step.GetPort("Out");
+                step = null;
+                if(outPort != null)
+                {
+                    using(var connections = outPort.GetConnectedPorts().GetEnumerator())
+                    {
+                        if(connections.MoveNext())
+                        {
+                            step = connections.Current.GetNode();
+                        }
+                    }
+                }
+
             }
         }
 
@@ -410,15 +424,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             foreach (var contextNode in GetContextNodesInOrder(registry))
             {
-                foreach(var port in contextNode.GetPorts())
+                var port = contextNode.GetPort($"out_{contextEntryName}");
+                if(port != null && !port.IsInput && port.IsHorizontal)
                 {
-                    if (!port.IsInput && port.IsHorizontal)
-                    {
-                        if (port.ID.LocalPath.Equals($"out_{contextEntryName}"))
-                        {
-                            return port;
-                        }
-                    }
+                    return port;
                 }
             }
             return null;
