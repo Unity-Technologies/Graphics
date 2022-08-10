@@ -5,6 +5,7 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    // TODO: This should be replaced when we're able to have GraphDelta notify the UI about reconcretization.
     public class DynamicPortObserver : StateObserver
     {
         readonly GraphModelStateComponent m_GraphModelState;
@@ -23,19 +24,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var changeset = m_GraphModelState.GetAggregatedChangeset(observation.LastObservedVersion);
             if (changeset == null) return;
 
-            var affectedPorts = changeset.ChangedModels
+            var affectedModels = changeset.ChangedModels
                 .Concat(changeset.DeletedModels)
-                .Concat(changeset.NewModels)
-                .OfType<GraphDataEdgeModel>()
-                .Select(e => e.ToPort)
-                .Where(p => p.Direction == PortDirection.Input);
+                .Concat(changeset.NewModels);
 
             var affectedNodes = new Queue<GraphDataNodeModel>();
-            foreach (var affectedPort in affectedPorts)
+            foreach (var model in affectedModels)
             {
-                if (affectedPort.NodeModel is GraphDataNodeModel node)
+                if (model is GraphDataEdgeModel
+                    {
+                        ToPort: GraphDataPortModel
+                        {
+                            Direction: PortDirection.Input,
+                            NodeModel: GraphDataNodeModel nodeModel
+                        }
+                    })
                 {
-                    affectedNodes.Enqueue(node);
+                    affectedNodes.Enqueue(nodeModel);
                 }
             }
 
@@ -46,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 foreach (var outgoingEdge in node.GetOutgoingEdges())
                 {
-                    if (outgoingEdge is {ToPort: GraphDataPortModel {NodeModel: GraphDataNodeModel downstreamNode}})
+                    if (outgoingEdge.ToPort is GraphDataPortModel {NodeModel: GraphDataNodeModel downstreamNode})
                     {
                         affectedNodes.Enqueue(downstreamNode);
                     }
