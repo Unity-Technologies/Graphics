@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override void Observe()
         {
             using var observation = this.ObserveState(m_GraphModelState);
-            using var graphUpdater = m_GraphModelState.UpdateScope;
+            if (observation.UpdateType == UpdateType.None) return;
 
             var changeset = m_GraphModelState.GetAggregatedChangeset(observation.LastObservedVersion);
             if (changeset == null) return;
@@ -46,6 +46,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
+            if (affectedNodes.Count < 1) return;
+
+            using var graphUpdater = m_GraphModelState.UpdateScope;
             while (affectedNodes.TryDequeue(out var node))
             {
                 if (seen.Contains(node.Guid)) continue;
