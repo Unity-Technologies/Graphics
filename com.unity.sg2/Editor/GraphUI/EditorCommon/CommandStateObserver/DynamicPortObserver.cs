@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -29,6 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 .Concat(changeset.NewModels);
 
             var affectedNodes = new Queue<GraphDataNodeModel>();
+            var seen = new HashSet<SerializableGUID>();
             foreach (var model in affectedModels)
             {
                 if (model is GraphDataEdgeModel
@@ -46,6 +48,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             while (affectedNodes.TryDequeue(out var node))
             {
+                if (seen.Contains(node.Guid)) continue;
+
+                seen.Add(node.Guid);
                 node.DefineNode();
                 graphUpdater.MarkChanged(node);
 
