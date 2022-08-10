@@ -1,10 +1,14 @@
-﻿namespace UnityEditor.ShaderGraph.GraphUI
+﻿using UnityEngine;
+
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     /// Interface that should be implemented by any entity that wants to display visual output of preview data
     /// </summary>
-    public class IPreviewUpdateListener
+    public interface IPreviewUpdateListener
     {
+        void HandlePreviewTextureUpdated(Texture newPreviewTexture);
 
+        void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages);
     }
 }

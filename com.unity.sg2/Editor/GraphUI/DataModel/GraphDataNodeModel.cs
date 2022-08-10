@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// It can be used for a node on the graph (with an assigned graph data name)
     /// or a searcher preview (with only an assigned registry key).
     /// </summary>
-    public class GraphDataNodeModel : NodeModel, IGraphDataOwner
+    public class GraphDataNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
     {
         [SerializeField]
         string m_GraphDataName;
@@ -365,6 +365,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 NodeModel = this,
                 GraphModel = GraphModel
             };
+        }
+
+        public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages)
+        {
+            throw new NotImplementedException();
         }
     }
 }

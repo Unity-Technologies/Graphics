@@ -13,14 +13,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class GraphModelStateObserver : StateObserver
     {
         PreviewManager m_PreviewManagerInstance;
-        PreviewUpdateDispatcher m_PreviewUpdateDispatcher;
+        PreviewUpdateDispatcher m_PreviewUpdateDispatcher = new();
+        PreviewStateComponent m_PreviewStateComponent;
         GraphModelStateComponent m_GraphModelStateComponent;
 
-        public GraphModelStateObserver(GraphModelStateComponent graphModelStateComponent, PreviewManager previewManager)
-            : base(new [] {graphModelStateComponent}, new [] {graphModelStateComponent})
+        public GraphModelStateObserver(
+            GraphModelStateComponent graphModelStateComponent,
+            PreviewManager previewManager,
+            PreviewStateComponent previewStateComponent)
+            : base(new [] {graphModelStateComponent},
+                new IStateComponent [] { graphModelStateComponent, previewStateComponent})
         {
             m_PreviewManagerInstance = previewManager;
             m_GraphModelStateComponent = graphModelStateComponent;
+            m_PreviewStateComponent = previewStateComponent;
         }
 
         public override void Observe()
@@ -40,8 +46,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         if (addedModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
                         {
                             m_PreviewManagerInstance.OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
-                            //using var graphUpdater = m_GraphModelStateComponent.UpdateScope;
-                            //graphUpdater.MarkChanged(addedModel);
+                            using (var previewStateUpdater = m_PreviewStateComponent.UpdateScope)
+                            {
+                                previewStateUpdater.RegisterNewListener(graphDataNodeModel.graphDataName, graphDataNodeModel);
+                            }
+
                         }
                         else if (addedModel is GraphDataEdgeModel graphDataEdgeModel)
                         {

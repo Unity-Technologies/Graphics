@@ -35,6 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             : base(window, graphTool, graphViewName, displayMode)
         {
             m_PreviewManager = previewManager;
+
             // This can be called by the searcher and if so, all of these dependencies will be null, need to guard against that
             if(window != null)
                 ViewSelection = new ShaderGraphViewSelection(this, GraphViewModel.GraphModelState, GraphViewModel.SelectionState);
@@ -45,7 +46,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Place to register any commands that are overrides of base GTF commands for the graph view
         /// </summary>
-        static void RegisterGraphViewOverrideCommandHandlers(ShaderGraphView graphView, IState stateStore, PreviewManager previewManager)
+        static void RegisterGraphViewOverrideCommandHandlers(
+            ShaderGraphView graphView,
+            IState stateStore,
+            PreviewManager previewManager)
         {
             var dispatcher = graphView.Dispatcher;
             var undoStateComponent = ShaderGraphEditorWindow.GetStateComponentOfType<UndoStateComponent>(stateStore);
@@ -83,7 +87,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (GraphTool == null)
                 return;
 
-            m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, m_PreviewManager);
+            var previewStateComponent = ShaderGraphEditorWindow.GetStateComponentOfType<PreviewStateComponent>(GraphTool.State);
+            Assert.IsNotNull(previewStateComponent);
+
+            m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, m_PreviewManager, previewStateComponent);
             GraphTool.ObserverManager.RegisterObserver(m_GraphModelStateObserver);
 
             m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, Window as ShaderGraphEditorWindow);

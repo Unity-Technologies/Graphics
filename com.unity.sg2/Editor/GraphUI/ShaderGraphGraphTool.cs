@@ -7,9 +7,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static readonly string toolName = "Shader Graph";
 
+        PreviewStateComponent m_PreviewStateComponent;
+
         public ShaderGraphGraphTool()
         {
             Name = toolName;
+        }
+
+        protected override void InitState()
+        {
+            base.InitState();
+
+            m_PreviewStateComponent = new PreviewStateComponent();
+            State.AddStateComponent(m_PreviewStateComponent);
         }
 
         /// <summary>
