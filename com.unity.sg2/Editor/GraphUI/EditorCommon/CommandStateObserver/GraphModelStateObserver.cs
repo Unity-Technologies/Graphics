@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (edge is GraphDataEdgeModel graphDataEdgeModel)
                 {
                     var nodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
-
+                    m_PreviewManagerInstance.OnNodeFlowChanged(nodeModel.graphDataName);
                 }
             }
         }
