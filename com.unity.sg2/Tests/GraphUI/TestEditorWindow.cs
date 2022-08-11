@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
-            var testGraphView = new TestGraphView(this, GraphTool, GraphTool.Name, m_PreviewManager);
+            var testGraphView = new TestGraphView(this, GraphTool, GraphTool.Name, m_PreviewManager, m_PreviewUpdateDispatcher);
             return testGraphView;
         }
 

@@ -369,11 +369,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
         {
-            throw new NotImplementedException();
+            OnPreviewTextureUpdated(newPreviewTexture);
         }
 
         public void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages)
         {
+            // TODO: Handle displaying shader error messages
             throw new NotImplementedException();
         }
     }

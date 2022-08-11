@@ -4,6 +4,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IPreviewUpdateReceiver
     {
-        void UpdatePreviewData(string previewUpdateListenerID, Texture newTexture);
+        void UpdatePreviewData(string listenerID, Texture newTexture);
     }
 }

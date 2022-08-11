@@ -85,6 +85,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Target m_Target;
 
+        IPreviewUpdateReceiver m_PreviewUpdateReceiver;
+
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock;
 
         Texture2D m_ErrorTexture;
@@ -209,6 +211,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal void SetActiveTarget(Target target)
         {
             m_Target = target;
+        }
+
+        internal void SetPreviewUpdateReceiver(IPreviewUpdateReceiver previewUpdateReceiver)
+        {
+            m_PreviewUpdateReceiver = previewUpdateReceiver;
         }
 
         /// <summary>
@@ -372,6 +379,36 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 UpdateRenderData(previewData);
                 nodeRenderOutput = previewData.texture;
                 return PreviewOutputState.Complete;
+            }
+        }
+
+        public void RequestPreviewUpdate(
+            string nodeName,
+            PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D,
+            bool forceRecompile = false)
+        {
+            if (m_CachedPreviewData.ContainsKey(nodeName))
+            {
+                var previewData = m_CachedPreviewData[nodeName];
+                previewData.currentRenderMode = newPreviewMode;
+
+                // Still compiling the preview shader
+                if (previewData.isShaderOutOfDate || forceRecompile)
+                {
+                    UpdateShaderData(previewData);
+                    UpdateRenderData(previewData);
+                }
+                else if (previewData.isRenderOutOfDate)
+                {
+                    UpdateRenderData(previewData);
+                }
+            }
+            else
+            {
+                var previewData = AddNodePreviewData(nodeName);
+                previewData.currentRenderMode = newPreviewMode;
+                UpdateShaderData(previewData);
+                UpdateRenderData(previewData);
             }
         }
 

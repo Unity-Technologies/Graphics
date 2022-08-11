@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         const int k_PreviewUpdateCycleMax = 50;
         Dictionary<string, int> m_CycleCountChecker;
 
-        string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
+        string m_MainContextNodeName;
 
         int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
         int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
@@ -54,10 +54,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // TODO: Could this be a list of IPreviewUpdateListeners instead?
         internal void Initialize(ShaderGraphModel graphModel, MainPreviewView mainPreviewView, bool wasWindowCloseCancelled)
         {
-            // Can be null when the editor window is opened to the onboarding page
-            if (graphModel == null)
-                return;
-
             m_GraphModel = graphModel;
             m_GraphModelStateComponent = m_GraphModel.graphModelStateComponent;
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
@@ -68,10 +64,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
             m_MainPreviewData = graphModel.MainPreviewData;
+            m_MainContextNodeName = graphModel.DefaultContextName;
 
             // Initialize the headless preview
             m_PreviewHandlerInstance.Initialize(m_MainContextNodeName, m_MainPreviewView.PreviewSize);
-
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
             m_PreviewHandlerInstance.SetActiveTarget(m_GraphModel.ActiveTarget);

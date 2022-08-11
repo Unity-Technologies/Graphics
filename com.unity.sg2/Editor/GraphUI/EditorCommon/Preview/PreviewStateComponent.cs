@@ -25,23 +25,73 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public void RegisterNewListener(string listenerID, IPreviewUpdateListener updateListener)
             {
                 m_State.m_PreviewUpdateListeners.Add(listenerID, updateListener);
+                m_State.m_PreviewVersionTrackers.Add(listenerID, 0);
+                m_State.m_PreviewData.Add(listenerID, null);
                 m_State.SetUpdateType(UpdateType.Partial);
             }
 
             public void RemoveListener(string listenerID)
             {
                 m_State.m_PreviewUpdateListeners.Remove(listenerID);
+                m_State.m_PreviewVersionTrackers.Remove(listenerID);
+                m_State.m_PreviewData.Remove(listenerID);
+            }
+
+            public void UpdatePreviewData(string listenerID, Texture newTexture)
+            {
+                m_State.m_PreviewData[listenerID] = newTexture;
+                m_State.m_PreviewVersionTrackers[listenerID]++;
+                m_State.SetUpdateType(UpdateType.Partial);
+            }
+
+            /// <summary>
+            /// Initializes the state component based on information from the graph model
+            /// </summary>
+            /// <param name="graphModel">The graph model for which we want to load a state component.</param>
+            public void LoadStateForGraph(ShaderGraphModel graphModel)
+            {
+                // TODO: Persistence handling between domain reloads and editor sessions
+                // PersistedStateComponentHelpers.SaveAndLoadPersistedStateForGraph(m_State, this, graphModel);
+
+                // Initialize preview data for any nodes that exist on graph load
+                foreach (var nodeModel in graphModel.NodeModels)
+                {
+                    if(nodeModel is GraphDataContextNodeModel contextNode && IsMainContextNode(nodeModel))
+                        RegisterNewListener(contextNode.graphDataName, contextNode);
+                    else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
+                        RegisterNewListener(graphDataNodeModel.graphDataName, graphDataNodeModel);
+                }
+            }
+
+            static bool IsMainContextNode(IGraphElementModel nodeModel)
+            {
+                return nodeModel is GraphDataContextNodeModel contextNode
+                    && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
             }
         }
 
         Dictionary<string, IPreviewUpdateListener> m_PreviewUpdateListeners;
-
+        Dictionary<string, int> m_PreviewVersionTrackers;
         Dictionary<string, Texture> m_PreviewData;
 
-        public void UpdatePreviewData(string previewUpdateListenerID, Texture newTexture)
+        public int GetListenerVersion(string listenerID)
         {
-            m_PreviewData[previewUpdateListenerID] = newTexture;
-            SetUpdateType(UpdateType.Partial);
+            m_PreviewVersionTrackers.TryGetValue(listenerID, out var versionResult);
+            return versionResult;
+        }
+
+        public IPreviewUpdateListener GetListener(string listenerID)
+        {
+            m_PreviewUpdateListeners.TryGetValue(listenerID, out var previewUpdateListener);
+            return previewUpdateListener;
+        }
+
+        public void UpdatePreviewData(string listenerID, Texture newTexture)
+        {
+            using (var updater = UpdateScope)
+            {
+                updater.UpdatePreviewData(listenerID, newTexture);
+            }
         }
     }
 }

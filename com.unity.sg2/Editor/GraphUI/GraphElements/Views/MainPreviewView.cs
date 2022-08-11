@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     ///  Visual element used to contain and display the rendering output of the graph as a whole
     /// </summary>
-    public class MainPreviewView : VisualElement
+    public class MainPreviewView : VisualElement, IPreviewUpdateListener
     {
         Image m_PreviewTextureImage;
 
@@ -191,6 +191,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             //var changePreviewSizeCommand = new ChangePreviewSizeCommand(evt.newRect.size);
             //m_CommandDispatcher.Dispatch(changePreviewSizeCommand);
+        }
+
+        public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -12,6 +12,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         GraphModelStateObserver m_GraphModelStateObserver;
         ShaderGraphLoadedObserver m_ShaderGraphLoadedObserver;
+
+        PreviewStateObserver m_PreviewStateObserver;
+        PreviewUpdateDispatcher m_PreviewUpdateDispatcher;
+
         PreviewManager m_PreviewManager;
 
         public ShaderGraphView(
@@ -31,10 +35,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             BaseGraphTool graphTool,
             string graphViewName,
             PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
             : base(window, graphTool, graphViewName, displayMode)
         {
             m_PreviewManager = previewManager;
+            m_PreviewUpdateDispatcher = previewUpdateDispatcher;
 
             // This can be called by the searcher and if so, all of these dependencies will be null, need to guard against that
             if(window != null)
@@ -90,11 +96,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var previewStateComponent = ShaderGraphEditorWindow.GetStateComponentOfType<PreviewStateComponent>(GraphTool.State);
             Assert.IsNotNull(previewStateComponent);
 
-            m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, m_PreviewManager, previewStateComponent);
+            m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, m_PreviewManager, previewStateComponent, m_PreviewUpdateDispatcher);
             GraphTool.ObserverManager.RegisterObserver(m_GraphModelStateObserver);
 
-            m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, Window as ShaderGraphEditorWindow);
+            m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, previewStateComponent, Window as ShaderGraphEditorWindow);
             GraphTool.ObserverManager.RegisterObserver(m_ShaderGraphLoadedObserver);
+
+            m_PreviewStateObserver = new PreviewStateObserver(previewStateComponent);
+            GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
         }
     }
 }

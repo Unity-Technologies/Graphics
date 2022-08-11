@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
@@ -16,6 +17,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         MainPreviewView m_MainPreviewView;
 
         protected PreviewManager m_PreviewManager = new();
+
+        protected PreviewUpdateDispatcher m_PreviewUpdateDispatcher = new();
+
+        // We store the preview size that the overlays load in with here to pass to the preview systems
+        Vector2 m_PreviewSize;
 
         protected BlackboardView m_BlackboardView;
 
@@ -58,7 +64,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
             if (overlay is PreviewOverlay previewOverlay)
+            {
                 previewOverlay.getCachedMainPreviewTexture = m_PreviewManager.GetCachedMainPreviewTexture;
+                m_PreviewSize = previewOverlay.size;
+            }
         }
 
         protected override void OnEnable()
@@ -195,7 +204,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
-            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewManager);
+            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewManager, m_PreviewUpdateDispatcher);
             return shaderGraphView;
         }
 
@@ -256,13 +265,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // Entry point for initializing any systems that depend on the graph model
-        public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
+        public void HandleGraphLoad(ShaderGraphModel shaderGraphModel, IPreviewUpdateReceiver previewUpdateReceiver)
         {
+            // Can be null when the editor window is opened to the onboarding page
+            if (shaderGraphModel == null)
+                return;
+
+            shaderGraphModel.MainPreviewData.MainPreviewSize = m_PreviewSize;
+
+            // OLD
             m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
+
+            // NEW
+            //m_PreviewUpdateDispatcher.Initialize(shaderGraphModel, previewUpdateReceiver);
 
             ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 
-            PreviewCommands.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, GraphView.Dispatcher, GraphView.GraphViewModel);
+            PreviewCommands.RegisterCommandHandlers(
+                GraphTool,
+                m_PreviewManager,
+                shaderGraphModel,
+                GraphView.Dispatcher,
+                GraphView.GraphViewModel);
         }
 
         protected override void Update()
