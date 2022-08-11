@@ -16,7 +16,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 
-	${VFXInitInstancingOutput}
+	${VFXInitInstancing}
 	${VFXLoadGraphValues}
 
 	ContextData contextData = instancingContextData[instanceActiveIndex];

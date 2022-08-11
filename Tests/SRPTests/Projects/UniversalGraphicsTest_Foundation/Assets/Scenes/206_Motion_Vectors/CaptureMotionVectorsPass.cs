@@ -7,19 +7,19 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class CaptureMotionVectorsPass : ScriptableRenderPass
     {
-        static ProfilingSampler m_ProfilingSampler = new ProfilingSampler("MotionVecDebug");
-        static Material m_Material;
-        static float m_intensity;
+        static ProfilingSampler s_ProfilingSampler = new ProfilingSampler("MotionVecTest");
+        static Material s_Material;
+        static float s_intensity;
 
         public CaptureMotionVectorsPass(Material material)
         {
-            m_Material = material;
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+            s_Material = material;
+            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing + 1;
         }
 
         public void SetIntensity(float intensity)
         {
-            m_intensity = intensity;
+            s_intensity = intensity;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -41,14 +41,14 @@ namespace UnityEngine.Rendering.Universal
             if (camera.cameraType != CameraType.Game)
                 return;
 
-            if (m_Material == null)
+            if (s_Material == null)
                 return;
 
 
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
-                m_Material.SetFloat("_Intensity", m_intensity);
-                Blitter.BlitCameraTexture(cmd, targetHandle, targetHandle, m_Material, 0);
+                s_Material.SetFloat("_Intensity", s_intensity);
+                Blitter.BlitCameraTexture(cmd, targetHandle, targetHandle, s_Material, 0);
             }
         }
         internal class PassData
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Capture Motion Vector Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRenderPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
                 TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
                 passData.target = builder.UseColorBuffer(color, 0);

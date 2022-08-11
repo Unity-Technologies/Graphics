@@ -370,6 +370,21 @@ namespace UnityEditor.Rendering.Universal
             {
                 stripDebugDisplayShaders = true;
             }
+
+            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building. For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
+            var wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
+            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+            }
+
+            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
+            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+            }
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))

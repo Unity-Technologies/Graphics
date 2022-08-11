@@ -87,6 +87,10 @@ Selecting this technique reveals the following properties.
 
 The maximum distance from the Camera at which Unity renders decals.
 
+### Use Rendering Layers
+
+Select this check box to enable the [Rendering Layers](features/rendering-layers.md) functionality.
+
 ## Decal Projector component
 
 The Decal Projector component lets Unity project decals onto other objects in the Scene. A Decal Projector component must use a Material with the [Decal Shader Graph](decal-shader.md) assigned (`Shader Graphs/Decal`).

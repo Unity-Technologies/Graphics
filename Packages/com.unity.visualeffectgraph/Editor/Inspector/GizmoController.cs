@@ -22,11 +22,15 @@ namespace UnityEditor.VFX.UI
         string name { get; }
     }
 
-    interface IGizmoController
+    interface IGizmoError
+    {
+        GizmoError GetGizmoError(VisualEffect component);
+    }
+
+    interface IGizmoController : IGizmoError
     {
         void DrawGizmos(VisualEffect component);
         Bounds GetGizmoBounds(VisualEffect component);
-        GizmoError GetGizmoError(VisualEffect component);
 
         ReadOnlyCollection<IGizmoable> gizmoables { get; }
         IGizmoable currentGizmoable { get; set; }

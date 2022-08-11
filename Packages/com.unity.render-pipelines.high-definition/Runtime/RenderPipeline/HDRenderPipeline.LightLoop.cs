@@ -454,7 +454,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
             cb._EnvLightIndexShift = (uint)m_GpuLightsBuilder.lightsCount;
             cb._DecalIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count);
-            cb._LocalVolumetricFogIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;

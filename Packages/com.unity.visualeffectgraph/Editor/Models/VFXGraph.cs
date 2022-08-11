@@ -25,6 +25,11 @@ namespace UnityEditor.VFX
             UnityEditor.VFX.Migration.ActivationToControlTrack.SanitizePlayable(importedAssets);
 #endif
 
+            if (deletedAssets.Any())
+            {
+                VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.UpdateHistory());
+            }
+
             foreach (var assetPath in importedAssets)
             {
                 bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
@@ -365,7 +370,8 @@ namespace UnityEditor.VFX
         // 8: Bounds computation introduces a BoundsSettingMode for VFXDataParticles
         // 9: Update HDRP decal angle fade encoding
         // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
-        public static readonly int CurrentVersion = 10;
+        // 11: Instancing
+        public static readonly int CurrentVersion = 11;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -521,6 +527,10 @@ namespace UnityEditor.VFX
 
             systemNames.Sync(this);
 
+            if (version < 11)
+            {
+                visualEffectResource.instancingMode = VFXInstancingMode.Disabled;
+            }
 
             int resourceCurrentVersion = 0;
             // Stop using reflection after 2020.2;

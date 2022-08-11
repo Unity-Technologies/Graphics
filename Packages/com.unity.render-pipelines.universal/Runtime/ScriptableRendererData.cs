@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
+    [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
     public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }

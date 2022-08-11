@@ -23,22 +23,22 @@ struct Kvp
 	float sortKey;
 	uint index;
 };
-#define OutputType Kvp
+#define IndirectOutputType Kvp
 #else
-#define OutputType uint
+#define IndirectOutputType uint
 #endif
 
 #if INDIRECT_BUFFER_COUNT > 0
-RWStructuredBuffer<OutputType> outputBuffer0;
+RWStructuredBuffer<IndirectOutputType> outputBuffer0;
 #endif
 #if INDIRECT_BUFFER_COUNT > 1
-RWStructuredBuffer<OutputType> outputBuffer1;
+RWStructuredBuffer<IndirectOutputType> outputBuffer1;
 #endif
 #if INDIRECT_BUFFER_COUNT > 2
-RWStructuredBuffer<OutputType> outputBuffer2;
+RWStructuredBuffer<IndirectOutputType> outputBuffer2;
 #endif
 #if INDIRECT_BUFFER_COUNT > 3
-RWStructuredBuffer<OutputType> outputBuffer3;
+RWStructuredBuffer<IndirectOutputType> outputBuffer3;
 #endif
 #if INDIRECT_BUFFER_COUNT > 4
 #error Too many indirect buffers defined.
@@ -71,6 +71,8 @@ bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
 ${VFXDeclareGetStripTangent}
 #endif
 
+${VFXDeclareAppendOutputIndirectBuffer}
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId		: SV_GroupID,
 			uint3 groupThreadId	: SV_GroupThreadID)
@@ -78,16 +80,22 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
 
 	uint index = GetThreadId(groupId, 0, dispatchWidth);
-	${VFXInitInstancingCompute}
+	${VFXInitInstancing}
 	index += groupThreadId.x;
 
     ContextData contextData = instancingContextData[instanceActiveIndex];
     uint systemSeed = contextData.systemSeed;
     uint nbMax = contextData.maxParticleCount;
 
-	if (id < nbMax)
+	if (index < nbMax)
 	{
         ${VFXLoadGraphValues}
+
+        ${VFXLoadParameter:{localToWorld}}
+        vfxLocalToWorld = localToWorld;
+
+        ${VFXLoadParameter:{worldToLocal}}
+        vfxWorldToLocal = worldToLocal;
 
 		VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
@@ -96,7 +104,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #if HAS_STRIPS
-            const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+            const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
             InitStripAttributes(index, attributes, stripData);
             uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
 #endif
@@ -182,26 +190,22 @@ ${VFXFeedSortingKeys}
 
                 if (outputIndex == 0)
                 {
-                    uint indirectIndex = outputBuffer0.IncrementCounter();
-			        outputBuffer0[indirectIndex] = output;
+                    AppendOutputBuffer(outputBuffer0, output, instanceActiveIndex);
                 }
 #if INDIRECT_BUFFER_COUNT > 1
                 else if (outputIndex == 1)
                 {
-                    uint indirectIndex = outputBuffer1.IncrementCounter();
-			        outputBuffer1[indirectIndex] = output;
+                    AppendOutputBuffer(outputBuffer1, output, instanceActiveIndex);
                 }
 #if INDIRECT_BUFFER_COUNT > 2
                 else if (outputIndex == 2)
                 {
-                    uint indirectIndex = outputBuffer2.IncrementCounter();
-			        outputBuffer2[indirectIndex] = output;
+                    AppendOutputBuffer(outputBuffer2, output, instanceActiveIndex);
                 }
 #if INDIRECT_BUFFER_COUNT > 3
                 else if (outputIndex == 3)
                 {
-                    uint indirectIndex = outputBuffer3.IncrementCounter();
-			        outputBuffer3[indirectIndex] = output;
+                    AppendOutputBuffer(outputBuffer3, output, instanceActiveIndex);
                 }
 #endif
 #endif
@@ -209,13 +213,14 @@ ${VFXFeedSortingKeys}
 #endif
 
 #if VFX_FEATURE_MOTION_VECTORS
+                uint offsetedIndex = (RAW_CAPACITY * instanceIndex) + index;
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
                 uint viewTotal = asuint(cameraXRSettings.x);
                 uint viewCount = asuint(cameraXRSettings.y);
                 uint viewOffset = asuint(cameraXRSettings.z);
-                uint elementToVFXIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
+                uint elementToVFXIndex = offsetedIndex * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
 #else
-                uint elementToVFXIndex = index * 13;
+                uint elementToVFXIndex = offsetedIndex * 13;
 #endif
                 ${VFXLoadParameter:{currentFrameIndex}}
                 elementToVFXBuffer.Store(elementToVFXIndex++ << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);

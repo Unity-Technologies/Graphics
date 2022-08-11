@@ -145,7 +145,7 @@ A double-sided surface with Transmission enabled.
 
 <a name="hair"></a>
 
-# Hair
+## Hair
 
 Path tracing gives human hair a volumetric look. To do this, path tracing calculates the multiple scattering events that happen in a full head of hair. It is particularly effective for lighter hair tones.
 

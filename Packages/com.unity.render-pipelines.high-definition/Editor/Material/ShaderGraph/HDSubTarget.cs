@@ -200,7 +200,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 CollectPassKeywords(ref passDescriptor);
 
-
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
 
@@ -301,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.Add(gui);
         }
 
-        protected abstract void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList);
+        protected virtual void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList) {}
 
         public override object saveContext
         {

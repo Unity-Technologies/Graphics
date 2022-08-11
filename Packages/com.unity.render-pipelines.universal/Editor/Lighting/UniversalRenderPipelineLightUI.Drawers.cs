@@ -252,9 +252,7 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             serializedLight.settings.DrawRenderMode();
-
-            using (new EditorGUI.DisabledScope(UniversalRenderPipeline.asset.useRenderingLayers))
-                serializedLight.settings.DrawCullingMask();
+            EditorGUILayout.PropertyField(serializedLight.settings.cullingMask, Styles.CullingMask);
         }
 
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)

@@ -242,53 +242,69 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static class EnumUtility
+        /// <summary>
+        /// Generic <see cref="EnumField"/> that stores enumNames and enumValues
+        /// </summary>
+        /// <typeparam name="T">The inner type of the field</typeparam>
+        public abstract class EnumField<T> : Field<T>
         {
-            internal static GUIContent[] MakeEnumNames(Type enumType)
+            /// <summary>
+            /// List of names of the enumerator entries.
+            /// </summary>
+            public GUIContent[] enumNames;
+
+            private int[] m_EnumValues;
+
+            /// <summary>
+            /// List of values of the enumerator entries.
+            /// </summary>
+            public int[] enumValues
             {
-                return enumType.GetFields(BindingFlags.Public | BindingFlags.Static).Select(fieldInfo =>
+                get => m_EnumValues;
+                set
                 {
-                    var description = fieldInfo.GetCustomAttributes(typeof(InspectorNameAttribute), false);
-
-                    if (description.Length > 0)
-                    {
-                        return new GUIContent(((InspectorNameAttribute)description.First()).displayName);
-                    }
-
-                    // Space-delimit PascalCase (https://stackoverflow.com/questions/155303/net-how-can-you-split-a-caps-delimited-string-into-an-array)
-                    var niceName = Regex.Replace(fieldInfo.Name, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
-                    return new GUIContent(niceName);
-                }).ToArray();
+                    if (value?.Distinct().Count() != value?.Count())
+                        Debug.LogWarning($"{displayName} - The values of the enum are duplicated, this might lead to a errors displaying the enum");
+                    m_EnumValues = value;
+                }
             }
 
-            internal static int[] MakeEnumValues(Type enumType)
+
+            // Space-delimit PascalCase (https://stackoverflow.com/questions/155303/net-how-can-you-split-a-caps-delimited-string-into-an-array)
+            static Regex s_NicifyRegEx = new("([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", RegexOptions.Compiled);
+
+            /// <summary>
+            /// Automatically fills the enum names with a given <see cref="Type"/>
+            /// </summary>
+            /// <param name="enumType">The enum type</param>
+            protected void AutoFillFromType(Type enumType)
             {
-                // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
-                //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+                if (enumType == null || !enumType.IsEnum)
+                    throw new ArgumentException($"{nameof(enumType)} must not be null and it must be an Enum type");
 
-                var values = Enum.GetValues(enumType);
-                var enumValues = new int[values.Length];
-                for (int i = 0; i < values.Length; i++)
-                    enumValues[i] = (int)values.GetValue(i);
-
-                return enumValues;
+                using (ListPool<GUIContent>.Get(out var tmpNames))
+                using (ListPool<int>.Get(out var tmpValues))
+                {
+                    var enumEntries = enumType.GetFields(BindingFlags.Public | BindingFlags.Static)
+                        .Where(fieldInfo => !fieldInfo.IsDefined(typeof(ObsoleteAttribute)) && !fieldInfo.IsDefined(typeof(HideInInspector)));
+                    foreach (var fieldInfo in enumEntries)
+                    {
+                        var description = fieldInfo.GetCustomAttribute<InspectorNameAttribute>();
+                        var displayName = new GUIContent(description == null ? s_NicifyRegEx.Replace(fieldInfo.Name, "$1 ") : description.displayName);
+                        tmpNames.Add(displayName);
+                        tmpValues.Add((int)Enum.Parse(enumType, fieldInfo.Name));
+                    }
+                    enumNames = tmpNames.ToArray();
+                    enumValues = tmpValues.ToArray();
+                }
             }
         }
 
         /// <summary>
         /// Enumerator field.
         /// </summary>
-        public class EnumField : Field<int>
+        public class EnumField : EnumField<int>
         {
-            /// <summary>
-            /// List of names of the enumerator entries.
-            /// </summary>
-            public GUIContent[] enumNames;
-            /// <summary>
-            /// List of values of the enumerator entries.
-            /// </summary>
-            public int[] enumValues;
-
             internal int[] quickSeparators;
 
             private int[] m_Indexes;
@@ -319,8 +335,7 @@ namespace UnityEngine.Rendering
             {
                 set
                 {
-                    enumNames = EnumUtility.MakeEnumNames(value);
-                    enumValues = EnumUtility.MakeEnumValues(value);
+                    AutoFillFromType(value);
                     InitQuickSeparators();
                 }
             }
@@ -413,17 +428,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bitfield enumeration field.
         /// </summary>
-        public class BitField : Field<Enum>
+        public class BitField : EnumField<Enum>
         {
-            /// <summary>
-            /// List of names of the enumerator entries.
-            /// </summary>
-            public GUIContent[] enumNames { get; private set; }
-            /// <summary>
-            /// List of values of the enumerator entries.
-            /// </summary>
-            public int[] enumValues { get; private set; }
-
             Type m_EnumType;
 
             /// <summary>
@@ -435,8 +441,7 @@ namespace UnityEngine.Rendering
                 set
                 {
                     m_EnumType = value;
-                    enumNames = EnumUtility.MakeEnumNames(value);
-                    enumValues = EnumUtility.MakeEnumValues(value);
+                    AutoFillFromType(value);
                 }
             }
         }

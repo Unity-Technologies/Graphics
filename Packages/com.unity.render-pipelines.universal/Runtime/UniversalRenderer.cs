@@ -153,6 +153,29 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+        // XRTODO: Remove this platform specific code(runs on Quest and HL).
+        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
+        internal static bool IsRunningXRMobile()
+        {
+            var platform = Application.platform;
+            if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
+            {
+                XR.XRDisplaySubsystem display = null;
+                SubsystemManager.GetInstances(displaySubsystemList);
+
+                if (displaySubsystemList.Count > 0)
+                    display = displaySubsystemList[0];
+
+                if (display != null)
+                    return true;
+            }
+            return false;
+        }
+#endif
+#endif
+
         /// <summary>
         /// Constructor for the Universal Renderer.
         /// </summary>
@@ -196,6 +219,12 @@ namespace UnityEngine.Rendering.Universal
 
             this.stripShadowsOffVariants = true;
             this.stripAdditionalLightOffVariants = true;
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+            // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
+            this.stripAdditionalLightOffVariants = !IsRunningXRMobile();
+#endif
+#endif
 
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
@@ -447,6 +476,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
                 // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
+                // TODO: Transparents might have force Z write option in the future.
                 EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
@@ -650,6 +680,9 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraColorTarget(m_ColorBufferSystem.PeekBackBuffer());
 
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+            // Check the createColorTexture logic above: intermediate color texture is not available for preview cameras.
+            // Because intermediate color is not available and copyColor pass requires it, we disable CopyColor pass here.
+            copyColorPass &= !isPreviewCamera;
 
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
@@ -958,10 +991,29 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyColorPass);
             }
 
-            if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
+            // Temporal Anti-alias (TAA) persistent data (over frame)
+            if (cameraData.taaPersistentData != null)
             {
-                SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
+                if (cameraData.IsTemporalAAEnabled())
+                {
+                    bool xrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+#endif
+                    bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
 
+                    // Fill new history with current frame
+                    if(allocation)
+                        cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
+                }
+                else
+                    cameraData.taaPersistentData.DeallocateTargets();
+            }
+
+            // Motion vectors
+            // TAA in postprocess requires it to function. Force motion vec pass for TAA.
+            if (renderPassInputs.requiresMotionVectors || cameraData.IsTemporalAAEnabled())
+            {
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
@@ -971,8 +1023,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
 
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera, cameraData);
-                m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth, data);
+                m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
                 EnqueuePass(m_MotionVectorPass);
             }
 
@@ -1035,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
                     bool doSRGBConversion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConversion, hasPassesAfterPostProcessing);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, m_MotionVectorColor, applyFinalPostProcessing, doSRGBConversion);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -1044,7 +1095,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true, hasPassesAfterPostProcessing);
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true);
                     EnqueuePass(finalPostProcessPass);
                 }
 
@@ -1088,7 +1139,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, false, false, true);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, m_MotionVectorColor, false, false);
                 EnqueuePass(postProcessPass);
             }
 
@@ -1353,7 +1404,7 @@ namespace UnityEngine.Rendering.Universal
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
             // copying depth on GLES3 is giving invalid results. This won't be fixed by the driver team because it would introduce performance issues (more info in the Fogbugz issue 1339401 comments)
-            if (IsGLESDevice())
+            if (IsGLESDevice() && msaaDepthResolve)
                 return false;
 
             return supportsDepthCopy || msaaDepthResolve;

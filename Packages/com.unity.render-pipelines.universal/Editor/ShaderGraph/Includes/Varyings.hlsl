@@ -17,7 +17,7 @@ VertexDescription BuildVertexDescription(Attributes input, AttributesElement ele
     GraphProperties properties;
     ZERO_INITIALIZE(GraphProperties, properties);
 #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[element.instanceIndex];
+    GraphValues graphValues = graphValuesBuffer[element.instanceActiveIndex];
 #endif
     // Fetch the vertex graph properties for the particle instance.
     GetElementVertexProperties(element, properties

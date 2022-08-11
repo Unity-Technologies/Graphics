@@ -10,6 +10,15 @@
 #define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
 #define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
 
+//
+// UnityEngine.Rendering.HighDefinition.LocalVolumetricFogBlendingMode:  static fields
+//
+#define LOCALVOLUMETRICFOGBLENDINGMODE_OVERWRITE (0)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_ADDITIVE (1)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_MULTIPLY (2)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_MIN (3)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_MAX (4)
+
 // Generated from UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
 // PackingRules = Exact
 struct LocalVolumetricFogEngineData
@@ -23,10 +32,9 @@ struct LocalVolumetricFogEngineData
     float3 rcpPosFaceFade;
     float endTimesRcpDistFadeLen;
     float3 rcpNegFaceFade;
-    int useVolumeMask;
-    float3 atlasOffset;
+    int blendingMode;
+    float3 albedo;
     int falloffMode;
-    float4 maskSize;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
@@ -38,7 +46,6 @@ CBUFFER_START(ShaderVariablesVolumetric)
     float _CornetteShanksConstant;
     uint _VBufferHistoryIsValid;
     float4 _VBufferSampleOffset;
-    float4 _VolumeMaskDimensions;
     float _VBufferVoxelSize;
     float _HaveToPad;
     float _OtherwiseTheBuffer;
@@ -52,6 +59,38 @@ CBUFFER_START(ShaderVariablesVolumetric)
     uint _NumTileBigTileY;
     uint _Pad0_SVV;
     uint _Pad1_SVV;
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialRenderingData
+// PackingRules = Exact
+struct VolumetricMaterialRenderingData
+{
+    float4 viewSpaceBounds;
+    uint startSliceIndex;
+    uint sliceCount;
+    uint padding0;
+    uint padding1;
+    float4 obbVertexPositionWS[8];
+};
+
+// Generated from UnityEngine.Rendering.HighDefinition.VolumetricMaterialDataCBuffer
+// PackingRules = Exact
+CBUFFER_START(VolumetricMaterialDataCBuffer)
+    float4 _VolumetricMaterialObbRight;
+    float4 _VolumetricMaterialObbUp;
+    float4 _VolumetricMaterialObbExtents;
+    float4 _VolumetricMaterialObbCenter;
+    float4 _VolumetricMaterialAlbedo;
+    float4 _VolumetricMaterialRcpPosFaceFade;
+    float4 _VolumetricMaterialRcpNegFaceFade;
+    float _VolumetricMaterialInvertFade;
+    float _VolumetricMaterialExtinction;
+    float _VolumetricMaterialRcpDistFadeLen;
+    float _VolumetricMaterialEndTimesRcpDistFadeLen;
+    float _VolumetricMaterialFalloffMode;
+    float padding0;
+    float padding1;
+    float padding2;
 CBUFFER_END
 
 //
@@ -93,21 +132,17 @@ float3 GetRcpNegFaceFade(LocalVolumetricFogEngineData value)
 {
     return value.rcpNegFaceFade;
 }
-int GetUseVolumeMask(LocalVolumetricFogEngineData value)
+int GetBlendingMode(LocalVolumetricFogEngineData value)
 {
-    return value.useVolumeMask;
+    return value.blendingMode;
 }
-float3 GetAtlasOffset(LocalVolumetricFogEngineData value)
+float3 GetAlbedo(LocalVolumetricFogEngineData value)
 {
-    return value.atlasOffset;
+    return value.albedo;
 }
 int GetFalloffMode(LocalVolumetricFogEngineData value)
 {
     return value.falloffMode;
-}
-float4 GetMaskSize(LocalVolumetricFogEngineData value)
-{
-    return value.maskSize;
 }
 
 #endif

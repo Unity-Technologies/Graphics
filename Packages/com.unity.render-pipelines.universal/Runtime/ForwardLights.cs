@@ -549,7 +549,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     NativeArray<ShaderInput.LightData> additionalLightsData = new NativeArray<ShaderInput.LightData>(additionalLightsCount, Allocator.Temp);
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
-                        VisibleLight light = lights[i];
                         if (lightData.mainLightIndex != i)
                         {
                             ShaderInput.LightData data;
@@ -577,7 +576,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
-                        VisibleLight light = lights[i];
                         if (lightData.mainLightIndex != i)
                         {
                             uint lightLayerMask;

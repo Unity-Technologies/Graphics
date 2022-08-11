@@ -28,7 +28,9 @@ struct VaryingsLensFlare
 {
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
+#if (!defined(HDRP_FLARE) && FLARE_OCCLUSION) || (defined(HDRP_FLARE) && defined(FLARE_MEASURE_OCCLUSION)) || defined(FLARE_COMPUTE_OCCLUSION)
     float occlusion : TEXCOORD1;
+#endif
 
 #ifndef FLARE_PREVIEW
     UNITY_VERTEX_OUTPUT_STEREO
@@ -100,7 +102,7 @@ float2 Rotate(float2 v, float cos0, float sin0)
                   v.x * sin0 + v.y * cos0);
 }
 
-#if defined(FLARE_OCCLUSION) || defined(FLARE_COMPUTE_OCCLUSION)
+#if defined(FLARE_OCCLUSION) || defined(FLARE_COMPUTE_OCCLUSION) || defined(FLARE_MEASURE_OCCLUSION)
 float GetLinearDepthValue(float2 uv)
 {
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
@@ -239,17 +241,15 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     output.positionCS.z = 1.0f;
     output.positionCS.w = 1.0f;
 
-#if FLARE_OCCLUSION
+#if (!defined(HDRP_FLARE) && FLARE_OCCLUSION) || (defined(HDRP_FLARE) && FLARE_MEASURE_OCCLUSION)
     float occlusion = GetOcclusion(screenRatio);
 
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
         occlusion = 0.0f;
-#else
-    float occlusion = 1.0f;
-#endif
 
     output.occlusion = occlusion;
+#endif
 
     return output;
 }
@@ -330,13 +330,15 @@ float4 frag(VaryingsLensFlare input) : SV_Target
 
     float4 col = GetFlareShape(input.texcoord);
 
-#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
+#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION) && !defined(FLARE_COMPUTE_OCCLUSION)
     float occ = LOAD_TEXTURE2D_X_LOD(_FlareOcclusionTex, uint2(_FlareOcclusionIndex.x, 0), 0).x;
 
     return col * _FlareColor * occ;
-#elif !defined(FLARE_OCCLUSION)
-    return col * _FlareColor;
-#else
+#elif defined(HDRP_FLARE) && !defined(FLARE_OCCLUSION) && defined(FLARE_MEASURE_OCCLUSION)
     return col * _FlareColor * input.occlusion;
+#elif !defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
+    return col * _FlareColor * input.occlusion;
+#else// !defined(FLARE_OCCLUSION)
+    return col * _FlareColor;
 #endif
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -578,6 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         ComputeBuffer fullscreenBuffer = data.fullscreenBuffer;
+                        ComputeVolumetricFogSliceCountAndScreenFraction(data.hdCamera.volumeStack.GetComponent<Fog>(), out var volumetricSliceCount, out _);
 
                         mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.input);
                         mpb.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
@@ -590,6 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, data.depthPyramidOffsets);
                         mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, data.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
                         mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)data.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
+                        mpb.SetFloat(HDShaderIDs._FogVolumeOverdrawMaxValue, (float)volumetricSliceCount);
                         mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)data.debugDisplaySettings.data.maxQuadCost);
                         mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)data.debugDisplaySettings.data.maxVertexDensity);
                         mpb.SetFloat(HDShaderIDs._MinMotionVector, data.debugDisplaySettings.data.minMotionVectorLength);
@@ -753,68 +756,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugBlitMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mpb);
-                        data.debugOverlay.Next();
-                    });
-            }
-        }
-
-        class RenderLocalVolumetricFogAtlasDebugOverlayPassData
-            : DebugOverlayPassData
-        {
-            public float slice;
-            public Texture3DAtlas atlas;
-            public Material debugLocalVolumetricFogMaterial;
-            public bool useSelection;
-        }
-
-        void RenderLocalVolumetricFogAtlasDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
-        {
-            if (!m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayLocalVolumetricFogAtlas)
-                return;
-
-            using (var builder = renderGraph.AddRenderPass<RenderLocalVolumetricFogAtlasDebugOverlayPassData>("RenderLocalVolumetricFogAtlasOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayLocalVolumetricFogAtlas)))
-            {
-                passData.debugOverlay = m_DebugOverlay;
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.debugLocalVolumetricFogMaterial = m_DebugLocalVolumetricFogMaterial;
-                passData.slice = (float)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.localVolumetricFogAtlasSlice;
-                passData.atlas = LocalVolumetricFogManager.manager.volumeAtlas;
-                passData.useSelection = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.localVolumetricFogUseSelection;
-
-                builder.SetRenderFunc(
-                    (RenderLocalVolumetricFogAtlasDebugOverlayPassData data, RenderGraphContext ctx) =>
-                    {
-                        var atlasTexture = data.atlas.GetAtlas();
-                        var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                        mpb.SetTexture(HDShaderIDs._InputTexture, data.atlas.GetAtlas());
-                        mpb.SetFloat("_Slice", (float)data.slice);
-                        mpb.SetVector("_Offset", Vector3.zero);
-                        mpb.SetVector("_TextureSize", new Vector3(atlasTexture.width, atlasTexture.height, atlasTexture.volumeDepth));
-
-#if UNITY_EDITOR
-                        if (data.useSelection)
-                        {
-                            var obj = UnityEditor.Selection.activeGameObject;
-
-                            if (obj != null && obj.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
-                            {
-                                var texture = localVolumetricFog.parameters.volumeMask;
-
-                                if (texture != null)
-                                {
-                                    float textureDepth = texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 0;
-                                    mpb.SetVector("_TextureSize", new Vector3(texture.width, texture.height, textureDepth));
-                                    mpb.SetVector("_Offset", data.atlas.GetTextureOffset(texture));
-                                }
-                            }
-                        }
-#endif
-                        data.debugOverlay.SetViewport(ctx.cmd);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugLocalVolumetricFogMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                        data.debugOverlay.Next();
-                        data.debugOverlay.SetViewport(ctx.cmd);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugLocalVolumetricFogMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
                         data.debugOverlay.Next();
                     });
             }
@@ -1064,7 +1005,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionProbeTextureCache.GetAtlasTexture(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.reflectionProbeSlice,
                     (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.reflectionProbeMipLevel, applyExposure: m_CurrentDebugDisplaySettings.data.lightingDebugSettings.reflectionProbeApplyExposure, "RenderReflectionProbeAtlasOverlay", HDProfileId.DisplayReflectionProbeAtlas);
 
-            RenderLocalVolumetricFogAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer);
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
@@ -1327,7 +1267,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.lightingDebugSettings.showTonemapCurveAlongHistogramView;
 
                             bool centerAroundMiddleGrey = data.lightingDebugSettings.centerHistogramAroundMiddleGrey;
-                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, centerAroundMiddleGrey ? 1 : 0, 0));
+                            bool displayOverlay = data.lightingDebugSettings.displayOnSceneOverlay;
+                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, centerAroundMiddleGrey ? 1 : 0, displayOverlay ? 1 : 0));
                             if (drawTonemapCurve)
                             {
                                 if (tonemappingMode == TonemappingMode.Custom)
