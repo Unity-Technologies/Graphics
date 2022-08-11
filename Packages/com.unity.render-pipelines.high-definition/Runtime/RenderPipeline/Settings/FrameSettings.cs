@@ -349,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //async settings (group 2)
         /// <summary>When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.</summary>
-        [FrameSettingsField(2, displayedName: "Asynchronous Execution", tooltip: "When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.")]
+        [FrameSettingsField(2, displayedName: "Asynchronous Execution", tooltip: "When enabled, HDRP executes certain Compute Shader commands in parallel. This is only supported on DX12 and Vulkan. If Asynchronous execution is disabled or not supported the effects will fallback on a synchronous version.")]
         AsyncCompute = 40,
         /// <summary>When enabled, HDRP builds the Light List asynchronously.</summary>
         [FrameSettingsField(2, displayedName: "Light List", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP builds the Light List asynchronously.")]

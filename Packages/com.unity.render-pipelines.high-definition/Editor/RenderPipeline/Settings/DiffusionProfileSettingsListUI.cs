@@ -59,6 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     drawElement(parameter.GetArrayElementAtIndex(index), rect, index);
             };
 
+            m_DiffusionProfileList.onCanAddCallback = l => l.count < DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1;
+
             m_DiffusionProfileList.onAddCallback = (l) =>
             {
                 if (parameter.arraySize >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)

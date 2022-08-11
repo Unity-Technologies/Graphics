@@ -585,12 +585,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingState = true;
         }
 
-        static internal bool ValidRayTracingHistory(HDCamera hdCamera)
-        {
-            return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
-                && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
-        }
-
         internal static int RayTracingFrameIndex(HDCamera hdCamera)
         {
 #if UNITY_HDRP_DXR_TESTS_DEFINE
@@ -659,20 +653,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal float EvaluateHistoryValidity(HDCamera hdCamera)
         {
-            float historyValidity = 1.0f;
 #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
-                historyValidity = 0.0f;
+                return 0.0f;
             else
 #endif
-            // We need to check if something invalidated the history buffers
-            historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
-            return historyValidity;
+                return 1.0f;
         }
 
         internal bool RayTracingHalfResAllowed()
         {
             return DynamicResolutionHandler.instance.GetCurrentScale() >= (currentPlatformRenderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold / 100.0f);
+        }
+
+        internal static Vector4 EvaluateRayTracingHistorySizeAndScale(HDCamera hdCamera, RTHandle buffer)
+        {
+            return new Vector4(hdCamera.historyRTHandleProperties.previousViewportSize.x,
+                                hdCamera.historyRTHandleProperties.previousViewportSize.y,
+                                (float)hdCamera.historyRTHandleProperties.previousViewportSize.x / buffer.rt.width,
+                                (float)hdCamera.historyRTHandleProperties.previousViewportSize.y / buffer.rt.height);
         }
 
         void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)

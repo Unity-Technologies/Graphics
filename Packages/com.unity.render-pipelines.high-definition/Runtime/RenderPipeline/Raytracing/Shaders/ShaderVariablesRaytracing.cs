@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RayTracingLastBounceFallbackHierarchy;
         // Flag that defines if
         public int _RayTracingClampingFlag;
-        public int _Padding1;
+        // Dimmer that allows us to nuke the ambient probe (and legacy probe as a side effect) in ray tracing effects.
+        public float _RayTracingAmbientProbeDimmer;
     }
 }

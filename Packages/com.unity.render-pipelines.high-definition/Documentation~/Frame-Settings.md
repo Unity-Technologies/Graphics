@@ -402,6 +402,7 @@ These settings control lighting features for your rendering components. Here you
 ### Asynchronous Compute Shaders
 
 These settings control which effects, if any, can make use execute compute Shader commands in parallel.
+This is only supported on DX12 and Vulkan. If Asynchronous execution is disabled or not supported the effects will fallback on a synchronous version.
 
 <table>
 <thead>

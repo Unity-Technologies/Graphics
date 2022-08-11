@@ -15,24 +15,20 @@ The Light Inspector includes the following groups of properties:
 * [Rendering](#Rendering)
 * [Shadows](#Shadows)
 
-
-<a name="General"></a>
-### General
+### <a name="General"></a>General
 
 | Property:| Function: |
 |:---|:---|
 | __Type__| The current type of light. Possible values are __Directional__, __Point__, __Spot__ and __Area__.|
 | __Mode__| Specify the [Light Mode](https://docs.unity3d.com/Manual/LightModes.html) used to determine if and how a light is "baked". Possible modes are __Realtime__, __Mixed__ and __Baked__.|
 
-<a name="Shape"></a>
-### Shape
+### <a name="Shape"></a>Shape
 
 | Property:| Function: |
 |:---|:---|
 | __Spot Angle__| Define the angle (in degrees) at the base of a spot light’s cone (__Spot__ light only). |
 
-<a name="Emission"></a>
-### Emission
+### <a name="Emission"></a>Emission
 
 | Property:| Function: |
 |:---|:---|
@@ -44,8 +40,7 @@ The Light Inspector includes the following groups of properties:
 | &nbsp;&nbsp;**Cookie Size** | The per-axis scale Unity applies to the cookie texture. Use this property to set the size of the cookie.<br/><br/>This property is available only if you set **Type** to **Directional** and assign a texture to **Cookie**. |
 | &nbsp;&nbsp;**Cookie Offset** | The per-axis offset Unity applies to the cookie texture. Use this property to move the cookie without moving the light itself. You can also animate this property to scroll the cookie. <br/><br/>This property is available only if you set **Type** to **Directional** and assign a texture to **Cookie**. |
 
-<a name="Rendering"></a>
-## Rendering
+## <a name="Rendering"></a>Rendering
 
 | Property:| Function: |
 |:---|:---|
@@ -55,8 +50,8 @@ The Light Inspector includes the following groups of properties:
 |&nbsp;&nbsp;&nbsp;&nbsp;Not Important| The light is always rendered in a faster, vertex/object light mode.  |
 | __Culling Mask__| Use this to selectively exclude groups of objects from being affected by the Light. For more information, see [Layers](https://docs.unity3d.com/Manual/Layers.html).|
 
-<a name="Shadows"></a>
-## Shadows
+
+## <a name="Shadows"></a>Shadows
 
 | Property:| Function: |
 |:---|:---|

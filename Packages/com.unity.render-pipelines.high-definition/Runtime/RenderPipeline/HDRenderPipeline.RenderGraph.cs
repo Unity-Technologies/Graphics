@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ApplyCameraMipBias(hdCamera);
 
-                    RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
+                    RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput, vtFeedbackBuffer, shadowResult, cullingResults);
 
                     ResetCameraMipBias(hdCamera);
 
@@ -755,10 +755,9 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorBuffer,
             in LightingBuffers lightingBuffers,
             in BuildGPULightListOutput lightLists,
-            TextureHandle depthBuffer,
+            in PrepassOutput prepassOutput,
             TextureHandle vtFeedbackBuffer,
             ShadowResult shadowResult,
-            DBufferOutput dbuffer,
             CullingResults cullResults)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -783,11 +782,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseColorBuffer(lightingBuffers.diffuseLightingBuffer, index++);
                     builder.UseColorBuffer(lightingBuffers.sssBuffer, index++);
                 }
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
+                builder.AllowRendererListCulling(false);
 
-                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
-                passData.dbuffer = ReadDBuffer(dbuffer, builder);
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && DecalSystem.instance.HasAnyForwardEmissive();
+                passData.dbuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+
+                // Texture has been bound globally during prepass, warn rendergraph that we may use it here
+                if (passData.enableDecals && hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
+                    builder.ReadTexture(prepassOutput.renderingLayersBuffer);
 
                 builder.SetRenderFunc(
                     (ForwardOpaquePassData data, RenderGraphContext context) =>

@@ -141,6 +141,11 @@ You can use the accumulation API to create a high quality antialiased frame, sim
 To do this, use the accumulation API to jitter the projection matrix of each rendered subframe. The following script example uses this method to perform high quality antialiasing :
 
 ```C#
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using System.Collections.Generic;
+
 public class SuperSampling : MonoBehaviour
 {
     // The number of samples used for accumumation in the horizontal and verical directions.

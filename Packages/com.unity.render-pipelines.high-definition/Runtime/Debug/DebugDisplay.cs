@@ -1496,7 +1496,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows)
             {
-                list.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ScreenSpaceShadowIndex, getter = () => data.screenSpaceShadowIndex, setter = value => data.screenSpaceShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() });
+                list.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ScreenSpaceShadowIndex, getter = () => data.screenSpaceShadowIndex, setter = value => data.screenSpaceShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() - 1 });
             }
 
             switch (data.fullScreenDebugMode)
