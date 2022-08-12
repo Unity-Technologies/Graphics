@@ -117,7 +117,7 @@ MonoBehaviour:
     m_Value: 4
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 2
   m_SampleCount:
     m_OverrideState: 1
     m_Value: 8
