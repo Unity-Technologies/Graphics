@@ -43,16 +43,6 @@ Unity includes the following URP Assets in your build:
 | Shadows from additional lights | You can't strip the variants for this feature. |
 | Shadows from the main light | You can't strip the variants for this feature. |
 
-## Strip post-processing shader variants
-
-Enable **Strip Unused Post Processing Variants** in [URP Global Settings](urp-global-settings.md) to strip shader variants for [Volume Overrides](VolumeOverrides.md) you don't use.
-
-For example if your project uses only the Bloom effect, URP keeps Bloom variants but strips all other post-processing variants.
-
-Unity checks for Volume Overrides in all scenes, so you can't strip variants by removing a Scene from your build but keeping it in your project.
-
-You should also enable **Strip Screen Coord Override Variants** in URP Global Settings, unless you override screen coordinates to support post processing on large numbers of multiple displays ('cluster' displays).
-
 ## Strip XR and VR shader variants
 
 If you don't use [XR](https://docs.unity3d.com/Manual/XR.html) or [VR](https://docs.unity3d.com/Manual/VROverview.html), you can [disable the XR and VR modules](https://docs.unity3d.com/Documentation/Manual/upm-ui.html). This allows URP to strip XR and VR related shader variants from its standard shaders.
