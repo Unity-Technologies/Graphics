@@ -33,5 +33,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public const string kIsColor = "IsColor";
         public const string kIsHdr = "IsHdr";
+
+        public enum TextureDefaultType
+        {
+            White,
+            Black,
+            Grey,
+            NormalMap,
+            LinearGrey,
+            Red
+        }
+
+        public const string kTextureDefaultType = "TextureDefaultType";
     }
 }

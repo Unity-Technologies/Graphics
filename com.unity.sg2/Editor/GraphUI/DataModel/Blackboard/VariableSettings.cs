@@ -47,6 +47,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// VariableSettings contains a number of well-known settings for variables of various types. If you know a setting
     /// is valid for a variable, you can use its handle here to retrieve its value.
+    ///
+    /// TODO: These should be defined by types to avoid maintaining a huge list.
     /// </summary>
     static class VariableSettings
     {
@@ -91,6 +93,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static readonly VariableSetting<SamplerStateType.Wrap> samplerStateWrap =
             CreateFromSubField<SamplerStateType.Wrap>(model => model.ContextEntry.GetTypeField(), SamplerStateType.kWrap, "Wrap");
+
+        #endregion
+
+        #region Texture2D
+
+        public static readonly VariableSetting<TextureDefaultType> textureMode =
+            CreateFromContextEntryTag(kTextureDefaultType, "Mode", TextureDefaultType.White);
 
         #endregion
 
