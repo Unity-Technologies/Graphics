@@ -101,6 +101,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly VariableSetting<TextureDefaultType> textureMode =
             CreateFromContextEntryTag(kTextureDefaultType, "Mode", TextureDefaultType.White);
 
+        public static readonly VariableSetting<bool> textureUseTilingOffset =
+            CreateFromContextEntryTag(kTextureUseTilingOffset, "Use Tiling and Offset", false);
+
         #endregion
 
         #region Shared

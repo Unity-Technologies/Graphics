@@ -45,5 +45,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public const string kTextureDefaultType = "TextureDefaultType";
+        public const string kTextureUseTilingOffset = "TextureUseTilingOffset";
     }
 }

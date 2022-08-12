@@ -146,6 +146,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (DataType == ShaderGraphExampleTypes.Texture2DTypeHandle)
             {
                 yield return VariableSettings.textureMode;
+                yield return VariableSettings.textureUseTilingOffset;
             }
 
             if (IsExposable)
