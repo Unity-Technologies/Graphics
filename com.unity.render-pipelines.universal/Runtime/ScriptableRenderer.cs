@@ -552,6 +552,10 @@ namespace UnityEngine.Rendering.Universal
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
 
+                    // Update camera motion tracking (prev matrices)
+                    if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                        additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
+
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //Triggers dispatch per camera, all global parameters should have been setup at this stage.
             VFX.VFXManager.ProcessCameraCommand(camera, cmd);
