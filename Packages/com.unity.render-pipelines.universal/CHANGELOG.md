@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add Alpha Clipping to shadergraph options for Sprite sub targets.
 - Added Screen Coordinates Override feature. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
 
+### Changed
+- Obsoleted ClipType, PolyType, PolyFillType, JoinType, and EndType enums from clipper.
+
 ### Fixed
 - Fixed spot light distance attenuation artefact on some platforms due to fp16 precision issue.
 
