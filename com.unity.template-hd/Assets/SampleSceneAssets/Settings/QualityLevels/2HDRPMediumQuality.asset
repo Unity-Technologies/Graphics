@@ -45,10 +45,6 @@ MonoBehaviour:
       m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
-    cubeReflectionResolution:
-      m_Values: 000100000002000000040000
-      m_SchemaId:
-        m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 1
     supportSurfaceGradient: 0
@@ -207,7 +203,7 @@ MonoBehaviour:
       AOBilateralUpsample: 000001
       AODirectionCount: 010000000200000002000000
       ContactShadowSampleCount: 04000000080000000c000000
-      SSRMaxRaySteps: 0c0000001800000030000000
+      SSRMaxRaySteps: 1e0000003200000046000000
       SSGIRaySteps: 200000004000000080000000
       SSGIDenoise: 010101
       SSGIHalfResDenoise: 010000
@@ -218,8 +214,8 @@ MonoBehaviour:
       SSGISecondDenoise: 010101
       RTAORayLength:
       - 0.5
-      - 3
-      - 20
+      - 1
+      - 2
       RTAOSampleCount: 010000000200000008000000
       RTAODenoise: 010101
       RTAODenoiserRadius:

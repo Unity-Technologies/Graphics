@@ -203,7 +203,7 @@ MonoBehaviour:
       AOBilateralUpsample: 000101
       AODirectionCount: 010000000200000004000000
       ContactShadowSampleCount: 060000000a00000010000000
-      SSRMaxRaySteps: 100000002000000040000000
+      SSRMaxRaySteps: 320000004b00000064000000
       SSGIRaySteps: 200000004000000080000000
       SSGIDenoise: 010101
       SSGIHalfResDenoise: 010000
@@ -214,8 +214,8 @@ MonoBehaviour:
       SSGISecondDenoise: 010101
       RTAORayLength:
       - 0.5
-      - 3
-      - 20
+      - 1
+      - 2
       RTAOSampleCount: 010000000200000008000000
       RTAODenoise: 010101
       RTAODenoiserRadius:
