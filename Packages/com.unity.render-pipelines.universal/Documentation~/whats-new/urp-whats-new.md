@@ -82,13 +82,13 @@ URP Volume system update frequency lets you to optimize the performance of your 
 
 ![URP Global Settings](../Images/whats-new/urp-12/urp-global-settings.png)
 
-The URP Global Settings section lets you define project-wide settings for URP. In this release, URP Global Settings contain the names of Light layers.
+The URP Global Settings section lets you define project-wide settings for URP. In this release, URP Global Settings contain the names of Rendering layers.
 
-### Light Layers
+### Rendering Layers
 
-Light Layers let you mask certain lights in a Scene to affect particular meshes. The lights assigned to a specific layer only affect meshes assigned to the same layer.
+Rendering Layers let you mask certain lights in a Scene to affect particular meshes. The lights assigned to a specific layer only affect meshes assigned to the same layer.
 
-For more information, see the page [Light layers](../lighting/light-layers.md).
+For more information, see the page [Rendering layers](../features/rendering-layers.md).
 
 ### New URP package samples
 

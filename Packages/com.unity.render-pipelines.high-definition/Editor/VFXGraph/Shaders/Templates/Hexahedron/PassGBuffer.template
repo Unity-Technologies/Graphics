@@ -76,7 +76,8 @@ ${VFXEnd}
 		VFXTransformPSInputs(i);
 
     #if VFX_USE_GRAPH_VALUES
-        GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+       uint instanceActiveIndex = i.instanceActiveIndex;
+       ${VFXLoadGraphValues}
     #endif
 
 #if !USE_DOUBLE_SIDED

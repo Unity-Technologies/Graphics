@@ -129,6 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
         TransparencyOverdraw,
         /// <summary>Display Quad Overdraw.</summary>
         QuadOverdraw,
+        /// <summary>Display Local Volumetric Fog Overdraw.</summary>
+        LocalVolumetricFogOverdraw,
         /// <summary>Display Vertex Density.</summary>
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
@@ -1226,6 +1228,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ExposureDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode to validate the exposure." };
             public static readonly NameAndTooltip ExposureDisplayMaskOnly = new() { name = "Display Mask Only", tooltip = "Display only the metering mask in the picture-in-picture. When disabled, the mask is visible after weighting the scene color instead." };
             public static readonly NameAndTooltip ExposureShowTonemapCurve = new() { name = "Show Tonemap Curve", tooltip = "Overlay the tonemap curve to the histogram debug view." };
+            public static readonly NameAndTooltip DisplayHistogramSceneOverlay = new () { name = "Show Scene Overlay", tooltip = "Display the scene overlay showing pixels excluded by the exposure computation via histogram." };
             public static readonly NameAndTooltip ExposureCenterAroundExposure = new() { name = "Center Around Exposure", tooltip = "Center the histogram around the current exposure value." };
             public static readonly NameAndTooltip ExposureDisplayRGBHistogram = new() { name = "Display RGB Histogram", tooltip = "Display the Final Image Histogram as an RGB histogram instead of just luminance." };
             public static readonly NameAndTooltip DebugExposureCompensation = new() { name = "Debug Exposure Compensation", tooltip = "Set an additional exposure on top of your current exposure for debug purposes." };
@@ -1289,11 +1292,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ReflectionProbeAtlasSlice = new() { name = "Slice", tooltip = "Use the slider to set the slice of the reflection probe atlas." };
             public static readonly NameAndTooltip ReflectionProbeApplyExposure = new() { name = "Apply Exposure", tooltip = "Apply exposure to displayed atlas." };
             public static readonly NameAndTooltip ClearReflectionProbeAtlas = new() { name = "Clear Reflection Probe Atlas", tooltip = "Enable to clear the reflection probe atlas each frame." };
-
-            // Volumetric fog atlas
-            public static readonly NameAndTooltip DisplayLocalVolumetricFogAtlas = new() { name = "Display Local Volumetric Fog Atlas", tooltip = "Enable to display the 3D texture atlas used for the local volumetric fog masks." };
-            public static readonly NameAndTooltip VolumetricFogSlice = new() { name = "Slice", tooltip = "Select which slice of the texture 3D to view." };
-            public static readonly NameAndTooltip VolumetricFogUseSelection = new() { name = "Use Selection", tooltip = "Display the mask of the selected local volumetric fog instead of the full atlas." };
 
             public static readonly NameAndTooltip DebugOverlayScreenRatio = new() { name = "Debug Overlay Screen Ratio", tooltip = "Set the size of the debug overlay textures with a ratio of the screen size." };
         }
@@ -1381,6 +1379,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                 isHiddenCallback = () => data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.HistogramView,
                                 children =
                                 {
+                                    new DebugUI.BoolField()
+                                    {
+                                        nameAndTooltip = LightingStrings.DisplayHistogramSceneOverlay,
+                                        getter = () => data.lightingDebugSettings.displayOnSceneOverlay,
+                                        setter = value => data.lightingDebugSettings.displayOnSceneOverlay = value
+                                    },
                                     new DebugUI.BoolField()
                                     {
                                         nameAndTooltip = LightingStrings.ExposureShowTonemapCurve,
@@ -1717,39 +1721,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.BoolField { nameAndTooltip = LightingStrings.ReflectionProbeApplyExposure, getter = () => data.lightingDebugSettings.reflectionProbeApplyExposure, setter = value => data.lightingDebugSettings.reflectionProbeApplyExposure = value},
                     }
                 });
-            }
-
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayLocalVolumetricFogAtlas, getter = () => data.lightingDebugSettings.displayLocalVolumetricFogAtlas, setter = value => data.lightingDebugSettings.displayLocalVolumetricFogAtlas = value });
-            {
-                list.Add(new DebugUI.Container
-                {
-                    isHiddenCallback = () => !data.lightingDebugSettings.displayLocalVolumetricFogAtlas,
-                    children =
-                    {
-                        new DebugUI.UIntField { nameAndTooltip = LightingStrings.VolumetricFogSlice, getter = () => data.lightingDebugSettings.localVolumetricFogAtlasSlice, setter = value => data.lightingDebugSettings.localVolumetricFogAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
-                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.VolumetricFogUseSelection, getter = () => data.lightingDebugSettings.localVolumetricFogUseSelection, setter = value => data.lightingDebugSettings.localVolumetricFogUseSelection = value, flags = DebugUI.Flags.EditorOnly },
-                    }
-                });
-            }
-
-            uint GetLocalVolumetricFogSliceCount()
-            {
-#if UNITY_EDITOR
-                if (data.lightingDebugSettings.localVolumetricFogUseSelection)
-                {
-                    var selectedGO = UnityEditor.Selection.activeGameObject;
-                    if (selectedGO != null && selectedGO.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
-                    {
-                        var texture = localVolumetricFog.parameters.volumeMask;
-
-                        if (texture != null)
-                            return (uint)(texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 1) - 1;
-                    }
-                    return 0;
-                }
-                else
-#endif
-                return (uint)LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
             }
 
             list.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DebugOverlayScreenRatio, getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f });

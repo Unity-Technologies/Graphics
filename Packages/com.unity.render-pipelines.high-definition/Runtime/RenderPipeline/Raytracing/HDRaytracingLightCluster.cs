@@ -397,13 +397,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxClusterPos.z = Mathf.Max(m_LightVolumesCPUArray[lightIdx].position.z + m_LightVolumesCPUArray[lightIdx].range.z, maxClusterPos.z);
             }
 
-            minClusterPos.x = minClusterPos.x < clusterCenter.x - settings.cameraClusterRange.value ? clusterCenter.x - settings.cameraClusterRange.value : minClusterPos.x;
-            minClusterPos.y = minClusterPos.y < clusterCenter.y - settings.cameraClusterRange.value ? clusterCenter.y - settings.cameraClusterRange.value : minClusterPos.y;
-            minClusterPos.z = minClusterPos.z < clusterCenter.z - settings.cameraClusterRange.value ? clusterCenter.z - settings.cameraClusterRange.value : minClusterPos.z;
+            float cameraClusterRange;
+            if (hdCamera.IsPathTracingEnabled())
+            {
+                // For path tracing we use the max extent of the extended culling frustum as the light cluster size
+                Vector3 extendedFrustumExtent = (hdCamera.camera.transform.up + hdCamera.camera.transform.right + hdCamera.camera.transform.forward) * hdCamera.camera.farClipPlane;
+                cameraClusterRange = Mathf.Max(Mathf.Max(Mathf.Abs(extendedFrustumExtent.x), Mathf.Abs(extendedFrustumExtent.y)), Mathf.Abs(extendedFrustumExtent.z));
+            }
+            else
+                cameraClusterRange = settings.cameraClusterRange.value;
 
-            maxClusterPos.x = maxClusterPos.x > clusterCenter.x + settings.cameraClusterRange.value ? clusterCenter.x + settings.cameraClusterRange.value : maxClusterPos.x;
-            maxClusterPos.y = maxClusterPos.y > clusterCenter.y + settings.cameraClusterRange.value ? clusterCenter.y + settings.cameraClusterRange.value : maxClusterPos.y;
-            maxClusterPos.z = maxClusterPos.z > clusterCenter.z + settings.cameraClusterRange.value ? clusterCenter.z + settings.cameraClusterRange.value : maxClusterPos.z;
+            minClusterPos.x = Mathf.Max(minClusterPos.x, clusterCenter.x - cameraClusterRange);
+            minClusterPos.y = Mathf.Max(minClusterPos.y, clusterCenter.y - cameraClusterRange);
+            minClusterPos.z = Mathf.Max(minClusterPos.z, clusterCenter.z - cameraClusterRange);
+
+            maxClusterPos.x = Mathf.Min(maxClusterPos.x, clusterCenter.x + cameraClusterRange);
+            maxClusterPos.y = Mathf.Min(maxClusterPos.y, clusterCenter.y + cameraClusterRange);
+            maxClusterPos.z = Mathf.Min(maxClusterPos.z, clusterCenter.z + cameraClusterRange);
 
             // Compute the cell size per dimension
             clusterCellSize = (maxClusterPos - minClusterPos);

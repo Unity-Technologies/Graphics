@@ -258,9 +258,18 @@ SAMPLER(samplerunity_ShadowMasks);
 // TODO: all affine matrices should be 3x4.
 // TODO: sort these vars by the frequency of use (descending), and put commonly used vars together.
 // Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
-float4x4 _PrevViewProjMatrix;
-float4x4 _ViewProjMatrix;
-float4x4 _NonJitteredViewProjMatrix;
+#if defined(USING_STEREO_MATRICES)
+float4x4 _PrevViewProjMatrixStereo[2];
+float4x4 _NonJitteredViewProjMatrixStereo[2];
+float4x4 _ViewProjMatrixStereo[2];
+#define  _PrevViewProjMatrix  _PrevViewProjMatrixStereo[unity_StereoEyeIndex]
+#define  _NonJitteredViewProjMatrix _NonJitteredViewProjMatrixStereo[unity_StereoEyeIndex]
+#define  _ViewProjMatrix      _ViewProjMatrixStereo[unity_StereoEyeIndex]
+#else
+float4x4 _PrevViewProjMatrix;         // non-jittered. Motion vectors.
+float4x4 _NonJitteredViewProjMatrix;  // non-jittered.
+float4x4 _ViewProjMatrix; // TODO: URP currently uses unity_MatrixVP, see Input.hlsl
+#endif
 float4x4 _ViewMatrix;
 float4x4 _ProjMatrix;
 float4x4 _InvViewProjMatrix;

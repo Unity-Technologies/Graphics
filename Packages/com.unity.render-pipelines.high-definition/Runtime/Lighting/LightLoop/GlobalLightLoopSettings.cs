@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
+    [Obsolete("The texture resolution limit in volumetric fogs have been removed. This enum is unused.")]
     public enum LocalVolumetricFogResolution
     {
         /// <summary>3D volume of 32x32x32 voxels.</summary>
@@ -190,8 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxPlanarReflectionOnScreen = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen / 2,
             maxDecalsOnScreen = 512,
             maxLightsPerClusterCell = 8,
-            maxLocalVolumetricFogSize = LocalVolumetricFogResolution.Resolution32,
-            maxLocalVolumetricFogOnScreen = 64, // 8MB texture atlas allocated by default
+            maxLocalVolumetricFogOnScreen = 256,
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -212,6 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int cookieTexArraySize;
 
         // We keep this property for the migration code
+        /// <summary>Obsolete: Use planar reflection atlas.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]
         [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead.", false)]
         public PlanarReflectionAtlasResolution planarReflectionAtlasSize;
@@ -264,6 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxLightsPerClusterCell;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
+        [Obsolete("The texture resolution limit in volumetric fogs have been removed. This field is unused.")]
         public LocalVolumetricFogResolution maxLocalVolumetricFogSize;
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>

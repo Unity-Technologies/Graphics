@@ -2,16 +2,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using NUnit.Framework;
 
 using UnityEngine;
 using UnityEngine.TestTools;
-
+using System.Reflection;
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
 using UnityEngine.UIElements;
+using UnityEngine.VFX;
 using UnityEditor.VFX.Block;
 using UnityEditor.VFX.Operator;
 
@@ -22,11 +24,12 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXGUITests
     {
+        const string TempDirectoryName = "Assets/TmpTests";
+
         [OneTimeTearDown]
         public void DestroyTestAssets()
         {
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.Close();
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -574,6 +577,316 @@ namespace UnityEditor.VFX.Test
             // VFX graph must keep the focus
             yield return null;
             Assert.True(window.graphView.HasFocus());
+        }
+
+        [Ignore("Open Subgraph in new tab feature has been removed")]
+        [UnityTest]
+        [Description("When a subgraph is opened in another tab, then a new tab is created loaded with that subgraph")]
+        public IEnumerator Open_Subgraph_In_Other_Tab()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should open a new tab
+            var subgraphController = GetSubgraphBlocks(window).Single();
+
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, true);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+        }
+
+        [Ignore("Open Subgraph in new tab feature has been removed")]
+        [UnityTest]
+        [Description("When a subgraph is opened in another tab and that no-asset is opened, then no new tab is created and the tab with no-asset is loaded with that subgraph")]
+        public IEnumerator Open_Subgraph_In_Other_Tab_When_No_Asset_Is_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Open no asset window
+            var noAssetWindow = VFXViewWindow.GetWindow((VisualEffectResource)null, true);
+
+            // Get the subgraph block model and enter inside, it should open in the no asset tab
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, true);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+        }
+
+        [Ignore("Open Subgraph in new tab feature has been removed")]
+        [UnityTest]
+        [Description("When a subgraph is opened in another tab but that subgraph is already opened, then no new tab is created and the tab with that subgraph is focused")]
+        public IEnumerator Open_Subgraph_In_Other_Tab_When_Its_Already_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            // Open created subgraph
+            AssetDatabase.ImportAsset(subgraphFileName);
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphFileName);
+            VFXViewWindow.GetWindow(vfx.GetOrCreateResource(), true);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, true);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph is entered in-place but that subgraph is already opened, then current tab is left unchanged and the tab with that subgraph is focused")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_When_Its_Already_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var graphTitle = window.titleContent.text;
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            // Open created subgraph
+            AssetDatabase.ImportAsset(subgraphFileName);
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphFileName);
+            var subgraphWindow = VFXViewWindow.GetWindow(vfx.GetOrCreateResource(), true);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(graphTitle, window.titleContent.text);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), subgraphWindow.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph is entered in-place no other tab should be created")]
+        public IEnumerator Open_Subgraph_In_Same_Tab()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph is entered in-place a back button is available and allow to reload original graph in that same tab")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var originalTitle = window.titleContent.text;
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+            Assert.AreEqual(true, window.CanPopResource());
+
+            // Go back to original graph
+            window.PopResource();
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(originalTitle, window.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("If we go back to original graph but that graph is already opened, then the current tab is left unchanged and the focus is given to the opened graph window")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var originalTitle = window.titleContent.text;
+            var originalResource = window.displayedResource;
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+
+            // Open the original resource
+            var originalWindow = VFXViewWindow.GetWindow(originalResource, true);
+            originalWindow.LoadResource(originalResource);
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+
+            // Go back to original graph
+            window.PopResource();
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(originalTitle, originalWindow.titleContent.text);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph has been entered, and the original graph has been deleted, then the current tab cannot go back anymore")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Deleted()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var originalGraphPath = AssetDatabase.GetAssetPath(window.displayedResource);
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+
+            // Delete the original resource
+            AssetDatabase.DeleteAsset(originalGraphPath);
+
+            // Go back to original graph
+            yield return null;
+
+            Assert.AreEqual(false, window.CanPopResource());
+        }
+
+        private void EnterSubgraphByReflection(VFXView vfxView, VFXBlock model, bool newTab)
+        {
+            var enterSubgraphMethod = vfxView.GetType().GetMethod("EnterSubgraph", BindingFlags.Instance|BindingFlags.NonPublic);
+            Assert.NotNull(enterSubgraphMethod, "Trying to access `EnterSubgraph` method by reflection, but failed");
+            enterSubgraphMethod.Invoke(vfxView, new object[] { model, newTab });
+        }
+
+        private VFXViewWindow CreateGraphWithSubgraph()
+        {
+            //Create a new vfx based on the usual template
+            System.IO.Directory.CreateDirectory(TempDirectoryName);
+            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var fileName = TempDirectoryName + $"/{GUID.Generate()}.vfx";
+            System.IO.File.WriteAllText(fileName, templateString);
+            AssetDatabase.ImportAsset(fileName);
+
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fileName);
+            VFXViewWindow window = VFXViewWindow.GetWindow(vfx, true);
+            window.LoadResource(vfx.GetOrCreateResource());
+
+            return window;
+        }
+
+        private IEnumerable<VFXBlockController> GetBlocks(VFXViewWindow window, string namePattern)
+        {
+            return window.graphView.Query<VFXContextUI>()
+                .ToList()
+                .Single(x => x.controller.model is VFXBasicInitialize)
+                .controller.allChildren
+                .OfType<VFXBlockController>()
+                .Where(x => x.model.name.Contains(namePattern));
+        }
+
+        private IEnumerable<VFXBlockController> GetSubgraphBlocks(VFXViewWindow window)
+        {
+            return window.graphView.Query<VFXContextUI>()
+                .ToList()
+                .Single(x => x.controller.model is VFXBasicInitialize)
+                .controller.allChildren
+                .OfType<VFXBlockController>()
+                .Where(x => x.model is VFXSubgraphBlock);
         }
 
         [UnityTest]

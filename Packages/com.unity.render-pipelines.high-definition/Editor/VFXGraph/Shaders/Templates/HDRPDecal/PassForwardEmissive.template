@@ -47,7 +47,8 @@ ${VFXIncludeRP("VFXDecal.template")}
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
 #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+    uint instanceActiveIndex = i.instanceActiveIndex;
+    ${VFXLoadGraphValues}
 #endif
 
 		DecalSurfaceData surfaceData;

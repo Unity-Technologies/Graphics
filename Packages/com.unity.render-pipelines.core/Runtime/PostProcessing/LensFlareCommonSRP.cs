@@ -7,7 +7,30 @@ namespace UnityEngine.Rendering
     {
         private static LensFlareCommonSRP m_Instance = null;
         private static readonly object m_Padlock = new object();
-        private static System.Collections.Generic.List<LensFlareComponentSRP> m_Data = new System.Collections.Generic.List<LensFlareComponentSRP>();
+        /// <summary>
+        /// Class describing internal information stored to describe a shown LensFlare
+        /// </summary>
+        internal class LensFlareCompInfo
+        {
+            /// <summary>
+            /// Index used to compute Occlusion in a fixed order
+            /// </summary>
+            internal int index;
+
+            /// <summary>
+            /// Component used
+            /// </summary>
+            internal LensFlareComponentSRP comp;
+
+            internal LensFlareCompInfo(int idx, LensFlareComponentSRP cmp)
+            {
+                index = idx;
+                comp = cmp;
+            }
+        }
+
+        private static System.Collections.Generic.List<LensFlareCompInfo> m_Data = new System.Collections.Generic.List<LensFlareCompInfo>();
+        private static System.Collections.Generic.List<int> m_AvailableIndicies = new System.Collections.Generic.List<int>();
 
         /// <summary>
         /// Max lens-flares-with-occlusion supported
@@ -87,16 +110,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private System.Collections.Generic.List<LensFlareComponentSRP> Data { get { return LensFlareCommonSRP.m_Data; } }
-
-        /// <summary>
-        /// Return the pool of Lens Flare added
-        /// </summary>
-        /// <returns>The Lens Flare Pool</returns>
-        public System.Collections.Generic.List<LensFlareComponentSRP> GetData()
-        {
-            return Data;
-        }
+        private System.Collections.Generic.List<LensFlareCompInfo> Data { get { return LensFlareCommonSRP.m_Data; } }
 
         /// <summary>
         /// Check if we have at least one Lens Flare added on the pool
@@ -107,6 +121,18 @@ namespace UnityEngine.Rendering
             return Data.Count == 0;
         }
 
+        int GetNextAvailableIndex()
+        {
+            if (m_AvailableIndicies.Count == 0)
+                return m_Data.Count;
+            else
+            {
+                int nextIndex = m_AvailableIndicies[m_AvailableIndicies.Count - 1];
+                m_AvailableIndicies.RemoveAt(m_AvailableIndicies.Count - 1);
+                return nextIndex;
+            }
+        }
+
         /// <summary>
         /// Add a new lens flare component on the pool.
         /// </summary>
@@ -115,11 +141,31 @@ namespace UnityEngine.Rendering
         {
             Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
 
-            if (!m_Data.Contains(newData))
+            if (!m_Data.Exists(x => x.comp == newData))
             {
-                m_Data.Add(newData);
+                m_Data.Add(new LensFlareCompInfo(GetNextAvailableIndex(), newData));
             }
         }
+
+        /// <summary>
+        /// Remove a lens flare data which exist in the pool.
+        /// </summary>
+        /// <param name="data">The data which exist in the pool</param>
+        public void RemoveData(LensFlareComponentSRP data)
+        {
+            Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
+
+            LensFlareCompInfo info = m_Data.Find(x => x.comp == data);
+            if (info != null)
+            {
+                int newIndex = info.index;
+                m_Data.Remove(info);
+                m_AvailableIndicies.Add(newIndex);
+                if (m_Data.Count == 0)
+                    m_AvailableIndicies.Clear();
+            }
+        }
+
 
         /// <summary>
         /// Attenuation by Light Shape for Point Light
@@ -440,12 +486,12 @@ namespace UnityEngine.Rendering
 
             int taaValue = taaEnabled ? 1 : 0;
 
-            int occlusionIndex = 0;
-            foreach (LensFlareComponentSRP comp in lensFlares.GetData())
+            foreach (LensFlareCompInfo info in m_Data)
             {
-                if (comp == null)
+                if (info == null || info.comp == null)
                     continue;
 
+                LensFlareComponentSRP comp = info.comp;
                 LensFlareDataSRP data = comp.lensFlareData;
 
                 if (!comp.enabled ||
@@ -454,9 +500,9 @@ namespace UnityEngine.Rendering
                     data == null ||
                     data.elements == null ||
                     data.elements.Length == 0 ||
+                    comp.intensity <= 0.0f ||
                     !comp.useOcclusion ||
-                    (comp.useOcclusion && comp.sampleCount == 0) ||
-                    comp.intensity <= 0.0f)
+                    (comp.useOcclusion && comp.sampleCount == 0))
                     continue;
 
                 Light light = comp.GetComponent<Light>();
@@ -493,6 +539,12 @@ namespace UnityEngine.Rendering
                 }
 
                 Vector3 diffToObject = positionWS - cameraPositionWS;
+                // Check if the light is forward, can be an issue with,
+                // the math associated to Panini projection
+                if (Vector3.Dot(cam.transform.forward, diffToObject) < 0.0f)
+                {
+                    continue;
+                }
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
                 float coefScaleSample = distToObject / comp.maxAttenuationScale;
@@ -538,8 +590,6 @@ namespace UnityEngine.Rendering
                 if (compIntensity <= 0.0f)
                     continue;
 
-                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4(((float)(occlusionIndex)) * dx + halfx, halfy, 0, frameIdx + 1));
-
                 float globalCos0 = Mathf.Cos(0.0f);
                 float globalSin0 = Mathf.Sin(0.0f);
 
@@ -555,16 +605,16 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData0, flareData0);
                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
 
-                cmd.SetViewport(new Rect() { x = occlusionIndex, y = (frameIdx + mergeNeeded) * taaValue, width = 1, height = 1 });
+                Rect rect = new Rect() { x = info.index, y = (frameIdx + mergeNeeded) * taaValue, width = 1, height = 1 };
+                cmd.SetViewport(rect);
 
                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 4);
-                ++occlusionIndex;
             }
 
             // Clear the remaining buffer
             {
                 cmd.SetRenderTarget(occlusionRT);
-                cmd.SetViewport(new Rect() { x = occlusionIndex, y = 0, width = (maxLensFlareWithOcclusion - occlusionIndex), height = (maxLensFlareWithOcclusionTemporalSample + mergeNeeded) });
+                cmd.SetViewport(new Rect() { x = m_Data.Count, y = 0, width = (maxLensFlareWithOcclusion - m_Data.Count), height = (maxLensFlareWithOcclusionTemporalSample + mergeNeeded) });
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
@@ -599,6 +649,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, LensFlareCommonSRP lensFlares, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
@@ -609,7 +660,7 @@ namespace UnityEngine.Rendering
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareOcclusionRemapTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
-            bool debugView)
+            bool taaEnabled, bool debugView)
         {
             Vector2 vScreenRatio;
 
@@ -643,12 +694,12 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            int occlusionIndex = 0;
-            foreach (LensFlareComponentSRP comp in lensFlares.GetData())
+            foreach (LensFlareCompInfo info in m_Data)
             {
-                if (comp == null)
+                if (info == null || info.comp == null)
                     continue;
 
+                LensFlareComponentSRP comp = info.comp;
                 LensFlareDataSRP data = comp.lensFlareData;
 
                 if (!comp.enabled ||
@@ -735,20 +786,26 @@ namespace UnityEngine.Rendering
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
-                if (comp.useOcclusion)
+                if (comp.useOcclusion && taaEnabled)
                 {
                     cmd.EnableShaderKeyword("FLARE_OCCLUSION");
+                    cmd.DisableShaderKeyword("FLARE_MEASURE_OCCLUSION");
+                }
+                else if (comp.useOcclusion && !taaEnabled)
+                {
+                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                    cmd.EnableShaderKeyword("FLARE_MEASURE_OCCLUSION");
                 }
                 else
                 {
                     cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                    cmd.DisableShaderKeyword("FLARE_MEASURE_OCCLUSION");
                 }
 
-                if (occlusionRT != null)
+                if (taaEnabled && occlusionRT != null)
                     cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
 
-                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex, 0.0f, 0.0f, 0.0f));
-
+                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)info.index, 0.0f, 0.0f, 0.0f));
                 cmd.SetGlobalTexture(_FlareOcclusionRemapTex, comp.occlusionRemapCurve.GetTexture());
 
                 foreach (LensFlareDataElementSRP element in data.elements)
@@ -1035,25 +1092,9 @@ namespace UnityEngine.Rendering
                         }
                     }
                 }
-
-                if (comp.useOcclusion && comp.sampleCount > 0)
-                    ++occlusionIndex;
             }
         }
 
-        /// <summary>
-        /// Remove a lens flare data which exist in the pool.
-        /// </summary>
-        /// <param name="data">The data which exist in the pool</param>
-        public void RemoveData(LensFlareComponentSRP data)
-        {
-            Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
-
-            if (m_Data.Contains(data))
-            {
-                m_Data.Remove(data);
-            }
-        }
 
         #region Panini Projection
         static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance)

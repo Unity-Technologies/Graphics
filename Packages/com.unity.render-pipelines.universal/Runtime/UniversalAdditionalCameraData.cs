@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -77,7 +78,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
-        //TemporalAntialiasing
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        /// <summary>
+        /// Use this to have a temporal anti-aliasing pass rendered when resolving camera to screen.
+        /// </summary>
+        [InspectorName("Temporal Anti-aliasing (TAA)")]
+        TemporalAntiAliasing,
+#endif
     }
 
     /// <summary>
@@ -340,6 +348,14 @@ namespace UnityEngine.Rendering.Universal
         bool m_RequiresColorTexture = false;
 
         [HideInInspector] [SerializeField] float m_Version = 2;
+
+        // These persist over multiple frames
+        [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
+        [NonSerialized] TaaPersistentData m_TaaPersistentData = new TaaPersistentData();
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        [NonSerialized] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
+#endif
 
         /// <summary>
         /// The serialized version of the class. Used for upgrading.
@@ -615,6 +631,34 @@ namespace UnityEngine.Rendering.Universal
             get => m_AntialiasingQuality;
             set => m_AntialiasingQuality = value;
         }
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        internal ref TemporalAA.Settings taaSettings
+        {
+            get { return ref m_TaaSettings; }
+        }
+#endif
+
+        /// <summary>
+        /// Temporal Anti-aliasing buffers and data that persists over a frame.
+        /// </summary>
+        internal TaaPersistentData taaPersistentData => m_TaaPersistentData;
+
+        /// <summary>
+        /// Motion data that persists over a frame.
+        /// </summary>
+        internal MotionVectorsPersistentData motionVectorsPersistentData => m_MotionVectorsPersistentData;
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        /// <summary>
+        /// Reset post-process history.
+        /// </summary>
+        public bool resetHistory
+        {
+            get => m_TaaSettings.resetHistoryFrames != 0;
+            set => m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
+        }
+#endif
 
         /// <summary>
         /// Returns true if this camera should automatically replace NaN/Inf in shaders by a black pixel to avoid breaking some effects.

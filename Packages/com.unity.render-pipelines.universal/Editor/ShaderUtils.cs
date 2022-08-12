@@ -68,6 +68,26 @@ namespace Unity.Rendering.Universal
             ModifiedMaterial
         }
 
+        //Helper used by VFX, allow retrieval of ShaderID on another object than material.shader
+        //In case of ShaderGraph integration, the material.shader is actually pointing to VisualEffectAsset
+        internal static void UpdateMaterial(Material material, MaterialUpdateType updateType, UnityEngine.Object assetWithURPMetaData)
+        {
+            var currentShaderId = ShaderUtils.ShaderID.Unknown;
+            if (assetWithURPMetaData != null)
+            {
+                var path = AssetDatabase.GetAssetPath(assetWithURPMetaData);
+                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                {
+                    if (asset is UniversalMetadata metadataAsset)
+                    {
+                        currentShaderId = metadataAsset.shaderID;
+                        break;
+                    }
+                }
+            }
+            UpdateMaterial(material, updateType, currentShaderId);
+        }
+
         // this is used to update a material's keywords, applying any shader-associated logic to update dependent properties and keywords
         // this is also invoked when a material is created, modified, or the material's shader is modified or reassigned
         internal static void UpdateMaterial(Material material, MaterialUpdateType updateType, ShaderID shaderID = ShaderID.Unknown)

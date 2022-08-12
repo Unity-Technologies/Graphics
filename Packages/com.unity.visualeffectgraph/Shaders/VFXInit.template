@@ -61,17 +61,19 @@ ${VFXGeneratedBlockFunction}
 #pragma warning(push)
 #pragma warning(disable : 4000)
 #if HAS_STRIPS
-bool GetParticleIndex(inout uint particleIndex, uint stripIndex)
+bool GetParticleIndex(inout uint particleIndex, uint stripIndex, uint instanceIndex, uint stripCountPerInstance )
 {
 	uint relativeIndex;
-	InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, stripIndex), 1, relativeIndex);
+    uint bufferIndex = (instanceIndex * stripCountPerInstance) + stripIndex;
+
+	InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex), 1, relativeIndex);
 	if (relativeIndex >= PARTICLE_PER_STRIP_COUNT) // strip is full
 	{
-		InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, stripIndex), -1); // Remove previous increment
+		InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex), -1); // Remove previous increment
 		return false;
 	}
 
-	particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
+	particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
     return true;
 }
 #endif
@@ -87,7 +89,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
     uint index = id;
 
-    ${VFXInitInstancingCompute}
+    ${VFXInitInstancing}
 
     InitParams initParams = batchedInitParams[instanceActiveIndex];
 	ContextData contextData = instancingContextData[instanceActiveIndex];
@@ -155,10 +157,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 		stripIndex = min(stripIndex, STRIP_COUNT);
 
-        if (!GetParticleIndex(particleIndex, stripIndex))
+        if (!GetParticleIndex(particleIndex, stripIndex, instanceIndex, STRIP_COUNT))
             return;
 
-        const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
+        const StripData stripData = GetStripDataFromStripIndex(stripIndex, instanceIndex);
 		InitStripAttributesWithSpawn(maxThreadId, particleIndex, attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
 #endif

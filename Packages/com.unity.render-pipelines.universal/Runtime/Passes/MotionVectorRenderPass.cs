@@ -3,14 +3,16 @@ using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
-namespace UnityEngine.Rendering.Universal.Internal
+namespace UnityEngine.Rendering.Universal
 {
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
         #region Fields
-        const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
+        const string kPreviousViewProjectionNoJitter = "_PrevViewProjMatrix";
+        const string kViewProjectionNoJitter = "_NonJitteredViewProjMatrix";
 #if ENABLE_VR && ENABLE_XR_MODULE
-        const string kPreviousViewProjectionMatrixStero = "_PrevViewProjMStereo";
+        const string kPreviousViewProjectionNoJitterStereo = "_PrevViewProjMatrixStereo";
+        const string kViewProjectionNoJitterStereo = "_NonJitteredViewProjMatrixStereo";
 #endif
         internal static readonly GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
@@ -21,28 +23,26 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
 
-        PreviousFrameData m_MotionData;
-        ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
         private PassData m_PassData;
         #endregion
 
         #region Constructors
         internal MotionVectorRenderPass(Material cameraMaterial, Material objectMaterial)
         {
-            renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
             m_PassData = new PassData();
-            base.profilingSampler = new ProfilingSampler("Motion Vector Pass");
+            base.profilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
 
+            ConfigureInput(ScriptableRenderPassInput.Depth);
         }
 
         #endregion
 
         #region State
-        internal void Setup(RTHandle color, RTHandle depth, PreviousFrameData frameData)
+        internal void Setup(RTHandle color, RTHandle depth)
         {
-            m_MotionData = frameData;
             m_Color = color;
             m_Depth = depth;
         }
@@ -61,13 +61,20 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var cameraMaterial = passData.cameraMaterial;
             var objectMaterial = passData.objectMaterial;
-            var motionData = passData.motionData;
 
             if (cameraMaterial == null || objectMaterial == null)
                 return;
 
             // Get data
-            var camera = renderingData.cameraData.camera;
+            ref var cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            MotionVectorsPersistentData motionData = null;
+
+            if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                motionData = additionalCameraData.motionVectorsPersistentData;
+
+            if (motionData == null)
+                return;
 
             // Never draw in Preview
             if (camera.cameraType == CameraType.Preview)
@@ -77,19 +84,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionVectors)))
             {
+                int passID = motionData.GetXRMultiPassId(ref cameraData);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                var cameraData = renderingData.cameraData;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {
-                    cameraMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, motionData.previousViewProjectionMatrixStereo);
-                    objectMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, motionData.previousViewProjectionMatrixStereo);
+                    cmd.SetGlobalMatrixArray(kPreviousViewProjectionNoJitterStereo, motionData.previousViewProjectionStereo);
+                    cmd.SetGlobalMatrixArray(kViewProjectionNoJitterStereo, motionData.viewProjectionStereo);
                 }
                 else
 #endif
                 {
-                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, motionData.previousViewProjectionMatrix);
+                    // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
+                    cmd.SetGlobalMatrix(kPreviousViewProjectionNoJitter, motionData.previousViewProjectionStereo[passID]);
+                    cmd.SetGlobalMatrix(kViewProjectionNoJitter, motionData.viewProjectionStereo[passID]);
                 }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
@@ -106,7 +116,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_PassData.cameraMaterial = m_CameraMaterial;
             m_PassData.objectMaterial = m_ObjectMaterial;
-            m_PassData.motionData = m_MotionData;
 
             ExecutePass(context, m_PassData, ref renderingData);
         }
@@ -158,10 +167,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal RenderingData renderingData;
             internal Material cameraMaterial;
             internal Material objectMaterial;
-            internal PreviousFrameData motionData;
         }
 
-        internal void Render(RenderGraph renderGraph, in TextureHandle motionVectorColor, in TextureHandle motionVectorDepth, PreviousFrameData motionData, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, in TextureHandle motionVectorColor, in TextureHandle motionVectorDepth, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Motion Vector Pass", out var passData, base.profilingSampler))
             {
@@ -172,7 +180,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.renderingData = renderingData;
                 passData.cameraMaterial = m_CameraMaterial;
                 passData.objectMaterial = m_ObjectMaterial;
-                passData.motionData = motionData;
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {

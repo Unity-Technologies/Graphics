@@ -1,12 +1,12 @@
 # Setting up normal map and mask Textures
 
-2D Lights can interact with __normal map__ and __mask__ Textures linked to Sprites to create advanced lighting effects, such as [normal mapping](https://en.wikipedia.org/wiki/Normal_mapping). Assign these additional Textures to Sprites by using the [Sprite Editor](https://docs.unity3d.com/Manual/SpriteEditor.html)’s [Secondary Textures](https://docs.unity3d.com/Manual/SpriteEditor-SecondaryTextures.html) module. First select a Sprite, and open the [Sprite Editor](https://docs.unity3d.com/Manual/SpriteEditor.html) from its Inspector window. Then select the __Secondary Textures__ module from the drop-down menu at the top left of the editor window.
+2D Lights can interact with **normal map** and **mask** Textures linked to Sprites to create advanced lighting effects, such as [normal mapping](https://en.wikipedia.org/wiki/Normal_mapping). Assign these additional Textures to Sprites by using the [Sprite Editor](https://docs.unity3d.com/Manual/SpriteEditor.html)’s [Secondary Textures](https://docs.unity3d.com/Manual/SpriteEditor-SecondaryTextures.html) module. First select a Sprite, and open the [Sprite Editor](https://docs.unity3d.com/Manual/SpriteEditor.html) from its Inspector window. Then select the **Secondary Textures** module from the drop-down menu at the top left of the editor window.
 
 ![](Images/2D/ST_ModuleSelect.png)
 
 ## Adding a Secondary Texture
 
-In the Secondary Textures editor, select a Sprite to add Secondary Textures to. With a Sprite selected, the __Secondary Textures__ panel appears at the bottom right of the editor window. The panel displays the list of Secondary Textures currently assigned to the selected Sprite. To add a new Secondary Texture to the Sprite, select + at the bottom right of the list.
+In the Secondary Textures editor, select a Sprite to add Secondary Textures to. With a Sprite selected, the **Secondary Textures** panel appears at the bottom right of the editor window. The panel displays the list of Secondary Textures currently assigned to the selected Sprite. To add a new Secondary Texture to the Sprite, select + at the bottom right of the list.
 
 ![](Images/2D/ST_ListField.png)
 
@@ -16,7 +16,7 @@ The 2D Lights package suggests the names ‘MaskTex’ and ‘NormalMap’. Sele
 
 ![](Images/2D/ST_Names.png)
 
-To select the Texture Asset for this Secondary Texture entry, drag the Texture Asset directly onto the Texture field, or open the __Object Picker__ window by selecting the circle to the right of the Texture box.
+To select the Texture Asset for this Secondary Texture entry, drag the Texture Asset directly onto the Texture field, or open the **Object Picker** window by selecting the circle to the right of the Texture box.
 
 ![](Images/2D/ST_ObjectDrag.png)
 
@@ -24,7 +24,7 @@ Secondary Textures are sampled with the same UV coordinates as the Texture of th
 
 ![](Images/2D/ST_Align.png)
 
-To preview the Secondary Texture in the __Sprite Editor__ window, select an entry in the list. This automatically hides the Sprite’s main Texture. Click outside of the Secondary Textures list to deselect the entry, and the main Sprite Texture becomes visible again.
+To preview the Secondary Texture in the **Sprite Editor** window, select an entry in the list. This automatically hides the Sprite’s main Texture. Click outside of the Secondary Textures list to deselect the entry, and the main Sprite Texture becomes visible again.
 
 ![](Images/2D/ST_Preview.png)
 
@@ -36,6 +36,6 @@ To delete a Secondary Texture, select it from the list and then select - at the 
 
 ## Applying
 
-Select __Apply__ at the top of the editor to save your entries. Invalid entries without a Name or an assigned Texture are automatically removed when changes are applied.
+Select **Apply** at the top of the editor to save your entries. Invalid entries without a Name or an assigned Texture are automatically removed when changes are applied.
 
 ![](Images/2D/ST_Apply.png)

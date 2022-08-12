@@ -16,7 +16,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 
 // Define this to use the Ray Tracing light cluster
-//#define USE_LIGHT_CLUSTER
+#define USE_LIGHT_CLUSTER
 
 #ifdef USE_LIGHT_CLUSTER
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"

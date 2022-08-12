@@ -16,7 +16,7 @@ ${VFXGlobalDeclaration}
 #endif
 
 #if VFX_USE_INSTANCING
-#define VFX_VERTEX_OUTPUT_INSTANCE_INDEX uint instanceIndex : INDEX0;
+#define VFX_VERTEX_OUTPUT_INSTANCE_INDEX nointerpolation uint instanceActiveIndex : INDEX0;
 #else
 #define VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 #endif

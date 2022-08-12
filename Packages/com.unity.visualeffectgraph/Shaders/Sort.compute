@@ -18,8 +18,6 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
 
-#pragma multi_compile __ VFX_SORT_USE_ELEMENT_COUNT_BUFFER
-
 #include "HLSLSupport.cginc"
 
 #define DECREASING_ORDER 1
@@ -53,7 +51,8 @@
 #define SCRATCH_SIZE (HALF_SCRATCH_SIZE << 1)
 
 #define ITERATION_INDEX(id,it) ((it) * BITONIC_THREADS_COUNT + (id))
-#define DST_INDEX(groupId,threadId) (groupId * BITONIC_THREADS_COUNT * ELEMENTS_PER_THREAD + threadId)
+#define INSTANCE_DST_INDEX(groupId,threadId) (groupId.x * BITONIC_THREADS_COUNT * ELEMENTS_PER_THREAD + threadId)
+#define DST_INDEX(groupId,threadId) (INSTANCE_DST_INDEX(groupId,threadId) + groupId.z * instanceOffset)
 
 #if DECREASING_ORDER
 #define REJECTED_VALUE asfloat(0xff7fffff) // -MAX_FLOAT
@@ -76,27 +75,18 @@ RWStructuredBuffer<uint> sortedSequence;
 RWStructuredBuffer<KVP> sortedSequence;
 #endif
 
-ByteAddressBuffer deadElementCount;
-#ifdef VFX_SORT_USE_ELEMENT_COUNT_BUFFER
-#define elementCountBuffer deadElementCount
-#endif
-
 // Layout of the scratch memory is as follows:
 // {Key,Value},{Key,Value}, ...
 groupshared float scratch[SCRATCH_SIZE];
 
 CBUFFER_START(SortConstants)
-uint elementCount;
-uint elementCountOffset;
+uint instanceOffset;
+uint totalInstanceCount;
 CBUFFER_END
 
-uint GetElementCount()
+uint GetElementCount(uint instanceIndex)
 {
-#ifdef VFX_SORT_USE_ELEMENT_COUNT_BUFFER
-    return elementCountBuffer.Load(elementCountOffset);
-#else
-    return elementCount - deadElementCount.Load(elementCountOffset);
-#endif
+    return inputSequence[instanceIndex].value;
 }
 
 #pragma warning(push)
@@ -120,29 +110,35 @@ uint GetLDSIndex(uint index)
     return 2 * index;
 }
 
-void LoadFromMemory(uint ldsIndex, uint memIndex)
+void LoadFromMemory(uint3 groupId, uint ldsIndex)
 {
+    uint instanceDstIndex = INSTANCE_DST_INDEX(groupId, ldsIndex);
+    uint memIndex = DST_INDEX(groupId, ldsIndex);
+
     KVP kvp = { REJECTED_VALUE, 0xFFFFFFFF };
-    if (memIndex < GetElementCount())
-        kvp = inputSequence[memIndex];
+    if (instanceDstIndex < GetElementCount(groupId.z))
+        kvp = inputSequence[totalInstanceCount + memIndex];
 
     uint paddedLdsIndex = GetLDSIndex(ldsIndex);
     scratch[paddedLdsIndex] = kvp.key;
     scratch[paddedLdsIndex + LDS_VALUES_OFFSET] = asfloat(kvp.value);
 }
 
-void StoreToMemory(uint memIndex, uint ldsIndex)
+void StoreToMemory(uint3 groupId, uint ldsIndex)
 {
-    if (memIndex < GetElementCount())
+    uint instanceDstIndex = INSTANCE_DST_INDEX(groupId, ldsIndex);
+    uint memIndex = DST_INDEX(groupId, ldsIndex);
+
+    if (instanceDstIndex < GetElementCount(groupId.z))
     {
         uint paddedLdsIndex = GetLDSIndex(ldsIndex);
         uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
 #if FINAL_PASS
-        sortedSequence[memIndex] = value;
+        sortedSequence[totalInstanceCount + memIndex] = value;
 #else
         float key = scratch[paddedLdsIndex];
         KVP kvp = { key, value };
-        sortedSequence[memIndex] = kvp;
+        sortedSequence[totalInstanceCount + memIndex] = kvp;
 #endif
     }
 }
@@ -152,16 +148,18 @@ void StoreToMemory(uint memIndex, uint ldsIndex)
 void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 {
     // Skip useless groups
-    if (groupId.x > GetElementCount() / ELEMENTS_COUNT)
+    if (groupId.x > GetElementCount(groupId.z) / ELEMENTS_COUNT)
         return;
-
+#if !FINAL_PASS
+    if(groupId.x == 0 && id == 0)
+        sortedSequence[groupId.z] = inputSequence[groupId.z];
+#endif
     // Load data from memory to LDS
     //[unroll]
     for (uint i = 0; i < ELEMENTS_PER_THREAD; ++i)
     {
         uint index = BITONIC_THREADS_COUNT * i + id;
-        uint memIndex = DST_INDEX(groupId.x, index);
-        LoadFromMemory(index, memIndex);
+        LoadFromMemory(groupId,index);
     }
 
     GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
@@ -218,8 +216,7 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
     for (uint j = 0; j < ELEMENTS_PER_THREAD; ++j)
     {
         uint index = BITONIC_THREADS_COUNT * j + id; //(id / 32) * 64 * ITERATIONS_COUNT + (id & 31) + j * 32;//id * ITERATIONS_COUNT * 2 + j;
-        uint memIndex = DST_INDEX(groupId.x, index);
-        StoreToMemory(memIndex, index);
+        StoreToMemory(groupId, index);
     }
 }
 
@@ -227,15 +224,6 @@ CBUFFER_START(MergePassConstants)
 uint subArraySize;
 uint dispatchWidth;
 CBUFFER_END
-
-KVP GetKVPWithCheck(uint index)
-{
-    KVP result = (KVP)0;
-    result.key = REJECTED_VALUE;
-    if (index < GetElementCount()) // TODO Handle elementCount more efficiently
-        result = inputSequence[index];
-    return result;
-}
 
 // Merge pass: take N sorted sub arrays as input and output N/2 sorted arrays twice bigger - execute in O(log(subArraySize))
 #define NB_THREADS_PER_GROUP_MERGE_PASS 64
@@ -245,26 +233,28 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
 {
     uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
 
-    if (id >= GetElementCount())
+    if (id >= GetElementCount(groupId.z))
         return;
+
+    const uint offset = totalInstanceCount + groupId.z * instanceOffset;
 
     const int arraySize = subArraySize << 1;
     const int arrayStart = arraySize * (id / arraySize);
 
     // If the current array considered is less than one half filled (due to element count), we can copy it directly as it is already sorted
-    if (GetElementCount() - (uint)arrayStart <= subArraySize)
+    if (GetElementCount(groupId.z) - (uint)arrayStart <= subArraySize)
     {
 #if FINAL_PASS
-        sortedSequence[id] = inputSequence[id].value;
+        sortedSequence[id + offset] = inputSequence[id + offset].value;
 #else
-        sortedSequence[id] = inputSequence[id];
+        sortedSequence[id + offset] = inputSequence[id + offset];
 #endif
         return;
     }
 
     const int arrayIndex = id - arrayStart;
     const int lastIndex0 = subArraySize - 1;
-    const int lastIndex1 = min(subArraySize - 1, GetElementCount() - (arrayStart + subArraySize + 1));
+    const int lastIndex1 = min(subArraySize - 1, GetElementCount(groupId.z) - (arrayStart + subArraySize + 1));
 
 
     // determine initial frame of the window
@@ -289,14 +279,14 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
         index0 = i0 + arrayStart;
         index1 = i1 + arrayStart + subArraySize;
 
-        kvp0 = inputSequence[index0];
-        kvp1 = inputSequence[index1];
+        kvp0 = inputSequence[index0 + offset];
+        kvp1 = inputSequence[index1 + offset];
 
         if (i0 + i1 == arrayIndex)
         {
-            if (i0 > 0 && CompareKVP(kvp1, inputSequence[max(0, index0 - 1)]))
+            if (i0 > 0 && CompareKVP(kvp1, inputSequence[max(0, index0 - 1) + offset]))
                 window.y = windowIndex - 1; // move window left
-            else if (i1 > 0 && CompareKVP(kvp0, inputSequence[max(0, index1 - 1)]))
+            else if (i1 > 0 && CompareKVP(kvp0, inputSequence[max(0, index1 - 1) + offset]))
                 window.x = windowIndex + (windowIndex == lastIndex0 ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
             else
                 done = true;
@@ -321,11 +311,11 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     bool select0 = CompareKVP(kvp0, kvp1) != reverse;
 
 #if FINAL_PASS
-    sortedSequence[id] = select0 ? kvp0.value : kvp1.value;
+    sortedSequence[id + offset] = select0 ? kvp0.value : kvp1.value;
 #else
     if (select0)
         kvp1 = kvp0;
-    sortedSequence[id] = kvp1;
+    sortedSequence[id + offset] = kvp1;
 #endif
 
 }

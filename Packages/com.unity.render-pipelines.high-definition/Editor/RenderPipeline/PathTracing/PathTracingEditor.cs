@@ -28,6 +28,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_UseAOV;
         SerializedDataParameter m_Temporal;
 
+        // This is used to prevent users from spamming the denoising package install button
+        bool s_DisplayDenoisingButtonInstall = true;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<PathTracing>(serializedObject);
@@ -99,10 +102,18 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                             }
                         }
 #else
-                        CoreEditorUtils.DrawFixMeBox("Path Tracing Denoising is not active in this project. To activate it, install the Unity Denoising package.", MessageType.Info, () =>
+                        if (s_DisplayDenoisingButtonInstall)
                         {
-                            PackageManager.Client.Add("com.unity.rendering.denoising");
-                        });
+                            CoreEditorUtils.DrawFixMeBox("Path Tracing Denoising is not active in this project. To activate it, install the Unity Denoising package.", MessageType.Info, () =>
+                            {
+                                PackageManager.Client.Add("com.unity.rendering.denoising");
+                                s_DisplayDenoisingButtonInstall = false;
+                            });
+                        }
+                        else
+                        {
+                            EditorGUILayout.HelpBox("Installing the denoising package. Please wait...", MessageType.Info, wide: true);
+                        }
 #endif
                     }
 

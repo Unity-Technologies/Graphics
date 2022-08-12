@@ -2,4 +2,4 @@
 title: nodes-single-output
 ---
 
-The node has one output port:
+node has one output port:

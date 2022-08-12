@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
         private PassData m_PassData;
 
-
+        /// <summary>
         /// Sets the write and comparison function for depth.
         /// </summary>
         /// <param name="writeEnabled">Sets whether it should write to depth or not.</param>
@@ -52,6 +52,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             SetDepthState(writeEnabled, function);
         }
 
+        /// <summary>
         /// Sets the write and comparison function for depth.
         /// </summary>
         /// <param name="writeEnabled">Sets whether it should write to depth or not.</param>
@@ -252,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             passData.shaderTagIdList = m_ShaderTagIdList;
         }
 
+        /// <inheritdoc />
         public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;

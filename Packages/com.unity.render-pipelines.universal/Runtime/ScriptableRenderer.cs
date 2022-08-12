@@ -139,23 +139,26 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                XRBuiltinShaderConstants.Update(cameraData.xr, cmd, false);
+                cameraData.PushBuiltinShaderConstantsXR(cmd, false);
                 XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, false);
                 return;
             }
 #endif
 
+            // NOTE: the URP default main view/projection matrices are the CameraData view/projection matrices.
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
-            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix();
+            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix(); // Jittered, non-gpu
 
             // TODO: Investigate why SetViewAndProjectionMatrices is causing y-flip / winding order issue
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
+
+            // Set the default view/projection, note: projectionMatrix will be set as a gpu-projection (gfx api adjusted) for rendering.
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
             if (setInverseMatrices)
             {
-                Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix(isTargetFlipped);
+                Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix(isTargetFlipped); // TODO: invProjection might NOT match the actual projection (invP*P==I) as the target flip logic has diverging paths.
                 Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
@@ -847,6 +850,10 @@ namespace UnityEngine.Rendering.Universal
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(context.cmd, time, deltaTime, smoothDeltaTime);
 
+                    // Update camera motion tracking (prev matrices)
+                    if(data.cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                        additionalCameraData.motionVectorsPersistentData.Update(ref data.cameraData);
+
                     // Setup XR camera properties
                     // XRBuiltinShaderConstants.Update(cameraData.xr, cmd, true);
                 });
@@ -1159,9 +1166,13 @@ namespace UnityEngine.Rendering.Universal
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
 
+                    // Update camera motion tracking (prev matrices)
+                    if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                        additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
+
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(camera, cmd);
+                    VFX.VFXManager.ProcessCameraCommand(camera, cmd, new VFX.VFXCameraXRSettings(), renderingData.cullResults);
 #endif
                 }
 
@@ -1430,6 +1441,15 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
 
+            // Selectively enable foveated rendering
+            if (cameraData.xr.supportsFoveatedRendering)
+            {
+                if (renderPass.renderPassEvent >= RenderPassEvent.BeforeRenderingPrePasses && renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPostProcessing)
+                {
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                }
+            }
+
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -1443,16 +1463,17 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
             }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Inform the late latching system for XR once we're done with a render pass
             if (cameraData.xr.enabled)
             {
+                if (cameraData.xr.supportsFoveatedRendering)
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+
+                // Inform the late latching system for XR once we're done with a render pass
                 XRSystemUniversal.UnmarkShaderProperties(cmd, cameraData.xrUniversal);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
-#endif
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -1596,7 +1617,7 @@ namespace UnityEngine.Rendering.Universal
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
                             bool renderIntoTexture = xrTargetIndex == -1;
-                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            cameraData.PushBuiltinShaderConstantsXR(cmd, renderIntoTexture);
                             XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
@@ -1640,7 +1661,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // on platforms that support Load and Store actions having the clear flag means that the action will be DontCare, which is something we want when the color target is bound the first time
                     // (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget) check below ensures camera UI's clearFlag is respected when targeting built-in backbuffer.
-                    if (SystemInfo.usesLoadStoreActions && passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                    if (SystemInfo.usesLoadStoreActions && new RenderTargetIdentifier(passColorAttachment.nameID, 0, depthSlice: 0) != BuiltinRenderTextureType.CameraTarget)
                         finalClearFlag |= renderPass.clearFlag;
 
                     finalClearColor = cameraData.backgroundColor;
@@ -1717,7 +1738,7 @@ namespace UnityEngine.Rendering.Universal
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             bool renderIntoTexture = passColorAttachment.nameID != cameraData.xr.renderTarget;
-                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            cameraData.PushBuiltinShaderConstantsXR(cmd, renderIntoTexture);
                             XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
@@ -1741,6 +1762,15 @@ namespace UnityEngine.Rendering.Universal
                     cameraData.xrUniversal.canMarkLateLatch = true;
 
                 cameraData.xr.StartSinglePass(cmd);
+
+                if (cameraData.xr.supportsFoveatedRendering)
+                {
+                    cmd.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
+
+                    if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -1753,6 +1783,16 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cameraData.xr.StopSinglePass(cmd);
+
+
+                if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
+                {
+                    if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
+
+                    cmd.ConfigureFoveatedRendering(IntPtr.Zero);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }

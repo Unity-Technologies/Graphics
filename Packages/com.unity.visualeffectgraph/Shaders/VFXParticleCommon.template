@@ -47,6 +47,10 @@ o.VFX_VARYING_DECALLAYER = decalLayerMask;
 #if defined(VFX_VARYING_POSWS)
 o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif
+
+#if VFX_USE_INSTANCING
+o.instanceActiveIndex = instanceActiveIndex;
+#endif
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}
@@ -117,7 +121,7 @@ VFXAttributes attributes = (VFXAttributes)0;
 VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_HAS_INDIRECT_DRAW
-index = indirectBuffer[index];
+index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
@@ -149,7 +153,7 @@ ${VFXBegin:VFXVertexComputeCurrentAndPreviousClipPos}
 
 ${VFXLoadParameter:{currentFrameIndex}}
 uint elementToVFXBaseIndex;
-if (TryGetElementToVFXBaseIndex(index, elementToVFXBaseIndex, currentFrameIndex))
+if (TryGetElementToVFXBaseIndex(index, instanceIndex, elementToVFXBaseIndex, currentFrameIndex))
 {
 float4 cPos = TransformPositionVFXToNonJitteredClip(vPos);
 
@@ -322,30 +326,9 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
 }
 ${VFXEnd}
 
-${VFXBegin:VFXInitInstancingOutput}
-#if VFX_USE_INSTANCING
-    #ifdef UNITY_INSTANCING_ENABLED
-    {
-        uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);
-        unity_InstanceID = instanceCurrentIndex;
-    }
-    #endif
-
-    uint instanceActiveIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceActiveIndex));
-    uint instanceIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceIndex));
-#endif
-${VFXEnd}
-
-${VFXBegin:VFXInitInstancingCompute}
-#if VFX_USE_INSTANCING
-    uint instanceActiveIndex = 0;
-    uint instanceIndex = 0;
-    {
-        uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);
-        instanceActiveIndex = VFXGetInstanceActiveIndex(instanceCurrentIndex);
-        instanceIndex = VFXGetInstanceBatchIndex(instanceActiveIndex);
-    }
-#endif
+${VFXBegin:VFXInitInstancing}
+uint instanceIndex, instanceActiveIndex;
+index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadGraphValues}
@@ -389,4 +372,18 @@ ${VFXBegin:VFXFeedSortingKeys}
 #endif //VFX_[CRITERION]_SORT_KEY
                 output.index = index;
                 output.sortKey *= SORTING_SIGN;
+${VFXEnd}
+
+${VFXBegin:VFXDeclareAppendOutputIndirectBuffer}
+void AppendOutputBuffer(RWStructuredBuffer<IndirectOutputType> outputBuffer, IndirectOutputType output, uint instanceActiveIndex)
+{
+    uint indirectIndex;
+#if VFX_FEATURE_SORT
+    InterlockedAdd(outputBuffer[instanceActiveIndex].index, 1, indirectIndex);
+#else
+    InterlockedAdd(outputBuffer[instanceActiveIndex], 1, indirectIndex);
+#endif
+    indirectIndex += instancingBatchSize + instanceActiveIndex * RAW_CAPACITY;
+    outputBuffer[indirectIndex] = output;
+}
 ${VFXEnd}

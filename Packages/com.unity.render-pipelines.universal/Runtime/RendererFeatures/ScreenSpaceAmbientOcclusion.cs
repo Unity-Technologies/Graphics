@@ -483,6 +483,9 @@ namespace UnityEngine.Rendering.Universal
 
                     GetPassOrder(m_BlurType, m_CurrentSettings.AfterOpaque, out int[] textureIndices, out ShaderPasses[] shaderPasses);
 
+                    if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+
                     // Execute the SSAO
                     RTHandle cameraDepthTargetHandle = m_Renderer.cameraDepthTargetHandle;
                     RenderAndSetBaseMap(ref cmd, ref renderingData, ref m_Renderer, ref m_Material, ref cameraDepthTargetHandle, ref m_SSAOTextures[0], ShaderPasses.AmbientOcclusion);

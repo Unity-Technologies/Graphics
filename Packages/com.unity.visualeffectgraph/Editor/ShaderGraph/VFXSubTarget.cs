@@ -242,7 +242,7 @@ namespace UnityEditor.VFX
             loadCurrentFrameIndexParameterDescriptor = new AdditionalCommandDescriptor("VFXLoadCurrentFrameIndexParameter", VFXCodeGenerator.GenerateLoadParameter("currentFrameIndex", mainParameters, expressionToName).ToString().ToString());
 
             //Set VFX Instancing indices
-            setInstancingIndicesDescriptor = new AdditionalCommandDescriptor("VFXInitInstancingCompute", VFXCodeGenerator.GenerateSetInstancingIndices(context).ToString());
+            setInstancingIndicesDescriptor = new AdditionalCommandDescriptor("VFXInitInstancing", VFXCodeGenerator.GenerateSetInstancingIndices(context).ToString());
 
         }
 

@@ -19,8 +19,6 @@ PR_PostProcessing_trunk:
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_editmode_mono_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_playmode_mono_Linear_trunk
@@ -42,8 +40,6 @@ Extra_PostProcessing_trunk:
       -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on_new_revision
 PostProcessing_trunk:
     name: PostProcessing on trunk
@@ -69,8 +65,6 @@ PR_PostProcessing_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
@@ -92,8 +86,6 @@ Extra_PostProcessing_CUSTOM-REVISION:
       -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 PostProcessing_CUSTOM-REVISION:
     name: PostProcessing on CUSTOM-REVISION

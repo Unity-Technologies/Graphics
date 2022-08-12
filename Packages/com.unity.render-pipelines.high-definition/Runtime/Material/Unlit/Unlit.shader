@@ -618,6 +618,5 @@ Shader "HDRP/Unlit"
         }
     }
 
-    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.UnlitGUI"
 }

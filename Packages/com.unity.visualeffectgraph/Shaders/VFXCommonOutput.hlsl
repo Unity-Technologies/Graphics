@@ -219,10 +219,11 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 }
 #endif
 
-bool TryGetElementToVFXBaseIndex(uint elementIndex, out uint elementToVFXBaseIndex, uint currentFrameIndex)
+bool TryGetElementToVFXBaseIndex(uint elementIndex, uint instanceIndex, out uint elementToVFXBaseIndex, uint currentFrameIndex)
 {
     elementToVFXBaseIndex = ~0u;
 #if defined(VFX_FEATURE_MOTION_VECTORS)
+    elementIndex += RAW_CAPACITY * instanceIndex;
 #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
     uint viewTotal = asuint(cameraXRSettings.x);
     uint viewCount = asuint(cameraXRSettings.y);

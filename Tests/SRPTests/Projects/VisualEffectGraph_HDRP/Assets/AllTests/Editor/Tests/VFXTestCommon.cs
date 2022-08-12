@@ -20,6 +20,19 @@ namespace UnityEditor.VFX.Test
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
         static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
 
+        //Emulate function because VisualEffectUtility.GetSpawnerState has been removed
+        //Prefer usage of GetSpawnSystemInfo for new implementation
+        public static VFXSpawnerState GetSpawnerState(VisualEffect vfx, uint index)
+        {
+            var spawnerList = new List<string>();
+            vfx.GetSystemNames(spawnerList);
+
+            if (index >= spawnerList.Count)
+                throw new IndexOutOfRangeException();
+
+            return vfx.GetSpawnSystemInfo(spawnerList[(int)index]);
+        }
+
         public static VFXGraph CopyTemporaryGraph(string path)
         {
             var guid = System.Guid.NewGuid().ToString();

@@ -1,9 +1,7 @@
 # Material Variants
 
-Many of the materials in a game may be variations on a source&mdash;outfits with a variety of color schemes, damaged and undamaged versions of scenery, shiny and weathered instances of props. To help you manage and maintain these materials, Material Variants address specific shortcomings of copied materials.
+When you create materials in a project, you might want to create variations based on a single material: outfits with different color schemes, damaged and undamaged versions of scenery, or shiny and weathered instances of props.
 
-To learn more about this functionality, see [Material Variants](https://docs.unity3d.com/Manual/materialvariant-landingpage.html).
+You can use Material Variants to manage these variations. For more information on Material Variants in Unity, see [Material Variants](https://docs.unity3d.com/2022.2/Documentation/Manual/materialvariant-landingpage.html) in the Unity User Manual.
 
-To create a Material Variant from a Shader Graph Material, right-click on the Material SubAsset of a Shader Graph and select **Create** > **Material Variant**.
-
-![](images/materialvariant-subasset.png)
+You can create a Material Variant from any Shader Graph material. For more information on how to create a Material Variant, see [Create, modify, and apply Material Variants](https://docs.unity3d.com/2022.2/Documentation/Manual/materialvariant-tasks.html) in the User Manual.

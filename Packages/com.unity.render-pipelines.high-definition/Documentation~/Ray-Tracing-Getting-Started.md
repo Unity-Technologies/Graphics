@@ -231,6 +231,8 @@ As a result, ray tracing can change how some Meshes appear in your scene in the 
 - If your Mesh has a Decal Material assigned, HDRP doesn't add it to the acceleration structure and the Mesh doesn't appear in your scene.
 - If a Mesh has a combination of Materials that are single and double-sided, HDRP flags all Materials you have assigned to this mesh as double-sided.
 
+To include a GameObject in ray tracing effects, adjust the Ray Tracing settings in the GameObject's [Mesh Renderer component](https://docs.unity3d.com/Manual/class-MeshRenderer.html#ray-tracing).
+
 ## Ray tracing light culling
 Ray tracing requires HDRP to cull lights differently to how it culls lights for rasterization. With rasterization, only lights that affect the current frustum matter. Since ray tracing uses off-screen data for effects such as reflection, HDRP needs to consider lights that affect off screen geometry. For this reason, HDRP defines a range around the camera where it gathers light. To control this range, use the [Light Cluster](Ray-Tracing-Light-Cluster.md) Volume override. It's important to set a range that accurately represents the environment scale. A higher range makes HDRP include lights further away, but it also increases the resource intensity of light culling for ray tracing.
 

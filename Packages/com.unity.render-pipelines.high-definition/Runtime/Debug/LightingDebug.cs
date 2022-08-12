@@ -342,6 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool displayFinalImageHistogramAsRGB = false;
         /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
         public bool displayMaskOnly = false;
+        /// <summary>Whether to show the on scene overlay displaying pixels excluded by the exposure computation via histogram.</summary>
+        public bool displayOnSceneOverlay = true;
 
         /// <summary>HDR debug mode.</summary>
         public HDRDebugMode hdrDebugMode = HDRDebugMode.None;
@@ -379,6 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool showReflectionProbe = true;
 
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
+        [Obsolete("The local volumetric fog atlas was removed. This field is unused.")]
         public bool displayLocalVolumetricFogAtlas = false;
         /// <summary>Local Volumetric Fog atlas slice.</summary>
         public uint localVolumetricFogAtlasSlice = 0;

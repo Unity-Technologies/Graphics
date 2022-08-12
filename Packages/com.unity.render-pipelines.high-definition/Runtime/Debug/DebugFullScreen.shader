@@ -37,6 +37,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             int _DebugDepthPyramidMip;
             float _MinMotionVector;
             float4 _MotionVecIntensityParams;
+            float _FogVolumeOverdrawMaxValue;
             CBUFFER_END
 
             #define _MotionVecIntensityScale _MotionVecIntensityParams.x
@@ -418,6 +419,20 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float quadCost = (float)_FullScreenDebugBuffer[quad0_idx];
                     if ((quadCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
+
+                    return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_LOCAL_VOLUMETRIC_FOG_OVERDRAW)
+                {
+                    float4 color = (float4)0;
+
+                    float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
+                    if ((pixelCost > 0.001))
+                    {
+                        color.rgb = GetOverdrawColor(pixelCost, _FogVolumeOverdrawMaxValue);
+                    }
+
+                    DrawOverdrawLegend(input.texcoord / _RTHandleScale.xy, _FogVolumeOverdrawMaxValue, _ScreenSize, color.rgb);
 
                     return color;
                 }

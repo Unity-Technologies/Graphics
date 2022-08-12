@@ -65,6 +65,15 @@ HDRP 14.0 introduces denoising for path-traced frames with a choice of two diffe
 
 ![](Images/Path-Tracing-Denoise.png)
 
+### Volumetric Materials
+
+The Local Volumetric Fog volume was updated to support materials created directly in ShaderGraph. This new feature allows the creation of dynamic fog effects, learn more in the [Volumetric Material](Volumetric-Material.md) documentation page.
+![](Images/Aurora_Fog.png)
+
+### Local Volumetric Fog blending
+
+It's now possible to change the blend mode of the [Local Volumetric Fog](Local-Volumetric-Fog.md) component to create various effects such as removing the fog inside a house. A priority has also been added to control in which order the volumes are blended together.
+
 ## Updated
 
 ### Cloud Layer

@@ -56,6 +56,7 @@ MonoBehaviour:
     volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a, type: 3}
     volumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97, type: 3}
     volumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46, type: 3}
+    volumetricMaterialCS: {fileID: 7200000, guid: 26f18c9cb0bccbf4481f8c84579affb1, type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
@@ -285,6 +286,7 @@ MonoBehaviour:
     defaultCloudMap: {fileID: 2800000, guid: 57a33fc2476a01644865bfde5f06e2f4, type: 3}
   shaderGraphs:
     objectIDPS: {fileID: -6465566751694194690, guid: 89daf81f8e8f6634da726cbca859ca38, type: 3}
+    defaultFogVolumeShader: {fileID: -6465566751694194690, guid: 95060fe3e070428418e64e6bed27b111, type: 3}
   assets:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de, type: 3}

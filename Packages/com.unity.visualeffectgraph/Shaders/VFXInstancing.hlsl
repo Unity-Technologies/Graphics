@@ -1,15 +1,18 @@
 
 // Number of instances in current drawcall/dispatch
-#define instancingCurrentCount instancingConstants.x
+#define instancingCurrentCount asuint(instancingConstants.x)
 
 // Number of instances that are active at the time of the drawcall/dispatch
 // ContextData
 // instancingCurrentCount <= instancingActiveCount
-#define instancingActiveCount  instancingConstants.y
+#define instancingActiveCount  asuint(instancingConstants.y)
 
 // Number of instances that this batch can hold
 // instancingActiveCount <= instancingBatchSize
-#define instancingBatchSize    instancingConstants.z
+#define instancingBatchSize    asuint(instancingConstants.z)
+
+// Current instance offset for rendering
+#define instancingRenderOffset   asuint(instancingConstants.w)
 
 // Data shared for all contexts (init, update, output)
 // Contains one entry for each ACTIVE instance
@@ -35,7 +38,7 @@ StructuredBuffer<uint> instancingIndirect;
 StructuredBuffer<uint> instancingActiveIndirect;
 #endif
 
-#if VFX_INSTANCING_VARIABLE_SIZE
+#if defined(VFX_INSTANCING_VARIABLE_SIZE)
 // Get instance index in current drawcall/dispatch, for variable size instances
 uint VFXGetVariableSizeInstanceIndex(inout uint index)
 {
@@ -43,7 +46,7 @@ uint VFXGetVariableSizeInstanceIndex(inout uint index)
     uint endIndex = instancingCurrentCount;
     return BinarySearchPrefixSum(index, instancingPrefixSum, startIndex, endIndex, index);
 }
-#elif VFX_INSTANCING_FIXED_SIZE
+#elif defined(VFX_INSTANCING_FIXED_SIZE)
 // Get instance index in current drawcall/dispatch, for fixed size instances
 uint VFXGetFixedSizeInstanceIndex(inout uint index)
 {
@@ -57,9 +60,9 @@ uint VFXGetFixedSizeInstanceIndex(inout uint index)
 // Get instance index in current drawcall/dispatch, from particle index
 uint VFXGetInstanceCurrentIndex(inout uint index)
 {
-#if VFX_INSTANCING_VARIABLE_SIZE
+#if defined(VFX_INSTANCING_VARIABLE_SIZE)
     return VFXGetVariableSizeInstanceIndex(index);
-#elif VFX_INSTANCING_FIXED_SIZE
+#elif defined(VFX_INSTANCING_FIXED_SIZE)
     return VFXGetFixedSizeInstanceIndex(index);
 #else
     return 0;
@@ -91,3 +94,39 @@ uint VFXGetInstanceBatchIndex(uint instanceActiveIndex)
 #endif
     return instanceBatchIndex;
 }
+
+uint VFXInitInstancing(uint index, out uint instanceIndex, out uint instanceActiveIndex)
+{
+#if VFX_USE_INSTANCING
+
+#if SHADER_STAGE_COMPUTE // In compute shaders
+
+    uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);
+    instanceActiveIndex = VFXGetInstanceActiveIndex(instanceCurrentIndex);
+    instanceIndex = VFXGetInstanceBatchIndex(instanceActiveIndex);
+
+#else // In VS shaders
+
+#ifdef UNITY_INSTANCING_ENABLED
+    {
+        uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index) + instancingRenderOffset;
+        unity_InstanceID = instanceCurrentIndex;
+    }
+#endif
+
+    instanceActiveIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceActiveIndex));
+    instanceIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceIndex));
+#endif
+
+#else
+    instanceIndex = instanceActiveIndex = 0;
+#endif
+
+    return index;
+}
+#if VFX_HAS_INDIRECT_DRAW
+uint VFXGetIndirectBufferIndex(uint index, uint instanceActiveIndex)
+{
+    return RAW_CAPACITY * instanceActiveIndex + instancingBatchSize + index;
+}
+#endif

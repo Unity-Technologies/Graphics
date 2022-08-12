@@ -180,6 +180,12 @@ namespace UnityEditor.Rendering.HighDefinition
             float sortingPriority = material.HasProperty(kTransparentSortPriority) ? material.GetFloat(kTransparentSortPriority) : 0.0f;
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             bool decalEnable = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+
+            #if UNITY_EDITOR
+            // Since we are gonna override the renderQueue value, we revert it before to avoid keeping an out of date property override
+            // Render queue value should not be accessed between the next two lines
+            HDMaterial.RevertRenderQueueOverride(material);
+            #endif
             material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest, decalEnable);
         }
 
@@ -243,6 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SG_Decal,
             SG_Eye,
             SG_Water,
+            SG_FogVolume,
             Count_All,
             Count_ShaderGraph = Count_All - Count_Standard,
             SG_External = -1, // material packaged outside of HDRP
@@ -515,6 +522,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        static System.Reflection.MethodInfo s_RevertRenderQueue = typeof(Material).GetMethod("RevertPropertyOverride_Serialized",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        internal static void RevertRenderQueueOverride(Material material) => s_RevertRenderQueue.Invoke(material, new object[] { 1 << 4 });
 #endif
 
         // this will work on ALL shadergraph-built shaders, in memory or asset based

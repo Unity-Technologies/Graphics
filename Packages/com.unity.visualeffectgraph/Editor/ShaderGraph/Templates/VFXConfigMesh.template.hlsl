@@ -4,7 +4,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 {
     uint index = VFX_GET_INSTANCE_ID(input);
 
-    $splice(VFXInitInstancingCompute)
+    $splice(VFXInitInstancing)
 
     ContextData contextData = instancingContextData[instanceActiveIndex];
     uint systemSeed = contextData.systemSeed;
@@ -13,11 +13,12 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
-    index = indirectBuffer[index];
+    index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
     #endif
 
     element.index = index;
     element.instanceIndex = instanceIndex;
+    element.instanceActiveIndex = instanceActiveIndex;
 
     // Mesh requires no preliminary configuration.
     return true;

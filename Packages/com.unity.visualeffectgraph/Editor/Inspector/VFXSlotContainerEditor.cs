@@ -145,6 +145,7 @@ class VFXSlotContainerEditor : Editor
         const string k_DisplayName = "Visual Effect Model";
 
         static readonly Dictionary<IGizmoController, VFXView> s_ControllersMap = new();
+        static bool s_HasGizmos;
 
         private IGizmoController selectedController;
 
@@ -157,9 +158,11 @@ class VFXSlotContainerEditor : Editor
 
             viewControllers.Except(controllers).ToList().ForEach(x => s_ControllersMap.Remove(x));
             controllers.Except(viewControllers).ToList().ForEach(x => s_ControllersMap[x] = vfxView);
+
+            s_HasGizmos = s_ControllersMap.Any(x => x.Key.gizmoables.Any());
         }
 
-        public bool visible => s_ControllersMap.Any();
+        public bool visible => s_HasGizmos;
 
         public override void OnGUI()
         {
@@ -168,16 +171,27 @@ class VFXSlotContainerEditor : Editor
                 GUILayout.BeginHorizontal();
                 try
                 {
-                    var currentIndex = Math.Max(0, Array.IndexOf(s_ControllersMap.Keys.ToArray(), selectedController));
-                    var entries = s_ControllersMap.Select(x => $"{x.Value.controller.name}, {(x.Key as VFXParameterController)?.exposedName ?? (x.Key as VFXController<VFXModel>)?.name}").ToArray();
-                    GUI.enabled = true;
-                    int result = EditorGUILayout.Popup(currentIndex, entries);
-                    selectedController = s_ControllersMap.Keys.ElementAt(result);
+                    var gizmosData = s_ControllersMap
+                        .SelectMany(x => x.Key.gizmoables.Select(y => new { View = x.Value, Controller = x.Key, Gizmo = y }))
+                        .ToArray();
 
-                    if (!s_ControllersMap.TryGetValue(selectedController, out var vfxView))
+                    if (gizmosData.Length == 0)
                     {
                         return;
                     }
+
+                    var entries = gizmosData
+                        .Select(x => $"{x.View.controller.name}, {(string.IsNullOrEmpty(x.Gizmo.name) ? ((VFXController<VFXModel>)x.Controller).name : x.Gizmo.name)}")
+                        .ToArray();
+
+                    var currentIndex = selectedController != null && s_ControllersMap.Keys.Contains(selectedController) ? gizmosData.TakeWhile(x => x.Gizmo != selectedController.currentGizmoable).Count() : 0;
+
+                    GUI.enabled = true;
+                    var index = EditorGUILayout.Popup(currentIndex, entries);
+                    var selection = gizmosData[index];
+                    selectedController = selection.Controller;
+                    selectedController.currentGizmoable = selection.Gizmo;
+                    var vfxView = selection.View;
 
                     var component = vfxView.attachedComponent;
                     var gizmoError = selectedController.GetGizmoError(component);
