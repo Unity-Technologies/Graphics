@@ -37,8 +37,8 @@
 #if defined(UNITY_SUPPORT_INSTANCING) && defined(DOTS_INSTANCING_ON)
     #define UNITY_DOTS_INSTANCING_ENABLED
 
-    // On GL, use UBO path, on every other platform use SSBO path
-    #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
+    // On GL & GLES, use UBO path, on every other platform use SSBO path (including Switch, even if it defines SHADER_API_GLCORE)
+    #if (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)) && (!defined(SHADER_API_SWITCH))
         #define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
     #endif
 
