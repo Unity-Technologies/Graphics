@@ -505,8 +505,10 @@ namespace UnityEngine.Rendering.Universal
             // If Camera's PostProcessing is enabled and if there any enabled PostProcessing requires depth texture as shader read resource (Motion Blur/DoF)
             bool cameraHasPostProcessingWithDepth = applyPostProcessing && cameraData.postProcessingRequiresDepthTexture;
 
+            bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
+
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
-            bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !CanCopyDepth(ref cameraData);
+            bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && (!CanCopyDepth(ref cameraData) || forcePrepass);
             requiresDepthPrepass |= cameraData.isSceneViewCamera;
             // requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= cameraData.isPreviewCamera;

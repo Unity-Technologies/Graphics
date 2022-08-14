@@ -16,7 +16,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Depth will be copied after the opaques pass</summary>
         AfterOpaques,
         /// <summary>Depth will be copied after the transparents pass</summary>
-        AfterTransparents
+        AfterTransparents,
+        /// <summary>Depth will be written by a depth prepass</summary>
+        ForcePrepass
     }
 
     /// <summary>
