@@ -270,6 +270,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             PreviewCommands.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, GraphView.Dispatcher, GraphView.GraphViewModel);
 
+            // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.
             shaderGraphModel.GraphHandler.AddBuildCallback(nodeHandler =>
             {
                 var nodeLocalId = nodeHandler.ID.LocalPath;
