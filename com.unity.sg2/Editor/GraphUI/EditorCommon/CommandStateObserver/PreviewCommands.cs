@@ -8,13 +8,13 @@ using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.HeadlessPreviewMana
 namespace UnityEditor.ShaderGraph.GraphUI
 {
 
-    public static class PreviewCommandsRegistrar
+    public static class PreviewCommands
     {
         public static void RegisterCommandHandlers(
             BaseGraphTool graphTool,
             PreviewManager previewManager,
             ShaderGraphModel shaderGraphModel,
-            CommandDispatcher commandDispatcher,
+            Dispatcher commandDispatcher,
             GraphViewModel graphViewModel)
         {
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewExpandedCommand>(

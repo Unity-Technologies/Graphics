@@ -83,7 +83,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Registry m_RegistryInstance;
 
-        MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new();
+        Target m_Target;
+
+        MaterialPropertyBlock m_PreviewMaterialPropertyBlock;
 
         Texture2D m_ErrorTexture;
         Texture2D m_CompilingTexture;
@@ -94,7 +96,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         PreviewData m_MainPreviewData;
 
-        Mesh m_MainPreviewMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
+        Mesh m_MainPreviewMesh;
 
         Quaternion m_MainPreviewRotation = Quaternion.identity;
 
@@ -121,17 +123,40 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return tex;
         }
 
-        public HeadlessPreviewManager()
+        public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
         {
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
             m_SceneResources = new PreviewSceneResources();
-        }
 
-        public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
-        {
+            m_PreviewMaterialPropertyBlock = new();
             AddMainPreviewData(contextNodeName, mainPreviewSize);
             InitializeSRPIfNeeded();
+        }
+
+        public void Cleanup()
+        {
+            if (m_ErrorTexture != null)
+            {
+                Object.DestroyImmediate(m_ErrorTexture);
+                m_ErrorTexture = null;
+            }
+
+            if (m_CompilingTexture != null)
+            {
+                m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
+                m_ErrorTexture = null;
+            }
+
+            if (m_SceneResources != null)
+            {
+                m_SceneResources.Dispose();
+                m_SceneResources = null;
+            }
+
+            m_CachedPreviewData.Clear();
+            m_ShaderMessagesMap.Clear();
+            m_PreviewMaterialPropertyBlock.Clear();
         }
 
         void InitializeSRPIfNeeded()
@@ -179,6 +204,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public void SetActiveRegistry(Registry registryInstance)
         {
             m_RegistryInstance = registryInstance;
+        }
+
+        internal void SetActiveTarget(Target target)
+        {
+            m_Target = target;
         }
 
         /// <summary>
@@ -577,6 +607,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             m_OutputContextNodeName = contextNodeName;
 
+            m_MainPreviewMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
+
             m_MainPreviewData = new PreviewData()
             {
                 nodeName = contextNodeName,
@@ -604,7 +636,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
-            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures);
+            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures, m_Target);
             var throwAway = new List<(string, Texture)>(); // gross.
             m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
             m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance, ref throwAway);
@@ -615,7 +647,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Shader GetMainPreviewShaderObject()
         {
             var contextNodeReader = m_GraphHandle.GetNode(m_OutputContextNodeName);
-            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures);
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures, m_Target);
             m_MainPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }
@@ -703,12 +735,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             // TODO: (Sai) Support for rendering 3D node previews
             // Node previews
+
             if (previewToUpdate != m_MainPreviewData)
             {
-                if (previewToUpdate.currentRenderMode == PreviewRenderMode.Preview2D)
-                    RenderPreview(previewToUpdate, m_SceneResources.quad, Matrix4x4.identity);
-                else
-                    RenderPreview(previewToUpdate, m_SceneResources.sphere, Matrix4x4.identity);
+                Mesh renderMesh = previewToUpdate.currentRenderMode == PreviewRenderMode.Preview2D
+                    ? m_SceneResources.quad
+                    : m_SceneResources.sphere;
+
+                    RenderPreview(
+                    previewToUpdate.renderTexture,
+                    previewToUpdate.material,
+                    renderMesh,
+                    Matrix4x4.identity);
+            }
+
+            if (previewToUpdate.renderTexture != null)
+            {
+                previewToUpdate.texture = previewToUpdate.renderTexture;
+                previewToUpdate.isRenderOutOfDate = false;
             }
 
             // Render 3D previews
@@ -735,13 +779,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
-                RenderPreview(m_MainPreviewData, mesh, previewTransform);
+                RenderPreview(m_MainPreviewData.renderTexture, m_MainPreviewData.material, mesh, previewTransform);
+                if (m_MainPreviewData.renderTexture != null)
+                {
+                    m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
+                    m_MainPreviewData.isRenderOutOfDate = false;
+                }
             }
         }
 
         private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
 
-        void RenderPreview(PreviewData renderData, Mesh mesh, Matrix4x4 transform /*, PooledList<PreviewProperty> perMaterialPreviewProperties*/)
+        void RenderPreview(RenderTexture renderTarget, Material renderMaterial, Mesh mesh, Matrix4x4 transform /*, PooledList<PreviewProperty> perMaterialPreviewProperties*/)
         {
             using (RenderPreviewMarker.Auto())
             {
@@ -754,7 +803,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var previousRenderTexture = RenderTexture.active;
 
                 // Temp workaround for alpha previews...
-                var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
+                var temp = RenderTexture.GetTemporary(renderTarget.descriptor);
                 RenderTexture.active = temp;
                 Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
 
@@ -766,7 +815,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 //if (renderData != m_MainPreviewData /*|| !isOnlyVFXTarget*/)
                 //{
                     m_SceneResources.camera.targetTexture = temp;
-                    Graphics.DrawMesh(mesh, transform, renderData.material, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                    Graphics.DrawMesh(mesh, transform, renderMaterial, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
                 //}
 
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
@@ -775,16 +824,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
-                Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
+                Graphics.Blit(temp, renderTarget, m_SceneResources.blitNoAlphaMaterial);
                 RenderTexture.ReleaseTemporary(temp);
 
                 RenderTexture.active = previousRenderTexture;
-                renderData.texture = renderData.renderTexture;
-                //renderData.texture = DrawRTToTexture(renderData.renderTexture);
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
-
-                renderData.isRenderOutOfDate = false;
             }
         }
 
