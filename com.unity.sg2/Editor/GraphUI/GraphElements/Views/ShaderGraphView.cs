@@ -88,8 +88,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, Window as ShaderGraphEditorWindow);
             GraphTool.ObserverManager.RegisterObserver(m_ShaderGraphLoadedObserver);
-
-            GraphTool.ObserverManager.RegisterObserver(new DynamicPortObserver(GraphViewModel.GraphModelState));
         }
     }
 }
