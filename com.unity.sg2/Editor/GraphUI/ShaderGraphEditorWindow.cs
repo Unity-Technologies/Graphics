@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -14,9 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         MainPreviewView m_MainPreviewView;
 
-        protected PreviewManager m_PreviewManager;
-
-        protected GraphViewStateObserver m_GraphViewStateObserver;
+        protected PreviewManager m_PreviewManager = new();
 
         protected BlackboardView m_BlackboardView;
 
@@ -66,10 +66,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.OnEnable();
 
-            // Needed to ensure to that on domain reload we go through and actually reinitialize stuff as this flag remains true when reload happens
-            // TODO (Sai): Figure out a better place for command handler registration and preview manager initialization
-            m_PreviewManager.IsInitialized = false;
-
             // Needed to ensure that graph view takes up full window when overlay canvas is present
             rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
@@ -97,6 +93,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Set this flag in order to let anything that would clear the dirty state know that graph is still dirty
                 shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
+
+            m_PreviewManager.Cleanup();
 
             base.OnDisable();
         }
@@ -203,12 +201,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
-            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
-            m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewModel.GraphModelState);
-            m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewModel.GraphModelState, m_PreviewManager);
-            GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
-
+            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewManager);
             return shaderGraphView;
+        }
+
+        public static T GetStateComponentOfType<T>(IState stateStore) where T : class
+        {
+            return stateStore.AllStateComponents.FirstOrDefault(stateComponent => stateComponent is T) as T;
+        }
+
+        static void RegisterBlackboardOverrideCommandHandlers(BlackboardView blackboardView, IState stateStore, PreviewManager previewManager)
+        {
+            var undoStateComponent = GetStateComponentOfType<UndoStateComponent>(stateStore);
+            var graphModelStateComponent = blackboardView.BlackboardViewModel.GraphModelState;
+            var selectionStateComponent = blackboardView.BlackboardViewModel.SelectionState;
+
+            blackboardView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
+            blackboardView.Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
+                ShaderGraphCommandOverrides.HandleDeleteBlackboardItems,
+                undoStateComponent,
+                graphModelStateComponent,
+                selectionStateComponent,
+                previewManager
+                );
+
+            blackboardView.Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, UpdateConstantValueCommand>(
+                ShaderGraphCommandOverrides.HandleUpdateConstantValue,
+                undoStateComponent,
+                graphModelStateComponent,
+                previewManager);
         }
 
         public override BlackboardView CreateBlackboardView()
@@ -221,6 +242,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var viewSelection = new SGBlackboardViewSelection(m_BlackboardView, m_BlackboardView.BlackboardViewModel);
                 viewSelection.AttachToView();
                 m_BlackboardView.ViewSelection = viewSelection;
+
+                // Register blackboard commands
+                RegisterBlackboardOverrideCommandHandlers(m_BlackboardView, m_GraphTool.State, m_PreviewManager);
             }
             return m_BlackboardView;
         }
@@ -237,20 +261,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return asset is ShaderGraphAsset;
         }
 
+        // Entry point for initializing any systems that depend on the graph model
+        public void HandleGraphLoad(ShaderGraphModel shaderGraphModel)
+        {
+            m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
+
+            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
+
+            PreviewCommands.RegisterCommandHandlers(GraphTool, m_PreviewManager, shaderGraphModel, GraphView.Dispatcher, GraphView.GraphViewModel);
+
+            // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.
+            shaderGraphModel.GraphHandler.AddBuildCallback(nodeHandler =>
+            {
+                var nodeLocalId = nodeHandler.ID.LocalPath;
+                var guid = new SerializableGUID(nodeLocalId);
+
+                if (!shaderGraphModel.TryGetModelFromGuid<GraphDataNodeModel>(guid, out var nodeModel))
+                {
+                    return;
+                }
+
+                nodeModel.DefineNode();
+            });
+        }
+
         protected override void Update()
         {
             if (Asset == null)
                 return;
 
             base.Update();
-
-            if (m_PreviewManager is { IsInitialized: false })
-            {
-                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
-                var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
-                shaderGraphModel.graphModelStateComponent = GraphView.GraphViewModel.GraphModelState;
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_BlackboardView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
-            }
 
             m_PreviewManager?.Update();
         }

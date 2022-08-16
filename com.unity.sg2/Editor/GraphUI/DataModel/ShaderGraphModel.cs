@@ -117,7 +117,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
         internal ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
-        internal List<JsonData<Target>> Targets => targetSettingsBox.Targets;
+        internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
+        internal Target ActiveTarget => Targets.FirstOrDefault();
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
         internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
