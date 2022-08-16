@@ -1,4 +1,3 @@
-
 [Aa]rtifacts/
 [Bb]uild/
 [Ll]ibrary/
@@ -49,3 +48,4 @@ manifest-updater.py
 TestProjects/UniversalGraphicsTest_Lighting/UserSettings/EditorUserSettings.asset
 TestProjects/UniversalGraphicsTest_Lighting/Packages/packages-lock.json
 com.unity.template-hd/InitCodeMarker
+gfx-sdet-tools
