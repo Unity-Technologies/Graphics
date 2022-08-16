@@ -383,6 +383,45 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.AreEqual(2, cCounter1.GetData());
             }
 
+            [Test]
+            public void BuildCallbackTest()
+            {
+
+                int i = 0;
+                string lastCall = "";
+                void Foo(NodeHandler node)
+                {
+                    i++;
+                    lastCall = node.ID.FullPath;
+                }
+
+                graphHandler.AddBuildCallback(Foo);
+
+                var test1 = graphHandler.AddNode<TestNode>("test1");
+                Assert.AreEqual(1, i, "Initial build node in AddNode did not trigger callback");
+                Assert.AreEqual("test1", lastCall);
+                var test2 = graphHandler.AddNode<TestNode>("test2");
+                Assert.AreEqual(2, i, "Second call to AddNode did not trigger build callback");
+                Assert.AreEqual("test2", lastCall, $"AddNode called build callback on wrong node/bad node handler: {lastCall}");
+
+                graphHandler.ReconcretizeNode("test2");
+                Assert.AreEqual(3, i, "Reconcretize node did not trigger build callback");
+                Assert.AreEqual("test2", lastCall);
+
+                graphHandler.AddEdge("test1.Output", "test2.Input");
+                Assert.AreEqual(4, i, "AddEdge did not trigger build callback");
+                Assert.AreEqual("test2", lastCall);
+
+                test1.SetPortField("Input", "Length", Length.Two); 
+                Assert.AreEqual(6, i, "Setting an input on upstream node did not trigger all downstream callbacks");
+                Assert.AreEqual("test2", lastCall);
+
+                graphHandler.RemoveEdge("test1.Output", "test2.Input");
+                Assert.AreEqual(7, i, "Remove edge did not trigger build callback");
+                Assert.AreEqual("test2", lastCall);
+
+            }
+
         }
     }
 }

@@ -7,6 +7,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.TestTools;
 using Assert = UnityEngine.Assertions.Assert;
 
@@ -281,5 +282,92 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return null;
         }
         */
+
+        [UnityTest]
+        public IEnumerator TestDynamicPortsUpdate()
+        {
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
+            var multiply = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Multiply");
+
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
+            var vec2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector 2");
+
+            foreach (var port in multiply.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
+            }
+
+            m_GraphView.Dispatch(new CreateEdgeCommand(multiply.InputsById["A"], vec2.OutputsById["Out"]));
+            yield return null;
+
+            foreach (var port in multiply.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Multiply node connected to Vector 2 should show Vector 2 type");
+            }
+
+            var createdEdge = vec2.GetConnectedEdges().First();
+            m_GraphView.Dispatch(new DeleteEdgeCommand(createdEdge));
+            yield return null;
+
+            foreach (var port in multiply.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "After disconnecting edges, multiply node should default to Float");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator TestDynamicPortUpdatesPropagate()
+        {
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
+            var multiply1 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Multiply");
+            multiply1.Title = "Multiply 1";
+
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
+            var multiply2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Multiply");
+            multiply2.Title = "Multiply 2";
+
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
+            var vec2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector 2");
+
+            m_GraphView.Dispatch(new CreateEdgeCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
+            yield return null;
+
+            foreach (var port in multiply1.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
+            }
+
+            foreach (var port in multiply2.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
+            }
+
+            m_GraphView.Dispatch(new CreateEdgeCommand(multiply1.InputsById["A"], vec2.OutputsById["Out"]));
+            yield return null;
+
+            foreach (var port in multiply1.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Multiply node connected to Vector 2 should show Vector 2 type");
+            }
+
+            foreach (var port in multiply2.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Second multiply node in a series should react to upstream change to Vector 2");
+            }
+
+            var createdEdge = vec2.GetConnectedEdges().First();
+            m_GraphView.Dispatch(new DeleteEdgeCommand(createdEdge));
+            yield return null;
+
+            foreach (var port in multiply1.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "After disconnecting edges, multiply node should default to Float");
+            }
+
+            foreach (var port in multiply2.Ports)
+            {
+                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Second multiply node in a series should react to upstream change to Float");
+            }
+        }
     }
 }
