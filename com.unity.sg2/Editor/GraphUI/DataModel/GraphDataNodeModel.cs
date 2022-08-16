@@ -87,24 +87,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         ShaderGraphRegistry registry =>
             ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
-        // Need to establish a mapping from port readers to port models,
-        // as there currently is no other way to know if they both represent the same underlying port
-        // This is an issue because in GTF we only know about port models, but for the preview system we only care about port readers
-        Dictionary<PortHandler, IPortModel> m_PortMappings = new();
-        public Dictionary<PortHandler, IPortModel> PortMappings => m_PortMappings;
-
-        public bool TryGetPortModel(PortHandler portReader, out IPortModel matchingPortModel)
-        {
-            foreach (var nodePortReader in PortMappings.Keys)
-            {
-                if (nodePortReader.LocalID == portReader.LocalID)
-                    return PortMappings.TryGetValue(nodePortReader, out matchingPortModel);
-            }
-
-            matchingPortModel = null;
-            return false;
-        }
-
         public bool TryGetNodeHandler(out NodeHandler reader)
         {
             try
@@ -159,6 +141,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             get => m_DismissedUpgradeVersion;
             set => m_DismissedUpgradeVersion = value;
         }
+
+        internal ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
         internal int currentVersion => registryKey.Version;
 
@@ -292,7 +276,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
 
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
-            m_PortMappings.Clear();
 
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
@@ -331,18 +314,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
-                IPortModel newPortModel = null;
                 if (isInput)
                 {
-                    newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
+                    var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
                         ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((ShaderGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
-                    newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
+                    this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
 
-                m_PortMappings.Add(portReader, newPortModel);
             }
 
             NodeRequiresTime = ShaderGraphModel.DoesNodeRequireTime(this);
@@ -377,5 +358,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Handle displaying shader error messages
             throw new NotImplementedException();
         }
+
+        public int CurrentVersion { get; set; }
+
+        public string ListenerID => m_GraphDataName;
     }
 }

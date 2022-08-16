@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
 
             // NEW
-            //m_PreviewUpdateDispatcher.Initialize(shaderGraphModel, previewUpdateReceiver);
+            m_PreviewUpdateDispatcher.Initialize(shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
 
             ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 

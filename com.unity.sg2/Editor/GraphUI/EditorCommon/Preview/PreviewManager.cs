@@ -5,6 +5,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -75,10 +76,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)
             {
-                if(nodeModel is GraphDataContextNodeModel contextNode && IsMainContextNode(nodeModel))
-                    OnNodeAdded(contextNode.graphDataName, contextNode.Guid);
-                else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
-                    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+                switch (nodeModel)
+                {
+                    case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
+                        OnNodeAdded(contextNode.graphDataName, contextNode.Guid);
+                        break;
+                    //case GraphDataNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
+                    //    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+                    //    break;
+                }
             }
 
             // Call update once at graph load in order to handle updating all existing nodes
@@ -92,11 +98,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        static bool IsMainContextNode(IGraphElementModel nodeModel)
-        {
-            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
-        }
-
         public void Update()
         {
             var updatedNodes = new List<string>();
@@ -108,7 +109,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 // TODO: Unify main preview and graph data node model update paths using IPreviewUpdateListener
-                if (IsMainContextNode(nodeModel))
+                if (nodeModel is GraphDataContextNodeModel contextNode && contextNode.IsMainContextNode())
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
                         PreviewWidth,

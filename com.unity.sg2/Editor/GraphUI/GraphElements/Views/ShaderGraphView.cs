@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, previewStateComponent, Window as ShaderGraphEditorWindow);
             GraphTool.ObserverManager.RegisterObserver(m_ShaderGraphLoadedObserver);
 
-            m_PreviewStateObserver = new PreviewStateObserver(previewStateComponent);
+            m_PreviewStateObserver = new PreviewStateObserver(previewStateComponent, GraphViewModel.GraphModelState);
             GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
         }
     }

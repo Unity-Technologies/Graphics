@@ -18,7 +18,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphModelStateComponent graphModelStateComponent,
             PreviewStateComponent previewStateComponent,
             ShaderGraphEditorWindow shaderGraphEditorWindow)
-            : base(new []{ toolStateComponent }, new []{ graphModelStateComponent })
+            : base(new []{ toolStateComponent },
+                new IStateComponent []{ graphModelStateComponent, previewStateComponent })
         {
             m_ToolStateComponent = toolStateComponent;
             m_GraphModelStateComponent = graphModelStateComponent;
@@ -39,10 +40,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     shaderGraphModel.graphModelStateComponent = m_GraphModelStateComponent;
 
                     // Initialize preview state component
-                    //using (var updater = m_PreviewStateComponent.UpdateScope)
-                    //{
-                    //    updater.LoadStateForGraph(shaderGraphModel);
-                    //}
+                    using (var updater = m_PreviewStateComponent.UpdateScope)
+                    {
+                        updater.LoadStateForGraph(shaderGraphModel);
+                    }
 
                     m_ShaderGraphEditorWindow.HandleGraphLoad(shaderGraphModel, m_PreviewStateComponent);
                 }

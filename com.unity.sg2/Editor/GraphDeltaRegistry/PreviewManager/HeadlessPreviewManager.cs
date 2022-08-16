@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.Utils;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -384,32 +385,48 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void RequestPreviewUpdate(
             string nodeName,
+            IVisualElementScheduler scheduler, // TODO: Remove
             PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D,
             bool forceRecompile = false)
         {
+            PreviewData nodePreviewData;
+
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
-                var previewData = m_CachedPreviewData[nodeName];
-                previewData.currentRenderMode = newPreviewMode;
+                nodePreviewData = m_CachedPreviewData[nodeName];
+                nodePreviewData.currentRenderMode = newPreviewMode;
 
                 // Still compiling the preview shader
-                if (previewData.isShaderOutOfDate || forceRecompile)
+                if (nodePreviewData.isShaderOutOfDate || forceRecompile)
                 {
-                    UpdateShaderData(previewData);
-                    UpdateRenderData(previewData);
+                    UpdateShaderData(nodePreviewData);
+                    UpdateRenderData(nodePreviewData);
                 }
-                else if (previewData.isRenderOutOfDate)
+                else if (nodePreviewData.isRenderOutOfDate)
                 {
-                    UpdateRenderData(previewData);
+                    UpdateRenderData(nodePreviewData);
                 }
             }
             else
             {
-                var previewData = AddNodePreviewData(nodeName);
-                previewData.currentRenderMode = newPreviewMode;
-                UpdateShaderData(previewData);
-                UpdateRenderData(previewData);
+                nodePreviewData = AddNodePreviewData(nodeName);
+                nodePreviewData.currentRenderMode = newPreviewMode;
+                UpdateShaderData(nodePreviewData);
+                UpdateRenderData(nodePreviewData);
             }
+
+            // Mimic PreviewService writing to the update receiver
+            scheduler.Execute(
+                    () =>
+                        m_PreviewUpdateReceiver.UpdatePreviewData(nodeName, nodePreviewData.texture)).
+                ExecuteLater(10);
+        }
+
+
+        public void CancelPreviewUpdates(
+            string nodeName,
+            IVisualElementScheduler scheduler)
+        {
         }
 
         /// <summary>
