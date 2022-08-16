@@ -45,3 +45,4 @@ node_modules
 
 .yamato/script/path.config
 manifest-updater.py
+gfx-sdet-tools
