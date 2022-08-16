@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public NativeList<ShadowRequestIntermediateUpdateData> dynamicAreaRectangleUpdateInfos;
         public NativeList<ShadowRequestIntermediateUpdateData> dynamicAreaOtherUpdateInfos;
         public NativeList<ShadowRequestIntermediateUpdateData> dynamicDirectionalUpdateInfos;
-        public NativeList<HDShadowResolutionRequest> hdShadowResolutionRequestStorage;
         public NativeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesBuffer; // sized to lightCounts
         public NativeList<ShadowIndicesAndVisibleLightData> splitVisibleLightsAndIndicesBuffer; // sized to lightCounts
         public NativeList<float4> frustumPlanesStorage;
@@ -364,7 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                         HDShadowResolutionRequestHandle resolutionRequestHandle = HDShadowManager.GetResolutionRequestHandle(shadowRequestIndex, shadowManagerRequestCount);
 
-                        ref HDShadowResolutionRequest resolutionRequest = ref hdShadowResolutionRequestStorage.ElementAt(resolutionRequestHandle.index);
+                        ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(resolutionRequestHandle.index);
 
                         shadowRequest.isInCachedAtlas = (cachedDirectionalUpdateType == ShadowMapUpdateType.Cached);;
                         shadowRequest.isMixedCached = cachedDirectionalUpdateType == ShadowMapUpdateType.Mixed;
@@ -412,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDShadowResolutionRequestHandle resolutionRequestHandle = HDShadowManager.GetResolutionRequestHandle(shadowRequestIndex, shadowManagerRequestCount);
                         if (!resolutionRequestHandle.valid)
                             continue;
-                        ref HDShadowResolutionRequest resolutionRequest = ref hdShadowResolutionRequestStorage.ElementAt(resolutionRequestHandle.index);
+                        ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(resolutionRequestHandle.index);
 
                         shadowRequest.isInCachedAtlas = isSampledFromCache;
                         shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
@@ -442,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (cachedAreaRectangleRequestsMarker.Auto())
             {
                 UpdateNonDirectionalCachedRequests(ShadowMapType.AreaLightAtlas, HDLightType.Area,
-                    cachedAreaRectangleVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, cachedAreaRectangleUpdateInfos,
+                    cachedAreaRectangleVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, cachedAreaRectangleUpdateInfos,
                     shadowManager.cachedShadowManager.areaShadowAtlas.shadowRequests, shadowManager.areaShadowAtlas.shadowRequests,
                     shadowManager.areaShadowAtlas.mixedRequestsPendingBlits, shadowManager.cachedShadowManager.areaShadowAtlas.transformCaches, shadowManager.cachedShadowManager.areaShadowAtlas.registeredLightDataPendingPlacement,
                     shadowManager.cachedShadowManager.areaShadowAtlas.recordsPendingPlacement, shadowManager.cachedShadowManager.areaShadowAtlas.shadowsPendingRendering,
@@ -454,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (cachedAreaOtherRequestsMarker.Auto())
             {
                 UpdateNonDirectionalCachedRequests(ShadowMapType.PunctualAtlas, HDLightType.Area,
-                    cachedAreaOtherVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, cachedAreaOtherUpdateInfos,
+                    cachedAreaOtherVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, cachedAreaOtherUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, shadowManager.cachedShadowManager.areaShadowAtlas.transformCaches, shadowManager.cachedShadowManager.punctualShadowAtlas.registeredLightDataPendingPlacement,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.recordsPendingPlacement, shadowManager.cachedShadowManager.punctualShadowAtlas.shadowsPendingRendering,
@@ -466,7 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (cachedPointRequestsMarker.Auto())
             {
                 UpdateNonDirectionalCachedRequests(ShadowMapType.PunctualAtlas, HDLightType.Point,
-                    cachedPointVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, cachedPointUpdateInfos,
+                    cachedPointVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, cachedPointUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, shadowManager.cachedShadowManager.punctualShadowAtlas.transformCaches, shadowManager.cachedShadowManager.punctualShadowAtlas.registeredLightDataPendingPlacement,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.recordsPendingPlacement, shadowManager.cachedShadowManager.punctualShadowAtlas.shadowsPendingRendering,
@@ -478,7 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (cachedSpotRequestsMarker.Auto())
             {
                 UpdateNonDirectionalCachedRequests(ShadowMapType.PunctualAtlas, HDLightType.Spot,
-                    cachedSpotVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, cachedSpotUpdateInfos,
+                    cachedSpotVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, cachedSpotUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, shadowManager.cachedShadowManager.punctualShadowAtlas.transformCaches, shadowManager.cachedShadowManager.punctualShadowAtlas.registeredLightDataPendingPlacement,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.recordsPendingPlacement, shadowManager.cachedShadowManager.punctualShadowAtlas.shadowsPendingRendering,
@@ -490,7 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (dynamicAreaRectangleRequestsMarker.Auto())
             {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.AreaLightAtlas, HDLightType.Area,
-                    dynamicAreaRectangleVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicAreaRectangleUpdateInfos,
+                    dynamicAreaRectangleVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, dynamicAreaRectangleUpdateInfos,
                     shadowManager.cachedShadowManager.areaShadowAtlas.shadowRequests, shadowManager.areaShadowAtlas.shadowRequests,
                     shadowManager.areaShadowAtlas.mixedRequestsPendingBlits, dynamicAreaRectangleCount, shadowManagerRequestCount);
                 UpdateDynamicAreaShadowRequestsAndResolutionRequests(dynamicAreaRectangleUpdateInfos);
@@ -500,7 +499,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (dynamicAreaOtherRequestsMarker.Auto())
             {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.PunctualAtlas, HDLightType.Area,
-                    dynamicAreaOtherVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicAreaOtherUpdateInfos,
+                    dynamicAreaOtherVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, dynamicAreaOtherUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicAreaOtherCount, shadowManagerRequestCount);
                 UpdateDynamicAreaShadowRequestsAndResolutionRequests(dynamicAreaOtherUpdateInfos);
@@ -511,7 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (dynamicPointRequestsMarker.Auto())
             {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.PunctualAtlas, HDLightType.Point,
-                    dynamicPointVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicPointUpdateInfos,
+                    dynamicPointVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, dynamicPointUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicPointCount, shadowManagerRequestCount);
                 UpdateDynamicPointShadowRequestsAndResolutionRequests();
@@ -522,7 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (dynamicSpotRequestsMarker.Auto())
             {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.PunctualAtlas, HDLightType.Spot,
-                    dynamicSpotVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicSpotUpdateInfos,
+                    dynamicSpotVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, shadowManager.shadowResolutionRequestStorage, dynamicSpotUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicSpotCount, shadowManagerRequestCount);
                 UpdateDynamicSpotShadowRequestsAndResolutionRequests();
