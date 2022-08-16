@@ -247,7 +247,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
             break;
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
-        bool isRejected = (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
+        bool isRejected = _EnableDecalLayers && (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
 
         // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -295,5 +295,5 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
 {
-    return GetDecalSurfaceData(posInput, input, GetMeshRenderingDecalLayer(), alpha);
+    return GetDecalSurfaceData(posInput, input, GetMeshRenderingLayerMask(), alpha);
 }

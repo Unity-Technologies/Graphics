@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tests_Diffusion_Profile_Settings_Skin_Post-Scatter
   m_EditorClassIdentifier: 
   profile:
-    name: Skin_Post-Scatter
-    scatteringDistance: {r: 0.75686276, g: 0.32156864, b: 0.2, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.31823632, b: 0.19792746, a: 1}
+    scatteringDistanceMultiplier: 1.0104712
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 1
     transmissionMode: 0
@@ -22,5 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1080963475
-  m_Version: 1
-  profiles: []
+  m_Version: 2

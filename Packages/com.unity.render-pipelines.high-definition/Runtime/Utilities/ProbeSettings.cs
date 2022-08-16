@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 multiplier = 1.0f,
                 weight = 1.0f,
-                lightLayer = LightLayerEnum.LightLayerDefault,
+                lightLayer = RenderingLayerMask.LightLayerDefault,
                 fadeDistance = 10000f,
                 rangeCompressionFactor = 1.0f
             };
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Range(0, 1)]
             public float weight;
             /// <summary>An enum flag to select which Light Layers this Probe interacts with.</summary>
-            public LightLayerEnum lightLayer;
+            public RenderingLayerMask lightLayer;
             /// <summary>The distance at which reflections smoothly fade out before HDRP cut them completely.</summary>
             public float fadeDistance;
             /// <summary>The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read.

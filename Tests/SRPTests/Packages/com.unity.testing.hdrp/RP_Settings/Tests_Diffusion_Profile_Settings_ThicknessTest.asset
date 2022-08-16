@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tests_Diffusion_Profile_Settings_ThicknessTest
   m_EditorClassIdentifier: 
   profile:
-    name: ThicknessTest
-    scatteringDistance: {r: 0.76052475, g: 0.70110214, b: 0.2422812, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.6904959, b: 0.23861599, a: 1}
+    scatteringDistanceMultiplier: 1.0153602
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 1
@@ -22,5 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1079846952
-  m_Version: 1
-  profiles: []
+  m_Version: 2

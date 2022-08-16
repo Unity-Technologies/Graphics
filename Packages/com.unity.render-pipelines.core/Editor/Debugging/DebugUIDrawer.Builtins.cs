@@ -418,7 +418,7 @@ namespace UnityEditor.Rendering
             if (w.isHeader)
                 GUILayout.Space(k_HeaderVerticalMargin);
 
-            bool value = EditorGUI.Foldout(rect, (bool)w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), false, style);
+            bool value = EditorGUI.Foldout(rect, (bool)w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), true, style);
 
             if (w.GetValue() != value)
                 Apply(w, s, value);

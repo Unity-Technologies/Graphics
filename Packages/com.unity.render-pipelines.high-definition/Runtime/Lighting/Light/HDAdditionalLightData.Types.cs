@@ -95,30 +95,104 @@ namespace UnityEngine.Rendering.HighDefinition
         OnDemand
     }
 
-    /// <summary>Light Layers.</summary>
+    /// <summary>
+    /// Rendering Layer Mask.
+    /// </summary>
     [Flags]
-    public enum LightLayerEnum
+    public enum RenderingLayerMask
     {
-        /// <summary>The light will no affect any object.</summary>
-        Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Light Layer 0.</summary>
-        LightLayerDefault = 1 << 0,
+        /// <summary>No rendering layer.</summary>
+        Nothing = 0,
+        /// <summary>Rendering layer 1.</summary>
+        RenderingLayer1 = 1 << 0,
+        /// <summary>Rendering layer 2.</summary>
+        RenderingLayer2 = 1 << 1,
+        /// <summary>Rendering layer 3.</summary>
+        RenderingLayer3 = 1 << 2,
+        /// <summary>Rendering layer 4.</summary>
+        RenderingLayer4 = 1 << 3,
+        /// <summary>Rendering layer 5.</summary>
+        RenderingLayer5 = 1 << 4,
+        /// <summary>Rendering layer 6.</summary>
+        RenderingLayer6 = 1 << 5,
+        /// <summary>Rendering layer 7.</summary>
+        RenderingLayer7 = 1 << 6,
+        /// <summary>Rendering layer 8.</summary>
+        RenderingLayer8 = 1 << 7,
+        /// <summary>Rendering layer 9.</summary>
+        RenderingLayer9 = 1 << 8,
+        /// <summary>Rendering layer 10.</summary>
+        RenderingLayer10 = 1 << 9,
+        /// <summary>Rendering layer 11.</summary>
+        RenderingLayer11 = 1 << 10,
+        /// <summary>Rendering layer 12.</summary>
+        RenderingLayer12 = 1 << 11,
+        /// <summary>Rendering layer 13.</summary>
+        RenderingLayer13 = 1 << 12,
+        /// <summary>Rendering layer 14.</summary>
+        RenderingLayer14 = 1 << 13,
+        /// <summary>Rendering layer 15.</summary>
+        RenderingLayer15 = 1 << 14,
+        /// <summary>Rendering layer 16.</summary>
+        RenderingLayer16 = 1 << 15,
+
+        /// <summary>Default Layer for lights.</summary>
+        [HideInInspector]
+        LightLayerDefault = RenderingLayer1,
+        /// <summary>Default Layer for decals.</summary>
+        [HideInInspector]
+        DecalLayerDefault = RenderingLayer9,
+        /// <summary>Default rendering layers mask.</summary>
+        [HideInInspector]
+        Default = LightLayerDefault | DecalLayerDefault,
+        /// <summary>All layers enabled.</summary>
+        [HideInInspector]
+        Everything = 0xFFFF,
+
+
         /// <summary>Light Layer 1.</summary>
-        LightLayer1 = 1 << 1,
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer2")]
+        LightLayer1 = RenderingLayer2,
         /// <summary>Light Layer 2.</summary>
-        LightLayer2 = 1 << 2,
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer3")]
+        LightLayer2 = RenderingLayer3,
         /// <summary>Light Layer 3.</summary>
-        LightLayer3 = 1 << 3,
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer4")]
+        LightLayer3 = RenderingLayer4,
         /// <summary>Light Layer 4.</summary>
-        LightLayer4 = 1 << 4,
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer5")]
+        LightLayer4 = RenderingLayer5,
         /// <summary>Light Layer 5.</summary>
-        LightLayer5 = 1 << 5,
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer6")]
+        LightLayer5 = RenderingLayer6,
         /// <summary>Light Layer 6.</summary>
-        LightLayer6 = 1 << 6,
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer7")]
+        LightLayer6 = RenderingLayer7,
         /// <summary>Light Layer 7.</summary>
-        LightLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
-        Everything = 0xFF, // Custom name for "Everything" option
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer8")]
+        LightLayer7 = RenderingLayer8,
+
+        /// <summary>Decal Layer 1.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer10")]
+        DecalLayer1 = RenderingLayer10,
+        /// <summary>Decal Layer 2.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer11")]
+        DecalLayer2 = RenderingLayer11,
+        /// <summary>Decal Layer 3.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer12")]
+        DecalLayer3 = RenderingLayer12,
+        /// <summary>Decal Layer 4.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer13")]
+        DecalLayer4 = RenderingLayer13,
+        /// <summary>Decal Layer 5.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer14")]
+        DecalLayer5 = RenderingLayer14,
+        /// <summary>Decal Layer 6.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer15")]
+        DecalLayer6 = RenderingLayer15,
+        /// <summary>Decal Layer 7.</summary>
+        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer16")]
+        DecalLayer7 = RenderingLayer16,
     }
 
     // Note: do not use internally, this enum only exists for the user API to set the light type and shape at once

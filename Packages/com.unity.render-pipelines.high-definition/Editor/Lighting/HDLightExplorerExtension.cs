@@ -789,11 +789,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         int lightlayersMask = (int)lightData.lightlayersMask;
 
                         EditorGUI.BeginChangeCheck();
-                        lightlayersMask = HDEditorUtils.DrawLightLayerMask(r, lightlayersMask);
+                        lightlayersMask = HDEditorUtils.DrawRenderingLayerMask(r, lightlayersMask);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(lightData, "Changed light layer");
-                            lightData.lightlayersMask = (LightLayerEnum)lightlayersMask;
+                            lightData.lightlayersMask = (RenderingLayerMask)lightlayersMask;
                         }
                     }
                 }, (lprop, rprop) =>

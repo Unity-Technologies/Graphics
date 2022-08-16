@@ -229,6 +229,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            Vector2Int cacheDim = GlobalLightLoopSettings.GetReflectionProbeTextureCacheDim((ReflectionProbeTextureCacheResolution)serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize.intValue);
+
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
             // Both support SSR and support transparent depth prepass are required for ssr transparent to be supported.
             using (new EditorGUI.DisabledScope(!(serialized.renderPipelineSettings.supportSSR.boolValue && serialized.renderPipelineSettings.supportTransparentDepthPrepass.boolValue)))
@@ -249,8 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 long currentCache = ReflectionProbeTextureCache.GetApproxCacheSizeInByte(
                     serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1,
-                    serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize.intValue,
-                    (GraphicsFormat)serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeFormat.intValue);
+                    cacheDim.x, cacheDim.y, (GraphicsFormat)serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeFormat.intValue);
                 string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
@@ -267,12 +268,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             serialized.renderPipelineSettings.cubeReflectionResolution.ValueGUI<CubeReflectionResolution>(Styles.cubeResolutionTitle);
             // We need to clamp the values to the resolution
-            int atlasResolution = serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize.intValue;
+
+            int minAtlasRes = Math.Min(cacheDim.x, cacheDim.y);
             int cubeNumLevels = serialized.renderPipelineSettings.cubeReflectionResolution.values.arraySize;
             for (int levelIdx = 0; levelIdx < cubeNumLevels; ++levelIdx)
             {
                 SerializedProperty levelValue = serialized.renderPipelineSettings.cubeReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
-                levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
+                levelValue.intValue = Mathf.Min(levelValue.intValue, minAtlasRes);
             }
 
             serialized.renderPipelineSettings.planarReflectionResolution.ValueGUI<PlanarReflectionAtlasResolution>(Styles.planarResolutionTitle);
@@ -281,7 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int levelIdx = 0; levelIdx < numLevels; ++levelIdx)
             {
                 SerializedProperty levelValue = serialized.renderPipelineSettings.planarReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
-                levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
+                levelValue.intValue = Mathf.Min(levelValue.intValue, minAtlasRes);
             }
 
             EditorGUI.BeginChangeCheck();
@@ -918,8 +920,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSGI, Styles.supportSSGIContent);
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.renderingLayerMaskBuffer, Styles.renderingLayerMaskBuffer);
+            if (EditorGUI.EndChangeCheck())
+                HDSampleBufferNode.OnRenderingLayerMaskBufferChange(serialized.renderPipelineSettings.renderingLayerMaskBuffer.boolValue);
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }

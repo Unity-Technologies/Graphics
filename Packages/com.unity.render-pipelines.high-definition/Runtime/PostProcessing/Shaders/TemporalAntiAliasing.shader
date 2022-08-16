@@ -276,7 +276,8 @@ Shader "Hidden/HDRP/TemporalAA"
                 GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale, aggressivelyClampedHistoryLuma);
 
                 history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
-                filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
+                if (sharpenStrength > 0)
+                    filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
                 // ------------------------------------------------------------------------------
 
                 // --------------- Compute blend factor for history ---------------

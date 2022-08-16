@@ -1153,20 +1153,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Now the renderingLayerMask is used for shadow layers and not light layers
         [SerializeField, FormerlySerializedAs("lightlayersMask")]
-        LightLayerEnum m_LightlayersMask = LightLayerEnum.LightLayerDefault;
+        RenderingLayerMask m_LightlayersMask = RenderingLayerMask.LightLayerDefault;
         /// <summary>
         /// Controls which layer will be affected by this light
         /// </summary>
         /// <value></value>
-        public LightLayerEnum lightlayersMask
+        public RenderingLayerMask lightlayersMask
         {
-            get => linkShadowLayers ? (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
+            get => linkShadowLayers ? (RenderingLayerMask)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
             set
             {
                 m_LightlayersMask = value;
 
                 if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).lightLayer = m_LightlayersMask;
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).renderingLayerMask = (uint)m_LightlayersMask;
 
                 if (linkShadowLayers)
                     legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)m_LightlayersMask, legacyLight.renderingLayerMask);
@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint GetLightLayers()
         {
             int value = (int)lightlayersMask;
-            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+            return value < 0 ? (uint)RenderingLayerMask.Everything : (uint)value;
         }
 
         /// <summary>
@@ -1201,7 +1201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint GetShadowLayers()
         {
             int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
-            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+            return value < 0 ? (uint)RenderingLayerMask.Everything : (uint)value;
         }
 
         // Shadow Settings
@@ -3464,7 +3464,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="lightLayerMask">Layer mask for receiving light</param>
         /// <param name="shadowLayerMask">Layer mask for shadow rendering</param>
-        public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
+        public void SetLightLayer(RenderingLayerMask lightLayerMask, RenderingLayerMask shadowLayerMask)
         {
             // disable the shadow / light layer link
             linkShadowLayers = false;
@@ -3514,7 +3514,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
         /// <param name="shadowLayerMask"></param>
-        public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
+        public void SetShadowLightLayer(RenderingLayerMask shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>
         /// Set the light culling mask.
@@ -3631,7 +3631,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.pointLightType = m_PointlightHDType;
             lightRenderData.spotLightShape = m_SpotLightShape;
             lightRenderData.areaLightShape = m_AreaLightShape;
-            lightRenderData.lightLayer = m_LightlayersMask;
+            lightRenderData.renderingLayerMask = (uint)m_LightlayersMask;
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
             lightRenderData.angularDiameter = m_AngularDiameter;

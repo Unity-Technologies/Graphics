@@ -17,7 +17,7 @@ MonoBehaviour:
   m_LookDevVolumeProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 139549384114013
+      data1: 1265449290956637
       data2: 4539628468412809240
     lodBias: 1
     lodBiasMode: 0
@@ -78,6 +78,24 @@ MonoBehaviour:
   - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses:
   - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  defaultRenderingLayerMask: 257
+  renderingLayerNames:
+  - Light Layer default
+  - Light Layer 1
+  - Light Layer 2
+  - Light Layer 3
+  - Light Layer 4
+  - Light Layer 5
+  - Light Layer 6
+  - Light Layer 7
+  - Decal Layer default
+  - Decal Layer 1
+  - Decal Layer 2
+  - Decal Layer 3
+  - Decal Layer 4
+  - Decal Layer 5
+  - Decal Layer 6
+  - Decal Layer 7
   lightLayerName0: Light Layer default
   lightLayerName1: Light Layer 1
   lightLayerName2: Light Layer 2
@@ -133,6 +151,6 @@ MonoBehaviour:
       lightingScenarios:
       - Default
     m_LightingScenario: Default
-  m_Version: 5
+  m_Version: 6
   m_ShaderVariantLogLevel: 0
   m_ExportShaderVariants: 1

@@ -35,7 +35,7 @@ public class DebugViewController : MonoBehaviour
                 break;
             case SettingType.Lighting:
                 hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(lightlayers);
-                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)0b10111101;
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode)lightingFullScreenDebugMode);
                 if ((FullScreenDebugMode)lightingFullScreenDebugMode == FullScreenDebugMode.RayTracingAccelerationStructure)
                 {

@@ -244,7 +244,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (s_IsRunningTAAU)
                     p.taaQualityLevel.intValue = (int)HDAdditionalCameraData.TAAQualityLevel.High;
 
-                EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
+
+                EditorGUILayout.PropertyField(p.taaSharpenMode, Styles.TAASharpeningMode);
+                EditorGUI.indentLevel++;
+                if (p.taaSharpenMode.intValue != (int)HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening)
+                {
+                    EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
+                    if (p.taaSharpenMode.intValue == (int)HDAdditionalCameraData.TAASharpenMode.PostSharpen)
+                    {
+                        EditorGUILayout.PropertyField(p.taaRingingReduction, Styles.TAARingingReduction);
+                    }
+                }
+                EditorGUI.indentLevel--;
 
                 if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
                 {

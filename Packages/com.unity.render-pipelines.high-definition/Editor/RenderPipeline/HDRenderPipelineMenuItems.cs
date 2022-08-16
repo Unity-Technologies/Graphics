@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialReimporter.ReimportAllMaterials();
         }
 
-        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Decal Layer Default to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Default Layer Mask to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeDefaultRenderingLayerMask()
         {
             var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var mesh in meshRenderers)
             {
                 Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
-                mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                mesh.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
                 EditorUtility.SetDirty(mesh);
             }
 
@@ -117,12 +117,12 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var terrain in terrains)
             {
                 Undo.RecordObject(terrain, "Terrain Layer Mask update");
-                terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                terrain.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
                 EditorUtility.SetDirty(terrain);
             }
         }
 
-        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Decal Layer Default to Selected Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 1)]
+        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Default Layer Mask to Selected Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 1)]
         internal static void UpgradeDefaultRenderingLayerMaskForSelection()
         {
             var selection = UnityEditor.Selection.objects;
@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
                     {
                         Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
-                        mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        mesh.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
                         EditorUtility.SetDirty(mesh);
                     }
 
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (gameObj.TryGetComponent<Terrain>(out terrain))
                     {
                         Undo.RecordObject(terrain, "Terrain Layer Mask update");
-                        terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        terrain.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
                         EditorUtility.SetDirty(terrain);
                     }
                 }

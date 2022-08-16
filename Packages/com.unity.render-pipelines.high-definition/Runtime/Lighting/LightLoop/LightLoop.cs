@@ -332,9 +332,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    probeCacheFormat = GraphicsFormat.RGB_BC6H_SFloat;
                 //}
 
-                reflectionProbeTextureCache = new ReflectionProbeTextureCache(defaultResources, iBLFilterBSDFArray, (int)lightLoopSettings.reflectionProbeTexCacheSize,
-                    probeCacheFormat, lightLoopSettings.reflectionProbeDecreaseResToFit,
-                    lightLoopSettings.reflectionProbeTexLastValidCubeMip, lightLoopSettings.reflectionProbeTexLastValidPlanarMip);
+                Vector2Int cacheDim = GlobalLightLoopSettings.GetReflectionProbeTextureCacheDim(lightLoopSettings.reflectionProbeTexCacheSize);
+
+                reflectionProbeTextureCache = new ReflectionProbeTextureCache(defaultResources, iBLFilterBSDFArray, cacheDim.x, cacheDim.y, probeCacheFormat,
+                    lightLoopSettings.reflectionProbeDecreaseResToFit, lightLoopSettings.reflectionProbeTexLastValidCubeMip, lightLoopSettings.reflectionProbeTexLastValidPlanarMip);
             }
 
             public void Cleanup()
@@ -2061,7 +2062,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Atlases
             cb._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
             cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
-            cb._ReflectionAtlasData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasData();
+            cb._ReflectionAtlasCubeData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasCubeData();
+            cb._ReflectionAtlasPlanarData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasPlanarData();
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeTextureCache.GetEnvSliceSize();
 
             // Light info
@@ -2075,6 +2077,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
             cb._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
             cb._EnableDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? 1u : 0u;
+            cb._EnableRenderingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer) ? 1u : 0u;
             cb._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
             const float C = (float)(1 << k_Log2NumClusters);
@@ -2094,6 +2097,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Misc
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
+            cb._SpecularFade       = m_GlobalSettings.specularFade ? 1 : 0;
         }
 
         void PushLightDataGlobalParams(CommandBuffer cmd)

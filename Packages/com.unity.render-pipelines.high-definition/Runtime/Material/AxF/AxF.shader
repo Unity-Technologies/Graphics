@@ -399,7 +399,7 @@ Shader "HDRP/AxF"
 
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -444,7 +444,13 @@ Shader "HDRP/AxF"
 
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
+
+            // We can't name this keyword WRITE_DECAL_BUFFER directly because we want to enable it at a different
+            // frequency than WRITE_DECAL_BUFFER defined in the DepthForwardOnly pass
+            #ifdef WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
+            #define WRITE_DECAL_BUFFER
+            #endif
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"

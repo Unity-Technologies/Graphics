@@ -17,7 +17,7 @@ MonoBehaviour:
   m_LookDevVolumeProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 140651589009244
+      data1: 1266551495851868
       data2: 13763000477350330392
     lodBias: 1
     lodBiasMode: 0
@@ -69,6 +69,24 @@ MonoBehaviour:
   afterPostProcessCustomPostProcesses:
   - TvMonochrome, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses: []
+  defaultRenderingLayerMask: 257
+  renderingLayerNames:
+  - Default
+  - Layer 1
+  - Layer 2
+  - Layer 3
+  - Layer 4
+  - Layer 5
+  - Layer 6
+  - Layer 7
+  - Layer 8
+  - Layer 9
+  - Layer 10
+  - Layer 11
+  - Layer 12
+  - Layer 13
+  - Layer 14
+  - Layer 15
   lightLayerName0: 
   lightLayerName1: 
   lightLayerName2: 
@@ -87,6 +105,7 @@ MonoBehaviour:
   decalLayerName7: 
   lensAttenuationMode: 0
   colorGradingSpace: 1
+  m_ObsoleteDiffusionProfileSettingsList: []
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
@@ -194,6 +213,6 @@ MonoBehaviour:
       - Scenario 1
       - Scenario 2
     m_LightingScenario: Scenario 1
-  m_Version: 5
+  m_Version: 6
   m_ShaderVariantLogLevel: 0
   m_ExportShaderVariants: 1

@@ -17,7 +17,7 @@ MonoBehaviour:
   m_LookDevVolumeProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 136268574097245
+      data1: 1262168480939869
       data2: 4539628437207187480
     lodBias: 1
     lodBiasMode: 0
@@ -69,6 +69,24 @@ MonoBehaviour:
   afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
+  defaultRenderingLayerMask: 257
+  renderingLayerNames:
+  - Default
+  - Layer 1
+  - Layer 2
+  - Layer 3
+  - Layer 4
+  - Layer 5
+  - Layer 6
+  - Layer 7
+  - Layer 8
+  - Layer 9
+  - Layer 10
+  - Layer 11
+  - Layer 12
+  - Layer 13
+  - Layer 14
+  - Layer 15
   lightLayerName0: 
   lightLayerName1: 
   lightLayerName2: 
@@ -113,4 +131,4 @@ MonoBehaviour:
     serializedProfiles: []
     serializedBakeSettings: []
     serializedBakingSets: []
-  m_Version: 5
+  m_Version: 6

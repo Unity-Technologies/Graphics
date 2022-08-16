@@ -1920,6 +1920,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
+            TextureHandle renderingLayerMaskBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer) ? prepassOutput.renderingLayersBuffer : TextureHandle.nullHandle;
+
             bool executed = false;
             CustomPassVolume.GetActivePassVolumes(injectionPoint, m_ActivePassVolumes);
             foreach (var customPass in m_ActivePassVolumes)
@@ -1940,7 +1942,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
                     depthBufferRG = prepassOutput.depthBuffer,
                     normalBufferRG = prepassOutput.resolvedNormalBuffer,
-                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer
+                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
+                    renderingLayerMaskRG = renderingLayerMaskBuffer,
                 };
                 executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
             }

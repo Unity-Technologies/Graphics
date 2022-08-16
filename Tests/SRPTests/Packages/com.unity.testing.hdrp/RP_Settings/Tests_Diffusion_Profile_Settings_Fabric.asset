@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tests_Diffusion_Profile_Settings_Fabric
   m_EditorClassIdentifier: 
   profile:
-    name: Fabric
-    scatteringDistance: {r: 2.9960785, g: 1.3019608, b: 0.972549, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.3254902, b: 0.24313726, a: 1}
+    scatteringDistanceMultiplier: 4
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 1
@@ -22,5 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1074041783
-  m_Version: 1
-  profiles: []
+  m_Version: 2

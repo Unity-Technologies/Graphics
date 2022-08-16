@@ -401,6 +401,8 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_LiftGammaGain.GetHashCode() * 23 +
                    m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
                    m_Curves.GetHashCode() * 23 +
+                   m_TonemappingFS.GetHashCode() * 23 +
+                   m_ColorGradingFS.GetHashCode() * 23 +
                    HDROutputIsActive().GetHashCode()
 #if UNITY_EDITOR
                    * 23
@@ -532,6 +534,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                         }
                         RestoreNonjitteredMatrices(renderGraph, hdCamera);
+
+                        if (hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.PostSharpen)
+                        {
+                            source = SharpeningPass(renderGraph, hdCamera, source);
+                        }
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
@@ -598,7 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // AMD Fidelity FX passes
-                    source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
+                    source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source, hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening);
                     source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
                 }
             }
@@ -1054,7 +1061,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
 
-            if (!Application.isPlaying || hdCamera.resetPostProcessingHistory)
+            if (!hdCamera.animateMaterials || hdCamera.resetPostProcessingHistory)
                 adaptationMode = AdaptationMode.Fixed;
 
             passData.exposureVariants = m_ExposureVariants;
@@ -4214,6 +4221,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
         }
 
+        /// <summary>
+        ///  Returns whether the data for HDR is detected properly from the device. If this returns false it is suggested that a calibration screen is used to set the min/max nits limits and paperwhite values.
+        /// </summary>
+        /// <returns>Whether the data for HDR is detected properly from the device.</returns>
+        public static bool HDRDataDetectedProperly()
+        {
+            return HDROutputSettings.main.minToneMapLuminance >= 0 && HDROutputSettings.main.maxToneMapLuminance > 0 && HDROutputSettings.main.paperWhiteNits > 0;
+        }
+
         static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             var minNits = HDROutputSettings.main.minToneMapLuminance;
@@ -4221,6 +4237,20 @@ namespace UnityEngine.Rendering.HighDefinition
             var paperWhite = HDROutputSettings.main.paperWhiteNits;
             int eetfMode = 0;
             float hueShift = 0.0f;
+
+            bool failedToDetectLimits = minNits < 0 || maxNits <= 0;
+            if (failedToDetectLimits && tonemappingComponent.detectBrightnessLimits.value)
+            {
+                minNits = 0;
+                maxNits = 1000;
+                Debug.LogWarning("The platform failed to detect min and max nits, minNits: 0 and maxNits: 1000 are used as default, but it is heavily suggested that the title provides a calibration screen to manually set the limits.");
+            }
+            bool failedToPaperwhite = paperWhite <= 0;
+            if (failedToPaperwhite && tonemappingComponent.detectPaperWhite.value)
+            {
+                paperWhite = 300;
+                Debug.LogWarning("The platform failed to detect paper white values, paperwhite: 300 will be used as default, but it is heavily suggested that the title provides a calibration screen to manually set the value.");
+            }
 
             TonemappingMode hdrTonemapMode = tonemappingComponent.GetHDRTonemappingMode();
 
@@ -4823,6 +4853,51 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        #region Sharpening
+        class SharpenData
+        {
+            public ComputeShader sharpenCS;
+            public int sharpenKernel;
+            public Vector4 sharpenParam;
+            public Vector3Int dispatchSize;
+
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
+        TextureHandle SharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            using (var builder = renderGraph.AddRenderPass<SharpenData>("Sharpening", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
+            {
+                passData.sharpenCS = defaultResources.shaders.sharpeningCS;
+                passData.sharpenKernel = passData.sharpenCS.FindKernel("SharpenCS");
+                passData.sharpenParam = new Vector4(hdCamera.taaSharpenStrength, hdCamera.taaRingingReduction, 0, 0);
+                passData.dispatchSize = new Vector3Int(HDUtils.DivRoundUp(postProcessViewportSize.x, 8), HDUtils.DivRoundUp(postProcessViewportSize.y, 8), hdCamera.viewCount);
+                passData.source = builder.ReadTexture(source);
+                var dstTex = GetPostprocessOutputHandle(renderGraph, "Sharpening Destination");
+                passData.destination = builder.WriteTexture(dstTex);
+
+                passData.sharpenCS.shaderKeywords = null;
+                if (hdCamera.taaRingingReduction > 0)
+                    passData.sharpenCS.EnableKeyword("CLAMP_RINGING");
+
+                builder.SetRenderFunc(
+                        (SharpenData data, RenderGraphContext ctx) =>
+                        {
+                            ctx.cmd.SetComputeVectorParam(data.sharpenCS, "_SharpenParams", data.sharpenParam);
+                            ctx.cmd.SetComputeTextureParam(data.sharpenCS, data.sharpenKernel, HDShaderIDs._InputTexture, data.source);
+                            ctx.cmd.SetComputeTextureParam(data.sharpenCS, data.sharpenKernel, HDShaderIDs._OutputTexture, data.destination);
+                            ctx.cmd.DispatchCompute(data.sharpenCS, data.sharpenKernel, data.dispatchSize.x, data.dispatchSize.y, data.dispatchSize.z);
+
+                        });
+
+                source = passData.destination;
+            }
+
+            return source;
+        }
+        #endregion
+
         #region CAS
         class CASData
         {
@@ -4841,9 +4916,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle casParametersBuffer;
         }
 
-        TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, bool runsAsAfterTAA = false)
         {
-            if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            bool runsAsUpscale = hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen;
+
+            // If we are running this as after TAA and we are scheduled to run as upscale filter, we just skip it.
+            runsAsAfterTAA &= !runsAsUpscale;
+
+            if ((runsAsUpscale || runsAsAfterTAA))
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
@@ -4853,10 +4933,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewCount = hdCamera.viewCount;
                     passData.inputWidth = postProcessViewportSize.x;
                     passData.inputHeight = postProcessViewportSize.y;
-                    passData.outputWidth = Mathf.RoundToInt(hdCamera.finalViewport.width);
-                    passData.outputHeight = Mathf.RoundToInt(hdCamera.finalViewport.height);
+                    passData.outputWidth = runsAsUpscale ? Mathf.RoundToInt(hdCamera.finalViewport.width) : passData.inputWidth;
+                    passData.outputHeight = runsAsUpscale ? Mathf.RoundToInt(hdCamera.finalViewport.height) : passData.inputHeight;
                     passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination")); ;
+                    var dstTex = runsAsUpscale ? GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination") :
+                                                 GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
+                    passData.destination = builder.WriteTexture(dstTex);
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 
                     builder.SetRenderFunc(
@@ -4880,7 +4962,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     source = passData.destination;
                 }
 
-                SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+                if (runsAsUpscale)
+                    SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
             }
             return source;
         }

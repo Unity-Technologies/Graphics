@@ -11,7 +11,7 @@ Pass
 
 	HLSLPROGRAM
 	#pragma target 4.5
-	#pragma multi_compile _ LIGHT_LAYERS
+	#pragma multi_compile _ RENDERING_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
 
 	#define UNITY_MATERIAL_LIT

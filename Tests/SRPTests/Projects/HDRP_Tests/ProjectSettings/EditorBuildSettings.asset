@@ -102,6 +102,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1226_Lit_UVMapping_Displacement.unity
     guid: 2a9e6d17d05c12b428a235cc1edae5b9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1230_Lit_Translucent.unity
+    guid: e0af6434ca972984780123bff226e95d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
@@ -443,6 +446,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2505_Area_Light_ShadowMask_Baking.unity
     guid: 091dc511a7c5d714cba984414c7b7ecf
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2506_GenericRenderingLayer.unity
+    guid: 9c6cdebb557c212429b4f44f5c4c9f63
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2551_SSR.unity
     guid: 62f2b88cccb280246a9211bbcf0c8245
@@ -800,9 +806,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardOnly.unity
     guid: b8bed8c61a04a644f87582e26e3596f2
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardBoth.unity
-    guid: 3355ad2efd7c699418d5a0db666d2d01
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9402_AlphaToMask-Graph.unity
     guid: 4fb94469014a7ce468a32889d270785d

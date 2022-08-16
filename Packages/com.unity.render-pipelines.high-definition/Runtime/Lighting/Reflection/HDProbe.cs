@@ -57,7 +57,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the cubemap face bit is set, false otherwise.</returns>
         public static bool HasCubeFace(this ProbeRenderSteps steps, CubemapFace face)
         {
-            return steps.HasFlag(ProbeRenderStepsExt.FromCubeFace(face));
+            var flags = FromCubeFace(face);
+            return flags == 0 || (steps & flags) == flags; // Don't use Enum.HasFlag because it generates GCAlloc.
         }
 
         /// <summary>
@@ -591,10 +592,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
-        public LightLayerEnum lightLayers
+        public RenderingLayerMask lightLayers
         { get => m_ProbeSettings.lighting.lightLayer; set => m_ProbeSettings.lighting.lightLayer = value; }
         /// <summary>This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1</summary>
-        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayers;
+        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)RenderingLayerMask.Everything : (uint)lightLayers;
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier
         { get => m_ProbeSettings.lighting.multiplier; set => m_ProbeSettings.lighting.multiplier = value; }

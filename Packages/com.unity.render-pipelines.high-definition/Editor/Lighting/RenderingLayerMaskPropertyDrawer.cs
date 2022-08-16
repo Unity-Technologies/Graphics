@@ -3,8 +3,8 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomPropertyDrawer(typeof(DecalLayerEnum))]
-    class DecalLayerEnumPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(RenderingLayerMask))]
+    class RenderingLayerMaskPropertyDrawer : PropertyDrawer
     {
         /// <summary>
         /// Draws a decal layer enum.
@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="property">The property to draw.</param>
         /// <param name="label">The label to draw.</param>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-            => HDEditorUtils.DrawDecalLayerMask_Internal(position, label, property);
+            => HDEditorUtils.DrawRenderingLayerMask(position, property, label);
 
         //default height is good (= single line height)
     }

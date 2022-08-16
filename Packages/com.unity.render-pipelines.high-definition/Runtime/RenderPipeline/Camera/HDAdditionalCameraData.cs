@@ -278,6 +278,19 @@ namespace UnityEngine.Rendering.HighDefinition
             High
         }
 
+        /// <summary>
+        /// TAA Sharpen mode.
+        /// </summary>
+        public enum TAASharpenMode
+        {
+            /// <summary>Low quality.</summary>
+            LowQuality,
+            /// <summary>Sharpen with a separate pass after TAA.</summary>
+            PostSharpen,
+            /// <summary>Run a Contrast Adaptive Sharpening pass after TAA.</summary>
+            ContrastAdaptiveSharpening
+        }
+
         /// <summary>Clear mode for the camera background.</summary>
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         /// <summary>HDR color used for clearing the camera background.</summary>
@@ -308,6 +321,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Quality of the anti-aliasing when using TAA.</summary>
         public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
+
+        /// <summary>How is the sharpening run sharpening.</summary>
+        public TAASharpenMode taaSharpenMode = TAASharpenMode.LowQuality;
+
+        /// <summary>How much to reduce the ringing from the TAA post-process sharpening. Note that some ringing might be visually desirable and that any value different than 0 will incur into a small additional cost.</summary>
+        [Range(0, 1)]
+        public float taaRingingReduction = 0.0f;
 
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
         [Range(0, 1)]
@@ -613,6 +633,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.stopNaNs = stopNaNs;
             data.taaSharpenStrength = taaSharpenStrength;
             data.TAAQuality = TAAQuality;
+            data.taaSharpenMode = taaSharpenMode;
+            data.taaRingingReduction = taaRingingReduction;
             data.taaHistorySharpening = taaHistorySharpening;
             data.taaAntiFlicker = taaAntiFlicker;
             data.taaMotionVectorRejection = taaMotionVectorRejection;

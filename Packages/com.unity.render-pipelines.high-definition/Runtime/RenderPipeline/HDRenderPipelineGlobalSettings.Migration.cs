@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MovedSupportRuntimeDebugDisplayToGlobalSettings,
             DisableAutoRegistration,
             MoveDiffusionProfilesToVolume,
+            GenericRenderingLayers,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -76,6 +77,33 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!found)
                         data.AddDiffusionProfile(profile);
                 }
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.GenericRenderingLayers, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.renderingLayerNames = new string[16]
+                {
+                    data.lightLayerName0,
+                    data.lightLayerName1,
+                    data.lightLayerName2,
+                    data.lightLayerName3,
+                    data.lightLayerName4,
+                    data.lightLayerName5,
+                    data.lightLayerName6,
+                    data.lightLayerName7,
+                    data.decalLayerName0,
+                    data.decalLayerName1,
+                    data.decalLayerName2,
+                    data.decalLayerName3,
+                    data.decalLayerName4,
+                    data.decalLayerName5,
+                    data.decalLayerName6,
+                    data.decalLayerName7,
+                };
+                data.m_PrefixedRenderingLayerNames = null;
+
+                data.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).SetEnabled(FrameSettingsField.RenderingLayerMaskBuffer, true);
 #pragma warning restore 618
             })
         );

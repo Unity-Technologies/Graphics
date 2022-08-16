@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new EditorGUI.DisabledScope(!hd.currentPlatformRenderPipelineSettings.supportLightLayers))
                 {
-                    PropertyFieldWithoutToggle(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer", "Specifies the Light Layer the Reflection Probe uses to capture its view of the Scene. The Probe only uses Lights on the Light Layer you specify."), displayedFields.probe,
+                    PropertyFieldWithoutToggle(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Rendering Layer Mask", "This Reflection Probe only affects Renderers with a matching Rendering Layer Mask.\nThis is only available when Light Layers are enabled."), displayedFields.probe,
                         (property, label) => EditorGUILayout.PropertyField(property, label)
                     );
                 }

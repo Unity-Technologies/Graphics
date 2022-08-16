@@ -25,9 +25,10 @@ MonoBehaviour:
         m_Id: With3Levels
     supportVolumetrics: 1
     supportVolumetricClouds: 0
-    supportLightLayers: 0
+    renderingLayerMaskBuffer: 1
     supportWater: 0
     waterSimulationResolution: 128
+    m_ObsoleteSupportLightLayers: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -49,7 +50,7 @@ MonoBehaviour:
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 0
     supportTerrainHole: 0
-    supportProbeVolume: 0
+    lightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
     supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 1

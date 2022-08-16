@@ -23,9 +23,8 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(fragInput.positionRWS - WorldRayOrigin());
-    rayIntersection.t = travelDistance;
-    rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
+    rayIntersection.t = RayTCurrent();
+    rayIntersection.cone.width += rayIntersection.t * abs(rayIntersection.cone.spreadAngle);
 
     PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, fragInput.positionRWS);
 
@@ -237,8 +236,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     float3 viewWS = -WorldRayDirection();
 
     // Compute the distance of the ray
-    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - WorldRayOrigin());
-    rayIntersection.t = travelDistance;
+    rayIntersection.t = RayTCurrent();
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
