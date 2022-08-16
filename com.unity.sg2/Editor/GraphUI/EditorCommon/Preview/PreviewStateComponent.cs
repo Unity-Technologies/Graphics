@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     ///
     /// 3) Blackboard item data hanging around in CLDS after deletion
     ///
-    /// 4) 
+    /// 4)
     public class PreviewStateComponent
         :   PersistedStateComponent<PreviewStateComponent.StateUpdater>,
             IPreviewUpdateReceiver
