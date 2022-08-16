@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal readonly GraphStorage m_data;
 
         internal const string kRegistryKeyName = "_RegistryKey";
+
+
         public GraphDelta()
         {
             m_data = new GraphStorage();
@@ -28,6 +30,26 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public string ToSerializedFormat()
         {
             return EditorJsonUtility.ToJson(m_data);
+        }
+
+        //TODO: Come back to this and decide if this is the best way to handle it.
+        internal Action<NodeHandler> onBuild;
+        internal void AddBuildCallback(Action<NodeHandler> callback)
+        {
+            onBuild += callback;
+        }
+
+        internal void RemoveBuildCallback(Action<NodeHandler> callback)
+        {
+            onBuild -= callback;
+        }
+
+        private void BuildNode(NodeHandler node, INodeDefinitionBuilder builder, Registry registry)
+        {
+            node.DefaultLayer = k_concrete;
+            builder.BuildNode(node, registry);
+            node.DefaultLayer = k_user;
+            onBuild?.Invoke(node);
         }
 
         private readonly List<string> contextNodes = new();
@@ -56,9 +78,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 portHandler.SetMetadata(kRegistryKeyName, key);
             }
 
-            nodeHandler.DefaultLayer = k_concrete;
-            builder.BuildNode(nodeHandler, registry);
-            nodeHandler.DefaultLayer = k_user;
+            BuildNode(nodeHandler, builder, registry);
 
             foreach(var port in nodeHandler.GetPorts())
             {
@@ -93,9 +113,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             HookupToContextList(nodeHandler);
-            nodeHandler.DefaultLayer = k_concrete;
-            builder.BuildNode(nodeHandler, registry);
-            nodeHandler.DefaultLayer = k_user;
+            BuildNode(nodeHandler, builder, registry);
 
             return nodeHandler;
 
@@ -119,9 +137,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             HookupToContextList(nodeHandler);
-            nodeHandler.DefaultLayer = k_concrete;
-            builder.BuildNode(nodeHandler, registry);
-            nodeHandler.DefaultLayer = k_user;
+            BuildNode(nodeHandler, builder, registry);
 
             return nodeHandler;
 
@@ -158,9 +174,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             if (cpn == null) //Is this an old ContextNode?
             {
                 nodeHandler.ClearLayerData(k_concrete);
-                nodeHandler.DefaultLayer = k_concrete;
-                builder.BuildNode(nodeHandler, registry);
-                nodeHandler.DefaultLayer = k_user;
+                BuildNode(nodeHandler, builder, registry);
             }
 
             if (propagate)
