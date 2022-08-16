@@ -2526,9 +2526,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int shadowSettingsCascadeShadowSplitCount = hdShadowSettings.cascadeShadowSplitCount.value;
 
-                NativeList<HDShadowResolutionRequest> hdShadowResolutionRequestStorage = unmanagedShadowManagerData.shadowResolutionRequestStorage;
-
-
                 UpdateShadowRequestsAndCalculateIndicesJob shadowRequestsAndIndicesJob = new UpdateShadowRequestsAndCalculateIndicesJob
                 {
                     shadowManager = unmanagedShadowManagerData,
@@ -2555,7 +2552,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynamicAreaRectangleUpdateInfos = lightEntities.dynamicAreaRectangleUpdateInfos,
                     dynamicAreaOtherUpdateInfos = lightEntities.dynamicAreaOtherUpdateInfos,
                     dynamicDirectionalUpdateInfos = lightEntities.dynamicDirectionalUpdateInfos,
-                    hdShadowResolutionRequestStorage = hdShadowResolutionRequestStorage,
                     kCubemapFaces =  lightEntities.cachedCubeMapFaces,
                     frustumPlanesStorage =  lightEntities.frustumPlanesStorage,
 
