@@ -227,6 +227,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     half4 FragFog(Varyings input) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
