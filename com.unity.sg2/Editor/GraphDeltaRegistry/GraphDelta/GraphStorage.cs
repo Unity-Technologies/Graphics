@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         [SerializeField]
         internal List<ContextConnection> defaultConnections = new List<ContextConnection>();
 
-        // TODO (Sai): Cleanup how this is exposed and consult with Liz to a better solution
+        // TODO: Incorporate this more fully fleshed out serializable dictionary: https://github.com/azixMcAze/Unity-SerializableDictionary
         internal Dictionary<string, ReferableToReferenceNodeMapping> referableToReferenceNodeMap = new();
 
         [SerializeField]
@@ -113,6 +113,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         [SerializeField]
         List<ReferableToReferenceNodeMapping> referenceNodeMappings;
+
+        internal HashSet<string> timeDependentNodes = new();
+
+        // Needed to serialize the above HashSet
+        [SerializeField]
+        List<string> serializableTimeDependentNodes = new();
 
         protected override void AddDefaultLayers()
         {
@@ -124,6 +130,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             base.OnBeforeSerialize();
 
+            serializableTimeDependentNodes = timeDependentNodes.ToList();
+
             referableNames = referableToReferenceNodeMap.Keys.ToList();
             referenceNodeMappings = referableToReferenceNodeMap.Values.ToList();
         }
@@ -131,6 +139,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
+
+            timeDependentNodes = new HashSet<string>(serializableTimeDependentNodes);
 
             referableToReferenceNodeMap = new Dictionary<string, ReferableToReferenceNodeMapping>();
 

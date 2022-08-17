@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Security.Policy;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
 using UnityEngine;
@@ -74,6 +75,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return referenceNodeList.referenceNodeNames;
             return null;
         }
+
+        public bool IsTimeDependentNode(NodeHandler nodeHandler) => graphDelta.IsTimeDependentNode(nodeHandler);
 
         [Obsolete("AddNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
             "Use AddNode<T>(string name) for updated behavior")]

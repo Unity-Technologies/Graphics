@@ -111,35 +111,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public static void HandleDeleteBlackboardItems(
-            UndoStateComponent undoState,
-            GraphModelStateComponent graphModelState,
-            SelectionStateComponent selectionState,
-            PreviewManager previewManager,
-            DeleteElementsCommand command)
-        {
-            var modelsToDelete = command.Models.ToList();
-            if (modelsToDelete.Count == 0)
-                return;
-
-            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
-
-            // Delete GTF data and linked edges, variable nodes
-            DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
-
-            var selectionStateComponents = undoState.State.AllStateComponents.OfType<SelectionStateComponent>();
-
-            foreach (var selection in selectionStateComponents)
-            {
-                using (var selectionStateUpdater = selection.UpdateScope)
-                {
-                    selectionStateUpdater.SelectElements(modelsToDelete, false);
-                }
-            }
-
-
-        }
-
         static List<IGraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
         {
             foreach (var redirect in redirects)
@@ -167,30 +138,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // deleted in the above loop.
             var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
             return deletedModels;
-        }
-
-        public static void HandleUpdateConstantValue(
-            UndoStateComponent undoState,
-            GraphModelStateComponent graphModelState,
-            PreviewManager previewManager,
-            UpdateConstantValueCommand updateConstantValueCommand)
-        {
-            UpdateConstantValueCommand.DefaultCommandHandler(undoState, graphModelState, updateConstantValueCommand);
-
-            var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            if (updateConstantValueCommand.Constant is not BaseShaderGraphConstant cldsConstant) return;
-
-            //if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
-            //{
-            //    previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
-            //    return;
-            //}
-
-            var nodeWriter = shaderGraphModel.GraphHandler.GetNode(cldsConstant.NodeName);
-            //if (nodeWriter != null)
-            //{
-            //    previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
-            //}
         }
     }
 }

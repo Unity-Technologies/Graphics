@@ -387,7 +387,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string nodeName,
             IVisualElementScheduler scheduler, // TODO: Remove
             PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D,
-            bool forceRecompile = false)
+            bool forceRecompile = false,
+            bool forceRerender = false)
         {
             PreviewData nodePreviewData;
 
@@ -402,7 +403,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     UpdateShaderData(nodePreviewData);
                     UpdateRenderData(nodePreviewData);
                 }
-                else if (nodePreviewData.isRenderOutOfDate)
+                else if (nodePreviewData.isRenderOutOfDate || forceRerender)
                 {
                     UpdateRenderData(nodePreviewData);
                 }
@@ -419,7 +420,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             scheduler.Execute(
                     () =>
                         m_PreviewUpdateReceiver.UpdatePreviewData(nodeName, nodePreviewData.texture)).
-                ExecuteLater(10);
+                ExecuteLater(0);
         }
 
 

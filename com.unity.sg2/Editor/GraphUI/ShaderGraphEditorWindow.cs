@@ -219,20 +219,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var graphModelStateComponent = blackboardView.BlackboardViewModel.GraphModelState;
             var selectionStateComponent = blackboardView.BlackboardViewModel.SelectionState;
 
-            blackboardView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
-            blackboardView.Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
-                ShaderGraphCommandOverrides.HandleDeleteBlackboardItems,
-                undoStateComponent,
-                graphModelStateComponent,
-                selectionStateComponent,
-                previewManager
-                );
-
-            blackboardView.Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, UpdateConstantValueCommand>(
-                ShaderGraphCommandOverrides.HandleUpdateConstantValue,
-                undoStateComponent,
-                graphModelStateComponent,
-                previewManager);
+            // Note: Currently we don't have any blackboard overrides but this is a space for it
         }
 
         public override BlackboardView CreateBlackboardView()
@@ -277,7 +264,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
 
             // NEW
-            m_PreviewUpdateDispatcher.Initialize(shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
+            m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
 
             ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 
@@ -297,6 +284,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.Update();
 
             m_PreviewManager?.Update();
+
+            m_PreviewUpdateDispatcher.Update();
         }
     }
 }

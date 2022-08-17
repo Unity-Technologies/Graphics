@@ -77,12 +77,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent,
                 selectionStateComponent,
                 previewManager);
-
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, UpdateConstantValueCommand>(
-                ShaderGraphCommandOverrides.HandleUpdateConstantValue,
-                undoStateComponent,
-                graphModelStateComponent,
-                previewManager);
         }
 
         protected override void RegisterObservers()
