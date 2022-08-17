@@ -160,7 +160,22 @@ namespace UnityEditor.ShaderGraph.Defs
             Registry registry,
             out INodeDefinitionBuilder.Dependencies deps)
         {
-            // find the selected function
+            // determine the dynamic fallback type
+            var fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
+
+            Dictionary<string, ShaderFunction> nameToShaderFunction = new();
+
+            // make shader functions for each helper function
+            foreach (FunctionDescriptor fd in m_nodeDescriptor.Functions)
+            {
+                if (fd.IsHelper)
+                {
+                    ShaderFunction shaderFunction = BuildShaderFunction(container, fd, fallbackType);
+                    nameToShaderFunction[fd.Name] = shaderFunction;
+                }
+            }
+
+            // make a shader function for the selected function
             FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
             FieldHandler selectedFunctionField = nodeHandler.GetField<string>(SELECTED_FUNCTION_FIELD_NAME);
             string selectedFunctionName = selectedFunctionField.GetData<string>();
@@ -172,17 +187,8 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 selectedFunction = m_nameToFunction[selectedFunctionName];
             }
-
-            // determine the dynamic fallback type
-            var fallbackType = NodeBuilderUtils.FallbackTypeResolver(nodeHandler);
-
-            // make shader functions for each internal function descriptor
-            Dictionary<string, ShaderFunction> nameToShaderFunction = new();
-            foreach (FunctionDescriptor fd in m_nodeDescriptor.Functions)
-            {
-                ShaderFunction shaderFunction = BuildShaderFunction(container, fd, fallbackType);
-                nameToShaderFunction[fd.Name] = shaderFunction;
-            }
+            var selectedShaderFunction = BuildShaderFunction(container, selectedFunction, fallbackType);
+            nameToShaderFunction[selectedFunction.Name] = selectedShaderFunction;
 
             // create the dependencies object that is returned
             deps = new();
