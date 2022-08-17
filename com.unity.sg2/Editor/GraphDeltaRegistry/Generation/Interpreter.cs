@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
         }
 
-        static void BuildPropertyAttributes(
+        internal static void BuildPropertyAttributes(
             PortHandler port,
             Registry registry,
             ShaderContainer container,
