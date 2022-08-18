@@ -34,7 +34,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public override int GetHashCode()
         {
-            return ((IStructuralEquatable)m_path).GetHashCode(StringComparer.Ordinal);
+            return FullPath.GetHashCode(StringComparison.Ordinal);
         }
 
         public ElementID(string id)
@@ -88,14 +88,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 return false;
             }
 
-            for (int i = 0; i < m_path.Length; ++i)
-            {
-                if (m_path[i].CompareTo(other.m_path[i]) != 0)
-                {
-                    return false;
-                }
-            }
-            return true;
+            return other.GetHashCode() == GetHashCode();
         }
 
         /// <summary>

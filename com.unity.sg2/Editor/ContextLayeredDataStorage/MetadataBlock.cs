@@ -85,10 +85,15 @@ namespace UnityEditor.ContextLayeredDataStorage
     }
 
     [Serializable]
-    internal class MetadataCollection : Dictionary<string, MetadataBlock>, ISerializationCallbackReceiver
+    internal class MetadataCollection : Dictionary<ElementID, MetadataBlock>, ISerializationCallbackReceiver
     {
         [SerializeField]
         private List<SerializedBlock> serializedBlocks;
+
+        public MetadataCollection() : base(new ElementIDComparer())
+        {
+
+        }
         public void OnAfterDeserialize()
         {
             foreach(var block in serializedBlocks)
@@ -105,7 +110,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 serializedBlocks.Add(new SerializedBlock()
                 {
-                    key = key,
+                    key = key.FullPath,
                     block = value
                 });
             }

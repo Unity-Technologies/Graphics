@@ -32,9 +32,36 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             primitive = 1;
 
             // Use only input ports who are actually graphType.
-            var inputPorts = node.GetPorts().Where(e => e.IsInput && e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name);
-            var connectedFields = inputPorts.Select(e => e.GetConnectedPorts().FirstOrDefault()?.GetTypeField()).Where(e => e != null);
-            bool hasVector = inputPorts.Count() != connectedFields.Count();
+            var inputPorts = new List<PortHandler>();
+            var connectedFields = new List<FieldHandler>();
+
+            foreach(var port in node.GetPorts())
+            {
+                if(port.IsInput && port.GetTypeField().GetRegistryKey().Name.Equals(GraphType.kRegistryKey.Name, StringComparison.Ordinal))
+                {
+                    inputPorts.Add(port);
+                }
+            }
+
+            foreach(var input in inputPorts)
+            {
+                PortHandler connected = null;
+                using (var enumerator = input.GetConnectedPorts().GetEnumerator())
+                {
+                    if(enumerator.MoveNext())
+                    {
+                        connected = enumerator.Current;
+                    }
+                }
+                if(connected != null && connected.GetTypeField() != null)
+                {
+                    connectedFields.Add(connected.GetTypeField());
+                }
+            }
+
+            bool hasVector = inputPorts.Count != connectedFields.Count;
+
+
             foreach (var field in connectedFields)
             {
                 GetDim(field, out var fieldLength, out var fieldHeight);
@@ -59,39 +86,42 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             bool hasVector = CalcResolve(node, out var resolvedLength, out var resolvedHeight, out var resolvedPrecision, out var resolvedPrimitive);
 
             // foreach graphType port.
-            foreach (var port in node.GetPorts().Where(e => e.GetTypeField().GetRegistryKey().Name == GraphType.kRegistryKey.Name))
+            foreach (var port in node.GetPorts())
             {
-                var field = port.GetTypeField();
-                var precision = GetPrecision(field);
-                var primitive = GetPrimitive(field);
-                GetDim(field, out var length, out var height);
-                GetDynamic(field, out var isLenDyn, out var isHgtDyn, out var isPrecisionDyn, out var isPrimDyn);
-
-                length = isLenDyn ? resolvedLength : length;
-                height = isHgtDyn ? resolvedHeight : height;
-                precision = isPrecisionDyn ? (GraphType.Precision)resolvedPrecision : precision;
-                primitive = isPrimDyn ? (GraphType.Primitive)resolvedPrimitive : primitive;
-
-                // resolvedHeight only applies for matrices-- if we are connected to a non-matrix we need to ignore it.
-                if (isHgtDyn)
+                if (port.GetTypeField().GetRegistryKey().Name.Equals(GraphType.kRegistryKey.Name, StringComparison.Ordinal))
                 {
-                    var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
-                    if (!port.IsInput && hasVector || // output port will always resolve to vector if one of the input ports does.
-                        port.IsInput && connectedField == null && hasVector || // as will disconnected input ports.
-                        port.IsInput && connectedField != null && GetHeight(connectedField) == GraphType.Height.One)
-                            height = 1;
-                }
+                    var field = port.GetTypeField();
+                    var precision = GetPrecision(field);
+                    var primitive = GetPrimitive(field);
+                    GetDim(field, out var length, out var height);
+                    GetDynamic(field, out var isLenDyn, out var isHgtDyn, out var isPrecisionDyn, out var isPrimDyn);
 
-                InitGraphType(
-                    field,
-                    length: (GraphType.Length)length,
-                    height: (GraphType.Height)height,
-                    precision: precision,
-                    primitive: primitive,
-                    lengthDynamic: isLenDyn,
-                    heightDynamic: isHgtDyn,
-                    primitiveDynamic: isPrimDyn,
-                    precisionDynamic: isPrecisionDyn);
+                    length = isLenDyn ? resolvedLength : length;
+                    height = isHgtDyn ? resolvedHeight : height;
+                    precision = isPrecisionDyn ? (GraphType.Precision)resolvedPrecision : precision;
+                    primitive = isPrimDyn ? (GraphType.Primitive)resolvedPrimitive : primitive;
+
+                    // resolvedHeight only applies for matrices-- if we are connected to a non-matrix we need to ignore it.
+                    if (isHgtDyn)
+                    {
+                        var connectedField = port.IsInput ? port.GetConnectedPorts().FirstOrDefault()?.GetTypeField() : null;
+                        if (!port.IsInput && hasVector || // output port will always resolve to vector if one of the input ports does.
+                            port.IsInput && connectedField == null && hasVector || // as will disconnected input ports.
+                            port.IsInput && connectedField != null && GetHeight(connectedField) == GraphType.Height.One)
+                            height = 1;
+                    }
+
+                    InitGraphType(
+                        field,
+                        length: (GraphType.Length)length,
+                        height: (GraphType.Height)height,
+                        precision: precision,
+                        primitive: primitive,
+                        lengthDynamic: isLenDyn,
+                        heightDynamic: isHgtDyn,
+                        primitiveDynamic: isPrimDyn,
+                        precisionDynamic: isPrecisionDyn);
+                }
             }
         }
 

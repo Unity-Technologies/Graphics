@@ -549,7 +549,14 @@ namespace UnityEditor.ShaderGraph.Generation
                         continue;
                     if (port.IsInput)
                     {
-                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                        PortHandler connectedPort = null;
+                        using (var enumerator = port.GetConnectedPorts().GetEnumerator())
+                        {
+                            if (enumerator.MoveNext())
+                            {
+                                connectedPort = enumerator.Current;
+                            }
+                        }
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
