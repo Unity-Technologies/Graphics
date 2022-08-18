@@ -276,7 +276,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var nodeLocalId = nodeHandler.ID.LocalPath;
                 var guid = new SerializableGUID(nodeLocalId);
 
-                if (!shaderGraphModel.TryGetModelFromGuid<GraphDataNodeModel>(guid, out var nodeModel))
+                if (!shaderGraphModel.TryGetModelFromGuid<GraphDataNodeModel>(guid, out var nodeModel) || nodeModel == null)
                 {
                     return;
                 }
