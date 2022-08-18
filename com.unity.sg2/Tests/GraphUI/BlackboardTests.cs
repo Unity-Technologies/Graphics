@@ -158,15 +158,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             vector4Item.action.Invoke();
             yield return null;
 
-            // Drag and drop to create variable node
-            var blackboardField = GetFirstBlackboardElementOfType<BlackboardField>();
-            m_TestEventHelper.SendMouseDownEvent(blackboardField);
-            m_TestEventHelper.SendMouseDragEvent(blackboardField, m_GraphView);
-            m_TestEventHelper.SendDragEnterEvent(m_GraphView);
-            yield return null;
-
+            // Mimic drag-and-drop interaction by the user from blackboard item to center of the graph
             var graphViewCenterPosition = TestEventHelpers.GetScreenPosition(m_Window, m_GraphView, true);
-            m_TestEventHelper.SendDragPerformEvent(graphViewCenterPosition);
+            var command = new CreateNodeCommand();
+            var variable = GraphModel.VariableDeclarations.FirstOrDefault();
+            command.WithNodeOnGraph(variable, graphViewCenterPosition);
+            m_GraphView.Dispatch(command);
 
             yield return null;
 
