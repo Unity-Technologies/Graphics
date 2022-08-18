@@ -34,15 +34,15 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             graph = new GraphHandler(registry);
 
-            //graph.AddContextNode("VertIn");
-            //graph.AddContextNode("VertOut");
-            graph.AddContextNode(propertyKey);
-            graph.AddContextNode(contextKey);
+            graph.AddContextNode("VertIn");
+            graph.AddContextNode("VertOut");
+            graph.AddContextNode(propertyKey.Name);
+            graph.AddContextNode(contextKey.Name);
 
-            //graph.RebuildContextData("VertIn", GetTarget(), "UniversalPipeline", "VertexDescription", true);
-            //graph.RebuildContextData("VertOut", GetTarget(), "UniversalPipeline", "VertexDescription", false);
+            graph.RebuildContextData("VertIn", GetTarget(), "UniversalPipeline", "VertexDescription", true);
+            graph.RebuildContextData("VertOut", GetTarget(), "UniversalPipeline", "VertexDescription", false);
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
-            //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
+            graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
 
             //CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
             //foreach (var descriptor in descriptors)
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             };
 
             var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
-            ContextBuilder.AddReferableEntry(propContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: "Foo_Var");
+            ContextBuilder.AddReferableEntry(propContext, TYPE.Float, "Foo", registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: "Foo_Var");
 
             graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName);
             graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");
@@ -173,6 +173,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             catch (Exception e)
             {
                 File.WriteAllBytes($"Assets/FailureImageMaterialPropertyGen1.jpg", rt.EncodeToJPG());
+                File.WriteAllText("Assets/FailureMaterialPropertyGen1.shader", shaderString);
                 throw e;
             }
 

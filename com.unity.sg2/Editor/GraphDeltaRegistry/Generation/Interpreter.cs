@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
@@ -43,6 +44,53 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
             }
 
+        }
+
+        private class StructFieldEqualityComparer : IEqualityComparer<StructField>
+        {
+            public bool Equals(StructField x, StructField y)
+            {
+                return string.CompareOrdinal(x.Name, y.Name) == 0;
+            }
+
+            public int GetHashCode(StructField obj)
+            {
+                return obj.Name.GetHashCode();
+            }
+        }
+
+        private class VariableRegistry : IEnumerable<StructField>
+        {
+            HashSet<StructField> m_set;
+            List<StructField> m_list;
+            public VariableRegistry() : base()
+            {
+                m_set = new HashSet<StructField>(new StructFieldEqualityComparer());
+                m_list = new List<StructField>();
+            }
+
+            public void Add(StructField field)
+            {
+                if (m_set.Add(field))
+                {
+                    m_list.Add(field);
+                }
+            }
+
+            public IEnumerator<StructField> GetEnumerator()
+            {
+                return m_list.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return m_list.GetEnumerator();
+            }
+
+            public StructField this[int i]
+            {
+                get => m_list[i];
+            }
         }
         /// <summary>
         /// There's a collection of required and potentially useful pieces of data
@@ -123,8 +171,8 @@ namespace UnityEditor.ShaderGraph.Generation
             NodeHandler rootNode,
             Registry registry,
             ShaderContainer container,
-            ref List<StructField> outputVariables,
-            ref List<StructField> inputVariables,
+            ref VariableRegistry outputVariables,
+            ref VariableRegistry inputVariables,
             ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var isContext = rootNode.HasMetadata("_contextDescriptor");
@@ -141,8 +189,8 @@ namespace UnityEditor.ShaderGraph.Generation
             PortHandler port,
             Registry registry,
             ShaderContainer container,
-            ref List<StructField> outputVariables,
-            ref List<StructField> inputVariables,
+            ref VariableRegistry outputVariables,
+            ref VariableRegistry inputVariables,
             ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var name = port.ID.LocalPath;
@@ -256,8 +304,8 @@ namespace UnityEditor.ShaderGraph.Generation
             string BlockName = $"ShaderGraphBlock_{rootNode.ID.LocalPath}";
             var blockBuilder = new Block.Builder(container, BlockName);
 
-            var inputVariables = new List<StructField>();
-            var outputVariables = new List<StructField>();
+            var inputVariables = new VariableRegistry();
+            var outputVariables = new VariableRegistry();
             bool isContext = rootNode.HasMetadata("_contextDescriptor");
             //Evaluate outputs for this block based on root nodes "outputs/endpoints" (horizontal input ports)
             EvaluateBlockReferrables(rootNode, registry, container, ref outputVariables, ref inputVariables, ref defaultTextures);
@@ -524,8 +572,8 @@ namespace UnityEditor.ShaderGraph.Generation
 
         private static void ProcessNode(NodeHandler node,
             ref ShaderContainer container,
-            ref List<StructField> inputVariables,
-            ref List<StructField> outputVariables,
+            ref VariableRegistry inputVariables,
+            ref VariableRegistry outputVariables,
             ref List<(string, UnityEngine.Texture)> defaultTextures, // replace this with a generalized default properties solution.
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
