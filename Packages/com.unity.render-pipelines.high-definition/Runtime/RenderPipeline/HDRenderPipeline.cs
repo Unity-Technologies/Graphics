@@ -2191,9 +2191,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CustomPassVolumeUpdate)))
+                if (m_DebugDisplaySettings.IsDebugDisplayRemovePostprocess())
                 {
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPassBufferClearDebug)))
+                    {
+                        if (m_CustomPassColorBuffer.IsValueCreated && m_CustomPassDepthBuffer.IsValueCreated)
+                            CoreUtils.SetRenderTarget(cmd, m_CustomPassColorBuffer.Value, m_CustomPassDepthBuffer.Value, ClearFlag.All);
+                        else if (m_CustomPassColorBuffer.IsValueCreated)
+                            CoreUtils.SetRenderTarget(cmd, m_CustomPassColorBuffer.Value, ClearFlag.Color);
+                        else if (m_CustomPassDepthBuffer.IsValueCreated)
+                            CoreUtils.SetRenderTarget(cmd, m_CustomPassDepthBuffer.Value, ClearFlag.Depth);
+                    }
+                }
+
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                {
+                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CustomPassVolumeUpdate)))
                         CustomPassVolume.Update(hdCamera);
                 }
 
