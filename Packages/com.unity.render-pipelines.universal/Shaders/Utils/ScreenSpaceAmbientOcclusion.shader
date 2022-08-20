@@ -9,8 +9,14 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
     SubShader
     {
-        Tags{ "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
-        Cull Off ZWrite Off ZTest Always
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "RenderPipeline" = "UniversalPipeline"
+        }
+        Cull Off
+        ZWrite Off
+        ZTest Always
 
         // ------------------------------------------------------------------
         // Ambient Occlusion
