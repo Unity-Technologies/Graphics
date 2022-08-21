@@ -997,31 +997,11 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyColorPass);
             }
 
-            // Temporal Anti-alias (TAA) persistent data (over frame)
-            if (cameraData.taaPersistentData != null)
-            {
-                if (cameraData.IsTemporalAAEnabled())
-                {
-                    bool xrMultipassEnabled = false;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
-#endif
-                    bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
-
-                    // Fill new history with current frame
-                    if(allocation)
-                        cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
-                }
-                else
-                    cameraData.taaPersistentData.DeallocateTargets();
-            }
-
             // Motion vectors
-            // TAA in postprocess requires it to function. Force motion vec pass for TAA.
-            if (renderPassInputs.requiresMotionVectors || cameraData.IsTemporalAAEnabled())
+            if (renderPassInputs.requiresMotionVectors)
             {
                 var colorDesc = cameraTargetDescriptor;
-                colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
+                colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
 
@@ -1285,6 +1265,10 @@ namespace UnityEngine.Rendering.Universal
                 if (needsNormals || needsDepth)
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }
+
+            // TAA in postprocess requires it to function.
+            if (renderingData.cameraData.IsTemporalAAEnabled())
+                inputSummary.requiresMotionVectors = true;
 
             return inputSummary;
         }

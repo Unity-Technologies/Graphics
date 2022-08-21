@@ -46,7 +46,9 @@ public class UniversalGraphicsTests
 #if UNITY_ANDROID
         // On Android first scene often needs a bit more frames to load all the assets
         // otherwise the screenshot is just a black screen
-        if (!wasFirstSceneRan)
+        // NOTE: Added frames can cause a different frame captured on "single test" vs. "all tests"
+        // HACK: To alleviate the "different frame captured" issue, we wait at least N additional frames on the first scene.
+        if (!wasFirstSceneRan && firstSceneAdditionalFrames > waitFrames)
         {
             for (int i = 0; i < firstSceneAdditionalFrames; i++)
             {

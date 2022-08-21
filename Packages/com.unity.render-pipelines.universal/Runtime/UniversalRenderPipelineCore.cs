@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
-                return xr.GetProjMatrix(viewIndex); // TODO: XR jitter. How to pass to XR projection override?
+                return m_JitterMatrix * xr.GetProjMatrix(viewIndex);
 #endif
             return m_JitterMatrix * m_ProjectionMatrix;
         }
@@ -1627,6 +1627,8 @@ namespace UnityEngine.Rendering.Universal
         RG_DOFBlurBokeh,
         RG_DOFPostFilter,
         RG_DOFComposite,
+        RG_TAA,
+        RG_TAACopyHistory,
         RG_MotionBlur,
         RG_BloomSetupPass,
         RG_BloomPrefilter,

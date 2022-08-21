@@ -7,10 +7,12 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Fields
 
-        readonly Matrix4x4[] m_ViewProjection = new Matrix4x4[2];
-        readonly Matrix4x4[] m_PreviousViewProjection = new Matrix4x4[2];
-        readonly int[] m_LastFrameIndex = new int[2];
-        readonly float[] m_PrevAspectRatio = new float[2];
+        private const int k_EyeCount = 2;
+
+        readonly Matrix4x4[] m_ViewProjection = new Matrix4x4[k_EyeCount];
+        readonly Matrix4x4[] m_PreviousViewProjection = new Matrix4x4[k_EyeCount];
+        readonly int[] m_LastFrameIndex = new int[k_EyeCount];
+        readonly float[] m_PrevAspectRatio = new float[k_EyeCount];
 
         #endregion
 
@@ -18,13 +20,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal MotionVectorsPersistentData()
         {
-            for (int i = 0; i < m_ViewProjection.Length; i++)
-            {
-                m_ViewProjection[i] = Matrix4x4.identity;
-                m_PreviousViewProjection[i] = Matrix4x4.identity;
-                m_LastFrameIndex[i] = -1;
-                m_PrevAspectRatio[i] = -1;
-            }
+            Reset();
         }
 
         #endregion
@@ -56,6 +52,17 @@ namespace UnityEngine.Rendering.Universal
             get => m_PreviousViewProjection;
         }
         #endregion
+
+        public void Reset()
+        {
+            for (int i = 0; i < m_ViewProjection.Length; i++)
+            {
+                m_ViewProjection[i] = Matrix4x4.identity;
+                m_PreviousViewProjection[i] = Matrix4x4.identity;
+                m_LastFrameIndex[i] = -1;
+                m_PrevAspectRatio[i] = -1;
+            }
+        }
 
         internal int GetXRMultiPassId(ref CameraData cameraData)
         {

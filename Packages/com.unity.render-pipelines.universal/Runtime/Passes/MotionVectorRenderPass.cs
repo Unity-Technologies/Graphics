@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
         const string kPreviousViewProjectionNoJitterStereo = "_PrevViewProjMatrixStereo";
         const string kViewProjectionNoJitterStereo = "_NonJitteredViewProjMatrixStereo";
 #endif
-        internal static readonly GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
+        internal const GraphicsFormat k_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
 
@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
             return drawingSettings;
         }
 
+        // NOTE: depends on camera depth to reconstruct static geometry positions
         private static void DrawCameraMotionVectors(ScriptableRenderContext context, CommandBuffer cmd, Camera camera, Material cameraMaterial)
         {
             // Draw fullscreen quad
@@ -164,19 +165,22 @@ namespace UnityEngine.Rendering.Universal
         {
             internal TextureHandle motionVectorColor;
             internal TextureHandle motionVectorDepth;
+            internal TextureHandle cameraDepth;
             internal RenderingData renderingData;
             internal Material cameraMaterial;
             internal Material objectMaterial;
         }
 
-        internal void Render(RenderGraph renderGraph, in TextureHandle motionVectorColor, in TextureHandle motionVectorDepth, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ref TextureHandle cameraDepthTexture, in TextureHandle motionVectorColor, in TextureHandle motionVectorDepth, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Motion Vector Pass", out var passData, base.profilingSampler))
             {
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
+
                 passData.motionVectorColor = builder.UseColorBuffer(motionVectorColor, 0);
                 passData.motionVectorDepth = builder.UseDepthBuffer(motionVectorDepth, DepthAccess.Write);
+                passData.cameraDepth       = builder.ReadTexture(cameraDepthTexture);
                 passData.renderingData = renderingData;
                 passData.cameraMaterial = m_CameraMaterial;
                 passData.objectMaterial = m_ObjectMaterial;

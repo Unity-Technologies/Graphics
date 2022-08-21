@@ -593,6 +593,19 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
+                // Update camera motion tracking (prev matrices) from cameraData.
+                // Called and updated only once, as the same camera can be rendered multiple times.
+                // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
+                // NOTE: Shared between both Execute and Render (RG) paths.
+                if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                    additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
+
+                // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
+                // NOTE: Persistent data is kept over multiple frames. Its life-time differs from typical resources.
+                // NOTE: Shared between both Execute and Render (RG) paths.
+                if (cameraData.taaPersistentData != null)
+                    UpdateTemporalAATargets(ref cameraData);
+
                 RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
 
                 renderer.AddRenderPasses(ref renderingData);
@@ -926,7 +939,8 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.postProcessEnabled)
                 return false;
 
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && cameraData.renderType == CameraRenderType.Base)
+            if ((cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing || cameraData.IsTemporalAAEnabled())
+                && cameraData.renderType == CameraRenderType.Base)
                 return true;
 
             return CheckPostProcessForDepth();
@@ -1181,14 +1195,16 @@ namespace UnityEngine.Rendering.Universal
             // NOTE: depends on XR modifications of cameraTargetDescriptor.
             if (additionalCameraData != null)
             {
-                // get the shared TAA targets
+                // Initialize shared TAA target desc.
                 ref var desc = ref cameraData.cameraTargetDescriptor;
                 cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
                 cameraData.taaPersistentData.Init(desc.width, desc.height, desc.graphicsFormat, desc.vrUsage, desc.dimension);
 
                 ref var taaSettings = ref additionalCameraData.taaSettings;
                 cameraData.taaSettings = taaSettings;
-                taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0; // Trigger history clear. Typically only once!
+
+                // Decrease history clear counter. Typically clear is only 1 frame, but can be many for XR multipass eyes!
+                taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0;
             }
 #endif
 
@@ -1407,6 +1423,25 @@ namespace UnityEngine.Rendering.Universal
         static void CleanupLightData(ref LightData lightData)
         {
             lightData.originalIndices.Dispose();
+        }
+
+        private static void UpdateTemporalAATargets(ref CameraData cameraData)
+        {
+            if (cameraData.IsTemporalAAEnabled())
+            {
+                bool xrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+#endif
+                bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
+
+                // Fill new history with current frame
+                // XR Multipass renders a "frame" per eye
+                if(allocation)
+                    cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
+            }
+            else
+                cameraData.taaPersistentData.DeallocateTargets();
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)

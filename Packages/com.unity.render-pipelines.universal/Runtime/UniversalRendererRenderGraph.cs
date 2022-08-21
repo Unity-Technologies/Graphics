@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CameraData cameraData = renderingData.cameraData;
+            ref CameraData cameraData = ref renderingData.cameraData;
             useRenderPassEnabled = false;
 
             SetupRenderingLayers(ref renderingData);
@@ -429,11 +429,6 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Render(renderGraph, out frameResources.cameraOpaqueTexture, in m_ActiveRenderGraphColor, downsamplingMethod, ref renderingData);
             }
 
-            if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
-            {
-                m_MotionVectorPass.Render(renderGraph, in frameResources.motionVectorColor, in frameResources.motionVectorDepth, ref renderingData);
-            }
-
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
@@ -445,6 +440,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresDepthCopyPass && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
                 m_CopyDepthPass.Render(renderGraph, ref frameResources.cameraDepthTexture, in m_ActiveRenderGraphDepth, ref renderingData);
+
+            // TODO: Postprocess pass should be able configure its render pass inputs per camera per frame (settings) BEFORE building any of the graph
+            // TODO: Alternatively we could always build the graph (a potential graph) and cull away unused passes if "record + cull" is fast enough.
+            // TODO: Currently we just override "requiresMotionVectors" for TAA in GetRenderPassInputs()
+            if (renderPassInputs.requiresMotionVectors)
+            {
+                // Depends on camera depth
+                m_MotionVectorPass.Render(renderGraph, ref frameResources.cameraDepthTexture, in frameResources.motionVectorColor, in frameResources.motionVectorDepth, ref renderingData);
+            }
 
             RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingTransparents);
 
@@ -500,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
 
         bool RequireDepthPrepass(ref RenderingData renderingData, RenderPassInputSummary renderPassInputs)
         {
-            var cameraData = renderingData.cameraData;
+            ref var cameraData = ref renderingData.cameraData;
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             // If Camera's PostProcessing is enabled and if there any enabled PostProcessing requires depth texture as shader read resource (Motion Blur/DoF)
             bool cameraHasPostProcessingWithDepth = applyPostProcessing && cameraData.postProcessingRequiresDepthTexture;
@@ -576,10 +580,8 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateMotionVectorTextures(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
         {
-            SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
-
             var colorDesc = descriptor;
-            colorDesc.graphicsFormat = GraphicsFormat.R16G16_SFloat; colorDesc.depthBufferBits = (int)DepthBits.None;
+            colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat; colorDesc.depthBufferBits = (int)DepthBits.None;
             frameResources.motionVectorColor = CreateRenderGraphTexture(renderGraph, colorDesc, "_MotionVectorTexture", true);
 
             var depthDescriptor = descriptor;
