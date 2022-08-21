@@ -2848,6 +2848,9 @@ namespace UnityEditor.VFX.UI
 
         public void UpdateIsSubgraph()
         {
+            if (controller == null)
+                return;
+
             m_BackButton.style.display = controller.graph != null && controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.GetWindow(this).CanPopResource()
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
