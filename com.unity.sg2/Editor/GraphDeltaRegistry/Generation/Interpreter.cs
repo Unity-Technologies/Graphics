@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
         }
 
-        static void BuildPropertyAttributes(
+        internal static void BuildPropertyAttributes(
             PortHandler port,
             Registry registry,
             ShaderContainer container,
@@ -185,6 +185,18 @@ namespace UnityEditor.ShaderGraph.Generation
                             {
                                 varInBuilder.AddAttribute(new ShaderAttribute.Builder(container, "HDR").Build());
                             }
+                        }
+                    }
+
+                    if (portTypeField.GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
+                    {
+                        var useTilingOffset = port.GetField<bool>(kTextureUseTilingOffset)?.GetData() ?? false;
+                        varInBuilder.AddAttribute(new ShaderAttribute.Builder(container, useTilingOffset ? "ScaleOffset" : "NoScaleOffset").Build());
+
+                        var isNormalMap = port.GetField<TextureDefaultType>(kTextureDefaultType)?.GetData() is TextureDefaultType.NormalMap;
+                        if (isNormalMap)
+                        {
+                            varInBuilder.AddAttribute(new ShaderAttribute.Builder(container, "Normal").Build());
                         }
                     }
 
