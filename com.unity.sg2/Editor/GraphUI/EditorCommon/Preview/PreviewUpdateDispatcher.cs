@@ -161,14 +161,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
 
             if (TimedNodesShouldUpdate(m_OwningWindowReference))
-            {
                 foreach (var timeDependentNode in m_TimeDependentNodes)
-                {
-                    // TODO: This currently results in some kinda memory overflow in the GraphModelStateComponent as its trying to track changes
-                    // We may want to spread out updates somehow
                     m_PreviewHandlerInstance.RequestPreviewUpdate(timeDependentNode, m_Scheduler, forceRerender: true);
-                }
-            }
         }
     }
 }
