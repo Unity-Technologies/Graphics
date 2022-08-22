@@ -1,3 +1,4 @@
+//#define INTERPRETER_DEBUG
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,7 +6,9 @@ using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
+using PropertyAttribute = UnityEditor.ShaderFoundry.PropertyAttribute;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
@@ -75,6 +78,13 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     m_list.Add(field);
                 }
+
+#if INTERPRETER_DEBUG
+                else
+                {
+                    Debug.Log($"Rejecting StructField {field.Type.Name} {field.Name}; duplicate");
+                }
+#endif
             }
 
             public IEnumerator<StructField> GetEnumerator()

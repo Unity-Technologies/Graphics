@@ -681,21 +681,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             return output;
         }
 
-        private void ReplaceData(Element root, ElementID idToReplace, Element toReplaceWith)
-        {
-            var toReplace = SearchRelative(root, idToReplace);
-            if(toReplace != null)
-            {
-                toReplaceWith.Parent = toReplace.Parent;
-                toReplaceWith.Children = toReplace.Children;
-                toReplaceWith.Parent.Children.Remove(toReplace);
-                foreach(var child in toReplace.Children)
-                {
-                    child.Parent = toReplaceWith;
-                }
-            }
-        }
-
         private IEnumerable<Element> FlatStructurePartialSearch(ElementID searchID)
         {
             Stack<Element> workingSet = new Stack<Element>();
@@ -746,7 +731,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
                 {
-                    ReplaceData(m_flatStructure, id, addedElement.MakeCopy());
                     m_flatStructureLookup[id] = addedElement;
                 }
             }
@@ -763,7 +747,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
-                ReplaceData(m_flatStructure, removedElementId, replacement.MakeCopy());
                 m_flatStructureLookup[removedElementId] = replacement;
             }
             else

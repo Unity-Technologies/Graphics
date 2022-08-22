@@ -37,12 +37,12 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.AddContextNode("VertIn");
             graph.AddContextNode("VertOut");
             graph.AddContextNode(propertyKey.Name);
-            graph.AddContextNode(contextKey.Name);
+            graph.AddContextNode(contextKey);
 
             graph.RebuildContextData("VertIn", GetTarget(), "UniversalPipeline", "VertexDescription", true);
             graph.RebuildContextData("VertOut", GetTarget(), "UniversalPipeline", "VertexDescription", false);
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
-            graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
+            //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
 
             //CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
             //foreach (var descriptor in descriptors)
@@ -155,9 +155,19 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             ContextBuilder.AddReferableEntry(propContext, TYPE.Float, "Foo", registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: "Foo_Var");
 
+            var portMatch = propContext.GetPorts().Where(p => string.CompareOrdinal(p.ID.LocalPath, "Foo") == 0);
+            Assert.IsTrue(portMatch.Any());
+
             graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName);
             graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");
+
+            portMatch = propContext.GetPorts().Where(p => string.CompareOrdinal(p.ID.LocalPath, "Foo") == 0);
+            Assert.IsTrue(portMatch.Any());
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
+
+            portMatch = propContext.GetPorts().Where(p => string.CompareOrdinal(p.ID.LocalPath, "Foo") == 0);
+            Assert.IsTrue(portMatch.Any());
+            Assert.IsNotNull(propContext.GetPort("Foo"));
 
             var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
             var shader = MakeShader(shaderString);
@@ -260,6 +270,18 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                 File.WriteAllBytes($"Assets/FailureBadUV.jpg", rt.EncodeToJPG());
                 throw e;
             }
+        }
+
+        [Test]
+        public void TestVertex()
+        {
+            var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
+            var dup = graph.DuplicateNode(graph.GetNode("Add1"), true, "Add1_Copy");
+            graph.RemoveEdge("Add1_Copy.Out", "Add3.In1");
+            graph.AddEdge("Add1_Copy.Out", "VertOut.Position");
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
+            var shader = MakeShader(shaderString);
+
         }
 
         [Test]
