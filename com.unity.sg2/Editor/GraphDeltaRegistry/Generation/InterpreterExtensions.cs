@@ -43,7 +43,18 @@ namespace UnityEditor.ShaderGraph.Generation
                         return $"{val}";
                     }
                 case BaseTextureType _:
-                    return "\"white\" {}";
+                    var typeField = port.GetField<TextureDefaultType>(kTextureDefaultType);
+                    var valueString = typeField?.GetData() switch
+                    {
+                        TextureDefaultType.White => "white",
+                        TextureDefaultType.Black => "black",
+                        TextureDefaultType.Grey => "grey",
+                        TextureDefaultType.NormalMap => "bump",
+                        TextureDefaultType.LinearGrey => "linearGrey",
+                        TextureDefaultType.Red => "red",
+                        _ => "white"
+                    };
+                    return $"\"{valueString}\" {{}}";
                 default:
                     break;
             }
