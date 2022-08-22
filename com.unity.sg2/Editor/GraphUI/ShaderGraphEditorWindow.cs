@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         ShaderGraphGraphTool m_GraphTool;
 
         MainPreviewView m_MainPreviewView;
+        public MainPreviewView MainPreviewView => m_MainPreviewView;
 
         protected PreviewManager m_PreviewManager = new();
 
@@ -265,6 +266,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // NEW
             m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
+
+            // Give main preview its view-model
+            foreach (var nodeModel in shaderGraphModel.NodeModels)
+            {
+                if(nodeModel is GraphDataContextNodeModel contextNodeModel && contextNodeModel.IsMainContextNode())
+                    m_MainPreviewView.SetTargetPreviewUpdateListener(contextNodeModel);
+            }
 
             ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
 

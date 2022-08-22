@@ -1,4 +1,6 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -9,34 +11,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class PreviewStateObserver : StateObserver
     {
         PreviewStateComponent m_PreviewStateComponent;
-        GraphModelStateComponent m_GraphModelStateComponent;
+        ShaderGraphView m_ShaderGraphView;
+        MainPreviewView m_MainPreviewView;
 
-        public PreviewStateObserver(PreviewStateComponent previewStateComponent,
-                                    GraphModelStateComponent graphModelStateComponent)
-            : base(new [] {previewStateComponent},
-                new [] { graphModelStateComponent})
+        public PreviewStateObserver(
+            PreviewStateComponent previewStateComponent,
+            ShaderGraphView shaderGraphView,
+            MainPreviewView mainPreviewView)
+            : base(previewStateComponent)
         {
             m_PreviewStateComponent = previewStateComponent;
-            m_GraphModelStateComponent = graphModelStateComponent;
+            m_ShaderGraphView = shaderGraphView;
+            m_MainPreviewView = mainPreviewView;
         }
 
         public override void Observe()
         {
-            using (var updater = m_GraphModelStateComponent.UpdateScope)
             using (var previewObservation = this.ObserveState(m_PreviewStateComponent))
             {
                 if (previewObservation.UpdateType != UpdateType.None)
                 {
-                    foreach (var listener in m_PreviewStateComponent.GetChangedListeners())
+                    var changedListeners = m_PreviewStateComponent.GetChangedListeners();
+
+                    foreach (var listener in changedListeners)
                     {
                         var newTexture = m_PreviewStateComponent.GetPreviewTexture(listener.ListenerID);
                         listener.HandlePreviewTextureUpdated(newTexture);
-
-                        if (listener is IGraphElementModel graphElementModel)
-                        {
-                            updater.MarkChanged(graphElementModel);
-                        }
                     }
+
+                    m_ShaderGraphView.HandlePreviewUpdates(changedListeners.Cast<IGraphElementModel>());
+
+                    //m_MainPreviewView.HandlePreviewUpdates();
                 }
             }
         }

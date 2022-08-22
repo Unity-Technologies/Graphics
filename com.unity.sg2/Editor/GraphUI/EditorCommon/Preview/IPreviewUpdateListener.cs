@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages);
 
+        Texture PreviewTexture { get; }
+
         int CurrentVersion { get; set; }
 
         string ListenerID { get; }

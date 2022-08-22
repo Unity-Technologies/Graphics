@@ -48,6 +48,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         ContextualMenuManipulator m_ContextualMenuManipulator;
 
+        IPreviewUpdateListener m_PreviewUpdateListener;
+
         public MainPreviewView(Dispatcher dispatcher)
         {
             m_CommandDispatcher = dispatcher;
@@ -63,6 +65,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             BuildPreviewMeshIndex();
 
             this.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
+        /// <summary>
+        /// This sets the preview update listener this main preview visual element gets its data from
+        /// </summary>
+        /// <param name="previewUpdateListener"> The view-model for the main preview </param>
+        public void SetTargetPreviewUpdateListener(IPreviewUpdateListener previewUpdateListener)
+        {
+            m_PreviewUpdateListener = previewUpdateListener;
+        }
+
+        public void HandlePreviewUpdates()
+        {
+            mainPreviewTexture = m_PreviewUpdateListener.PreviewTexture;
         }
 
         void OnAttachToPanel(AttachToPanelEvent evt)

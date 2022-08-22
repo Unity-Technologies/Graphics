@@ -39,8 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Note: These using statements are necessary to increment last observed version
             using (var graphViewObservation = this.ObserveState(m_GraphModelStateComponent))
             {
-                if (graphViewObservation.UpdateType != UpdateType.None
-                    && m_GraphModelStateComponent.GraphModel is ShaderGraphModel shaderGraphModel)
+                if (graphViewObservation.UpdateType != UpdateType.None)
                 {
                     var changeset = m_GraphModelStateComponent.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
                     var addedModels = changeset.NewModels;
@@ -53,7 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     HandleChangedModels(changedModels);
 
-                    shaderGraphModel.HandlePostDuplicationEdgeFixup();
+                    graphModel.HandlePostDuplicationEdgeFixup();
                 }
             }
         }

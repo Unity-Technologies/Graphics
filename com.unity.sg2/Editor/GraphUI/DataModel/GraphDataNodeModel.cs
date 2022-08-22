@@ -348,6 +348,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
         {
             OnPreviewTextureUpdated(newPreviewTexture);
+            CurrentVersion++;
         }
 
         public void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages)
