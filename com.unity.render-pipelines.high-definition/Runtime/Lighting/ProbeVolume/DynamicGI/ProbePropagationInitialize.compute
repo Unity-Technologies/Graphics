@@ -239,7 +239,7 @@ void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
         const int SAMPLE_COUNT = 1024;
         const float SAMPLE_COUNT_INVERSE = 1.0 / (float)SAMPLE_COUNT;
         const bool NON_NEGATIVE_SOLVE = true;
-        const bool GAUSS_SEIDEL_ITERATION = false;
+        const bool GAUSS_SEIDEL_ITERATION = true;
         float3 coefficients[NEIGHBOR_AXIS_COUNT];
         float monteCarloIntegrals[NEIGHBOR_AXIS_COUNT];
         float totalSampleWeight = 0.0;
@@ -273,7 +273,6 @@ void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
                 basisAxisHit.mean = basisAxisHitDirectionWS;
                 
                 float weight = ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS);
-                weight *= differentialArea;
                 delta -= coefficients[axisIndex] * weight;
                 sampleLobeWeights[axisIndex] = weight;
             }

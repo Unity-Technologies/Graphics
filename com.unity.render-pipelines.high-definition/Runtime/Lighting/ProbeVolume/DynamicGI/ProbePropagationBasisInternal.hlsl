@@ -44,11 +44,22 @@ void ComputeAmbientDiceSharpAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out
     componentNonZeroCount += abs(axisDirection.y) > 1e-3 ? 1 : 0;
     componentNonZeroCount += abs(axisDirection.z) > 1e-3 ? 1 : 0;
 
+#if true
+    float amplitudeEdge = 0.76;
+    float amplitudeCorner = 0.52;
+    float amplitudeOther = 0.73;
+    amplitude = (componentNonZeroCount == 3)
+        ? amplitudeCorner // diagonal
+        : ((componentNonZeroCount == 2)
+            ? amplitudeEdge // edge
+            : amplitudeOther); // center
+#else
     amplitude = (componentNonZeroCount == 3)
         ? 0.3087 // diagonal
         : ((componentNonZeroCount == 2)
             ? 0.693 // edge
             : 0.64575); // center
+#endif
     sharpness = (componentNonZeroCount == 3)
         ? 9.0 // diagonal
         : ((componentNonZeroCount == 2)
@@ -176,6 +187,18 @@ ZHWindow ZHWindowComputeFromAmbientDiceSharpness(float sharpness)
     ZHWindow zhWindow;
     
     float3 coefficients = ComputeZonalHarmonicFromAmbientDiceSharpness(sharpness);
+    zhWindow.data[0] = coefficients.x;
+    zhWindow.data[1] = coefficients.y;
+    zhWindow.data[2] = coefficients.z;
+
+    return zhWindow;
+}
+
+ZHWindow ZHWindowComputeFromAmbientDiceWrappedSharpness(float sharpness)
+{
+    ZHWindow zhWindow;
+    
+    float3 coefficients = ComputeZonalHarmonicFromAmbientDiceWrappedSharpness(sharpness);
     zhWindow.data[0] = coefficients.x;
     zhWindow.data[1] = coefficients.y;
     zhWindow.data[2] = coefficients.z;

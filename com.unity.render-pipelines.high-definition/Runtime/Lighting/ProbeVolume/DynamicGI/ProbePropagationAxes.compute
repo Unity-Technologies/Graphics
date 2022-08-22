@@ -224,7 +224,10 @@ float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int a
 #define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
 #define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (1)
 #define BASIS_FROM_SH_MODE_ZH_FIT (2)
-#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
+#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+#define SAMPLE_NEIGHBORS_MODE_HIT (0)
+#define SAMPLE_NEIGHBORS_MODE_MISS (1)
+#define SAMPLE_NEIGHBORS_MODE SAMPLE_NEIGHBORS_MODE_HIT
 
 [numthreads(GROUP_SIZE, 1, 1)]
 void PropagateLight(uint3 id : SV_DispatchThreadID)
@@ -325,10 +328,14 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         SHIncomingIrradiance shIncomingIrradiance = shIncomingIrradianceProbeCurrent;
                     #endif
 
-                    float weight = neighborAxisLookup.propagationWeight;
+                    float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;//neighborAxisLookup.propagationWeight;
 
 #if BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
                     {
+
+                        BasisAxisMiss basisAxisNeighborMiss = ComputeBasisAxisMiss(neighborAxisLookup.neighborDirection, _Sharpness, _PropagationSharpness);
+                        BasisAxisMiss basisAxisNeighborMissWS = basisAxisNeighborMiss;
+                        basisAxisNeighborMissWS.mean = mul(basisAxisNeighborMiss.mean, probeVolumeLtw);
 
                         BasisAxisHit basisAxisNeighborHitWS = basisAxisNeighborHit;
                         basisAxisNeighborHitWS.mean = mul(basisAxisNeighborHitWS.mean, probeVolumeLtw);
@@ -364,12 +371,23 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                             float3 basisAxisHitDirectionOS = basisAxisHit.mean;
                             basisAxisHit.mean = basisAxisHitDirectionWS;
 
+#if SAMPLE_NEIGHBORS_MODE == SAMPLE_NEIGHBORS_MODE_HIT
                             // TODO: FINISH LOOKING AT THIS INTEGRAL
                             incomingHitRadiance += sampleIncomingRadiance
                                 * DIFFERENTIAL_AREA
                                 * ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS)
-                                * ComputeBasisAxisHitEvaluateFromDirection(basisAxisNeighborHitWS, sampleDirectionWS);
-                                //* weight;
+                                * ComputeBasisAxisHitEvaluateFromDirection(basisAxisNeighborHitWS, sampleDirectionWS)
+                                // / basisAxisNeighborHitIntegral
+                                ;//* weight;
+#elif SAMPLE_NEIGHBORS_MODE == SAMPLE_NEIGHBORS_MODE_MISS
+                            incomingMissRadiance += sampleIncomingRadiance
+                                * DIFFERENTIAL_AREA
+                                * ComputeBasisAxisMissEvaluateFromDirection(basisAxisNeighborMissWS, sampleDirectionWS)
+                                * InvalidScale(probeAxisValidity);
+#else
+#error "Undefined SAMPLE_NEIGHBORS_MODE";
+#endif
+
                             basisAxisHit.mean = basisAxisHitDirectionOS; 
                         }
                     }
@@ -380,14 +398,31 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                     // It's important to note that this is an approximation - because our hit axis lobe is not a zonal harmonic - it is an SG or AmbientDice lobe,
                     // but it can be approximately represented as an ZH.
                     // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indistinguishable.
-                    float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
-                    ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
+                    float3 basisAxisHitDirectionWS = mul(neighborAxisLookup.neighborDirection, probeVolumeLtw);
+#if SAMPLE_NEIGHBORS_MODE == SAMPLE_NEIGHBORS_MODE_HIT
+                    ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisNeighborHit);//basisAxisHit);
                     SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
-                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;// * basisAxisHit.amplitude;
+                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;
+#elif SAMPLE_NEIGHBORS_MODE == SAMPLE_NEIGHBORS_MODE_MISS
+                    BasisAxisMiss basisAxisNeighborMiss = ComputeBasisAxisMiss(neighborAxisLookup.neighborDirection, _Sharpness, _PropagationSharpness);
+                    ZHWindow basisAxisNeighborMissZHWindow = ComputeZHWindowFromBasisAxisMiss(basisAxisNeighborMiss);
+                    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisNeighborMissZHWindow);
+                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * neighborAxisLookup.propagationWeight;
+#else
+#error "Undefined SAMPLE_NEIGHBORS_MODE";
+#endif
 
 #elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_SAMPLE_PEAKS
-                    float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
-                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;// * basisAxisHit.amplitude;
+                    float3 basisAxisHitDirectionWS = mul(neighborAxisLookup.neighborDirection, probeVolumeLtw);
+                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS)
+#if SAMPLE_NEIGHBORS_MODE == SAMPLE_NEIGHBORS_MODE_HIT
+                        * weight;
+#elif SAMPLE_NEIGHBORS_MODE == SAMPLE_NEIGHBORS_MODE_MISS
+                        * neighborAxisLookup.propagationWeight;
+#else
+#error "Undefined SAMPLE_NEIGHBORS_MODE";
+#endif
+
 #endif
                 }
 #endif

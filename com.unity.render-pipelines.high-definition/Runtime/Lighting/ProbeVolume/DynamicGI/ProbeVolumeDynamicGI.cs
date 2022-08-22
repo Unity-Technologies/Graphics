@@ -1457,11 +1457,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     hitWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
                     propagationWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
                 }
-                for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
-                {
-                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight /= hitWeights;
-                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeights;
-                }
+                // Debug.Log("hitWeights = " + hitWeights);
+                // Debug.Log("propagationWeights = " + propagationWeights);
+                // for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
+                // {
+                //     _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight /= hitWeights;
+                //     _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeights;
+                // }
             }
         }
 

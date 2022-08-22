@@ -73,11 +73,21 @@ namespace UnityEngine.Rendering.HighDefinition
             componentNonZeroCount += Mathf.Abs(axisDirection.y) > 1e-3 ? 1 : 0;
             componentNonZeroCount += Mathf.Abs(axisDirection.z) > 1e-3 ? 1 : 0;
 
+            float amplitudeEdge = 0.76f;
+            float amplitudeCorner = 0.52f;
+            float amplitudeOther = 0.73f;
+
             amplitude = (componentNonZeroCount == 3)
-                ? 0.3087f // diagonal
+                ? amplitudeCorner // diagonal
                 : ((componentNonZeroCount == 2)
-                    ? 0.693f // edge
-                    : 0.64575f); // center
+                    ? amplitudeEdge // edge
+                    : amplitudeOther); // center
+
+            // amplitude = (componentNonZeroCount == 3)
+            //     ? 0.3087f // diagonal
+            //     : ((componentNonZeroCount == 2)
+            //         ? 0.693f // edge
+            //         : 0.64575f); // center
             sharpness = (componentNonZeroCount == 3)
                 ? 9f // diagonal
                 : 6f; // center
