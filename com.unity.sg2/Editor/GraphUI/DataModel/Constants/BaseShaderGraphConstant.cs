@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected string portName;
         GraphHandler graphHandler => graphModel.GraphHandler;
 
-        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null && graphHandler.GetNode(nodeName) != null;
+        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null;
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;

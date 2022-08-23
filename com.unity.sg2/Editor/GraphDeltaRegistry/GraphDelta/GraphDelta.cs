@@ -154,6 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var last = contextNodes[^1];
                 var tailHandler = m_data.GetHandler(last, this, newContextNode.Registry).ToNodeHandler();
                 AddEdge(tailHandler.AddPort("Out", false, false).ID, newContextNode.AddPort("In", true, false).ID);
+                contextNodes.Add(newContextNode.ID.FullPath);
             }
         }
 
