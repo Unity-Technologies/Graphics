@@ -6,6 +6,7 @@ using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEngine;
+using static UnityEditor.ShaderGraph.Generation.Interpreter;
 using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
@@ -69,13 +70,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         static List<StructField> GetBuiltInputs(PortHandler port)
         {
             var container = new ShaderContainer();
-            var outputs = new List<StructField>();
-            var inputs = new List<StructField>();
+            var outputs = new VariableRegistry();
+            var inputs = new VariableRegistry(); 
             var textures = new List<(string, Texture)>();
 
             Interpreter.BuildPropertyAttributes(port, registry, container, ref outputs, ref inputs, ref textures);
 
-            return inputs;
+            return inputs.ToList();
         }
 
         [Test]
