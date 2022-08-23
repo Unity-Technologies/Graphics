@@ -416,6 +416,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 UpdateRenderData(nodePreviewData);
             }
 
+            PreviewTestUtils.SaveRTToDisk(nodePreviewData.renderTexture, $"Assets/{nodeName}.png");
             // Mimic PreviewService writing to the update receiver
             scheduler.Execute(
                     () =>
