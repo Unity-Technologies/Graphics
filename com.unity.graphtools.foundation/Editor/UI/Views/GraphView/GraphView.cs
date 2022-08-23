@@ -1476,7 +1476,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             UpdateType updateType;
 
-            // The graph model state is being updated by someone, leads to current version incrementing, causing total rebuild
             using (var graphModelObservation = m_UpdateObserver.ObserveState(GraphViewModel.GraphModelState))
             using (var selectionObservation = m_UpdateObserver.ObserveState(GraphViewModel.SelectionState))
             using (var highlighterObservation = m_UpdateObserver.ObserveState(GraphTool.HighlighterState))
