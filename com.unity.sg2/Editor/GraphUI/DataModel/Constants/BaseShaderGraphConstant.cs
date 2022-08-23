@@ -19,15 +19,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected string portName;
         GraphHandler graphHandler => graphModel.GraphHandler;
 
-        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null && graphHandler.GetNode(nodeName) != null;
+        // TODO: shouldn't need to special case if we're a searcher preview.
+        NodeHandler nodeHandler => graphHandler?.GetNode(nodeName)
+            ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName);
+
+        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null && nodeHandler != null;
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;
-            var nodeReader = graphHandler.GetNode(nodeName)
-                ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
             try
             {
-                var portReader = nodeReader.GetPort(portName);
+                var portReader = nodeHandler.GetPort(portName);
                 var typeField = portReader.GetTypeField();
                 return typeField;
             }
