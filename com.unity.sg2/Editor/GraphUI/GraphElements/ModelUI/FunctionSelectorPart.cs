@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -7,14 +8,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class FunctionSelectorPart : BaseModelViewPart
     {
-        public override VisualElement Root => m_rootVisualElement;
         private static readonly string ROOT_CLASS_NAME = "sg-function-selector-part";
+        public override VisualElement Root => m_rootVisualElement;
         private readonly GraphDataNodeModel m_graphDataNodeModel;
         private VisualElement m_rootVisualElement;
         private DropdownField m_dropdownField;
         private int m_selectedFunctionIdx;
-        private readonly List<string> functionNames;
-        private readonly List<string> displayNames;
+        private readonly List<string> m_functionNames;
+        private readonly List<string> m_displayNames;
+        private readonly string m_label;
 
         public FunctionSelectorPart(
             string name,
@@ -22,12 +24,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             IModelView ownerElement,
             string parentClassName,
             string selectedFunctionName,
-            IReadOnlyDictionary<string, string> options) : base(name, model, ownerElement, parentClassName)
+            IReadOnlyDictionary<string, string> options,
+            string label = ""): base(name, model, ownerElement, parentClassName)
         {
             m_graphDataNodeModel = model as GraphDataNodeModel;
-            functionNames = options.Keys.ToList();
-            displayNames = options.Values.ToList();
-            m_selectedFunctionIdx = functionNames.IndexOf(selectedFunctionName);
+            m_functionNames = options.Keys.ToList();
+            m_displayNames = options.Values.ToList();
+            m_selectedFunctionIdx = m_functionNames.IndexOf(selectedFunctionName);
+            m_label = label;
         }
 
         protected override void BuildPartUI(VisualElement parent)
@@ -38,7 +42,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 name: "FunctionSelectorPart",
                 rootClassName: ROOT_CLASS_NAME);
             m_dropdownField = m_rootVisualElement.Q<DropdownField>("function-selector-part");
-            m_dropdownField.choices = displayNames;
+            if (!String.IsNullOrEmpty(m_label))
+            {
+                m_dropdownField.label = m_label;
+            }
+            m_dropdownField.choices = m_displayNames;
             m_dropdownField.index = m_selectedFunctionIdx;
             m_dropdownField.RegisterCallback<ChangeEvent<string>>(HandleSelectionChange);
             parent.Add(m_rootVisualElement);
@@ -53,8 +61,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             int previousIndex = m_selectedFunctionIdx;
             int newIndex = m_dropdownField.index;
-            string newFunctionName = functionNames[newIndex];
-            string previousFunctionName = functionNames[previousIndex];
+            string newFunctionName = m_functionNames[newIndex];
+            string previousFunctionName = m_functionNames[previousIndex];
             var cmd = new ChangeNodeFunctionCommand(
                 m_graphDataNodeModel,
                 newFunctionName,

@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
             SelectionStateComponent selectionState,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             BypassNodesCommand command)
         {
             BypassNodesCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
 
                 // Need to update downstream nodes previews of the bypassed node
-                previewManager.OnNodeFlowChanged(graphData.graphDataName);
+                previewUpdateDispatcher.OnListenerConnectionChanged(graphData.graphDataName);
             }
         }
 
@@ -39,7 +39,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
             SelectionStateComponent selectionState,
-            PreviewManager previewManager,
             DeleteElementsCommand command)
         {
             var modelsToDelete = command.Models.ToList();
@@ -107,99 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     selectionUpdater.SelectElements(selectedModels, false);
                 }
 
-                // Update previews
-                foreach (var model in deletedModels)
-                {
-                    switch (model)
-                    {
-                        case EdgeModel edgeModel:
-                            if (edgeModel.ToPort.NodeModel is GraphDataNodeModel graphDataNodeModel)
-                                previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
-                            break;
-                        case GraphDataNodeModel deletedNode:
-                            previewManager.OnNodeFlowChanged(deletedNode.graphDataName, true);
-                            break;
-                        case GraphDataVariableNodeModel variableNode:
-                            previewManager.OnNodeFlowChanged(variableNode.graphDataName, true);
-                            break;
-                    }
-                }
-
-                // Remove CLDS data
-                foreach (var model in deletedModels)
-                {
-                    switch (model)
-                    {
-                        // Delete backing data for graph data nodes.
-                        case GraphDataNodeModel graphDataNode:
-                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
-                            break;
-                        // Delete backing data for variable nodes.
-                        case GraphDataVariableNodeModel variableNode:
-                            var declarationModel = variableNode.DeclarationModel as GraphDataVariableDeclarationModel;
-                            graphModel.GraphHandler.RemoveReferenceNode(variableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
-                            break;
-                    }
-                }
-
                 graphUpdater.MarkDeleted(deletedModels);
-            }
-        }
-
-        public static void HandleDeleteBlackboardItems(
-            UndoStateComponent undoState,
-            GraphModelStateComponent graphModelState,
-            SelectionStateComponent selectionState,
-            PreviewManager previewManager,
-            DeleteElementsCommand command)
-        {
-            var modelsToDelete = command.Models.ToList();
-            if (modelsToDelete.Count == 0)
-                return;
-
-            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
-
-            // Update previews
-            foreach (var model in modelsToDelete)
-            {
-                switch (model)
-                {
-                    case GraphDataVariableDeclarationModel variableDeclarationModel:
-
-                        // Gather all variable nodes linked to this blackboard item
-                        var linkedVariableNodes = graphModel.GetLinkedVariableNodes(variableDeclarationModel.graphDataName);
-                        foreach (var linkedVariableNode in linkedVariableNodes)
-                        {
-                            var graphDataVariableNode = linkedVariableNode as GraphDataVariableNodeModel;
-                            // Notify downstream nodes to update previews
-                            previewManager.OnNodeFlowChanged(graphDataVariableNode.graphDataName);
-                        }
-                        break;
-                }
-            }
-
-            // Delete GTF data and linked edges, variable nodes
-            DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
-
-            var selectionStateComponents = undoState.State.AllStateComponents.OfType<SelectionStateComponent>();
-
-            foreach (var selection in selectionStateComponents)
-            {
-                using (var selectionStateUpdater = selection.UpdateScope)
-                {
-                    selectionStateUpdater.SelectElements(modelsToDelete, false);
-                }
-            }
-
-            // Remove CLDS data
-            foreach (var model in modelsToDelete)
-            {
-                switch (model)
-                {
-                    case GraphDataVariableDeclarationModel variableDeclarationModel:
-                        graphModel.GraphHandler.RemoveReferableEntry(variableDeclarationModel.contextNodeName, variableDeclarationModel.graphDataName);
-                        break;
-                }
             }
         }
 
@@ -230,30 +137,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // deleted in the above loop.
             var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
             return deletedModels;
-        }
-
-        public static void HandleUpdateConstantValue(
-            UndoStateComponent undoState,
-            GraphModelStateComponent graphModelState,
-            PreviewManager previewManager,
-            UpdateConstantValueCommand updateConstantValueCommand)
-        {
-            UpdateConstantValueCommand.DefaultCommandHandler(undoState, graphModelState, updateConstantValueCommand);
-
-            var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            if (updateConstantValueCommand.Constant is not BaseShaderGraphConstant cldsConstant) return;
-
-            if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
-            {
-                previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
-                return;
-            }
-
-            var nodeWriter = shaderGraphModel.GraphHandler.GetNode(cldsConstant.NodeName);
-            if (nodeWriter != null)
-            {
-                previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
-            }
         }
     }
 }

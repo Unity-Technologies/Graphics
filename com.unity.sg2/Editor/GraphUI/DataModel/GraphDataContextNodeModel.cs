@@ -19,6 +19,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool HasPreview => false;
 
+        public bool IsMainContextNode()
+        {
+            return graphDataName == shaderGraphModel.DefaultContextName;
+        }
+
         public IPortModel GetInputPortForEntry(string name) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == name);
 
         public void CreateEntry(string entryName, TypeHandle typeHandle)

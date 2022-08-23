@@ -162,13 +162,15 @@ namespace UnityEditor.ShaderGraph.Defs
         {
             // find the selected function
             FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
-            if (nodeHandler.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
+            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(SELECTED_FUNCTION_FIELD_NAME);
+            string selectedFunctionName = selectedFunctionField.GetData<string>();
+            if (!m_nameToFunction.ContainsKey(selectedFunctionName))
             {
-                string functionName = nodeHandler.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
-                if (m_nameToFunction.ContainsKey(functionName))
-                {
-                    selectedFunction = m_nameToFunction[functionName];
-                }
+                Debug.LogWarning($"Cannot select function with name {selectedFunctionName}. No FunctionDescriptor with this name available.");
+            }
+            else
+            {
+                selectedFunction = m_nameToFunction[selectedFunctionName];
             }
 
             // determine the dynamic fallback type
