@@ -439,5 +439,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data.CopyDataBranch(sourceNode, output);
             return output;
         }
+        
     }
 }
