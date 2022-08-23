@@ -24,10 +24,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
             string graphViewName,
-            PreviewManager previewManager,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
-            : base(window, graphTool, graphViewName, previewManager, previewUpdateDispatcher, displayMode)
+            : base(window, graphTool, graphViewName, previewUpdateDispatcher, displayMode)
         {
 
         }

@@ -78,9 +78,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (nodeModel)
                 {
-                    case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
-                        OnNodeAdded(contextNode.graphDataName, contextNode.Guid);
-                        break;
+                    //case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
+                    //    OnNodeAdded(contextNode.graphDataName, contextNode.Guid);
+                    //    break;
                     //case GraphDataNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
                     //    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
                     //    break;

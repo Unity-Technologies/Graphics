@@ -10,20 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// State component that holds the preview output data
     /// </summary>
-    /// NOTES:
-    ///
-    /// 1) Previously there was always a special deference provided
-    /// to the main preview in terms of how its initialized and treated
-    /// But if we treat main preview output as being backed by a generic INodeModel (currently GraphDataContextNodeModel,
-    /// but in future will be ContextNodeModel or BlockNodeModel) we could then process it normally and unify that path as well
-    /// Then we could even get ability to visualize main preview output for specific block nodes (Normal, Emission etc)
-    /// instead of BaseColor
-    ///
-    /// 2) Issues with edge deletion
-    ///
-    /// 3) Blackboard item data hanging around in CLDS after deletion
-    ///
-    /// 4)
     public class PreviewStateComponent
         :   PersistedStateComponent<PreviewStateComponent.StateUpdater>,
             IPreviewUpdateReceiver
@@ -47,7 +33,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             public void UpdatePreviewData(string listenerID, Texture newTexture)
             {
-
                 m_State.m_PreviewData[listenerID] = newTexture;
                 m_State.m_PreviewVersionTrackers[listenerID]++;
                 m_State.SetUpdateType(UpdateType.Partial);

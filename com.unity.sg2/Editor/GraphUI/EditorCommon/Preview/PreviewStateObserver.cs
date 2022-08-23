@@ -12,17 +12,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         PreviewStateComponent m_PreviewStateComponent;
         ShaderGraphView m_ShaderGraphView;
-        MainPreviewView m_MainPreviewView;
 
         public PreviewStateObserver(
             PreviewStateComponent previewStateComponent,
-            ShaderGraphView shaderGraphView,
-            MainPreviewView mainPreviewView)
+            ShaderGraphView shaderGraphView)
             : base(previewStateComponent)
         {
             m_PreviewStateComponent = previewStateComponent;
             m_ShaderGraphView = shaderGraphView;
-            m_MainPreviewView = mainPreviewView;
         }
 
         public override void Observe()
@@ -33,6 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     var changedListeners = m_PreviewStateComponent.GetChangedListeners();
 
+                    // Update view models
                     foreach (var listener in changedListeners)
                     {
                         var newTexture = m_PreviewStateComponent.GetPreviewTexture(listener.ListenerID);
@@ -41,7 +39,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     m_ShaderGraphView.HandlePreviewUpdates(changedListeners.Cast<IGraphElementModel>());
 
-                    //m_MainPreviewView.HandlePreviewUpdates();
+                    if(m_ShaderGraphView.Window is ShaderGraphEditorWindow shaderGraphEditorWindow)
+                        shaderGraphEditorWindow.MainPreviewView.HandlePreviewUpdates();
                 }
             }
         }

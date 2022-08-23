@@ -23,7 +23,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public GraphModelStateObserver(
             GraphModelStateComponent graphModelStateComponent,
-            PreviewManager previewManager,
             PreviewStateComponent previewStateComponent,
             PreviewUpdateDispatcher previewUpdateDispatcher)
             : base(new [] {graphModelStateComponent},

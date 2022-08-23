@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphViewState,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             SetGraphTypeValueCommand command)
         {
             using (var undoUpdater = undoState.UpdateScope)
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 propertyBlockValue = matrixValue;
             }
 
-            previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, propertyBlockValue);
+            previewUpdateDispatcher.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, propertyBlockValue);
 
             using var graphUpdater = graphViewState.UpdateScope;
             graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphViewState,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             SetGradientTypeValueCommand command)
         {
             using (var undoUpdater = undoState.UpdateScope)
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var portWriter = nodeHandler.GetPort(command.m_PortName);
 
             GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
-            previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);
+            previewUpdateDispatcher.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);
 
             using var graphUpdater = graphViewState.UpdateScope;
             graphUpdater.MarkChanged(command.m_GraphDataNodeModel);

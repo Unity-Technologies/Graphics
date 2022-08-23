@@ -15,9 +15,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         PreviewStateObserver m_PreviewStateObserver;
         PreviewUpdateDispatcher m_PreviewUpdateDispatcher;
-        MainPreviewView m_MainPreviewView;
-
-        PreviewManager m_PreviewManager;
 
         public ShaderGraphView(
             GraphViewEditorWindow window,
@@ -35,21 +32,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
             string graphViewName,
-            PreviewManager previewManager,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
             : base(window, graphTool, graphViewName, displayMode)
         {
             // This can be called by the searcher and if so, all of these dependencies will be null, need to guard against that
-            if (window is ShaderGraphEditorWindow shaderGraphEditorWindow)
+            if (window != null)
             {
-                m_PreviewManager = previewManager;
                 m_PreviewUpdateDispatcher = previewUpdateDispatcher;
-                m_MainPreviewView = shaderGraphEditorWindow.MainPreviewView;
 
                 ViewSelection = new ShaderGraphViewSelection(this, GraphViewModel.GraphModelState, GraphViewModel.SelectionState);
 
-                RegisterGraphViewOverrideCommandHandlers(this, graphTool.State, m_PreviewManager);
+                RegisterGraphViewOverrideCommandHandlers(this, graphTool.State, previewUpdateDispatcher);
             }
         }
 
@@ -59,7 +53,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         static void RegisterGraphViewOverrideCommandHandlers(
             ShaderGraphView graphView,
             IState stateStore,
-            PreviewManager previewManager)
+            PreviewUpdateDispatcher previewUpdateDispatcher)
         {
             var dispatcher = graphView.Dispatcher;
             var undoStateComponent = ShaderGraphEditorWindow.GetStateComponentOfType<UndoStateComponent>(stateStore);
@@ -68,19 +62,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Unregister the base GraphView command handling for delete as we want to insert our own
             graphView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, DeleteElementsCommand>(
                 ShaderGraphCommandOverrides.HandleDeleteNodesAndEdges,
                 undoStateComponent,
                 graphModelStateComponent,
-                selectionStateComponent,
-                previewManager);
+                selectionStateComponent);
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, BypassNodesCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewUpdateDispatcher, BypassNodesCommand>(
                 ShaderGraphCommandOverrides.HandleBypassNodes,
                 undoStateComponent,
                 graphModelStateComponent,
                 selectionStateComponent,
-                previewManager);
+                previewUpdateDispatcher);
         }
 
         protected override void RegisterObservers()
@@ -97,10 +90,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ShaderGraphLoadedObserver = new ShaderGraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphModelState, previewStateComponent, Window as ShaderGraphEditorWindow);
             GraphTool.ObserverManager.RegisterObserver(m_ShaderGraphLoadedObserver);
 
-            m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, m_PreviewManager, previewStateComponent, m_PreviewUpdateDispatcher);
+            m_GraphModelStateObserver = new GraphModelStateObserver(GraphViewModel.GraphModelState, previewStateComponent, m_PreviewUpdateDispatcher);
             GraphTool.ObserverManager.RegisterObserver(m_GraphModelStateObserver);
 
-            m_PreviewStateObserver = new PreviewStateObserver(previewStateComponent, this, m_MainPreviewView);
+            m_PreviewStateObserver = new PreviewStateObserver(previewStateComponent, this);
             GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
         }
 

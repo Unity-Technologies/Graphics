@@ -164,5 +164,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 foreach (var timeDependentNode in m_TimeDependentNodes)
                     m_PreviewHandlerInstance.RequestPreviewUpdate(timeDependentNode, m_Scheduler, forceRerender: true);
         }
+
+        public void Cleanup()
+        {
+            m_PreviewHandlerInstance.Cleanup();
+        }
     }
 }

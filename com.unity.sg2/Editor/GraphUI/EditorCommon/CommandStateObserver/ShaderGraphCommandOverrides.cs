@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
             SelectionStateComponent selectionState,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             BypassNodesCommand command)
         {
             BypassNodesCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
 
                 // Need to update downstream nodes previews of the bypassed node
-                previewManager.OnNodeFlowChanged(graphData.graphDataName);
+                previewUpdateDispatcher.OnListenerConnectionChanged(graphData.graphDataName);
             }
         }
 
@@ -39,7 +39,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
             SelectionStateComponent selectionState,
-            PreviewManager previewManager,
             DeleteElementsCommand command)
         {
             var modelsToDelete = command.Models.ToList();

@@ -66,7 +66,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
             if (overlay is PreviewOverlay previewOverlay)
             {
-                previewOverlay.getCachedMainPreviewTexture = m_PreviewManager.GetCachedMainPreviewTexture;
                 m_PreviewSize = previewOverlay.size;
             }
         }
@@ -98,7 +97,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
 
-            m_PreviewManager.Cleanup();
+            m_PreviewUpdateDispatcher.Cleanup();
 
             base.OnDisable();
         }
@@ -205,7 +204,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
-            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewManager, m_PreviewUpdateDispatcher);
+            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewUpdateDispatcher);
             return shaderGraphView;
         }
 
@@ -214,7 +213,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return stateStore.AllStateComponents.FirstOrDefault(stateComponent => stateComponent is T) as T;
         }
 
-        static void RegisterBlackboardOverrideCommandHandlers(BlackboardView blackboardView, IState stateStore, PreviewManager previewManager)
+        static void RegisterBlackboardOverrideCommandHandlers(BlackboardView blackboardView, IState stateStore)
         {
             var undoStateComponent = GetStateComponentOfType<UndoStateComponent>(stateStore);
             var graphModelStateComponent = blackboardView.BlackboardViewModel.GraphModelState;
@@ -235,7 +234,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_BlackboardView.ViewSelection = viewSelection;
 
                 // Register blackboard commands
-                RegisterBlackboardOverrideCommandHandlers(m_BlackboardView, m_GraphTool.State, m_PreviewManager);
+                RegisterBlackboardOverrideCommandHandlers(m_BlackboardView, m_GraphTool.State);
             }
             return m_BlackboardView;
         }
@@ -261,27 +260,32 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             shaderGraphModel.MainPreviewData.MainPreviewSize = m_PreviewSize;
 
-            // OLD
-            m_PreviewManager.Initialize(shaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
-
-            // NEW
             m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
 
-            // Give main preview its view-model
-            foreach (var nodeModel in shaderGraphModel.NodeModels)
-            {
-                if(nodeModel is GraphDataContextNodeModel contextNodeModel && contextNodeModel.IsMainContextNode())
-                    m_MainPreviewView.SetTargetPreviewUpdateListener(contextNodeModel);
-            }
+            SetDefaultMainPreviewUpdateListener(shaderGraphModel);
 
-            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewManager);
+            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewUpdateDispatcher);
 
             PreviewCommands.RegisterCommandHandlers(
                 GraphTool,
-                m_PreviewManager,
+                m_PreviewUpdateDispatcher,
                 shaderGraphModel,
                 GraphView.Dispatcher,
                 GraphView.GraphViewModel);
+        }
+
+        /// <summary>
+        /// This gets the main fragment context node from the graph and sets it as the source of data for the main preview
+        /// </summary>
+        /// <param name="shaderGraphModel"></param>
+        void SetDefaultMainPreviewUpdateListener(ShaderGraphModel shaderGraphModel)
+        {
+            // Give main preview its view-model
+            foreach (var nodeModel in shaderGraphModel.NodeModels)
+            {
+                if (nodeModel is GraphDataContextNodeModel contextNodeModel && contextNodeModel.IsMainContextNode())
+                    m_MainPreviewView.SetTargetPreviewUpdateListener(contextNodeModel);
+            }
         }
 
         protected override void Update()
@@ -290,8 +294,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
 
             base.Update();
-
-            m_PreviewManager?.Update();
 
             m_PreviewUpdateDispatcher.Update();
         }
