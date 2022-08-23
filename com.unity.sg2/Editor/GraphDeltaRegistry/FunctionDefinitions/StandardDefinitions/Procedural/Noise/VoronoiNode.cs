@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -27,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new string[]
                     {
                         "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
-                    }
+                    },
+                    isHelper: true
                 ),
                 new(
                     "Deterministic",
@@ -80,7 +80,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new string[]
                     {
                         "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
-                    }
+                    },
+                    isHelper: true
                 ),
                 new(
                     "LegacySine",

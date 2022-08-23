@@ -26,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new string[]
                     {
                         "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
-                    }
+                    },
+                    isHelper: true
                 ),
                 new(
                     "Deterministic",
@@ -77,7 +78,8 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("p", TYPE.Vec2, Usage.In),
                         new ParameterDescriptor("x", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
-                    }
+                    },
+                    isHelper: true
                 ),
                 new(
                     "LegacyMod",
