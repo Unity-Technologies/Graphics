@@ -44,7 +44,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     this,
                     ussClassName,
                     selected,
-                    nodeUIDescriptor.SelectableFunctions);
+                    nodeUIDescriptor.SelectableFunctions,
+                    nodeUIDescriptor.FunctionSelectorLabel
+                );
                 PartList.InsertPartAfter(portContainerPartName, part);
             }
 

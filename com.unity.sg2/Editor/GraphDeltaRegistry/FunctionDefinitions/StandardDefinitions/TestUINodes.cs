@@ -306,7 +306,8 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 { "Function1", "In Out Static" },
                 { "Function2", "A B" }
-            }
+            },
+            functionSelectorLabel: "Selectable Functions"
         );
     }
 

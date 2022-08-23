@@ -6,6 +6,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -272,6 +273,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphModel,
                 GraphView.Dispatcher,
                 GraphView.GraphViewModel);
+                
+            // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.
+            shaderGraphModel.GraphHandler.AddBuildCallback(nodeHandler =>
+            {
+                var nodeLocalId = nodeHandler.ID.LocalPath;
+                var guid = new SerializableGUID(nodeLocalId);
+
+                if (!shaderGraphModel.TryGetModelFromGuid<GraphDataNodeModel>(guid, out var nodeModel) || nodeModel == null)
+                {
+                    return;
+                }
+
+                nodeModel.DefineNode();
+            });
         }
 
         /// <summary>

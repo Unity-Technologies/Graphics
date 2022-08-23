@@ -150,10 +150,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
 
-
-
-
-
         public void ReconcretizeAll()
         {
             foreach(var name in GraphHandlerUtils.GetNodesTopologically(this))
@@ -437,5 +433,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
         }
+
+        public void AddBuildCallback(Action<NodeHandler> callback) => graphDelta.AddBuildCallback(callback);
+        public void RemoveBuildCallback(Action<NodeHandler> callback) => graphDelta.RemoveBuildCallback(callback);
     }
 }

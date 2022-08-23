@@ -54,7 +54,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public bool HasMetadata(ElementID id, string lookup)
         {
-            return m_metadata.TryGetValue(id.FullPath, out MetadataBlock block) && block.HasMetadata(lookup);
+            return m_metadata.TryGetValue(id, out MetadataBlock block) && block.HasMetadata(lookup);
         }
 
         public T GetMetadata<T>(ElementID id, string lookup)
@@ -231,19 +231,33 @@ namespace UnityEditor.ContextLayeredDataStorage
         private void EvaluateParent(in Element element, ElementID id, out Element parent)
         {
             parent = null;
-            bool childFound = false;
-            foreach (Element child in element.Children)
+            Element traverser = element;
+            Element swap = null;
+            bool found = true;
+            while(found)
             {
-                if (child.ID.IsSubpathOf(id))
+                found = false;
+                foreach(Element child in traverser.Children)
                 {
-                    EvaluateParent(in child, id, out parent);
-                    childFound = true;
+                    if(child.ID.IsSubpathOf(id))
+                    {
+                        swap = child;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(found)
+                {
+                    traverser = swap;
+                    swap = null;
+                }
+                else
+                {
+                    parent = traverser;
                 }
             }
-            if(!childFound)
-            {
-                parent = element;
-            }
+
         }
 
         public void RemoveData(ElementID id)
@@ -341,7 +355,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             foreach(var layer in m_layerList)
             {
-                Element elem = SearchRecurse(layer.Value.element, lookup);
+                Element elem = SearchRelative(layer.Value.element, lookup);
                 if(elem != null)
                 {
                     return elem;
@@ -352,15 +366,20 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         protected Element SearchRelative(Element elem, ElementID lookup)
         {
-            if(elem.Children.Count > 0)
+            Stack<Element> workingSet = new Stack<Element>();
+            workingSet.Push(elem);
+            while (workingSet.Count > 0)
             {
-                Element output = null;
-                foreach(Element child in elem.Children)
+                var current = workingSet.Pop();
+                foreach (var child in current.Children)
                 {
-                    output = SearchRecurse(child, lookup);
-                    if(output != null)
+                    if(child.ID.Equals(lookup))
                     {
-                        return output;
+                        return child;
+                    }
+                    else if (child.ID.IsSubpathOf(lookup))
+                    {
+                        workingSet.Push(child);
                     }
                 }
             }
@@ -662,21 +681,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             return output;
         }
 
-        private void ReplaceData(Element root, ElementID idToReplace, Element toReplaceWith)
-        {
-            var toReplace = SearchRelative(root, idToReplace);
-            if(toReplace != null)
-            {
-                toReplaceWith.Parent = toReplace.Parent;
-                toReplaceWith.Children = toReplace.Children;
-                toReplaceWith.Parent.Children.Remove(toReplace);
-                foreach(var child in toReplace.Children)
-                {
-                    child.Parent = toReplaceWith;
-                }
-            }
-        }
-
         private IEnumerable<Element> FlatStructurePartialSearch(ElementID searchID)
         {
             Stack<Element> workingSet = new Stack<Element>();
@@ -727,14 +731,14 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
                 {
-                    ReplaceData(m_flatStructure, id, addedElement.MakeCopy());
                     m_flatStructureLookup[id] = addedElement;
                 }
             }
             else
             {
                 m_flatStructureLookup.Add(id, addedElement);
-                AddData(m_flatStructure, id, out _);
+                EvaluateParent(in m_flatStructure, id, out Element parent);
+                AddChild(parent, new Element(id, this));
             }
         }
 
@@ -743,14 +747,17 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
-                ReplaceData(m_flatStructure, removedElementId, replacement.MakeCopy());
                 m_flatStructureLookup[removedElementId] = replacement;
             }
             else
             {
                 m_metadata.Remove(removedElementId.FullPath);
                 m_flatStructureLookup.Remove(removedElementId);
-                RemoveData(m_flatStructure, removedElementId);
+                var e = SearchRelative(m_flatStructure, removedElementId);
+                if(e != null)
+                {
+                    RemoveInternal(e);
+                }
             }
         }
 

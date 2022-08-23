@@ -117,6 +117,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         internal IEnumerable<VariableSetting> GetSettings()
         {
+            // TODO: Ultimately the type itself should determine what its available settings are,
+            // eliminating the need for matching here.
+
             // TODO (Joe): Enable slider mode when Range(min, max) display type can be generated.
             // if (DataType == TypeHandle.Float)
             // {
@@ -138,6 +141,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 yield return VariableSettings.samplerStateFilter;
                 yield return VariableSettings.samplerStateWrap;
+            }
+
+            if (DataType == ShaderGraphExampleTypes.Texture2DTypeHandle)
+            {
+                yield return VariableSettings.textureMode;
+                yield return VariableSettings.textureUseTilingOffset;
             }
 
             if (IsExposable)
