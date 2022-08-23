@@ -288,7 +288,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
             var shader = MakeShader(shaderString);
 
-            File.WriteAllText("Assets/TestVertex.shader", shaderString);
+            //File.WriteAllText("Assets/TestVertex.shader", shaderString);
 
         }
 
