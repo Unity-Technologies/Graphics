@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public IReadOnlyCollection<ParameterUIDescriptor> Parameters { get; }
         public IReadOnlyCollection<string> Synonyms { get; }
         public string Category { get; }
+        public string FunctionSelectorLabel { get; }
 
         public NodeUIDescriptor(
             int version,
@@ -30,7 +31,8 @@ namespace UnityEditor.ShaderGraph.Defs
             string displayName = null,
             bool hasPreview = true, // By default we assume all nodes should have previews,
             Dictionary<string, string> selectableFunctions = null,
-            ParameterUIDescriptor[] parameters = null
+            ParameterUIDescriptor[] parameters = null,
+            string functionSelectorLabel = ""
         )
         {
             Version = version;
@@ -44,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Defs
             SelectableFunctions = new ReadOnlyDictionary<string, string>(functionDictionary);
             var parametersList = parameters ?? new ParameterUIDescriptor[0];
             Parameters = parametersList.ToList().AsReadOnly();
+            FunctionSelectorLabel = functionSelectorLabel;
         }
 
         public ParameterUIDescriptor GetParameterInfo(string parameterName)
