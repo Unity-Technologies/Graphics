@@ -409,7 +409,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
-    lightingData.vertexLightingColor += inputData.vertexLighting;
+    lightingData.vertexLightingColor += inputData.vertexLighting * surfaceData.albedo;
     #endif
 
     return CalculateFinalColor(lightingData, surfaceData.alpha);

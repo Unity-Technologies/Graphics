@@ -37,7 +37,11 @@ namespace UnityEditor.Rendering
         /// <param name="field">The widget</param>
         protected override void DoGUI(Rect rect, GUIContent label, DebugUI.ValueTuple field)
         {
-            Rect drawRect = EditorGUI.PrefixLabel(rect, label);
+            var labelRect = PrepareControlRect();
+            EditorGUI.PrefixLabel(labelRect, label);
+
+            // Following layout should match DebugUIDrawerFoldout to make column labels align
+            Rect drawRect = GUILayoutUtility.GetLastRect();
 
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0; //be at left of rects

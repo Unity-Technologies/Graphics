@@ -1196,15 +1196,15 @@ namespace UnityEditor.VFX
                         return e.initSystems.Length > 0 || e.startSystems.Length > 0 || e.stopSystems.Length > 0;
                     }).ToArray();
 
-                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, compiledVersion);
+                VFXInstancingDisabledReason instancingDisabledReason = ValidateInstancing(compilableContexts, expressionSheet);
+
+                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, instancingDisabledReason, compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
 
                 foreach (var dep in sourceDependencies)
                     resource.AddSourceDependency(dep);
 
                 m_Graph.visualEffectResource.compileInitialVariants = forceShaderValidation;
-
-                ValidateInstancing(models, expressionSheet);
             }
             catch (Exception e)
             {
@@ -1275,80 +1275,39 @@ namespace UnityEditor.VFX
             m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues);
         }
 
-        public void ValidateInstancing(HashSet<ScriptableObject> models, VFXExpressionSheet expressionSheet)
+        public VFXInstancingDisabledReason ValidateInstancing(IEnumerable<VFXContext> compilableContexts, VFXExpressionSheet expressionSheet)
         {
             VFXInstancingDisabledReason reason = VFXInstancingDisabledReason.None;
 
-            foreach (VFXModel model in models.OfType<VFXContext>())
+            foreach (VFXContext model in compilableContexts)
             {
-                if (model is VFXAbstractParticleOutput particleOutput)
-                {
-                    if (particleOutput is VFXShaderGraphParticleOutput shaderGraphParticleOutput && shaderGraphParticleOutput.GetOrRefreshShaderGraphObject() != null)
-                    {
-                        reason = VFXInstancingDisabledReason.Unknown;
-                        break;
-                    }
-
-                    if (particleOutput.HasIndirectDraw())
-                    {
-                        reason = VFXInstancingDisabledReason.Unknown;
-                        break;
-                    }
-
-                    if (particleOutput.HasStrips())
-                    {
-                        reason = VFXInstancingDisabledReason.Unknown;
-                        break;
-                    }
-                }
-
                 if (model is VFXOutputEvent)
                 {
-                    reason = VFXInstancingDisabledReason.Unknown;
-                    break;
-                }
-
-                if (model is VFXBasicInitialize initialize)
-                {
-                    if (initialize.GetData() is VFXDataParticle dataParticle && dataParticle.boundsMode == BoundsSettingMode.Automatic)
-                    {
-                        reason = VFXInstancingDisabledReason.Unknown;
-                        break;
-                    }
+                    reason |= VFXInstancingDisabledReason.OutputEvent;
                 }
 
                 if (model is VFXBasicGPUEvent)
                 {
-                    reason = VFXInstancingDisabledReason.Unknown;
-                    break;
+                    reason |= VFXInstancingDisabledReason.GPUEvent;
                 }
 
-                if (model is VFXMeshOutput)
+                if (model is VFXStaticMeshOutput)
                 {
-                    reason = VFXInstancingDisabledReason.Unknown;
-                    break;
+                    reason |= VFXInstancingDisabledReason.MeshOutput;
                 }
             }
 
-            if (reason == VFXInstancingDisabledReason.None)
+            foreach (VFXMapping mapping in expressionSheet.exposed)
             {
-                foreach (VFXMapping mapping in expressionSheet.exposed)
+                VFXExpression expression = m_ExpressionGraph.FlattenedExpressions[mapping.index];
+                if (expression is VFXObjectValue)
                 {
-                    VFXExpression expression = m_ExpressionGraph.FlattenedExpressions[mapping.index];
-                    if (expression is VFXValue<Gradient> ||
-                        expression is VFXValue<AnimationCurve> ||
-                        expression is VFXObjectValue)
-                    {
-                        reason = VFXInstancingDisabledReason.Unknown;
-                        break;
-                    }
+                    reason |= VFXInstancingDisabledReason.ExposedObject;
+                    break;
                 }
             }
 
-            if (reason == VFXInstancingDisabledReason.None)
-                visualEffectResource.EnableInstancing();
-            else
-                visualEffectResource.DisableInstancing(reason);
+            return reason;
         }
 
         public VisualEffectResource visualEffectResource

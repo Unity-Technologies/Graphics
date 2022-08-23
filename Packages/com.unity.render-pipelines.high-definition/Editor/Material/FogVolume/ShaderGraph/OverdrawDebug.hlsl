@@ -9,12 +9,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
-uint _VolumeIndex;
+uint _VolumeMaterialDataIndex;
 StructuredBuffer<VolumetricMaterialRenderingData> _VolumetricMaterialData;
 
 float3 GetCubeVertexPosition(uint vertexIndex)
 {
-    return _VolumetricMaterialData[_VolumeIndex].obbVertexPositionWS[vertexIndex];
+    return _VolumetricMaterialData[_VolumeMaterialDataIndex].obbVertexPositionWS[vertexIndex].xyz;
 }
 
 // VertexCubeSlicing needs GetCubeVertexPosition to be declared before
@@ -23,6 +23,7 @@ float3 GetCubeVertexPosition(uint vertexIndex)
 struct VertexToFragment
 {
     float4 positionCS : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 float VBufferDistanceToSliceIndex(uint sliceIndex)
@@ -38,6 +39,8 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
 {
     VertexToFragment output;
 
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
 #if USE_VERTEX_CUBE_SLICING
 
     float sliceDepth = VBufferDistanceToSliceIndex(output.depthSlice);
@@ -48,7 +51,7 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
 #else
 
     output.positionCS = GetQuadVertexPosition(vertexId);
-    output.positionCS.xy = output.positionCS.xy * _VolumetricMaterialData[_VolumeIndex].viewSpaceBounds.zw + _VolumetricMaterialData[_VolumeIndex].viewSpaceBounds.xy;
+    output.positionCS.xy = output.positionCS.xy * _VolumetricMaterialData[_VolumeMaterialDataIndex].viewSpaceBounds.zw + _VolumetricMaterialData[_VolumeMaterialDataIndex].viewSpaceBounds.xy;
     output.positionCS.w = 1;
 
 #endif // USE_VERTEX_CUBE_SLICING
@@ -58,5 +61,7 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v2f);
+
     outColor = float4(1, 1, 1, _VBufferRcpSliceCount);
 }

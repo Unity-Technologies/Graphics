@@ -2199,7 +2199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
                 cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
 
-                VFXManager.ProcessCameraCommand(camera, cmd, cameraXRSettings);
+                VFXManager.ProcessCameraCommand(camera, cmd, cameraXRSettings, cullingResults);
 
                 if (GL.wireframe)
                 {

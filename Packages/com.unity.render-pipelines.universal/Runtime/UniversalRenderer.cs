@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
 
+            if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false)
             {
                 var settings = LightCookieManager.Settings.Create();
                 var asset = UniversalRenderPipeline.asset;
@@ -648,6 +649,9 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraColorTarget(m_ColorBufferSystem.PeekBackBuffer());
 
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+            // Check the createColorTexture logic above: intermediate color texture is not available for preview cameras.
+            // Because intermediate color is not available and copyColor pass requires it, we disable CopyColor pass here.
+            copyColorPass &= !isPreviewCamera;
 
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
@@ -773,7 +777,7 @@ namespace UnityEngine.Rendering.Universal
                 var normalDescriptor = cameraTargetDescriptor;
                 normalDescriptor.depthBufferBits = 0;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-                normalDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                normalDescriptor.msaaSamples = useDepthPriming ? cameraTargetDescriptor.msaaSamples : 1;// Depth-Only passes don't use MSAA, unless depth priming is enabled
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
@@ -1350,7 +1354,7 @@ namespace UnityEngine.Rendering.Universal
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
             // copying depth on GLES3 is giving invalid results. This won't be fixed by the driver team because it would introduce performance issues (more info in the Fogbugz issue 1339401 comments)
-            if (IsGLESDevice())
+            if (IsGLESDevice() && msaaDepthResolve)
                 return false;
 
             return supportsDepthCopy || msaaDepthResolve;
