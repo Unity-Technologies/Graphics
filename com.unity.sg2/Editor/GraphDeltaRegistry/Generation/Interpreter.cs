@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
         }
 
-        private class VariableRegistry : IEnumerable<StructField>
+        internal class VariableRegistry : IEnumerable<StructField>
         {
             HashSet<StructField> m_set;
             List<StructField> m_list;
