@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.Configuration;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -22,6 +23,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string ScaleUserPrefKey => m_GraphModelGuid + "." + ChangePreviewZoomCommand.UserPrefsKey;
         string RotationUserPrefKey => m_GraphModelGuid + "." + ChangePreviewRotationCommand.UserPrefsKey;
         string MeshUserPrefKey => m_GraphModelGuid + "." + ChangePreviewMeshCommand.UserPrefsKey;
+
+        // We don't serialize this, we just set it for easy access by other systems
+        public Vector2 MainPreviewSize;
 
         public MainPreviewData(string graphAssetGuid)
         {
@@ -122,6 +126,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
         internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
+
+        internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
@@ -660,15 +666,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     && variableDeclarationModel.graphDataName == variableName);
         }
 
-        public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
+        // TODO: Replace with a Preview Service side solution
+        bool IsConnectedToTimeNode(GraphDataNodeModel nodeModel)
         {
-            bool nodeRequiresTime = false;
-            if (graphDataNodeModel.TryGetNodeHandler(out var _))
+            foreach (var inputEdge in nodeModel.GetIncomingEdges())
             {
-                // TODO: Some way of making nodes be marked as requiring time or not
+                if (TryGetModelFromGuid(inputEdge.FromNodeGuid, out var inputNode)
+                && inputNode is GraphDataNodeModel inputGraphDataNode)
+                {
+                    if (inputGraphDataNode.DisplayTitle.Contains("Time"))
+                        return true;
+
+                    // Recursively traverse through all inputs upstream and get if connected to time node
+                    IsConnectedToTimeNode(inputGraphDataNode);
+                }
             }
 
-            return nodeRequiresTime;
+            return false;
+        }
+
+        public bool DoesNodeRequireTime(string graphDataName)
+        {
+            return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
+                && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
+        }
+
+        public bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
+        {
+            return IsConnectedToTimeNode(graphDataNodeModel);
         }
 
         // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290

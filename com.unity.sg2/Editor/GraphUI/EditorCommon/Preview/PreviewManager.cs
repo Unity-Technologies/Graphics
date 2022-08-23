@@ -5,6 +5,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -41,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         const int k_PreviewUpdateCycleMax = 50;
         Dictionary<string, int> m_CycleCountChecker;
 
-        string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
+        string m_MainContextNodeName;
 
         int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
         int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
@@ -54,10 +55,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // TODO: Could this be a list of IPreviewUpdateListeners instead?
         internal void Initialize(ShaderGraphModel graphModel, MainPreviewView mainPreviewView, bool wasWindowCloseCancelled)
         {
-            // Can be null when the editor window is opened to the onboarding page
-            if (graphModel == null)
-                return;
-
             m_GraphModel = graphModel;
             m_GraphModelStateComponent = m_GraphModel.graphModelStateComponent;
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
@@ -68,10 +65,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
             m_MainPreviewData = graphModel.MainPreviewData;
+            m_MainContextNodeName = graphModel.DefaultContextName;
 
             // Initialize the headless preview
             m_PreviewHandlerInstance.Initialize(m_MainContextNodeName, m_MainPreviewView.PreviewSize);
-
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
             m_PreviewHandlerInstance.SetActiveTarget(m_GraphModel.ActiveTarget);
@@ -79,10 +76,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)
             {
-                if(nodeModel is GraphDataContextNodeModel contextNode && IsMainContextNode(nodeModel))
-                    OnNodeAdded(contextNode.graphDataName, contextNode.Guid);
-                else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
-                    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+                switch (nodeModel)
+                {
+                    //case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
+                    //    OnNodeAdded(contextNode.graphDataName, contextNode.Guid);
+                    //    break;
+                    //case GraphDataNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
+                    //    OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
+                    //    break;
+                }
             }
 
             // Call update once at graph load in order to handle updating all existing nodes
@@ -96,11 +98,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        static bool IsMainContextNode(IGraphElementModel nodeModel)
-        {
-            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
-        }
-
         public void Update()
         {
             var updatedNodes = new List<string>();
@@ -112,7 +109,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 // TODO: Unify main preview and graph data node model update paths using IPreviewUpdateListener
-                if (IsMainContextNode(nodeModel))
+                if (nodeModel is GraphDataContextNodeModel contextNode && contextNode.IsMainContextNode())
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
                         PreviewWidth,

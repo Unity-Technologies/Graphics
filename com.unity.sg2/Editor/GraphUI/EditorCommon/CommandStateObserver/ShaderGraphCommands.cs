@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public static class ShaderGraphCommands
     {
-        public static void RegisterCommandHandlers(BaseGraphTool graphTool, PreviewManager previewManager)
+        public static void RegisterCommandHandlers(BaseGraphTool graphTool, PreviewUpdateDispatcher previewUpdateDispatcher)
         {
             var stateStore = graphTool.State;
             var dispatcher = graphTool.Dispatcher;
@@ -24,25 +24,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent
             );
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangeTargetSettingsCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, ChangeTargetSettingsCommand>(
                 ChangeTargetSettingsCommand.DefaultCommandHandler,
                 undoStateComponent,
                 graphModelStateComponent,
-                previewManager
+                previewUpdateDispatcher
             );
 
             // Node commands
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, SetGraphTypeValueCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetGraphTypeValueCommand>(
                 SetGraphTypeValueCommand.DefaultCommandHandler,
                 undoStateComponent,
                 graphModelStateComponent,
-                previewManager);
+                previewUpdateDispatcher);
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, SetGradientTypeValueCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetGradientTypeValueCommand>(
                 SetGradientTypeValueCommand.DefaultCommandHandler,
                 undoStateComponent,
                 graphModelStateComponent,
-                previewManager);
+                previewUpdateDispatcher);
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,
