@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
             // make a shader function for the selected function
             FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
-            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(SELECTED_FUNCTION_FIELD_NAME);
+            FieldHandler selectedFunctionField = node.GetField<string>(SELECTED_FUNCTION_FIELD_NAME);
             string selectedFunctionName = selectedFunctionField.GetData<string>();
             if (!m_nameToFunction.ContainsKey(selectedFunctionName))
             {
