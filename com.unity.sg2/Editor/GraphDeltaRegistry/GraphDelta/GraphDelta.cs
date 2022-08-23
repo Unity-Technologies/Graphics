@@ -193,7 +193,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public void RemoveNode(ElementID id, Registry registry)
         {
             var node = GetNode(id, registry);
-
             foreach(var port in node.GetPorts())
             {
                 var removedEdges = m_data.edges.Where(e => e.Output.Equals(port.ID) || e.Input.Equals(port.ID));
@@ -256,6 +255,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 ReconcretizeNode(port.GetNode().ID, registry);
             }
+
             catch (Exception e)
             {
                 Debug.LogException(e);
@@ -439,5 +439,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data.CopyDataBranch(sourceNode, output);
             return output;
         }
+        
     }
 }
