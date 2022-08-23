@@ -76,8 +76,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return null;
         }
 
-        public bool IsTimeDependentNode(NodeHandler nodeHandler) => graphDelta.IsTimeDependentNode(nodeHandler);
-
         [Obsolete("AddNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
             "Use AddNode<T>(string name) for updated behavior")]
         internal NodeHandler AddNode<T>(string name, Registry registry) where T : INodeDefinitionBuilder =>

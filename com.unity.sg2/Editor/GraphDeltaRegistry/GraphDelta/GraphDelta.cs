@@ -194,9 +194,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             var node = GetNode(id, registry);
 
-            if (IsTimeDependentNode(node))
-                m_data.timeDependentNodes.Remove(id.LocalPath);
-
             foreach(var port in node.GetPorts())
             {
                 var removedEdges = m_data.edges.Where(e => e.Output.Equals(port.ID) || e.Input.Equals(port.ID));
@@ -229,10 +226,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public EdgeHandler AddEdge(ElementID output, ElementID input, Registry registry)
         {
-            var outputNode = GetNode(output.ParentPath, registry);
-            if(IsTimeDependentNode(outputNode))
-                m_data.timeDependentNodes.Add(input.ParentPath);
-
             m_data.edges.Add(new Edge(output, input));
             PortHandler port = new PortHandler(input, this, registry);
             try
@@ -257,11 +250,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void RemoveEdge(ElementID output, ElementID input, Registry registry)
         {
-            // Check if we're disconnecting from a time node or a time-dependent branch of nodes
-            var inputNode = GetNode(input.ParentPath, registry);
-            if(IsTimeDependentNode(inputNode))
-                m_data.timeDependentNodes.Remove(input.ParentPath);
-
             m_data.edges.RemoveAll(e => e.Output.Equals(output) && e.Input.Equals(input));
             PortHandler port = new PortHandler(input, this, registry);
             try
@@ -450,12 +438,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             NodeHandler output = AddNode(sourceNode.GetRegistryKey(), copiedNodeID, registry);
             m_data.CopyDataBranch(sourceNode, output);
             return output;
-        }
-
-        public bool IsTimeDependentNode(NodeHandler nodeHandler)
-        {
-            return nodeHandler.GetRegistryKey().Name.Contains("Time")
-                || m_data.timeDependentNodes.Contains(nodeHandler.ID.LocalPath);
         }
     }
 }

@@ -666,8 +666,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     && variableDeclarationModel.graphDataName == variableName);
         }
 
-        // TODO: Replace with a CLDS solution
-        // TODO: Link to slack thread with discussion: https://unity.slack.com/archives/C02TCQNM1UJ/p1660678204226539
+        // TODO: Replace with a Preview Service side solution
         bool IsConnectedToTimeNode(GraphDataNodeModel nodeModel)
         {
             foreach (var inputEdge in nodeModel.GetIncomingEdges())
@@ -688,16 +687,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public bool DoesNodeRequireTime(string graphDataName)
         {
-            var nodeHandler = GraphHandler.GetNode(graphDataName);
-            return GraphHandler.IsTimeDependentNode(nodeHandler);
+            return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
+                && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
         }
 
         public bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
-            //return IsConnectedToTimeNode(graphDataNodeModel);
-
-            graphDataNodeModel.TryGetNodeHandler(out var nodeHandler);
-            return GraphHandler.IsTimeDependentNode(nodeHandler);
+            return IsConnectedToTimeNode(graphDataNodeModel);
         }
 
         // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290

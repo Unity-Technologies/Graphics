@@ -1376,9 +1376,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             // Display graph in inspector when clicking on background
             // TODO: displayed on double click ATM as this method overrides the Token.Select() which does not stop propagation
-
-            // GTF-EDIT: Do not want this behavior, we should ask them to make it optional
-            //Selection.activeObject = GraphViewModel.GraphModelState?.GraphModel.Asset as Object;
+            Selection.activeObject = GraphViewModel.GraphModelState?.GraphModel.Asset as Object;
         }
 
         protected void OnMouseMove(MouseMoveEvent evt)

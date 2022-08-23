@@ -357,7 +357,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             throw new NotImplementedException();
         }
 
-        public int CurrentVersion { get; set; }
+        public int CurrentVersion { get; private set; }
 
         public string ListenerID => m_GraphDataName;
     }

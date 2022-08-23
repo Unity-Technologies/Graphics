@@ -114,12 +114,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         [SerializeField]
         List<ReferableToReferenceNodeMapping> referenceNodeMappings;
 
-        internal HashSet<string> timeDependentNodes = new();
-
-        // Needed to serialize the above HashSet
-        [SerializeField]
-        List<string> serializableTimeDependentNodes = new();
-
         protected override void AddDefaultLayers()
         {
             AddLayer(0, GraphDelta.k_concrete, false);
@@ -130,8 +124,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             base.OnBeforeSerialize();
 
-            serializableTimeDependentNodes = timeDependentNodes.ToList();
-
             referableNames = referableToReferenceNodeMap.Keys.ToList();
             referenceNodeMappings = referableToReferenceNodeMap.Values.ToList();
         }
@@ -139,8 +131,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-
-            timeDependentNodes = new HashSet<string>(serializableTimeDependentNodes);
 
             referableToReferenceNodeMap = new Dictionary<string, ReferableToReferenceNodeMapping>();
 

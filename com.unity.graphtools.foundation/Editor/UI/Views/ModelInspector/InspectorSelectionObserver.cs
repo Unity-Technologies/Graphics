@@ -12,8 +12,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         List<SelectionStateComponent> m_SelectionStates;
         ModelInspectorStateComponent m_ModelInspectorState;
 
-        List<IModel> m_LastSelection;
-
         public InspectorSelectionObserver(ToolStateComponent toolState, GraphModelStateComponent graphModelState,
             IReadOnlyCollection<SelectionStateComponent> selectionStates, ModelInspectorStateComponent modelInspectorState)
             : base(new IStateComponent[] { toolState, graphModelState }.Concat(selectionStates),
@@ -46,19 +44,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                             selectedModels.Add(graphModel);
                         }
 
-                        // GTF-EDIT: Caching the view state if the selection hasnt changed
-                        if (m_LastSelection?.Count() == 1 && selectedModels.Count() == 1)
-                        {
-                            var sgModel1 = selectedModels.FirstOrDefault();
-                            var sgModel2 = m_LastSelection.FirstOrDefault();
-                            if(ReferenceEquals(sgModel1, sgModel2) && sgModel1 is IGraphModel)
-                                return;
-                        }
-
                         using (var updater = m_ModelInspectorState.UpdateScope)
                         {
                             updater.SetInspectedModels(selectedModels, graphModel);
-                            m_LastSelection = selectedModels;
                         }
                     }
                 }

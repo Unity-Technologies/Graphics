@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Texture PreviewTexture { get; }
 
-        int CurrentVersion { get; set; }
+        int CurrentVersion { get; }
 
         string ListenerID { get; }
     }
