@@ -110,7 +110,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Standard", "Standard" },
                 { "NormalTangent", "Normal Tangent" },
                 { "NormalObject", "Normal Object" }
-        },
+            },
+            functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "Texture",

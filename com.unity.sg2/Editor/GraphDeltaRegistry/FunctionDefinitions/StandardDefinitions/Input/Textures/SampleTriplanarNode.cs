@@ -154,6 +154,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "NormalMap", "Normal Map" },
                 { "TwoSamples", "2 Samples" }
             },
+            functionSelectorLabel: "Type",
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "Texture",

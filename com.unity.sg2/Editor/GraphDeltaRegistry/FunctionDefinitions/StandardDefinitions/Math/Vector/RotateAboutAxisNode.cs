@@ -80,6 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Radians", "Radians" },
                 { "Degrees", "Degrees" }
             },
+            functionSelectorLabel: "Unit",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",

@@ -107,6 +107,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Degrees", "Degrees" },
                 { "Normalized", "Normalized" }
             },
+            functionSelectorLabel: "Range",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "In",

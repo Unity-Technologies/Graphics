@@ -90,6 +90,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Greater", "> Greater" },
                 { "GreaterOrEqual", ">= Greater Or Equal" },
             },
+            functionSelectorLabel: "",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

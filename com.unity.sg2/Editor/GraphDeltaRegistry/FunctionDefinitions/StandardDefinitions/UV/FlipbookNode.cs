@@ -81,6 +81,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "FlipFrames", "Flip Frames" },
                 { "BlendFrames", "Blend Frames" }
             },
+            functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[9] {
                 new ParameterUIDescriptor(
                     name: "UV",

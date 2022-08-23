@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Tangent", "Tangent" },
                 { "Object", "Object" }
             },
+            functionSelectorLabel: "Space",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

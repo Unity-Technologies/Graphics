@@ -52,6 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Base2", "Base2" },
                 { "Base10", "Base10" }
             },
+            functionSelectorLabel: "Base",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
