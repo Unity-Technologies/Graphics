@@ -44,6 +44,9 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
 
+            graph.graphDelta.AddDefaultConnection("ObjectSpacePosition", "VertOut.Position", registry);
+            graph.graphDelta.AddDefaultConnection("ObjectSpaceNormal",   "VertOut.Normal", registry);
+            graph.graphDelta.AddDefaultConnection("ObjectSpaceTangent",  "VertOut.Tangent", registry);
             //CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
             //foreach (var descriptor in descriptors)
             //    LogDescriptor(descriptor);
@@ -268,6 +271,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             catch (Exception e)
             {
                 File.WriteAllBytes($"Assets/FailureBadUV.jpg", rt.EncodeToJPG());
+                File.WriteAllText("Assets/FailureBadUV.shader", shaderString);
                 throw e;
             }
         }
@@ -277,10 +281,14 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         {
             var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             var dup = graph.DuplicateNode(graph.GetNode("Add1"), true, "Add1_Copy");
-            graph.RemoveEdge("Add1_Copy.Out", "Add3.In1");
-            graph.AddEdge("Add1_Copy.Out", "VertOut.Position");
+            graph.AddNode<TestAddNode>("Add4").SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            graph.AddEdge("Add4.Out", "VertOut.Position");
+            graph.AddReferenceNode("Pos_Ref", "VertIn", "ObjectSpacePosition");
+            graph.AddEdge("Pos_Ref.Output", "Add4.In2");
             var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
             var shader = MakeShader(shaderString);
+
+            File.WriteAllText("Assets/TestVertex.shader", shaderString);
 
         }
 
