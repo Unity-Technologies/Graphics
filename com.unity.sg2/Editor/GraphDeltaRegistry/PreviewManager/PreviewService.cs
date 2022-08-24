@@ -1,5 +1,4 @@
 using UnityEngine;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Profiling;
@@ -16,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// This class encapsulates all functionality related to generating preview render and shader data from a node graph
     /// TODO: Pack all the render info. in each Request() function into a struct so that its more visible what data is needed and function calls are slimmer
     /// </summary>
-    public class HeadlessPreviewManager
+    public class PreviewService
     {
         // Could we replace this by a bool?
         // We would need to handle concretization of preview mode on GTF side of things

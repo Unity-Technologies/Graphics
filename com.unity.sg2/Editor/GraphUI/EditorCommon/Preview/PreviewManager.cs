@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
+    using PreviewRenderMode = PreviewService.PreviewRenderMode;
 
     /// <summary>
     /// Manager class for node and master previews
@@ -25,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_LockMainPreviewRotation = value;
         }
 
-        HeadlessPreviewManager m_PreviewHandlerInstance;
+        PreviewService m_PreviewHandlerInstance;
 
         GraphModelStateComponent m_GraphModelStateComponent;
 
@@ -59,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_GraphModelStateComponent = m_GraphModel.graphModelStateComponent;
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
             m_CycleCountChecker = new Dictionary<string, int>();
-            m_PreviewHandlerInstance = new HeadlessPreviewManager();
+            m_PreviewHandlerInstance = new PreviewService();
             m_DirtyNodes = new HashSet<string>();
 
             // Initialize the main preview
@@ -145,7 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         static void HandlePreviewUpdateRequest(
-            HeadlessPreviewManager.PreviewOutputState previewOutputState,
+            PreviewService.PreviewOutputState previewOutputState,
             List<string> updatedNodes,
             string nodeName,
             ShaderMessage[] shaderMessages,
@@ -154,10 +152,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             switch (previewOutputState)
             {
                 // Node is updated, remove from dirty list
-                case HeadlessPreviewManager.PreviewOutputState.Complete:
+                case PreviewService.PreviewOutputState.Complete:
                     updatedNodes.Add(nodeName);
                     break;
-                case HeadlessPreviewManager.PreviewOutputState.ShaderError:
+                case PreviewService.PreviewOutputState.ShaderError:
                 {
                     updatedNodes.Add(nodeName);
 
@@ -169,7 +167,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     break;
                 }
-                case HeadlessPreviewManager.PreviewOutputState.Updating:
+                case PreviewService.PreviewOutputState.Updating:
                     if(cycleCountChecker.ContainsKey(nodeName))
                         cycleCountChecker[nodeName]++;
                     else

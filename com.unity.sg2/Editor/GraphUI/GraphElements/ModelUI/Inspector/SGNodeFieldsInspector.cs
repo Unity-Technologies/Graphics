@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return propertyFieldList;
 
             var previewModeField =
-                new ModelPropertyField<HeadlessPreviewManager.PreviewRenderMode, ChangePreviewModeCommand>(
+                new ModelPropertyField<PreviewService.PreviewRenderMode, ChangePreviewModeCommand>(
                     m_OwnerElement.RootView as RootView,
                     nodeModel,
                     "Preview Mode",

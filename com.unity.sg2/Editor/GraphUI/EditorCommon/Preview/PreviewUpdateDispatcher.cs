@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
 using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.HeadlessPreviewManager.PreviewRenderMode;
@@ -15,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public class PreviewUpdateDispatcher
     {
-        HeadlessPreviewManager m_PreviewHandlerInstance;
+        PreviewService m_PreviewHandlerInstance;
         MainPreviewData m_MainPreviewData;
         // TODO: Should this communicate with the graph model through an interface layer?
         // Would allow for anyone (in theory) to hook up their own graph model and use our preview dispatcher
@@ -53,7 +51,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_TimeDependentNodes = new();
             m_OwningWindowReference = owningWindow;
 
-            // Initialize the headless preview
             m_PreviewHandlerInstance = new HeadlessPreviewManager();
             m_PreviewHandlerInstance.Initialize(shaderGraphModel.DefaultContextName, m_MainPreviewData.mainPreviewSize);
             m_PreviewHandlerInstance.SetActiveGraph(shaderGraphModel.GraphHandler);
