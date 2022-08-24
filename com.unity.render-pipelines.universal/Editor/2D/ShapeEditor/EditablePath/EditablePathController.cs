@@ -110,15 +110,24 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public void RemoveSelectedPoints()
         {
             var minPointCount = editablePath.isOpenEnded ? 2 : 3;
+            int pointsCountToRemove = editablePath.selection.Count;
 
-            if (editablePath.pointCount > minPointCount)
+            if (editablePath.pointCount != pointsCountToRemove)
             {
                 var indices = editablePath.selection.elements.OrderByDescending( i => i);
 
                 foreach (var index in indices)
+                {
                     if (editablePath.pointCount > minPointCount)
+                    {
                         editablePath.RemovePoint(index);
-
+                    }
+                }
+                ClearSelection();
+            }
+            else
+            {
+                editablePath.SetDefaultShape();
                 ClearSelection();
             }
         }

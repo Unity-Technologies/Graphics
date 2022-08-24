@@ -4,6 +4,39 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Added _CameraSortingLayerTexture global shader variable and related parameters
+- Added preset shapes for creating a freeform light
+- Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
+- Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
+
+### Changed
+- Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
+- Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
+- Improved Light2D UI/UX
+- Improved 2D Menu layout
+- Deprecated Light2D Parametric Light
+- Deprecated Light2D point light cookie
+- Renamed Light2D point light to spot light
+- 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
+- Optimized 2D Renderer performance by using a tiny light texture for layer/blend style pairs for which no light is rendered.
+- Reorgnized the settings in 2D Renderer Data Inspector.
+- FallOff Lookup Texture is now part of 2D RenderData.
+- Creating a Shadow Caster 2D will use try and use sprite and physics bounds as the default shape
+- Deleting all points in a Shadow Caster will cause the shape to use the bounds.
+- Improved Geometry for Smooth Falloff of 2D Shape Lights.
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
+
+### Fixed
+- Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
+- Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
+- Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
+- Fixed an issue where no preview would show for the lit sprite master node in shadergraph
+- Fixed an issue where no shader was generated for unlit sprite shaders in shadergraph
+- Fixed an issue where Sprite-Lit-Default shader's Normal Map property wasn't affected by Tiling or Offset. [case 1270850](https://issuetracker.unity3d.com/issues/sprite-lit-default-shaders-normal-map-and-mask-textures-are-not-affected-by-tiling-and-offset-values)
+
 ## [10.10.0] - 2022-06-28
 
 ### Fixed

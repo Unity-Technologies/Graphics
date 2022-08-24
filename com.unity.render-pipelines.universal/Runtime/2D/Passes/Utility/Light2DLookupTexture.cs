@@ -14,13 +14,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return s_PointLightLookupTexture;
         }
 
-        public static Texture GetFalloffLookupTexture()
-        {
-            if (s_FalloffLookupTexture == null)
-                s_FalloffLookupTexture = CreateFalloffLookupTexture();
-            return s_FalloffLookupTexture;
-        }
-
         private static Texture2D CreatePointLightLookupTexture()
         {
             const int WIDTH = 256;
@@ -68,34 +61,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var color = new Color(red, green, blue, alpha);
 
                     texture.SetPixel(x, y, color);
-                }
-            }
-            texture.Apply();
-            return texture;
-        }
-
-        private static Texture2D CreateFalloffLookupTexture()
-        {
-            const int WIDTH = 2048;
-            const int HEIGHT = 192;
-
-            const GraphicsFormat textureFormat = GraphicsFormat.R8G8B8A8_SRGB;
-            var texture = new Texture2D(WIDTH, HEIGHT-64, textureFormat, TextureCreationFlags.None);
-            texture.filterMode = FilterMode.Bilinear;
-            texture.wrapMode = TextureWrapMode.Clamp;
-            for(var y = 0; y < HEIGHT; y++)
-            {
-                var baseValue = (float)(y+32) /(HEIGHT+64);
-                var lineValue = -baseValue + 1;
-                var exponent = Mathf.Log(lineValue) / Mathf.Log(baseValue);
-
-                for (var x = 0; x < WIDTH; x++)
-                {
-                    var t = (float)x / WIDTH;
-                    var red = Mathf.Pow(t, exponent);
-                    var color = new Color(red, 0, 0, 1);
-                    if(y >= 32 && y < 160)
-                        texture.SetPixel(x, y-32, color);
                 }
             }
             texture.Apply();
