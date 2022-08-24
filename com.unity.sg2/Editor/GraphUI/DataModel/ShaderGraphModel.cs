@@ -685,8 +685,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return false;
         }
 
+        GraphDataContextNodeModel GetMainContextNode()
+        {
+            foreach (var node in NodeModels)
+            {
+                if (node is GraphDataContextNodeModel graphDataContextNodeModel && graphDataContextNodeModel.IsMainContextNode())
+                    return graphDataContextNodeModel;
+            }
+
+            return null;
+        }
+
         public bool DoesNodeRequireTime(string graphDataName)
         {
+            // Special casing for main context node now as we don't use a GTF guid as its CLDS ID
+            if (graphDataName == DefaultContextName)
+                return IsConnectedToTimeNode(GetMainContextNode());
+
             return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
                 && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
         }
