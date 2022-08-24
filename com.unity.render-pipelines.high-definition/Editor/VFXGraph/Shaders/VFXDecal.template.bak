@@ -112,7 +112,7 @@ if(_EnableDecalLayers)
 
 			#if HAS_SHADERGRAPH_PARAM_ALPHA
 				color.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-
+				
             #endif
         #endif
 
@@ -196,14 +196,12 @@ if(_EnableDecalLayers)
 			float3 normalTS = float3(0.0f,0.0f,1.0f);
 	    #endif //USE_NORMAL_MAP
 
-		//shader graph normalmap
 		#ifdef VFX_SHADERGRAPH
 			#ifdef HAS_SHADERGRAPH_PARAM_NORMALTS
-			  normalTS += OUTSG.${SHADERGRAPH_PARAM_NORMALTS}; //normals, these are broken due to texcoord limits
-			  normalTS = saturate(normalTS);
-			#endif
+			  normalTS = OUTSG.${SHADERGRAPH_PARAM_NORMALTS}; //Smoothness
+			#endif 
 		#endif
-
+	
 		float3 normalWS = lerp(worldToElement._m20_m21_m22, mul(transpose(worldToElement), normalTS), normalScale);
 		normalWS = normalize(normalWS);
     #endif //DECAL_SURFACE_GRADIENT

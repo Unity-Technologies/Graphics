@@ -128,43 +128,43 @@ ${VFXEnd}
 ${VFXBegin:VFXHDRPDecalFillVaryings}
 #ifndef VFX_SHADERGRAPH
 
-#ifdef VFX_VARYING_SMOOTHNESS
-${VFXLoadParameter:{smoothness}}
-o.VFX_VARYING_SMOOTHNESS = smoothness;
-#endif
+	#ifdef VFX_VARYING_SMOOTHNESS
+		${VFXLoadParameter:{smoothness}}
+		o.VFX_VARYING_SMOOTHNESS = smoothness;
+	#endif
 
-#ifdef VFX_VARYING_METALLIC
-${VFXLoadParameter:{metallic}}
-o.VFX_VARYING_METALLIC = metallic;
-#endif
+	#ifdef VFX_VARYING_METALLIC
+		${VFXLoadParameter:{metallic}}
+		o.VFX_VARYING_METALLIC = metallic;
+	#endif
 
-#ifdef VFX_VARYING_AMBIENT_OCCLUSION
-${VFXLoadParameter:{ambientOcclusion}}
-o.VFX_VARYING_AMBIENT_OCCLUSION = ambientOcclusion;
-#endif
+	#ifdef VFX_VARYING_AMBIENT_OCCLUSION
+		${VFXLoadParameter:{ambientOcclusion}}
+		o.VFX_VARYING_AMBIENT_OCCLUSION = ambientOcclusion;
+	#endif
 
-#if HDRP_USE_EMISSIVE_MAP
-#ifdef VFX_VARYING_EMISSIVESCALE
-${VFXLoadParameter:{emissiveScale}}
-o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
-#endif
-#endif
+	#if HDRP_USE_EMISSIVE_MAP
+		#ifdef VFX_VARYING_EMISSIVESCALE
+			${VFXLoadParameter:{emissiveScale}}
+			o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
+		#endif
+	#endif
 
-#ifdef VFX_VARYING_EMISSIVE
-#if HDRP_USE_EMISSIVE_COLOR
-o.VFX_VARYING_EMISSIVE = attributes.color;
-#elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-${VFXLoadParameter:{emissiveColor}}
-o.VFX_VARYING_EMISSIVE = emissiveColor.rgb;
-#endif
-#endif
+	#ifdef VFX_VARYING_EMISSIVE
+		#if HDRP_USE_EMISSIVE_COLOR
+			o.VFX_VARYING_EMISSIVE = attributes.color;
+		#elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
+			${VFXLoadParameter:{emissiveColor}}
+			o.VFX_VARYING_EMISSIVE = emissiveColor.rgb;
+		#endif
+	#endif
 
-#if HDRP_USE_ADDITIONAL_BASE_COLOR
-#ifdef VFX_VARYING_COLOR
-${VFXLoadParameter:{baseColor}}
-o.VFX_VARYING_COLOR = baseColor;
-#endif
-#endif
+	#if HDRP_USE_ADDITIONAL_BASE_COLOR
+		#ifdef VFX_VARYING_COLOR
+			${VFXLoadParameter:{baseColor}}
+			o.VFX_VARYING_COLOR = baseColor;
+		#endif
+	#endif
 #endif
 
 float4x4 viewToDecal = GetVFXToElementMatrix(
