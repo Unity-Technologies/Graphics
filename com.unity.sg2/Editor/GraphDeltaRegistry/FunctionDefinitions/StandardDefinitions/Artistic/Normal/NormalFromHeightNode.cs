@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Tangent", "Tangent" },
                 { "World", "World" },
             },
+            functionSelectorLabel: "Output Space",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "In",

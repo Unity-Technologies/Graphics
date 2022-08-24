@@ -96,6 +96,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "View", "View" },
                 { "Tangent", "Tangent" }
             },
+            functionSelectorLabel: "Space",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "ViewDir"

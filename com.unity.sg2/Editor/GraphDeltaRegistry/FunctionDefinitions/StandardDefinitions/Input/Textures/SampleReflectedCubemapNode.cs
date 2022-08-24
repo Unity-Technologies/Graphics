@@ -96,6 +96,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Standard", "Standard" },
                 { "Biasfunction", "Bias" }
             },
+            functionSelectorLabel: "Mip Sampling Mode",
             parameters: new ParameterUIDescriptor[12] {
                 new ParameterUIDescriptor(
                     name: "Cube",

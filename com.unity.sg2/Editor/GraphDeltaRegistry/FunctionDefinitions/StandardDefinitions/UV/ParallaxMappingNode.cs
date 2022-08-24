@@ -101,6 +101,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Blue", "Blue" },
                 { "Alpha", "Alpha" }
             },
+            functionSelectorLabel: "Heightmap Sample Channel",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Heightmap",

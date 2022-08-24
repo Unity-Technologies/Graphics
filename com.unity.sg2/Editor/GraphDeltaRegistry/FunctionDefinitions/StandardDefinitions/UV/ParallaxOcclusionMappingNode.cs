@@ -297,6 +297,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
                 { "Blue", "Blue" },
                 { "Alpha", "Alpha" }
             },
+            functionSelectorLabel: "Heightmap Sample Channel",
             parameters: new ParameterUIDescriptor[11] {
                 new ParameterUIDescriptor(
                     name: "Heightmap",

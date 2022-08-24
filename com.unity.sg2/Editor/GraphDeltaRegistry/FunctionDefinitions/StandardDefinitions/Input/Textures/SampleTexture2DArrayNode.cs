@@ -132,6 +132,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Gradient", "Gradient" },
                 { "Biasfunction", "Bias" }
             },
+            functionSelectorLabel: "Mip Sampling Mode",
             parameters: new ParameterUIDescriptor[14] {
                 new ParameterUIDescriptor(
                     name: "TextureArray",

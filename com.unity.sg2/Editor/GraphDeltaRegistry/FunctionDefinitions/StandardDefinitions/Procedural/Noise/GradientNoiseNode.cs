@@ -131,6 +131,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Deterministic", "Deterministic" },
                 { "LegacyMod", "Legacy Mod" }
             },
+            functionSelectorLabel: "Hash Type",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "UV",

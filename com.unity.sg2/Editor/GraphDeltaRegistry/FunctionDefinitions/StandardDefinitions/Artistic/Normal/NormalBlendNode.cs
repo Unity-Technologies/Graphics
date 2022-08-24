@@ -83,6 +83,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "DefaultO", "Whiteout Opacity" },
                 { "ReorientedO", "Reoriented Opacity" }
             },
+            functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

@@ -183,6 +183,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Bronze", "Bronze" },
                 { "Tungsten", "Tungsten" }
             },
+            functionSelectorLabel: "Material",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",

@@ -112,6 +112,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "SquareStep", "Square Step" }
 
             },
+            functionSelectorLabel: "Curve",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",

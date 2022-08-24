@@ -73,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Fastest", "Fastest" },
                 { "Nicest", "Nicest" }
             },
+            functionSelectorLabel: " ",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
