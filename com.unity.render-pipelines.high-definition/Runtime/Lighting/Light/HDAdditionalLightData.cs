@@ -16,6 +16,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine.Assertions;
+using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -3064,121 +3066,130 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
-        void LateUpdate()
+        internal static void TickLateUpdate()
         {
             // Prevent any unwanted sync when not in HDRP (case 1217575)
             if (HDRenderPipeline.currentPipeline == null)
                 return;
 
-            // We force the animation in the editor and in play mode when there is an animator component attached to the light
+            List<HDAdditionalLightData> allAdditionalLightDatas = s_InstancesHDAdditionalLightData;
+
+            int additionalLightCount = allAdditionalLightDatas.Count;
+
+            for (int i = 0; i < additionalLightCount; i++)
+            {
+                HDAdditionalLightData additionalLightData = allAdditionalLightDatas[i];
+
+                // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
-            if (!m_Animated)
-                return;
+                if (!additionalLightData.m_Animated)
+                    continue;
 #endif
 
 #if UNITY_EDITOR
 
-            // If modification are due to change on prefab asset that are non overridden on this prefab instance
-            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
-            {
-                needRefreshPrefabInstanceEmissiveMeshes = true;
-            }
-            m_NeedsPrefabInstanceCheck = false;
-
-            // Update the list of overlapping lights for the LightOverlap scene view mode
-            if (IsOverlapping())
-                s_overlappingHDLights.Add(this);
-            else
-                s_overlappingHDLights.Remove(this);
-#endif
-
-#if UNITY_EDITOR
-
-            // If we requested an emissive mesh but for some reason (e.g. Reload scene unchecked in the Enter Playmode options) Awake has not been called,
-            // we need to create it manually.
-            if (m_DisplayAreaLightEmissiveMesh && (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null)))
-            {
-                UpdateAreaLightEmissiveMesh();
-            }
-
-            //if not parented anymore, refresh it
-            if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
-            {
-                if (m_ChildEmissiveMeshViewer.transform.parent != transform)
+                // If modification are due to change on prefab asset that are non overridden on this prefab instance
+                if (additionalLightData.m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(additionalLightData) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(additionalLightData) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
                 {
-                    CreateChildEmissiveMeshViewerIfNeeded();
-                    UpdateAreaLightEmissiveMesh();
+                    additionalLightData.needRefreshPrefabInstanceEmissiveMeshes = true;
                 }
-                if (m_ChildEmissiveMeshViewer.gameObject.isStatic != gameObject.isStatic)
-                    m_ChildEmissiveMeshViewer.gameObject.isStatic = gameObject.isStatic;
-                if (GameObjectUtility.GetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject) != GameObjectUtility.GetStaticEditorFlags(gameObject))
-                    GameObjectUtility.SetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject, GameObjectUtility.GetStaticEditorFlags(gameObject));
-            }
+                additionalLightData.m_NeedsPrefabInstanceCheck = false;
+
+                // Update the list of overlapping lights for the LightOverlap scene view mode
+                if (additionalLightData.IsOverlapping())
+                    s_overlappingHDLights.Add(additionalLightData);
+                else
+                    s_overlappingHDLights.Remove(additionalLightData);
 #endif
-
-            //auto change layer on emissive mesh
-            if (areaLightEmissiveMeshLayer == -1
-                && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
-                && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
-                m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
-
-            // Delayed cleanup when removing emissive mesh from timeline
-            if (needRefreshEmissiveMeshesFromTimeLineUpdate)
-            {
-                needRefreshEmissiveMeshesFromTimeLineUpdate = false;
-                UpdateAreaLightEmissiveMesh();
-            }
 
 #if UNITY_EDITOR
-            // Prefab instance child emissive mesh update
-            if (needRefreshPrefabInstanceEmissiveMeshes)
-            {
-                // We must not call the update on Prefab Asset that are already updated or we will enter infinite loop
-                if (!PrefabUtility.IsPartOfPrefabAsset(this))
+
+                // If we requested an emissive mesh but for some reason (e.g. Reload scene unchecked in the Enter Playmode options) Awake has not been called,
+                // we need to create it manually.
+                if (additionalLightData.m_DisplayAreaLightEmissiveMesh && (additionalLightData.m_ChildEmissiveMeshViewer == null || additionalLightData.m_ChildEmissiveMeshViewer.Equals(null)))
                 {
-                    UpdateAreaLightEmissiveMesh();
+                    additionalLightData.UpdateAreaLightEmissiveMesh();
                 }
-                needRefreshPrefabInstanceEmissiveMeshes = false;
-            }
+
+                //if not parented anymore, refresh it
+                if (additionalLightData.m_ChildEmissiveMeshViewer != null && !additionalLightData.m_ChildEmissiveMeshViewer.Equals(null))
+                {
+                    if (additionalLightData.m_ChildEmissiveMeshViewer.transform.parent != additionalLightData.transform)
+                    {
+                        additionalLightData.CreateChildEmissiveMeshViewerIfNeeded();
+                        additionalLightData.UpdateAreaLightEmissiveMesh();
+                    }
+                    if (additionalLightData.m_ChildEmissiveMeshViewer.isStatic != additionalLightData.gameObject.isStatic)
+                        additionalLightData.m_ChildEmissiveMeshViewer.isStatic = additionalLightData.gameObject.isStatic;
+                    if (GameObjectUtility.GetStaticEditorFlags(additionalLightData.m_ChildEmissiveMeshViewer) != GameObjectUtility.GetStaticEditorFlags(additionalLightData.gameObject))
+                        GameObjectUtility.SetStaticEditorFlags(additionalLightData.m_ChildEmissiveMeshViewer, GameObjectUtility.GetStaticEditorFlags(additionalLightData.gameObject));
+                }
 #endif
 
-            Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
+                //auto change layer on emissive mesh
+                if (additionalLightData.areaLightEmissiveMeshLayer == -1
+                    && additionalLightData.m_ChildEmissiveMeshViewer != null && !additionalLightData.m_ChildEmissiveMeshViewer.Equals(null)
+                    && additionalLightData.m_ChildEmissiveMeshViewer.layer != additionalLightData.gameObject.layer)
+                    additionalLightData.m_ChildEmissiveMeshViewer.layer = additionalLightData.gameObject.layer;
 
-            if (legacyLight.enabled != timelineWorkaround.lightEnabled)
-            {
-                SetEmissiveMeshRendererEnabled(legacyLight.enabled);
-                timelineWorkaround.lightEnabled = legacyLight.enabled;
-            }
+                // Delayed cleanup when removing emissive mesh from timeline
+                if (additionalLightData.needRefreshEmissiveMeshesFromTimeLineUpdate)
+                {
+                    additionalLightData.needRefreshEmissiveMeshesFromTimeLineUpdate = false;
+                    additionalLightData.UpdateAreaLightEmissiveMesh();
+                }
 
-            // Check if the intensity have been changed by the inspector or an animator
-            if (timelineWorkaround.oldLossyScale != transform.lossyScale
-                || intensity != timelineWorkaround.oldIntensity
-                || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
-            {
-                UpdateLightIntensity();
-                UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.oldLossyScale = transform.lossyScale;
-                timelineWorkaround.oldIntensity = intensity;
-                timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
-            }
+#if UNITY_EDITOR
+                // Prefab instance child emissive mesh update
+                if (additionalLightData.needRefreshPrefabInstanceEmissiveMeshes)
+                {
+                    // We must not call the update on Prefab Asset that are already updated or we will enter infinite loop
+                    if (!PrefabUtility.IsPartOfPrefabAsset(additionalLightData))
+                    {
+                        additionalLightData.UpdateAreaLightEmissiveMesh();
+                    }
+                    additionalLightData.needRefreshPrefabInstanceEmissiveMeshes = false;
+                }
+#endif
 
-            // Same check for light angle to update intensity using spot angle
-            if (type == HDLightType.Spot && (timelineWorkaround.oldSpotAngle != legacyLight.spotAngle))
-            {
-                UpdateLightIntensity();
-                timelineWorkaround.oldSpotAngle = legacyLight.spotAngle;
-            }
+                Vector3 shape = new Vector3(additionalLightData.shapeWidth, additionalLightData.m_ShapeHeight, additionalLightData.shapeRadius);
 
-            if (legacyLight.color != timelineWorkaround.oldLightColor
-                || timelineWorkaround.oldLossyScale != transform.lossyScale
-                || displayAreaLightEmissiveMesh != timelineWorkaround.oldDisplayAreaLightEmissiveMesh
-                || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
-            {
-                UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.oldLightColor = legacyLight.color;
-                timelineWorkaround.oldLossyScale = transform.lossyScale;
-                timelineWorkaround.oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
-                timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
+                if (additionalLightData.legacyLight.enabled != additionalLightData.timelineWorkaround.lightEnabled)
+                {
+                    additionalLightData.SetEmissiveMeshRendererEnabled(additionalLightData.legacyLight.enabled);
+                    additionalLightData.timelineWorkaround.lightEnabled = additionalLightData.legacyLight.enabled;
+                }
+
+                // Check if the intensity have been changed by the inspector or an animator
+                if (additionalLightData.timelineWorkaround.oldLossyScale != additionalLightData.transform.lossyScale
+                    || additionalLightData.intensity != additionalLightData.timelineWorkaround.oldIntensity
+                    || additionalLightData.legacyLight.colorTemperature != additionalLightData.timelineWorkaround.oldLightColorTemperature)
+                {
+                    additionalLightData.UpdateLightIntensity();
+                    additionalLightData.UpdateAreaLightEmissiveMesh();
+                    additionalLightData.timelineWorkaround.oldLossyScale = additionalLightData.transform.lossyScale;
+                    additionalLightData.timelineWorkaround.oldIntensity = additionalLightData.intensity;
+                    additionalLightData.timelineWorkaround.oldLightColorTemperature = additionalLightData.legacyLight.colorTemperature;
+                }
+
+                // Same check for light angle to update intensity using spot angle
+                if (additionalLightData.type == HDLightType.Spot && (additionalLightData.timelineWorkaround.oldSpotAngle != additionalLightData.legacyLight.spotAngle))
+                {
+                    additionalLightData.UpdateLightIntensity();
+                    additionalLightData.timelineWorkaround.oldSpotAngle = additionalLightData.legacyLight.spotAngle;
+                }
+
+                if (additionalLightData.legacyLight.color != additionalLightData.timelineWorkaround.oldLightColor
+                    || additionalLightData.timelineWorkaround.oldLossyScale != additionalLightData.transform.lossyScale
+                    || additionalLightData.displayAreaLightEmissiveMesh != additionalLightData.timelineWorkaround.oldDisplayAreaLightEmissiveMesh
+                    || additionalLightData.legacyLight.colorTemperature != additionalLightData.timelineWorkaround.oldLightColorTemperature)
+                {
+                    additionalLightData.UpdateAreaLightEmissiveMesh();
+                    additionalLightData.timelineWorkaround.oldLightColor = additionalLightData.legacyLight.color;
+                    additionalLightData.timelineWorkaround.oldLossyScale = additionalLightData.transform.lossyScale;
+                    additionalLightData.timelineWorkaround.oldDisplayAreaLightEmissiveMesh = additionalLightData.displayAreaLightEmissiveMesh;
+                    additionalLightData.timelineWorkaround.oldLightColorTemperature = additionalLightData.legacyLight.colorTemperature;
+                }
             }
         }
 
@@ -4213,5 +4224,56 @@ namespace UnityEngine.Rendering.HighDefinition
             return s_InstancesLight;
         }
         // custom-end
+    }
+
+    public static class LightLateUpdate
+    {
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        internal static void Init()
+        {
+            var currentLoopSystem = LowLevel.PlayerLoop.GetCurrentPlayerLoop();
+
+            bool found = AppendToPlayerLoopList(typeof(LightLateUpdate), Tick, ref currentLoopSystem, typeof(PreLateUpdate.ScriptRunBehaviourLateUpdate));
+            LowLevel.PlayerLoop.SetPlayerLoop(currentLoopSystem);
+        }
+        internal static void Tick()
+        {
+            HDAdditionalLightData.TickLateUpdate();
+        }
+
+        internal static bool AppendToPlayerLoopList(Type updateType, PlayerLoopSystem.UpdateFunction updateFunction, ref PlayerLoopSystem playerLoop, Type playerLoopSystemType)
+        {
+            if (updateType == null || updateFunction == null || playerLoopSystemType == null)
+                return false;
+
+            if (playerLoop.type == playerLoopSystemType)
+            {
+                var oldListLength = playerLoop.subSystemList != null ? playerLoop.subSystemList.Length : 0;
+                var newSubsystemList = new PlayerLoopSystem[oldListLength + 1];
+                for (var i = 0; i < oldListLength; ++i)
+                    newSubsystemList[i] = playerLoop.subSystemList[i];
+                newSubsystemList[oldListLength] = new PlayerLoopSystem
+                {
+                    type = updateType,
+                    updateDelegate = updateFunction
+                };
+                playerLoop.subSystemList = newSubsystemList;
+                return true;
+            }
+
+            if (playerLoop.subSystemList != null)
+            {
+                for (var i = 0; i < playerLoop.subSystemList.Length; ++i)
+                {
+                    if (AppendToPlayerLoopList(updateType, updateFunction, ref playerLoop.subSystemList[i], playerLoopSystemType))
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }
