@@ -3,6 +3,12 @@
 struct ps_input
 {
 	float4 pos : SV_POSITION;
+	#if USE_FLIPBOOK_INTERPOLATION
+    	float4 uv : TEXCOORD0;
+    #else
+    	float2 uv : TEXCOORD0;
+    #endif
+
 	#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
 	// x: alpha
 	// y: alpha threshold
@@ -33,6 +39,6 @@ ${VFXPassVelocityDefine}
 ${VFXPassDepthDefine}
 #endif
 
-${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 #define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 0
 ${VFXPassDepthCommonFragmentUnlit}

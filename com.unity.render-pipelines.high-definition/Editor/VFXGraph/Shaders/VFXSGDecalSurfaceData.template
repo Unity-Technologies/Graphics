@@ -1,0 +1,37 @@
+
+#if HAS_SHADERGRAPH_PARAM_BASECOLOR
+
+    decalSurfaceData.baseColor.rgb = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
+    decalSurfaceData.baseColor.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    decalSurfaceData.baseColor.rgb = float3(0.0, 1.0, 0.0);
+
+#endif
+
+#if HAS_SHADERGRAPH_PARAM_METALLIC
+    decalSurfaceData.mask.x = OUTSG.${SHADERGRAPH_PARAM_METALLIC}; //metal
+#endif
+
+  // decalSurfaceData.mask.y =  1.0f; //OUTSG.${SHADERGRAPH_PARAM_AO}; //AO //this looks like it isnt used
+
+#if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
+    decalSurfaceData.mask.z = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS}; //Smoothness
+#endif
+
+#if HAS_SHADERGRAPH_PARAM_ALPHA
+   // decalSurfaceData.mask.w =  OUTSG.${SHADERGRAPH_PARAM_ALPHA}; //smoothness opacity
+  //  decalSurfaceData.MAOSBlend.x = OUTSG.${SHADERGRAPH_PARAM_ALPHA}; //metal opacity
+   // decalSurfaceData.MAOSBlend.y = OUTSG.${SHADERGRAPH_PARAM_ALPHA}; //AO opacity
+#endif
+
+#if HAS_SHADERGRAPH_PARAM_EMISSION
+    //decalSurfaceData.emissive =  OUTSG.${SHADERGRAPH_PARAM_EMISSION};
+#endif
+
+#if HAS_SHADERGRAPH_PARAM_NORMALTS
+    //float4 n =  OUTSG.${SHADERGRAPH_PARAM_NORMALTS};
+    //float3 normalWS = mul(n,tbn);
+    //decalSurfaceData.normalWS =  n;
+#endif
+
+//   decalSurfaceData.baseColor.rgb = float3(1.0, 0.0, 0.0);
+  // decalSurfaceData.baseColor.a = 1.0;
