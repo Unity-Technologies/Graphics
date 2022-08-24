@@ -830,5 +830,6 @@ Shader "HDRP/AxF"
         }
     }
 
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.AxFGUI"
 }
