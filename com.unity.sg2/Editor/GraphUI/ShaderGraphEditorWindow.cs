@@ -262,7 +262,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (shaderGraphModel == null)
                 return;
 
-            shaderGraphModel.MainPreviewData.MainPreviewSize = m_PreviewSize;
+            shaderGraphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
 
             m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
 
@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GraphTool,
                 m_PreviewUpdateDispatcher,
                 shaderGraphModel,
-                GraphView.Dispatcher,
+                GraphTool.Dispatcher,
                 GraphView.GraphViewModel);
 
             // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.

@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
+using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.HeadlessPreviewManager.PreviewRenderMode;
+
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
@@ -25,6 +27,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         HashSet<string> m_TimeDependentNodes;
         double m_LastTimedUpdateTime;
         EditorWindow m_OwningWindowReference;
+
+        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.x);
+        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.y);
+
+        public bool LockMainPreviewRotation { get; set; }
 
         /// <summary>
         /// Provides this preview update dispatcher with necessary resources for initialization
@@ -48,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Initialize the headless preview
             m_PreviewHandlerInstance = new HeadlessPreviewManager();
-            m_PreviewHandlerInstance.Initialize(shaderGraphModel.DefaultContextName, m_MainPreviewData.MainPreviewSize);
+            m_PreviewHandlerInstance.Initialize(shaderGraphModel.DefaultContextName, m_MainPreviewData.mainPreviewSize);
             m_PreviewHandlerInstance.SetActiveGraph(shaderGraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(shaderGraphModel.RegistryInstance.Registry);
             m_PreviewHandlerInstance.SetActiveTarget(shaderGraphModel.ActiveTarget);
@@ -70,12 +77,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public void OnListenerAdded(string listenerID, HeadlessPreviewManager.PreviewRenderMode previewRenderMode, bool isListenerTimeDependent)
+        void RequestPreviewUpdate(string nodeName, PreviewRenderMode previewRenderMode = PreviewRenderMode.Preview2D, bool forceRender = false)
+        {
+            if (nodeName == m_GraphModel.DefaultContextName)
+                m_PreviewHandlerInstance.RequestMainPreviewUpdate(m_Scheduler,
+                    PreviewWidth,
+                    PreviewHeight,
+                    m_MainPreviewData.mesh,
+                    m_MainPreviewData.scale,
+                    m_MainPreviewData.lockMainPreviewRotation,
+                    m_MainPreviewData.rotation,
+                    forceRender);
+            else
+                m_PreviewHandlerInstance.RequestNodePreviewUpdate(nodeName, m_Scheduler, previewRenderMode, forceRerender: forceRender);
+        }
+
+        public void OnListenerAdded(string listenerID, PreviewRenderMode previewRenderMode, bool isListenerTimeDependent)
         {
             if (isListenerTimeDependent)
                 m_TimeDependentNodes.Add(listenerID);
 
-            m_PreviewHandlerInstance.RequestPreviewUpdate(listenerID, m_Scheduler, previewRenderMode);
+            RequestPreviewUpdate(listenerID, previewRenderMode);
         }
 
         public void OnListenerConnectionChanged(string listenerID, bool wasNodeDeleted = false)
@@ -93,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             foreach (var downstreamNode in impactedNodes)
-                m_PreviewHandlerInstance.RequestPreviewUpdate(downstreamNode, m_Scheduler);
+                RequestPreviewUpdate(downstreamNode);
         }
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)
@@ -109,18 +131,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var impactedNodes = m_PreviewHandlerInstance.SetGlobalProperty(propertyName, newValue, variableNodeNames);
             foreach (var downstreamNode in impactedNodes)
-            {
-                m_PreviewHandlerInstance.RequestPreviewUpdate(downstreamNode, m_Scheduler);
-            }
+                RequestPreviewUpdate(downstreamNode);
         }
 
         public void OnLocalPropertyChanged(string nodeName, string propertyName, object newValue)
         {
             var impactedNodes = m_PreviewHandlerInstance.SetLocalProperty(nodeName, propertyName, newValue);
             foreach (var downstreamNode in impactedNodes)
-            {
-                m_PreviewHandlerInstance.RequestPreviewUpdate(downstreamNode, m_Scheduler);
-            }
+                RequestPreviewUpdate(downstreamNode);
+        }
+
+        public void OnMainPreviewDataChanged()
+        {
+            m_PreviewHandlerInstance.RequestMainPreviewUpdate(
+                m_Scheduler,
+                PreviewWidth,
+                PreviewHeight,
+                m_MainPreviewData.mesh,
+                m_MainPreviewData.scale,
+                m_MainPreviewData.lockMainPreviewRotation,
+                m_MainPreviewData.rotation);
         }
 
         bool TimedNodesShouldUpdate(EditorWindow editorWindow)
@@ -158,7 +188,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (TimedNodesShouldUpdate(m_OwningWindowReference))
                 foreach (var timeDependentNode in m_TimeDependentNodes)
-                    m_PreviewHandlerInstance.RequestPreviewUpdate(timeDependentNode, m_Scheduler, forceRerender: true);
+                    RequestPreviewUpdate(timeDependentNode, forceRender: true);
         }
 
         public void Cleanup()
