@@ -700,6 +700,14 @@ struct VFXUVData
     float4 mvs;
 };
 
+
+float2 GetVFXUVs(VFXUVData uvData)
+{
+    float2 s0 = uvData.uvs.xy + uvData.mvs.xy;
+    float2 s1 = uvData.uvs.zw + uvData.mvs.zw;
+    return lerp(s0, s1, uvData.blend);
+}
+
 float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
 {
     float4 s0 = s.t.Sample(s.s, uvData.uvs.xy + uvData.mvs.xy);

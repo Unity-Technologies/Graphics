@@ -438,6 +438,7 @@ namespace UnityEditor.VFX
                 var spaceable = context.GetData() as ISpaceable;
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
+
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
 
             var perPassIncludeContent = new VFXShaderWriter();
@@ -460,17 +461,17 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
 
             var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-            foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))
+            foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString())) //here ${VFXLoadParameter:{normalScale}}
             {
                 var str = match.Groups[0].Value;
                 var pattern = match.Groups[1].Value;
                 var loadParameters = GenerateLoadParameter(pattern, mainParameters, expressionToName);
                 ReplaceMultiline(stringBuilder, str, loadParameters.builder);
             }
+
             var additionalInterpolantsGeneration = new VFXShaderWriter();
             var additionalInterpolantsDeclaration = new VFXShaderWriter();
             var additionalInterpolantsPreparation = new VFXShaderWriter();
-
 
             int normSemantic = 0;
 
@@ -493,6 +494,7 @@ namespace UnityEditor.VFX
                                 additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
                                 additionalInterpolantsGeneration.WriteLine();
                             }
+
                             additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
                             additionalInterpolantsGeneration.WriteLine();
                         }
@@ -504,6 +506,7 @@ namespace UnityEditor.VFX
                         additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, filteredNamedExpression.exp.GetCodeString(null));
                 }
             }
+
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
