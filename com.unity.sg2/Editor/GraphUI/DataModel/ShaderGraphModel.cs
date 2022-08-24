@@ -678,7 +678,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         return true;
 
                     // Recursively traverse through all inputs upstream and get if connected to time node
-                    IsConnectedToTimeNode(inputGraphDataNode);
+                    return IsConnectedToTimeNode(inputGraphDataNode);
                 }
             }
 
