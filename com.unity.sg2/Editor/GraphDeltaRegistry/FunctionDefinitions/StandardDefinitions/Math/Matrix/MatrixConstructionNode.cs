@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Row", "Row" },
                 { "Column", "Column" }
             },
-            functionSelectorLabel: "",
+            functionSelectorLabel: " ",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[7] {
                 new ParameterUIDescriptor(

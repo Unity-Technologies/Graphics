@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "FourSamples", "4 Samples" },
                 { "EightSamples", "8 Samples" }
              },
-            functionSelectorLabel: "",
+            functionSelectorLabel: " ",
             parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
                     name: "Texture",
