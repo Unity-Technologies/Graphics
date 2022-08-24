@@ -32,6 +32,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal void SetMainPreviewReference(MainPreviewView mainPreviewView)
         {
             m_MainPreviewView = mainPreviewView;
+            // This handles when the main preview overlay is undocked and moved around or re-docked
+            if(GraphView?.GraphModel is ShaderGraphModel shaderGraphModel)
+                SetDefaultMainPreviewUpdateListener(shaderGraphModel);
         }
 
         internal IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
@@ -273,7 +276,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphModel,
                 GraphView.Dispatcher,
                 GraphView.GraphViewModel);
-                
+
             // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.
             shaderGraphModel.GraphHandler.AddBuildCallback(nodeHandler =>
             {
