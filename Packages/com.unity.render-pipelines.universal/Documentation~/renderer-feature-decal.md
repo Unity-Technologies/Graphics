@@ -4,6 +4,8 @@ With the Decal Renderer Feature, Unity can project specific Materials (decals) o
 
 ![Decal Projector in a sample Scene](Images/decal/decal-projector-scene-view.png)<br/>*Decal Projector in a sample Scene.*
 
+For examples of how to use Decals, see the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
+
 ## How to use the feature
 
 To add decals to your Scene:
