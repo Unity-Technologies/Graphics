@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLighting,
         DbufferProjector,
         DbufferMesh,
+        //Shaderpass_DBuffer_Projector, //check idx order isnt messed up by injecting this in the middle and not the end, shader has Pass Name: DBufferMesh, could be that
         ForwardEmissiveProjector,
         ForwardEmissiveMesh,
         Raytracing,
