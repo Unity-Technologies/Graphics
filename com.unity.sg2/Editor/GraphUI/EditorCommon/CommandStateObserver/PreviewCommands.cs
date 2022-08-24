@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -12,47 +13,47 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static void RegisterCommandHandlers(
             BaseGraphTool graphTool,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ShaderGraphModel shaderGraphModel,
             Dispatcher commandDispatcher,
             GraphViewModel graphViewModel)
         {
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewExpandedCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, ChangePreviewExpandedCommand>(
                 ChangePreviewExpandedCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphViewModel.GraphModelState,
-                previewManager
+                previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewManager, ChangePreviewMeshCommand>(
+            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewMeshCommand>(
                 ChangePreviewMeshCommand.DefaultCommandHandler,
                 shaderGraphModel,
-                previewManager
+                previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewManager, ChangePreviewZoomCommand>(
+            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewZoomCommand>(
                 ChangePreviewZoomCommand.DefaultCommandHandler,
                 shaderGraphModel,
-                previewManager
+                previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewManager, ChangePreviewRotationCommand>(
+            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewRotationCommand>(
                 ChangePreviewRotationCommand.DefaultCommandHandler,
                 shaderGraphModel,
-                previewManager
+                previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewManager, ChangePreviewSizeCommand>(
+            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewSizeCommand>(
                 ChangePreviewSizeCommand.DefaultCommandHandler,
                 shaderGraphModel,
-                previewManager
+                previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewModeCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, ChangePreviewModeCommand>(
                 ChangePreviewModeCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphViewModel.GraphModelState,
-                previewManager
+                previewUpdateDispatcher
             );
         }
     }
@@ -69,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphViewState,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewExpandedCommand command
         )
         {
@@ -105,7 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultCommandHandler(
             ShaderGraphModel graphModel,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewMeshCommand command
         )
         {
@@ -113,9 +114,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Otherwise this might be undoable.
             graphModel.MainPreviewData.mesh = command.m_NewPreviewMesh;
 
-            previewManager.LockMainPreviewRotation = command.m_LockPreviewRotation;
-            // Lets the preview manager know to re-render the main preview output
-            previewManager.OnMainPreviewDataChanged();
+            //previewUpdateDispatcher.LockMainPreviewRotation = command.m_LockPreviewRotation;
+            //// Lets the preview manager know to re-render the main preview output
+            //previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 
@@ -134,7 +135,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewModeCommand command
         )
         {
@@ -161,10 +162,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // After all the nodes preview modes are set, go through the nodes again
             // and concretize the preview modes that are set to inherit for preview data
-            foreach (var graphDataNodeModel in command.Models)
-            {
-                previewManager.OnPreviewModeChanged(graphDataNodeModel.graphDataName, command.m_PreviewMode);
-            }
+            //foreach (var graphDataNodeModel in command.Models)
+            //{
+            //    previewUpdateDispatcher.OnPreviewModeChanged(graphDataNodeModel.graphDataName, command.m_PreviewMode);
+            //}
         }
     }
 
@@ -180,14 +181,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultCommandHandler(
             ShaderGraphModel graphModel,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewZoomCommand command
         )
         {
             graphModel.MainPreviewData.scale += command.m_NewPreviewZoom;
 
             // Lets the preview manager know to re-render the main preview output
-            previewManager.OnMainPreviewDataChanged();
+            //previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 
@@ -203,14 +204,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultCommandHandler(
             ShaderGraphModel graphModel,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewRotationCommand command
         )
         {
             graphModel.MainPreviewData.rotation = command.m_NewPreviewRotation;
 
             // Lets the preview manager know to re-render the main preview output
-            previewManager.OnMainPreviewDataChanged();
+            //previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 
@@ -226,12 +227,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultCommandHandler(
             ShaderGraphModel graphModel,
-            PreviewManager previewManager,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewSizeCommand command
         )
         {
             // Lets the preview manager know to re-render the main preview outputs
-            previewManager.OnMainPreviewDataChanged();
+            //previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 }

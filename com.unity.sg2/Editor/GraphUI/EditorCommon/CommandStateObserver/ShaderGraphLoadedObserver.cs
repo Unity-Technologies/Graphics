@@ -7,18 +7,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         ToolStateComponent m_ToolStateComponent;
         GraphModelStateComponent m_GraphModelStateComponent;
+        PreviewStateComponent m_PreviewStateComponent;
+        PreviewUpdateDispatcher m_PreviewUpdateDispatcher;
+
         ShaderGraphEditorWindow m_ShaderGraphEditorWindow;
         ShaderGraphModel m_CurrentGraphModelInstance;
 
         public ShaderGraphLoadedObserver(
             ToolStateComponent toolStateComponent,
             GraphModelStateComponent graphModelStateComponent,
+            PreviewStateComponent previewStateComponent,
             ShaderGraphEditorWindow shaderGraphEditorWindow)
-            : base(new []{ toolStateComponent }, new []{ graphModelStateComponent })
+            : base(new []{ toolStateComponent },
+                new IStateComponent []{ graphModelStateComponent, previewStateComponent })
         {
             m_ToolStateComponent = toolStateComponent;
             m_GraphModelStateComponent = graphModelStateComponent;
             m_ShaderGraphEditorWindow = shaderGraphEditorWindow;
+            m_PreviewStateComponent = previewStateComponent;
         }
 
         /// <inheritdoc />
@@ -32,7 +38,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     m_CurrentGraphModelInstance = shaderGraphModel;
                     shaderGraphModel.graphModelStateComponent = m_GraphModelStateComponent;
-                    m_ShaderGraphEditorWindow.HandleGraphLoad(shaderGraphModel);
+
+                    // Initialize preview state component
+                    using (var updater = m_PreviewStateComponent.UpdateScope)
+                    {
+                        updater.LoadStateForGraph(shaderGraphModel);
+                    }
+
+                    m_ShaderGraphEditorWindow.HandleGraphLoad(shaderGraphModel, m_PreviewStateComponent);
                 }
             }
         }

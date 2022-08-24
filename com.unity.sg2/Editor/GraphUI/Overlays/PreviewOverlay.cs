@@ -31,9 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
 
             window.SetMainPreviewReference(m_MainPreviewView);
-            var cachedTexture = getCachedMainPreviewTexture?.Invoke();
-            if (cachedTexture != null)
-                m_MainPreviewView.mainPreviewTexture = cachedTexture;
 
             // TODO: The overlays should be persisting the size and driving the main preview size
             minSize = new Vector2(130, 130);

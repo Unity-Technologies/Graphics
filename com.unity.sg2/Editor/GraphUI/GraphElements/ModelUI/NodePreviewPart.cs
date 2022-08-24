@@ -106,12 +106,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewImage.tintColor = isPreviewShaderCompiling ? new Color(1.0f, 1.0f, 1.0f, 0.3f) : Color.white;
         }
 
-        public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
+        void HandlePreviewTextureUpdated(Texture newPreviewTexture)
         {
-            if(newPreviewTexture != m_PreviewImage.image && newPreviewTexture != null)
+            if (newPreviewTexture != m_PreviewImage.image && newPreviewTexture != null)
+            {
                 m_PreviewImage.image = newPreviewTexture;
-            else
                 m_PreviewImage.MarkDirtyRepaint();
+            }
         }
 
         public void RequestPreviewUpdate(string listenerID)
