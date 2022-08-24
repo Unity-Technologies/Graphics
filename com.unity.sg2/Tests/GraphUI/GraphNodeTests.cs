@@ -233,6 +233,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [UnityTest]
+        public IEnumerator TestConnectedNodeCanBeDeleted()
+        {
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Float");
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Truncate");
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+
+            m_TestInteractionHelper.ConnectNodes("Float", "Truncate");
+            m_TestInteractionHelper.ConnectNodes("Truncate", "Add", "Out", "B");
+
+            Assert.AreEqual(2, m_GraphView.GraphModel.EdgeModels.Count, "Initial graph should have 2 edges");
+
+            var middleNode = m_Window.GetNodeModelFromGraphByName("Truncate");
+
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, middleNode));
+            yield return null;
+
+            m_TestEventHelper.SendDeleteCommand();
+            yield return null;
+
+            Assert.AreEqual(0, m_GraphView.GraphModel.EdgeModels.Count, "Deleting a node should delete the connected edges");
+            Assert.IsFalse(m_GraphView.GraphModel.NodeModels.Contains(middleNode), "Deleted node should be removed from the graph");
+        }
+
+        [UnityTest]
         public IEnumerator TestNodeCanBeCopied()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
