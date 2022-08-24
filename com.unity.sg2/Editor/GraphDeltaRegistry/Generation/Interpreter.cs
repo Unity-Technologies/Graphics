@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph.Generation
             var vertexDescBuilder = new CustomizationPointInstance.Builder(container, vertexCP);
             EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexCP.Name, surfaceCP.Name);
             surfaceCPDesc = surfaceDescBuilder.Build();
-            vertexCPDesc = vertexDescBuilder.Build();
+            //vertexCPDesc = vertexDescBuilder.Build();
         }
 
         // TODO: Passing in the target directly is not what we want to do here, but having it be live gives us a clearer basis

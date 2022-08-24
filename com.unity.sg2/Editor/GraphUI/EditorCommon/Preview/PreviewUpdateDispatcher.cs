@@ -61,15 +61,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 switch (nodeModel)
                 {
                     case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
-                        m_PreviewHandlerInstance.RequestPreviewUpdate(contextNode.graphDataName, m_Scheduler, contextNode.NodePreviewMode);
+                        OnListenerAdded(contextNode.graphDataName, contextNode.NodePreviewMode, m_GraphModel.DoesNodeRequireTime(contextNode));
                         break;
                     case GraphDataNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
-                        m_PreviewHandlerInstance.RequestPreviewUpdate(graphDataNodeModel.graphDataName, m_Scheduler, graphDataNodeModel.NodePreviewMode);
-                        if(m_GraphModel.DoesNodeRequireTime(graphDataNodeModel))
-                            m_TimeDependentNodes.Add(graphDataNodeModel.graphDataName);
+                        OnListenerAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.NodePreviewMode, m_GraphModel.DoesNodeRequireTime(graphDataNodeModel));
                         break;
-
-
                 }
             }
         }

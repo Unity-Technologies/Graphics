@@ -129,6 +129,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
 
+        internal GraphDataContextNodeModel m_DefaultContextNode = null;
+
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
 
@@ -179,6 +181,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
             GraphHandler.ReconcretizeAll();
             mainPreviewData = new(Guid.ToString());
+            m_DefaultContextNode = GetMainContextNode();
         }
 
         internal void InitializeContextFromTarget(Target target)
@@ -190,6 +193,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 contextNode.DefineNode();
             }
+        }
+
+        GraphDataContextNodeModel GetMainContextNode()
+        {
+            foreach (var node in NodeModels)
+            {
+                if (node is GraphDataContextNodeModel graphDataContextNodeModel && graphDataContextNodeModel.IsMainContextNode())
+                    return graphDataContextNodeModel;
+            }
+
+            return null;
         }
 
         public override bool CanBeSubgraph() => isSubGraph;
@@ -678,7 +692,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         return true;
 
                     // Recursively traverse through all inputs upstream and get if connected to time node
-                    IsConnectedToTimeNode(inputGraphDataNode);
+                    return IsConnectedToTimeNode(inputGraphDataNode);
                 }
             }
 
@@ -687,6 +701,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public bool DoesNodeRequireTime(string graphDataName)
         {
+            // Special casing for main context node now as we don't use a GTF guid as its CLDS ID
+            if (graphDataName == DefaultContextName)
+                return IsConnectedToTimeNode(m_DefaultContextNode);
+
             return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
                 && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
         }
