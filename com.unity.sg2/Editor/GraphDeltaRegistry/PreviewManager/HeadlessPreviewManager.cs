@@ -794,7 +794,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             if (previewToUpdate != m_MainPreviewData)
             {
-                Mesh renderMesh = previewToUpdate.currentRenderMode == PreviewRenderMode.Preview2D
+                Mesh renderMesh = previewToUpdate.currentRenderMode is PreviewRenderMode.Preview2D or PreviewRenderMode.Inherit
                     ? m_SceneResources.quad
                     : m_SceneResources.sphere;
 
