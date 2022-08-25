@@ -67,12 +67,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             TryGetOverlay("gtf-blackboard", out var gtfBlackboard);
             overlayCanvas.Remove(gtfBlackboard);
-
-            TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
-            if (overlay is PreviewOverlay previewOverlay)
-            {
-                m_PreviewSize = previewOverlay.size;
-            }
         }
 
         protected override void OnEnable()
@@ -262,6 +256,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Can be null when the editor window is opened to the onboarding page
             if (shaderGraphModel == null)
                 return;
+
+            TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
+            if (overlay is PreviewOverlay previewOverlay)
+            {
+                m_PreviewSize = previewOverlay.size;
+            }
 
             shaderGraphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
 
