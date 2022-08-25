@@ -44,8 +44,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         string m_MainContextNodeName;
 
-        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
-        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
+        int PreviewWidth => Mathf.FloorToInt(0.0f);
+        int PreviewHeight => Mathf.FloorToInt(0.0f);
 
         internal void Cleanup()
         {
