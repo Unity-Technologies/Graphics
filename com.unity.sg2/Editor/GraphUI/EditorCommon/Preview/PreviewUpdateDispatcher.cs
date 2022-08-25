@@ -31,8 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         int PreviewWidth => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.x);
         int PreviewHeight => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.y);
 
-        public bool LockMainPreviewRotation { get; set; }
-
         /// <summary>
         /// Provides this preview update dispatcher with necessary resources for initialization
         /// </summary>
