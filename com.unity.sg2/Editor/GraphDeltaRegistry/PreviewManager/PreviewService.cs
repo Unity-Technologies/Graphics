@@ -855,6 +855,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 hideFlags = HideFlags.HideAndDontSave
             };
 
+            // set textures that were setup in GetNodeShaderObject
+            foreach ((string textureName, Texture texture) in previewToUpdate.defaultTextures)
+            {
+                previewToUpdate.material.SetTexture(textureName, texture);
+            }
+
             // compile the passes for the material
             bool prev = ShaderUtil.allowAsyncCompilation;
             ShaderUtil.allowAsyncCompilation = true;
