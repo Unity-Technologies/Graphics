@@ -846,9 +846,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 previewToUpdate.isRenderOutOfDate = false;
             }
 
-            m_SceneResources.light0.enabled = true;
-            m_SceneResources.light1.enabled = true;
-
             // Render 3D previews
             m_SceneResources.camera.transform.position = -Vector3.forward * 5;
             m_SceneResources.camera.transform.rotation = Quaternion.identity;
