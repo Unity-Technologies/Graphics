@@ -34,8 +34,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
                 size = minSize;
 
-            m_MainPreviewView.Initialize(size);
-
             return m_MainPreviewView;
         }
     }

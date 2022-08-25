@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        [MenuItem("Assets/Create/Shader Graph 2/URP Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateURPGraphInProjectWindow()
+        [MenuItem("Assets/Create/Shader Graph 2/URP Lit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        public static void CreateURPLitGraphInProjectWindow()
         {
             var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
             newGraphAction.callback = URPTargetUtils.ConfigureURPLit;
@@ -34,18 +34,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 null);
         }
 
-        //[MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        //public static void CreateBlankGraphInProjectWindow()
-        //{
-        //    var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
-        //    newGraphAction.isBlank = true;
-        //    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-        //        0,
-        //        newGraphAction,
-        //        $"{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}",
-        //        null,
-        //        null);
-        //}
+        [MenuItem("Assets/Create/Shader Graph 2/URP Unlit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        public static void CreateURPUnlitGraphInProjectWindow()
+        {
+            var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+            newGraphAction.callback = URPTargetUtils.ConfigureURPUnlit;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+                0,
+                newGraphAction,
+                $"{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}",
+                null,
+                null);
+        }
 
         // TODO: Reenable for users once subgraphs are behaving correctly again https://jira.unity3d.com/browse/GSG-1290
         //[MenuItem("Assets/Create/Shader Graph 2/Blank Shader SubGraph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]

@@ -32,10 +32,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Vector2 m_PreviewScrollPosition = new();
 
-        Vector2 m_PreviewSize;
-
-        public Vector2 PreviewSize => m_PreviewSize;
-
         bool m_LockPreviewRotation;
 
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
@@ -86,12 +82,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var owningOverlay = this.GetFirstAncestorWithName("unity-overlay");
             if (owningOverlay != null)
             {
-                if (this.style.width.value.value != 0 && this.style.height.value.value != 0)
-                {
-                    m_PreviewSize.x = this.style.width.value.value;
-                    m_PreviewSize.y = this.style.height.value.value;
-                }
-
                 owningOverlay.UnregisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
                 owningOverlay.RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
             }
@@ -109,11 +99,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var primitiveMeshKey  = primitiveTypeName == "Quad" ? "Sprite" : primitiveTypeName;
                 m_PreviewMeshIndex.Add(primitiveMeshKey, primitiveMesh);
             }
-        }
-
-        public void Initialize(Vector2 previewSize)
-        {
-            m_PreviewSize = previewSize;
         }
 
         Image CreatePreview(Texture inputTexture)

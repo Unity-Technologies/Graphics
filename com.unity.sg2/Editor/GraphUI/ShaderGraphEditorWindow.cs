@@ -52,12 +52,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ShortcutHelper.RegisterDefaultShortcuts<ShaderGraphEditorWindow>(ShaderGraphGraphTool.toolName);
         }
 
-        [MenuItem("Window/Shaders/ShaderGraph", false)]
-        public static void ShowWindow()
-        {
-            Type sceneView = typeof(SceneView);
-            GetWindow<ShaderGraphEditorWindow>(sceneView);
-        }
+        // TODO: Re-enable when GTF fixes onboarding provider handling
+        //[MenuItem("Window/Shaders/ShaderGraph", false)]
+        //public static void ShowWindow()
+        //{
+        //    Type sceneView = typeof(SceneView);
+        //    GetWindow<ShaderGraphEditorWindow>(sceneView);
+        //}
 
         void InitializeOverlayWindows()
         {
@@ -66,12 +67,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             TryGetOverlay("gtf-blackboard", out var gtfBlackboard);
             overlayCanvas.Remove(gtfBlackboard);
-
-            TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
-            if (overlay is PreviewOverlay previewOverlay)
-            {
-                m_PreviewSize = previewOverlay.size;
-            }
         }
 
         protected override void OnEnable()
@@ -261,6 +256,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Can be null when the editor window is opened to the onboarding page
             if (shaderGraphModel == null)
                 return;
+
+            TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
+            if (overlay is PreviewOverlay previewOverlay)
+            {
+                m_PreviewSize = previewOverlay.size;
+            }
 
             shaderGraphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
 
