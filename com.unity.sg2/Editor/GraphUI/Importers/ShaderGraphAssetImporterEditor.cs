@@ -33,6 +33,22 @@ namespace UnityEditor.ShaderGraph
                     FileHelpers.OpenFile(path);
             }
 
+            if(GUILayout.Button("Save out generated Shader"))
+            {
+                AssetImporter importer = target as AssetImporter;
+                var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
+                var graph = asset.ShaderGraphModel.GraphHandler;
+
+                var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
+                var node = graph.GetNode(key.Name);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget);
+                string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
+                File.WriteAllText($"Assets/{assetName}-GeneratedShader.shader", shaderCode);
+                AssetDatabase.Refresh();
+                Selection.activeObject = AssetDatabase.LoadMainAssetAtPath($"Assets/{assetName}-GeneratedShader.shader");
+                EditorGUIUtility.PingObject(Selection.activeObject);
+            }
+
             ApplyRevertGUI();
             if (materialEditor != null)
             {
