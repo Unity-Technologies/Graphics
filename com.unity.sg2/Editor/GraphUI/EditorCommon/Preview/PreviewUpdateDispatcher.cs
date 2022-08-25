@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.HeadlessPreviewManager.PreviewRenderMode;
+using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.PreviewService.PreviewRenderMode;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_TimeDependentNodes = new();
             m_OwningWindowReference = owningWindow;
 
-            m_PreviewHandlerInstance = new HeadlessPreviewManager();
+            m_PreviewHandlerInstance = new PreviewService();
             m_PreviewHandlerInstance.Initialize(shaderGraphModel.DefaultContextName, m_MainPreviewData.mainPreviewSize);
             m_PreviewHandlerInstance.SetActiveGraph(shaderGraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(shaderGraphModel.RegistryInstance.Registry);
