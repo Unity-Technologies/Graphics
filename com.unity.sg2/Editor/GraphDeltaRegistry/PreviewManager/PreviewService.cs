@@ -8,6 +8,8 @@ using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
+using System;
+using UnityEngine.Windows;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -43,7 +45,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             ShaderError
         }
 
-        class PreviewData
+        internal class PreviewData
         {
             public string nodeName;
             public Shader shader;
@@ -73,44 +75,31 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Map from node names to associated preview data object
         /// </summary>
         Dictionary<string, PreviewData> m_CachedPreviewData = new();
-
         Dictionary<string, ShaderMessage[]> m_ShaderMessagesMap = new();
 
         /// <summary>
         /// Handle to the graph object we are currently generating preview data for
         /// </summary>
         GraphHandler m_GraphHandle;
-
         Registry m_RegistryInstance;
-
         Target m_Target;
-
         IPreviewUpdateReceiver m_PreviewUpdateReceiver;
-
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock;
-
         Texture2D m_ErrorTexture;
         Texture2D m_CompilingTexture;
-
         PreviewSceneResources m_SceneResources;
+        PreviewTaskRunner m_previewTaskRunner;
 
         #region MainPreviewData
-
         PreviewData m_MainPreviewData;
-
         Mesh m_MainPreviewMesh;
-
         Quaternion m_MainPreviewRotation = Quaternion.identity;
-
         bool m_PreventMainPreviewRotation;
-
         float m_MainPreviewScale = 1.0f;
-
         #endregion
 
         int mainPreviewWidth => m_MainPreviewData.renderTexture.width;
         int mainPreviewHeight => m_MainPreviewData.renderTexture.height;
-
         string m_OutputContextNodeName;
 
         static Texture2D GenerateFourSquare(Color c1, Color c2)
@@ -127,6 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
         {
+            m_previewTaskRunner = new();
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
             m_SceneResources = new PreviewSceneResources();
@@ -715,14 +705,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CachedPreviewData.Add(m_OutputContextNodeName, m_MainPreviewData);
         }
 
-        static Shader MakeShader(string input)
-        {
-            bool tmp = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = false;
-            Shader output = ShaderUtil.CreateShaderAsset(input, true);
-            ShaderUtil.allowAsyncCompilation = tmp;
-            return output;
-        }
+        // ====================================================================
+
+        //static Shader MakeShader(string input)
+        //{
+        //    bool tmp = ShaderUtil.allowAsyncCompilation;
+        //    ShaderUtil.allowAsyncCompilation = false;
+        //    Shader output = ShaderUtil.CreateShaderAsset(input, true);
+        //    ShaderUtil.allowAsyncCompilation = tmp;
+        //    return output;
+        //}
 
         Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
@@ -731,7 +723,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
             m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance, ref throwAway);
             m_CachedPreviewData[nodeReader.ID.LocalPath].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
-            return MakeShader(shaderOutput);
+            // create the shader asset without compiling the shader
+            return ShaderUtil.CreateShaderAsset(shaderOutput, false);
         }
 
         Shader GetMainPreviewShaderObject()
@@ -739,8 +732,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var contextNodeReader = m_GraphHandle.GetNode(m_OutputContextNodeName);
             string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures, m_Target);
             m_MainPreviewData.shaderString = shaderOutput;
-            return MakeShader(shaderOutput);
+            // create the shader asset without compiling the shader
+            return ShaderUtil.CreateShaderAsset(shaderOutput, false);
         }
+
+        // ====================================================================
 
         PreviewData AddNodePreviewData(string nodeName)
         {
@@ -770,30 +766,76 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         void UpdateShaderData(PreviewData previewToUpdate)
         {
-            using (UpdateShadersMarker.Auto())
+            // UpdateShaderData executes the following steps to update the PreviewData:
+            //   generate the shader code from the graph
+            //   creates and sets a Shader asset
+            //   creates the material for the preview
+            //   compiles the Shader asset with the material
+            //   updates the material texture for the preview
+            //   checks the data for errors
+            //   sets the PreviewData as dirty (out of date)
+
+            // TODO (Brett) I think that all of the updates to the PreviewData
+            // TODO (Brett) should happen in tasks, so that the calls to
+            // TODO (Brett) the task manager can be uniform. However,
+            // TODO (Brett) that takes too much state passing for now. We
+            // TODO (Brett) should think about this again.
+            // TODO (Brett) Task chaining would be a slick way to do this.
+
+            // TODO (Brett) Split this into GenerateShaderCode and CreateShaderAsset
+            if (previewToUpdate == m_MainPreviewData) // main preview
             {
-                // If main preview
-                if (m_MainPreviewData == previewToUpdate)
-                {
-                    previewToUpdate.shader = GetMainPreviewShaderObject();
-                }
-                else // if node preview
-                {
-                    var nodeReader = m_GraphHandle.GetNode(previewToUpdate.nodeName);
-                    previewToUpdate.shader = GetNodeShaderObject(nodeReader);
-                }
-
-                Assert.IsNotNull(previewToUpdate.shader);
-
-                previewToUpdate.material = new Material(previewToUpdate.shader) { hideFlags = HideFlags.HideAndDontSave };
-                foreach (var texDefault in previewToUpdate.defaultTextures)
-                    previewToUpdate.material.SetTexture(texDefault.Item1, texDefault.Item2);
-
-                if (CheckForErrors(previewToUpdate))
-                    previewToUpdate.hasShaderError = true;
-
-                previewToUpdate.isShaderOutOfDate = false;
+                previewToUpdate.shader = GetMainPreviewShaderObject();
             }
+            else // node preview
+            {
+                var nodeReader = m_GraphHandle.GetNode(previewToUpdate.nodeName);
+                previewToUpdate.shader = GetNodeShaderObject(nodeReader);
+            }
+
+            // create the material for the preview
+            previewToUpdate.material = new Material(previewToUpdate.shader) {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            PreviewTaskRunner runner = new();
+            runner.Do(() =>
+            {
+                // compile the passes for the material
+                bool prev = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+                // start the compiling for all the passes
+                for (var i = 0; i < previewToUpdate.material.passCount; ++i)
+                {
+                    ShaderUtil.CompilePass(previewToUpdate.material, i);
+                }
+                ShaderUtil.allowAsyncCompilation = prev;
+                return true;
+            }).Then(() =>
+            {
+                // wait for all the passes to be compiled
+                bool isCompiling = false;
+                for (var i = 0; i < previewToUpdate.material.passCount; ++i)
+                {
+                    if (!ShaderUtil.IsPassCompiled(previewToUpdate.material, i))
+                    {
+                        isCompiling = true;
+                        break;
+                    }
+                }
+                return !isCompiling;
+            });
+            
+            // set the material textures
+            foreach (var texDefault in previewToUpdate.defaultTextures)
+                previewToUpdate.material.SetTexture(texDefault.Item1, texDefault.Item2);
+
+            // check for PreviewData errors
+            if (CheckForErrors(previewToUpdate))
+                previewToUpdate.hasShaderError = true;
+
+            // mark dirty
+            previewToUpdate.isShaderOutOfDate = false;
         }
 
         void UpdateRenderData(PreviewData previewToUpdate)
