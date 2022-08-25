@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.IO;
 using Unity.Profiling;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.Utils;
@@ -8,8 +7,6 @@ using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
-using System;
-using UnityEngine.Windows;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -88,7 +85,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Texture2D m_ErrorTexture;
         Texture2D m_CompilingTexture;
         PreviewSceneResources m_SceneResources;
-        PreviewTaskRunner m_previewTaskRunner;
+
+        double m_LastUpdateTimeSeconds;  // last EditorApplication.timeSinceStartup call to UpdateHandler
+        double m_UpdateThresholdSeconds = 0.2;  // min time (seconds) between calls to UpdateHandler
 
         #region MainPreviewData
         PreviewData m_MainPreviewData;
@@ -101,6 +100,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         int mainPreviewWidth => m_MainPreviewData.renderTexture.width;
         int mainPreviewHeight => m_MainPreviewData.renderTexture.height;
         string m_OutputContextNodeName;
+
+        List<PreviewData> m_PreviewsCompiling;  // list of PreviewData that are being compiled (see UpdateShaderCompilationStatus)
 
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
@@ -116,7 +117,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
         {
-            m_previewTaskRunner = new();
+            // Register for update callbacks from the Editor
+            EditorApplication.update += UpdateHandler;
+            m_LastUpdateTimeSeconds = EditorApplication.timeSinceStartup;
+            m_PreviewsCompiling = new List<PreviewData>();
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
             m_SceneResources = new PreviewSceneResources();
@@ -128,6 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void Cleanup()
         {
+            EditorApplication.update -= UpdateHandler;
             if (m_ErrorTexture != null)
             {
                 Object.DestroyImmediate(m_ErrorTexture);
@@ -411,6 +416,74 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 ExecuteLater(0);
         }
 
+        // ==================================
+        // Basic Async Implementation
+
+        /// <summary>
+        /// UpdateHandler is registered with EditorApplication.update in Initialize.
+        /// It is called about every m_updateThresholdSeconds seconds.
+        /// </summary>
+        void UpdateHandler()
+        {
+            var curTimeSeconds = EditorApplication.timeSinceStartup;
+            var deltaTimeSeconds = curTimeSeconds - m_LastUpdateTimeSeconds;
+            if (deltaTimeSeconds < m_UpdateThresholdSeconds)
+                return;
+            // do update
+            UpdateShaderCompilationStatus();
+            // change last updated
+            m_LastUpdateTimeSeconds = curTimeSeconds;
+        }
+
+        /// <summary>
+        /// Checks the list of preview data that are currently being compiled for
+        /// completion.
+        /// Upon compile completion:
+        ///   update material textures
+        ///   check for errors
+        ///   mark dirty
+        /// </summary>
+        void UpdateShaderCompilationStatus()
+        {
+            if (m_PreviewsCompiling.Count <= 0)
+                return;
+            List<PreviewData> completed = new List<PreviewData>();
+            foreach (PreviewData previewToUpdate in m_PreviewsCompiling)
+            {
+                bool isCompiling = false;
+                for (int i = 0; i < previewToUpdate.material.passCount; ++i)
+                {
+                    if (!ShaderUtil.IsPassCompiled(previewToUpdate.material, i))
+                    {
+                        isCompiling = true;
+                        break;
+                    }
+                }
+                if (!isCompiling)
+                {
+                    // add to the local completed list for update
+                    completed.Add(previewToUpdate);
+
+                    // set the material textures
+                    foreach (var texDefault in previewToUpdate.defaultTextures)
+                        previewToUpdate.material.SetTexture(texDefault.Item1, texDefault.Item2);
+
+                    // check for PreviewData errors
+                    if (CheckForErrors(previewToUpdate))
+                        previewToUpdate.hasShaderError = true;
+
+                    // mark dirty
+                    previewToUpdate.isShaderOutOfDate = false;
+                }
+            }
+            foreach (PreviewData completedPreview in completed)
+            {
+                m_PreviewsCompiling.Remove(completedPreview);
+            }
+        }
+
+        // END Basic Async Implementation
+        // ==================================
 
         public void RequestMainPreviewUpdate(
             IVisualElementScheduler scheduler, // TODO: Remove
@@ -446,7 +519,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 UpdateRenderData(m_MainPreviewData);
             }
-
 
             // Mimic PreviewService writing to the update receiver
             scheduler.Execute(
@@ -705,17 +777,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CachedPreviewData.Add(m_OutputContextNodeName, m_MainPreviewData);
         }
 
-        // ====================================================================
-
-        //static Shader MakeShader(string input)
-        //{
-        //    bool tmp = ShaderUtil.allowAsyncCompilation;
-        //    ShaderUtil.allowAsyncCompilation = false;
-        //    Shader output = ShaderUtil.CreateShaderAsset(input, true);
-        //    ShaderUtil.allowAsyncCompilation = tmp;
-        //    return output;
-        //}
-
         Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
             string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures, m_Target);
@@ -735,8 +796,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // create the shader asset without compiling the shader
             return ShaderUtil.CreateShaderAsset(shaderOutput, false);
         }
-
-        // ====================================================================
 
         PreviewData AddNodePreviewData(string nodeName)
         {
@@ -761,8 +820,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CachedPreviewData.Add(nodeName, renderData);
             return renderData;
         }
-
-        private static readonly ProfilerMarker UpdateShadersMarker = new ProfilerMarker("UpdateShaders");
 
         void UpdateShaderData(PreviewData previewToUpdate)
         {
@@ -798,44 +855,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 hideFlags = HideFlags.HideAndDontSave
             };
 
-            PreviewTaskRunner runner = new();
-            runner.Do(() =>
-            {
-                // compile the passes for the material
-                bool prev = ShaderUtil.allowAsyncCompilation;
-                ShaderUtil.allowAsyncCompilation = true;
-                // start the compiling for all the passes
-                for (var i = 0; i < previewToUpdate.material.passCount; ++i)
-                {
-                    ShaderUtil.CompilePass(previewToUpdate.material, i);
-                }
-                ShaderUtil.allowAsyncCompilation = prev;
-                return true;
-            }).Then(() =>
-            {
-                // wait for all the passes to be compiled
-                bool isCompiling = false;
-                for (var i = 0; i < previewToUpdate.material.passCount; ++i)
-                {
-                    if (!ShaderUtil.IsPassCompiled(previewToUpdate.material, i))
-                    {
-                        isCompiling = true;
-                        break;
-                    }
-                }
-                return !isCompiling;
-            });
-            
-            // set the material textures
-            foreach (var texDefault in previewToUpdate.defaultTextures)
-                previewToUpdate.material.SetTexture(texDefault.Item1, texDefault.Item2);
+            // compile the passes for the material
+            bool prev = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = true;
 
-            // check for PreviewData errors
-            if (CheckForErrors(previewToUpdate))
-                previewToUpdate.hasShaderError = true;
+            // start the compiling for all the passes
+            for (var i = 0; i < previewToUpdate.material.passCount; ++i)
+            {
+                ShaderUtil.CompilePass(previewToUpdate.material, i);
+            }
+            ShaderUtil.allowAsyncCompilation = prev;
 
-            // mark dirty
-            previewToUpdate.isShaderOutOfDate = false;
+            // add to update checking
+            m_PreviewsCompiling.Add(previewToUpdate);
         }
 
         void UpdateRenderData(PreviewData previewToUpdate)

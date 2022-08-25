@@ -105,27 +105,6 @@ public class PreviewTaskRunner
                 yield return new WaitForSeconds(.5f);
             else
                 yield return new WaitForSeconds(.1f);
-
-            //foreach (IPreviewTask task in m_taskToTaskId.Keys)
-            //{
-            //    string id = m_taskToTaskId[task];
-            //    TaskStatus taskStatus = m_taskIdToTaskStatus[id];
-            //    switch (taskStatus)
-            //    {
-            //        case TaskStatus.Waiting:
-            //            StartTask(task);
-            //            break;
-            //        case TaskStatus.Running:
-            //            if (task.IsComplete())
-            //                FinishTask(task);
-            //            break;
-            //        default:
-            //            Debug.LogWarning($"PreviewTaskRunner has a task with unknown status {taskStatus}");
-            //            break;
-
-            //    }
-            //}
-
         }
     }
 
