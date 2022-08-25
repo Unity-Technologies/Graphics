@@ -11,7 +11,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
+    using PreviewRenderMode = PreviewService.PreviewRenderMode;
 
     /// <summary>
     /// GraphDataNodeModel is a model for a node backed by graph data.

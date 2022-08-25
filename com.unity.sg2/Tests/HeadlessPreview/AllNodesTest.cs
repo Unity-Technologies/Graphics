@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             Registry Registry = SGR.Registry;
             GraphHandler Graph = new(Registry);
 
-            HeadlessPreviewManager Preview = new();
+            PreviewService Preview = new();
             Preview.SetActiveRegistry(Registry);
             Preview.SetActiveGraph(Graph);
             Preview.Initialize("ThisDontMatter", new UnityEngine.Vector2(125, 125));
