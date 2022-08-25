@@ -18,10 +18,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             public void RegisterNewListener(string listenerID, IPreviewUpdateListener updateListener)
             {
-                m_State.m_PreviewUpdateListeners.Add(listenerID, updateListener);
-                m_State.m_PreviewVersionTrackers.Add(listenerID, 0);
-                m_State.m_PreviewData.Add(listenerID, null);
-                m_State.SetUpdateType(UpdateType.Partial);
+                if (!m_State.m_PreviewUpdateListeners.ContainsKey(listenerID))
+                {
+                    m_State.m_PreviewUpdateListeners.Add(listenerID, updateListener);
+                    m_State.m_PreviewVersionTrackers.Add(listenerID, 0);
+                    m_State.m_PreviewData.Add(listenerID, null);
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
             }
 
             public void RemoveListener(string listenerID)

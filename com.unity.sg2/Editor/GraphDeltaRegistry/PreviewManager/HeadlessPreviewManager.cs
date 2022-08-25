@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Unity.Profiling;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.Utils;
@@ -84,8 +85,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Registry m_RegistryInstance;
 
-        Target m_Target;
-
         IPreviewUpdateReceiver m_PreviewUpdateReceiver;
 
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock;
@@ -114,6 +113,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         string m_OutputContextNodeName;
 
+        Target m_GlobalTarget;
+        Target m_NodePreviewTarget;
+
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
             var tex = new Texture2D(2, 2);
@@ -126,6 +128,44 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return tex;
         }
 
+        internal static Target CreateUniversalTarget() // Temp code.
+        {
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
+            {
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if (!target.isHidden)
+                    return target;
+            }
+            return null;
+        }
+
+        internal static SubTarget GetUniversalSubTarget(string subTargetName) // Temp code.
+        {
+            var subtargetTypes = TypeCache.GetTypesDerivedFrom<SubTarget>();
+            foreach (var type in subtargetTypes)
+            {
+                if (type.Name != subTargetName)
+                    continue;
+
+                var subTarget = (SubTarget)Activator.CreateInstance(type);
+                return subTarget;
+            }
+            return null;
+        }
+
+        internal static Target ConfigureURPUnlit(Target urpTarget) // Temp code.
+        {
+            var unlitSubtarget = GetUniversalSubTarget("UniversalUnlitSubTarget");
+            var methodInfo = urpTarget.GetType().GetMethod("TrySetActiveSubTarget", BindingFlags.Public | BindingFlags.Instance);
+            methodInfo.Invoke(urpTarget, new object[] { unlitSubtarget.GetType() });
+
+            return urpTarget;
+        }
+
         public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
         {
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
@@ -134,6 +174,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             m_PreviewMaterialPropertyBlock = new();
             AddMainPreviewData(contextNodeName, mainPreviewSize);
+
+            // Also create and store a URP unlit target for rendering node previews
+            m_NodePreviewTarget = CreateUniversalTarget();
+            ConfigureURPUnlit(m_NodePreviewTarget);
+
             InitializeSRPIfNeeded();
         }
 
@@ -211,7 +256,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         internal void SetActiveTarget(Target target)
         {
-            m_Target = target;
+            m_GlobalTarget = target;
         }
 
         internal void SetPreviewUpdateReceiver(IPreviewUpdateReceiver previewUpdateReceiver)
@@ -725,9 +770,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return output;
         }
 
-        Shader GetNodeShaderObject(NodeHandler nodeReader)
+        Shader GetNodeShaderObject(NodeHandler nodeReader, Target targetToUse)
         {
-            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures, m_Target);
+            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures, targetToUse);
             var throwAway = new List<(string, Texture)>(); // gross.
             m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
             m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance, ref throwAway);
@@ -738,7 +783,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Shader GetMainPreviewShaderObject()
         {
             var contextNodeReader = m_GraphHandle.GetNode(m_OutputContextNodeName);
-            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures, m_Target);
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures, m_GlobalTarget);
             m_MainPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }
@@ -781,7 +826,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 else // if node preview
                 {
                     var nodeReader = m_GraphHandle.GetNode(previewToUpdate.nodeName);
-                    previewToUpdate.shader = GetNodeShaderObject(nodeReader);
+                    previewToUpdate.shader = GetNodeShaderObject(nodeReader, m_NodePreviewTarget);
                 }
 
                 Assert.IsNotNull(previewToUpdate.shader);
@@ -826,7 +871,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             // TODO: (Sai) Support for rendering 3D node previews
             // Node previews
-
             if (previewToUpdate != m_MainPreviewData)
             {
                 Mesh renderMesh = previewToUpdate.currentRenderMode is PreviewRenderMode.Preview2D or PreviewRenderMode.Inherit
@@ -916,10 +960,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
-                if(isNodePreview)
-                    Graphics.Blit(temp, renderTarget, renderMaterial, 0);
-                else
-                    Graphics.Blit(temp, renderTarget, m_SceneResources.blitNoAlphaMaterial);
+                Graphics.Blit(temp, renderTarget, m_SceneResources.blitNoAlphaMaterial);
 
                 RenderTexture.ReleaseTemporary(temp);
 
