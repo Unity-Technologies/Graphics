@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public IConstant Clone()
         {
-            var copy = (GraphTypeConstant)Activator.CreateInstance(GetType());
+            var copy = (BaseShaderGraphConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);
             copy.ObjectValue = GetStoredValueForCopy();
             return copy;

@@ -24,8 +24,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string RotationUserPrefKey => m_GraphModelGuid + "." + ChangePreviewRotationCommand.UserPrefsKey;
         string MeshUserPrefKey => m_GraphModelGuid + "." + ChangePreviewMeshCommand.UserPrefsKey;
 
-        // We don't serialize this, we just set it for easy access by other systems
-        public Vector2 MainPreviewSize;
+        // We don't serialize these fields, we just set them for easy access by other systems...
+        [NonSerialized]
+        public Vector2 mainPreviewSize = new (200, 200);
+        [NonSerialized]
+        public bool lockMainPreviewRotation = false;
 
         public MainPreviewData(string graphAssetGuid)
         {
@@ -126,10 +129,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
         internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
-
         internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
 
-        internal GraphDataContextNodeModel m_DefaultContextNode = null;
+        [NonSerialized]
+        GraphDataContextNodeModel m_DefaultContextNode;
 
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;

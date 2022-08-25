@@ -383,11 +383,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public void RequestPreviewUpdate(
+        public void RequestNodePreviewUpdate(
             string nodeName,
             IVisualElementScheduler scheduler, // TODO: Remove
             PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D,
-            bool forceRecompile = false,
             bool forceRerender = false)
         {
             PreviewData nodePreviewData;
@@ -398,7 +397,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodePreviewData.currentRenderMode = newPreviewMode;
 
                 // Still compiling the preview shader
-                if (nodePreviewData.isShaderOutOfDate || forceRecompile)
+                if (nodePreviewData.isShaderOutOfDate)
                 {
                     UpdateShaderData(nodePreviewData);
                     UpdateRenderData(nodePreviewData);
@@ -424,10 +423,47 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
 
-        public void CancelPreviewUpdates(
-            string nodeName,
-            IVisualElementScheduler scheduler)
+        public void RequestMainPreviewUpdate(
+            IVisualElementScheduler scheduler, // TODO: Remove
+            int width,
+            int height,
+            Mesh meshToRender,
+            float mainPreviewScale,
+            bool preventRotation,
+            Quaternion mainPreviewRotation,
+            bool forceRerender = false)
         {
+            if (width != mainPreviewWidth || height != mainPreviewHeight)
+                ResizeMainPreview(width, height);
+
+            if (meshToRender != m_MainPreviewMesh
+                || !Mathf.Approximately(mainPreviewScale, m_MainPreviewScale)
+                || preventRotation != m_PreventMainPreviewRotation
+                || !mainPreviewRotation.Equals(m_MainPreviewRotation))
+            {
+                m_MainPreviewMesh = meshToRender;
+                m_MainPreviewScale = mainPreviewScale;
+                m_MainPreviewRotation = mainPreviewRotation;
+                m_PreventMainPreviewRotation = preventRotation;
+                m_MainPreviewData.isRenderOutOfDate = true;
+            }
+
+            if (m_MainPreviewData.isShaderOutOfDate)
+            {
+                UpdateShaderData(m_MainPreviewData);
+                UpdateRenderData(m_MainPreviewData);
+            }
+            else if (m_MainPreviewData.isRenderOutOfDate || forceRerender)
+            {
+                UpdateRenderData(m_MainPreviewData);
+            }
+
+
+            // Mimic PreviewService writing to the update receiver
+            scheduler.Execute(
+                    () =>
+                        m_PreviewUpdateReceiver.UpdatePreviewData(m_OutputContextNodeName, m_MainPreviewData.texture)).
+                ExecuteLater(0);
         }
 
         /// <summary>

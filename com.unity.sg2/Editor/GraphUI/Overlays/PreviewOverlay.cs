@@ -13,11 +13,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         MainPreviewView m_MainPreviewView;
 
-        /// <summary>
-        /// Is set in ShaderGraphEditorWindow::InitializeOverlayWindows to a function of the preview manager
-        /// </summary>
-        public Func<Texture> getCachedMainPreviewTexture;
-
         public override VisualElement CreatePanelContent()
         {
             var emptyPlaceholder = new VisualElement();

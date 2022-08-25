@@ -182,7 +182,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             if (float.IsNaN(previewRotation.x) || float.IsNaN(previewRotation.y) || float.IsNaN(previewRotation.z) || float.IsNaN(previewRotation.w))
-                return;
+            {
+                m_PreviewScrollPosition = Vector2.zero;
+                previewRotation = Quaternion.identity;
+            }
             var changePreviewRotationCommand = new ChangePreviewRotationCommand(previewRotation);
             m_CommandDispatcher.Dispatch(changePreviewRotationCommand);
         }
@@ -196,17 +199,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnGeometryChangedEvent(GeometryChangedEvent evt)
         {
-            var currentWidth = this.style.width;
-            var currentHeight = this.style.height;
-
             var targetWidth = new Length(evt.newRect.width, LengthUnit.Pixel);
             var targetHeight = new Length(evt.newRect.height, LengthUnit.Pixel);
 
-            this.style.width = targetWidth;
-            this.style.height = targetHeight;
+            style.width = targetWidth;
+            style.height = targetHeight;
 
-            //var changePreviewSizeCommand = new ChangePreviewSizeCommand(evt.newRect.size);
-            //m_CommandDispatcher.Dispatch(changePreviewSizeCommand);
+            // TODO: Should prevent from issuing a bunch of wasteful renders until we reach our final size
+            var changePreviewSizeCommand = new ChangePreviewSizeCommand(evt.newRect.size);
+            m_CommandDispatcher.Dispatch(changePreviewSizeCommand);
         }
     }
 }

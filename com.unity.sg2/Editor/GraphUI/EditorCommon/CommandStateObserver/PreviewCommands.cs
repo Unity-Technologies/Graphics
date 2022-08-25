@@ -113,10 +113,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: The preview data should be stored in user prefs
             // Otherwise this might be undoable.
             graphModel.MainPreviewData.mesh = command.m_NewPreviewMesh;
+            graphModel.MainPreviewData.lockMainPreviewRotation = command.m_LockPreviewRotation;
 
-            //previewUpdateDispatcher.LockMainPreviewRotation = command.m_LockPreviewRotation;
-            //// Lets the preview manager know to re-render the main preview output
-            //previewUpdateDispatcher.OnMainPreviewDataChanged();
+            // Lets the preview manager know to re-render the main preview output
+            previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 
@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphModel.MainPreviewData.scale += command.m_NewPreviewZoom;
 
             // Lets the preview manager know to re-render the main preview output
-            //previewUpdateDispatcher.OnMainPreviewDataChanged();
+            previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 
@@ -211,7 +211,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphModel.MainPreviewData.rotation = command.m_NewPreviewRotation;
 
             // Lets the preview manager know to re-render the main preview output
-            //previewUpdateDispatcher.OnMainPreviewDataChanged();
+            previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 
@@ -231,8 +231,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangePreviewSizeCommand command
         )
         {
+            graphModel.MainPreviewData.mainPreviewSize = command.m_NewPreviewSize;
+
             // Lets the preview manager know to re-render the main preview outputs
-            //previewUpdateDispatcher.OnMainPreviewDataChanged();
+            previewUpdateDispatcher.OnMainPreviewDataChanged();
         }
     }
 }
