@@ -44,8 +44,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         string m_MainContextNodeName;
 
-        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.x);
-        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewView.PreviewSize.y);
+        int PreviewWidth => Mathf.FloorToInt(0.0f);
+        int PreviewHeight => Mathf.FloorToInt(0.0f);
 
         internal void Cleanup()
         {
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_MainContextNodeName = graphModel.DefaultContextName;
 
             // Initialize the headless preview
-            m_PreviewHandlerInstance.Initialize(m_MainContextNodeName, m_MainPreviewView.PreviewSize);
+            m_PreviewHandlerInstance.Initialize(m_MainContextNodeName, graphModel.MainPreviewData.mainPreviewSize);
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
             m_PreviewHandlerInstance.SetActiveTarget(m_GraphModel.ActiveTarget);
