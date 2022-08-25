@@ -102,7 +102,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var impactedNodes = m_PreviewHandlerInstance.NotifyNodeFlowChanged(listenerID, wasNodeDeleted);
 
-            if (m_GraphModel.DoesNodeRequireTime(listenerID))
+            var doesNodeRequireTime = m_GraphModel.DoesNodeRequireTime(listenerID);
+            if (doesNodeRequireTime)
                 m_TimeDependentNodes.Add(listenerID);
 
             // If a node was deleted we don't want to issue update calls for it thereafter
@@ -113,7 +114,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             foreach (var downstreamNode in impactedNodes)
+            {
+                // Also make sure that downstream nodes are added/removed to time-dependent nodes when connections change
+                if (wasNodeDeleted)
+                    m_TimeDependentNodes.Remove(downstreamNode);
+                else if(doesNodeRequireTime)
+                    m_TimeDependentNodes.Add(downstreamNode);
+
                 RequestPreviewUpdate(downstreamNode);
+            }
         }
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)
