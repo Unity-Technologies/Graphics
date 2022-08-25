@@ -846,6 +846,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 previewToUpdate.isRenderOutOfDate = false;
             }
 
+            m_SceneResources.light0.enabled = true;
+            m_SceneResources.light1.enabled = true;
+
             // Render 3D previews
             m_SceneResources.camera.transform.position = -Vector3.forward * 5;
             m_SceneResources.camera.transform.rotation = Quaternion.identity;
@@ -870,7 +873,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
-                RenderPreview(m_MainPreviewData.renderTexture, m_MainPreviewData.material, mesh, previewTransform);
+                RenderPreview(m_MainPreviewData.renderTexture, m_MainPreviewData.material, mesh, previewTransform, false);
                 if (m_MainPreviewData.renderTexture != null)
                 {
                     m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
@@ -881,7 +884,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
 
-        void RenderPreview(RenderTexture renderTarget, Material renderMaterial, Mesh mesh, Matrix4x4 transform /*, PooledList<PreviewProperty> perMaterialPreviewProperties*/)
+        void RenderPreview(RenderTexture renderTarget, Material renderMaterial, Mesh mesh, Matrix4x4 transform, bool isNodePreview = true)
         {
             using (RenderPreviewMarker.Auto())
             {
@@ -907,6 +910,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 //{
                     m_SceneResources.camera.targetTexture = temp;
                     Graphics.DrawMesh(mesh, transform, renderMaterial, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
+
                 //}
 
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
@@ -915,7 +919,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
-                Graphics.Blit(temp, renderTarget, m_SceneResources.blitNoAlphaMaterial);
+                if(isNodePreview)
+                    Graphics.Blit(temp, renderTarget, renderMaterial, 0);
+                else
+                    Graphics.Blit(temp, renderTarget, m_SceneResources.blitNoAlphaMaterial);
+
                 RenderTexture.ReleaseTemporary(temp);
 
                 RenderTexture.active = previousRenderTexture;
