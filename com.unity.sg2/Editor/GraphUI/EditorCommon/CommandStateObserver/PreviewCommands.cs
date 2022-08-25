@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.HeadlessPreviewManager.PreviewRenderMode;
+using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.PreviewService.PreviewRenderMode;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
