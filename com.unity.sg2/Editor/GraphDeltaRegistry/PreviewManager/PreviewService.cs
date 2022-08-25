@@ -896,7 +896,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             else // node preview
             {
                 var nodeReader = m_GraphHandle.GetNode(previewToUpdate.nodeName);
-                previewToUpdate.shader = GetNodeShaderObject(nodeReader);
+                previewToUpdate.shader = GetNodeShaderObject(nodeReader, m_NodePreviewTarget);
             }
 
             // create the material for the preview
