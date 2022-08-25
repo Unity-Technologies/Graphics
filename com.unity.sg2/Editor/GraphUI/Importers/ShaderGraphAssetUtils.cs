@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    target = URPTargetUtils.ConfigureURPLit(graph);
+                    target = URPTargetUtils.ConfigureURPUnlit(graph);
                 }
                 // Though we should be more procedural and be using this: to get the corresponding names, eg:
                 // CPGraphDataProvider.GatherProviderCPIO(target, out var descriptors);

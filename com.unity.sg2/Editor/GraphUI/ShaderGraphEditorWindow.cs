@@ -52,12 +52,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ShortcutHelper.RegisterDefaultShortcuts<ShaderGraphEditorWindow>(ShaderGraphGraphTool.toolName);
         }
 
-        [MenuItem("Window/Shaders/ShaderGraph", false)]
-        public static void ShowWindow()
-        {
-            Type sceneView = typeof(SceneView);
-            GetWindow<ShaderGraphEditorWindow>(sceneView);
-        }
+        // TODO: Re-enable when GTF fixes onboarding provider handling
+        //[MenuItem("Window/Shaders/ShaderGraph", false)]
+        //public static void ShowWindow()
+        //{
+        //    Type sceneView = typeof(SceneView);
+        //    GetWindow<ShaderGraphEditorWindow>(sceneView);
+        //}
 
         void InitializeOverlayWindows()
         {
