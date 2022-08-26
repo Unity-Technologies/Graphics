@@ -390,9 +390,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorHDR));
         }
 
-        /// <summary>Returns wether the material uses separate color and intensity values on Lit, Unlit and Decal shaders.</summary>
+        /// <summary>Compares a material's color and intensity values to determine if they are different. Works with Lit, Unlit and Decal shaders.</summary>
         /// <param name="material">The material to change.</param>
-        /// <returns>True if the material uses separate color and intensity values.</returns>
+        /// <returns>True if the material uses different color and intensity values.</returns>
         public static bool GetUseEmissiveIntensity(Material material)
         {
             return material.GetFloat(kUseEmissiveIntensity) > 0.0f;

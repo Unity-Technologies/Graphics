@@ -1,4 +1,4 @@
-#Rendering in the Universal Render Pipeline
+# Rendering in the Universal Render Pipeline
 
 The Universal Render Pipeline (URP) renders Scenes using the following components:
 
