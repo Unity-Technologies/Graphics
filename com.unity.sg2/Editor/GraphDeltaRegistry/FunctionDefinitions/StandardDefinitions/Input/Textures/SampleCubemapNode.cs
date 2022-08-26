@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Defs
             selectableFunctions: new()
             {
                 { "LODfunction", "LOD" },
-                { "Stanard", "Standard" },
+                { "Standard", "Standard" },
                 { "Biasfunction", "Bias" }
             },
             functionSelectorLabel: "Mip Sampling Mode",

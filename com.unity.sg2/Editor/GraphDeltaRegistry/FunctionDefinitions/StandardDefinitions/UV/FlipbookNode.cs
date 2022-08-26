@@ -12,10 +12,10 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "FlipFrames",
-@"  Tile = fmod(Tile, Width * Height);
+@"  Tile = floor(fmod(Tile + float(0.00001), Width * Height));
     tileCount = float2(1.0, 1.0) / float2(Width, Height);
-    tileXY.x = InvertY * Height - (floor(Tile * tileCount.x) + InvertY * 1);
-    tileXY.y = InvertX * Width - ((Tile - Width * floor(Tile * tileCount.x)) + InvertX * 1);
+    tileXY.x = InvertX * Width - ((Tile - Width * floor(Tile * tileCount.x)) + InvertX);
+    tileXY.y = InvertY * Height - (floor(Tile * tileCount.x) + InvertY);
     Out = (UV + abs(tileXY)) * tileCount;",
                     new ParameterDescriptor[]
                     {
@@ -38,15 +38,15 @@ namespace UnityEditor.ShaderGraph.Defs
 	IWidth = InvertX * Width;
 	IHeight = InvertY * Height;
 	
-	Tile1 = fmod(Tile, Width * Height);
-    tileXY.x = InvertY * Height - (floor(Tile1 * tileCount.x) + InvertY);
-    tileXY.y = IHeight - ((Tile1 - Width * floor(Tile1 * tileCount.x)) + InvertX);
+	Tile1 = floor(fmod(Tile + float(0.00001), Width * Height));
+    tileXY.x = IWidth - ((Tile1 - Width * floor(Tile1 * tileCount.x)) + InvertX);
+    tileXY.y = IHeight - (floor(Tile1 * tileCount.x) + InvertY);
     UV0 = (UV + abs(tileXY)) * tileCount;
 	
 	Tile += 1;
-	Tile2 = fmod(Tile, Width * Height);
-    tileXY.x = IHeight - (floor(Tile2 * tileCount.x) + InvertY);
-    tileXY.y = IWidth - ((Tile2 - Width * floor(Tile2 * tileCount.x)) + InvertX);
+	Tile2 = floor(fmod(Tile + float(0.00001), Width * Height));
+    tileXY.x = IWidth - ((Tile2 - Width * floor(Tile2 * tileCount.x)) + InvertX);
+    tileXY.y = IHeight - (floor(Tile2 * tileCount.x) + InvertY);
     UV1 = (UV + abs(tileXY)) * tileCount;",
                     new ParameterDescriptor[]
                     {
