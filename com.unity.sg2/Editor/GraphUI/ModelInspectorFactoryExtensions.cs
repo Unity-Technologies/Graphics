@@ -45,6 +45,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
+        public static IModelView CreateVariableNodeInspector(this ElementBuilder elementBuilder, GraphDataVariableNodeModel model)
+        {
+            return elementBuilder.CreateVariableDeclarationInspector((GraphDataVariableDeclarationModel) model.VariableDeclarationModel);
+        }
+
         public static IModelView CreateContextSectionInspector(this ElementBuilder elementBuilder, GraphDataContextNodeModel model)
         {
             var ui = new ShaderGraphModelInspector();
