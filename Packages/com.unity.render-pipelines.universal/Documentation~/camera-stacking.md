@@ -7,6 +7,8 @@ A Camera Stack consists of a [Base Camera](camera-types-and-render-type.md#base-
 
  URP performs several optimizations within a Camera, including rendering order optimizations to reduce overdraw. However, when you use a Camera Stack, you effectively define the order in which those Cameras are rendered. You must therefore be careful not to order the Cameras in a way that causes excessive overdraw. For more information on overdraw in URP, see [Advanced information](cameras-advanced.md).
 
+For examples of how to use Camera Stacking, see the [Camera Stacking samples in URP Package Samples](package-sample-urp-package-samples.md#camera-stacking).
+
 <a name="adding-a-camera-to-a-camera-stack"></a>
 ## Adding a Camera to a Camera Stack
 
