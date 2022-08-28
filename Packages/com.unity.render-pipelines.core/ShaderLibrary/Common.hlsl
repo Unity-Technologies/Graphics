@@ -1463,7 +1463,11 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
 {
     // note: the triangle vertex position coordinates are x2 so the returned UV coordinates are in range -1, 1 on the screen.
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
-    return float4(uv * 2.0 - 1.0, z, 1.0);
+    float4 pos = float4(uv * 2.0 - 1.0, z, 1.0);
+#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    pos = ApplyPretransformRotation(pos);
+#endif
+    return pos;
 }
 
 
@@ -1496,7 +1500,11 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
     uint botBit = (vertexID & 1);
     float x = topBit;
     float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
-    return float4(x, y, z, 1.0);
+    float4 pos = float4(x, y, z, 1.0);
+#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    pos = ApplyPretransformRotation(pos);
+#endif
+    return pos;
 }
 
 #if !defined(SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
