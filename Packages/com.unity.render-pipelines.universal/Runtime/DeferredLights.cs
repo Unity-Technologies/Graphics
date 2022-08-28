@@ -262,6 +262,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.AccurateGbufferNormals = true;
             this.UseJobSystem = true;
+            if (SystemInfo.graphicsDeviceName.Contains("Apple M"))
+            {
+                // Currently Apple silicon machines do not support native render passes
+                useNativeRenderPass = false;
+            }
             this.UseRenderPass = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
         }
