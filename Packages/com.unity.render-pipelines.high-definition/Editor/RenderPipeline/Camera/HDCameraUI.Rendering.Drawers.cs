@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
-                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
 
                 var dynamicResSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 s_IsRunningTAAU = p.allowDynamicResolution.boolValue && dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.TAAU && dynamicResSettings.enabled;
