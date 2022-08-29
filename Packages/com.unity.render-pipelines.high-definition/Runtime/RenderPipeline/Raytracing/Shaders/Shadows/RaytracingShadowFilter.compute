@@ -21,6 +21,8 @@
 
 #pragma only_renderers d3d11 xboxseries ps5
 
+// #pragma enable_d3d11_debug_symbols
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -37,7 +39,9 @@ TEXTURE2D_X(_DepthTexture);
 // Analytic buffer for the current frame
 TEXTURE2D_X(_AnalyticProbBuffer);
 // Analytic buffer from the previous frame (stored as array)
-RW_TEXTURE2D_ARRAY(float4, _AnalyticHistoryBuffer);
+TEXTURE2D_ARRAY(_AnalyticHistoryBuffer);
+// Analytic buffer from the previous frame (stored as array)
+RW_TEXTURE2D_ARRAY(float4, _AnalyticHistoryBufferRW);
 // Noisy buffer produced this frame
 TEXTURE2D_X(_DenoiseInputTexture);
 // Temporal Accumulated buffer from the previous frame
@@ -63,10 +67,10 @@ void AreaAnalyticHistoryCopy(uint3 dispatchThreadId : SV_DispatchThreadID, uint2
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
     // Grab the previous value stored in the buffer
-    float4 previousValue = _AnalyticHistoryBuffer[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))];
+    float4 previousValue = _AnalyticHistoryBufferRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))];
 
     // Only replace where the mask is 1.0
-    _AnalyticHistoryBuffer[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
+    _AnalyticHistoryBufferRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
@@ -98,64 +102,68 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
-    // Get the cosest pixel
-    float2 closest = GetClosestFragmentCompute(posInputs.positionSS);
-
     // Read the matching velocity
     float2 velocity;
-    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
-    float velocityLength = length(velocity);
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)centerCoord), velocity);
+
+    // Read this frame's data for the current pixel
+    float2 currentSnUn = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xy;
+    float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
+
+    // Compute the coordinates from the previous frame
+    float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
+    float2 historyUV = historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw;
+
+    // Read the analytic value from the previous frame
+    float historyAnalyticValue = dot(_DenoisingHistoryMaskSn, SAMPLE_TEXTURE2D_ARRAY_LOD(_AnalyticHistoryBuffer, s_linear_clamp_sampler, historyUV, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
+
+    // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue))
+        || historyAnalyticValue < 0.0
+        || _HistoryValidity == 0.0
+        || historyTapCoord.x < 0.0 || historyTapCoord.x >= _ScreenSize.x || historyTapCoord.y < 0.0 || historyTapCoord.y >= _ScreenSize.y
+        || depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        // Set it as the output and leave the function
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(currentSnUn, currentAnalyticValue, 1.0);
+        return;
+    }
+
+    // Read the history values for the current pixel
+    float4 historyArray = SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaShadowHistory, s_linear_clamp_sampler, historyUV, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0);
+    float2 historySnUn = float2(dot(_DenoisingHistoryMaskSn, historyArray), dot(_DenoisingHistoryMaskUn, historyArray));
 
     // UV used to read the pixels to filter
     float2 uv = posInputs.positionNDC;
 
-    // Compute the previous pixel coordinate
-    uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
-    // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
-    float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
-    float historyAnalyticValue = dot(_DenoisingHistoryMaskSn, _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
-
-    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f || _HistoryValidity == 0.0)
-    {
-        // Fetch the current value
-        float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
-
-        // Set it as the output and leave the function
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x, 1.0);
-        return;
-    }
-
-    float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
-    float4 historyArray = Fetch4Array(_AreaShadowHistory, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
-    float2 history = float2(dot(_DenoisingHistoryMaskSn, historyArray), dot(_DenoisingHistoryMaskUn, historyArray));
     float2 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).xy;
     float2 bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).xy;
 
-    float2 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+    float2 corners = 4.0 * (topLeft + bottomRight) - 2.0 * currentSnUn;
 
-    color = clamp(color, 0.0, CLAMP_MAX);
+    currentSnUn = clamp(currentSnUn, 0.0, CLAMP_MAX);
 
-    float2 average = FastTonemapPerChannel((corners + color) / 7.0);
+    float2 average = FastTonemapPerChannel((corners + currentSnUn) / 7.0);
 
     topLeft = FastTonemapPerChannel(topLeft);
     bottomRight = FastTonemapPerChannel(bottomRight);
-    color = FastTonemapPerChannel(color);
+    currentSnUn = FastTonemapPerChannel(currentSnUn);
 
-    float2 colorLuma = color;
+    float2 colorLuma = FastTonemapPerChannel(currentSnUn);
     float2 averageLuma = average;
-    float2 nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+    float2 nudge = lerp(4.0, 0.25, saturate(length(velocity) * 100.0)) * abs(averageLuma - colorLuma);
 
     float2 minimum = min(bottomRight, topLeft) - nudge;
     float2 maximum = max(topLeft, bottomRight) + nudge;
 
-    history = FastTonemapPerChannel(history);
+    historySnUn = FastTonemapPerChannel(historySnUn);
 
     // Clip history samples
-    history = clamp(history, minimum, maximum);
+    historySnUn = clamp(historySnUn, minimum, maximum);
 
     // Blend color & history
     // Feedback weight from unbiased luminance diff (Timothy Lottes)
-    float2 historyLuma = history;
+    float2 historyLuma = historySnUn;
     float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, float2(0.2, 0.2));
     float2 weight = 1.0 - diff;
     weight = weight * weight;
@@ -163,10 +171,10 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     const float feedbackMax = 0.91;
     float2 feedback = (1.0 - weight) * feedbackMin + weight * feedbackMax;
 
-    color = FastTonemapPerChannelInvert(lerp(color, history, feedback));
-    color = clamp(color, 0.0, CLAMP_MAX);
+    currentSnUn = FastTonemapPerChannelInvert(lerp(currentSnUn, historySnUn, feedback));
+    currentSnUn = clamp(currentSnUn, 0.0, CLAMP_MAX);
 
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x, 1.0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(currentSnUn, currentAnalyticValue, 1.0);
 }
 
 /*
@@ -472,15 +480,15 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         #endif
     }
 
-    uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+    int2 tapCoord = centerCoord - effectiveRadius * passIncr;
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
     {
         // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
-        if ((int)tapCoord.x > _ScreenSize.x || (int)tapCoord.y > _ScreenSize.y)
+        if (tapCoord.x >= _ScreenSize.x || tapCoord.x < 0 || tapCoord.y >= _ScreenSize.y || tapCoord.y < 0)
             continue;
 
         // Compute the weight (skip computation for the center)
-        const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
+        const float w = r != 0 ? gaussian(abs(r), sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 
         SU += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xy * w;
         wSum += w;

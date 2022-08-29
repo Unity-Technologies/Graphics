@@ -461,6 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
+                    fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
                     offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = defaultResources.shaders.probeVolumeBlendStatesCS,
@@ -2342,6 +2343,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // With the Frame Settings now properly set up, we can resolve the sample budget.
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);
+            currentFrameSettings.sssResolvedDownsampleSteps = currentFrameSettings.GetResolvedSssDownsampleSteps(m_Asset);
 
             // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
             if (additionalCameraData.fullscreenPassthrough)

@@ -17,22 +17,32 @@ namespace UnityEngine.Rendering
         internal const int kMaxSubdivisionLevels = 7; // 3 bits
         internal const int kIndexChunkSize = 243;
 
+        internal const int kFailChunkIndex = -1;
+        internal const int kEmptyIndex = -2; // This is a tag value used to say that we have a valid entry but with no data.
+
+
         BitArray m_IndexChunks;
-        int m_IndexInChunks;
-        int m_NextFreeChunk;
+        BitArray m_IndexChunksCopyForChecks;
+
+        int m_ChunksCount;
         int m_AvailableChunkCount;
 
         ComputeBuffer m_PhysicalIndexBuffer;
         int[] m_PhysicalIndexBufferData;
+        ComputeBuffer m_DebugFragmentationBuffer;
+        int[] m_DebugFragmentationData;
 
         internal int estimatedVMemCost { get; private set; }
+
+        internal ComputeBuffer GetDebugFragmentationBuffer() => m_DebugFragmentationBuffer;
+        internal float fragmentationRate { get; private set; }
 
         [DebuggerDisplay("Brick [{position}, {subdivisionLevel}]")]
         [Serializable]
 
         public struct Brick : IEquatable<Brick>
         {
-            public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
+            public Vector3Int position;   // refspace index, indices are brick coordinates at max resolution
             public int subdivisionLevel;              // size as factor covered elementary cells
 
             internal Brick(Vector3Int position, int subdivisionLevel)
@@ -42,6 +52,21 @@ namespace UnityEngine.Rendering
             }
 
             public bool Equals(Brick other) => position == other.position && subdivisionLevel == other.subdivisionLevel;
+
+            // Important boundInBricks needs to be in min brick size so we can be agnostic of profile information.
+            public bool IntersectArea(Bounds boundInBricksToCheck)
+            {
+                int sizeInMinBricks = ProbeReferenceVolume.CellSize(subdivisionLevel);
+                Bounds brickBounds = new Bounds();
+                brickBounds.min = position;
+                brickBounds.max = position + new Vector3Int(sizeInMinBricks, sizeInMinBricks, sizeInMinBricks);
+
+                brickBounds.extents *= 0.99f; // Extend a bit to avoid issues.
+
+                bool intersectionHappens = boundInBricksToCheck.Intersects(brickBounds);
+
+                return intersectionHappens;
+            }
         }
 
         [DebuggerDisplay("Brick [{brick.position}, {brick.subdivisionLevel}], {flattenedIdx}")]
@@ -104,13 +129,13 @@ namespace UnityEngine.Rendering
             {
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetLow:
                     // 16 MB - 4 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 474 * 474 * 474 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 948 * 118 * 948 meters
-                    return 16000000;
+                    return 4000000;
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium:
                     // 32 MB - 8 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 600 * 600 * 600 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1200 * 150 * 1200 meters
-                    return 32000000;
+                    return 8000000;
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetHigh:
                     // 64 MB - 16 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 756 * 756 * 756 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1512 * 184 * 1512 meters
-                    return 64000000;
+                    return 16000000;
             }
             return 32000000;
         }
@@ -125,13 +150,14 @@ namespace UnityEngine.Rendering
 
             m_NeedUpdateIndexComputeBuffer = false;
 
-            m_IndexInChunks = Mathf.CeilToInt((float)SizeOfPhysicalIndexFromBudget(memoryBudget) / kIndexChunkSize);
-            m_AvailableChunkCount = m_IndexInChunks;
-            m_IndexChunks = new BitArray(Mathf.Max(1, m_IndexInChunks));
-            int physicalBufferSize = m_IndexInChunks * kIndexChunkSize;
+            m_ChunksCount = Mathf.Max(1, Mathf.CeilToInt((float)SizeOfPhysicalIndexFromBudget(memoryBudget) / kIndexChunkSize));
+            m_AvailableChunkCount = m_ChunksCount;
+            m_IndexChunks = new BitArray(m_ChunksCount);
+            m_IndexChunksCopyForChecks = new BitArray(m_ChunksCount);
+
+            int physicalBufferSize = m_ChunksCount * kIndexChunkSize;
             m_PhysicalIndexBufferData = new int[physicalBufferSize];
             m_PhysicalIndexBuffer = new ComputeBuffer(physicalBufferSize, sizeof(int), ComputeBufferType.Structured);
-            m_NextFreeChunk = 0;
 
             estimatedVMemCost = physicalBufferSize * sizeof(int);
 
@@ -156,6 +182,23 @@ namespace UnityEngine.Rendering
             m_UpdateMinIndex = int.MaxValue;
         }
 
+        void UpdateDebugData()
+        {
+            if (m_DebugFragmentationData == null || m_DebugFragmentationData.Length != m_IndexChunks.Length)
+            {
+                m_DebugFragmentationData = new int[m_IndexChunks.Length];
+                CoreUtils.SafeRelease(m_DebugFragmentationBuffer);
+                m_DebugFragmentationBuffer = new ComputeBuffer(m_IndexChunks.Length, 4);
+            }
+
+            for (int i = 0; i < m_IndexChunks.Length; ++i)
+            {
+                m_DebugFragmentationData[i] = m_IndexChunks[i] ? 1 : -1;
+            }
+
+            m_DebugFragmentationBuffer.SetData(m_DebugFragmentationData);
+        }
+
         internal void Clear()
         {
             Profiler.BeginSample("Clear Index");
@@ -167,7 +210,6 @@ namespace UnityEngine.Rendering
             m_UpdateMinIndex = 0;
             m_UpdateMaxIndex = m_PhysicalIndexBufferData.Length - 1;
 
-            m_NextFreeChunk = 0;
             m_IndexChunks.SetAll(false);
 
             foreach (var value in m_VoxelToBricks.Values)
@@ -181,6 +223,8 @@ namespace UnityEngine.Rendering
             foreach (var value in m_BricksToVoxels.Values)
                 m_BrickMetaPool.Release(value);
             m_BricksToVoxels.Clear();
+
+            m_AvailableChunkCount = m_ChunksCount;
 
             Profiler.EndSample();
         }
@@ -210,20 +254,35 @@ namespace UnityEngine.Rendering
                     }
         }
 
-        void ClearVoxel(Vector3Int pos, CellIndexUpdateInfo cellInfo)
+        void ClearVoxel(Vector3Int pos, IndirectionEntryUpdateInfo entryInfo)
         {
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(pos, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
-            UpdatePhysicalIndex(vx_min, vx_max, -1, cellInfo);
+            ClipToIndexSpace(pos, GetVoxelSubdivLevel(), out vx_min, out vx_max, entryInfo);
+
+            var brickMin = vx_min - entryInfo.entryPositionInBricksAtMaxRes;
+            var brickMax = vx_max - entryInfo.entryPositionInBricksAtMaxRes;
+            brickMin /= ProbeReferenceVolume.CellSize(entryInfo.minSubdivInCell);
+            brickMax /= ProbeReferenceVolume.CellSize(entryInfo.minSubdivInCell);
+
+            Debug.Assert(brickMin.x >= 0 && brickMin.y >= 0 && brickMin.z >= 0 && brickMax.x >= 0 && brickMax.y >= 0 && brickMax.z >= 0);
+
+            UpdatePhysicalIndex(vx_min, vx_max, -1, entryInfo);
         }
 
         internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
         {
+            bool displayFrag = ProbeReferenceVolume.instance.probeVolumeDebug.displayIndexFragmentation;
             // If we are pending an update of the actual compute buffer we do it here
             if (m_NeedUpdateIndexComputeBuffer)
             {
                 UploadIndexData();
+                if (displayFrag)
+                    UpdateDebugData();
             }
+
+            if (displayFrag && m_DebugFragmentationBuffer == null)
+                UpdateDebugData();
+
             rr.index = m_PhysicalIndexBuffer;
         }
 
@@ -231,10 +290,31 @@ namespace UnityEngine.Rendering
         {
             CoreUtils.SafeRelease(m_PhysicalIndexBuffer);
             m_PhysicalIndexBuffer = null;
+            CoreUtils.SafeRelease(m_DebugFragmentationBuffer);
+            m_DebugFragmentationBuffer = null;
         }
 
-        public struct CellIndexUpdateInfo
+        internal void ComputeFragmentationRate()
         {
+            // Clearly suboptimal, will need to be profiled before trying to make it smarter.
+            int highestAllocatedChunk = 0;
+            for (int i = m_ChunksCount - 1; i >= 0; i--)
+            {
+                if (m_IndexChunks[i])
+                {
+                    highestAllocatedChunk = i + 1;
+                    break;
+                }
+            }
+
+            int tailFreeChunks = m_ChunksCount - highestAllocatedChunk;
+            int holes = m_AvailableChunkCount - tailFreeChunks;
+            fragmentationRate = (float)holes / highestAllocatedChunk;
+        }
+
+        public struct IndirectionEntryUpdateInfo
+        {
+            public int brickCount;
             public int firstChunkIndex;
             public int numberOfChunks;
             public int minSubdivInCell;
@@ -242,7 +322,24 @@ namespace UnityEngine.Rendering
             // The map to the lower possible resolution is done after.  However they are still in local space.
             public Vector3Int minValidBrickIndexForCellAtMaxRes;
             public Vector3Int maxValidBrickIndexForCellAtMaxResPlusOne;
-            public Vector3Int cellPositionInBricksAtMaxRes;
+            public Vector3Int entryPositionInBricksAtMaxRes;
+
+            public bool hasOnlyBiggerBricks; // True if it has only bricks that are bigger than the entry itself
+        }
+
+        public struct CellIndexUpdateInfo
+        {
+            public IndirectionEntryUpdateInfo[] entriesInfo;
+
+            public int GetNumberOfChunks()
+            {
+                int chunkCount = 0;
+                foreach (var entry in entriesInfo)
+                {
+                    chunkCount += entry.numberOfChunks;
+                }
+                return chunkCount;
+            }
         }
 
         int MergeIndex(int index, int size)
@@ -252,59 +349,94 @@ namespace UnityEngine.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo, bool ignoreErrorLog)
+        internal int GetNumberOfChunks(int brickCount)
         {
-            // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
-            // Also the current way to find an empty spot might be sub-optimal, when streaming is in place it'd be nice to have this more efficient
-            // if it is meant to happen frequently.
+            return Mathf.CeilToInt((float)brickCount / kIndexChunkSize);
+        }
 
-            int numberOfChunks = Mathf.CeilToInt((float)bricksCount / kIndexChunkSize);
-
-            // Search for the first empty element with enough space.
-            int firstValidChunk = -1;
-            for (int i = 0; i < m_IndexInChunks; ++i)
+        internal bool FindSlotsForEntries(ref IndirectionEntryUpdateInfo[] entriesInfo)
+        {
+            int numberOfEntries = entriesInfo.Length;
+            for (int entry = 0; entry < numberOfEntries; ++entry)
             {
-                if (!m_IndexChunks[i] && (i + numberOfChunks) < m_IndexInChunks)
-                {
-                    int emptySlotsStartingHere = 0;
-                    for (int k = i; k < (i + numberOfChunks); ++k)
-                    {
-                        if (!m_IndexChunks[k]) emptySlotsStartingHere++;
-                        else break;
-                    }
+                entriesInfo[entry].firstChunkIndex = (entriesInfo[entry].numberOfChunks > 0) ? kFailChunkIndex : kEmptyIndex;
+            }
 
-                    if (emptySlotsStartingHere == numberOfChunks)
+            // This is not great, but the alternative is making the always in memory m_IndexChunks bigger.
+            // The other alternative is to temporary mark m_IndexChunks and unmark, but that is going to be slower.
+            // The copy here is temporary and while it is created upon loading all the time, it is going to occupy mnemory
+            // only when a load operation happens.
+
+            m_IndexChunksCopyForChecks.SetAll(false);
+            m_IndexChunksCopyForChecks.Or(m_IndexChunks);
+
+            for (int entry = 0; entry < numberOfEntries; ++entry)
+            {
+                int numberOfChunksForEntry = entriesInfo[entry].numberOfChunks;
+                if (numberOfChunksForEntry == 0) continue;
+
+
+                for (int i = 0; i < m_ChunksCount; ++i)
+                {
+                    if (!m_IndexChunksCopyForChecks[i] && (i + numberOfChunksForEntry) < m_ChunksCount)
                     {
-                        firstValidChunk = i;
-                        break;
+                        int emptySlotsStartingHere = 0;
+                        for (int k = i; k < (i + numberOfChunksForEntry); ++k)
+                        {
+                            if (!m_IndexChunksCopyForChecks[k]) emptySlotsStartingHere++;
+                            else break;
+                        }
+
+                        if (emptySlotsStartingHere == numberOfChunksForEntry)
+                        {
+                            entriesInfo[entry].firstChunkIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (entriesInfo[entry].firstChunkIndex < 0)
+                    return false;
+                else // We need to markup the copy.
+                {
+                    for (int i = entriesInfo[entry].firstChunkIndex; i < (entriesInfo[entry].firstChunkIndex + numberOfChunksForEntry); ++i)
+                    {
+                        Debug.Assert(!m_IndexChunksCopyForChecks[i]);
+                        m_IndexChunksCopyForChecks[i] = true;
                     }
                 }
             }
 
-            if (firstValidChunk < 0)
+            return true;
+        }
+
+        internal bool ReserveChunks(IndirectionEntryUpdateInfo[] entriesInfo, bool ignoreErrorLog)
+        {
+            int entryCount = entriesInfo.Length;
+            // Sanity check that shouldn't be needed.
+            for (int entry = 0; entry < entryCount; ++entry)
             {
-                // During baking we know we can hit this when trying to do dilation of all cells at the same time.
-                // That can happen because we try to load all cells at the same time. If the budget is not high enough it will fail.
-                // In this case we'll iterate separately on each cell and their neighbors.
-                // If so, we don't want controlled error message spam during baking so we ignore it.
-                // In theory this should never happen with proper streaming/defrag but we keep the message just in case otherwise.
-                if (!ignoreErrorLog)
-                    Debug.LogError("APV Index Allocation failed.");
-                return false;
+                int firstChunkForEntry = entriesInfo[entry].firstChunkIndex;
+                int numberOfChunkForEntry = entriesInfo[entry].numberOfChunks;
+
+                if (numberOfChunkForEntry == 0) continue;
+
+                if (firstChunkForEntry < 0)
+                {
+                    if (!ignoreErrorLog)
+                        Debug.LogError("APV Index Allocation failed.");
+
+                    return false;
+                }
+
+                for (int i = firstChunkForEntry; i < (firstChunkForEntry + numberOfChunkForEntry); ++i)
+                {
+                    Debug.Assert(!m_IndexChunks[i]);
+                    m_IndexChunks[i] = true;
+                }
+
+                m_AvailableChunkCount -= numberOfChunkForEntry;
             }
-
-            // This assert will need to go away or do something else when streaming is allowed (we need to find holes in available chunks or stream out stuff)
-            cellUpdateInfo.firstChunkIndex = firstValidChunk;
-            cellUpdateInfo.numberOfChunks = numberOfChunks;
-            for (int i = firstValidChunk; i < (firstValidChunk + numberOfChunks); ++i)
-            {
-                Debug.Assert(!m_IndexChunks[i]);
-                m_IndexChunks[i] = true;
-            }
-
-            m_NextFreeChunk += Mathf.Max(0, (firstValidChunk + numberOfChunks) - m_NextFreeChunk);
-
-            m_AvailableChunkCount -= numberOfChunks;
 
             return true;
         }
@@ -318,7 +450,8 @@ namespace UnityEngine.Rendering
 
             // create a new copy
             BrickMeta bm = m_BrickMetaPool.Get();
-            m_BricksToVoxels.Add(cell, bm);
+            //if (!m_BricksToVoxels.ContainsKey(cell))
+                m_BricksToVoxels.Add(cell, bm);
 
             int brick_idx = 0;
             // find all voxels each brick will touch
@@ -371,7 +504,10 @@ namespace UnityEngine.Rendering
 
             foreach (var voxel in bm.voxels)
             {
-                UpdateIndexForVoxel(voxel, cellInfo);
+                foreach (var entryInfo in cellInfo.entriesInfo)
+                {
+                    UpdateIndexForVoxel(voxel, entryInfo);
+                }
             }
         }
 
@@ -393,15 +529,22 @@ namespace UnityEngine.Rendering
                 {
                     m_VoxelMetaPool.Release(vm_list[idx]);
                     vm_list.RemoveAt(idx);
-                    if (vm_list.Count > 0)
+
+                    // Loop through entries.
+                    foreach (var entryInfo in cellInfo.updateInfo.entriesInfo)
                     {
-                        UpdateIndexForVoxel(v, cellUpdateInfo);
-                    }
-                    else
-                    {
-                        ClearVoxel(v, cellUpdateInfo);
-                        m_VoxelMetaListPool.Release(vm_list);
-                        m_VoxelToBricks.Remove(v);
+                        if (entryInfo.brickCount == 0) continue;
+
+                        if (vm_list.Count > 0)
+                        {
+                            UpdateIndexForVoxel(v, entryInfo);
+                        }
+                        else
+                        {
+                            ClearVoxel(v, entryInfo);
+                            m_VoxelMetaListPool.Release(vm_list);
+                            m_VoxelToBricks.Remove(v);
+                        }
                     }
                 }
             }
@@ -409,49 +552,69 @@ namespace UnityEngine.Rendering
             m_BricksToVoxels.Remove(cellInfo.cell);
 
             // Clear allocated chunks
-            for (int i = cellUpdateInfo.firstChunkIndex; i < (cellUpdateInfo.firstChunkIndex + cellUpdateInfo.numberOfChunks); ++i)
+            foreach (var entryInfo in cellInfo.updateInfo.entriesInfo)
             {
-                m_IndexChunks[i] = false;
+                for (int i = entryInfo.firstChunkIndex; i < (entryInfo.firstChunkIndex + entryInfo.numberOfChunks); ++i)
+                {
+                    m_IndexChunks[i] = false;
+                }
+                m_AvailableChunkCount += entryInfo.numberOfChunks;
             }
-            m_AvailableChunkCount += cellUpdateInfo.numberOfChunks;
         }
 
-        void UpdateIndexForVoxel(Vector3Int voxel, CellIndexUpdateInfo cellInfo)
+        void UpdateIndexForVoxel(Vector3Int voxel, IndirectionEntryUpdateInfo entryInfo)
         {
-            ClearVoxel(voxel, cellInfo);
+            if (entryInfo.brickCount == 0) return;
+
+            ClearVoxel(voxel, entryInfo);
             List<VoxelMeta> vm_list = m_VoxelToBricks[voxel];
             foreach (var vm in vm_list)
             {
                 // get the list of bricks and indices
                 List<ReservedBrick> bricks = m_BricksToVoxels[vm.cell].bricks;
                 List<ushort> indcs = vm.brickIndices;
-                UpdateIndexForVoxel(voxel, bricks, indcs, cellInfo);
+                UpdateIndexForVoxel(voxel, bricks, indcs, entryInfo);
             }
         }
 
-        void UpdatePhysicalIndex(Vector3Int brickMin, Vector3Int brickMax, int value, CellIndexUpdateInfo cellInfo)
+        void UpdatePhysicalIndex(Vector3Int brickMin, Vector3Int brickMax, int value, IndirectionEntryUpdateInfo entryInfo)
         {
+            // An indirection entry might have only a single brick that is actually bigger than the entry itself. This is a bit of simpler use case
+            // that doesn't fit what happens otherwise in this function where the assumption is that minSubdivInCell is equal or less the size of the entry.
+            // In this special case, we can do things much simpler as we *know* by construction that we will always have only a single relevant brick
+            // and so we do the update in a simpler fashion.
+            if (entryInfo.hasOnlyBiggerBricks)
+            {
+                int singleEntry = entryInfo.firstChunkIndex * kIndexChunkSize;
+                m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, singleEntry);
+                m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, singleEntry);
+                m_PhysicalIndexBufferData[singleEntry] = value;
+                m_NeedUpdateIndexComputeBuffer = true;
+
+                return;
+            }
+
             // We need to do our calculations in local space to the cell, so we move the brick to local space as a first step.
             // Reminder that at this point we are still operating at highest resolution possible, not necessarily the one that will be
             // the final resolution for the chunk.
-            brickMin = brickMin - cellInfo.cellPositionInBricksAtMaxRes;
-            brickMax = brickMax - cellInfo.cellPositionInBricksAtMaxRes;
+            brickMin = brickMin - entryInfo.entryPositionInBricksAtMaxRes;
+            brickMax = brickMax - entryInfo.entryPositionInBricksAtMaxRes;
 
             // Since the index is spurious (not same resolution, but varying per cell) we need to bring to the output resolution the brick coordinates
             // Before finding the locations inside the Index for the current cell/chunk.
 
-            brickMin /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
-            brickMax /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
+            brickMin /= ProbeReferenceVolume.CellSize(entryInfo.minSubdivInCell);
+            brickMax /= ProbeReferenceVolume.CellSize(entryInfo.minSubdivInCell);
 
             // Verify we are actually in local space now.
-            int maxCellSizeInOutputRes = ProbeReferenceVolume.CellSize(ProbeReferenceVolume.instance.GetMaxSubdivision() - 1 - cellInfo.minSubdivInCell);
+            int maxCellSizeInOutputRes = ProbeReferenceVolume.CellSize(ProbeReferenceVolume.instance.GetEntrySubdivLevel() - entryInfo.minSubdivInCell);
             Debug.Assert(brickMin.x >= 0 && brickMin.y >= 0 && brickMin.z >= 0 && brickMax.x >= 0 && brickMax.y >= 0 && brickMax.z >= 0);
-            Debug.Assert(brickMin.x < maxCellSizeInOutputRes && brickMin.y < maxCellSizeInOutputRes && brickMin.z < maxCellSizeInOutputRes && brickMax.x <= maxCellSizeInOutputRes && brickMax.y <= maxCellSizeInOutputRes && brickMax.z <= maxCellSizeInOutputRes);
+            Debug.Assert(brickMin.x <= maxCellSizeInOutputRes && brickMin.y <= maxCellSizeInOutputRes && brickMin.z <= maxCellSizeInOutputRes && brickMax.x <= maxCellSizeInOutputRes && brickMax.y <= maxCellSizeInOutputRes && brickMax.z <= maxCellSizeInOutputRes);
 
             // We are now in the right resolution, but still not considering the valid area, so we need to still normalize against that.
             // To do so first let's move back the limits to the desired resolution
-            var cellMinIndex = cellInfo.minValidBrickIndexForCellAtMaxRes / ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
-            var cellMaxIndex = cellInfo.maxValidBrickIndexForCellAtMaxResPlusOne / ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
+            var cellMinIndex = entryInfo.minValidBrickIndexForCellAtMaxRes / ProbeReferenceVolume.CellSize(entryInfo.minSubdivInCell);
+            var cellMaxIndex = entryInfo.maxValidBrickIndexForCellAtMaxResPlusOne / ProbeReferenceVolume.CellSize(entryInfo.minSubdivInCell);
 
             // Then perform the rescale of the local indices for min and max.
             brickMin -= cellMinIndex;
@@ -465,7 +628,7 @@ namespace UnityEngine.Rendering
             var size = (cellMaxIndex - cellMinIndex);
 
             // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
-            int chunkStart = cellInfo.firstChunkIndex * kIndexChunkSize;
+            int chunkStart = entryInfo.firstChunkIndex * kIndexChunkSize;
             int newMin = chunkStart + brickMin.z * (size.x * size.y) + brickMin.x * size.y + brickMin.y;
             int newMax = chunkStart + Math.Max(0, (brickMax.z - 1)) * (size.x * size.y) + Math.Max(0, (brickMax.x - 1)) * size.y + Math.Max(0, (brickMax.y - 1));
             m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
@@ -488,14 +651,14 @@ namespace UnityEngine.Rendering
             m_NeedUpdateIndexComputeBuffer = true;
         }
 
-        void ClipToIndexSpace(Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos, CellIndexUpdateInfo cellInfo)
+        void ClipToIndexSpace(Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos, IndirectionEntryUpdateInfo entryInfo)
         {
             // to relative coordinates
             int cellSize = ProbeReferenceVolume.CellSize(subdiv);
 
             // The position here is in global space, however we want to constraint this voxel update to the valid cell area
-            var minValidPosition = cellInfo.cellPositionInBricksAtMaxRes + cellInfo.minValidBrickIndexForCellAtMaxRes;
-            var maxValidPosition = cellInfo.cellPositionInBricksAtMaxRes + cellInfo.maxValidBrickIndexForCellAtMaxResPlusOne - Vector3Int.one;
+            var minValidPosition = entryInfo.entryPositionInBricksAtMaxRes + entryInfo.minValidBrickIndexForCellAtMaxRes;
+            var maxValidPosition = entryInfo.entryPositionInBricksAtMaxRes + entryInfo.maxValidBrickIndexForCellAtMaxResPlusOne - Vector3Int.one;
 
             int minpos_x = pos.x - m_CenterRS.x;
             int minpos_y = pos.y;
@@ -504,22 +667,32 @@ namespace UnityEngine.Rendering
             int maxpos_y = minpos_y + cellSize;
             int maxpos_z = minpos_z + cellSize;
             // clip to valid region
-            minpos_x = Mathf.Max(minpos_x, minValidPosition.x);
-            minpos_y = Mathf.Max(minpos_y, minValidPosition.y);
-            minpos_z = Mathf.Max(minpos_z, minValidPosition.z);
-            maxpos_x = Mathf.Min(maxpos_x, maxValidPosition.x);
-            maxpos_y = Mathf.Min(maxpos_y, maxValidPosition.y);
-            maxpos_z = Mathf.Min(maxpos_z, maxValidPosition.z);
+            minpos_x = Mathf.Clamp(minpos_x, minValidPosition.x, maxValidPosition.x);
+            minpos_y = Mathf.Clamp(minpos_y, minValidPosition.y, maxValidPosition.y);
+            minpos_z = Mathf.Clamp(minpos_z, minValidPosition.z, maxValidPosition.z);
+            maxpos_x = Mathf.Clamp(maxpos_x, minValidPosition.x, maxValidPosition.x);
+            maxpos_y = Mathf.Clamp(maxpos_y, minValidPosition.y, maxValidPosition.y);
+            maxpos_z = Mathf.Clamp(maxpos_z, minValidPosition.z, maxValidPosition.z);
 
             outMinpos = new Vector3Int(minpos_x, minpos_y, minpos_z);
             outMaxpos = new Vector3Int(maxpos_x, maxpos_y, maxpos_z);
         }
 
-        void UpdateIndexForVoxel(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices, CellIndexUpdateInfo cellInfo)
+        bool BrickOverlapEntry(Vector3Int brickMin, Vector3Int brickMax, Vector3Int entryMin, Vector3Int entryMax)
+        {
+            return brickMax.x >= entryMin.x && entryMax.x >= brickMin.x &&
+                   brickMax.y >= entryMin.y && entryMax.y >= brickMin.y &&
+                   brickMax.z >= entryMin.z && entryMax.z >= brickMin.z;
+        }
+
+        void UpdateIndexForVoxel(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices, IndirectionEntryUpdateInfo entryInfo)
         {
             // clip voxel to index space
             Vector3Int vx_min, vx_max;
-            ClipToIndexSpace(voxel, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
+            ClipToIndexSpace(voxel, GetVoxelSubdivLevel(), out vx_min, out vx_max, entryInfo);
+
+            var minEntryPosition = entryInfo.entryPositionInBricksAtMaxRes + entryInfo.minValidBrickIndexForCellAtMaxRes;
+            var maxEntryPosition = entryInfo.entryPositionInBricksAtMaxRes + entryInfo.maxValidBrickIndexForCellAtMaxResPlusOne - Vector3Int.one;
 
             foreach (var rbrick in bricks)
             {
@@ -527,6 +700,10 @@ namespace UnityEngine.Rendering
                 int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.subdivisionLevel);
                 Vector3Int brick_min = rbrick.brick.position;
                 Vector3Int brick_max = rbrick.brick.position + Vector3Int.one * brick_cell_size;
+
+                // We might have the brick completely out of the entry. In those case, we must skip.
+                if (!BrickOverlapEntry(brick_min, brick_max, minEntryPosition, maxEntryPosition)) continue;
+
                 brick_min.x = Mathf.Max(vx_min.x, brick_min.x - m_CenterRS.x);
                 brick_min.y = Mathf.Max(vx_min.y, brick_min.y);
                 brick_min.z = Mathf.Max(vx_min.z, brick_min.z - m_CenterRS.z);
@@ -534,7 +711,7 @@ namespace UnityEngine.Rendering
                 brick_max.y = Mathf.Min(vx_max.y, brick_max.y);
                 brick_max.z = Mathf.Min(vx_max.z, brick_max.z - m_CenterRS.z);
 
-                UpdatePhysicalIndex(brick_min, brick_max, rbrick.flattenedIdx, cellInfo);
+                UpdatePhysicalIndex(brick_min, brick_max, rbrick.flattenedIdx, entryInfo);
             }
         }
     }

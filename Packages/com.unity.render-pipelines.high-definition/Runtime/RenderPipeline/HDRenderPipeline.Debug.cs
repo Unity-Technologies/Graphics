@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         bool m_FullScreenDebugPushed;
-        DebugOverlay m_DebugOverlay = new DebugOverlay();
+        Rendering.DebugOverlay m_DebugOverlay = new Rendering.DebugOverlay();
         TextureHandle m_DebugFullScreenTexture;
         ComputeBufferHandle m_DebugFullScreenComputeBuffer;
         ShaderVariablesDebugDisplay m_ShaderVariablesDebugDisplayCB = new ShaderVariablesDebugDisplay();
@@ -662,7 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DebugOverlayPassData
         {
-            public DebugOverlay debugOverlay;
+            public Rendering.DebugOverlay debugOverlay;
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
         }
@@ -1008,6 +1008,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
             RenderMonitorsOverlay(renderGraph, colorBuffer, hdCamera);
+
+            ProbeReferenceVolume.instance.RenderFragmentationOverlay(renderGraph, colorBuffer, depthBuffer, m_DebugOverlay);
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)

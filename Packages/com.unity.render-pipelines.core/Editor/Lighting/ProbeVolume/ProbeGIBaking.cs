@@ -8,6 +8,7 @@ using UnityEditor;
 
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
+using IndirectionEntryInfo = UnityEngine.Rendering.ProbeReferenceVolume.IndirectionEntryInfo;
 using CellInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellInfo;
 
 namespace UnityEngine.Rendering
@@ -28,6 +29,7 @@ namespace UnityEngine.Rendering
         public int minSubdiv;
         public int indexChunkCount;
         public int shChunkCount;
+        public IndirectionEntryInfo[] indirectionEntryInfo;
 
         public int[] probeIndices;
 
@@ -182,7 +184,7 @@ namespace UnityEngine.Rendering
             static Stages currentStage = Stages.None;
             public BakingSetupProfiling(Stages stage) : base(stage, ref currentStage) { }
             public override Stages GetLastStep() => Stages.None;
-            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1/(float)Stages.None; progress0 = (float)currentStage*s; progress1 = progress0+s; }
+            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)currentStage * s; progress1 = progress0 + s; }
             public void Dispose() { OnDispose(ref currentStage); }
         }
         public class BakingCompleteProfiling : BakingProfiling<BakingCompleteProfiling.Stages>, IDisposable
@@ -202,7 +204,7 @@ namespace UnityEngine.Rendering
             static Stages currentStage = Stages.None;
             public BakingCompleteProfiling(Stages stage) : base(stage, ref currentStage) { }
             public override Stages GetLastStep() => Stages.None;
-            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1/(float)Stages.None; progress0 = (float)currentStage*s; progress1 = progress0+s; }
+            public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)currentStage * s; progress1 = progress0 + s; }
             public void Dispose() { OnDispose(ref currentStage); }
         }
 
@@ -238,7 +240,7 @@ namespace UnityEngine.Rendering
             if (!isBakingSceneSubset)
                 return fullPerSceneDataList;
 
-            List<ProbeVolumePerSceneData> usedPerSceneDataList = new();
+            List<ProbeVolumePerSceneData> usedPerSceneDataList = new ();
             foreach (var sceneData in fullPerSceneDataList)
             {
                 if (partialBakeSceneList.Contains(ProbeVolumeSceneData.GetSceneGUID(sceneData.gameObject.scene)))
@@ -771,7 +773,6 @@ namespace UnityEngine.Rendering
                 {
                     touchup.GetOBBandAABB(out var obb, out var aabb);
                     touchupVolumesAndBounds.Add((obb, aabb, touchup));
-
                 }
             }
 
@@ -842,25 +843,27 @@ namespace UnityEngine.Rendering
 
                         // We check a small box around the probe to give some leniency (a couple of centimeters).
                         var probeBounds = new Bounds(cell.probePositions[i], new Vector3(0.02f, 0.02f, 0.02f));
-                        if (ProbeVolumePositioning.OBBAABBIntersect(touchup.obb, probeBounds, touchupBound))
+                        if (touchupVolume.IntersectsVolume(touchup.obb, touchup.aabb, probeBounds))
                         {
-                            if (touchupVolume.invalidateProbes)
+                            if (touchupVolume.mode == ProbeTouchupVolume.Mode.InvalidateProbes)
                             {
                                 invalidatedProbe = true;
-                                // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
-                                cell.touchupVolumeInteraction[i] = 0.5f;
 
                                 if (valid < 0.05f) // We just want to add probes that were not already invalid or close to.
                                 {
+                                    // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
+                                    cell.touchupVolumeInteraction[i] = 0.5f;
+
                                     s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
                                 }
                                 break;
                             }
-                            else if (touchupVolume.overrideDilationThreshold)
+                            else if (touchupVolume.mode == ProbeTouchupVolume.Mode.OverrideValidityThreshold)
                             {
-                                // The 1 + is used to determine the action (debug shader tests above 1), then we add the threshold to be able to retrieve it in debug phase.
-                                cell.touchupVolumeInteraction[i] = 1.0f + touchupVolume.overriddenDilationThreshold;
-                                s_CustomDilationThresh[(cell.index, i)] = touchupVolume.overriddenDilationThreshold;
+                                float thresh = (1.0f - touchupVolume.overriddenDilationThreshold);
+                                // The 1.0f + is used to determine the action (debug shader tests above 1), then we add the threshold to be able to retrieve it in debug phase.
+                                cell.touchupVolumeInteraction[i] = 1.0f + thresh;
+                                s_CustomDilationThresh[(cell.index, i)] = thresh;
                             }
 
                             intensityScale = touchupVolume.intensityScale;
@@ -942,8 +945,7 @@ namespace UnityEngine.Rendering
                     cell.validityNeighbourMask[i] = currValidityNeighbourMask;
                 }
 
-                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
-                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
+                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
 
                 ComputeValidityMasks(cell);
 
@@ -988,7 +990,7 @@ namespace UnityEngine.Rendering
                     if (scene2Data.TryGetValue(scene, out var data))
                     {
                         if (!data2BakingCells.TryGetValue(data, out var bakingCellsList))
-                            bakingCellsList = data2BakingCells[data] = new();
+                            bakingCellsList = data2BakingCells[data] = new ();
 
                         bakingCellsList.Add(cell);
                     }
@@ -1013,7 +1015,7 @@ namespace UnityEngine.Rendering
                 asset.bands = ProbeVolumeSHBands.SphericalHarmonicsL2;
 
                 if (!data2BakingCells.TryGetValue(data, out var bakingCellsList))
-                    bakingCellsList = new(); // Can happen if no cell is baked for the scene
+                    bakingCellsList = new (); // Can happen if no cell is baked for the scene
 
                 WriteBakingCells(data, bakingCellsList);
                 data.ResolveSharedCellData();
@@ -1054,6 +1056,68 @@ namespace UnityEngine.Rendering
 
             currentBakingState = BakingStage.OnBakeCompletedFinished;
 
+        }
+
+        static void AnalyzeBrickForIndirectionEntries(ref BakingCell cell)
+        {
+            var prv = ProbeReferenceVolume.instance;
+            int cellSizeInBricks = m_BakingProfile.cellSizeInBricks;
+            int entrySubdivLevel = Mathf.Min(m_BakingProfile.simplificationLevels, prv.GetGlobalIndirectionEntryMaxSubdiv());
+            int indirectionEntrySizeInBricks = ProbeReferenceVolume.CellSize(entrySubdivLevel);
+            int numOfIndirectionEntriesPerCellDim = cellSizeInBricks / indirectionEntrySizeInBricks;
+
+            int numOfEntries = numOfIndirectionEntriesPerCellDim * numOfIndirectionEntriesPerCellDim * numOfIndirectionEntriesPerCellDim;
+            cell.indirectionEntryInfo = new IndirectionEntryInfo[numOfEntries];
+
+            // This is fairly naive now, if we need optimization this is the place to be.
+
+            Vector3Int cellPosInEntries = cell.position * numOfIndirectionEntriesPerCellDim;
+            Vector3Int cellPosInBricks = cell.position * cellSizeInBricks;
+
+            int totalIndexChunks = 0;
+            int i = 0;
+            for (int x = 0; x < numOfIndirectionEntriesPerCellDim; ++x)
+            {
+                for (int y = 0; y < numOfIndirectionEntriesPerCellDim; ++y)
+                {
+                    for (int z = 0; z < numOfIndirectionEntriesPerCellDim; ++z)
+                    {
+                        Vector3Int entryPositionInBricks = cellPosInBricks + new Vector3Int(x, y, z) * indirectionEntrySizeInBricks;
+                        Bounds entryBoundsInBricks = new Bounds();
+                        entryBoundsInBricks.min = entryPositionInBricks;
+                        entryBoundsInBricks.max = entryPositionInBricks + new Vector3Int(indirectionEntrySizeInBricks, indirectionEntrySizeInBricks, indirectionEntrySizeInBricks);
+
+                        int minSubdiv = m_BakingProfile.maxSubdivision;
+                        bool touchedBrick = false;
+                        foreach (Brick b in cell.bricks)
+                        {
+                            if (b.subdivisionLevel < minSubdiv)
+                            {
+                                if (b.IntersectArea(entryBoundsInBricks))
+                                {
+                                    touchedBrick = true;
+                                    minSubdiv = b.subdivisionLevel;
+                                    if (minSubdiv == 0) break;
+                                }
+                            }
+                        }
+
+                        cell.indirectionEntryInfo[i].minSubdiv = minSubdiv;
+                        cell.indirectionEntryInfo[i].positionInBricks = cellPosInBricks + new Vector3Int(x, y, z) * indirectionEntrySizeInBricks;
+                        cell.indirectionEntryInfo[i].hasOnlyBiggerBricks = minSubdiv > entrySubdivLevel && touchedBrick;
+
+                        ProbeBrickIndex.IndirectionEntryUpdateInfo unused = new ProbeBrickIndex.IndirectionEntryUpdateInfo();
+                        int brickCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(cell.indirectionEntryInfo[i], ref unused);
+
+                        totalIndexChunks += Mathf.CeilToInt((float)brickCount / ProbeBrickIndex.kIndexChunkSize);
+
+                        i++;
+                    }
+                }
+            }
+
+            // Chunk count.
+            cell.indexChunkCount = totalIndexChunks;
         }
 
         static void OnLightingDataCleared()
@@ -1152,6 +1216,7 @@ namespace UnityEngine.Rendering
                 indexChunkCount = cell.indexChunkCount,
                 shChunkCount = cell.shChunkCount,
                 probeIndices = null, // Not needed for this conversion.
+                indirectionEntryInfo = cell.indirectionEntryInfo,
             };
 
             // Runtime Cell arrays may contain padding to match chunk size
@@ -1256,8 +1321,9 @@ namespace UnityEngine.Rendering
             outCell.validityNeighbourMask = new byte[numberOfProbes];
             outCell.offsetVectors = new Vector3[numberOfProbes];
             outCell.touchupVolumeInteraction = new float[numberOfProbes];
-            outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
-            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
+            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
+            // We don't need to analyse here, it will be done upon writing back.
+            outCell.indirectionEntryInfo = new IndirectionEntryInfo[srcCell.indirectionEntryInfo.Length];
 
             BakingCell[] consideredCells = { dst, srcCell };
 
@@ -1352,6 +1418,8 @@ namespace UnityEngine.Rendering
             {
                 var bakingCell = bakingCells[i];
 
+                AnalyzeBrickForIndirectionEntries(ref bakingCell);
+
                 asset.cells[i] = new Cell
                 {
                     position = bakingCell.position,
@@ -1361,6 +1429,7 @@ namespace UnityEngine.Rendering
                     indexChunkCount = bakingCell.indexChunkCount,
                     shChunkCount = bakingCell.shChunkCount,
                     shBands = asset.bands,
+                    indirectionEntryInfo = bakingCell.indirectionEntryInfo,
                 };
 
                 var cellCounts = new ProbeVolumeAsset.CellCounts

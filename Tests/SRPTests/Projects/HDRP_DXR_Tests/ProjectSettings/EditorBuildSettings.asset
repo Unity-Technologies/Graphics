@@ -342,6 +342,9 @@ EditorBuildSettings:
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
+    path: Assets/Scenes/3001_AreaShadowsDeferredTiny.unity
+    guid: bb2a3b72e71b4e64ea4683b9739d887a
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsForward.unity
     guid: 18a3a10168d8d3847abf880a745f365e
   - enabled: 1

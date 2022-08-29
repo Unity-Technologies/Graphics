@@ -99,5 +99,20 @@ namespace UnityEditor.VFX
         {
             return new ShaderGraphBinder();
         }
+
+        public virtual IEnumerable<GraphicsDeviceType> GetSupportedGraphicDevices()
+        {
+            yield return GraphicsDeviceType.Direct3D11;
+            yield return GraphicsDeviceType.OpenGLCore;
+            yield return GraphicsDeviceType.OpenGLES3;
+            yield return GraphicsDeviceType.Metal;
+            yield return GraphicsDeviceType.Vulkan;
+            yield return GraphicsDeviceType.XboxOne;
+            yield return GraphicsDeviceType.GameCoreXboxOne;
+            yield return GraphicsDeviceType.GameCoreXboxSeries;
+            yield return GraphicsDeviceType.PlayStation4;
+            yield return GraphicsDeviceType.PlayStation5;
+            yield return GraphicsDeviceType.Switch;
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
 {
     internal class ProbeBrickPool
     {
-        const int kProbePoolChunkSizeInBricks = 128;
+        const int kChunkSizeInBricks = 128;
 
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
         internal const int kBrickCellCount = 3;
         internal const int kBrickProbeCountPerDim = kBrickCellCount + 1;
         internal const int kBrickProbeCountTotal = kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim;
-        internal const int kChunkProbeCountPerDim = kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim;
+        internal const int kChunkProbeCountPerDim = kChunkSizeInBricks * kBrickProbeCountPerDim;
 
         internal int estimatedVMemCost { get; private set; }
 
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering
             m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", true, allocateValidityData, out int estimatedCost);
             estimatedVMemCost = estimatedCost;
 
-            m_AvailableChunkCount = (m_Pool.width / (kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim)) * (m_Pool.height / kBrickProbeCountPerDim) * (m_Pool.depth / kBrickProbeCountPerDim);
+            m_AvailableChunkCount = (m_Pool.width / (kChunkSizeInBricks * kBrickProbeCountPerDim)) * (m_Pool.height / kBrickProbeCountPerDim) * (m_Pool.depth / kBrickProbeCountPerDim);
 
             Profiler.EndSample();
         }
@@ -114,8 +114,8 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static int GetChunkSizeInBrickCount() { return kProbePoolChunkSizeInBricks; }
-        internal static int GetChunkSizeInProbeCount() { return kProbePoolChunkSizeInBricks * kBrickProbeCountTotal; }
+        internal static int GetChunkSizeInBrickCount() { return kChunkSizeInBricks; }
+        internal static int GetChunkSizeInProbeCount() { return kChunkSizeInBricks * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
@@ -141,9 +141,9 @@ namespace UnityEngine.Rendering
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
         }
 
-        internal static int GetChunkCount(int brickCount, int chunkSizeInBricks)
+        internal static int GetChunkCount(int brickCount)
         {
-            int chunkSize = chunkSizeInBricks;
+            int chunkSize = kChunkSizeInBricks;
             return (brickCount + chunkSize - 1) / chunkSize;
         }
 
@@ -165,13 +165,15 @@ namespace UnityEngine.Rendering
                     // In theory this should never happen with proper streaming/defrag but we keep the message just in case otherwise.
                     if (!ignoreErrorLog)
                         Debug.LogError("Cannot allocate more brick chunks, probe volume brick pool is full.");
+
+                    outAllocations.Clear();
                     return false; // failure case, pool is full
                 }
 
                 outAllocations.Add(m_NextFreeChunk);
                 m_AvailableChunkCount--;
 
-                m_NextFreeChunk.x += kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim;
+                m_NextFreeChunk.x += kChunkSizeInBricks * kBrickProbeCountPerDim;
                 if (m_NextFreeChunk.x >= m_Pool.width)
                 {
                     m_NextFreeChunk.x = 0;
@@ -204,7 +206,7 @@ namespace UnityEngine.Rendering
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
-                    int width = Mathf.Min(kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim, source.width - src.x);
+                    int width = Mathf.Min(kChunkSizeInBricks * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
@@ -235,7 +237,7 @@ namespace UnityEngine.Rendering
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
-                    int width = Mathf.Min(kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim, source.width - src.x);
+                    int width = Mathf.Min(kChunkSizeInBricks * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
                 }
             }
@@ -412,7 +414,6 @@ namespace UnityEngine.Rendering
         internal int GetPoolWidth() { return m_State0.m_Pool.width; }
         internal int GetPoolHeight() { return m_State0.m_Pool.height; }
         internal int GetPoolDepth() { return m_State0.m_Pool.depth; }
-
 
         internal ProbeBrickBlendingPool(ProbeVolumeBlendingTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {

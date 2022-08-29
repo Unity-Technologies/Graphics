@@ -37,21 +37,14 @@ To control the Frame Settings and set Decal Layers for a specific Camera:
 
 ### Using Decal Layers
 
-When you enable Decal Layers, a Decal only affects a Mesh Renderer or Terrain if they both use a matching Decal Layer. You can use Decal Layers to separate Meshes from specific [Decal Projectors](Decal-Projector.md) in your Scene. To do this:
+When you enable Decal Layers, a Decal only affects a Mesh Renderer or Terrain if they both use a matching Rendering Layer. You can use Decal Layers to separate Meshes from specific [Decal Projectors](Decal-Projector.md) in your Scene. To do this:
 
 1. Click on a Decal Projector in the Hierarchy or the Scene view to view it in the Inspector.
-2. Use the **Decal Layer** property drop-down to select which Decal Layers this Decal Projector affects.
+2. Use the **Rendering Layer Mask** property drop-down to select which Rendering Layers this Decal Projector affects.
 4. Click on a Mesh Renderer or Terrain in the Hierarchy or the Scene view to view it in the Inspector.
 5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Decal Layers affect this Mesh Renderer or Terrain.
 
-### Renaming Decal Layers
-
-By default, in the UI for Decal Projectors, Mesh Renderers, or Terrain, Decal Layers are named **Decal Layer 1-7**. You can give each Decal Layer a specific name. To do this:
-
-1. Open the [HDRP Global Settings](Default-Settings-Window.md).
-2. Expand the **Decal Layer Names** section.
-
-Here you can set the name of each Decal Layer individually.
+To rename a Rendering Layer, see [Renaming rendering Layers](Rendering-Layers.md#renaming-rendering-layers).
 
 ### How Decal Layers affect performance
 
@@ -67,7 +60,7 @@ HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materia
 
 2. Disable the **Receive Decals** property.
 
-If you use the Decal Layer system to change the **Rendering Layer Mask** of a Mesh Renderer or Terrain to disable decal, it doesn't have an effect on your application's performance.
+**Note:** When you use the **Rendering Layer Mask** of a Mesh Renderer or Terrain to disable decal on a specific Decal Layer, it doesn't affect your application's performance.
 
 ## Additive Normal Blending
 

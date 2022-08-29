@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSGI;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
+        public SerializedScalableSetting sssDownsampleSteps;
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
@@ -91,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSSGI = root.Find((RenderPipelineSettings s) => s.supportSSGI);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             sssSampleBudget = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
+            sssDownsampleSteps = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssDownsampleSteps));
             supportVolumetrics = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             supportVolumetricClouds = root.Find((RenderPipelineSettings s) => s.supportVolumetricClouds);
 

@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Update the shadow history buffer
                 cmd.SetComputeTextureParam(data.screenSpaceShadowsFilterCS, data.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticProbBuffer, data.intermediateBufferRG0);
-                cmd.SetComputeTextureParam(data.screenSpaceShadowsFilterCS, data.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBuffer, data.analyticHistoryArray);
+                cmd.SetComputeTextureParam(data.screenSpaceShadowsFilterCS, data.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBufferRW, data.analyticHistoryArray);
                 cmd.DispatchCompute(data.screenSpaceShadowsFilterCS, data.areaUpdateAnalyticHistoryKernel, numTilesX, numTilesY, data.viewCount);
 
                 // Update the analytic history buffer
@@ -268,13 +268,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.worldToLocalMatrix.SetColumn(2, lightData.forward);
                 // Compensate the  relative rendering if active
                 Vector3 lightPositionWS = lightData.positionRWS;
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    lightPositionWS -= hdCamera.camera.transform.position;
-                }
                 passData.worldToLocalMatrix.SetColumn(3, lightPositionWS);
                 passData.worldToLocalMatrix.m33 = 1.0f;
-                passData.worldToLocalMatrix = m_WorldToLocalArea.inverse;
+                passData.worldToLocalMatrix = passData.worldToLocalMatrix.inverse;
                 passData.historyValidity = EvaluateHistoryValidity(hdCamera);
                 passData.filterTracedShadow = additionalLightData.filterTracedShadow;
                 passData.areaShadowSlot = m_GpuLightsBuilder.lights[lightIndex].screenSpaceShadowIndex;

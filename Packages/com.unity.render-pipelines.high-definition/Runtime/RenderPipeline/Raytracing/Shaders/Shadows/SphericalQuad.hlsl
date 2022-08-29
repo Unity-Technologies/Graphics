@@ -4,6 +4,7 @@
 
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
+    t = -1.0f;
     float denom = dot(normal, ray_dir);
     if (abs(denom) > PLANE_INTERSECTION_EPSILON)
     {

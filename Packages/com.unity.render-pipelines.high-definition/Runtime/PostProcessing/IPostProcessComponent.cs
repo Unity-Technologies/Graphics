@@ -9,6 +9,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Tells if the post process needs to be rendered or not.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
-        bool IsActive();
+        bool IsActive() => true;
+
+        /// <summary>
+        /// Tells if the post process needs to be rendered or not.
+        /// </summary>
+        /// <param name="hdCamera">The current camera that renders your post processing effect.</param>
+        /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
+        bool IsActive(HDCamera hdCamera) => IsActive();
     }
 }

@@ -7,20 +7,22 @@
 
 // Unpack variables
 #define _PoolDim _PoolDim_CellInMeters.xyz
+#define _RcpPoolDim _RcpPoolDim_Padding.xyz
 #define _CellInMeters _PoolDim_CellInMeters.w
-#define _MinCellPosition _MinCellPos_Noise.xyz
-#define _PVSamplingNoise _MinCellPos_Noise.w
-#define _CellIndicesDim _IndicesDim_IndexChunkSize.xyz
+#define _MinEntryPosition _MinEntryPos_Noise.xyz
+#define _PVSamplingNoise _MinEntryPos_Noise.w
+#define _GlobalIndirectionDimension _IndicesDim_IndexChunkSize.xyz
 #define _IndexChunkSize _IndicesDim_IndexChunkSize.w
 #define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
 #define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
-#define _Weight _Weight_MinLoadedCell.x
-#define _MinLoadedCell _Weight_MinLoadedCell.yzw
-#define _MaxLoadedCell _MaxLoadedCell_FrameIndex.xyz
-#define _NoiseFrameIndex _MaxLoadedCell_FrameIndex.w
-#define _MinReflProbeNormalizationFactor _NormalizationClamp_Padding12.x
-#define _MaxReflProbeNormalizationFactor _NormalizationClamp_Padding12.y
+#define _Weight _Weight_MinLoadedCellInEntries.x
+#define _MinLoadedCellInEntries _Weight_MinLoadedCellInEntries.yzw
+#define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_FrameIndex.xyz
+#define _NoiseFrameIndex _MaxLoadedCellInEntries_FrameIndex.w
+#define _MinReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.x
+#define _MaxReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.y
+#define _GlobalIndirectionEntryDim _NormalizationClamp_IndirectionEntryDim_Padding.z
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -162,8 +164,8 @@ float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
 float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, int subdiv)
 {
     // TODO: This can be optimized.
-    float3 samplePos = sample0Pos + offset * ProbeDistance(subdiv);
-    float3 vecToProbe = normalize((samplePos)-posWS);
+    float3 samplePos = (sample0Pos - posWS) + offset * ProbeDistance(subdiv);
+    float3 vecToProbe = normalize(samplePos);
     float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
     return weight;
 
@@ -206,15 +208,15 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
 
 uint GetIndexData(APVResources apvRes, float3 posWS)
 {
-    int3 cellPos = floor(posWS / _CellInMeters);
-    float3 topLeftCellWS = cellPos * _CellInMeters;
+    int3 entryPos = floor(posWS / _GlobalIndirectionEntryDim);
+    float3 topLeftEntryWS = entryPos * _GlobalIndirectionEntryDim;
 
-    bool isALoadedCell = all(cellPos <= _MaxLoadedCell) && all(cellPos >= _MinLoadedCell);
+    bool isALoadedCell = all(entryPos <= _MaxLoadedCellInEntries) && all(entryPos >= _MinLoadedCellInEntries);
 
     // Make sure we start from 0
-    cellPos -= (int3)_MinCellPosition;
+    entryPos -= (int3)_MinEntryPosition;
 
-    int flatIdx = cellPos.z * (_CellIndicesDim.x * _CellIndicesDim.y) + cellPos.y * _CellIndicesDim.x + cellPos.x;
+    int flatIdx = entryPos.z * (_GlobalIndirectionDimension.x * _GlobalIndirectionDimension.y) + entryPos.y * _GlobalIndirectionDimension.x + entryPos.x;
 
     int stepSize = 0;
     int3 minRelativeIdx, maxRelativeIdx;
@@ -224,7 +226,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
 
     if (isALoadedCell && LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
     {
-        float3 residualPosWS = posWS - topLeftCellWS;
+        float3 residualPosWS = posWS - topLeftEntryWS;
         int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
 
         // Out of bounds.
@@ -273,28 +275,11 @@ APVResources FillAPVResources()
 }
 
 
-
-bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out float3 uvw, out uint subdiv)
 {
-    uvw = 0;
-    // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
-    bool hasValidUVW = true;
-
-    float4 posWSForSample = float4(posWS + normalWS * _NormalBias
-        + viewDirWS * _ViewBias, 1.0);
-    biasedPosWS = posWSForSample.xyz;
-
-    uint3 poolDim = (uint3)_PoolDim;
-
     // resolve the index
     float3 posRS = posWSForSample.xyz / _MinBrickSize;
     uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
-
-    // no valid brick loaded for this index, fallback to ambient probe
-    if (packed_pool_idx == 0xffffffff)
-    {
-        hasValidUVW = false;
-    }
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
@@ -302,20 +287,27 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     float  cellSize = pow(3.0, subdiv);
     uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
     uint3  pool_idx;
-    pool_idx.z = flattened_pool_idx / (poolDim.x * poolDim.y);
+    uint3 poolDim = (uint3)_PoolDim;
+    pool_idx.z = flattened_pool_idx * _RcpPoolDim.x * _RcpPoolDim.y;
     flattened_pool_idx -= pool_idx.z * (poolDim.x * poolDim.y);
-    pool_idx.y = flattened_pool_idx / poolDim.x;
+    pool_idx.y = flattened_pool_idx * _RcpPoolDim.x;
     pool_idx.x = flattened_pool_idx - (pool_idx.y * poolDim.x);
-    uvw = ((float3) pool_idx + 0.5) / _PoolDim;
 
     // calculate uv offset and scale
     float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
     //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
-    offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
-    uvw += offset;                                  // add the final offset
 
+    uvw = ((float3)pool_idx + 0.5 + 3.0 * offset) * _RcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
 
-    return hasValidUVW;
+    // no valid brick loaded for this index, fallback to ambient probe
+    // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
+    return packed_pool_idx != 0xffffffff;
+}
+
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS)
+{
+    biasedPosWS = posWS + normalWS * _NormalBias + viewDirWS * _ViewBias;
+    return TryToGetPoolUVWAndSubdiv(apvRes, biasedPosWS, uvw, subdiv);
 }
 
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDir, out float3 uvw)
@@ -458,7 +450,7 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
     float3 oneMinTexFrac = 1.0f - texFrac;
     uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
 
-    float3 newFrac = 0.0f;
+    float3 fracOffset = -texFrac;
     float weights[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
     float totalW = 0.0f;
     int i = 0;
@@ -483,10 +475,10 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
     for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
-        newFrac += (float3)offset * weights[i] * rcp(totalW);
+        fracOffset += (float3)offset * weights[i] * rcp(totalW);
     }
 
-    uvw = ((texCoordFloat - texFrac + newFrac + 0.5) * rcp(_PoolDim));
+    uvw = uvw + fracOffset * _RcpPoolDim;
 
 }
 
@@ -562,7 +554,7 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 #ifdef PROBE_VOLUMES_L1
         EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
         EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
-#elif PROBE_VOLUMES_L2
+#elif defined(PROBE_VOLUMES_L2)
         EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
         EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
 #endif
@@ -603,7 +595,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
         EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
         EvaluateAPVL1(apvSample, reflDir, lightingInReflDir);
-#elif PROBE_VOLUMES_L2
+#elif defined(PROBE_VOLUMES_L2)
         EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
         EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
         EvaluateAPVL1L2(apvSample, reflDir, lightingInReflDir);

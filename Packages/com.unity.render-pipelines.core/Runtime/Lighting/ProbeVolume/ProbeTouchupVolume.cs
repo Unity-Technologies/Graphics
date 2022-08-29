@@ -1,44 +1,83 @@
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using System;
 
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// A marker to determine what area of the scene is considered by the Probe Volumes system
+    /// A marker to adjust probes in an area of the scene.
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Volume Touchup")]
-    public class ProbeTouchupVolume : MonoBehaviour
+    [AddComponentMenu("Light/Probe Adjustment Volume")]
+    public class ProbeTouchupVolume : MonoBehaviour, ISerializationCallbackReceiver
     {
+        /// <summary>The type of shape that an adjustment volume can take. </summary>
+        public enum Shape
+        {
+            /// <summary>A Box shape.</summary>
+            Box,
+            /// <summary>A Sphere shape.</summary>
+            Sphere,
+        };
+
+        /// <summary>The shape of the adjustment volume</summary>
+        public Shape shape = Shape.Box;
+
+        /// <summary>
+        /// The size for box shape.
+        /// </summary>
+        [Min(0.0f), Tooltip("Modify the size of this Probe Adjustment Volume. This is unaffected by the GameObject's Transform's Scale property.")]
+        public Vector3 size = new Vector3(1, 1, 1);
+
+        /// <summary>
+        /// The size for sphere shape.
+        /// </summary>
+        [Min(0.0f), Tooltip("Modify the radius of this Probe Adjustment Volume. This is unaffected by the GameObject's Transform's Scale property.")]
+        public float radius = 1.0f;
+
+
+        /// <summary>The mode that adjustment volume will operate in. It determines what probes falling within the volume will do. </summary>
+        public enum Mode
+        {
+            /// <summary>Invalidate the probes within the adjustment volume.</summary>
+            InvalidateProbes,
+            /// <summary>Override the dilation validity threshold for the probes within the adjustment volume.</summary>
+            OverrideValidityThreshold,
+            /// <summary>Apply an explicit virtual offset to the probes within the adjustment volume.</summary>
+            ApplyVirtualOffset,
+            /// <summary>Override the virtual offset settings for the probes within the adjustment volume.</summary>
+            OverrideVirtualOffsetSettings,
+        };
+
+        /// <summary>Choose what to do with probes falling inside this volume</summary>
+        [Tooltip("Choose what to do with probes falling inside this volume.")]
+        public Mode mode = Mode.InvalidateProbes;
+
         /// <summary>
         /// A scale to apply to probes falling within the invalidation volume. It is really important to use this with caution as it can lead to inconsistent lighting.
         /// </summary>
-        [Range(0.0001f, 2.0f)]
+        [Range(0.0001f, 2.0f), InspectorName("Probe Intensity Scale"), Tooltip("A scale to be applied to all probes that fall within this Probe Adjustment Volume.")]
         public float intensityScale = 1.0f;
-        /// <summary>
-        /// Whether to invalidate all probes falling within this volume.
-        /// </summary>
-        public bool invalidateProbes = false;
-        /// <summary>
-        /// Whether to use a custom threshold for dilation for probes falling withing this volume.
-        /// </summary>
-        public bool overrideDilationThreshold = false;
 
         /// <summary>
         /// The overridden dilation threshold.
         /// </summary>
-        [Range(0.0f, 0.99f)]
+        [Range(0.0f, 0.95f), InspectorName("Dilation Validity Threshold"), Tooltip("Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.")]
         public float overriddenDilationThreshold = 0.75f;
 
-        /// <summary>
-        /// The size.
-        /// </summary>
-        public Vector3 size = new Vector3(1, 1, 1);
+        /// <summary>The rotation angles for the virtual offset direction.</summary>
+        [Tooltip("The rotation angles for the virtual offset direction.")]
+        public Vector3 virtualOffsetRotation = Vector3.zero;
+
+        /// <summary>Determines how far probes are pushed along the specified virtual offset direction.</summary>
+        [Min(0.0f), Tooltip("Determines how far probes are pushed along the specified virtual offset direction.")]
+        public float virtualOffsetDistance = 1.0f;
+
+        /// <summary>Determines how far Unity pushes a probe out of geometry after a ray hit.</summary>
+        [Range(0f, 1f), Tooltip("Determines how far Unity pushes a probe out of geometry after a ray hit.")]
+        public float geometryBias = 0.01f;
+
+        /// <summary>Distance from the probe position used to determine the origin of the sampling ray.</summary>
+        [Range(-0.05f, 0f), Tooltip("Distance from the probe position used to determine the origin of the sampling ray.")]
+        public float rayOriginBias = -0.001f;
 
 #if UNITY_EDITOR
         /// <summary>
@@ -52,9 +91,94 @@ namespace UnityEngine.Rendering
 
         internal void GetOBBandAABB(out ProbeReferenceVolume.Volume volume, out Bounds bounds)
         {
-            volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, GetExtents()), 0, 0);
-            bounds = volume.CalculateAABB();
+            if (shape == Shape.Box)
+            {
+                volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, GetExtents()), 0, 0);
+                bounds = volume.CalculateAABB();
+            }
+            else
+            {
+                volume = default;
+                bounds = new Bounds(transform.position, radius * Vector3.up);
+            }
+        }
+
+        internal bool IntersectsVolume(in ProbeReferenceVolume.Volume touchupOBB, in Bounds touchupBounds, Bounds volumeBounds)
+        {
+            if (shape == Shape.Box)
+                return ProbeVolumePositioning.OBBAABBIntersect(touchupOBB, volumeBounds, touchupBounds);
+            else
+                return volumeBounds.SqrDistance(touchupBounds.center) < radius * radius;
+        }
+
+        internal bool ContainsPoint(in ProbeReferenceVolume.Volume touchupOBB, in Vector3 touchupCenter, in Vector3 position)
+        {
+            if (shape == Shape.Box)
+                return ProbeVolumePositioning.OBBContains(touchupOBB, position);
+            else
+                return (touchupCenter - position).sqrMagnitude < radius * radius;
+        }
+
+        internal Vector3 GetVirtualOffset()
+        {
+            if (mode != Mode.ApplyVirtualOffset)
+                return Vector3.zero;
+            return (transform.rotation * Quaternion.Euler(virtualOffsetRotation) * Vector3.forward) * virtualOffsetDistance;
         }
 #endif
+
+
+        // Migration related stuff
+
+        enum Version
+        {
+            Initial,
+            Mode,
+
+            Count
+        }
+
+        [SerializeField]
+        Version version = Version.Count;
+
+        /// <summary>Whether to invalidate all probes falling within this volume.</summary>
+        [Obsolete("Use mode")]
+        public bool invalidateProbes = false;
+        /// <summary>Whether to use a custom threshold for dilation for probes falling withing this volume.</summary>
+        [Obsolete("Use mode")]
+        public bool overrideDilationThreshold = false;
+
+        void Awake()
+        {
+            if (version == Version.Count)
+                return;
+
+            if (version == Version.Initial)
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (invalidateProbes)
+                    mode = Mode.InvalidateProbes;
+                else if (overrideDilationThreshold)
+                    mode = Mode.OverrideValidityThreshold;
+#pragma warning restore 618
+
+                version++;
+            }
+        }
+
+        // This piece of code is needed because some objects could have been created before existence of Version enum
+        /// <summary>OnBeforeSerialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            if (version == Version.Count) // serializing a newly created object
+                version = Version.Count - 1; // mark as up to date
+        }
+
+        /// <summary>OnAfterDeserialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (version == Version.Count) // deserializing and object without version
+                version = Version.Initial; // reset to run the migration
+        }
     }
-} // UnityEngine.Rendering.HDPipeline
+}

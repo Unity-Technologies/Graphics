@@ -14,6 +14,7 @@ using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -750,6 +751,12 @@ namespace UnityEditor.VFX
             var useCubeArray = contextData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
             var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
             ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
+            if (VFXLibrary.currentSRPBinder != null)
+            {
+                var allowedRenderers = new StringBuilder("#pragma only_renderers ");
+                allowedRenderers.Append(String.Join(" ", VFXLibrary.currentSRPBinder.GetSupportedGraphicDevices().Select(d => DeviceTypeToShaderString(d))));
+                ReplaceMultiline(stringBuilder, "${VFXPragmaOnlyRenderers}", allowedRenderers);
+            }
 
             foreach (var addionalReplacement in context.additionalReplacements)
             {
@@ -765,6 +772,23 @@ namespace UnityEditor.VFX
             context.EndCompilation();
             return stringBuilder;
         }
+
+        static string DeviceTypeToShaderString(GraphicsDeviceType deviceType) => deviceType switch
+        {
+            GraphicsDeviceType.Direct3D11 => "d3d11",
+            GraphicsDeviceType.OpenGLCore => "glcore",
+            GraphicsDeviceType.OpenGLES2 => "gles",
+            GraphicsDeviceType.OpenGLES3 => "gles3",
+            GraphicsDeviceType.Metal => "metal",
+            GraphicsDeviceType.Vulkan => "vulkan",
+            GraphicsDeviceType.XboxOne => "xboxone",
+            GraphicsDeviceType.GameCoreXboxOne => "xboxone",
+            GraphicsDeviceType.GameCoreXboxSeries => "xboxseries",
+            GraphicsDeviceType.PlayStation4 => "playstation",
+            GraphicsDeviceType.Switch => "switch",
+            GraphicsDeviceType.PlayStation5 => "ps5",
+            _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
+        };
 
         private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXContextCompiledData contextData)
         {

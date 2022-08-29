@@ -6,16 +6,16 @@ namespace UnityEditor.Rendering
     {
         internal static class Styles
         {
-            internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
-            internal static readonly GUIContent s_GlobalVolume = new GUIContent("Global", "If the volume is marked as global, it will be fit to the scene content every time the scene is saved or the baking starts.");
+            internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is unaffected by the GameObject's Transform's Scale property.");
+            internal static readonly GUIContent s_GlobalVolume = new GUIContent("Global", "When set to Global this Probe Volume considers all renderers with Contribute Global Illumination enabled. This list updates every time the Scene is saved or the lighting is baked.");
             internal static readonly GUIContent s_OverridesSubdivision = new GUIContent("Override Subdivision Levels", "Whether to override or not the subdivision levels.");
             internal static readonly GUIContent s_HighestSubdivLevel = new GUIContent("Highest Subdivision Level", "Overrides the highest subdivision level used by the system. This determines how finely a probe volume is subdivided, lower values means larger minimum distance between probes.");
             internal static readonly GUIContent s_LowestSubdivLevel = new GUIContent("Lowest Subdivision Level", "Overrides the lowest subdivision level used by the system. This determines how coarsely a probe volume is allowed to be subdivided, higher values means smaller maximum distance between probes.");
-            internal static readonly GUIContent s_ObjectLayerMask = new GUIContent("Layer Mask", "Control which layers will be used to select the meshes for the probe placement algorithm.");
-            internal static readonly GUIContent s_MinRendererVolumeSize = new GUIContent("Min Volume Size", "Specifies the minimum bounding box volume of renderers to consider placing probes around.");
-            internal static readonly GUIContent s_OverrideRendererFilters = new GUIContent("Override Renderer Filters", "Overrides the filters used to select renderers for the probe placement.");
-            internal static readonly GUIContent s_DistanceBetweenProbes = new GUIContent("Distance Between Probes", "Overrides the number of simplification levels set in the Probe Volume Settings window. Can not exceed the global maximum value.");
-            internal static readonly string s_ProbeVolumeChangedMessage = "The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.";
+            internal static readonly GUIContent s_ObjectLayerMask = new GUIContent("Layer Mask", "Specify Layers to consider during probe placement.");
+            internal static readonly GUIContent s_MinRendererVolumeSize = new GUIContent("Override Min Renderer Size", "Specify the smallest renderer size to consider during probe placement, in meters.");
+            internal static readonly GUIContent s_OverrideRendererFilters = new GUIContent("Override Renderer Filters", "Overrides the Renderer Filters that determine which renderers influence probe placement.");
+            internal static readonly GUIContent s_DistanceBetweenProbes = new GUIContent("Override Probe Spacing", "Overrides the global Probe Spacing specified in the Probe Volume Settings window. Can not exceed the maximum set there.");
+            internal static readonly string s_ProbeVolumeChangedMessage = "This Probe Volume has never been baked, or has changed since the last bake. Generate Lighting from the Lighting Window.";
 
             internal static readonly Color k_GizmoColorBase = new Color32(137, 222, 144, 255);
 

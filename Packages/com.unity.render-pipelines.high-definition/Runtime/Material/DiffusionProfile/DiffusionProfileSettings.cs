@@ -19,6 +19,14 @@ namespace UnityEngine.Rendering.HighDefinition
         Max = 1000
     }
 
+    enum DefaultSssDownsampleSteps
+    {
+        Low = 0,
+        Medium = 0,
+        High = 0,
+        Max = 2
+    }
+
     [Serializable]
     class DiffusionProfile : IEquatable<DiffusionProfile>
     {

@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
             ChunkBasedIndex,
             BinaryRuntimeDebugSplit,
             BinaryTextureData,
+            IndirectionEntries,
             Max,
             Current = Max - 1
         }
