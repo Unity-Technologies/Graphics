@@ -19,9 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // Would allow for anyone (in theory) to hook up their own graph model and use our preview dispatcher
         ShaderGraphModel m_GraphModel;
 
-        // TODO: Remove and replace with reference to preview service
-        IVisualElementScheduler m_Scheduler;
-
         HashSet<string> m_TimeDependentNodes;
         double m_LastTimedUpdateTime;
         EditorWindow m_OwningWindowReference;
@@ -38,18 +35,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void Initialize(
             EditorWindow owningWindow,
             ShaderGraphModel shaderGraphModel,
-            IPreviewUpdateReceiver previewUpdateReceiver,
-            IVisualElementScheduler scheduler)
+            IPreviewUpdateReceiver previewUpdateReceiver)
         {
             m_GraphModel = shaderGraphModel;
             m_MainPreviewData = shaderGraphModel.MainPreviewData;
-
-            m_Scheduler = scheduler;
 
             m_TimeDependentNodes = new();
             m_OwningWindowReference = owningWindow;
 
             m_PreviewHandlerInstance = new PreviewService();
+
             m_PreviewHandlerInstance.Initialize(shaderGraphModel.DefaultContextName, m_MainPreviewData.mainPreviewSize);
             m_PreviewHandlerInstance.SetActiveGraph(shaderGraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(shaderGraphModel.RegistryInstance.Registry);
@@ -75,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         void RequestPreviewUpdate(string nodeName, PreviewRenderMode previewRenderMode = PreviewRenderMode.Preview2D, bool forceRender = false)
         {
             if (nodeName == m_GraphModel.DefaultContextName)
-                m_PreviewHandlerInstance.RequestMainPreviewUpdate(m_Scheduler,
+                m_PreviewHandlerInstance.RequestMainPreviewUpdate(
                     PreviewWidth,
                     PreviewHeight,
                     m_MainPreviewData.mesh,
@@ -84,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_MainPreviewData.rotation,
                     forceRender);
             else
-                m_PreviewHandlerInstance.RequestNodePreviewUpdate(nodeName, m_Scheduler, previewRenderMode, forceRerender: forceRender);
+                m_PreviewHandlerInstance.RequestNodePreviewUpdate(nodeName, previewRenderMode, forceRender);
         }
 
         public void OnListenerAdded(string listenerID, PreviewRenderMode previewRenderMode, bool isListenerTimeDependent)
@@ -148,7 +143,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void OnMainPreviewDataChanged()
         {
             m_PreviewHandlerInstance.RequestMainPreviewUpdate(
-                m_Scheduler,
                 PreviewWidth,
                 PreviewHeight,
                 m_MainPreviewData.mesh,
@@ -193,6 +187,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (TimedNodesShouldUpdate(m_OwningWindowReference))
                 foreach (var timeDependentNode in m_TimeDependentNodes)
                     RequestPreviewUpdate(timeDependentNode, forceRender: true);
+
+            m_PreviewHandlerInstance.UpdateHandler();
         }
 
         public void Cleanup()
