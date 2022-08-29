@@ -187,11 +187,18 @@ void Frag(PackedVaryings packedInput,
 
     half angleFadeFactor = 1.0;
 
+    float2 positionCS = input.positionCS.xy;
+
+    // Only screen space needs flip logic, other passes do not setup needed properties so we skip here
+#if defined(DECAL_SCREEN_SPACE)
+    TransformScreenUV(positionCS, _ScreenSize.y);
+#endif
+
 #ifdef _DECAL_LAYERS
 #ifdef _RENDER_PASS_ENABLED
-    uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy).r);
+    uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, positionCS.xy).r);
 #else
-    uint surfaceRenderingLayer = LoadSceneRenderingLayer(input.positionCS.xy);
+    uint surfaceRenderingLayer = LoadSceneRenderingLayer(positionCS.xy);
 #endif
     uint projectorRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal));
     // This is simple trick to clip if there is no matching layers
@@ -203,30 +210,30 @@ void Frag(PackedVaryings packedInput,
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z
 #if _RENDER_PASS_ENABLED
-    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy);
+    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy);
 #else
-    float depth = LoadSceneDepth(input.positionCS.xy);
+    float depth = LoadSceneDepth(positionCS.xy);
 #endif
 #else
 #if _RENDER_PASS_ENABLED
-    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy));
+    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy));
 #else
     // Adjust z to match NDC for OpenGL
-    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LoadSceneDepth(input.positionCS.xy));
+    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LoadSceneDepth(positionCS.xy));
 #endif
 #endif
 #endif
 
 #if defined(DECAL_RECONSTRUCT_NORMAL)
     #if defined(_DECAL_NORMAL_BLEND_HIGH)
-        half3 normalWS = half3(ReconstructNormalTap9(input.positionCS.xy));
+        half3 normalWS = half3(ReconstructNormalTap9(positionCS.xy));
     #elif defined(_DECAL_NORMAL_BLEND_MEDIUM)
-        half3 normalWS = half3(ReconstructNormalTap5(input.positionCS.xy));
+        half3 normalWS = half3(ReconstructNormalTap5(positionCS.xy));
     #else
         half3 normalWS = half3(ReconstructNormalDerivative(input.positionCS.xy));
     #endif
 #elif defined(DECAL_LOAD_NORMAL)
-    half3 normalWS = half3(LoadSceneNormals(input.positionCS.xy));
+    half3 normalWS = half3(LoadSceneNormals(positionCS.xy));
 #endif
 
     float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
@@ -283,15 +290,10 @@ void Frag(PackedVaryings packedInput,
     float3 positionWS = input.positionWS.xyz;
 #endif
 
-#ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    half3 viewDirectionWS = half3(input.viewDirectionWS);
-#else
-    // Unused
-    half3 viewDirectionWS = half3(1.0, 1.0, 1.0); // Avoid the division by 0
-#endif
+    half3 viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     DecalSurfaceData surfaceData;
-    GetSurfaceData(input, viewDirectionWS, input.positionCS, angleFadeFactor, surfaceData);
+    GetSurfaceData(input, input.positionCS, angleFadeFactor, surfaceData);
 
 #if defined(DECAL_DBUFFER)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
