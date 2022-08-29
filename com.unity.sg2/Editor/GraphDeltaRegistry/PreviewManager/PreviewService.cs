@@ -97,8 +97,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         float m_MainPreviewScale = 1.0f;
         #endregion
 
-        EditorWindow m_OwningEditorWindow;
-
         int mainPreviewWidth => m_MainPreviewData.renderTexture.width;
         int mainPreviewHeight => m_MainPreviewData.renderTexture.height;
         string m_OutputContextNodeName;
