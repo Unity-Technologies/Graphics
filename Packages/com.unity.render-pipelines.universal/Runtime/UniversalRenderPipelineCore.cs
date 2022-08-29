@@ -184,6 +184,25 @@ namespace UnityEngine.Rendering.Universal
             m_ProjectionMatrix = projectionMatrix;
         }
 
+        // Helper function to populate builtin stereo matricies as well as URP stereo matricies
+        internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd, bool renderIntoTexture)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjectionMatrix());
+                if (xr.singlePassEnabled)
+                {
+                    for (int viewId = 0; viewId < xr.viewCount; viewId++)
+                    {
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(GetViewMatrix(viewId), GetProjectionMatrix(viewId), renderIntoTexture, viewId);
+                    }
+                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
+                }
+            }
+#endif
+        }
+
         /// <summary>
         /// Returns the camera view matrix.
         /// </summary>

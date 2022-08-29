@@ -1226,6 +1226,24 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScreenCoordScaleBias = additionalCameraDataIsNull ? new Vector4(1, 1, 0, 0) : m_AdditionalCameraData.screenCoordScaleBias;
         }
 
+        unsafe internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                cmd.SetViewProjectionMatrices(m_XRViewConstants[0].viewMatrix, m_XRViewConstants[0].projMatrix);
+                if (xr.singlePassEnabled)
+                {
+                    for (int viewId = 0; viewId < viewCount; viewId++)
+                    {
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(m_XRViewConstants[viewId].viewMatrix, m_XRViewConstants[viewId].projMatrix, true, viewId);
+                    }
+                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
+                }
+            }
+#endif
+        }
+
         unsafe internal void UpdateShaderVariablesXRCB(ref ShaderVariablesXR cb)
         {
             for (int i = 0; i < viewCount; i++)

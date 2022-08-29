@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                XRBuiltinShaderConstants.Update(cameraData.xr, cmd, false);
+                cameraData.PushBuiltinShaderConstantsXR(cmd, false);
                 XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, false);
                 return;
             }
@@ -1570,7 +1570,7 @@ namespace UnityEngine.Rendering.Universal
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
                             bool renderIntoTexture = xrTargetIndex == -1;
-                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            cameraData.PushBuiltinShaderConstantsXR(cmd, renderIntoTexture);
                             XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
@@ -1691,7 +1691,7 @@ namespace UnityEngine.Rendering.Universal
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             bool renderIntoTexture = passColorAttachment.nameID != cameraData.xr.renderTarget;
-                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, renderIntoTexture);
+                            cameraData.PushBuiltinShaderConstantsXR(cmd, renderIntoTexture);
                             XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, renderIntoTexture);
                         }
 #endif
