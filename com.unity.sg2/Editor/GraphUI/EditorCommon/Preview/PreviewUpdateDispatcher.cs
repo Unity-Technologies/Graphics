@@ -19,9 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // Would allow for anyone (in theory) to hook up their own graph model and use our preview dispatcher
         ShaderGraphModel m_GraphModel;
 
-        // TODO: Remove and replace with reference to preview service
-        IVisualElementScheduler m_Scheduler;
-
         HashSet<string> m_TimeDependentNodes;
         double m_LastTimedUpdateTime;
         EditorWindow m_OwningWindowReference;
@@ -38,13 +35,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void Initialize(
             EditorWindow owningWindow,
             ShaderGraphModel shaderGraphModel,
-            IPreviewUpdateReceiver previewUpdateReceiver,
-            IVisualElementScheduler scheduler)
+            IPreviewUpdateReceiver previewUpdateReceiver)
         {
             m_GraphModel = shaderGraphModel;
             m_MainPreviewData = shaderGraphModel.MainPreviewData;
-
-            m_Scheduler = scheduler;
 
             m_TimeDependentNodes = new();
             m_OwningWindowReference = owningWindow;
@@ -178,8 +172,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 (UnityEditorInternal.InternalEditorUtility.isApplicationActive ?
                     (isFocusedWindow ? monitorFPS : k_AnimatedFPS_WhenNotFocused) :
                     k_AnimatedFPS_WhenInactive);
-
-            Debug.Log("Preview update FPS: " + maxAnimatedFPS);
 
             bool update = (deltaTime > (1.0 / maxAnimatedFPS));
             if (update)
