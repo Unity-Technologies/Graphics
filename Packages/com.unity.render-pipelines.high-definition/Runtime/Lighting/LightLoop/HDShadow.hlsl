@@ -65,7 +65,7 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positio
     }
 }
 
-float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerState sampl, real3 positionWS, int shadowDataIndex, float3 L, float3 lightPositionWS, bool pointLight)
+float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerState sampl, real3 positionWS, int shadowDataIndex, float3 L, float3 lightPositionWS, bool pointLight, bool perspective)
 {
 #if FORCE_SHADOW_SCALAR_READ
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
@@ -86,11 +86,11 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
 
     if (sd.isInCachedAtlas > 0) // This is a scalar branch.
     {
-        return EvalShadow_SampleClosestDistance_Punctual(sd, _CachedShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
+        return EvalShadow_SampleClosestDistance_Punctual(sd, _CachedShadowmapAtlas, sampl, positionWS, L, lightPositionWS, perspective);
     }
     else
     {
-        return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
+        return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS, perspective);
     }
 }
 

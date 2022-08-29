@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightInstanceID;
             public uint frameCount;
             public GPULightType lightType;
+            public Matrix4x4 transform;
         }
 
         /// <summary>
@@ -220,6 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GlobalIllumination1,
             RayTracedReflections,
             VolumetricClouds,
+            RayTracedAmbientOcclusion,
             Count
         }
 
@@ -646,6 +648,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
+            shadowHistoryUsage[screenSpaceShadowIndex].transform = lightData.transform.localToWorldMatrix;
         }
 
         internal bool EffectHistoryValidity(HistoryEffectSlot slot, int flagMask)

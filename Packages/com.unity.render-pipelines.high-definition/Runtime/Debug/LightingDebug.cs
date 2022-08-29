@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsDebugDisplayRemovePostprocess()
         {
             return debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
-                debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
                 debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
                 debugLightingMode == DebugLightingMode.ProbeVolumeSampledSubdivision;
         }

@@ -191,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var prop in m_CustomPassUserProperties)
             {
                 EditorGUI.PropertyField(rect, prop, true);
-                rect.y += EditorGUI.GetPropertyHeight(prop);
+                rect.y += EditorGUI.GetPropertyHeight(prop) + EditorGUIUtility.standardVerticalSpacing;
             }
         }
 
