@@ -375,6 +375,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
+                if (this.GbufferAttachments != null)
+                {
+                    // Release the old handles before creating the new one
+                    for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+                    {
+                        RTHandles.Release(this.GbufferAttachments[i]);
+                    }
+                }
+
                 this.GbufferAttachments = new RTHandle[gbufferSliceCount];
                 this.GbufferFormats = new GraphicsFormat[gbufferSliceCount];
                 this.GbufferTextureHandles = new TextureHandle[gbufferSliceCount];

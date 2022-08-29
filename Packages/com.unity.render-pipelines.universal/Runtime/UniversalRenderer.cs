@@ -672,7 +672,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
                 var baseRenderer = (UniversalRenderer)baseCameraData.scriptableRenderer;
-                m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                if (m_ColorBufferSystem != baseRenderer.m_ColorBufferSystem)
+                {
+                    m_ColorBufferSystem.Dispose();
+                    m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                }
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
                 m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
                 m_XRTargetHandleAlias = baseRenderer.m_XRTargetHandleAlias;
