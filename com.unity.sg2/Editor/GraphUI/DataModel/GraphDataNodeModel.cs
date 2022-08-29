@@ -163,11 +163,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public GraphDataNodeModel()
-        {
-            NodePreviewMode = PreviewRenderMode.Inherit;
-        }
-
         public void UpgradeToLatestVersion()
         {
             var nodeHandler = graphHandler.GetNode(graphDataName);
