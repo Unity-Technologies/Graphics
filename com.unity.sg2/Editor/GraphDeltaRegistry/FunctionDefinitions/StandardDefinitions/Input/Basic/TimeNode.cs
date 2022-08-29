@@ -9,14 +9,15 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"    Time = TimeParameters.x;
-    SineTime = TimeParameters.y;
-    CosineTime = TimeParameters.z;
-    DeltaTime = unity_DeltaTime.x;
-    SmoothDelta = unity_DeltaTime.z;",
+@"    Time = TimeParameters.x * Scale;
+    SineTime = TimeParameters.y * Scale;
+    CosineTime = TimeParameters.z * Scale;
+    DeltaTime = unity_DeltaTime.x * Scale;
+    SmoothDelta = unity_DeltaTime.z * Scale;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("TimeParameters", TYPE.Vec3, Usage.Local, REF.TimeParameters),
+                new ParameterDescriptor("Scale", TYPE.Float, Usage.In, new float[] { 1.0f }),
                 new ParameterDescriptor("Time", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("SineTime", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("CosineTime", TYPE.Float, Usage.Out),
@@ -32,10 +33,14 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Basic",
             synonyms: new string[1] { "delta" },
             hasPreview: false,
-            parameters: new ParameterUIDescriptor[5] {
+            parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "Time",
                     tooltip: "Time value"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Scale",
+                    tooltip: "A multiplier that controls the change rate of Time or amplitude of SineTime and CosineTime"
                 ),
                 new ParameterUIDescriptor(
                     name: "SineTime",
