@@ -960,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDecalOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
         {
-            if (!m_CurrentDebugDisplaySettings.data.decalsDebugSettings.displayAtlas)
+            if (!HDDebugDisplaySettings.Instance.decalSettings.displayAtlas)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderDecalOverlayPassData>("DecalOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugDecalsAtlas)))
@@ -968,7 +968,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.mipLevel = (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel;
+                passData.mipLevel = (int)HDDebugDisplaySettings.Instance.decalSettings.mipLevel;
                 passData.hdCamera = hdCamera;
 
                 builder.SetRenderFunc(

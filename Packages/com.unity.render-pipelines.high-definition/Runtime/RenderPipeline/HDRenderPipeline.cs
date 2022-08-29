@@ -199,13 +199,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetDecalAtlasMipCount()
         {
             int size = Math.Max(currentPlatformRenderPipelineSettings.decalSettings.atlasWidth, currentPlatformRenderPipelineSettings.decalSettings.atlasHeight);
-            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+            return CoreUtils.GetMipCount(size);
         }
 
         internal int GetCookieAtlasMipCount()
         {
             int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize;
-            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+            return CoreUtils.GetMipCount(size);
         }
 
         internal int GetReflectionProbeMipCount()

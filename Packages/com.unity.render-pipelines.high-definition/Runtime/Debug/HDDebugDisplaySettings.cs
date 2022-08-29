@@ -7,6 +7,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         internal DebugDisplaySettingsVolume VolumeSettings { get; private set; }
 
+        /// <summary>
+        /// Decal-related Rendering Debugger settings.
+        /// </summary>
+        internal DebugDisplaySettingsDecal decalSettings { get; private set; }
+
         public HDDebugDisplaySettings()
         {
         }
@@ -15,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             base.Reset();
             VolumeSettings = Add(new DebugDisplaySettingsVolume(new HDVolumeDebugSettings()));
+            decalSettings = Add(new DebugDisplaySettingsDecal());
         }
     }
 }
