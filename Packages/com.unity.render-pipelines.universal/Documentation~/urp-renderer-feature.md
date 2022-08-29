@@ -12,6 +12,6 @@ For information on how to add a Renderer Feature to a Renderer, see the page [Ho
 
 The following Renderer Features are available in URP:
 
-- [Render Objects](renderer-feature-render-objects.md)
+- [Render Objects](./renderer-features/renderer-feature-render-objects.md)
 - [Screen Space Ambient Occlusion](post-processing-ssao.md)
 - [Decal](renderer-feature-decal.md)
