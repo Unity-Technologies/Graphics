@@ -1155,13 +1155,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static KeywordDescriptor WriteDecalBuffer = new KeywordDescriptor()
+        public static KeywordDescriptor WriteDecalBufferDepthOnly = new KeywordDescriptor()
         {
-            displayName = "Write Decal Buffer",
-            referenceName = "WRITE_DECAL_BUFFER",
+            displayName = "Write Decal Buffer (Depth Only)",
+            referenceName = "WRITE",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Decal Buffer", referenceName = "DECAL_BUFFER" },
+                new KeywordEntry() { displayName = "Rendering Layer", referenceName = "RENDERING_LAYER" },
+            },
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor WriteDecalBufferMotionVector = new KeywordDescriptor()
+        {
+            displayName = "Write Decal Buffer (Motion Vector)",
+            referenceName = "WRITE_DECAL_BUFFER_AND_RENDERING_LAYER",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DebugDisplay = new KeywordDescriptor()
@@ -1246,10 +1262,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static KeywordDescriptor LightLayers = new KeywordDescriptor()
+        public static KeywordDescriptor RenderingLayers = new KeywordDescriptor()
         {
-            displayName = "Light Layers",
-            referenceName = "LIGHT_LAYERS",
+            displayName = "Rendering Layers",
+            referenceName = "RENDERING_LAYERS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             }
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
             ClipperOffset clipOffset = new ClipperOffset(2048.0f);
-            clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
+            clipOffset.AddPath(path, JoinTypes.jtRound, EndTypes.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * offsetDistance, path.Count);
             if (solution.Count > 0)
             {
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
             // Generate Bevels.
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
             ClipperOffset clipOffset = new ClipperOffset(24.0f);
-            clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
+            clipOffset.AddPath(path, JoinTypes.jtRound, EndTypes.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Count);
 
             if (solution.Count > 0)

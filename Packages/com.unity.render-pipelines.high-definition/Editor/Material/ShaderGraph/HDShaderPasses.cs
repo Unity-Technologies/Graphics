@@ -787,7 +787,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection GBufferKeywords = new KeywordCollection
         {
-            { CoreKeywordDescriptors.LightLayers },
+            { CoreKeywordDescriptors.RenderingLayers },
         };
 
         public static IncludeCollection GBufferIncludes = new IncludeCollection
@@ -813,8 +813,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 Comp = "Always",
                 Pass = "Replace",
             }) },
-            { RenderState.ColorMask("ColorMask [_LightLayersMaskBuffer4] 4") },
-            { RenderState.ColorMask("ColorMask [_LightLayersMaskBuffer5] 5") },
         };
 
         #endregion

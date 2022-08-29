@@ -6,6 +6,8 @@ With the Decal Renderer Feature, Unity can project specific Materials (decals) o
 
 ![Sample scene with decals](Images/decal/decal-sample-with.png)<br/>*Sample scene with decals. The decals hide the seams between materials and add artistic details.*
 
+For examples of how to use Decals, see the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
+
 ## How to use the feature
 
 To add decals to your Scene:

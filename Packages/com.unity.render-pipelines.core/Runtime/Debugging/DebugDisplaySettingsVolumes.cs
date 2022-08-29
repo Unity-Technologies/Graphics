@@ -206,9 +206,11 @@ namespace UnityEngine.Rendering
                                          getter = () => {
                                              // This getter is called first at each render
                                              // It is used to update the volumes
-                                             if (Time.time - timer < refreshRate)
-                                                 return string.Empty;
-                                             timer = Time.deltaTime;
+                                             bool refresh = timer >= refreshRate;
+                                             timer += Time.deltaTime;
+                                             if (!refresh) return string.Empty;
+                                             timer -= refreshRate;
+
                                              if (data.volumeDebugSettings.selectedCamera != null)
                                              {
                                                  var newVolumes = data.volumeDebugSettings.GetVolumes();
@@ -264,9 +266,9 @@ namespace UnityEngine.Rendering
 
                 // Build rows - recursively handles nested parameters
                 var rows = new List<DebugUI.Table.Row>();
-                void AddParameterRows(Type type, string baseName = null)
+                int AddParameterRows(Type type, string baseName = null, int skip = 0)
                 {
-                    void AddRow(FieldInfo f, string prefix)
+                    void AddRow(FieldInfo f, string prefix, int skip)
                     {
                         var fieldName = prefix + f.Name;
                         var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
@@ -278,7 +280,7 @@ namespace UnityEngine.Rendering
                             fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
 #endif
 
-                        int currentParam = rows.Count;
+                        int currentParam = rows.Count + skip;
                         row = new DebugUI.Table.Row()
                         {
                             displayName = fieldName,
@@ -304,13 +306,17 @@ namespace UnityEngine.Rendering
                     foreach (var field in fields)
                     {
                         if (field.GetCustomAttributes(typeof(ObsoleteAttribute), false).Length != 0)
+                        {
+                            skip++;
                             continue;
+                        }
                         var fieldType = field.FieldType;
                         if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
-                            AddRow(field, baseName ?? string.Empty);
+                            AddRow(field, baseName ?? string.Empty, skip);
                         else if (!fieldType.IsArray && fieldType.IsClass)
-                            AddParameterRows(fieldType, baseName ?? (field.Name + " "));
+                            skip += AddParameterRows(fieldType, baseName ?? (field.Name + " "), skip);
                     }
+                    return skip;
                 }
 
                 AddParameterRows(selectedType);

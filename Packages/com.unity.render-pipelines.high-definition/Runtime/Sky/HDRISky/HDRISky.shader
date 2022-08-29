@@ -256,10 +256,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
-        // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-        uint renderingLayers = GetMeshRenderingLightLayer();
         float3 shadow3;
-        ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
+        ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, RENDERING_LAYERS_MASK, shadow3);
         shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
 
         float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0);

@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateParentExposure(m_RenderGraph, hdCamera);
 
                 TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
-                TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
+                TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa, true);
                 m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
                 TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
                 TextureHandle rayCountTexture = RayCountManager.CreateRayCountTexture(m_RenderGraph);
@@ -1750,7 +1750,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa)
+        TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, bool fallbackToBlack = false)
         {
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
@@ -1768,7 +1768,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     msaaSamples = msaa ? hdCamera.msaaSamples : MSAASamples.None,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
-                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+                    name = msaa ? "CameraColorMSAA" : "CameraColor",
+                    fallBackToBlackTexture = fallbackToBlack
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = colorFastMemDesc
 #endif
@@ -1920,6 +1921,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
+            TextureHandle renderingLayerMaskBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer) ? prepassOutput.renderingLayersBuffer : TextureHandle.nullHandle;
+
             bool executed = false;
             CustomPassVolume.GetActivePassVolumes(injectionPoint, m_ActivePassVolumes);
             foreach (var customPass in m_ActivePassVolumes)
@@ -1940,7 +1943,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
                     depthBufferRG = prepassOutput.depthBuffer,
                     normalBufferRG = prepassOutput.resolvedNormalBuffer,
-                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer
+                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
+                    renderingLayerMaskRG = renderingLayerMaskBuffer,
                 };
                 executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
             }

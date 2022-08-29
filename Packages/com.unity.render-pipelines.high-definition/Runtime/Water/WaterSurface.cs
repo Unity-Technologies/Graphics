@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
-    public class WaterSurface : MonoBehaviour
+    public partial class WaterSurface : MonoBehaviour
     {
         #region Instance Management
 
@@ -521,16 +521,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water Rendering
         /// <summary>
-        /// Specifies the decal layers that affect the water surface.
+        /// Specifies the rendering layers that affect the water surface.
         /// </summary>
-        [Tooltip("Specifies the decal layers that affect the water surface.")]
-        public DecalLayerEnum decalLayerMask = DecalLayerEnum.DecalLayerDefault;
-
-        /// <summary>
-        /// Specifies the light layers that affect the water surface.
-        /// </summary>
-        [Tooltip("Specifies the light layers that affect the water surface.")]
-        public LightLayerEnum lightLayerMask = LightLayerEnum.LightLayerDefault;
+        [Tooltip("Specifies the rendering layers that affect the water surface.")]
+        public RenderingLayerMask renderingLayerMask = RenderingLayerMask.Default;
         #endregion
 
         #region Water Underwater
@@ -718,6 +712,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void Awake()
         {
+            k_Migration.Migrate(this);
+
             // Add this water surface to the internal surface management
             RegisterInstance(this);
         }

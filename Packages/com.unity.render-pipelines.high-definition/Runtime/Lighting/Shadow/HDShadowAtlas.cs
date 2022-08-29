@@ -194,7 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_Output.IsValid());
                 var requestedDesc = GetAtlasDesc();
                 // We check if we need to refresh the desc. It is needed for directional lights.
-                if (renderGraph.GetTextureDesc(m_Output).width != requestedDesc.width)
+                var outputDesc = renderGraph.GetTextureDesc(m_Output);
+                if (outputDesc.width != requestedDesc.width ||
+                    outputDesc.height != requestedDesc.height)
                 {
                     renderGraph.RefreshSharedTextureDesc(m_Output, requestedDesc);
                 }
@@ -352,6 +354,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.globalCBData._ViewProjMatrix = viewProjection;
                             data.globalCBData._InvViewProjMatrix = viewProjection.inverse;
                             data.globalCBData._SlopeScaleDepthBias = -shadowRequest.slopeBias;
+                            data.globalCBData._GlobalMipBias = 0.0f;
+                            data.globalCBData._GlobalMipBiasPow2 = 1.0f;
 
                             data.globalCB.PushGlobal(ctx.cmd, data.globalCBData, HDShaderIDs._ShaderVariablesGlobal);
 

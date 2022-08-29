@@ -81,7 +81,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
         DecodeFromDecalPrepass(posInput.positionSS, material);
 
-        if ((decalLayerMask & material.decalLayerMask) == 0)
+        if ((decalLayerMask & material.renderingLayerMask) == 0)
             clipValue -= 2.0;
     }
 

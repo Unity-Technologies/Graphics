@@ -384,12 +384,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
+            bool isDirty = false;
             // Check resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
-                return ResetPathTracing(camID, camData);
+                isDirty = true;
             }
 
             // Check sky dirtiness
@@ -397,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
-                return ResetPathTracing(camID, camData);
+                isDirty = true;
             }
 
             // Check fog dirtiness
@@ -405,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
-                return ResetPathTracing(camID, camData);
+                isDirty = true;
             }
 
             // Check acceleration structure dirtiness
@@ -413,6 +414,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (accelSize != camData.accelSize)
             {
                 camData.accelSize = accelSize;
+                isDirty = true;
+            }
+
+            if (isDirty)
+            {
                 return ResetPathTracing(camID, camData);
             }
 

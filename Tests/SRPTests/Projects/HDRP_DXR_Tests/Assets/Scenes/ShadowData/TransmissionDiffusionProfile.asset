@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: TransmissionDiffusionProfile
   m_EditorClassIdentifier: 
   profile:
-    scatteringDistance: {r: 1.2569526, g: 0.8976935, b: 0.37352836, a: 1}
+    scatteringDistance: {r: 0.74901956, g: 0.53493667, b: 0.222586, a: 1}
+    scatteringDistanceMultiplier: 1.6781305
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 1
@@ -21,4 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.053
     hash: 1081598370
-  m_Version: 1
+  m_Version: 2

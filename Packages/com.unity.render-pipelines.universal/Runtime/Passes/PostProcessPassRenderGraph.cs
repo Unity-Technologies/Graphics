@@ -914,6 +914,27 @@ namespace UnityEngine.Rendering.Universal
         }
         #endregion
 
+        #region TemporalAA
+
+        private const string _TemporalAATargetName = "_TemporalAATarget";
+        private void RenderTemporalAA(RenderGraph renderGraph, ref TextureHandle source, out TextureHandle destination, ref CameraData cameraData)
+        {
+            var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
+                m_Descriptor.width,
+                m_Descriptor.height,
+                m_Descriptor.graphicsFormat,
+                DepthBits.None);
+            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);    // TODO: use a constant for the name
+
+            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
+            TextureHandle cameraDepth = renderer.frameResources.cameraDepth;
+            //TextureHandle motionVectors = renderGraph.ImportBackbuffer(m_MotionVectors.rt);
+            TextureHandle motionVectors = renderer.frameResources.motionVectorColor;
+
+            TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, ref cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
+        }
+        #endregion
+
         #region MotionBlur
         private class MotionBlurPassData
         {
@@ -1401,6 +1422,15 @@ namespace UnityEngine.Rendering.Universal
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
+            // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
+            // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
+            // to tweaking the value here.
+            bool useTemporalAA = cameraData.IsTemporalAAEnabled();
+#if URP_EXPERIMENTAL_TAA_ENABLE
+            if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
+                TemporalAA.ValidateAndWarn(ref cameraData);
+#endif
+
             using (var builder = renderGraph.AddRenderPass<PostFXSetupPassData>("Setup PostFX passes", out var passData,
                 ProfilingSampler.Get(URPProfileId.RG_SetupPostFX)))
             {
@@ -1439,6 +1469,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderDoF(renderGraph, in currentSource, out var DoFTarget, ref renderingData);
                 currentSource = DoFTarget;
+            }
+
+            // Temporal Anti Aliasing
+            if (useTemporalAA)
+            {
+                RenderTemporalAA(renderGraph, ref currentSource, out var TemporalAATarget, ref renderingData.cameraData);
+                currentSource = TemporalAATarget;
             }
 
             if(useMotionBlur)

@@ -98,7 +98,10 @@ For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](
 
 When using Lens Flare, HDRP allow to remap the result of the occlusion to another value with a curve. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.
 
+[comment]: <> (// TODO add screenshot when all features merged)
 ![](Images/LensFlare_OcclusionCurve.png)
+
+HDRP 14.0 allow Lens Flare to be occluded by Clouds, including Cloud Layer (for Directionnal Lights) and Volumetric Cloud.
 
 ### New Eye Shader Subtype
 
@@ -109,3 +112,10 @@ HDRP 14.0 includes a new Eye Shader type called **Eye Cinematic with Caustic**. 
 ### Renderer bounds access in ShaderGraph
 
 The [Object Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Object-Node.html) in Shader Graph has been updated to give access to the bounds of the current object being rendered. This information can be useful to compute refraction effect and such. Note that these bounds are available in world space.
+
+### Screen Space Reflection
+
+HDRP 14.0 give more control on PBR Accumulation SSR algorithm. The hit sample are using motion vector to reject sample based on the speed. We analyse the reflecting or/and reflected surface speed and give smooth control to weight sample. Including debug view to help setup.
+
+![](Images/ScreenSpaceReflection_SpeedRejection.png)
+![](Images/ScreenSpaceReflection_SpeedRejection_Debug.png)

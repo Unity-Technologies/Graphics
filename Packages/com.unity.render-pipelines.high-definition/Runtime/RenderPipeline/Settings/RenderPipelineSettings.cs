@@ -221,6 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportVolumetricClouds;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
+        /// <summary>Enable rendering layer mask buffer.</summary>
+        public bool renderingLayerMaskBuffer;
         /// <summary>Support Water Surfaces.</summary>
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
@@ -228,53 +230,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable water CPU simulation.</summary>
         public bool waterCPUSimulation;
 
-        /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0
+        /// <summary>Names for rendering layers.</summary>
+        public string[] renderingLayerNames
         {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName0; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName0 = value; }
-        }
-        /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName1; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName1 = value; }
-        }
-        /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName2; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName2 = value; }
-        }
-        /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName3; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName3 = value; }
-        }
-        /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName4; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName4 = value; }
-        }
-        /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName5; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName5 = value; }
-        }
-        /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName6; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName6 = value; }
-        }
-        /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName7; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName7 = value; }
+            get { return (string[])HDRenderPipelineGlobalSettings.instance.renderingLayerNames.Clone(); }
+            set { HDRenderPipelineGlobalSettings.instance.renderingLayerNames = value; }
         }
         /// <summary>Support distortion.</summary>
         public bool supportDistortion;
@@ -305,54 +265,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSurfaceGradient;
         /// <summary>High precision normal buffer.</summary>
         public bool decalNormalBufferHP;
-        /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName0; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName0 = value; }
-        }
-        /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName1; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName1 = value; }
-        }
-        /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName2; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName2 = value; }
-        }
-        /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName3; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName3 = value; }
-        }
-        /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName4; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName4 = value; }
-        }
-        /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName5; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName5 = value; }
-        }
-        /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName6; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName6 = value; }
-        }
-        /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName7; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName7 = value; }
-        }
 
         /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;

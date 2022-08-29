@@ -147,10 +147,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DECAL
 
-            // Strip the decal prepass variant when decals are disabled
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
-                !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
-                return true;
+            // Rendering layers and decal layers output to the same buffer
+            // Difference is that decal layers need also geometric normals, and rendering layers ignore _DISABLE_DECALS
+            // To reduce variants, we assume that enabling rendering layers will always enable decal layers, so we have 3 modes:
+            // - All off
+            // - Output layers and normal for relevant materials
+            // - Output layers and normals for everyone. (But if decal are disabled, buffer is only 16 bits so we don't write normals)
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer))
+                    return true;
+            }
+            else
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WriteRenderingLayer))
+                    return true;
+                // If we don't require the rendering layers, strip the decal prepass variant when decals are disabled
+                if ((inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) || inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBufferAndRenderingLayer)) &&
+                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
+                    return true;
+            }
 
             // If decal support, remove unused variant
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)

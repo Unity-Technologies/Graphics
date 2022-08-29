@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Added the ShadowLayer
                 // When we upgrade the option to decouple light and shadow layers will be disabled
                 // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
-                data.lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(data.legacyLight.renderingLayerMask);
+                data.lightlayersMask = (RenderingLayerMask)RenderingLayerMaskToLightLayer(data.legacyLight.renderingLayerMask);
             }),
             MigrationStep.New(Version.ShadowResolution, (HDAdditionalLightData data) =>
             {
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use Light.renderingLayerMask instead")]
         [FormerlySerializedAs("lightLayers")]
         [ExcludeCopy]
-        LightLayerEnum m_LightLayers = LightLayerEnum.LightLayerDefault;
+        RenderingLayerMask m_LightLayers = RenderingLayerMask.LightLayerDefault;
 
         [Obsolete]
         [SerializeField]

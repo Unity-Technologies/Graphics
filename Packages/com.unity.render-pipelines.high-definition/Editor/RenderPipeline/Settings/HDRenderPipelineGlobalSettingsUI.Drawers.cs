@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static readonly string k_Volumes = "Volume-Profile";
             public static readonly string k_FrameSettings = "Frame-Settings";
-            public static readonly string k_LightLayers = "Light-Layers";
+            public static readonly string k_RenderingLayers = "Rendering-Layers";
             public static readonly string k_DecalLayers = "Decal";
             public static readonly string k_CustomPostProcesses = "Custom-Post-Process";
         }
@@ -298,6 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
                 EditorGUILayout.PropertyField(serialized.colorGradingSpace, Styles.colorGradingSpaceContentLabel);
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
+                EditorGUILayout.PropertyField(serialized.specularFade, Styles.specularFade);
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 EditorGUILayout.PropertyField(serialized.useDLSSCustomProjectId, Styles.useDLSSCustomProjectIdLabel);
@@ -315,87 +316,49 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Rendering Layer Names
 
         static readonly CED.IDrawer LayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.layerNamesLabel, contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized), documentationURL: Documentation.GetPageLink(DocumentationUrls.k_LightLayers))),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.renderingLayersLabel, documentationURL: Documentation.GetPageLink(DocumentationUrls.k_RenderingLayers))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawLayerNamesSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
+        static private bool m_ShowLayerNames = false;
         static void DrawLayerNamesSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
 
-            CoreEditorUtils.DrawSplitter();
-            DrawLightLayerNames(serialized, owner);
-            CoreEditorUtils.DrawSplitter();
-            DrawDecalLayerNames(serialized, owner);
-            CoreEditorUtils.DrawSplitter();
+            EditorGUI.BeginChangeCheck();
+            int value = EditorGUILayout.MaskField(Styles.defaultRenderingLayerMaskLabel, serialized.defaultRenderingLayerMask.intValue, HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serialized.defaultRenderingLayerMask.intValue = value;
+                GraphicsSettings.defaultRenderingLayerMask = (uint)value;
+
+            }
+
             EditorGUILayout.Space();
-
-            EditorGUIUtility.labelWidth = oldWidth;
-        }
-
-        static private bool m_ShowLightLayerNames = false;
-        static private bool m_ShowDecalLayerNames = false;
-        static void DrawLightLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            m_ShowLightLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLayersLabel,
-                m_ShowLightLayerNames,
-                documentationURL: Documentation.GetPageLink(DocumentationUrls.k_LightLayers),
+            CoreEditorUtils.DrawSplitter();
+            m_ShowLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.renderingLayerNamesLabel,
+                m_ShowLayerNames,
                 contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 1)
             );
-            if (m_ShowLightLayerNames)
+            if (m_ShowLayerNames)
             {
-                using (new EditorGUI.IndentLevelScope())
+                EditorGUILayout.Space();
+                EditorGUI.BeginChangeCheck();
+                serialized.renderingLayerNamesList.DoLayoutList();
+                if (EditorGUI.EndChangeCheck())
                 {
-                    using (var changed = new EditorGUI.ChangeCheckScope())
-                    {
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6);
-                        EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7);
-                        if (changed.changed)
-                        {
-                            serialized.serializedObject?.ApplyModifiedProperties();
-                            (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
-                        }
-                    }
+                    serialized.serializedObject?.ApplyModifiedProperties();
+                    (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
                 }
-            }
-        }
 
-        static void DrawDecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            m_ShowDecalLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.decalLayersLabel, m_ShowDecalLayerNames,
-                documentationURL: Documentation.GetPageLink(DocumentationUrls.k_DecalLayers),
-                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 2));
-            if (m_ShowDecalLayerNames)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    using (var changed = new EditorGUI.ChangeCheckScope())
-                    {
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6);
-                        EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7);
-                        if (changed.changed)
-                        {
-                            serialized.serializedObject?.ApplyModifiedProperties();
-                            (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
-                        }
-                    }
-                }
+                EditorGUILayout.Space();
             }
+            CoreEditorUtils.DrawSplitter();
+
+            EditorGUIUtility.labelWidth = oldWidth;
         }
 
         static void OnContextClickRenderingLayerNames(Vector2 position, SerializedHDRenderPipelineGlobalSettings serialized, int section = 0)
@@ -404,7 +367,8 @@ namespace UnityEditor.Rendering.HighDefinition
             menu.AddItem(section == 0 ? CoreEditorStyles.resetAllButtonLabel : CoreEditorStyles.resetButtonLabel, false, () =>
             {
                 var globalSettings = (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings);
-                globalSettings.ResetRenderingLayerNames(lightLayers: section < 2, decalLayers: section != 1);
+                Undo.RecordObject(globalSettings, "Reset rendering layer names");
+                globalSettings.ResetRenderingLayerNames();
             });
             menu.DropDown(new Rect(position, Vector2.zero));
         }

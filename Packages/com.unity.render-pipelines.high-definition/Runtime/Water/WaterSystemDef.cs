@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float bodyScatteringHeight;
         public float maxRefractionDistance;
-        public uint lightLayers;
+        public uint renderingLayers;
         public int cameraUnderWater;
 
         // Refraction data Data
@@ -255,8 +255,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CausticsPlaneBlendDistance;
         // Type of caustics that are rendered
         public int _WaterCausticsEnabled;
-        // Which decal layers should affect this surface
-        public uint _WaterDecalLayer;
+        // Which rendering layers should affect this surface - for decals
+        public uint _WaterRenderingLayer;
         // Is this surface infinite or finite
         public int _InfiniteSurface;
 

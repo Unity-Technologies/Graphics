@@ -276,7 +276,7 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
     // Fill the built in data
-    builtinData.renderingLayers = _EnableLightLayers ? _WaterSurfaceProfiles[bsdfData.surfaceIndex].lightLayers : DEFAULT_LIGHT_LAYERS;
+    builtinData.renderingLayers = _EnableLightLayers ? _WaterSurfaceProfiles[bsdfData.surfaceIndex].renderingLayers : RENDERING_LAYERS_MASK;
     builtinData.shadowMask0 = 1.0;
     builtinData.shadowMask1 = 1.0;
     builtinData.shadowMask2 = 1.0;

@@ -138,6 +138,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras that use these Frame Settings make use of DecalLayers.</summary>
         [FrameSettingsField(0, autoName: DecalLayers, customOrderInGroup: 6, positiveDependencies: new[] { Decals }, tooltip: "When enabled, Cameras that use these Frame Settings make use of DecalLayers (Depends on \"Decal Layers\" in current HDRP Asset).")]
         DecalLayers = 96,
+        /// <summary>When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.</summary>
+        [FrameSettingsField(0, autoName: RenderingLayerMaskBuffer, customOrderInGroup: 5, tooltip: "When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.")]
+        RenderingLayerMaskBuffer = 50,
         /// <summary>When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: TransparentPrepass, customOrderInGroup: 7, tooltip: "When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.")]
         TransparentPrepass = 8,
@@ -443,6 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.VirtualTexturing,
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
+                (uint)FrameSettingsField.RenderingLayerMaskBuffer,
                 (uint)FrameSettingsField.Decals,
                 (uint)FrameSettingsField.DecalLayers,
                 (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
@@ -861,6 +865,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview && temporalAccumulationAllowed;
 
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RenderingLayerMaskBuffer] &= renderPipelineSettings.renderingLayerMaskBuffer && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
             // We allow the user to enable exposure control on planar reflections, but not on reflection probes.
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= (!reflection || (reflectionPlanar && reflection)) && !preview;

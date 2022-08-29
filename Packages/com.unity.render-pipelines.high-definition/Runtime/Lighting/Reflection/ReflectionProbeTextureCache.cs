@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -9,7 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         IBLFilterBSDF[] m_IBLFiltersBSDF;
 
-        int m_AtlasResolution;
+        int m_AtlasWidth;
+        int m_AtlasHeight;
         GraphicsFormat m_AtlasFormat;
         int m_AtlasMipCount;
         int m_AtlasSlicesCount;
@@ -38,23 +40,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderTexture m_ConvolvedPlanarReflectionTexture;
 
-        public ReflectionProbeTextureCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFiltersBSDF, int resolution, GraphicsFormat format,
+        public ReflectionProbeTextureCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFiltersBSDF, int width, int height, GraphicsFormat format,
             bool decreaseResToFit, int lastValidCubeMip, int lastValidPlanarMip)
         {
-            Debug.Assert(Mathf.IsPowerOfTwo(resolution));
-            Debug.Assert(format == GraphicsFormat.B10G11R11_UFloatPack32 || format == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be FP16 or R11G11B10.");
-            Debug.Assert(iblFiltersBSDF[0] is IBLFilterGGX);
+            Assert.IsTrue(Mathf.IsPowerOfTwo(width) && Mathf.IsPowerOfTwo(height));
+            Assert.IsTrue(width <= (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
+            Assert.IsTrue(height <= (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
+            Assert.IsTrue(format == GraphicsFormat.B10G11R11_UFloatPack32 || format == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be FP16 or R11G11B10.");
+            Assert.IsTrue(iblFiltersBSDF[0] is IBLFilterGGX);
 
             m_IBLFiltersBSDF = iblFiltersBSDF;
 
-            m_AtlasResolution = resolution;
+            m_AtlasWidth = width;
+            m_AtlasHeight = height;
             m_AtlasFormat = format;
-            m_AtlasMipCount = Mathf.FloorToInt(Mathf.Log(m_AtlasResolution, 2)) + 1;
+            m_AtlasMipCount = Mathf.FloorToInt(Mathf.Log(Math.Max(m_AtlasWidth, m_AtlasHeight), 2)) + 1;
             m_AtlasSlicesCount = m_IBLFiltersBSDF.Length;
 
             m_AtlasTexture = RTHandles.Alloc(
-                width: resolution,
-                height: resolution,
+                width: width,
+                height: height,
                 slices: m_AtlasSlicesCount,
                 dimension: TextureDimension.Tex2DArray,
                 filterMode: FilterMode.Trilinear,
@@ -67,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             const int k_MaxTexturesInAtlas = 2048;
 
-            m_Atlas = new Texture2DAtlasDynamic(resolution, resolution, k_MaxTexturesInAtlas, m_AtlasTexture);
+            m_Atlas = new Texture2DAtlasDynamic(width, height, k_MaxTexturesInAtlas, m_AtlasTexture);
 
             m_CubeMipPadding = Mathf.Clamp(lastValidCubeMip, 0, (int)EnvConstants.ConvolutionMipCount - 1);
             m_CubeTexelPadding = (1 << m_CubeMipPadding) * 2;
@@ -105,16 +110,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return textureSize;
         }
 
-        private static Vector2 GetTextureSizeWithoutPadding(int textureSize, int texelPadding)
+        private static Vector2 GetTextureSizeWithoutPadding(int textureWidth, int textureHeight, int texelPadding)
         {
-            int textureSizeWithoutPadding = Mathf.Max(textureSize - texelPadding, 1);
-            return new Vector2(textureSizeWithoutPadding, textureSizeWithoutPadding);
+            int textureWidthWithoutPadding = Mathf.Max(textureWidth - texelPadding, 1);
+            int textureHeightWithoutPadding = Mathf.Max(textureHeight - texelPadding, 1);
+            return new Vector2(textureWidthWithoutPadding, textureHeightWithoutPadding);
         }
 
-        internal static long GetApproxCacheSizeInByte(int elementsCount, int resolution, GraphicsFormat format)
+        internal static long GetApproxCacheSizeInByte(int elementsCount, int width, int height, GraphicsFormat format)
         {
             const double mipmapFactorApprox = 1.33;
-            return (long)(elementsCount * resolution * resolution * mipmapFactorApprox * GraphicsFormatUtility.GetBlockSize(format));
+            return (long)(elementsCount * width * height * mipmapFactorApprox * GraphicsFormatUtility.GetBlockSize(format));
         }
 
         private RenderTexture EnsureConvolvedPlanarReflectionTexture(int textureSize)
@@ -168,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTexture renderTexture = texture as RenderTexture;
             Cubemap cubemap = texture as Cubemap;
 
-            Debug.Assert((renderTexture && renderTexture.dimension == TextureDimension.Cube) || cubemap, "Cube Reflection Probe should always be a Cubemap Texture.");
+            Assert.IsTrue((renderTexture && renderTexture.dimension == TextureDimension.Cube) || cubemap, "Cube Reflection Probe should always be a Cubemap Texture.");
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvertReflectionProbe)))
             {
@@ -217,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture renderTexture = texture as RenderTexture;
 
-            Debug.Assert((renderTexture && renderTexture.dimension == TextureDimension.Cube), "Cube Reflection Probe should always be a Cubemap Texture.");
+            Assert.IsTrue((renderTexture && renderTexture.dimension == TextureDimension.Cube), "Cube Reflection Probe should always be a Cubemap Texture.");
 
             RenderTexture convolvedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 0, m_AtlasFormat);
             convolvedTextureTemp.dimension = TextureDimension.Cube;
@@ -225,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
             convolvedTextureTemp.useMipMap = true;
             convolvedTextureTemp.autoGenerateMips = false;
             convolvedTextureTemp.anisoLevel = 0;
-            convolvedTextureTemp.name = CoreUtils.GetRenderTargetAutoName(texture.width, texture.height, 0, m_AtlasFormat, "ConvolvedReflectionProbeTemp", mips: true);
+            convolvedTextureTemp.name = "ConvolvedReflectionProbeTemp";
             convolvedTextureTemp.Create();
 
             filter.FilterCubemap(cmd, texture, convolvedTextureTemp);
@@ -237,8 +243,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture renderTexture = texture as RenderTexture;
 
-            Debug.Assert(renderTexture && renderTexture.dimension == TextureDimension.Tex2D, "Planar Reflection Probe must be a 2D RenderTexture.");
-            Debug.Assert(texture.graphicsFormat == m_AtlasFormat, "Planar Reflection Probe format and the cache format must be the same.");
+            Assert.IsTrue(renderTexture && renderTexture.dimension == TextureDimension.Tex2D, "Planar Reflection Probe must be a 2D RenderTexture.");
+            Assert.IsTrue(texture.graphicsFormat == m_AtlasFormat, "Planar Reflection Probe format and the cache format must be the same.");
 
             RenderTexture convolvedPlanarReflectionTexture = EnsureConvolvedPlanarReflectionTexture(texture.width);
 
@@ -254,13 +260,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void BlitTextureCube(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, int arraySlice)
         {
-            Debug.Assert(texture.dimension == TextureDimension.Cube);
+            Assert.IsTrue(texture.dimension == TextureDimension.Cube);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureToReflectionProbeAtlas)))
             {
                 int texelPadding = m_CubeTexelPadding;
-                int textureSizeInAtlas = Mathf.CeilToInt(scaleOffset.x * m_AtlasResolution);
-                Vector2 textureSizeWithoutPadding = GetTextureSizeWithoutPadding(textureSizeInAtlas, texelPadding);
+                int textureWidthInAtlas = Mathf.CeilToInt(scaleOffset.x * m_AtlasWidth);
+                int textureHeightInAtlas = Mathf.CeilToInt(scaleOffset.y * m_AtlasHeight);
+                Assert.IsTrue(textureWidthInAtlas == textureHeightInAtlas);
+
+                Vector2 textureSizeWithoutPadding = GetTextureSizeWithoutPadding(textureWidthInAtlas, textureHeightInAtlas, texelPadding);
                 bool bilinear = texture.filterMode != FilterMode.Point;
 
                 for (int mipLevel = 0; mipLevel < m_AtlasMipCount; ++mipLevel)
@@ -277,13 +286,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void BlitTexture2D(CommandBuffer cmd, Vector4 scaleOffset, Vector4 sourceScaleOffset, Texture texture, int arraySlice)
         {
-            Debug.Assert(texture.dimension == TextureDimension.Tex2D);
+            Assert.IsTrue(texture.dimension == TextureDimension.Tex2D);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureToReflectionProbeAtlas)))
             {
                 int texelPadding = m_PlanarTexelPadding;
-                int textureSizeInAtlas = Mathf.CeilToInt(scaleOffset.x * m_AtlasResolution);
-                Vector2 textureSizeWithoutPadding = GetTextureSizeWithoutPadding(textureSizeInAtlas, texelPadding);
+                int textureWidthInAtlas = Mathf.CeilToInt(scaleOffset.x * m_AtlasWidth);
+                int textureHeightInAtlas = Mathf.CeilToInt(scaleOffset.y * m_AtlasHeight);
+                Assert.IsTrue(textureWidthInAtlas == textureHeightInAtlas);
+
+                Vector2 textureSizeWithoutPadding = GetTextureSizeWithoutPadding(textureWidthInAtlas, textureHeightInAtlas, texelPadding);
                 bool bilinear = texture.filterMode != FilterMode.Point;
 
                 for (int mipLevel = 0; mipLevel < m_AtlasMipCount; ++mipLevel)
@@ -313,12 +325,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var entry in atlasEntries)
             {
-                int textureSize = Mathf.CeilToInt(entry.scaleOffset.x * m_AtlasResolution);
+                int textureWidth = Mathf.CeilToInt(entry.scaleOffset.x * m_AtlasWidth);
+                int textureHeight = Mathf.CeilToInt(entry.scaleOffset.y * m_AtlasHeight);
 
-                if (m_Atlas.EnsureTextureSlot(out _, out Vector4 scaleOffset, entry.textureId, textureSize, textureSize))
+                if (m_Atlas.EnsureTextureSlot(out _, out Vector4 scaleOffset, entry.textureId, textureWidth, textureHeight))
                 {
-                    var texturePos = new Vector2Int(Mathf.FloorToInt(entry.scaleOffset.z * m_AtlasResolution), Mathf.FloorToInt(entry.scaleOffset.w * m_AtlasResolution));
-                    var newTexturePos = new Vector2Int(Mathf.FloorToInt(scaleOffset.z * m_AtlasResolution), Mathf.FloorToInt(scaleOffset.w * m_AtlasResolution));
+                    var texturePos = new Vector2Int(Mathf.FloorToInt(entry.scaleOffset.z * m_AtlasWidth), Mathf.FloorToInt(entry.scaleOffset.w * m_AtlasHeight));
+                    var newTexturePos = new Vector2Int(Mathf.FloorToInt(scaleOffset.z * m_AtlasWidth), Mathf.FloorToInt(scaleOffset.w * m_AtlasHeight));
 
                     // Invalidate texture only if its position actually changed after re-layout.
                     bool invalidateTexture = texturePos != newTexturePos;
@@ -343,8 +356,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool TryAllocateTexture(int textureId, int textureSize, ref Vector4 scaleOffset)
         {
-            Debug.Assert(Mathf.IsPowerOfTwo(textureSize));
-            Debug.Assert(!m_Atlas.IsCached(out _, textureId));
+            Assert.IsTrue(Mathf.IsPowerOfTwo(textureSize));
+            Assert.IsTrue(!m_Atlas.IsCached(out _, textureId));
 
             // 1.
             // The first direct attempt to find space.
@@ -442,9 +455,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Vector4 GetTextureAtlasData()
+        public Vector4 GetTextureAtlasCubeData()
         {
-            return new Vector4((float)m_CubeTexelPadding / m_AtlasResolution, m_CubeMipPadding, (float)m_PlanarTexelPadding / m_AtlasResolution, 1.0f / m_AtlasResolution);
+            return new Vector4((float)m_CubeTexelPadding / m_AtlasWidth, (float)m_CubeTexelPadding / m_AtlasHeight, m_CubeMipPadding, 0.0f);
+        }
+
+        public Vector4 GetTextureAtlasPlanarData()
+        {
+            return new Vector4((float)m_PlanarTexelPadding / m_AtlasWidth, (float)m_PlanarTexelPadding / m_AtlasHeight, 1.0f / m_AtlasWidth, 1.0f / m_AtlasHeight);
         }
 
         public Texture GetAtlasTexture()
@@ -478,8 +496,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 FetchCubeReflectionProbe(CommandBuffer cmd, HDProbe probe, out int fetchIndex)
         {
             Texture texture = probe.texture;
-            Debug.Assert(texture.width == texture.height);
-            Debug.Assert(texture.dimension == TextureDimension.Cube);
+            Assert.IsTrue(texture.width == texture.height);
+            Assert.IsTrue(texture.dimension == TextureDimension.Cube);
 
             fetchIndex = m_CubeFrameFetchIndex++;
 
@@ -497,8 +515,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 FetchPlanarReflectionProbe(CommandBuffer cmd, HDProbe probe, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, out int fetchIndex)
         {
             Texture texture = probe.texture;
-            Debug.Assert(texture.width == texture.height);
-            Debug.Assert(texture.dimension == TextureDimension.Tex2D);
+            Assert.IsTrue(texture.width == texture.height);
+            Assert.IsTrue(texture.dimension == TextureDimension.Tex2D);
 
             fetchIndex = m_PlanarFrameFetchIndex++;
 
@@ -516,8 +534,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReserveReflectionProbeSlot(HDProbe probe)
         {
             Texture texture = probe.texture;
-            Debug.Assert(texture.width == texture.height);
-            Debug.Assert(texture.dimension == TextureDimension.Tex2D || texture.dimension == TextureDimension.Cube);
+            Assert.IsTrue(texture.width == texture.height);
+            Assert.IsTrue(texture.dimension == TextureDimension.Tex2D || texture.dimension == TextureDimension.Cube);
 
             int textureId = GetTextureID(texture);
 

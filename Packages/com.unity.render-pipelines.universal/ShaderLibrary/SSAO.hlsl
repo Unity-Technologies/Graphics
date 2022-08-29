@@ -15,8 +15,6 @@ SAMPLER(sampler_BlitTexture);
 
 // Params
 half4 _BlurOffset;
-half _KawaseBlurIteration;
-int _LastKawasePass;
 half4 _SSAOParams;
 float4 _CameraViewTopLeftCorner[2];
 float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
@@ -614,10 +612,8 @@ half KawaseBlur(Varyings input) : SV_Target
     half2 uv = input.texcoord;
     half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
 
-    half col = KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration);
-
-    if (_LastKawasePass)
-        col = HALF_ONE - col;
+    half col = KawaseBlurFilter(uv, texelSize, 0);
+    col = HALF_ONE - col;
 
     return col;
 }

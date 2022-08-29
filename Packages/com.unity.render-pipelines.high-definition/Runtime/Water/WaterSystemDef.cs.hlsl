@@ -12,7 +12,7 @@ struct WaterSurfaceProfile
     float tipScatteringHeight;
     float bodyScatteringHeight;
     float maxRefractionDistance;
-    uint lightLayers;
+    uint renderingLayers;
     int cameraUnderWater;
     float3 transparencyColor;
     float outScatteringCoefficient;
@@ -90,7 +90,7 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _FoamMaskOffset;
     float _CausticsPlaneBlendDistance;
     int _WaterCausticsEnabled;
-    uint _WaterDecalLayer;
+    uint _WaterRenderingLayer;
     int _InfiniteSurface;
     float _WaterMaxTessellationFactor;
     float _WaterTessellationFadeStart;

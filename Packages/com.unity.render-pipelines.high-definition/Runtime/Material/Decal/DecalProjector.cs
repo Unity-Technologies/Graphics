@@ -180,11 +180,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
+        RenderingLayerMask m_DecalLayerMask = RenderingLayerMask.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public DecalLayerEnum decalLayerMask
+        public RenderingLayerMask decalLayerMask
         {
             get => m_DecalLayerMask;
             set => m_DecalLayerMask = value;
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int layerMask;
             public ulong sceneLayerMask;
             public float fadeFactor;
-            public DecalLayerEnum decalLayerMask;
+            public RenderingLayerMask decalLayerMask;
         }
 
         internal CachedDecalData GetCachedDecalData()

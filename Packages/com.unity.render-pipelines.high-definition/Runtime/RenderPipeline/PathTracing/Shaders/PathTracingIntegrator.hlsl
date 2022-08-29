@@ -46,7 +46,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
     bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
     bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
 
-    LightList lightList = CreateLightList(position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
+    LightList lightList = CreateLightList(position, normal, RENDERING_LAYERS_MASK, withPoint, withArea, withDistant);
 
     RayDesc ray;
     ray.Origin = position + normal * _RaytracingRayBias;

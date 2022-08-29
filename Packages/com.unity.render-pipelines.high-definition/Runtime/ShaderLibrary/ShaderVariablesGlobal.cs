@@ -32,12 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
     unsafe struct ShaderVariablesGlobal
     {
-        public const int RenderingLightLayersMask = 0x000000FF;
-        public const int RenderingLightLayersMaskShift = 0;
-        public const int RenderingDecalLayersMask = 0x0000FF00;
-        public const int RenderingDecalLayersMaskShift = 8;
-        public const int DefaultRenderingLayerMask = 0x0101;
-        public const int DefaultDecalLayers = RenderingDecalLayersMask >> RenderingDecalLayersMaskShift;
+        public const int RenderingLayersMask = (int)RenderingLayerMask.Everything;
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -159,6 +154,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
 
+        public int _SpecularFade;
+        public int _UnusedPadding1;
+        public int _UnusedPadding2;
+        public int _UnusedPadding3;
+
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
         public uint _AreaLightCount;
@@ -193,7 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CookieAtlasSize;
         public Vector4 _CookieAtlasData;
-        public Vector4 _ReflectionAtlasData;
+        public Vector4 _ReflectionAtlasCubeData;
+        public Vector4 _ReflectionAtlasPlanarData;
 
         // Tile/Cluster
         public uint _NumTileFtplX;
@@ -257,5 +258,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // See ScreenCoordOverride.hlsl for details.
         public Vector4 _ScreenSizeOverride;
         public Vector4 _ScreenCoordScaleBias;
+
+        public float _EnableRenderingLayers;
+        public float _Pad1;
+        public float _Pad2;
+        public float _Pad3;
     }
 }

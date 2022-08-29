@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
-                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
 
                 var dynamicResSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 s_IsRunningTAAU = p.allowDynamicResolution.boolValue && dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.TAAU && dynamicResSettings.enabled;
@@ -244,7 +244,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (s_IsRunningTAAU)
                     p.taaQualityLevel.intValue = (int)HDAdditionalCameraData.TAAQualityLevel.High;
 
-                EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
+
+                EditorGUILayout.PropertyField(p.taaSharpenMode, Styles.TAASharpeningMode);
+                EditorGUI.indentLevel++;
+                if (p.taaSharpenMode.intValue != (int)HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening)
+                {
+                    EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
+                    if (p.taaSharpenMode.intValue == (int)HDAdditionalCameraData.TAASharpenMode.PostSharpen)
+                    {
+                        EditorGUILayout.PropertyField(p.taaRingingReduction, Styles.TAARingingReduction);
+                    }
+                }
+                EditorGUI.indentLevel--;
 
                 if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
                 {

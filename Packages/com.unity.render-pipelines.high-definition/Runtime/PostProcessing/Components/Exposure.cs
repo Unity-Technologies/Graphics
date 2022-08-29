@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Header("Adaptation")]
-        [Tooltip("Specifies the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa.")]
+        [Tooltip("Specifies the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa. Progressive Adaptation in scene view requires Always Refresh.")]
         public AdaptationModeParameter adaptationMode = new AdaptationModeParameter(AdaptationMode.Progressive);
 
         /// <summary>

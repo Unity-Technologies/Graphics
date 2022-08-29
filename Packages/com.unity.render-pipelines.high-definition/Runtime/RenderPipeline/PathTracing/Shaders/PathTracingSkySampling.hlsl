@@ -69,7 +69,7 @@ bool IsSkySamplingEnabled()
 
 float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint i, uint j)
 {
-    return cdf[uint2(i, j)];
+    return cdf[uint2(i, j)].x;
 }
 
 // Dichotomic search

@@ -1180,8 +1180,10 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
             var viewController = window.graphView.controller;
-            window.graphView.controller.ApplyChanges();
+            Assert.IsNotNull(viewController);
+            viewController.ApplyChanges();
             yield return null;
             window.graphView.ExecuteCommand(ExecuteCommandEvent.GetPooled("SelectAll"));
             window.graphView.CopySelectionCallback();
@@ -1213,7 +1215,9 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
             var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
 
             // Convert the first set attribute block into a subgraph block
             var initializeContext = viewController.graph.children.OfType<VFXBasicInitialize>().Single();
