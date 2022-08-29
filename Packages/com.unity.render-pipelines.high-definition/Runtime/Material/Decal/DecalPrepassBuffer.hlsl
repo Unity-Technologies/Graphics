@@ -15,22 +15,19 @@ struct DecalPrepassData
 };
 
 // NormalBuffer texture declaration
+// layout: xy = normals, z = decal layer mask, w = light layer mask (written during gbuffer pass)
 TEXTURE2D_X(_DecalPrepassTexture);
 
 void EncodeIntoDecalPrepassBuffer(DecalPrepassData decalPrepassData, out float4 outDecalBuffer)
 {
-    float2 octNormalWS = PackNormalOctQuadEncode(decalPrepassData.geomNormalWS);
-    float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
-    outDecalBuffer = float4(packNormalWS, decalPrepassData.decalLayerMask / 255.0);
+    float2 packNormalWS = saturate(PackNormalOctQuadEncode(decalPrepassData.geomNormalWS).xy * 0.5f + 0.5f);
+    outDecalBuffer = float4(packNormalWS, decalPrepassData.decalLayerMask / 255.0, 0);
 }
 
 void DecodeFromDecalPrepass(float4 decalBuffer, out DecalPrepassData decalPrepassData)
 {
-    float3 packNormalWS = decalBuffer.xyz;
-    float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-    decalPrepassData.geomNormalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
-
-    decalPrepassData.decalLayerMask = uint(decalBuffer.w * 255.5);
+    decalPrepassData.geomNormalWS   = UnpackNormalOctQuadEncode(decalBuffer.xy * 2.0 - 1.0);
+    decalPrepassData.decalLayerMask = uint(decalBuffer.z * 255.5);
 }
 
 void DecodeFromDecalPrepass(uint2 positionSS, out DecalPrepassData decalPrepassData)

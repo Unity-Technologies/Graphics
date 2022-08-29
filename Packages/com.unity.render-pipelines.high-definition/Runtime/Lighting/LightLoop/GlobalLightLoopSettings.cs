@@ -212,6 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int cookieTexArraySize;
 
         // We keep this property for the migration code
+        /// <summary>Obsolete: Use planar reflection atlas.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]
         [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead.", false)]
         public PlanarReflectionAtlasResolution planarReflectionAtlasSize;

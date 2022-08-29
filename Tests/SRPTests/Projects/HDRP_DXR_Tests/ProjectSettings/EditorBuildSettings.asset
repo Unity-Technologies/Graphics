@@ -87,9 +87,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackSky.unity
     guid: 5c56a3e53ee350a4dad439f373d87b59
   - enabled: 1
-    path: Assets/Scenes/111_ReflectionManualRTAS.unity
-    guid: 3c0cc6ddd3708ee40bae99f5e92891a0
-  - enabled: 1
     path: Assets/Scenes/112_Reflection_AlternativeSGNodes.unity
     guid: edc83a7fc32510c4fbee55fd4e37f143
   - enabled: 1
@@ -306,9 +303,6 @@ EditorBuildSettings:
     path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
     guid: cc33ef2ea5450204ab4fab18d90afaec
   - enabled: 1
-    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
-    guid: f2a5323c1c8df664cb7dd65071c61ab0
-  - enabled: 1
     path: Assets/Scenes/1000_RaytracingQualityKeyword_RR_Default.unity
     guid: caca4b7ac8b85534ebac9100ef8f9c7c
   - enabled: 1
@@ -446,4 +440,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TerrainTests/10004_TerrainPathTracing/10004_TerrainPathTracing.unity
     guid: 17783bea5cb403942948935bef51f927
+  - enabled: 1
+    path: Assets/Scenes/111_ReflectionManualRTAS.unity
+    guid: 3c0cc6ddd3708ee40bae99f5e92891a0
+  - enabled: 1
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
+    guid: f2a5323c1c8df664cb7dd65071c61ab0
   m_configObjects: {}

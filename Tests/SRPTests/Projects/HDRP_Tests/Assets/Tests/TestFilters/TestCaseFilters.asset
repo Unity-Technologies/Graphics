@@ -51,6 +51,24 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Error on lightmapper side
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: edecbcde87e543140b1f4e2ffe510a3c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: don't work on yamato but locally
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -58,6 +76,69 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: With rendergraph - unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: API Bug
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
@@ -123,73 +204,19 @@ MonoBehaviour:
     Reason: unstable on  XR yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    - {fileID: 102900000, guid: fa0d54c5ccbc8b143a8db100374e0f5e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: API Bug
+    Reason: Bug 1425481
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
+    - {fileID: 102900000, guid: 642f1a1637886b84bbebc5374aa46f6f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: Error on lightmapper side
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
+    Reason: Bug 1425481

@@ -91,6 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
             deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
 
             return deferredParameters;
         }
@@ -307,6 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lodBias;
             public int rayMiss;
             public int lastBounceFallbackHierarchy;
+            public float ambientProbeDimmer;
 
             // Other parameters
             public RayTracingShader indirectDiffuseRT;
@@ -343,6 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lodBias = settings.textureLodBias.value;
                 passData.rayMiss = (int)settings.rayMiss.value;
                 passData.lastBounceFallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
+                passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Grab the additional parameters
                 passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
@@ -401,6 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
                         data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMiss;
                         data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHierarchy;
+                        data.shaderVariablesRayTracingCB._RayTracingAmbientProbeDimmer = data.ambientProbeDimmer;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
