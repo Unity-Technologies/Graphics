@@ -29,11 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data for cached directional light shadows.
         private const int m_MaxShadowCascades = 4;
-        private NativeList<BitArray8> m_FlagStorage;
-        private ref BitArray8 directionalShadowPendingUpdate => ref m_FlagStorage.ElementAt((int)FlagType.directionalShadowPendingUpdate);
-        private ref BitArray8 directionalShadowHasRendered => ref m_FlagStorage.ElementAt((int)FlagType.directionalShadowHasRendered);
+        private BitArray8 directionalShadowPendingUpdate;
+        private BitArray8 directionalShadowHasRendered;
         private Vector3 m_CachedDirectionalForward;
-        private Vector3 m_CachedDirectionalAngles;
+        private float3 m_CachedDirectionalAngles;
 
         // Helper array used to check what has been tmp filled.
         private (int, int)[] m_TempFilled = new(int, int)[6];
@@ -44,7 +43,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
 
-        private bool m_IsInitialized;
 
         // ------------------------ Debug API -------------------------------
 #if UNITY_EDITOR
@@ -283,12 +281,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private HDCachedShadowManager()
         {
-            m_IsInitialized = true;
             punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
-            m_FlagStorage = new NativeList<BitArray8>(2, Allocator.Persistent);
-            m_FlagStorage.Length = 2;
         }
 
         internal void InitPunctualShadowAtlas(HDShadowAtlas.HDShadowAtlasInitParameters atlasInitParams)
@@ -303,9 +298,13 @@ namespace UnityEngine.Rendering.HighDefinition
             areaShadowAtlas.InitAtlas(atlasInitParams);
         }
 
+        internal void SetCachedDirectionalAngles(float3 angles)
+        {
+            m_CachedDirectionalAngles = angles;
+        }
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
-            if (!m_IsInitialized)
+			if (!lightData.lightEntity.valid)
             {
                 return;
             }
@@ -330,8 +329,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EvictLight(HDAdditionalLightData lightData)
         {
-            if (!m_FlagStorage.IsCreated)
-                return;
             HDLightType lightType = lightData.type;
 
             if (lightType == HDLightType.Directional)
@@ -381,110 +378,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
         }
 
-        internal bool NeedRenderingDueToTransformChange(HDAdditionalLightData lightData, HDLightType lightType)
+        internal void MarkDirectionalShadowAsRendered(int shadowIdx)
         {
-            if(lightData.updateUponLightMovement)
-            {
-                if (lightType == HDLightType.Directional)
-                {
-                    float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
-                    Vector3 angleDiff = m_CachedDirectionalAngles - lightData.transform.eulerAngles;
-                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
-                }
-                else if (lightType == HDLightType.Area)
-                {
-                    return areaShadowAtlas.NeedRenderingDueToTransformChange(lightData, lightType);
-                }
-                else
-                {
-                    return punctualShadowAtlas.NeedRenderingDueToTransformChange(lightData, lightType);
-                }
-            }
-
-            return false;
-        }
-
-        internal bool NeedRenderingDueToTransformChange(ref HDAdditionalLightDataUpdateInfo updateInfo, ref VisibleLight lightData, HDLightType lightType)
-        {
-            if(updateInfo.updateUponLightMovement)
-            {
-                if (lightType == HDLightType.Directional)
-                {
-                    float angleDiffThreshold = updateInfo.cachedShadowAngleUpdateThreshold;
-                    Vector3 eulerAngles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
-                    Vector3 angleDiff = m_CachedDirectionalAngles - eulerAngles;
-                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
-                }
-                else if (lightType == HDLightType.Area)
-                {
-                    return areaShadowAtlas.NeedRenderingDueToTransformChange(ref lightData, ref updateInfo, lightType);
-                }
-                else
-                {
-                    return punctualShadowAtlas.NeedRenderingDueToTransformChange(ref lightData, ref updateInfo, lightType);
-                }
-            }
-
-            return false;
-        }
-
-        internal static bool NeedRenderingDueToTransformChange(ref HDCachedShadowManagerUnmanaged cachedShadowManager, ref HDAdditionalLightDataUpdateInfo updateInfo, ref VisibleLight lightData, HDLightType lightType)
-        {
-            if(updateInfo.updateUponLightMovement)
-            {
-                if (lightType == HDLightType.Directional)
-                {
-                    float angleDiffThreshold = updateInfo.cachedShadowAngleUpdateThreshold;
-                    Vector3 eulerAngles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
-                    Vector3 angleDiff = cachedShadowManager.cachedDirectionalAngles - eulerAngles;
-                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
-                }
-                else if (lightType == HDLightType.Area)
-                {
-                    return HDCachedShadowAtlas.NeedRenderingDueToTransformChange(ref cachedShadowManager.areaShadowAtlas, ref lightData, ref updateInfo, lightType);
-                }
-                else
-                {
-                    return HDCachedShadowAtlas.NeedRenderingDueToTransformChange(ref cachedShadowManager.punctualShadowAtlas, ref lightData, ref updateInfo, lightType);
-                }
-            }
-
-            return false;
-        }
-
-        internal bool ShadowIsPendingUpdate(int shadowIdx, ShadowMapType shadowMapType)
-        {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                return punctualShadowAtlas.ShadowIsPendingRendering(shadowIdx);
-            if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                return areaShadowAtlas.ShadowIsPendingRendering(shadowIdx);
-            if (shadowMapType == ShadowMapType.CascadedDirectional)
-                return directionalShadowPendingUpdate[(uint)shadowIdx];
-
-            return false;
-        }
-
-        internal void MarkShadowAsRendered(int shadowIdx, ShadowMapType shadowMapType)
-        {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                punctualShadowAtlas.MarkAsRendered(shadowIdx);
-            if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                areaShadowAtlas.MarkAsRendered(shadowIdx);
-            if (shadowMapType == ShadowMapType.CascadedDirectional)
-            {
-                directionalShadowPendingUpdate[(uint)shadowIdx] = false;
-                directionalShadowHasRendered[(uint)shadowIdx] = true;
-            }
-        }
-
-        internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx, ShadowMapType shadowMapType)
-        {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                punctualShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
-            else if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                areaShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
-            else if (shadowMapType == ShadowMapType.CascadedDirectional)
-                request.cachedAtlasViewport = request.dynamicAtlasViewport;
+            directionalShadowPendingUpdate[(uint)shadowIdx] = false;
+            directionalShadowHasRendered[(uint)shadowIdx] = true;
         }
 
         internal void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
@@ -536,24 +433,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        internal bool LightIsPendingPlacement(int lightIdxForCachedShadows, ShadowMapType shadowMapType)
+        internal void GetUnmanagedDataForShadowRequestJobs(ref HDCachedShadowManagerUnmanaged unmanagedData)
         {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                return punctualShadowAtlas.LightIsPendingPlacement(lightIdxForCachedShadows);
-            if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                return areaShadowAtlas.LightIsPendingPlacement(lightIdxForCachedShadows);
-
-            return false;
-        }
-
-
-
-        internal void GetUnmanageDataForShadowRequestJobs(ref HDCachedShadowManagerUnmanaged unmanagedData)
-        {
-            unmanagedData.flagStorage = m_FlagStorage;
+            unmanagedData.directionalShadowHasRendered = directionalShadowHasRendered;
+            unmanagedData.directionalShadowPendingUpdate = directionalShadowPendingUpdate;
             punctualShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref unmanagedData.punctualShadowAtlas);
             areaShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref unmanagedData.areaShadowAtlas);
-            unmanagedData.cachedDirectionalAngles = m_CachedDirectionalAngles;
+            unmanagedData.cachedDirectionalAngles[0] = m_CachedDirectionalAngles;
         }
 
         internal void ClearShadowRequests()
@@ -565,19 +451,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Dispose()
         {
-            m_IsInitialized = false;
             punctualShadowAtlas.Release();
-            punctualShadowAtlas.Dispose();
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.Release();
-            if (areaShadowAtlas != null)
-                areaShadowAtlas.Dispose();
+        }
 
-            if (m_FlagStorage.IsCreated)
-            {
-                m_FlagStorage.Dispose();
-                m_FlagStorage = default;
-            }
+		internal void DisposeNativeCollections()
+        {
+            if (punctualShadowAtlas != null)
+                punctualShadowAtlas.DisposeNativeCollections();
+
+            if (areaShadowAtlas != null)
+                areaShadowAtlas.DisposeNativeCollections();
         }
     }
 }
