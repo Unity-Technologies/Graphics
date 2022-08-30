@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.10.1] - 2022-08-29
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed GDK shader compiler issue in the Histogram shader.
 
 ## [10.10.0] - 2022-06-28
 
