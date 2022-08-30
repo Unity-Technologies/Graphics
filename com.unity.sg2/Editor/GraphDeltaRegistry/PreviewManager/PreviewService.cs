@@ -89,9 +89,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Texture2D m_CompilingTexture;
         PreviewSceneResources m_SceneResources;
 
-        double m_LastUpdateTimeSeconds;  // last EditorApplication.timeSinceStartup call to UpdateHandler
-        double m_UpdateThresholdSeconds = 0.2;  // min time (seconds) between calls to UpdateHandler
-
         #region MainPreviewData
         PreviewData m_MainPreviewData;
         Mesh m_MainPreviewMesh;
@@ -160,9 +157,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void Initialize(string contextNodeName, Vector2 mainPreviewSize)
         {
-            // Register for update callbacks from the Editor
-            EditorApplication.update += UpdateHandler;
-            m_LastUpdateTimeSeconds = EditorApplication.timeSinceStartup;
             m_PreviewsCompiling = new List<PreviewData>();
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
@@ -180,7 +174,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void Cleanup()
         {
-            EditorApplication.update -= UpdateHandler;
             if (m_ErrorTexture != null)
             {
                 Object.DestroyImmediate(m_ErrorTexture);
@@ -427,7 +420,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void RequestNodePreviewUpdate(
             string nodeName,
-            IVisualElementScheduler scheduler, // TODO: Remove
             PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D,
             bool forceRerender = false)
         {
@@ -442,7 +434,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (nodePreviewData.isShaderOutOfDate)
                 {
                     UpdateShaderData(nodePreviewData);
-                    UpdateRenderData(nodePreviewData);
                 }
                 else if (nodePreviewData.isRenderOutOfDate || forceRerender)
                 {
@@ -454,33 +445,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodePreviewData = AddNodePreviewData(nodeName);
                 nodePreviewData.currentRenderMode = newPreviewMode;
                 UpdateShaderData(nodePreviewData);
-                UpdateRenderData(nodePreviewData);
             }
-
-            // Mimic PreviewService writing to the update receiver
-            scheduler.Execute(
-                    () =>
-                        m_PreviewUpdateReceiver.UpdatePreviewData(nodeName, nodePreviewData.texture)).
-                ExecuteLater(0);
         }
 
         // ==================================
         // Basic Async Implementation
 
         /// <summary>
-        /// UpdateHandler is registered with EditorApplication.update in Initialize.
-        /// It is called about every m_updateThresholdSeconds seconds.
+        /// UpdateHandler is called by the owner of the preview service if they desire async functionality
         /// </summary>
-        void UpdateHandler()
+        public void UpdateHandler()
         {
-            var curTimeSeconds = EditorApplication.timeSinceStartup;
-            var deltaTimeSeconds = curTimeSeconds - m_LastUpdateTimeSeconds;
-            if (deltaTimeSeconds < m_UpdateThresholdSeconds)
-                return;
             // do update
             UpdateShaderCompilationStatus();
-            // change last updated
-            m_LastUpdateTimeSeconds = curTimeSeconds;
         }
 
         /// <summary>
@@ -519,14 +496,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     // check for PreviewData errors
                     if (CheckForErrors(previewToUpdate))
                         previewToUpdate.hasShaderError = true;
-
-                    // mark dirty
-                    previewToUpdate.isShaderOutOfDate = false;
                 }
             }
             foreach (PreviewData completedPreview in completed)
             {
                 m_PreviewsCompiling.Remove(completedPreview);
+                UpdateRenderData(completedPreview);
             }
         }
 
@@ -534,7 +509,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         // ==================================
 
         public void RequestMainPreviewUpdate(
-            IVisualElementScheduler scheduler, // TODO: Remove
             int width,
             int height,
             Mesh meshToRender,
@@ -561,18 +535,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             if (m_MainPreviewData.isShaderOutOfDate)
             {
                 UpdateShaderData(m_MainPreviewData);
-                UpdateRenderData(m_MainPreviewData);
             }
             else if (m_MainPreviewData.isRenderOutOfDate || forceRerender)
             {
                 UpdateRenderData(m_MainPreviewData);
             }
-
-            // Mimic PreviewService writing to the update receiver
-            scheduler.Execute(
-                    () =>
-                        m_PreviewUpdateReceiver.UpdatePreviewData(m_OutputContextNodeName, m_MainPreviewData.texture)).
-                ExecuteLater(0);
         }
 
         /// <summary>
@@ -923,6 +890,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             // add to update checking
             m_PreviewsCompiling.Add(previewToUpdate);
+
+            // mark not dirty
+            previewToUpdate.isShaderOutOfDate = false;
         }
 
         void UpdateRenderData(PreviewData previewToUpdate)
@@ -1004,6 +974,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     m_MainPreviewData.isRenderOutOfDate = false;
                 }
             }
+
+            m_PreviewUpdateReceiver.UpdatePreviewData(previewToUpdate.nodeName, previewToUpdate.texture);
         }
 
         private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");

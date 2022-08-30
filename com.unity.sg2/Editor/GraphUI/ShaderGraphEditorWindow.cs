@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             shaderGraphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
 
-            m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver, rootVisualElement.schedule);
+            m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver);
 
             SetDefaultMainPreviewUpdateListener(shaderGraphModel);
 

@@ -691,11 +691,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (TryGetModelFromGuid(inputEdge.FromNodeGuid, out var inputNode)
                 && inputNode is GraphDataNodeModel inputGraphDataNode)
                 {
-                    if (inputGraphDataNode.DisplayTitle.Contains("Time"))
-                        return true;
-
                     // Recursively traverse through all inputs upstream and get if connected to time node
-                    return IsConnectedToTimeNode(inputGraphDataNode);
+                    if (inputGraphDataNode.DisplayTitle.Contains("Time") || IsConnectedToTimeNode(inputGraphDataNode))
+                        return true;
                 }
             }
 
