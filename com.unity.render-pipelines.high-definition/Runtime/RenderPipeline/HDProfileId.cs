@@ -165,6 +165,10 @@ namespace UnityEngine.Rendering.HighDefinition
         SortVisibleLights,
         BuildVisibleLightEntities,
         ProcessShadows,
+        CalculateLightDataTextureInfo,
+        CalculateShadowIndices,
+        UpdateDirectionalShadowData,
+        EditorOnlyDebugSelectedLightShadow,
 
         // Profile sampler for shadow
         RenderShadowMaps,

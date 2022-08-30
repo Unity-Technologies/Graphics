@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool Layout(bool allowResize = true)
         {
-            int n = m_ShadowResolutionRequests.Length;
+            int n = (m_ShadowResolutionRequests.IsCreated) ? m_ShadowResolutionRequests.Length : 0;
             int i = 0;
             for (; i < m_ShadowResolutionRequests.Length; ++i)
             {
@@ -219,7 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void GetUnmanageDataForShadowRequestJobs(ref HDDynamicShadowAtlasUnmanaged unmanagedData)
         {
             unmanagedData.shadowRequests = m_ShadowRequests;
-            unmanagedData.shadowResolutionRequests = m_ShadowResolutionRequests;
             unmanagedData.mixedRequestsPendingBlits = m_MixedRequestsPendingBlits;
         }
 
@@ -231,8 +230,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int            cachedShadowAtlasSize;
 
         }
-
-        internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
+		
+		internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
         {
             ShadowBlitParameters parameters = new ShadowBlitParameters();
             parameters.requestsWaitingBlits = m_MixedRequestsPendingBlits;
@@ -241,10 +240,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.cachedShadowAtlasSize = new Vector2Int(cachedAtlas.width, cachedAtlas.height);
             return parameters;
         }
-
         static internal unsafe void BlitCachedIntoAtlas(in ShadowBlitParameters parameters, RTHandle dynamicTexture, RTHandle cachedTexture, CommandBuffer cmd)
         {
-            NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
+            NativeList<HDShadowRequest> requestStorage = HDShadowRequestDatabase.instance.hdShadowRequestStorage;
             ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
             foreach (var requestHandle in parameters.requestsWaitingBlits)
             {
@@ -273,8 +271,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MixedRequestsPendingBlits.Clear();
         }
 
-        public override void Dispose()
+        internal override void DisposeNativeCollections()
         {
+            base.DisposeNativeCollections();
             if (m_ShadowResolutionRequests.IsCreated)
             {
                 m_ShadowResolutionRequests.Dispose();
@@ -286,8 +285,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MixedRequestsPendingBlits.Dispose();
                 m_MixedRequestsPendingBlits = default;
             }
-
-            base.Dispose();
         }
     }
 }

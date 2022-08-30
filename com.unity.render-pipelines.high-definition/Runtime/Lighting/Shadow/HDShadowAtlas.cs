@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // custom-begin:
     public
     // custom-end
-    abstract partial class HDShadowAtlas : IDisposable
+    abstract partial class HDShadowAtlas
     {
         // custom-begin
         public
@@ -61,7 +61,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public RTHandle                             renderTarget { get { return m_Atlas; } }
-        protected NativeList<HDShadowRequestHandle>             m_ShadowRequests; // Lifetime handled by HDShadowManager
+        internal NativeList<HDShadowRequestHandle>             m_ShadowRequests  = new NativeList<HDShadowRequestHandle>(Allocator.Persistent); // Lifetime handled by HDShadowManager
+        internal bool HasShadowRequests()
+        {
+            return m_ShadowRequests.Length > 0;
+        }
 
         public int                  width { get; private set; }
         public int                  height  { get; private set; }
@@ -266,10 +270,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.debugClearAtlas)
                 CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
-            NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
-            ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
-            NativeList<float4> frustumPlanesStorage = HDLightRenderDatabase.instance.frustumPlanesStorage;
-            ref UnsafeList<float4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
+            			NativeList<HDShadowRequest> requestStorage = HDShadowRequestDatabase.instance.hdShadowRequestStorage;
+            			ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
+            			NativeList<float4> frustumPlanesStorage = HDShadowRequestDatabase.instance.frustumPlanesStorage;
+            			ref UnsafeList<float4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
 
             Vector4[] planesScratchpad = frustumPlanesScratchpad;
 
@@ -392,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We need to store in which of the two moment texture a request will have its last version stored in for a final patch up at the end.
                 var finalAtlasTexture = stackalloc int[parameters.shadowRequests.Length];
 
-                NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
+                NativeList<HDShadowRequest> requestStorage = HDShadowRequestDatabase.instance.hdShadowRequestStorage;
                 ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
 
                 int requestIdx = 0;
@@ -492,8 +496,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, intermediateSummedAreaTexture, ClearFlag.Color, Color.black);
                 CoreUtils.SetRenderTarget(cmd, summedAreaTexture, ClearFlag.Color, Color.black);
 
-                NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
-                ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
+                		NativeList<HDShadowRequest> requestStorage = HDShadowRequestDatabase.instance.hdShadowRequestStorage;
+                		ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
 
                 // Alright, so the thing here is that for every sub-shadow map of the atlas, we need to generate the moment shadow map
                 foreach (var shadowRequestHandle in parameters.shadowRequests)
@@ -588,7 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public virtual void Dispose()
+        internal virtual void DisposeNativeCollections()
         {
             if (m_ShadowRequests.IsCreated)
             {

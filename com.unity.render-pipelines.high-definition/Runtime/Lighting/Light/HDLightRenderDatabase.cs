@@ -5,6 +5,9 @@ using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using System.Runtime.CompilerServices;
+using Unity.Burst;
+using Unity.Jobs;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -90,22 +93,34 @@ namespace UnityEngine.Rendering.HighDefinition
         public BitArray8 flags;
         public byte typeData;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetTypeData(byte typeIndex, byte value)
+        {
+            typeData = (byte)((typeData & ~(0b11 << (typeIndex * 2))) | (value << (typeIndex * 2)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte GetTypeData(byte typeIndex)
+        {
+            return (byte)(typeData & (0b11 << (typeIndex * 2)));
+        }
+
         public SpotLightShape spotLightShape
         {
-            get => (SpotLightShape)(typeData & 0b11);
-            set => typeData = (byte)((typeData & 0b11111100) | (int)value);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (SpotLightShape)GetTypeData(0);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(0, (byte)value);
         }
 
         public AreaLightShape areaLightShape
         {
-            get => (AreaLightShape)((typeData >> 2) & 0b11);
-            set => typeData = (byte)((typeData & 0b11110011) | (((int)value) << 2));
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (AreaLightShape)GetTypeData(1);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(1, (byte)value);
         }
 
         public ShadowUpdateMode shadowUpdateMode
         {
-            get => (ShadowUpdateMode)((typeData >> 4) & 0b11);
-            set => typeData = (byte)((typeData & 0b11001111) | (((int)value) << 4));
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (ShadowUpdateMode)GetTypeData(2);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(2, (byte)value);
         }
 
         public HDAdditionalLightData.PointLightHDType pointLightHDType
@@ -181,8 +196,6 @@ namespace UnityEngine.Rendering.HighDefinition
         //gets the list of render light data. Use lightCount to iterate over all the world light data.
         public NativeArray<HDLightRenderData> lightData => m_LightData;
 
-        public NativeList<LightEntityInfo> lightDataIndexRefs => m_LightEntities;
-
         //gets the list of render light entities handles. Use this entities to access or set light data indirectly.
         public NativeArray<HDLightRenderEntity> lightEntities => m_OwnerEntity;
 
@@ -190,30 +203,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public DynamicArray<HDAdditionalLightData> hdAdditionalLightData => m_HDAdditionalLightData;
         public DynamicArray<GameObject> aovGameObjects => m_AOVGameObjects;
 
-        public NativeList<HDShadowRequest> hdShadowRequestStorage => m_HDShadowRequestStorage;
-        public NativeList<int> hdShadowRequestIndicesStorage => m_HDShadowRequestIndicesStorage;
-        public NativeList<float4> frustumPlanesStorage => m_FrustumPlanesStorage;
-        public NativeList<Vector3> cachedViewPositionsStorage => m_CachedViewPositionsStorage;
-
         public NativeList<HDShadowRequestSetHandle> packedShadowRequestSetHandles => m_ShadowRequestSetPackedHandles;
 
         public NativeArray<HDAdditionalLightDataUpdateInfo> additionalLightDataUpdateInfos => m_AdditionalLightDataUpdateInfos;
 
-        public NativeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesBuffer => m_VisibleLightsAndIndicesBuffer;
-        public NativeList<ShadowIndicesAndVisibleLightData> splitVisibleLightsAndIndicesBuffer => m_SplitVisibleLightsAndIndicesBuffer;
-
-        public NativeList<ShadowRequestIntermediateUpdateData> cachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> cachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> cachedAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> cachedAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> cachedDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> dynamicPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> dynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> dynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> dynamicAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        public NativeList<ShadowRequestIntermediateUpdateData> dynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-
-        public NativeArray<Matrix4x4> cachedCubeMapFaces => m_CachedCubeMapFaces;
+        public HDShadowRequestDatabase shadowRequests => HDShadowRequestDatabase.instance;
 
         //Access of main instance
         static public HDLightRenderDatabase instance
@@ -248,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public ref HDAdditionalLightDataUpdateInfo GetShadowRequestUpdateInfoAsRef(in HDLightRenderEntity entity)
+        public ref HDAdditionalLightDataUpdateInfo EditAdditionalLightUpdateDataAsRef(in HDLightRenderEntity entity)
         {
             int dataIndex = m_LightEntities[entity.entityIndex].dataIndex;
             if ( dataIndex >= m_LightCount)
@@ -259,6 +253,86 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightDataUpdateInfo* data = (HDAdditionalLightDataUpdateInfo*)m_AdditionalLightDataUpdateInfos.GetUnsafePtr<HDAdditionalLightDataUpdateInfo>() + dataIndex;
                 return ref UnsafeUtility.AsRef<HDAdditionalLightDataUpdateInfo>(data);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetPointLightType(in HDLightRenderEntity entity, HDAdditionalLightData.PointLightHDType pointLightType)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).pointLightType = pointLightType;
+            EditAdditionalLightUpdateDataAsRef(entity).pointLightHDType = pointLightType;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetAreaLightShape(in HDLightRenderEntity entity, AreaLightShape areaLightShape)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).areaLightShape = areaLightShape;
+            EditAdditionalLightUpdateDataAsRef(entity).areaLightShape = areaLightShape;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetSpotLightShape(in HDLightRenderEntity entity, SpotLightShape spotLightShape)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).spotLightShape = spotLightShape;
+            EditAdditionalLightUpdateDataAsRef(entity).spotLightShape = spotLightShape;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetShapeWidth(in HDLightRenderEntity entity, float shapeWidth)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).shapeWidth = shapeWidth;
+            EditAdditionalLightUpdateDataAsRef(entity).shapeWidth = shapeWidth;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetShapeHeight(in HDLightRenderEntity entity, float shapeHeight)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).shapeHeight = shapeHeight;
+            EditAdditionalLightUpdateDataAsRef(entity).shapeHeight = shapeHeight;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetShapeRadius(in HDLightRenderEntity entity, float shapeRadius)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).shapeRadius = shapeRadius;
+            EditAdditionalLightUpdateDataAsRef(entity).shapeRadius = shapeRadius;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetAspectRatio(in HDLightRenderEntity entity, float aspectRatio)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).aspectRatio = aspectRatio;
+            EditAdditionalLightUpdateDataAsRef(entity).aspectRatio = aspectRatio;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetAngularDiameter(in HDLightRenderEntity entity, float angularDiameter)
+        {
+            if (!entity.valid)
+                return;
+
+            EditLightDataAsRef(entity).angularDiameter = angularDiameter;
+            EditAdditionalLightUpdateDataAsRef(entity).angularDiameter = angularDiameter;
         }
 
         // Creates a light render entity.
@@ -301,94 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowRequestSetHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
             if (!m_ShadowRequestSetPackedHandles.IsCreated)
                 m_ShadowRequestSetPackedHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
-
-            if (!m_HDShadowRequestsCreated)
-            {
-                m_HDShadowRequestsCreated = true;
-                m_HDShadowRequestStorage = new NativeList<HDShadowRequest>(Allocator.Persistent);
-                m_HDShadowRequestIndicesStorage = new NativeList<int>(Allocator.Persistent);
-                m_FrustumPlanesStorage = new NativeList<float4>(Allocator.Persistent);
-                m_CachedViewPositionsStorage = new NativeList<Vector3>(Allocator.Persistent);
-            }
-
-            if (!m_VisibleLightsAndIndicesBuffer.IsCreated)
-            {
-                m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-                m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-                m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
-            }
-
-            // if (!shadowRequestDataLists[0].IsCreated)
-            // {
-            //     for (int i = 0; i < shadowRequestDataLists.Length; i++)
-            //     {
-            //         shadowRequestDataLists[i] = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-            //     }
-            // }
-            if (!cachedPointUpdateInfos.IsCreated)
-            {
-                cachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                cachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                cachedAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                cachedAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                cachedDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                dynamicPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                dynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                dynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                dynamicAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-                dynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-            }
         }
-
-        internal NativeBitArray GetValidIndexScratchpadArray(int minLightCount)
-        {
-            if (m_IsValidIndexScratchpadArray.IsCreated && m_IsValidIndexScratchpadArray.Length < minLightCount)
-            {
-                m_IsValidIndexScratchpadArray.Dispose();
-                m_IsValidIndexScratchpadArray = default;
-            }
-
-            if (!m_IsValidIndexScratchpadArray.IsCreated)
-            {
-                m_IsValidIndexScratchpadArray = new NativeBitArray(minLightCount, Allocator.Persistent);
-            }
-
-            return m_IsValidIndexScratchpadArray;
-        }
-
-        internal NativeArray<int> GetShadowIndicesScratchpadArray(int minLightCount)
-        {
-            if (m_ShadowIndicesScratchpadArray.IsCreated && m_ShadowIndicesScratchpadArray.Length < minLightCount)
-            {
-                m_ShadowIndicesScratchpadArray.Dispose();
-                m_ShadowIndicesScratchpadArray = default;
-            }
-
-            if (!m_ShadowIndicesScratchpadArray.IsCreated)
-            {
-                m_ShadowIndicesScratchpadArray = new NativeArray<int>(minLightCount, Allocator.Persistent);
-            }
-
-            return m_ShadowIndicesScratchpadArray.GetSubArray(0, minLightCount);
-        }
-
-#if UNITY_EDITOR
-        internal NativeArray<int> GetShadowRequestCountsScratchpad(int requestCount)
-        {
-            if (m_ShadowRequestCountsScratchpad.IsCreated && m_ShadowRequestCountsScratchpad.Length < requestCount)
-            {
-                m_ShadowRequestCountsScratchpad.Dispose();
-                m_ShadowRequestCountsScratchpad = default;
-            }
-
-            if (!m_ShadowRequestCountsScratchpad.IsCreated)
-            {
-                m_ShadowRequestCountsScratchpad = new NativeArray<int>(requestCount, Allocator.Persistent);
-            }
-
-            return m_ShadowRequestCountsScratchpad.GetSubArray(0, requestCount);
-        }
-#endif
 
         //Must be called by game object so we can gather all the information needed,
         //This will prep this system when dots lights come in.
@@ -439,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_LightCount == 0)
             {
                 DeleteArrays();
+                HDShadowRequestDatabase.instance.DeleteArrays();
             }
             else
             {
@@ -449,6 +437,94 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (dataToUpdate.lightInstanceID != entityData.lightInstanceID)
                     m_LightsToEntityItem[dataToUpdate.lightInstanceID] = dataToUpdate;
             }
+        }
+
+        public void AllocateHDShadowRequests(HDLightRenderEntity entity)
+        {
+            if (!entity.valid)
+                return;
+
+            HDShadowRequestSetHandle shadowSethandle = m_ShadowRequestSetHandles[entity.entityIndex];
+            if (!shadowSethandle.valid)
+            {
+                shadowSethandle = HDShadowRequestDatabase.instance.AllocateHDShadowRequests();
+                m_ShadowRequestSetHandles[entity.entityIndex] = shadowSethandle;
+                m_ShadowRequestSetPackedHandles[GetEntityData(entity).dataIndex] = shadowSethandle;
+            }
+        }
+
+        public void FreeHDShadowRequests(HDLightRenderEntity lightEntity)
+        {
+            if (!lightEntity.valid)
+                return;
+
+            HDShadowRequestSetHandle shadowRequestSetHandle = m_ShadowRequestSetHandles[lightEntity.entityIndex];
+            HDShadowRequestDatabase.instance.FreeHDShadowRequests(ref shadowRequestSetHandle);
+            m_ShadowRequestSetHandles[lightEntity.entityIndex] = shadowRequestSetHandle;
+            m_ShadowRequestSetPackedHandles[GetEntityData(lightEntity).dataIndex] = shadowRequestSetHandle;
+        }
+
+        public HDShadowRequestSetHandle GetShadowRequestSetHandle(HDLightRenderEntity entity)
+        {
+            return m_ShadowRequestSetHandles[entity.entityIndex];
+        }
+
+        [BurstCompile]
+        private struct GetDataIndicesFromHDLightRenderEntitiesArrayJob : IJob
+        {
+            [ReadOnly] public NativeArray<HDLightRenderEntity> lightEntityLookups;
+            [ReadOnly] public NativeArray<LightEntityInfo> lightEntityStorage;
+            [WriteOnly] public NativeList<int> dataIndices;
+
+            public void Execute()
+            {
+                for (int i = 0; i < lightEntityLookups.Length; i++)
+                {
+                    LightEntityInfo entityInfo = lightEntityStorage[lightEntityLookups[i].entityIndex];
+                    dataIndices.Add(entityInfo.dataIndex);
+                }
+            }
+        }
+
+        [BurstCompile]
+        private struct GetDataIndicesFromHDLightRenderEntitiesHashmapJob : IJob
+        {
+            [ReadOnly] public NativeHashMap<int, HDLightRenderEntity> lightEntityLookups;
+            [ReadOnly] public NativeArray<LightEntityInfo> lightEntityStorage;
+            [WriteOnly] public NativeList<int> dataIndices;
+
+            public void Execute()
+            {
+                foreach (var kvp in lightEntityLookups)
+                {
+                    LightEntityInfo entityInfo = lightEntityStorage[kvp.Value.entityIndex];
+                    dataIndices.Add(entityInfo.dataIndex);
+                }
+            }
+        }
+
+        public void GetDataIndicesFromEntities(NativeArray<HDLightRenderEntity> inLightEntities, NativeList<int> outDataIndices)
+        {
+            GetDataIndicesFromHDLightRenderEntitiesArrayJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesArrayJob()
+            {
+                lightEntityLookups = inLightEntities,
+                lightEntityStorage = m_LightEntities,
+                dataIndices = outDataIndices
+            };
+
+            getDataIndicesJob.Run();
+        }
+
+        public void GetDataIndicesFromEntities(NativeHashMap<int, HDLightRenderEntity> inLightEntities, NativeList<int> outDataIndices)
+        {
+            GetDataIndicesFromHDLightRenderEntitiesHashmapJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesHashmapJob()
+            {
+                lightEntityLookups = inLightEntities,
+                lightEntityStorage = m_LightEntities,
+                dataIndices = outDataIndices
+            };
+
+            getDataIndicesJob.Run();
         }
 
         //Must be called at the destruction of the rendering pipeline to delete all the internal buffers.
@@ -504,86 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return -1;
         }
 
-        public HDShadowRequestSetHandle GetShadowRequestSetHandle(HDLightRenderEntity entity)
-        {
-            return m_ShadowRequestSetHandles[entity.entityIndex];
-        }
 
-        public unsafe void AllocateHDShadowRequests(HDLightRenderEntity entity)
-        {
-            if (!m_ShadowRequestSetHandles[entity.entityIndex].valid)
-            {
-                int oldFreeIndex = m_HDShadowRequestFreeListIndex;
-                int oldCapacity = m_HDShadowRequestCapacity;
-
-                if (oldFreeIndex >= oldCapacity)
-                {
-                    int newCapacity = oldCapacity * 2;
-                    newCapacity = newCapacity < 1 ? 1 : newCapacity;
-                    m_HDShadowRequestStorage.Length = newCapacity * HDShadowRequest.maxLightShadowRequestsCount;
-                    m_HDShadowRequestIndicesStorage.Length = newCapacity * HDShadowRequest.maxLightShadowRequestsCount;
-                    m_FrustumPlanesStorage.Length = newCapacity * HDShadowRequest.maxLightShadowRequestsCount * HDShadowRequest.frustumPlanesCount;
-                    m_CachedViewPositionsStorage.Length = newCapacity * HDShadowRequest.maxLightShadowRequestsCount;
-
-                    ref UnsafeList<int> requestIndicesExpanded = ref UnsafeUtility.AsRef<UnsafeList<int>>(m_HDShadowRequestIndicesStorage.GetUnsafeList());
-                    for (int i = oldCapacity; i < newCapacity; i++)
-                    {
-                        requestIndicesExpanded[i * HDShadowRequest.maxLightShadowRequestsCount] = i + 1;
-                    }
-
-                    m_HDShadowRequestCapacity = newCapacity;
-                }
-
-                ref UnsafeList<HDShadowRequest> requests = ref UnsafeUtility.AsRef<UnsafeList<HDShadowRequest>>(m_HDShadowRequestStorage.GetUnsafeList());
-                for (int i = oldFreeIndex * HDShadowRequest.maxLightShadowRequestsCount; i < oldFreeIndex * HDShadowRequest.maxLightShadowRequestsCount + HDShadowRequest.maxLightShadowRequestsCount; i++)
-                {
-                    requests[i].InitDefault();
-                }
-
-                ref UnsafeList<int> requestIndices = ref UnsafeUtility.AsRef<UnsafeList<int>>(m_HDShadowRequestIndicesStorage.GetUnsafeList());
-                m_HDShadowRequestFreeListIndex = requestIndices[oldFreeIndex * HDShadowRequest.maxLightShadowRequestsCount];
-                requestIndices[oldFreeIndex * HDShadowRequest.maxLightShadowRequestsCount] = default;
-
-                m_ShadowRequestSetHandles[entity.entityIndex] = new HDShadowRequestSetHandle { relativeDataOffset = oldFreeIndex };
-                m_ShadowRequestSetPackedHandles[GetEntityData(entity).dataIndex] = new HDShadowRequestSetHandle { relativeDataOffset = oldFreeIndex };
-                ++m_HDShadowRequestCount;
-            }
-        }
-
-        public unsafe void FreeHDShadowRequests(HDLightRenderEntity lightEntity)
-        {
-            HDShadowRequestSetHandle shadowRequestSetHandle = m_ShadowRequestSetHandles[lightEntity.entityIndex];
-
-            if (shadowRequestSetHandle.valid)
-            {
-                ref UnsafeList<HDShadowRequest> requests = ref UnsafeUtility.AsRef<UnsafeList<HDShadowRequest>>(m_HDShadowRequestStorage.GetUnsafeList());
-                int sizeOfRequests = UnsafeUtility.SizeOf<HDShadowRequest>();
-                int requestsByteCount = sizeOfRequests * HDShadowRequest.maxLightShadowRequestsCount;
-                UnsafeUtility.MemClear(requests.Ptr + shadowRequestSetHandle.storageIndexForShadowRequests, requestsByteCount);
-
-                ref UnsafeList<Vector4> planes = ref UnsafeUtility.AsRef<UnsafeList<Vector4>>(m_FrustumPlanesStorage.GetUnsafeList());
-                int sizeOfPlane = UnsafeUtility.SizeOf<Vector4>();
-                int planesByteCount = sizeOfPlane * HDShadowRequest.frustumPlanesCount * HDShadowRequest.maxLightShadowRequestsCount;
-                UnsafeUtility.MemClear(planes.Ptr + shadowRequestSetHandle.storageIndexForFrustumPlanes, planesByteCount);
-
-                ref UnsafeList<int> requestIndices = ref UnsafeUtility.AsRef<UnsafeList<int>>(m_HDShadowRequestIndicesStorage.GetUnsafeList());
-                int sizeOfIndices = sizeof(int);
-                int indicesByteCount = sizeOfIndices * HDShadowRequest.maxLightShadowRequestsCount;
-                UnsafeUtility.MemClear(requestIndices.Ptr + shadowRequestSetHandle.storageIndexForRequestIndices, indicesByteCount);
-
-                ref UnsafeList<Vector3> cachedViewPositions = ref UnsafeUtility.AsRef<UnsafeList<Vector3>>(m_CachedViewPositionsStorage.GetUnsafeList());
-                int sizeOfViewPositions = UnsafeUtility.SizeOf<Vector3>();
-                int viewPositionsByteCount = sizeOfViewPositions * HDShadowRequest.maxLightShadowRequestsCount;
-                UnsafeUtility.MemClear(cachedViewPositions.Ptr + shadowRequestSetHandle.storageIndexForCachedViewPositions, viewPositionsByteCount);
-
-                requestIndices[shadowRequestSetHandle.storageIndexForCachedViewPositions] = m_HDShadowRequestFreeListIndex;
-                m_HDShadowRequestFreeListIndex = shadowRequestSetHandle.relativeDataOffset;
-
-                m_ShadowRequestSetHandles[lightEntity.entityIndex] = new HDShadowRequestSetHandle {relativeDataOffset = HDShadowRequestSetHandle.InvalidIndex};
-                m_ShadowRequestSetPackedHandles[GetEntityData(lightEntity).dataIndex] = new HDShadowRequestSetHandle {relativeDataOffset = HDShadowRequestSetHandle.InvalidIndex};
-                --m_HDShadowRequestCount;
-            }
-        }
 
         #endregion
 
@@ -609,13 +606,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeList<LightEntityInfo> m_LightEntities = new NativeList<LightEntityInfo>(Allocator.Persistent);
         private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
         private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
-        private NativeList<ShadowIndicesAndVisibleLightData> m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-        private NativeList<ShadowIndicesAndVisibleLightData> m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-        private NativeBitArray m_IsValidIndexScratchpadArray = new NativeBitArray(256, Allocator.Persistent);
-        private NativeArray<int> m_ShadowIndicesScratchpadArray;
-#if UNITY_EDITOR
-        NativeArray<int> m_ShadowRequestCountsScratchpad;
-#endif
+
         private Queue<int> m_FreeIndices = new Queue<int>();
         private Dictionary<int, LightEntityInfo> m_LightsToEntityItem = new Dictionary<int, LightEntityInfo>();
 
@@ -627,18 +618,6 @@ namespace UnityEngine.Rendering.HighDefinition
         //TODO: Hack array just used for shadow allocation. Need to refactor this so we dont depend on hdAdditionalData
         private DynamicArray<GameObject> m_AOVGameObjects = new DynamicArray<GameObject>();
         private DynamicArray<HDAdditionalLightData> m_HDAdditionalLightData = new DynamicArray<HDAdditionalLightData>();
-
-        // TODO: Pad each set of HDShadowRequests to eliminate cache line sharing between sets, as a prerequisite for parallel shadow request update work.
-        private int m_HDShadowRequestFreeListIndex;
-        private int m_HDShadowRequestCount;
-        private int m_HDShadowRequestCapacity;
-        private NativeList<HDShadowRequest> m_HDShadowRequestStorage = new NativeList<HDShadowRequest>(Allocator.Persistent);
-        private NativeList<int> m_HDShadowRequestIndicesStorage = new NativeList<int>(Allocator.Persistent);
-        private NativeList<float4> m_FrustumPlanesStorage = new NativeList<float4>(Allocator.Persistent);
-        private NativeList<Vector3> m_CachedViewPositionsStorage = new NativeList<Vector3>(Allocator.Persistent);
-        private bool m_HDShadowRequestsCreated = true;
-
-        private NativeArray<Matrix4x4> m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
 
         private void ResizeArrays()
         {
@@ -672,32 +651,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void DeleteArrays()
         {
-            if (m_IsValidIndexScratchpadArray.IsCreated)
-            {
-                m_IsValidIndexScratchpadArray.Dispose();
-                m_IsValidIndexScratchpadArray = default;
-            }
-
-            if (m_ShadowIndicesScratchpadArray.IsCreated)
-            {
-                m_ShadowIndicesScratchpadArray.Dispose();
-                m_ShadowIndicesScratchpadArray = default;
-            }
-
-
-#if UNITY_EDITOR
-            if (m_ShadowRequestCountsScratchpad.IsCreated)
-            {
-                m_ShadowRequestCountsScratchpad.Dispose();
-                m_ShadowRequestCountsScratchpad = default;
-            }
-#endif
             if (m_Capacity == 0)
                 return;
-
-            m_HDShadowRequestFreeListIndex = 0;
-            m_HDShadowRequestCapacity = 0;
-            m_HDShadowRequestCapacity = 0;
 
             m_HDAdditionalLightData.Clear();
             m_AOVGameObjects.Clear();
@@ -713,36 +668,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowRequestSetHandles = default;
             m_ShadowRequestSetPackedHandles.Dispose();
             m_ShadowRequestSetPackedHandles = default;
-            m_VisibleLightsAndIndicesBuffer.Dispose();
-            m_VisibleLightsAndIndicesBuffer = default;
-            m_SplitVisibleLightsAndIndicesBuffer.Dispose();
-            m_SplitVisibleLightsAndIndicesBuffer = default;
-
-            m_HDShadowRequestStorage.Dispose();
-            m_HDShadowRequestStorage = default;
-            m_HDShadowRequestIndicesStorage.Dispose();
-            m_HDShadowRequestIndicesStorage = default;
-            m_CachedViewPositionsStorage.Dispose();
-            m_CachedViewPositionsStorage = default;
-            m_FrustumPlanesStorage.Dispose();
-            m_FrustumPlanesStorage = default;
-            m_HDShadowRequestsCreated = false;
-
-            if (cachedPointUpdateInfos.IsCreated)
-            {
-                cachedPointUpdateInfos.Dispose();
-                cachedSpotUpdateInfos.Dispose();
-                cachedAreaRectangleUpdateInfos.Dispose();
-                cachedAreaOtherUpdateInfos.Dispose();
-                cachedDirectionalUpdateInfos.Dispose();
-                dynamicPointUpdateInfos.Dispose();
-                dynamicSpotUpdateInfos.Dispose();
-                dynamicAreaRectangleUpdateInfos.Dispose();
-                dynamicAreaOtherUpdateInfos.Dispose();
-                dynamicDirectionalUpdateInfos.Dispose();
-            }
-
-            m_CachedCubeMapFaces.Dispose();
 
             m_Capacity = 0;
         }
