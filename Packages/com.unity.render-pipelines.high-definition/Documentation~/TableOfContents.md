@@ -82,6 +82,7 @@
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
+  * [Reduce shader variants in your build](Shader-Stripping)
   * [Tessellation](Tessellation.md)
   * [Decal](Decal.md)
   * [Surface Type](Surface-Type.md)

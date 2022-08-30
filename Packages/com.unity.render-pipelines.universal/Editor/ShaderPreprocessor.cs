@@ -359,6 +359,13 @@ namespace UnityEditor.Rendering.Universal
                 // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
                 features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
             }
+
+            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
+            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+            }
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
