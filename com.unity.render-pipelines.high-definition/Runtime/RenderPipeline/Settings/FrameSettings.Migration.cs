@@ -443,5 +443,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.probeVolumeDynamicGIPropagationQuality = 2;
             cameraFrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame = -1;
         }
+
+        internal static void MigrateProbeVolumeQuality(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.probeVolumeEncoding = 2;
+        }
     }
 }

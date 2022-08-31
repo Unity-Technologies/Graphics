@@ -27,9 +27,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int DataSHL01Length => m_List.GetDataSHL01Length(m_Index);
         public int DataSHL2Length => m_List.GetDataSHL2Length(m_Index);
+        public int DataValidityLength => m_List.GetDataValidityLength(m_Index);
         public int DataOctahedralDepthLength  => m_List.GetDataOctahedralDepthLength(m_Index);
+        public void SetDataSHL01(ComputeBuffer buffer) => m_List.SetDataSHL01(m_Index, buffer);
+        public void SetDataSHL2(ComputeBuffer buffer) => m_List.SetDataSHL2(m_Index, buffer);
+        public void SetDataValidity(ComputeBuffer buffer) => m_List.SetDataValidity(m_Index, buffer);
         public void SetDataOctahedralDepth(ComputeBuffer buffer) => m_List.SetDataOctahedralDepth(m_Index, buffer);
-        public void EnsureVolumeBuffers() => m_List.EnsureVolumeBuffers(m_Index);
         public ref ProbeVolumePipelineData GetPipelineData() => ref m_List.GetPipelineData(m_Index);
 
         // Dynamic GI

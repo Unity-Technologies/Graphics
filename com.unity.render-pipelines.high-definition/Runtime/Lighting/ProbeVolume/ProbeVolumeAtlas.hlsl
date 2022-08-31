@@ -3,23 +3,27 @@
 
 float ProbeVolumeLoadValidity(int3 probeVolumeAtlasTexelCoord)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+    return LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0), 0).w;
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
     return LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x;
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     return LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6), 0).w;
 #else
-    return 0.0;
+    #error "Unsupported Probe Volumes atlas encoding";
 #endif
 }
 
 float ProbeVolumeSampleValidity(float3 probeVolumeAtlasUVW)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+    return SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0).w;
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
     return SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x;
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     return SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 6), 0).w;
 #else
-    return 0.0;
+    #error "Unsupported Probe Volumes atlas encoding";
 #endif
 }
 
@@ -54,7 +58,7 @@ void ProbeVolumeLoadAccumulateSphericalHarmonicsL0(int3 probeVolumeAtlasTexelCoo
 
 void ProbeVolumeLoadAccumulateSphericalHarmonicsL1(int3 probeVolumeAtlasTexelCoord, float weight, inout ProbeVolumeSphericalHarmonicsL1 coefficients)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1 || SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1) || defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     coefficients.data[0] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0), 0) * weight;
     coefficients.data[1] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1), 0) * weight;
     coefficients.data[2] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2), 0) * weight;
@@ -63,14 +67,14 @@ void ProbeVolumeLoadAccumulateSphericalHarmonicsL1(int3 probeVolumeAtlasTexelCoo
 
 void ProbeVolumeLoadAccumulateSphericalHarmonicsL2(int3 probeVolumeAtlasTexelCoord, float weight, inout ProbeVolumeSphericalHarmonicsL2 coefficients)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
     // Requesting SH2, but atlas only contains SH1.
     // Only accumulate SH1 coefficients.
     coefficients.data[0] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0), 0) * weight;
     coefficients.data[1] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1), 0) * weight;
     coefficients.data[2] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2), 0) * weight;
 
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     coefficients.data[0] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0), 0) * weight;
     coefficients.data[1] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1), 0) * weight;
     coefficients.data[2] += LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2), 0) * weight;
@@ -90,7 +94,7 @@ void ProbeVolumeSampleAccumulateSphericalHarmonicsL0(float3 probeVolumeAtlasUVW,
 
 void ProbeVolumeSampleAccumulateSphericalHarmonicsL1(float3 probeVolumeAtlasUVW, float weight, inout ProbeVolumeSphericalHarmonicsL1 coefficients)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1 || SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1) || defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     coefficients.data[0] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) * weight;
     coefficients.data[1] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) * weight;
     coefficients.data[2] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) * weight;
@@ -99,14 +103,14 @@ void ProbeVolumeSampleAccumulateSphericalHarmonicsL1(float3 probeVolumeAtlasUVW,
 
 void ProbeVolumeSampleAccumulateSphericalHarmonicsL2(float3 probeVolumeAtlasUVW, float weight, inout ProbeVolumeSphericalHarmonicsL2 coefficients)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
     // Requesting SH2, but atlas only contains SH1.
     // Only accumulate SH1 coefficients.
     coefficients.data[0] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) * weight;
     coefficients.data[1] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) * weight;
     coefficients.data[2] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) * weight;
 
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     coefficients.data[0] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) * weight;
     coefficients.data[1] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) * weight;
     coefficients.data[2] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) * weight;

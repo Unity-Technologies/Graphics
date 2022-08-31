@@ -9,7 +9,13 @@
 // TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
 // as there are other parameters such as bilateral filtering, additive blending, and normal bias
 // that we will want to disable for a low quality high performance mode.
-#define PROBE_VOLUMES_SAMPLING_MODE SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#endif
 #endif
 
 #ifndef PROBE_VOLUMES_BILATERAL_FILTERING_MODE
@@ -263,6 +269,8 @@ void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 norma
     backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
     reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(reflectionDirectionWS, coefficients, ProbeVolumeGetReflectionProbeNormalizationDirectionality());
 
+#else
+    #error "Unsupported Probe Volumes atlas encoding";
 #endif
 
     reflectionProbeNormalizationWeight = weightHierarchy * ProbeVolumeGetReflectionProbeNormalizationWeight();
