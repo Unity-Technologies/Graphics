@@ -8,11 +8,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-            "   Out = UV;",
+            "   UV = Channel.xy; W = Channel;",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
-                new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.Static, REF.UV0)
+                new ParameterDescriptor("Channel", TYPE.Vec4, GraphType.Usage.Static, REF.UV0),
+                new ParameterDescriptor("UV", TYPE.Vec2, GraphType.Usage.Out),
+                new ParameterDescriptor("XYZW", TYPE.Vec4, GraphType.Usage.Out)
             }
         );
 
@@ -24,12 +25,17 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[3] { "texcoords", "coords", "coordinates" },
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "Out",
+                    name: "UV",
                     tooltip: "Texture coordinate."
 
                 ),
                 new ParameterUIDescriptor(
-                    name: "UV",
+                    name: "XYZW",
+                    tooltip: "The complete vec4 texture coordinate."
+
+                ),
+                new ParameterUIDescriptor(
+                    name: "Channel",
                     options: REF.OptionList.UVs
                 )
             }
