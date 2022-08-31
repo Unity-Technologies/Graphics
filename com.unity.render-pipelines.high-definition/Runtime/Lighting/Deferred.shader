@@ -40,6 +40,7 @@ Shader "Hidden/HDRP/Deferred"
             #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
 
             #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
 

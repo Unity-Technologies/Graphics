@@ -775,8 +775,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
             RenderTargetIdentifier probeVolumeAtlasSHRTHandle, bool infiniteBounces,
             PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe,
-            ProbeVolumeDynamicGIMixedLightMode mixedLightMode, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding)
+            ProbeVolumeDynamicGIMixedLightMode mixedLightMode, ProbeVolumeDynamicGIRadianceEncoding radianceEncoding,
+            ProbeVolumesEncodingModes encodingMode)
         {
+            ProbeVolume.EnsureVolumeBuffers(probeVolume, encodingMode);
+
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume, radianceEncoding);
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
             {
@@ -1123,18 +1126,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var c5 = new Vector4(ambientProbe[2, 4], ambientProbe[2, 5], ambientProbe[2, 6], ambientProbe[2, 7]) * multiplier;
             var c6 = new Vector4(ambientProbe[0, 8], ambientProbe[1, 8], ambientProbe[2, 8], 0f) * multiplier;
 
-            /*
-            // Denormalize Quadratic term:
-            c3.z /= 3f;
-            c4.z /= 3f;
-            c5.z /= 3f;
-
-            // Denormalize DC term:
-            c0.w += c3.z;
-            c1.w += c4.z;
-            c2.w += c5.z;
-            */
-
             s_AmbientProbe[0] = c0;
             s_AmbientProbe[1] = c1;
             s_AmbientProbe[2] = c2;
@@ -1226,6 +1217,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var obb = pipelineData.BoundingBox;
 
+            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1", false);
+            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2", true);
+
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, (Vector3)size);
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
                 1.0f / size.x,
@@ -1233,7 +1227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / size.z
             ));
 
-            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
             var resolutionAndSliceCount = new Vector4(
                 size.x,
                 size.y,
@@ -1298,8 +1292,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool InitializePropagationInputBuffers(ProbeVolumeHandle probeVolume)
         {
-            probeVolume.EnsureVolumeBuffers();
-
             var dataVersion = probeVolume.GetDataVersion();
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
 

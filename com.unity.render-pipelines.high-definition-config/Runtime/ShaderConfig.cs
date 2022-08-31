@@ -110,9 +110,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The probe volume bilateral filtering sample mode.</summary>
         /// <seealso cref="ProbeVolumesBilateralFilteringSampleModes"/>
         ProbeVolumesBilateralFilteringSampleMode = ProbeVolumesBilateralFilteringSampleModes.ApproximateSample,
-        /// <summary>The probe volume encoding method.</summary>
-        /// <seealso cref="ProbeVolumesEncodingModes"/>
-        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL2,
 
         /// <summary>Support for area lights.</summary>
         AreaLights = 1,
@@ -158,9 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Specifies the probe volume filtering mode.</summary>
         ///<seealso cref="ShaderOptions.ProbeVolumesBilateralFilteringMode"/>
         public static ProbeVolumesBilateralFilteringSampleModes s_ProbeVolumesBilateralFilteringSampleMode = (ProbeVolumesBilateralFilteringSampleModes)ShaderOptions.ProbeVolumesBilateralFilteringSampleMode;
-        /// <summary>Specifies the probe volume encoding method.</summary>
-        ///<seealso cref="ShaderOptions.ProbeVolumesEncodingMode"/>
-        public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
         /// <summary>Indicates whether to support area lights.</summary>
         ///<seealso cref="ShaderOptions.AreaLights"/>
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;

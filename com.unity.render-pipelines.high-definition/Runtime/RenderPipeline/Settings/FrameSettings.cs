@@ -402,6 +402,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
         [FrameSettingsField(1, customOrderInGroup: 3, autoName: ProbeVolume)]
         ProbeVolume = 127,
+        [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Sampling Quality", positiveDependencies: new[] { ProbeVolume }, type: FrameSettingsFieldAttribute.DisplayType.Others)]
+        ProbeVolumeEncoding = 57,
         [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Normalize Reflection Probes", positiveDependencies: new[] { ProbeVolume })]
         NormalizeReflectionProbeWithProbeVolume = 126,
         //only 128 booleans saved. For more, change the BitArray used
@@ -505,6 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            probeVolumeEncoding   = 2,
             probeVolumeDynamicGIPropagationQuality = 2,
             probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
             probeVolumeDynamicGIMixedLightMode = ProbeVolumeDynamicGIMixedLightMode.Mixed,
@@ -568,6 +571,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            probeVolumeEncoding   = 2,
             probeVolumeDynamicGIPropagationQuality = 2,
             probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
             probeVolumeDynamicGIMixedLightMode = ProbeVolumeDynamicGIMixedLightMode.Mixed,
@@ -627,6 +631,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            probeVolumeEncoding   = 2,
             probeVolumeDynamicGIPropagationQuality = 2,
             probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
             // TODO: Discuss if we want to have MixedOnly for baked reflection probes. Add a migration if this is changed.
@@ -679,6 +684,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The actual value used by the Subsurface Scattering algorithm. Updated every frame.</summary>
         internal int sssResolvedSampleBudget;
 
+        /// <summary>Stores ProbeVolumeEncoding on disk.</summary>
+        [SerializeField]
+        public int probeVolumeEncoding;
         /// <summary>Stores ProbeVolumeDynamicGIPropagationQuality on disk.</summary>
         [SerializeField]
         public int probeVolumeDynamicGIPropagationQuality;
@@ -803,6 +811,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelQualityLevel])
                 overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeEncoding])
+                overriddenFrameSettings.probeVolumeEncoding = overridingFrameSettings.probeVolumeEncoding;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeDynamicGIPropagationQuality])
                 overriddenFrameSettings.probeVolumeDynamicGIPropagationQuality = overridingFrameSettings.probeVolumeDynamicGIPropagationQuality;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeDynamicGIMaxSimulationsPerFrame])
@@ -977,6 +987,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && a.maximumLODLevel                            == b.maximumLODLevel
             && a.maximumLODLevelMode                        == b.maximumLODLevelMode
             && a.maximumLODLevelQualityLevel                == b.maximumLODLevelQualityLevel
+            && a.probeVolumeEncoding                        == b.probeVolumeEncoding
             && a.probeVolumeDynamicGIPropagationQuality     == b.probeVolumeDynamicGIPropagationQuality
             && a.probeVolumeDynamicGIMaxSimulationsPerFrame == b.probeVolumeDynamicGIMaxSimulationsPerFrame
             && a.probeVolumeDynamicGIMixedLightMode         == b.probeVolumeDynamicGIMixedLightMode
@@ -1008,6 +1019,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && maximumLODLevel.Equals(((FrameSettings)obj).maximumLODLevel)
             && maximumLODLevelMode.Equals(((FrameSettings)obj).maximumLODLevelMode)
             && maximumLODLevelQualityLevel.Equals(((FrameSettings)obj).maximumLODLevelQualityLevel)
+            && probeVolumeEncoding.Equals(((FrameSettings)obj).probeVolumeEncoding)
             && probeVolumeDynamicGIPropagationQuality.Equals(((FrameSettings)obj).probeVolumeDynamicGIPropagationQuality)
             && probeVolumeDynamicGIMaxSimulationsPerFrame.Equals(((FrameSettings)obj).probeVolumeDynamicGIMaxSimulationsPerFrame)
             && probeVolumeDynamicGIMixedLightMode.Equals(((FrameSettings)obj).probeVolumeDynamicGIMixedLightMode)
@@ -1032,6 +1044,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + maximumLODLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelMode.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelQualityLevel.GetHashCode();
+            hashCode = hashCode * -1521134295 + probeVolumeEncoding.GetHashCode();
             hashCode = hashCode * -1521134295 + probeVolumeDynamicGIPropagationQuality.GetHashCode();
             hashCode = hashCode * -1521134295 + probeVolumeDynamicGIMaxSimulationsPerFrame.GetHashCode();
             hashCode = hashCode * -1521134295 + probeVolumeDynamicGIMixedLightMode.GetHashCode();
@@ -1121,6 +1134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebuggerEntry("maximumLODLevel", m_FrameSettings.maximumLODLevel),
                         new DebuggerEntry("maximumLODLevelMode", m_FrameSettings.maximumLODLevelMode),
                         new DebuggerEntry("maximumLODLevelQualityLevel", m_FrameSettings.maximumLODLevelQualityLevel),
+                        new DebuggerEntry("probeVolumeEncoding", m_FrameSettings.probeVolumeEncoding),
                         new DebuggerEntry("probeVolumeDynamicGIPropagationQuality", m_FrameSettings.probeVolumeDynamicGIPropagationQuality),
                         new DebuggerEntry("probeVolumeDynamicGIMaxSimulationsPerFrame", m_FrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame),
                         new DebuggerEntry("probeVolumeDynamicGIMixedLightMode", m_FrameSettings.probeVolumeDynamicGIMixedLightMode),

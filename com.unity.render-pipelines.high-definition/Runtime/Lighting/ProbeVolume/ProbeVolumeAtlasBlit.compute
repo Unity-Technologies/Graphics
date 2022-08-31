@@ -2,9 +2,10 @@
 #pragma warning(disable: 4714)
 
 #pragma kernel ProbeVolumeAtlasBlitKernel PROBE_VOLUME_ATLAS_BLIT_KERNEL=ProbeVolumeAtlasBlitKernel
+#pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
 
 #ifdef SHADER_API_PSSL
-#   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
+#pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
 #endif
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
@@ -14,7 +15,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeRotate.hlsl"
 
 StructuredBuffer<float> _ProbeVolumeAtlasReadSHL01Buffer;
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
 StructuredBuffer<float> _ProbeVolumeAtlasReadSHL2Buffer;
 #endif
 StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
@@ -96,7 +97,15 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     // We only intend to stream them in at different orientations.
     // Because of this constraint, rotating them within the atlas makes the most sense in terms of performance.
 
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        validity // last channel in float4 is unused by SH0 terms, so we take this opportunity to pack validity into it.
+    );
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
     float4 shCoefficientsFloat4[3];
     shCoefficientsFloat4[0] = float4(
         _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
@@ -128,7 +137,7 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = shCoefficientsFloat4[2];
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3)] = float4(validity, 0.0, 0.0, 0.0);
 
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
     float4 shCoefficientsFloat4[7];
     shCoefficientsFloat4[0] = float4(
         _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
@@ -191,6 +200,6 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     );
 
 #else
-    #error "Unsupported ShaderOptions.ProbeVolumesAtlasEncodingMode.";
-#endif    
+    #error "Unsupported Probe Volumes atlas encoding";
+#endif
 }
