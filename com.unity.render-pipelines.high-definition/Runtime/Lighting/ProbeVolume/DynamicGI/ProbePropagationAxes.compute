@@ -231,7 +231,7 @@ float3 PropagateLightFromNeighborSHWithZHFit(SHIncomingIrradiance shIncomingIrra
 {
     float3 basisAxisHitDirectionWS = mul(neighborAxisLookup.neighborDirection, probeVolumeLtw);
     ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisNeighborHit);
-    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunctionInPlace(shIncomingIrradiance, basisAxisHitZHWindow);
     return ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * hitWeight;
 }
 

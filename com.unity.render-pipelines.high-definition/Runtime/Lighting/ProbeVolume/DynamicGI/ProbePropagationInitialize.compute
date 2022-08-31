@@ -160,8 +160,8 @@ void ComputeProbeBasisFromSHZHFit(SHIncomingIrradiance shIncomingIrradiance, flo
         // but it can be approximately represented as an ZH.
         float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
         ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
-        SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
-        float3 incomingHitRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS);
+        SHIncomingIrradiance shIncomingIrradianceConvolved = SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+        float3 incomingHitRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradianceConvolved, basisAxisHitDirectionWS);
 
         // ComputeZHWindowFromBasisAxisHit() returns a normalized (amplitude == 1) window.
         // We need to scale down the radiance by the actual amplitude of the window to complete the projection.
