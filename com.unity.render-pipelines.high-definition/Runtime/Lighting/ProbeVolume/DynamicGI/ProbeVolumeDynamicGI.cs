@@ -1449,21 +1449,31 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUnsafeUtils.QuickSort<NeighborAxisLookup, NeighborAxisLookup, NeighborAxisLookup.NeighborAxisLookupKeyGetter>(s_NeighborAxis.Length, sortedAxisPtr);
                 }
 
-                // Renormalize so all weights still add up to 1 when using limited axis amount.
+                // Renormalize so all weights still add up to what they would have added up to had we not truncated any of the axes.
+                // Careful: this is not 1.0 on all axes - some are intentionally more or less represented due to the way the basis is constructed.
                 var hitWeights = 0f;
+                var hitWeightsGoal = 0f;
                 var propagationWeights = 0f;
+                var propagationWeightsGoal = 0f;
                 for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
                 {
-                    hitWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
-                    propagationWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
+                    if (sortedAxisIndex < axisAmount)
+                    {
+                        hitWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
+                        propagationWeights += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
+                    }
+
+                    hitWeightsGoal += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
+                    propagationWeightsGoal += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
+                    
                 }
-                // Debug.Log("hitWeights = " + hitWeights);
-                // Debug.Log("propagationWeights = " + propagationWeights);
-                // for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
-                // {
-                //     _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight /= hitWeights;
-                //     _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeights;
-                // }
+                float hitWeightsNormalization = hitWeightsGoal / hitWeights;
+                float propagationWeightsNormalization = propagationWeightsGoal / propagationWeights;
+                for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
+                {
+                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight *= hitWeightsNormalization;
+                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeightsNormalization;
+                }
             }
         }
 
