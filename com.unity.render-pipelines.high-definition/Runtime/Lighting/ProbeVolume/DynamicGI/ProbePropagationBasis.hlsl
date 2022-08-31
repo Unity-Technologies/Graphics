@@ -213,4 +213,24 @@ ZHWindow ComputeZHWindowFromBasisAxisHit(BasisAxisHit basisAxisHit)
     return zhWindow;
 }
 
+ZHWindow ComputeZHWindowFromBasisAxisMiss(BasisAxisMiss basisAxisMiss)
+{
+    ZHWindow zhWindow;
+    ZERO_INITIALIZE(ZHWindow, zhWindow);
+
+#if (defined(BASIS_PROPAGATION_OVERRIDE_NONE) && defined(BASIS_SPHERICAL_GAUSSIAN)) || defined(BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN)
+    zhWindow = ZHWindowComputeFromSphericalGaussian(basisAxisMiss.sharpness);
+#elif defined(BASIS_PROPAGATION_OVERRIDE_NONE) && defined(BASIS_SPHERICAL_GAUSSIAN_WINDOWED)
+    zhWindow = ZHWindowComputeFromSphericalGaussianCosineWindow(basisAxisMiss.sharpness);
+#elif defined(BASIS_PROPAGATION_OVERRIDE_NONE) && defined(BASIS_AMBIENT_DICE)
+    zhWindow = ZHWindowComputeFromAmbientDiceSharpness(basisAxisMiss.sharpness);
+#elif defined(BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER) || defined(BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT) || defined(BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT)
+    zhWindow = ZHWindowComputeFromAmbientDiceWrappedSharpness(basisAxisMiss.sharpness);
+#else
+#error "Undefined Probe Propagation Basis"
+#endif
+
+    return zhWindow;
+}
+
 #endif // endof PROBE_PROPAGATION_BASIS

@@ -44,11 +44,23 @@ void ComputeAmbientDiceSharpAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out
     componentNonZeroCount += abs(axisDirection.y) > 1e-3 ? 1 : 0;
     componentNonZeroCount += abs(axisDirection.z) > 1e-3 ? 1 : 0;
 
+#if 1
+    // New coefficients tuned to to maximize unity across the sphere when integrating incoming radiance from monte carlo directions (i.e in a white furnace test).
+    float amplitudeEdge = 0.76;
+    float amplitudeDiagonal = 0.52;
+    float amplitudeCenter = 0.73;
+#else
+    float amplitudeEdge = 0.693;
+    float amplitudeDiagonal = 0.3087;
+    float amplitudeCenter = 0.64575;
+#endif
+
     amplitude = (componentNonZeroCount == 3)
-        ? 0.3087 // diagonal
+        ? amplitudeDiagonal // diagonal
         : ((componentNonZeroCount == 2)
-            ? 0.693 // edge
-            : 0.64575); // center
+            ? amplitudeEdge // edge
+            : amplitudeCenter); // center
+
     sharpness = (componentNonZeroCount == 3)
         ? 9.0 // diagonal
         : ((componentNonZeroCount == 2)
@@ -176,6 +188,18 @@ ZHWindow ZHWindowComputeFromAmbientDiceSharpness(float sharpness)
     ZHWindow zhWindow;
     
     float3 coefficients = ComputeZonalHarmonicFromAmbientDiceSharpness(sharpness);
+    zhWindow.data[0] = coefficients.x;
+    zhWindow.data[1] = coefficients.y;
+    zhWindow.data[2] = coefficients.z;
+
+    return zhWindow;
+}
+
+ZHWindow ZHWindowComputeFromAmbientDiceWrappedSharpness(float sharpness)
+{
+    ZHWindow zhWindow;
+    
+    float3 coefficients = ComputeZonalHarmonicFromAmbientDiceWrappedSharpness(sharpness);
     zhWindow.data[0] = coefficients.x;
     zhWindow.data[1] = coefficients.y;
     zhWindow.data[2] = coefficients.z;
