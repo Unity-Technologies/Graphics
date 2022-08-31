@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
                 data.m_RenderPipelineSettings.cubeReflectionResolution = new RenderPipelineSettings.ReflectionProbeResolutionScalableSetting(cubeResolutions, ScalableSettingSchemaId.With3Levels);
 
-                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize;
+                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize * 6;
                 int planarReflectionAtlasArea = (int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize;
                 int reflectionProbeTexCacheSize = Mathf.NextPowerOfTwo((int)Mathf.Sqrt(cubeReflectionAtlasArea + planarReflectionAtlasArea));
                 lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512x512, (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
