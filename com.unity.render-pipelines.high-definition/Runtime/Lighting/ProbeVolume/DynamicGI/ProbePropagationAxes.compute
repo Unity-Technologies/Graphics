@@ -287,6 +287,9 @@ float3 PropagateLightFromNeighborSHWithMonteCarloNaiveProjection(SHIncomingIrrad
 #define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
 #define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (1)
 #define BASIS_FROM_SH_MODE_ZH_FIT (2)
+
+// See note in ProbePropagationInitialize.compute.
+// Sample Peaks turns out to be better than ZH Fit in practice for our combination of basis and SH order.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_SAMPLE_PEAKS
 
 [numthreads(GROUP_SIZE, 1, 1)]
