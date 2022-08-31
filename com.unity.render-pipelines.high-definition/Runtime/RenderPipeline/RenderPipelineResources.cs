@@ -352,12 +352,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probePropagationInitializeCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationHits.compute")]
             public ComputeShader probePropagationHitsCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationResetDirtyFlags.compute")]
+            public ComputeShader probePropagationResetDirtyFlagsCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationAxes.compute")]
             public ComputeShader probePropagationAxesCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationCombine.compute")]
             public ComputeShader probePropagationCombineCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/DebugNeighbors.shader")]
             public Shader probeVolumeDebugNeighbors;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/DebugDirtyFlags.shader")]
+            public Shader probeVolumeDebugDirtyFlags;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

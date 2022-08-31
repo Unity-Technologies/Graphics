@@ -10,6 +10,7 @@
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 #pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
 #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+#pragma multi_compile _ DIRTY_FLAGS_DISABLED
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -42,6 +43,11 @@ StructuredBuffer<NeighborAxisLookup> _SortedNeighborAxisLookups;
 
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
+
+#ifndef DIRTY_FLAGS_DISABLED
+StructuredBuffer<int> _ProbeVolumeDirtyFlags;
+RWStructuredBuffer<int> _ProbeVolumeNextDirtyFlags;
+#endif
 
 StructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
@@ -231,7 +237,7 @@ float3 PropagateLightFromNeighborSHWithZHFit(SHIncomingIrradiance shIncomingIrra
 {
     float3 basisAxisHitDirectionWS = mul(neighborAxisLookup.neighborDirection, probeVolumeLtw);
     ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisNeighborHit);
-    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunctionInPlace(shIncomingIrradiance, basisAxisHitZHWindow);
     return ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * hitWeight;
 }
 
@@ -284,13 +290,21 @@ float3 PropagateLightFromNeighborSHWithMonteCarloNaiveProjection(SHIncomingIrrad
     return incomingHitRadiance;
 }
 
+RADIANCE GetPreviousAxisRadiance(int index)
+{
+#if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
+    return ZeroRadiance();
+#else
+    return _PreviousRadianceCacheAxis[index];
+#endif
+}
+
 #define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
 #define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (1)
 #define BASIS_FROM_SH_MODE_ZH_FIT (2)
 
-// See note in ProbePropagationInitialize.compute.
-// Sample Peaks turns out to be better than ZH Fit in practice for our combination of basis and SH order.
-#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+// Our ZH Fit produces results that are closer to the monte carlo naive projection ground turth than the sample peaks approach does. Both approaches are reasonable however.
+#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_ZH_FIT
 
 [numthreads(GROUP_SIZE, 1, 1)]
 void PropagateLight(uint3 id : SV_DispatchThreadID)
@@ -303,18 +317,21 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
 
+#ifndef DIRTY_FLAGS_DISABLED
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex))
+        {
+            _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
+            return;
+        }
+#endif
+
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         const float3 probePositionWS =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
 
         // Early out at far distances
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
-            #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            _RadianceCacheAxis[index] = ZeroRadiance();
-            #else
-            _RadianceCacheAxis[index] = _PreviousRadianceCacheAxis[index];
-            #endif
-
+            _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
             return;
         }
 
@@ -406,6 +423,32 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             }
         }
 
-        _RadianceCacheAxis[index] = EncodeRadiance((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
+        const float3 radiance = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
+        _RadianceCacheAxis[index] = EncodeRadiance(radiance);
+
+#ifndef DIRTY_FLAGS_DISABLED
+        if (!IsSimilarEqual(GetPreviousAxisRadiance(index), radiance))
+        {
+            for (int l = 0; l < PROPAGATION_AXIS_AMOUNT; ++l)
+            {
+                NeighborAxisLookup neighborAxisLookup = _SortedNeighborAxisLookups[neighborAxisIndexOffset + l];
+                int i = neighborAxisLookup.index;
+
+                int3 offset = GetNeighborAxisOffset(i);
+                // When we gathered radiance from neighbors in miss directions we were adding the offset,
+                // but here we try to predict which probes will gather changes from us so we subtract.
+                int3 neighborProbeCoordinate = probeCoordinate - offset;
+
+                if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
+                   neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
+                   neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
+                {
+                    uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
+                    SetProbeDirty(_ProbeVolumeNextDirtyFlags, neighborProbeIndex);
+                }
+            }
+        }
+#endif
+
     }
 }

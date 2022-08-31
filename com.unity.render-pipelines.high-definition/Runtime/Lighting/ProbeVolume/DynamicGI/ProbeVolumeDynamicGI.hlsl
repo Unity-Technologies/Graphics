@@ -341,5 +341,28 @@ float3 DecodeRadiance(RADIANCE packedValue)
 #endif
 }
 
+bool IsSimilarEqual(RADIANCE packedA, float3 b)
+{
+#if defined(RADIANCE_ENCODING_LOGLUV)
+    const int3 componentsA = int3(packedA & 255, packedA >> 8 & 255, packedA >> 16);
+
+    const float3 logLuvB = LogluvFromRgb(b);
+    const int3 componentsB = int3(
+        min(255, (uint)round(logLuvB.x * 255)),
+        min(255, (uint)round(logLuvB.y * 255)),
+        min(65535, (uint)round(logLuvB.z * 65535)));
+
+    return all(abs(componentsA - componentsB) < int3(2, 2, 32));
+
+#else
+    // TODO: Add a better comparison for HalfLuv and R11G11B10 if they are needed. They'll be giving a lot of false negatives now.
+
+    const float3 a = DecodeRadiance(packedA);
+
+    // Comparison with NaN always gives false. But if max is 0 then min is also 0.
+    // So we accept NaN from the division as true by flipping the condition twice.
+    return !any(min(a, b) / max(a, b) < 0.99);
+#endif
+}
 
 #endif // endof PROBE_VOLUME_DYNAMIC_GI

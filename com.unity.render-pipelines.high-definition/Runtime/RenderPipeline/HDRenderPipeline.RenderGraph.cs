@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.probeVolumesAtlas = builder.WriteTexture(m_ProbeVolumeList.rgResources.probeVolumesAtlas);
 
                         builder.SetRenderFunc((ProbeVolumeDynamicGIPassData passData, RenderGraphContext ctx) =>
-                            ExecuteProbeVolumeDynamicGI(ctx.cmd, passData.commonData, passData.probeVolumesAtlas));
+                            ExecuteProbeVolumeDynamicGI(ctx.cmd, in passData.commonData, passData.probeVolumesAtlas));
                     }
                 }
 

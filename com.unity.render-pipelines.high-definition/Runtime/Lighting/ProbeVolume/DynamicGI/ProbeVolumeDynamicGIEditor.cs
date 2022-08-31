@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-
+        
         private void ResolveExtraDataRequest(ref ProbeBakeNeighborData neighborData)
         {
             for (int i = 0; i < s_NeighborAxis.Length; ++i)

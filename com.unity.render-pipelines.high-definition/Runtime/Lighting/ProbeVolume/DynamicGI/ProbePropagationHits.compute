@@ -8,6 +8,7 @@
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 #pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+#pragma multi_compile _ DIRTY_FLAGS_DISABLED
 
 #define SHADOW_MINIMAL
 #define LIGHT_EVALUATION_NO_HEIGHT_FOG
@@ -24,6 +25,10 @@
 
 RWStructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
+
+#ifndef DIRTY_FLAGS_DISABLED
+RWStructuredBuffer<int> _ProbeVolumeDirtyFlags;
+#endif
 
 StructuredBuffer<PackedNeighborHit> _ProbeVolumeNeighborHits;
 int _ProbeVolumeNeighborHitCount;
@@ -129,6 +134,12 @@ float3 EvaluateBRDFLambertApproximate(uint probeIndex, float3 surfaceNormal, flo
 
         float integral = ComputeBasisAxisHitAndClampedCosineProductIntegral(basisAxisHit, surfaceNormal);
 
+        // Need to scale by our "normalized integral" of each lobe because our basis amplitude coefficients are defined around the assumption that
+        // integration in say a white furnace test includes this a post normalization by the lobe integral.
+        // We could just as easily push this scale factor into the amplitude coefficients and not have to worry about it here,
+        // but then we would have to worry about dividing it out in other locations in the pipeline.
+        integral *= ComputeBasisAxisHitIntegralFromSharpness(basisAxisHit);
+
         color += prevAxisRadiance * integral;
     }
 
@@ -223,6 +234,11 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
 
         lighting += UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
         lighting += UnpackEmission(neighborData.mixedLighting) * _MixedLightingMultiplier;
+
+#ifndef DIRTY_FLAGS_DISABLED
+        if (!IsSimilarEqual(_HitRadianceCacheAxis[hitAxisIndex], lighting))
+            SetProbeDirty(_ProbeVolumeDirtyFlags, probeIndex);
+#endif
 
         _HitRadianceCacheAxis[hitAxisIndex] = EncodeRadiance(lighting);
     }
