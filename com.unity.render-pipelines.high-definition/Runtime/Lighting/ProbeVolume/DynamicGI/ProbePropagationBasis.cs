@@ -73,21 +73,22 @@ namespace UnityEngine.Rendering.HighDefinition
             componentNonZeroCount += Mathf.Abs(axisDirection.y) > 1e-3 ? 1 : 0;
             componentNonZeroCount += Mathf.Abs(axisDirection.z) > 1e-3 ? 1 : 0;
 
+#if true
+            // New coefficients tuned to to maximize unity across the sphere when integrating incoming radiance from monte carlo directions (i.e in a white furnace test).
             float amplitudeEdge = 0.76f;
             float amplitudeCorner = 0.52f;
             float amplitudeOther = 0.73f;
-
+#else
+            float amplitudeEdge = 0.693f;
+            float amplitudeCorner = 0.3087f;
+            float amplitudeOther = 0.64575f;
+#endif
             amplitude = (componentNonZeroCount == 3)
                 ? amplitudeCorner // diagonal
                 : ((componentNonZeroCount == 2)
                     ? amplitudeEdge // edge
                     : amplitudeOther); // center
 
-            // amplitude = (componentNonZeroCount == 3)
-            //     ? 0.3087f // diagonal
-            //     : ((componentNonZeroCount == 2)
-            //         ? 0.693f // edge
-            //         : 0.64575f); // center
             sharpness = (componentNonZeroCount == 3)
                 ? 9f // diagonal
                 : 6f; // center
