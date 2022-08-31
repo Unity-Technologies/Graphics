@@ -926,7 +926,7 @@ void SHIncomingIrradianceConvolveZHWindow(inout SHIncomingIrradiance shIncomingI
     shIncomingIrradiance.data[8] *= zhWindow.data[2];
 }
 
-void SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow)
+void SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunctionInPlace(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow)
 {
     zhWindow.data[0] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L0;
     zhWindow.data[1] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L1;
@@ -943,6 +943,33 @@ void SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(inout SHIncomingIr
     shIncomingIrradiance.data[6] *= zhWindow.data[2];
     shIncomingIrradiance.data[7] *= zhWindow.data[2];
     shIncomingIrradiance.data[8] *= zhWindow.data[2];
+}
+
+SHIncomingIrradiance SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow)
+{
+    SHIncomingIrradiance shIncomingIrradianceConvolved;
+    for (int c = 0; c < SH_COEFFICIENT_COUNT; ++c)
+    {
+        shIncomingIrradianceConvolved.data[c] = shIncomingIrradiance.data[c];
+    }
+
+    zhWindow.data[0] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L0;
+    zhWindow.data[1] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L1;
+    zhWindow.data[2] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L2;
+
+    shIncomingIrradianceConvolved.data[0] *= zhWindow.data[0];
+
+    shIncomingIrradianceConvolved.data[1] *= zhWindow.data[1];
+    shIncomingIrradianceConvolved.data[2] *= zhWindow.data[1];
+    shIncomingIrradianceConvolved.data[3] *= zhWindow.data[1];
+
+    shIncomingIrradianceConvolved.data[4] *= zhWindow.data[2];
+    shIncomingIrradianceConvolved.data[5] *= zhWindow.data[2];
+    shIncomingIrradianceConvolved.data[6] *= zhWindow.data[2];
+    shIncomingIrradianceConvolved.data[7] *= zhWindow.data[2];
+    shIncomingIrradianceConvolved.data[8] *= zhWindow.data[2];
+
+    return shIncomingIrradianceConvolved;
 }
 
 void SHIncomingIrradianceConvolveDirectionalZHWindow(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow, float3 zhDirection)
