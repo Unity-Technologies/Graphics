@@ -45,21 +45,22 @@ void ComputeAmbientDiceSharpAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out
     componentNonZeroCount += abs(axisDirection.z) > 1e-3 ? 1 : 0;
 
 #if true
+    // New coefficients tuned to to maximize unity across the sphere when integrating incoming radiance from monte carlo directions (i.e in a white furnace test).
     float amplitudeEdge = 0.76;
-    float amplitudeCorner = 0.52;
-    float amplitudeOther = 0.73;
+    float amplitudeDiagonal = 0.52;
+    float amplitudeCenter = 0.73;
+#else
+    float amplitudeEdge = 0.693;
+    float amplitudeDiagonal = 0.3087;
+    float amplitudeCenter = 0.64575;
+#endif
+
     amplitude = (componentNonZeroCount == 3)
-        ? amplitudeCorner // diagonal
+        ? amplitudeDiagonal // diagonal
         : ((componentNonZeroCount == 2)
             ? amplitudeEdge // edge
-            : amplitudeOther); // center
-#else
-    amplitude = (componentNonZeroCount == 3)
-        ? 0.3087 // diagonal
-        : ((componentNonZeroCount == 2)
-            ? 0.693 // edge
-            : 0.64575); // center
-#endif
+            : amplitudeCenter); // center
+
     sharpness = (componentNonZeroCount == 3)
         ? 9.0 // diagonal
         : ((componentNonZeroCount == 2)

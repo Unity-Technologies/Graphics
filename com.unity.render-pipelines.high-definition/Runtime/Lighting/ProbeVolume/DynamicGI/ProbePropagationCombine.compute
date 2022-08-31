@@ -134,17 +134,61 @@ SHIncomingIrradiance SHIncomingIrradianceComputeFromBasisAxisHit(BasisAxisHit ba
     return irradiance;
 }
 
-#define SH_FROM_RBF_MODE_MONTE_CARLO (0)
-#define SH_FROM_RBF_MODE_SAMPLE_PEAKS (1)
-#define SH_FROM_RBF_MODE_ZH_FIT (2)
-#define SH_FROM_RBF_MODE SH_FROM_RBF_MODE_ZH_FIT
-
-SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSamplePeaks(uint probeIndex)
 {
     SHIncomingIrradiance incomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
 
-#if SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_MONTE_CARLO
+    uint localIndex = probeIndex;
+    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+    {
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+        float3 directionOS = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+        SHIncomingIrradianceAccumulate(incomingIrradiance, basisAxisHit.mean, radiance);
+
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
+    }
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    uint localIndex = probeIndex;
+    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+    {
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+        float3 directionOS = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+        SHIncomingIrradiance incomingIrradianceCurrentLobe = SHIncomingIrradianceComputeFromBasisAxisHit(basisAxisHit, radiance);
+
+        SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentLobe);
+
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
+    }
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonteCarlo(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
     const int SAMPLE_COUNT = 8192;
     const float SAMPLE_COUNT_INVERSE = 1.0 / float(SAMPLE_COUNT);
     float GOLDEN_ANGLE = PI * (3.0 - sqrt(5.0));
@@ -189,45 +233,25 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
 
         SHIncomingIrradianceAccumulate(incomingIrradiance, sampleDirectionWS, sampleIncomingRadiance * differentialArea);
     }
+    return incomingIrradiance;
+}
 
+#define SH_FROM_RBF_MODE_MONTE_CARLO (0)
+#define SH_FROM_RBF_MODE_SAMPLE_PEAKS (1)
+#define SH_FROM_RBF_MODE_ZH_FIT (2)
+
+// When projecting from our radial basis function into L2 spherical harmonics, because our RBF is higher frequency than an L2 SH, converting each lobe to a zonal harmonic first, rotating, and accumulated gives the closest results to our ground truth monte carlo.
+// Simply accumulating the RBF lobe peaks as directional light sources gives less accurate, overly contrasty / overly sharp results when compared to our monte carlo ground truth. 
+#define SH_FROM_RBF_MODE SH_FROM_RBF_MODE_ZH_FIT
+
+SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
+{
+#if SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_MONTE_CARLO
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonteCarlo(probeIndex);
 #elif SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_SAMPLE_PEAKS
-
-    uint localIndex = probeIndex;
-    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
-    {
-        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
-        float3 directionOS = _RayAxis[axis].xyz;
-        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
-        float3 directionWS = mul(directionOS, probeVolumeLtw);
-
-        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
-        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
-
-        SHIncomingIrradianceAccumulate(incomingIrradiance, basisAxisHit.mean, radiance);
-
-        localIndex += _ProbeVolumeAtlasReadBufferCount;
-    }
-
-    
-
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSamplePeaks(probeIndex);
 #elif SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_ZH_FIT
-    uint localIndex = probeIndex;
-    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
-    {
-        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
-        float3 directionOS = _RayAxis[axis].xyz;
-        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
-        float3 directionWS = mul(directionOS, probeVolumeLtw);
-
-        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
-        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
-
-        SHIncomingIrradiance incomingIrradianceCurrentLobe = SHIncomingIrradianceComputeFromBasisAxisHit(basisAxisHit, radiance);
-
-        SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentLobe);
-
-        localIndex += _ProbeVolumeAtlasReadBufferCount;
-    }
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit(probeIndex);
 #endif
 
     return incomingIrradiance;
