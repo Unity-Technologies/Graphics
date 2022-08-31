@@ -1155,9 +1155,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, DebugOverlay debugOverlay)
         {
-            debugOverlay.SetViewport(cmd);
+            cmd.SetViewport(debugOverlay.Next());
             HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
-            debugOverlay.Next();
         }
 
         public void LoadCullResults(CullResult cullResult)

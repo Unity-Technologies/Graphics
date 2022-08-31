@@ -332,9 +332,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    probeCacheFormat = GraphicsFormat.RGB_BC6H_SFloat;
                 //}
 
-                reflectionProbeTextureCache = new ReflectionProbeTextureCache(defaultResources, iBLFilterBSDFArray, (int)lightLoopSettings.reflectionProbeTexCacheSize,
-                    probeCacheFormat, lightLoopSettings.reflectionProbeDecreaseResToFit,
-                    lightLoopSettings.reflectionProbeTexLastValidCubeMip, lightLoopSettings.reflectionProbeTexLastValidPlanarMip);
+                Vector2Int cacheDim = GlobalLightLoopSettings.GetReflectionProbeTextureCacheDim(lightLoopSettings.reflectionProbeTexCacheSize);
+
+                reflectionProbeTextureCache = new ReflectionProbeTextureCache(defaultResources, iBLFilterBSDFArray, cacheDim.x, cacheDim.y, probeCacheFormat,
+                    lightLoopSettings.reflectionProbeDecreaseResToFit, lightLoopSettings.reflectionProbeTexLastValidCubeMip, lightLoopSettings.reflectionProbeTexLastValidPlanarMip);
             }
 
             public void Cleanup()
@@ -2061,7 +2062,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Atlases
             cb._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
             cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
-            cb._ReflectionAtlasData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasData();
+            cb._ReflectionAtlasCubeData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasCubeData();
+            cb._ReflectionAtlasPlanarData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasPlanarData();
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeTextureCache.GetEnvSliceSize();
 
             // Light info

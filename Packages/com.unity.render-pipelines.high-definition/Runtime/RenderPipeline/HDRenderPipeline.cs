@@ -210,8 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetReflectionProbeMipCount()
         {
-            int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize;
-            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+            Vector2Int cacheDim = GlobalLightLoopSettings.GetReflectionProbeTextureCacheDim(currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeTexCacheSize);
+            return Mathf.FloorToInt(Mathf.Log(Math.Max(cacheDim.x, cacheDim.y), 2.0f)) + 1;
         }
 
         internal int GetReflectionProbeArraySize()

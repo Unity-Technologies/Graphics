@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize;
                 int planarReflectionAtlasArea = (int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize;
                 int reflectionProbeTexCacheSize = Mathf.NextPowerOfTwo((int)Mathf.Sqrt(cubeReflectionAtlasArea + planarReflectionAtlasArea));
-                lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512, (int)ReflectionProbeTextureCacheResolution.Resolution16384);
+                lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512x512, (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
 
                 lightLoopSettings.maxCubeReflectionOnScreen = Mathf.Clamp(lightLoopSettings.maxEnvLightsOnScreen - lightLoopSettings.maxPlanarReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
 #pragma warning restore 618
