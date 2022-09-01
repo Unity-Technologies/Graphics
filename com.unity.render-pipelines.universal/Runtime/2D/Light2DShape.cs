@@ -22,5 +22,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
         public Vector2          shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
         public Vector3[]        shapePath                       => m_ShapePath;
+
+        internal void SetShapePath(Vector3[] path)
+        {
+            m_ShapePath = path;
+        }
     }
 }
