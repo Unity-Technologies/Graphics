@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lighting banding issue on mobile platforms.
 - Fixed multi_compile_instancing on SimpleLit shader on SM 2.0.
 
+### Changed
+- Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
+
 ## [10.10.0] - 2022-06-28
 
 ### Fixed
