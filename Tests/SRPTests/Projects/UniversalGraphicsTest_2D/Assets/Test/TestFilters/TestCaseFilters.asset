@@ -40,3 +40,21 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-3312
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 381306730e4f1b141bf8e0e1c35f16e9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: ObjectSpace UV use is not-deterministic.Fix ShaderGraph.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 0}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 
