@@ -621,7 +621,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // If will get added back to the atlas the next frame any of the remaining enabled probe volumes are seen,
             // so functionally, this is fine. It does however put additional pressure on the atlas allocator + blitting.
             // Could add reference counting to atlas keys, or could track key use timestamps and evict based on least recently used as needed.
-            if (probeVolumeAtlas.IsTextureSlotAllocated(pipelineData.UsedAtlasKey)) { probeVolumeAtlas.ReleaseTextureSlot(pipelineData.UsedAtlasKey); }
+            if (probeVolumeAtlas != null && probeVolumeAtlas.IsTextureSlotAllocated(pipelineData.UsedAtlasKey))
+            {
+                probeVolumeAtlas.ReleaseTextureSlot(pipelineData.UsedAtlasKey);
+            }
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
