@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed invalid subscript error on particle meshes with flipbook blend [Case 1319214](https://issuetracker.unity3d.com/product/unity/issues/guid/1319214/)
+- Fixed subgraph could not be created after adding a new pre-build system from the context menu
 
 ## [10.10.0] - 2022-06-28
 
