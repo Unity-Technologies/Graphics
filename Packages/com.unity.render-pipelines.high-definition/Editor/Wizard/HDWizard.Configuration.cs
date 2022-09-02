@@ -229,6 +229,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrTransparentReflectionsFS, IsDXRTransparentReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrGIFS, IsDXRGIFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
+                new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrVfx, IsDXRVFXCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrVfxFS, IsDXRVFXFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
             });
 
             return entryList.ToArray();
@@ -867,6 +869,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
             return defaultCameraFS.IsEnabled(FrameSettingsField.SSGI);
+        }
+
+        bool IsDXRVFXCorrect()
+            => HDRenderPipeline.currentAsset != null
+               && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportVFXRayTracing;
+
+        bool IsDXRVFXFSCorrect()
+        {
+            if (!IsHdrpGlobalSettingsUsedCorrect())
+                return false;
+
+            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            return defaultCameraFS.IsEnabled(FrameSettingsField.RaytracingVFX);
         }
 
         bool IsValidBuildTarget()

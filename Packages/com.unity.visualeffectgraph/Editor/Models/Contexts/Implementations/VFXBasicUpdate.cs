@@ -162,23 +162,11 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
 
                 VFXDataParticle particleData = GetData() as VFXDataParticle;
-                if (particleData && particleData.NeedsComputeBounds(this))
+                if (particleData && (particleData.NeedsComputeBounds(this) || particleData.NeedsSharedAabbBuffer()))
                 {
-                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                    foreach (var attribute in VFXAttribute.AllAttributeAffectingAABB)
+                        yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
                 }
 
                 if (GetData().IsAttributeUsed(VFXAttribute.Alive))
@@ -268,13 +256,22 @@ namespace UnityEditor.VFX
                 mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
             var dataParticle = GetData() as VFXDataParticle;
 
-            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds(this) && space == VFXCoordinateSpace.World)
+            if (target == VFXDeviceTarget.GPU && dataParticle && (dataParticle.NeedsComputeBounds(this) || dataParticle.NeedsSharedAabbBuffer()) && space == VFXCoordinateSpace.World)
             {
                 mapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
             }
             return mapper;
         }
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                if ((GetData() as VFXDataParticle).NeedsSharedAabbBuffer())
+                    yield return new VFXMapping("contextComputesAabb", 1);
+            }
+        }
 
+        public IEnumerable<string> rayTracingDefines = null;
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -289,6 +286,13 @@ namespace UnityEditor.VFX
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
                 if ((GetData() as VFXDataParticle).NeedsComputeBounds(this))
                     yield return "VFX_COMPUTE_BOUNDS";
+                if ((GetData() as VFXDataParticle).NeedsSharedAabbBuffer() && rayTracingDefines != null)
+                {
+                    foreach (var define in rayTracingDefines)
+                    {
+                        yield return define;
+                    }
+                }
             }
         }
     }

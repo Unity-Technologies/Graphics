@@ -10,6 +10,35 @@ using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
 {
+    [CustomEditor(typeof(VFXAbstractParticleOutput), true)]
+    [CanEditMultipleObjects]
+    partial class VFXAbstractParticleOutputEditor : VFXContextEditor
+    {
+        private static string k_HDRPAssetTypeStr = "HDRenderPipelineAsset";
+        private static string k_RenderPipelineUnsupportedWarning =
+            "Ray Tracing features are only available in HDRP. They will be ignored.";
+        private static string k_DisabledRayTracingWarning =
+            "To use Ray Tracing, enable \"Supported Ray Tracing \" and \" Visual Effects Ray Tracing \" in your active HDRP asset";
+        public override void DisplayWarnings()
+        {
+            base.DisplayWarnings();
+            foreach (VFXAbstractParticleOutput output in targets)
+            {
+                if(output.isRayTraced)
+                    if (VFXLibrary.currentSRPBinder.SRPAssetTypeStr != k_HDRPAssetTypeStr)
+                    {
+                        EditorGUILayout.HelpBox(
+                            k_RenderPipelineUnsupportedWarning,
+                            MessageType.Warning);
+                    }
+                    else
+                    {
+                        if(!VFXLibrary.currentSRPBinder.GetSupportsRayTracing())
+                            EditorGUILayout.HelpBox(k_DisabledRayTracingWarning, MessageType.Warning);
+                    }
+            }
+        }
+    }
     abstract class VFXAbstractParticleOutput : VFXAbstractRenderedOutput, IVFXSubRenderer
     {
         public enum ColorMappingMode
@@ -73,6 +102,12 @@ namespace UnityEditor.VFX
             Texture2DArray
         }
 
+        protected enum RayTracedScaleMode
+        {
+            Default,
+            None,
+            Custom,
+        }
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
         protected CullMode cullMode = CullMode.Default;
 
@@ -121,12 +156,21 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
         protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Ray Tracing"), Tooltip("When enabled, particles will participate in the ray-traced effects.")]
+        protected bool enableRayTracing = false;
+
+        [VFXSetting, Delayed, Logarithmic(2, true), Range(1, 1 << 17), SerializeField, Tooltip("Specifies the inverse of the proportion of particles to include in ray-traced effects.")]
+        protected uint decimationFactor = 1;
+
+        [VFXSetting, SerializeField, Tooltip("Specifies how to scale the particles included in ray-traced effects.")]
+        protected RayTracedScaleMode raytracedScaleMode = RayTracedScaleMode.Default;
 
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
 
         // IVFXSubRenderer interface
         public virtual bool hasShadowCasting { get { return castShadows; } }
 
+        public virtual bool isRayTraced { get { return !HasStrips(true) && enableRayTracing; } }
         protected virtual bool needsExposureWeight { get { return true; } }
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
@@ -141,9 +185,32 @@ namespace UnityEditor.VFX
         public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
         public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
 
+        public uint GetRaytracingDecimationFactor() { return decimationFactor; }
+
         public bool needsOwnSort = false;
 
         public SortCriteria GetSortCriterion() { return sortMode; }
+
+        public bool NeedsOwnAabbBuffer()
+        {
+            return needsOwnAabbBuffer;
+        }
+        public bool ModifiesAabbAttributes()
+        {
+            if (!isRayTraced)
+                return false;
+            var writtenAttributes = GetAttributesInfos().Where(o => (VFXAttributeMode.Write & o.mode) != 0).Select(o => o.attrib);
+            bool modifiesAttributes = writtenAttributes.Intersect(VFXAttribute.AllAttributeAffectingAABB).Any();
+            return modifiesAttributes || raytracedScaleMode == RayTracedScaleMode.Custom;
+        }
+
+        public bool HasSameRayTracingScalingMode(VFXAbstractParticleOutput otherOutput)
+        {
+            return otherOutput.raytracedScaleMode == raytracedScaleMode;
+        }
+
+        public bool needsOwnAabbBuffer = false;
+
 
 
         public virtual VFXOutputUpdate.Features outputUpdateFeatures
@@ -164,6 +231,8 @@ namespace UnityEditor.VFX
                 }
                 if (HasFrustumCulling())
                     features |= VFXOutputUpdate.Features.FrustumCulling;
+                if (NeedsOwnAabbBuffer())
+                    features |= VFXOutputUpdate.Features.FillRaytracingAABB;
                 return features;
             }
         }
@@ -304,6 +373,9 @@ namespace UnityEditor.VFX
 
             if (hasExposure && useExposureWeight)
                 yield return slotExpressions.First(o => o.name == "exposureWeight");
+            if (isRayTraced && raytracedScaleMode == RayTracedScaleMode.Custom)
+                yield return slotExpressions.First(o => o.name == "rayTracedScaling");
+
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -383,9 +455,37 @@ namespace UnityEditor.VFX
                     foreach (var property in PropertiesFromType("InputPropertiesSortKey"))
                         yield return property;
                 }
+
+                if (isRayTraced && raytracedScaleMode == RayTracedScaleMode.Custom)
+                {
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "rayTracedScaling"), Vector2.one);
+                }
             }
         }
 
+        public IEnumerable<string> rayTracingDefines
+        {
+            get
+            {
+                yield return "VFX_RT_DECIMATION_FACTOR " + decimationFactor;
+
+                var particleData = GetData() as VFXDataParticle;
+                uint capacity = 0u;
+                if (particleData != null)
+                {
+                    capacity = (uint)particleData.GetSettingValue("capacity");
+                    uint aabbCount = (capacity + decimationFactor - 1) / decimationFactor;
+                    yield return "VFX_AABB_COUNT " + aabbCount;
+                }
+
+                if (raytracedScaleMode == RayTracedScaleMode.Custom)
+                    yield return "VFX_USE_RT_CUSTOM_SCALE";
+                else if (raytracedScaleMode == RayTracedScaleMode.Default)
+                {
+                    yield return "VFX_RT_DEFAULT_SCALE " + Mathf.Sqrt(Mathf.Min(decimationFactor, capacity));
+                }
+            }
+        }
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -482,6 +582,11 @@ namespace UnityEditor.VFX
 
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
+                if (isRayTraced)
+                {
+                    foreach (var define in rayTracingDefines)
+                        yield return define;
+                }
             }
         }
 
@@ -522,6 +627,7 @@ namespace UnityEditor.VFX
                 {
                     yield return "sort";
                     yield return "frustumCulling";
+                    yield return "isRaytraced";
                 }
                 if (!usesFlipbook)
                 {
@@ -534,6 +640,22 @@ namespace UnityEditor.VFX
                     yield return "sortMode";
                     yield return "revertSorting";
                 }
+                if (!VFXViewPreference.displayExperimentalOperator)
+                    yield return "enableRayTracing";
+                if (!isRayTraced)
+                {
+                    yield return "decimationFactor";
+                    yield return "raytracedScaleMode";
+                }
+            }
+        }
+
+        public override void OnSettingModified(VFXSetting setting)
+        {
+            base.OnSettingModified(setting);
+            if (setting.name == nameof(decimationFactor))
+            {
+                decimationFactor = (uint)Mathf.ClosestPowerOfTwo((int)decimationFactor);
             }
         }
 
@@ -669,7 +791,7 @@ namespace UnityEditor.VFX
             {
                 vertsCount /= 2;
             }
-            return vertsCount != 0;
+            return vertsCount != 0 && !isRayTraced;
         }
 
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
@@ -736,6 +858,17 @@ namespace UnityEditor.VFX
                             $"The sorting mode depends on the Age attribute, which is neither set nor updated in this system.");
                 }
             }
+
+            if (isRayTraced)
+            {
+                if (!SystemInfo.supportsRayTracing)
+                {
+                    manager.RegisterError("RaytracingNotSupported", VFXErrorType.Warning,
+                        $"Ray tracing is not supported on this machine. You can still enable it in the graph for a use on another device.");
+                }
+
+            }
+
         }
     }
 }

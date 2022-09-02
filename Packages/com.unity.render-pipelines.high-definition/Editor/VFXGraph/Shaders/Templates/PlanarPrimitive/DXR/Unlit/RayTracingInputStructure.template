@@ -1,0 +1,57 @@
+    // Equivalent of the Pixel to Vertex structure
+    struct rt_input
+    {
+        float4 pos;
+	    #if VFX_NEEDS_COLOR_INTERPOLATOR
+	        float4 color;
+	    #endif
+		#if USE_FLIPBOOK_INTERPOLATION
+		    float4 uv;
+		#else
+		    #if USE_FLIPBOOK_ARRAY_LAYOUT
+		        float3 uv;
+		    #else
+		        float2 uv;
+		    #endif
+		#endif
+		#if USE_SOFT_PARTICLE
+		    float invSoftParticleFadeDistance;
+		#endif
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		    float2 mvScale;
+		#endif
+        #if USE_EXPOSURE_WEIGHT
+            float exposureWeight;
+        #endif
+	    #if VFX_NEEDS_POSWS_INTERPOLATOR
+	        float3 posWS : TEXCOORD3;
+	    #endif
+        #if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+	        float3 normal;
+	    #endif
+	    #if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+	        float3 tangent;
+	    #endif
+        ${VFXAdditionalInterpolantsDeclaration}
+
+    };
+
+    #define VFX_VARYING_PS_INPUTS rt_input
+    #define VFX_VARYING_POSCS pos
+    #define VFX_VARYING_COLOR color.rgb
+    #define VFX_VARYING_ALPHA color.a
+    #define VFX_VARYING_UV uv
+    #define VFX_VARYING_NORMAL normal
+    #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE invSoftParticleFadeDistance
+    #define VFX_VARYING_MOTIONVECTORSCALE mvScale.xy
+    #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+        #define VFX_VARYING_TANGENT tangent
+    #endif
+    #if USE_NORMAL_BENDING
+        #define VFX_VARYING_BENTFACTORS bentFactors
+    #endif
+    #if USE_EXPOSURE_WEIGHT
+        #define VFX_VARYING_EXPOSUREWEIGHT exposureWeight
+    #endif
+
+

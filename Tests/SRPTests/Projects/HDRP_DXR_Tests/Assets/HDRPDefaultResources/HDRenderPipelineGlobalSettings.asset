@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_DefaultVolumeProfile: {fileID: 11400000, guid: b71907ae4eb90fa498af019da7f73824,
     type: 2}
-  m_LookDevVolumeProfile: {fileID: 0}
+  m_LookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+    type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1262168480939869
-      data2: 4539628437207187480
+      data2: 4539628505926664216
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -103,7 +104,6 @@ MonoBehaviour:
   decalLayerName5: 
   decalLayerName6: 
   decalLayerName7: 
-  shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   colorGradingSpace: 1
   m_ObsoleteDiffusionProfileSettingsList:
@@ -119,6 +119,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 458d5c32111ea5749a494da813d01275, type: 2}
   - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
   - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
+  specularFade: 0
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
@@ -131,4 +132,7 @@ MonoBehaviour:
     serializedProfiles: []
     serializedBakeSettings: []
     serializedBakingSets: []
+    m_LightingScenario: Default
   m_Version: 6
+  m_ShaderVariantLogLevel: 0
+  m_ExportShaderVariants: 1

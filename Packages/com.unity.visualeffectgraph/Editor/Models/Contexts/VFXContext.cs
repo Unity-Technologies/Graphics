@@ -664,5 +664,14 @@ namespace UnityEditor.VFX
         {
             return CanTransferSetting(setting.field.Name);
         }
+
+        public IEnumerable<VFXAttributeInfo> GetAttributesInfos()
+        {
+            var attributesInfos = Enumerable.Empty<VFXAttributeInfo>();
+            attributesInfos = attributesInfos.Concat(attributes);
+            foreach (var block in activeFlattenedChildrenWithImplicit)
+                attributesInfos = attributesInfos.Concat(block.attributes);
+            return attributesInfos;
+        }
     }
 }

@@ -1,0 +1,44 @@
+    // Equivalent of the Pixel to Vertex structure
+    struct rt_input
+    {
+        float4 pos;
+        ${VFXHDRPLitDeclareVaryings}
+		#if USE_FLIPBOOK_INTERPOLATION
+		    float4 uv;
+		#else
+		    #if USE_FLIPBOOK_ARRAY_LAYOUT
+		        float3 uv;
+		    #else
+		        float2 uv;
+		    #endif
+		#endif
+		#if USE_SOFT_PARTICLE
+		    VFX_OPTIONAL_INTERPOLATION float invSoftParticleFadeDistance;
+		#endif
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		    VFX_OPTIONAL_INTERPOLATION float2 mvScale;
+		#endif
+		VFX_OPTIONAL_INTERPOLATION float3 normal;
+		#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+		    VFX_OPTIONAL_INTERPOLATION float3 tangent;
+		#endif
+		#if USE_NORMAL_BENDING
+		    float2 bentFactors;
+		#endif
+    };
+
+    #define VFX_VARYING_PS_INPUTS rt_input
+    #define VFX_VARYING_POSCS pos
+    #define VFX_VARYING_UV uv
+    #define VFX_VARYING_NORMAL normal
+    #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE invSoftParticleFadeDistance
+    #define VFX_VARYING_MOTIONVECTORSCALE mvScale.xy
+    #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+        #define VFX_VARYING_TANGENT tangent
+    #endif
+    #if USE_NORMAL_BENDING
+        #define VFX_VARYING_BENTFACTORS bentFactors
+    #endif
+	${VFXHDRPLitVaryingsMacros}
+
+

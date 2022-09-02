@@ -3,25 +3,22 @@
 #ifndef VFX_SHADERGRAPH
 
 
-void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
+void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, PositionInputs posInput,  const VFXUVData uvData, uint2 tileIndex)
 {
-	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
-	${VFXLoadParameter:{diffusionProfileHash}} // Loads diffusion profile
+    #if HDRP_MATERIAL_TYPE_TRANSLUCENT
+	    ${VFXLoadParameter:{diffusionProfileHash}} // Loads diffusion profile
 	#else
-	const uint diffusionProfileHash = 0;
+	    const uint diffusionProfileHash = 0;
 	#endif
-
-	float3 posRWS = VFXGetPositionRWS(i);
-	float4 posSS = i.VFX_VARYING_POSCS;
-	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
-
-	float alpha;
-	surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfileHash,alpha);
-	bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
-
-	preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
-
-	#ifndef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+	    float alpha;
+	    surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfileHash,alpha);
+	    bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS.xy, surfaceData);
+#if defined(SHADER_STAGE_RAY_TRACING)
+        preLightData = GetPreLightData(-WorldRayDirection(),posInput,bsdfData);
+#else
+        preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posInput.positionWS),posInput,bsdfData);
+#endif
+#ifndef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
 	    preLightData.diffuseFGD = 1.0f;
         //TODO: investigate why this is needed
         preLightData.coatPartLambdaV = 0;
@@ -29,7 +26,16 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
         preLightData.coatIblF = 0;
     #endif
 
-	builtinData = VFXGetBuiltinData(i,posInput,surfaceData,uvData,alpha);
+	    builtinData = VFXGetBuiltinData(i,posInput,surfaceData,uvData,alpha);
+}
+
+void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
+{
+	float3 posRWS = VFXGetPositionRWS(i);
+	float4 posSS = i.VFX_VARYING_POSCS;
+	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+
+	VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, 0);
 }
 
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
@@ -38,6 +44,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	PreLightData preLightData = (PreLightData)0;
 	VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));
 }
+
 
 #endif
 

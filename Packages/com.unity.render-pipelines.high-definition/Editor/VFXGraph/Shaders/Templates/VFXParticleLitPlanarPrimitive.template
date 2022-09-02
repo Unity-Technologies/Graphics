@@ -1,10 +1,12 @@
 {
+
 	SubShader
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 		Cull Off
-		
-		${VFXInclude("Shaders/VFXParticleHeader.template")}
+
+	    ${VFXInclude("Shaders/VFXParticleHeader.template")}
+
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassSelection.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassDepth.template"),IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE}
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthForwardOnly.template"),NEEDS_DEPTH_FORWARD_ONLY}
@@ -12,5 +14,17 @@
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassGBuffer.template"),IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE}
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassForward.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+	}
+
+	SubShader
+	{
+	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
+		// Requires passes by ray tracing
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassVisibilityDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassIndirectDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassGBufferDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassForwardDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/PassRayTracingDebug.template")}
 	}
 }

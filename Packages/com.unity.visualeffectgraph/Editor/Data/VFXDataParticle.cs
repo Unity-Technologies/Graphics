@@ -5,7 +5,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
 using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
@@ -559,17 +558,20 @@ namespace UnityEditor.VFX
             m_Contexts = new List<VFXContext>(contexts.Count + 2); // Allocate max number
             int index = 0;
 
-            bool hasMainUpdate = false;
+            int updateIndex = Int32.MaxValue;
             // First add init and updates
             for (index = 0; index < contexts.Count; ++index)
             {
                 if (contexts[index].contextType == VFXContextType.Update)
-                    hasMainUpdate = true;
-                if ((contexts[index].contextType == VFXContextType.Output))
+                    updateIndex = index;
+
+                if (contexts[index].contextType == VFXContextType.Output)
                     break;
                 m_Contexts.Add(contexts[index]);
             }
-            //Reset needsOwnSort flags
+            bool hasMainUpdate = updateIndex != Int32.MaxValue;
+
+            //Reset needsOwnSort and needsOwnAabbBuffer flags
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
                 var currentOutputContext = contexts[outputIndex];
@@ -577,8 +579,8 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
                 abstractParticleOutput.needsOwnSort = false;
+                abstractParticleOutput.needsOwnAabbBuffer = false;
             }
-
             var implicitContext = new List<VFXContext>();
 
             bool needsGlobalSort = NeedsGlobalSort(out var globalSortCriterion);
@@ -592,6 +594,39 @@ namespace UnityEditor.VFX
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
             }
+
+            //AABB Buffer rules :
+            var rayTracedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>().Where(o => o.isRayTraced).ToArray();
+            var outputsWithoutAabbModifs = new List<VFXAbstractParticleOutput>();
+            if (rayTracedOutputs.Length > 0)
+            {
+                foreach (var output in rayTracedOutputs)
+                {
+                    if (output.ModifiesAabbAttributes())
+                    {
+                        output.needsOwnAabbBuffer = true;
+                    }
+                    else
+                        outputsWithoutAabbModifs.Add(output);
+                }
+            }
+
+            if (outputsWithoutAabbModifs.Count > 0 && hasMainUpdate)
+            {
+                var updateContext = (VFXBasicUpdate)contexts[updateIndex];
+                var firstEligibleOutput = outputsWithoutAabbModifs[0];
+                uint sharedDecimationFactor = firstEligibleOutput.GetRaytracingDecimationFactor();
+                updateContext.rayTracingDefines = firstEligibleOutput.rayTracingDefines;
+                for (var i = 1; i < outputsWithoutAabbModifs.Count; i++)
+                {
+                    if (outputsWithoutAabbModifs[i].GetRaytracingDecimationFactor() != sharedDecimationFactor
+                        || !firstEligibleOutput.HasSameRayTracingScalingMode(outputsWithoutAabbModifs[i]) )
+                    {
+                        outputsWithoutAabbModifs[i].needsOwnAabbBuffer = true;
+                    }
+                }
+            }
+
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
@@ -625,6 +660,61 @@ namespace UnityEditor.VFX
         public bool NeedsGlobalIndirectBuffer()
         {
             return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+        }
+
+        public bool NeedsSharedAabbBuffer()
+        {
+            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => !o.NeedsOwnAabbBuffer() && o.isRayTraced);
+        }
+
+        private void PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
+            out Dictionary<VFXAbstractParticleOutput, int> outputsOwningAABB,
+            out Dictionary<VFXAbstractParticleOutput, uint> outputAabbSize,
+            out int sharedAabbBufferIndex,
+            out uint sharedAabbCount,
+            ref List<VFXMapping> systemBufferMappings,
+            ref List<VFXGPUBufferDesc> outBufferDescs)
+        {
+            outputsSharingAABB = new List<VFXAbstractParticleOutput>();
+            outputsOwningAABB = new Dictionary<VFXAbstractParticleOutput, int>();
+            outputAabbSize = new Dictionary<VFXAbstractParticleOutput, uint>();
+            List<VFXAbstractParticleOutput> listOutputsOwningAABB = new List<VFXAbstractParticleOutput>();
+            sharedAabbCount = 0u;
+
+
+            sharedAabbBufferIndex = -1;
+            var rayTracedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>().Where(o => o.isRayTraced).ToArray();
+            if (rayTracedOutputs.Length == 0)
+                return;
+            foreach (var output in rayTracedOutputs)
+            {
+                if (output.NeedsOwnAabbBuffer())
+                    listOutputsOwningAABB.Add(output);
+                else
+                    outputsSharingAABB.Add(output);
+            }
+
+            int sharedAABBCount = outputsSharingAABB.Count;
+            if (sharedAABBCount > 0)
+            {
+                uint sharedDecimationFactor = outputsSharingAABB[0].GetRaytracingDecimationFactor();
+                uint aabbBufferCount = (capacity + sharedDecimationFactor - 1) / sharedDecimationFactor;
+                sharedAabbBufferIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 0u, stride = 24 });
+                systemBufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
+                sharedAabbCount = aabbBufferCount;
+            }
+
+            int outputId = 0;
+            foreach (var output in listOutputsOwningAABB)
+            {
+                uint aabbBufferCount = (capacity + output.GetRaytracingDecimationFactor() - 1) / output.GetRaytracingDecimationFactor();
+                int bufferIndex = outBufferDescs.Count;
+                outputsOwningAABB.Add(output, bufferIndex);
+                outputAabbSize.Add(output, aabbBufferCount);
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 0u, stride = 24 });
+                systemBufferMappings.Add(new VFXMapping("aabbBuffer" + outputId++, bufferIndex));
+            }
         }
 
         public bool NeedsGlobalSort()
@@ -940,6 +1030,19 @@ namespace UnityEditor.VFX
                 }
             }
 
+            PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
+                out Dictionary<VFXAbstractParticleOutput, int> outputsOwningAABB,
+                out Dictionary<VFXAbstractParticleOutput, uint> outputAabbSize,
+                out int sharedAabbBufferIndex,
+                out uint sharedAabbSize,
+                ref systemBufferMappings,
+                ref outBufferDescs);
+
+            bool hasAnyRaytraced = outputsSharingAABB.Any() || outputsOwningAABB.Any();
+            if (hasAnyRaytraced)
+                systemFlag |= VFXSystemFlag.SystemIsRayTraced;
+
+
             var taskDescs = new List<VFXEditorTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
@@ -966,6 +1069,11 @@ namespace UnityEditor.VFX
                     {
                         var currentIndex = elementToVFXBufferMotionVector[update.output];
                         temporaryBufferMappings.Add(new VFXMappingTemporary() { pastFrameIndex = 0u, perCameraBuffer = true, mapping = new VFXMapping("elementToVFXBuffer", currentIndex) });
+                    }
+                    if (update.HasFeature(VFXOutputUpdate.Features.FillRaytracingAABB) && outputsOwningAABB.ContainsKey(update.output))
+                    {
+                        bufferMappings.Add(new VFXMapping("aabbBuffer", outputsOwningAABB[update.output]));
+                        additionalParameters.Add(new VFXMapping("aabbBufferCount", (int)outputAabbSize[update.output]));
                     }
                 }
                 else if (context.contextType == VFXContextType.Output && (context is IVFXSubRenderer) && (context as IVFXSubRenderer).hasMotionVector)
@@ -997,6 +1105,19 @@ namespace UnityEditor.VFX
 
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
+
+                if (sharedAabbBufferIndex != -1 && (context.contextType == VFXContextType.Update ||
+                                                    outputsSharingAABB.Contains(context)))
+                {
+                    bufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
+                    additionalParameters.Add(new VFXMapping("aabbBufferCount", (int)sharedAabbSize));
+                }
+
+                if (context is VFXAbstractParticleOutput output && outputsOwningAABB.ContainsKey(output))
+                {
+                    bufferMappings.Add(new VFXMapping("aabbBuffer", outputsOwningAABB[output]));
+                    additionalParameters.Add(new VFXMapping("aabbBufferCount", (int)outputAabbSize[output]));
+                }
 
                 if (contextDataBufferIndex != -1)
                 {
@@ -1088,7 +1209,6 @@ namespace UnityEditor.VFX
                     if (deadListCountIndex != -1)
                         bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
                 }
-
                 var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
                     .Where(c => c.CanBeCompiled())
                     .Select(o => dependentBuffers.eventBuffers[o.GetData()])

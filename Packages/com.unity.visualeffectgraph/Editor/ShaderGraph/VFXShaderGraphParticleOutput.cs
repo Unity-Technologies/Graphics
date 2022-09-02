@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 {
     [CustomEditor(typeof(VFXShaderGraphParticleOutput), true)]
     [CanEditMultipleObjects]
-    class VFXShaderGraphParticleOutputEditor : VFXContextEditor
+    class VFXShaderGraphParticleOutputEditor : VFXAbstractParticleOutputEditor
     {
         private MaterialEditor m_MaterialEditor = null;
 

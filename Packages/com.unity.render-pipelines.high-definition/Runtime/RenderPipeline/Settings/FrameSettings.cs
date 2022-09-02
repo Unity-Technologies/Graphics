@@ -153,6 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP updates ray tracing for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 10, tooltip: "When enabled, HDRP updates ray tracing for Cameras using these Frame Settings (Depends on \"Realtime RayTracing\" in current HDRP Asset).")]
         RayTracing = 92,
+        /// <summary>When enabled, HDRP will include visual effects in the ray tracing acceleration structure.</summary>
+        [FrameSettingsField(0, displayedName: "RaytracingVFX", positiveDependencies: new[] { RayTracing }, customOrderInGroup: 10, tooltip: "When enabled, HDRP will include visual effects in the ray tracing acceleration structure.")]
+        RaytracingVFX = 100,
         /// <summary>When enabled, HDRP renders custom passes contained in CustomPassVolume components.</summary>
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
@@ -495,6 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
+                (uint)FrameSettingsField.RaytracingVFX,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
@@ -556,6 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
+                (uint)FrameSettingsField.RaytracingVFX,
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
@@ -866,6 +871,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool pipelineSupportsRayTracing = HDRenderPipeline.PipelineSupportsRayTracing(renderPipelineSettings);
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
             bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RaytracingVFX] &= rayTracingActive;
 
             //MSAA only supported in forward and when not using ray tracing.
             if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)

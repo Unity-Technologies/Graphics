@@ -52,6 +52,8 @@ namespace UnityEditor.VFX
 
         public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
 
+        public virtual bool GetSupportsRayTracing() => false;
+
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
 
         // List of shader properties that currently are not supported for exposure in VFX shaders (for all pipeline).

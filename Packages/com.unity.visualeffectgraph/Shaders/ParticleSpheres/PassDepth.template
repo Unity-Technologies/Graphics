@@ -1,6 +1,7 @@
 // Forward pass
 Pass
 {
+    Name ${VFXPassDepth}
 	Tags { "LightMode"=${VFXPassDepth} }
 
 	HLSLPROGRAM

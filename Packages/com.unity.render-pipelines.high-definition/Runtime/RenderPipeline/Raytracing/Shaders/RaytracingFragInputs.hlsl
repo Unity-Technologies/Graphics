@@ -20,3 +20,19 @@ void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, out FragI
 
     outFragInputs.isFrontFace = dot(rayDirection, outFragInputs.tangentToWorld[2]) < 0.0f;
 }
+
+uint GetCurrentVertexAndBuildFragInputs(AttributeData attributeData, out IntersectionVertex currentVertex, out FragInputs outFragInputs)
+{
+    uint currentFrameIndex = 0; //Used for VFX
+
+    #ifdef HAVE_VFX_MODIFICATION
+    ZERO_INITIALIZE(IntersectionVertex, currentVertex);
+    BuildFragInputsFromVFXIntersection(attributeData, outFragInputs, currentFrameIndex);
+    #else
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    // Build the Frag inputs from the intersection vertice
+    BuildFragInputsFromIntersection(currentVertex, outFragInputs);
+    #endif
+
+    return currentFrameIndex;
+}

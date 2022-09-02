@@ -116,6 +116,13 @@ namespace UnityEditor.VFX.HDRP
             return false;
         }
 
+        public override bool GetSupportsRayTracing()
+        {
+            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing &&
+                   HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportVFXRayTracing;
+        }
+
+
         public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
         {
             // Recover the HDRP Shader ids from the VFX Shader Graph.

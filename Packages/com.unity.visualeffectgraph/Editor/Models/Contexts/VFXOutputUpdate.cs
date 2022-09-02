@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
             Sort = 1 << 5 | Culling,
             CameraSort = 1 << 6 | Sort,
             FrustumCulling = 1 << 7 | IndirectDraw,
+            FillRaytracingAABB = 1 << 8,
         }
 
         public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
@@ -167,21 +168,10 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                foreach (var attribute in VFXAttribute.AllAttributeAffectingAABB)
+                    yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
 
                 if (HasFeature(Features.MultiMesh))
                     yield return new VFXAttributeInfo(VFXAttribute.MeshIndex, VFXAttributeMode.Read);
@@ -229,6 +219,20 @@ namespace UnityEditor.VFX
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
                 if (output.HasStrips(false))
                     yield return "HAS_STRIPS";
+                if (HasFeature(Features.FillRaytracingAABB))
+                {
+                    foreach (var define in output.rayTracingDefines)
+                        yield return define;
+                }
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                if (HasFeature(Features.FillRaytracingAABB))
+                    yield return new VFXMapping("contextComputesAabb", 1);
             }
         }
 

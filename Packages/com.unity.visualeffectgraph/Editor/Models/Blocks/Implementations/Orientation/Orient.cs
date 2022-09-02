@@ -45,12 +45,17 @@ namespace UnityEditor.VFX.Block
 
         [VFXSetting, Tooltip("Specifies which two axes to use for the particle orientation.")]
         public AxesPair axes = AxesPair.ZY;
+
+        [VFXSetting, Tooltip("Specifies if the particles faces the ray in Ray-Traced effects.")]
+        public bool faceRay = true;
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
                 if (mode != Mode.Advanced)
                     yield return "axes";
+                if ((mode != Mode.FaceCameraPlane && mode != Mode.FaceCameraPosition) ||  m_Parent is VFXAbstractParticleOutput output && !output.isRayTraced)
+                    yield return "faceRay";
             }
         }
 
@@ -87,7 +92,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
-                if (mode != Mode.Advanced && mode != Mode.FaceCameraPlane)
+                if (mode != Mode.Advanced && mode != Mode.CustomY && mode != Mode.CustomZ && (mode != Mode.FaceCameraPlane || faceRay))
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 if (mode == Mode.AlongVelocity)
                     yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);
@@ -146,6 +151,15 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override IEnumerable<string> defines
+        {
+            get
+            {
+                if (faceRay && (mode == Mode.FaceCameraPlane || mode == Mode.FaceCameraPosition))
+                    yield return "VFX_FACE_RAY";
+            }
+        }
+
         public override string source
         {
             get
@@ -155,12 +169,17 @@ namespace UnityEditor.VFX.Block
                     case Mode.FaceCameraPlane:
                         if (canTestStrips && hasStrips)
                             throw new NotImplementedException("This orient mode (FaceCameraPlane) is not available for strips");
+                        string sourceCodeCameraPlane = @"
+float3x3 viewRot = GetVFXToViewRotMatrix();";
+                        if (faceRay)
+                            sourceCodeCameraPlane += @"
+float3 worldUp = VFXGetObjectToWorldMatrix()._m10_m11_m12;
+GetCameraPlaneOrRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);";
+                        else
+                            sourceCodeCameraPlane += @"
+GetCameraPlaneFacingAxes(viewRot, axisX, axisY, axisZ);";
 
-                        return @"
-float3x3 viewRot = GetVFXToViewRotMatrix();
-axisX = viewRot[0].xyz;
-axisY = viewRot[1].xyz;
-axisZ = -viewRot[2].xyz;
+                        return sourceCodeCameraPlane + @"
 #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
 axisX = normalize(axisX);
 axisY = normalize(axisY);
@@ -189,26 +208,29 @@ axisZ = cross(axisX, axisY);
 ";
                         }
                         else
-                            return @"
+                        {
+                            string getPerspectiveAxesCode = faceRay
+                                ? "GetCameraPositionOrRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);"
+                                : "GetCameraPositionFacingAxes(viewRot, position, axisX, axisY, axisZ);";
+                            string getOrthographicAxesCode = faceRay
+                                ? "GetCameraPlaneOrRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);"
+                                : "GetCameraPlaneFacingAxes(viewRot, axisX, axisY, axisZ);";
+
+                            return $@"
+float3x3 viewRot = GetVFXToViewRotMatrix();
+float3 worldUp = VFXGetObjectToWorldMatrix()._m10_m11_m12;
+
 if (IsPerspectiveProjection())
-{
-    axisZ = normalize(position - GetViewVFXPosition());
-    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
-    axisY = cross(axisZ,axisX);
-}
+    {getPerspectiveAxesCode}
 else // Face plane for ortho
-{
-    float3x3 viewRot = GetVFXToViewRotMatrix();
-    axisX = viewRot[0].xyz;
-    axisY = viewRot[1].xyz;
-    axisZ = -viewRot[2].xyz;
-    #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
-    axisX = normalize(axisX);
-    axisY = normalize(axisY);
-    axisZ = normalize(axisZ);
-    #endif
-}
-";
+    {getOrthographicAxesCode}
+#if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
+axisX = normalize(axisX);
+axisY = normalize(axisY);
+axisZ = normalize(axisZ);
+#endif
+    ";
+                        }
 
                     case Mode.LookAtPosition:
                         if (canTestStrips && hasStrips)

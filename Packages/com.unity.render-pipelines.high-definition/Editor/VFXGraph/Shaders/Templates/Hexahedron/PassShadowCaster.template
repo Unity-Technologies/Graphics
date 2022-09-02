@@ -1,24 +1,25 @@
 // Shadow pass
 Pass
-{		
+{
+	Name ${VFXPassShadow}
 	Tags { "LightMode"=${VFXPassShadow} }
 
 	ZClip [_ZClip]
 	ZWrite On
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
 	#define USE_ALPHA_TEST 1
 	#endif
 	#pragma target 4.5
-	
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
 		float3 offsets : TEXCOORD0;
-		
-		#if VFX_USE_ALPHA_CURRENT || USE_ALPHA_TEST 
+
+		#if VFX_USE_ALPHA_CURRENT || USE_ALPHA_TEST
 		// x: alpha
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
@@ -43,9 +44,9 @@ Pass
 ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 
     ${VFXPassShadowDefine}
-	
-	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-		
+
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+
 	#pragma fragment frag
 	float frag(ps_input i) : SV_Target0
 	{

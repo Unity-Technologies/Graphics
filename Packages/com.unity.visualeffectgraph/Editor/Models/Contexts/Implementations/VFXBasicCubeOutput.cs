@@ -73,7 +73,20 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "colorMapping";
+                yield return nameof(colorMapping);
+                yield return nameof(enableRayTracing);
+            }
+        }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return nameof(enableRayTracing);
             }
         }
     }

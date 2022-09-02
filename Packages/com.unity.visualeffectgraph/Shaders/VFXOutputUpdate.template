@@ -5,6 +5,10 @@ ${VFXPragmaRequire}
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
+#ifdef VFX_RT_DECIMATION_FACTOR
+#pragma multi_compile _ VFX_COMPUTE_AABBS
+#endif
+
 #if HAS_STRIPS
 RWStructuredBuffer<uint> stripDataBuffer;
 #endif
@@ -274,5 +278,10 @@ ${VFXFeedSortingKeys}
 #endif
             }
 		}
+        #if VFX_COMPUTE_AABBS
+                ${VFXLoadSizeRT}
+                int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+                FillAabbBuffer(attributes, size3, index, instanceIndex, rayTracingDecimationFactor);
+        #endif
 	}
 }

@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // SubShader features
         protected override bool supportDistortion => true;
         protected override bool supportForward => false;
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
         protected override bool requireSplitLighting => litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()

@@ -120,6 +120,7 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
+            out AdditionalCommandDescriptor interpolantsGenerationRTDescriptor,
             out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
             out AdditionalCommandDescriptor pixelPropertiesAssignDescriptor,
             out AdditionalCommandDescriptor defineSpaceDescriptor,
@@ -128,6 +129,7 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor loadPositionAttributeDescriptor,
             out AdditionalCommandDescriptor loadCropFactorAttributesDescriptor,
             out AdditionalCommandDescriptor loadTexcoordAttributesDescriptor,
+            out AdditionalCommandDescriptor loadRayTracedScalingAttributesDescriptor,
             out AdditionalCommandDescriptor loadCurrentFrameIndexParameterDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesAssignDescriptor,
@@ -161,8 +163,12 @@ namespace UnityEditor.VFX
             vertexPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesAssign", vertexPropertiesAssign);
 
             // Interpolator
-            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, false, out var interpolatorsGeneration);
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
+
+            // Interpolator for ray traxcing
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, true, out var interpolatorsGenerationRT);
+            interpolantsGenerationRTDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGenerationRT", interpolatorsGenerationRT);
 
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
             VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
@@ -240,6 +246,7 @@ namespace UnityEditor.VFX
             loadCropFactorAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadCropFactorParameter", VFXCodeGenerator.GenerateLoadParameter("cropFactor", mainParameters, expressionToName).ToString().ToString());
             loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString().ToString());
             loadCurrentFrameIndexParameterDescriptor = new AdditionalCommandDescriptor("VFXLoadCurrentFrameIndexParameter", VFXCodeGenerator.GenerateLoadParameter("currentFrameIndex", mainParameters, expressionToName).ToString().ToString());
+            loadRayTracedScalingAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadRayTracedScaling", VFXCodeGenerator.GenerateLoadParameter("rayTracedScaling", mainParameters, expressionToName).ToString().ToString());
 
             //Set VFX Instancing indices
             setInstancingIndicesDescriptor = new AdditionalCommandDescriptor("VFXInitInstancing", VFXCodeGenerator.GenerateSetInstancingIndices(context).ToString());
@@ -326,6 +333,7 @@ namespace UnityEditor.VFX
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
                 out var interpolantsGenerationDescriptor,
+                out var interpolantsGenerationRTDescriptor,
                 out var buildVFXFragInputs,
                 out var pixelPropertiesAssignDescriptor,
                 out var defineSpaceDescriptor,
@@ -335,6 +343,7 @@ namespace UnityEditor.VFX
                 out var loadCropFactorAttributesDescriptor,
                 out var loadTexcoordAttributesDescriptor,
                 out var loadCurrentFrameIndexParameterDescriptor,
+                out var loadRayTracedScalingAttributesDescriptor,
                 out var vertexPropertiesGenerationDescriptor,
                 out var vertexPropertiesAssignDescriptor,
                 out var setInstancingIndicesDescriptor
@@ -379,6 +388,7 @@ namespace UnityEditor.VFX
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,
                     interpolantsGenerationDescriptor,
+                    interpolantsGenerationRTDescriptor,
                     buildVFXFragInputs,
                     pixelPropertiesAssignDescriptor,
                     defineSpaceDescriptor,
@@ -388,6 +398,7 @@ namespace UnityEditor.VFX
                     loadCropFactorAttributesDescriptor,
                     loadTexcoordAttributesDescriptor,
                     loadCurrentFrameIndexParameterDescriptor,
+                    loadRayTracedScalingAttributesDescriptor,
                     vertexPropertiesGenerationDescriptor,
                     vertexPropertiesAssignDescriptor,
                     setInstancingIndicesDescriptor,

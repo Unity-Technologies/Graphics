@@ -1,14 +1,30 @@
 {
+
 	SubShader
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 		Cull Off
-		
-		${VFXInclude("Shaders/VFXParticleHeader.template")}
+
+		// Required passes
+        ${VFXInclude("Shaders/VFXParticleHeader.template")}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassSelection.template")}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassDepth.template"),IS_OPAQUE_PARTICLE}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassForward.template")}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+	}
+
+	SubShader
+	{
+	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
+
+		// Requires passes by ray tracing
+
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassVisibilityDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassIndirectDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassGBufferDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassForwardDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/PassRayTracingDebug.template")}
 	}
 }
