@@ -709,9 +709,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Add(perLightShadowSlice);
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
-                                    float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
-                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
+                                    float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && light.shadows == LightShadows.Soft));
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Spot, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -740,9 +738,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Add(perLightShadowSlice);
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
-                                    float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
-                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
+                                    float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && light.shadows == LightShadows.Soft));
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Point, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
