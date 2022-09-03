@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 using System.IO;
 using UnityEngine.TestTools;
 using System.Collections;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor.VersionControl;
@@ -1173,6 +1174,30 @@ namespace UnityEditor.VFX.Test
 
             var newVFXContent = File.ReadAllText(s_Modify_SG_Property_VFX);
             Assert.IsTrue(newVFXContent.Contains("Name_B"));
+        }
+
+        [UnityTest, Description("Cover regression UUM-5728")]
+        public IEnumerator ShaderGraph_Lit_On_Unlit()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
+
+            LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
+            LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var scene = SceneManagement.EditorSceneManager.OpenScene(tempDest + "/Repro_5728.unity");
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            SceneManagement.EditorSceneManager.CloseScene(scene, false);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
         }
 
         [OneTimeTearDown]
