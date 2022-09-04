@@ -14,6 +14,9 @@ struct v2f_surf {
   DECLARE_LIGHT_COORDS(4)//unityShadowCoord4 _LightCoord;
   UNITY_SHADOW_COORDS(5)//unityShadowCoord4 _ShadowCoord;
 
+  // In SS, if kPassFlagShadowCaster adds V2F_SHADOW_CASTER_NOPOS which is defined as "float3 vec : TEXCOORD0;"
+  float3 vec;
+
   //#ifdef DIRLIGHTMAP_COMBINED
   float4 tSpace0 : TEXCOORD6;
   float4 tSpace1 : TEXCOORD7;
