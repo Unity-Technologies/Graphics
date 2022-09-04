@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
                 return;
             }
+
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
@@ -150,7 +151,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
+                    if (isGameViewFinalTarget)
+                        cmd.SetViewport(cameraData.pixelRect);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
                 }
             }
