@@ -160,6 +160,11 @@ namespace UnityEditor.VFX.UI
         void PasteAll(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph, VFXView view, VFXGroupNodeController groupNode, List<VFXNodeController> nodesInTheSameOrder)
         {
             newControllers.Clear();
+            newContexts.Clear();
+            newOperators.Clear();
+            newParameters.Clear();
+            newContextUIs.Clear();
+            newNodesUI.Clear();
 
             m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
