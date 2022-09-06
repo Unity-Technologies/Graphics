@@ -4,9 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.11.0] - 2022-07-27
+
+## [10.10.1] - 2022-08-29
+
 ### Fixed
 - Fixed invalid subscript error on particle meshes with flipbook blend [Case 1319214](https://issuetracker.unity3d.com/product/unity/issues/guid/1319214/)
+- Fixed subgraph could not be created after adding a new pre-build system from the context menu
 
 ## [10.10.0] - 2022-06-28
 
