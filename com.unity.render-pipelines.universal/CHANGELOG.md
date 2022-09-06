@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lighting banding issue on mobile platforms.
 - Added multi_compile_instancing to SimpleLit shader on SM 2.0.
 - Fixed motion blur for multiple cameras.
+- Fixed the fix button for incorrect vertex steam in paticle shaders.
 
 ## [10.9.0] - 2021-12-06
 
