@@ -19,7 +19,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where ShadowCaster2Ds were sometimes being rendered twice in the editor while in playmode.
 - Fixed SSAO to work in VR mode. Normal buffer stores normals in world space.
 - Fixed an issue in where the _ScreenParams is not setup correctly.
-
+- Fixed lighting banding issue on mobile platforms.
+- Fixed the fix button for incorrect vertex steam in paticle shaders.
+- Added multi_compile_instancing to SimpleLit shader on SM 2.0.
 
 ## [10.9.0] - 2021-12-06
 
