@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeBuffer radianceCacheAxis0;
         public ComputeBuffer radianceCacheAxis1;
         public ComputeBuffer hitRadianceCache;
+        public ComputeBuffer dirtyProbes0;
+        public ComputeBuffer dirtyProbes1;
         public int radianceReadIndex;
         public int buffersDataVersion;
         public int simulationFrameTick;
@@ -50,6 +52,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeBuffer GetWriteRadianceCacheAxis()
         {
             return (radianceReadIndex == 0) ? radianceCacheAxis1 : radianceCacheAxis0;
+        }
+
+        public ComputeBuffer GetDirtyProbes()
+        {
+            return (radianceReadIndex == 0) ? dirtyProbes0 : dirtyProbes1;
+        }
+
+        public ComputeBuffer GetNextDirtyProbes()
+        {
+            return (radianceReadIndex == 0) ? dirtyProbes1 : dirtyProbes0;
         }
 
         public void SwapRadianceCaches()
@@ -914,6 +926,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetRadianceEncodingKeywords(shader, radianceEncoding);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
+            CoreUtils.SetKeyword(shader, "DIRTY_PROBES_ENABLED", giSettings.useDirtyFlag.value);
 
             var obb = pipelineData.BoundingBox;
             var data = pipelineData.EngineData;
@@ -977,6 +990,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
             }
 
+            cmd.SetComputeBufferParam(shader, kernel, "_DirtyProbes", propagationPipelineData.GetDirtyProbes());
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", propagationPipelineData.GetReadRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
@@ -1006,6 +1020,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetRadianceEncodingKeywords(shader, radianceEncoding);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
+            CoreUtils.SetKeyword(shader, "DIRTY_PROBES_ENABLED", giSettings.useDirtyFlag.value);
 
             var obb = pipelineData.BoundingBox;
             var data = pipelineData.EngineData;
@@ -1093,6 +1108,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
+            cmd.SetComputeBufferParam(shader, kernel, "_DirtyProbes", propagationPipelineData.GetDirtyProbes());
+            cmd.SetComputeBufferParam(shader, kernel, "_NextDirtyProbes", propagationPipelineData.GetNextDirtyProbes());
+
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.HitNeighborAxisLength);
 
@@ -1146,6 +1164,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetRadianceEncodingKeywords(shader, radianceEncoding);
             SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
+            CoreUtils.SetKeyword(shader, "DIRTY_PROBES_ENABLED", giSettings.useDirtyFlag.value);
 
             ref var pipelineData = ref probeVolume.GetPipelineData();
             var obb = pipelineData.BoundingBox;
@@ -1180,6 +1199,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", propagationPipelineData.GetWriteRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
+            cmd.SetComputeBufferParam(shader, kernel, "_DirtyProbes", propagationPipelineData.GetDirtyProbes());
 
             var dynamicAmount = giSettings.dynamicAmount.value;
 #if UNITY_EDITOR
@@ -1283,6 +1303,8 @@ namespace UnityEngine.Rendering.HighDefinition
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis0);
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis1);
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
+            didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.dirtyProbes0);
+            didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.dirtyProbes1);
 
             propagationPipelineData.buffersDataVersion = -1;
             propagationPipelineData.simulationFrameTick = -1;
@@ -1308,6 +1330,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ProbeVolume.EnsureBuffer<NeighborAxis>(ref propagationPipelineData.neighbors, probeVolume.NeighborAxisLength);
                 probeVolume.SetNeighborAxis(propagationPipelineData.neighbors);
 
+                ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyProbes0, probeVolume.DataValidityLength);
+                ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyProbes1, probeVolume.DataValidityLength);
+                
                 propagationPipelineData.buffersDataVersion = dataVersion;
                 return true;
             }

@@ -8,6 +8,7 @@
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 #pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+#pragma multi_compile _ DIRTY_PROBES_ENABLED
 
 #define SHADOW_MINIMAL
 #define LIGHT_EVALUATION_NO_HEIGHT_FOG
@@ -24,6 +25,10 @@
 
 RWStructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
+
+#ifdef DIRTY_PROBES_ENABLED
+RWStructuredBuffer<int> _DirtyProbes;
+#endif
 
 StructuredBuffer<PackedNeighborHit> _ProbeVolumeNeighborHits;
 int _ProbeVolumeNeighborHitCount;
@@ -200,6 +205,10 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         uint probeIndex, axisIndex;
         float probeValidity;
         UnpackIndicesAndValidity(neighborData.indexValidity, probeIndex, axisIndex, probeValidity);
+
+#ifdef DIRTY_PROBES_ENABLED
+        _DirtyProbes[probeIndex] = true;
+#endif
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         const float3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
