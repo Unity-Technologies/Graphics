@@ -795,9 +795,14 @@ uint BinarySearchPrefixSum(uint value, StructuredBuffer<uint> prefixSum,uint sta
         }
     }
     uint index = left;
-    uint prevValue = index > startIndex ? prefixSum[index - 1] : 0;
-    remainder = value - prevValue;
 
+    uint prevValue = 0;
+    [branch]
+    if (index > startIndex)
+    {
+        prevValue = prefixSum[index - 1];
+    }
+    remainder = value - prevValue;
     return index;
 }
 
