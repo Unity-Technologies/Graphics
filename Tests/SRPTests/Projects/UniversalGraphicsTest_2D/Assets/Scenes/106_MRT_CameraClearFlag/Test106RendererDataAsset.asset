@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13db91318120ded488cfb39bae256bd3, type: 3}
   m_Name: Test106RendererDataAsset
   m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
   m_RendererFeatures: []
+  m_RendererFeatureMap: 
+  m_UseNativeRenderPass: 0
   shaders:
-    splitColorPS: {fileID: 0}
-    scaledCopyColorPS: {fileID: 0}
-    samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
-    blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
+    colorToMrtPS: {fileID: 4800000, guid: 19eba126951878a4caf1e3fbecdaa299, type: 3}
+    copyToViewportPS: {fileID: 0}
+    blitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
