@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed GDK shader compiler issue in the Histogram shader.
+- Fixed Hardware Dynamic resolution artifacts when changing resolution often at runtime.
 
 ## [10.10.0] - 2022-06-28
 
