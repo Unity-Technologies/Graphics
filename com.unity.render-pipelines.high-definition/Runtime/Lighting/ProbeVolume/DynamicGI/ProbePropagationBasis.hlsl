@@ -67,6 +67,23 @@ float ComputeBasisAxisHitIntegral(BasisAxisHit basisAxisHit)
     return integral;
 }
 
+float ComputeBasisAxisHitIntegralFromSharpness(BasisAxisHit basisAxisHit)
+{
+    float integral = 0.0;
+
+#if defined(BASIS_SPHERICAL_GAUSSIAN)
+    integral = SGIntegralFromSharpness(basisAxisHit.sharpness);
+#elif defined(BASIS_SPHERICAL_GAUSSIAN_WINDOWED)
+    integral = SGClampedCosineWindowIntegralFromSharpness(basisAxisHit.sharpness);
+#elif defined(BASIS_AMBIENT_DICE)
+    integral = AmbientDiceIntegralFromSharpness(basisAxisHit.sharpness);
+#else
+#error "Undefined Probe Propagation Basis"
+#endif
+
+    return integral;
+}
+
 BasisAxisHit ComputeBasisAxisHit(float3 axis, float sharpnessIn)
 {
     BasisAxisHit basisAxis;
