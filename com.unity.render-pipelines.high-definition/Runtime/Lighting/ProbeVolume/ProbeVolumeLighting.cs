@@ -213,12 +213,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static Material GetDebugSHPreviewMaterial()
         {
-            return (s_DebugSHPreviewMaterial != null) ? s_DebugSHPreviewMaterial : new Material(Shader.Find("Hidden/Debug/ProbeVolumeSHPreview"));
+            if (s_DebugSHPreviewMaterial == null)
+                s_DebugSHPreviewMaterial = new Material(Shader.Find("Hidden/Debug/ProbeVolumeSHPreview"));
+
+            return s_DebugSHPreviewMaterial;
         }
 
         private static MaterialPropertyBlock GetDebugSHPreviewMaterialPropertyBlock()
         {
-            return (s_DebugSHPreviewMaterialPropertyBlock != null) ? s_DebugSHPreviewMaterialPropertyBlock : new MaterialPropertyBlock();
+            if (s_DebugSHPreviewMaterialPropertyBlock == null)
+                s_DebugSHPreviewMaterialPropertyBlock = new MaterialPropertyBlock();
+
+            return s_DebugSHPreviewMaterialPropertyBlock;
         }
 #endif
 

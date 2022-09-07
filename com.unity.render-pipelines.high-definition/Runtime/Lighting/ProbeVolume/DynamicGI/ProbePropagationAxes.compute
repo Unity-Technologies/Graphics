@@ -290,6 +290,15 @@ float3 PropagateLightFromNeighborSHWithMonteCarloNaiveProjection(SHIncomingIrrad
     return incomingHitRadiance;
 }
 
+RADIANCE GetPreviousAxisRadiance(int index)
+{
+#if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
+    return ZeroRadiance();
+#else
+    return _PreviousRadianceCacheAxis[index];
+#endif
+}
+
 #define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
 #define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (1)
 #define BASIS_FROM_SH_MODE_ZH_FIT (2)
@@ -306,12 +315,16 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         const uint axisIndex = (uint)index / _ProbeVolumeProbeCount;
         const uint probeIndex = (uint)index - axisIndex * _ProbeVolumeProbeCount;
 
-#ifdef DIRTY_PROBES_ENABLED
-        if (!_DirtyProbes[probeIndex])
-            return;
-#endif
-
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
+
+#ifdef DIRTY_PROBES_ENABLED
+        if (!IsBoundaryProbe(probeCoordinate, uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ))
+            && !_DirtyProbes[probeIndex])
+        {
+            _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
+            return;
+        }
+#endif
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         const float3 probePositionWS =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
@@ -319,12 +332,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         // Early out at far distances
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
-            #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            _RadianceCacheAxis[index] = ZeroRadiance();
-            #else
-            _RadianceCacheAxis[index] = _PreviousRadianceCacheAxis[index];
-            #endif
-
+            _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
             return;
         }
 
@@ -420,8 +428,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         _RadianceCacheAxis[index] = EncodeRadiance(radiance);
 
 #ifdef DIRTY_PROBES_ENABLED
-        float3 previousRadiance = DecodeRadiance(_PreviousRadianceCacheAxis[index]);
-        if (any(abs(radiance - previousRadiance) > 0.01))
+        float3 previousRadiance = DecodeRadiance(GetPreviousAxisRadiance(index));
+        if (any(abs(radiance - previousRadiance) > 1.0 / 255.0))
         {
             for (int l = 0; l < PROPAGATION_AXIS_AMOUNT; ++l)
             {

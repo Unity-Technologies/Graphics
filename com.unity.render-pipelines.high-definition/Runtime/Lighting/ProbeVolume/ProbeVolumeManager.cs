@@ -214,7 +214,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var index = m_Volumes.IndexOf(probeVolume);
             if (index != -1)
+            {
                 ProbeVolumeDynamicGI.instance.DebugDrawNeighborhood(new ProbeVolumeHandle(this, index), camera);
+                ProbeVolumeDynamicGI.instance.DebugDrawDirtyProbes(probeVolume, camera);
+            }
         }
 #endif
 

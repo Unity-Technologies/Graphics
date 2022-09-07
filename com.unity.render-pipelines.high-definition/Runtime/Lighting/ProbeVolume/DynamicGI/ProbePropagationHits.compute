@@ -206,10 +206,6 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         float probeValidity;
         UnpackIndicesAndValidity(neighborData.indexValidity, probeIndex, axisIndex, probeValidity);
 
-#ifdef DIRTY_PROBES_ENABLED
-        _DirtyProbes[probeIndex] = true;
-#endif
-
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         const float3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
         const float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
@@ -234,5 +230,9 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         lighting += UnpackEmission(neighborData.mixedLighting) * _MixedLightingMultiplier;
 
         _HitRadianceCacheAxis[hitAxisIndex] = EncodeRadiance(lighting);
+
+#ifdef DIRTY_PROBES_ENABLED
+        _DirtyProbes[probeIndex] = true;
+#endif
     }
 }
