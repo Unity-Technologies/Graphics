@@ -60,7 +60,5 @@ If you disable the following features, Unity doesn't reduce the number of varian
 | **Feature** | **How to disable the feature** |
 | :-- | :-- |
 | Decal layers | In the HDRP asset, in the **Decals** section, disable **Layers**. |
-| High-quality area shadows | In the HDRP asset, in the **Lighting** section, set **Area Shadow Filtering Quality** to **Low**. |
 | High-quality shadows | In the HDRP asset, in the **Lighting** section, set **Shadow Filtering Quality** to **Low**. |
-| Light Probe system | In the HDRP asset, in the **Lighting** section, set **Light Probe System** to **Light Probe Groups (Legacy)**. |
 | Shadowmasks | In the HDRP asset, in the **Lighting** section, disable **Shadowmask**. |
