@@ -11,7 +11,7 @@ HDRP_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_trunk:
     name: HDRP_BatchRendererGroup on OSX_Metal_playmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -53,7 +53,7 @@ HDRP_BatchRendererGroup_OSX_Metal_playmode_XR_mono_Linear_trunk:
     name: HDRP_BatchRendererGroup on OSX_Metal_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -95,7 +95,7 @@ HDRP_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_trunk:
     name: HDRP_BatchRendererGroup on OSX_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -137,7 +137,7 @@ HDRP_BatchRendererGroup_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_BatchRendererGroup on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -179,7 +179,7 @@ HDRP_BatchRendererGroup_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP_BatchRendererGroup on OSX_Metal_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -221,7 +221,7 @@ HDRP_BatchRendererGroup_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_BatchRendererGroup on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     variables:
         CACHE_ARGS: '{{cache.flags}}'

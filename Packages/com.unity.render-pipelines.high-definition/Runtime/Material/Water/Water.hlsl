@@ -71,7 +71,6 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     }
 }
 
-
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
@@ -277,12 +276,13 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
     // Fill the built in data
-    builtinData.renderingLayers = _EnableLightLayers ? _WaterSurfaceProfiles[bsdfData.surfaceIndex].lightLayers : DEFAULT_LIGHT_LAYERS;
+    builtinData.renderingLayers = _EnableLightLayers ? _WaterSurfaceProfiles[bsdfData.surfaceIndex].renderingLayers : RENDERING_LAYERS_MASK;
     builtinData.shadowMask0 = 1.0;
     builtinData.shadowMask1 = 1.0;
     builtinData.shadowMask2 = 1.0;
     builtinData.shadowMask3 = 1.0;
-    builtinData.emissiveColor = _WaterAmbientProbe.xyz;
+    builtinData.emissiveColor = 0.0;
+    builtinData.bakeDiffuseLighting = _WaterSurfaceProfiles[bsdfData.surfaceIndex].waterAmbientProbe;
 }
 
 void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
@@ -318,6 +318,7 @@ struct PreLightData
     float maxRefractionDistance;
     float3 scatteringColor;
     bool aboveWater;
+    float envRoughness;
 
     // Refraction
     float3 transparencyColor;
@@ -361,14 +362,34 @@ bool CameraIsAboveWater(uint surfaceIndex)
     return !profile.cameraUnderWater || _WaterCameraHeightBuffer[0] > 0.0;
 }
 
+void EvaluateSmoothnessFade(float3 positionRWS, WaterSurfaceProfile profile, inout BSDFData bsdfData)
+{
+    // If the surface is less rough than what the transition
+    if (bsdfData.perceptualRoughness < profile.roughnessEndValue)
+    {
+         // Distance from the camera to the pixel
+        float distanceToCamera = length(positionRWS);
+
+        // Value that allows us to do the blending
+        float blendValue = saturate((distanceToCamera - profile.smoothnessFadeStart) / profile.smoothnessFadeDistance);
+        bsdfData.perceptualRoughness = lerp(bsdfData.perceptualRoughness, profile.roughnessEndValue, blendValue);
+        bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    }
+}
+
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
 
-    // Profile data
+    // Grab the water profile of this surface
     WaterSurfaceProfile profile = _WaterSurfaceProfiles[bsdfData.surfaceIndex];
+
+    // Make sure to apply the smoothness fade
+    EvaluateSmoothnessFade(posInput.positionWS, profile, bsdfData);
+
+    // Profile data
     preLightData.tipScatteringHeight = profile.tipScatteringHeight;
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
     preLightData.maxRefractionDistance = profile.maxRefractionDistance;
@@ -379,7 +400,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
-    preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
+    preLightData.iblPerceptualRoughness = max(profile.envPerceptualRoughness, bsdfData.perceptualRoughness);
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
 
     float NdotVLowFrequency = dot(bsdfData.lowFrequencyNormalWS, V);

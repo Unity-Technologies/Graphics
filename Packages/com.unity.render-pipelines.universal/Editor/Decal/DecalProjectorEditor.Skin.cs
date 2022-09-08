@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
         static readonly GUIContent k_HeightContent = EditorGUIUtility.TrTextContent("Height", "Sets the height of the projection plan.");
         static readonly GUIContent k_ProjectionDepthContent = EditorGUIUtility.TrTextContent("Projection Depth", "Sets the projection depth of the projector.");
         static readonly GUIContent k_MaterialContent = EditorGUIUtility.TrTextContent("Material", "Specifies the Material this component projects as a decal.");
-        static readonly GUIContent k_DecalLayerMaskContent = EditorGUIUtility.TrTextContent("Decal Layer", "Specify the decal layer mask to use for this projector. RenderingLayerMask of Mesh matching this value will receive the decal. Enable Layers in Decal section of HDRP settings to access it.");
+        static readonly GUIContent k_RenderingLayerMaskContent = EditorGUIUtility.TrTextContent("Rendering Layers", "Specify the rendering layer mask for this projector. Unity renders decals on all meshes where at least one Rendering Layer value matches.");
         static readonly GUIContent k_DistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the distance from the Camera at which URP stop rendering the decal.");
         static readonly GUIContent k_FadeScaleContent = EditorGUIUtility.TrTextContent("Start Fade", "Controls the distance from the Camera at which this component begins to fade the decal out.");
         static readonly GUIContent k_AngleFadeContent = EditorGUIUtility.TrTextContent("Angle Fade", "Controls the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface. Requires 'Decal Layers' to be enabled in the URP Asset and Frame Settings.");

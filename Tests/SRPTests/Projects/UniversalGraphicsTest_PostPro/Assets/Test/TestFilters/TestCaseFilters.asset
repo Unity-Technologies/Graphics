@@ -85,3 +85,22 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: b0e4c7327ffa0d7449aea7cad66edd24, type: 3}
+    - {fileID: 102900000, guid: 0a9a60e2b67587149a02d9fdb55fd832, type: 3}
+    - {fileID: 102900000, guid: 4634b21ca67fa1b4bab24ec37f196b4b, type: 3}
+    - {fileID: 102900000, guid: 39df0b33bc51d7f40b6ee02863991adf, type: 3}
+    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    - {fileID: 102900000, guid: aee9f891d65e44daf811d30053402efd, type: 3}
+    - {fileID: 102900000, guid: b51c203a350144f97ba208c293ab8333, type: 3}
+    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
+    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
+    - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
+    - {fileID: 102900000, guid: 4a3d5fa0000f96048b95bf35caa3c44c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/URP-1506

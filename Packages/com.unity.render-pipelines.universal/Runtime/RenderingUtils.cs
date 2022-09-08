@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -182,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void FinalBlit(
             CommandBuffer cmd,
-            CameraData cameraData,
+            ref CameraData cameraData,
             RTHandle source,
             RTHandle destination,
             RenderBufferLoadAction loadAction,
@@ -192,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
-                    isRenderToBackBufferTarget = destination == cameraData.xr.renderTarget;
+                    isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
 #endif
 
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
@@ -206,7 +208,18 @@ namespace UnityEngine.Rendering.Universal
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
 
-            if (source.rt == null)
+            // cmd.Blit must be used in Scene View for wireframe mode to make the full screen draw with fill mode
+            // This branch of the if statement must be removed for render graph and the new command list with a novel way of using Blitter with fill mode
+            if (cameraData.isSceneViewCamera)
+            {
+                cmd.SetGlobalTexture("_BlitTexture", source);
+                // This set render target is necessary so we change the LOAD state to DontCare.
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    loadAction, storeAction, // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                cmd.Blit(source.nameID, destination.nameID);
+            }
+            else if (source.rt == null)
                 Blitter.BlitTexture(cmd, source.nameID, scaleBias, material, passIndex);  // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier
             else
                 Blitter.BlitTexture(cmd, source, scaleBias, material, passIndex);
@@ -215,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
+        internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, CommandBuffer cmd)
         {
             // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
             // This might be in a point that some resources required for the pipeline are not finished importing yet.
@@ -233,7 +246,51 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
-            context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
+            var param = new RendererListParams(cullResults, errorSettings, filterSettings);
+            var rl = context.CreateRendererList(ref param);
+            cmd.DrawRendererList(rl);
+        }
+
+        // Drawing a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
+        internal static void DrawRendererListWithRenderStateBlock(ScriptableRenderContext context, CommandBuffer cmd, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb)
+        {
+            unsafe
+            {
+                // Taking references to stack variables in the current function does not require any pinning (as long as you stay within the scope)
+                // so we can safely alias it as a native array
+                RenderStateBlock* rsbPtr = &rsb;
+                var stateBlocks = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<RenderStateBlock>(rsbPtr, 1, Allocator.None);
+
+                var shaderTag = ShaderTagId.none;
+                var tagValues = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<ShaderTagId>(&shaderTag, 1, Allocator.None);
+
+                // Inside CreateRendererList (below), we pass the NativeArrays to C++ by calling GetUnsafeReadOnlyPtr
+                // This will check read access but NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray does not set up the SafetyHandle (by design) so create/add it here
+                // NOTE: we explicitly share the handle
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                var safetyHandle = AtomicSafetyHandle.Create();
+                AtomicSafetyHandle.SetAllowReadOrWriteAccess(safetyHandle, true);
+
+                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref stateBlocks, safetyHandle);
+                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref tagValues, safetyHandle);
+#endif
+
+                // Create & schedule the RL
+                var param = new RendererListParams(data.cullResults, ds, fs)
+                {
+                    tagValues = tagValues,
+                    stateBlocks = stateBlocks
+
+                };
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
+
+                // we need to explicitly release the SafetyHandle
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                AtomicSafetyHandle.Release(safetyHandle);
+#endif
+
+            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.

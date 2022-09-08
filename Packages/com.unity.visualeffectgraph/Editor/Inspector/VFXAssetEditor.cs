@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-
+using System.ComponentModel;
 using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
@@ -119,13 +119,25 @@ class VisualEffectAssetEditor : Editor
         }
         else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
+            var window = VFXViewWindow.GetWindow(vfxAsset, false);
+            if (window == null)
+            {
+                window = VFXViewWindow.GetWindow(vfxAsset, true);
+                window.LoadAsset(vfxAsset, null);
+            }
+            window.Focus();
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
+            var window = VFXViewWindow.GetWindow(resource, false);
+            if (window == null)
+            {
+                window = VFXViewWindow.GetWindow(resource, true);
+                window.LoadResource(resource, null);
+            }
+            window.Focus();
             return true;
         }
         else if (obj is Material || obj is ComputeShader)
@@ -155,6 +167,14 @@ class VisualEffectAssetEditor : Editor
         for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
             m_OutputContexts[i].vfxSystemSortPriority = i;
+        }
+
+        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
+        {
+            using var reporter = new VFXCompileErrorReporter(m_CurrentGraph.errorManager);
+            VFXGraph.compileReporter = reporter;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
+            VFXGraph.compileReporter = null;
         }
     }
 
@@ -225,7 +245,7 @@ class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
             m_VisualEffect.pause = true;
-            m_RemainingFramesToRender = 2;
+            m_RemainingFramesToRender = 1;
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
             m_VisualEffectGO.transform.localPosition = Vector3.zero;
@@ -292,9 +312,14 @@ class VisualEffectAssetEditor : Editor
             initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
             instancingModeProperty = resourceObject.FindProperty("m_Infos.m_InstancingMode");
             instancingCapacityProperty = resourceObject.FindProperty("m_Infos.m_InstancingCapacity");
-            instancingDisabledReasonProperty = resourceObject.FindProperty("m_Infos.m_InstancingDisabledReason");
+        }
+        if (targets?.Length > 0)
+        {
+            targetObject = new SerializedObject(targets);
+            instancingDisabledReasonProperty = targetObject.FindProperty("m_Infos.m_InstancingDisabledReason");
         }
     }
+
 
     PreviewRenderUtility m_PreviewUtility;
 
@@ -332,13 +357,10 @@ class VisualEffectAssetEditor : Editor
         {
             m_VisualEffect.pause = !m_IsAnimated;
 
-            if (m_IsAnimated)
+            if (!m_IsAnimated)
             {
-                DestroyImmediate(m_PreviewTexture);
-                m_PreviewTexture = null;
+                StopRendering();
             }
-            else
-                CopyRenderedFrame();
         }
 
         GUI.enabled = m_IsAnimated;
@@ -352,7 +374,6 @@ class VisualEffectAssetEditor : Editor
 
     private static GUIContent[] s_PlayPauseIcons;
     private bool m_IsAnimated;
-    private Texture m_PreviewTexture;
     private Rect m_LastArea;
 
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
@@ -367,10 +388,10 @@ class VisualEffectAssetEditor : Editor
             return;
 
         if (isRepaint && r != m_LastArea)
-            RequestNewFrame();
+            RequestSingleFrame();
 
         if (VFXPreviewGUI.TryDrag2D(ref m_Angles, m_LastArea))
-            RequestNewFrame();
+            RequestSingleFrame();
 
         if (renderer.bounds.size != Vector3.zero)
         {
@@ -415,7 +436,7 @@ class VisualEffectAssetEditor : Editor
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + Event.current.delta.y * .015f;
-            RequestNewFrame();
+            RequestSingleFrame();
         }
 
         if (m_Mat == null)
@@ -448,25 +469,23 @@ class VisualEffectAssetEditor : Editor
         }
 
         if (!m_IsAnimated && m_RemainingFramesToRender == 0)
-            CopyRenderedFrame();
+            StopRendering();
 
         if (m_IsAnimated)
             Repaint();
-        else if (m_PreviewTexture != null)
-            EditorGUI.DrawPreviewTexture(m_LastArea, m_PreviewTexture);
+        else
+            EditorGUI.DrawPreviewTexture(m_LastArea, m_PreviewUtility.renderTexture);
     }
 
-    void RequestNewFrame()
+    void RequestSingleFrame()
     {
         if (m_RemainingFramesToRender < 0)
-            m_RemainingFramesToRender = 2;
+            m_RemainingFramesToRender = 1;
     }
 
-    void CopyRenderedFrame()
+    void StopRendering()
     {
         m_RemainingFramesToRender = -1;
-        m_PreviewTexture = new Texture2D(m_PreviewUtility.renderTexture.width, m_PreviewUtility.renderTexture.height, m_PreviewUtility.renderTexture.graphicsFormat, TextureCreationFlags.DontInitializePixels);
-        Graphics.CopyTexture(m_PreviewUtility.renderTexture, m_PreviewTexture);
     }
 
     Material m_Mat;
@@ -480,11 +499,6 @@ class VisualEffectAssetEditor : Editor
         if (m_PreviewUtility != null)
         {
             m_PreviewUtility.Cleanup();
-        }
-
-        if (m_PreviewTexture != null)
-        {
-            DestroyImmediate(m_PreviewTexture);
         }
     }
 
@@ -514,6 +528,7 @@ class VisualEffectAssetEditor : Editor
     SerializedProperty initialEventName;
     SerializedProperty instancingModeProperty;
     SerializedProperty instancingCapacityProperty;
+    SerializedObject targetObject;
     SerializedProperty instancingDisabledReasonProperty;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
@@ -866,7 +881,9 @@ class VisualEffectAssetEditor : Editor
         bool forceDisabled = disabledReason != VFXInstancingDisabledReason.None;
         if (forceDisabled)
         {
-            EditorGUILayout.HelpBox("Instancing not available:\n- Unknown reason", MessageType.Info);
+            System.Text.StringBuilder reasonString = new System.Text.StringBuilder("Instancing not available:");
+            GetInstancingDisabledReasons(reasonString, disabledReason);
+            EditorGUILayout.HelpBox(reasonString.ToString(), MessageType.Info);
         }
 
         VFXInstancingMode instancingMode = forceDisabled ? VFXInstancingMode.Disabled : (VFXInstancingMode)instancingModeProperty.intValue;
@@ -886,6 +903,33 @@ class VisualEffectAssetEditor : Editor
             instancingCapacityProperty.intValue = System.Math.Max(instancingCapacity, 1);
             resourceObject.ApplyModifiedProperties();
         }
+    }
+
+    void GetInstancingDisabledReasons(System.Text.StringBuilder reasonString, VFXInstancingDisabledReason disabledReasonMask)
+    {
+        if (disabledReasonMask == VFXInstancingDisabledReason.Unknown)
+        {
+            GetInstancingDisabledReason(reasonString, VFXInstancingDisabledReason.Unknown);
+        }
+        else
+        {
+            Enum.GetValues(typeof(VFXInstancingDisabledReason))
+                .Cast<VFXInstancingDisabledReason>()
+                .Where(x => x != VFXInstancingDisabledReason.None && disabledReasonMask.HasFlag(x))
+                .ToList()
+                .ForEach(x => GetInstancingDisabledReason(reasonString, x));
+        }
+    }
+
+    void GetInstancingDisabledReason(System.Text.StringBuilder reasonString, VFXInstancingDisabledReason disabledReasonFlag)
+    {
+        reasonString.AppendLine();
+        reasonString.Append("- ");
+
+        Type type = disabledReasonFlag.GetType();
+        var memberInfo = type.GetMember(type.GetEnumName(disabledReasonFlag));
+        var descriptionAttribute = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() as DescriptionAttribute;
+        reasonString.Append(descriptionAttribute?.Description ?? disabledReasonFlag.ToString());
     }
 }
 

@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
                 while (true)
                 {
                     var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery);
+                    var index = targetCopy.IndexOf(targetQuery, StringComparison.Ordinal);
                     if (index == -1)
                     {
                         break;
@@ -162,16 +162,8 @@ namespace UnityEditor.VFX
             var r = new VFXShaderWriter();
 
             // Hardcoded, duplicated from VFXParticleCommon.template
-            r.WriteLine("#if VFX_USE_INSTANCING");
-            r.WriteLine("    #ifdef UNITY_INSTANCING_ENABLED");
-            r.WriteLine("    {");
-            r.WriteLine("        uint instanceCurrentIndex = VFXGetInstanceCurrentIndex(index);");
-            r.WriteLine("        unity_InstanceID = instanceCurrentIndex;");
-            r.WriteLine("    }");
-            r.WriteLine("    #endif");
-            r.WriteLine("    uint instanceActiveIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceActiveIndex));");
-            r.WriteLine("    uint instanceIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceIndex));");
-            r.WriteLine("    #endif");
+            r.WriteLine("uint instanceIndex, instanceActiveIndex;");
+            r.WriteLine("index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);");
 
             return r;
         }
@@ -317,7 +309,7 @@ namespace UnityEditor.VFX
 
             int currentPos = -1;
             int builderOffset = 0;
-            while ((currentPos = source.IndexOf("${")) != -1)
+            while ((currentPos = source.IndexOf("${", StringComparison.Ordinal)) != -1)
             {
                 int endPos = source.IndexOf('}', currentPos);
                 if (endPos == -1)
@@ -937,17 +929,15 @@ namespace UnityEditor.VFX
         {
             yield return "#define VFX_USE_INSTANCING 1";
 
-
             if (context is VFXAbstractParticleOutput output)
             {
-                uint capacity;
-                if (!output.HasIndirectDraw() && particleData.IsFixedSize(out capacity))
+                uint fixedSize;
+                if (!output.IsInstancingFixedSize(out fixedSize))
                 {
-                    yield return "#define VFX_INSTANCING_FIXED_SIZE " + capacity;
-                    yield return "#pragma multi_compile_instancing";
+                    fixedSize = particleData.alignedCapacity;
                 }
-                //Debug.Assert(output.HasIndirectDraw() || particleData.IsFixedSize(out capacity), context.GetResource().name);
-                // No variable size instancing for outputs, to avoid binary search on vertex shader
+                yield return "#define VFX_INSTANCING_FIXED_SIZE " + fixedSize;
+                yield return "#pragma multi_compile_instancing";
             }
             else
             {

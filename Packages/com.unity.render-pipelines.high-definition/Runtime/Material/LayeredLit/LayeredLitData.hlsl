@@ -325,21 +325,23 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 // Or the last found in case of equality.
 uint BlendLayeredDiffusionProfile(uint x0, uint x1, uint x2, uint x3, float weight[4])
 {
-    uint diffusionProfileHash = x0;
-    float currentMax = weight[0];
-
-    diffusionProfileHash = currentMax < weight[1] ? x1 : diffusionProfileHash;
-    currentMax = max(currentMax, weight[1]);
-
+    // Not the simplest logic but it's to workaround what looks like a compiler bug on metal
+    float maxw = max(weight[0], weight[1]);
 #if _LAYER_COUNT >= 3
-    diffusionProfileHash = currentMax < weight[2] ? x2 : diffusionProfileHash;
-    currentMax = max(currentMax, weight[2]);
+    maxw = max(maxw, weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    diffusionProfileHash = currentMax < weight[3] ? x3 : diffusionProfileHash;
+    maxw = max(maxw, weight[3]);
 #endif
 
-    return diffusionProfileHash;
+    return x0 * (maxw == weight[0]) + x1 * (maxw == weight[1])
+#if _LAYER_COUNT >= 3
+        + x2 * (maxw == weight[2])
+#endif
+#if _LAYER_COUNT >= 4
+        + x3 * (maxw == weight[3])
+#endif
+    ;
 }
 
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0).name, MERGE_NAME(surfaceData, 1).name, MERGE_NAME(surfaceData, 2).name, MERGE_NAME(surfaceData, 3).name, mask);

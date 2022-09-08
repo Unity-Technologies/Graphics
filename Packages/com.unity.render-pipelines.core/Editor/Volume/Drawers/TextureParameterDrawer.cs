@@ -85,94 +85,100 @@ namespace UnityEditor.Rendering
         }
     }
 
-    [VolumeParameterDrawer(typeof(Texture2DParameter))]
-    sealed class Texture2DParameterDrawer : VolumeParameterDrawer
+    [VolumeParameterDrawer(typeof(TextureParameter))]
+    sealed class TextureParameterDrawer : VolumeParameterDrawer
     {
+        internal static bool HasGenuineNullSelection(Object[] references)
+        {
+            bool genuineNullSelection = true;
+            for (int i = 0; i < references.Length; ++i)
+            {
+                genuineNullSelection &= (references[i] == null);
+            }
+            return genuineNullSelection;
+        }
+
         static Delegate validator = TextureParameterHelper.CastValidator((Object[] references, Type objType, SerializedProperty property, int options) =>
         {
-            // Accept RenderTextures of dimension 2D
+            if (HasGenuineNullSelection(references)) return null;
+
+            // Accept RenderTextures of correct dimensions
             Texture validated = (RenderTexture)TextureParameterHelper.ValidateObjectFieldAssignment(references, typeof(RenderTexture), property, options);
-            if (validated != null && validated.dimension != TextureDimension.Tex2D)
-                validated = null;
-            // Accept all Texture2D
+            if (validated != null)
+            {
+                if (objType == typeof(Texture2D) && validated.dimension != TextureDimension.Tex2D) validated = null;
+                if (objType == typeof(Texture3D) && validated.dimension != TextureDimension.Tex3D) validated = null;
+                if (objType == typeof(Cubemap)   && validated.dimension != TextureDimension.Cube)  validated = null;
+            }
+            // Accept textures of correct type
             if (validated == null)
-                validated = (Texture2D)TextureParameterHelper.ValidateObjectFieldAssignment(references, typeof(Texture2D), property, options);
+                validated = (Texture)TextureParameterHelper.ValidateObjectFieldAssignment(references, objType, property, options);
             return validated ? validated : property.objectReferenceValue;
         });
+
+        internal static bool TextureField(SerializedProperty property, GUIContent title, TextureDimension dimension)
+        {
+            if (property.propertyType != SerializedPropertyType.ObjectReference)
+                return false;
+
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, title, property);
+            switch (dimension)
+            {
+                case TextureDimension.Tex2D:
+                    TextureParameterHelper.DoObjectField(rect, property, title, typeof(Texture2D), typeof(RenderTexture), validator);
+                    break;
+                case TextureDimension.Tex3D:
+                    TextureParameterHelper.DoObjectField(rect, property, title, typeof(Texture3D), typeof(RenderTexture), validator);
+                    break;
+                case TextureDimension.Cube:
+                    TextureParameterHelper.DoObjectField(rect, property, title, typeof(Cubemap), typeof(RenderTexture), validator);
+                    break;
+                default:
+                    EditorGUILayout.PropertyField(property, title);
+                    break;
+            }
+            EditorGUI.EndProperty();
+
+            return true;
+        }
 
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
             var value = parameter.value;
-            if (value.propertyType != SerializedPropertyType.ObjectReference)
-                return false;
+            var dimension = parameter.GetObjectRef<TextureParameter>().dimension;
+            return TextureField(value, title, dimension);
+        }
+    }
 
-            var rect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(rect, title, value);
-            TextureParameterHelper.DoObjectField(rect, value, title, typeof(Texture2D), typeof(RenderTexture), validator);
-            EditorGUI.EndProperty();
-            return true;
+    [VolumeParameterDrawer(typeof(Texture2DParameter))]
+    sealed class Texture2DParameterDrawer : VolumeParameterDrawer
+    {
+        /// <summary>Draws the parameter in the editor.</summary>
+        /// <param name="parameter">The parameter to draw.</param>
+        /// <param name="title">The label and tooltip of the parameter.</param>
+        /// <returns><c>true</c> if the input parameter is valid, <c>false</c> otherwise</returns>
+        public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
+        {
+            return TextureParameterDrawer.TextureField(parameter.value, title, TextureDimension.Tex2D);
         }
     }
 
     [VolumeParameterDrawer(typeof(Texture3DParameter))]
     sealed class Texture3DParameterDrawer : VolumeParameterDrawer
     {
-        static Delegate validator = TextureParameterHelper.CastValidator((Object[] references, Type objType, SerializedProperty property, int options) =>
-        {
-            // Accept RenderTextures of dimension 3D
-            Texture validated = (RenderTexture)TextureParameterHelper.ValidateObjectFieldAssignment(references, typeof(RenderTexture), property, options);
-            if (validated != null && validated.dimension != TextureDimension.Tex3D)
-                validated = null;
-            // Accept all Texture3D
-            if (validated == null)
-                validated = (Texture3D)TextureParameterHelper.ValidateObjectFieldAssignment(references, typeof(Texture3D), property, options);
-            return validated ? validated : property.objectReferenceValue;
-        });
-
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
-            var value = parameter.value;
-            if (value.propertyType != SerializedPropertyType.ObjectReference)
-                return false;
-
-            var rect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(rect, title, value);
-            TextureParameterHelper.DoObjectField(rect, value, title, typeof(Texture3D), typeof(RenderTexture), validator);
-            EditorGUI.EndProperty();
-            return true;
+            return TextureParameterDrawer.TextureField(parameter.value, title, TextureDimension.Tex3D);
         }
     }
 
     [VolumeParameterDrawer(typeof(CubemapParameter))]
     sealed class CubemapParameterDrawer : VolumeParameterDrawer
     {
-        static Delegate validator = TextureParameterHelper.CastValidator((Object[] references, Type objType, SerializedProperty property, int options) =>
-        {
-            // Accept RenderTextures of dimension cube
-            Texture validated = (RenderTexture)TextureParameterHelper.ValidateObjectFieldAssignment(references, typeof(RenderTexture), property, options);
-            if (validated != null && validated.dimension != TextureDimension.Cube)
-                validated = null;
-            // Accept all Cubemaps
-            if (validated == null)
-                validated = (Cubemap)TextureParameterHelper.ValidateObjectFieldAssignment(references, typeof(Cubemap), property, options);
-            return validated ? validated : property.objectReferenceValue;
-        });
-
-        static internal bool OnGUI(SerializedProperty value, GUIContent title)
-        {
-            if (value.propertyType != SerializedPropertyType.ObjectReference)
-                return false;
-
-            var rect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(rect, title, value);
-            TextureParameterHelper.DoObjectField(rect, value, title, typeof(Cubemap), typeof(RenderTexture), validator);
-            EditorGUI.EndProperty();
-            return true;
-        }
-
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
-            return OnGUI(parameter.value, title);
+            return TextureParameterDrawer.TextureField(parameter.value, title, TextureDimension.Cube);
         }
     }
 
@@ -181,7 +187,7 @@ namespace UnityEditor.Rendering
     {
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
-            return CubemapParameterDrawer.OnGUI(parameter.value, title);
+            return TextureParameterDrawer.TextureField(parameter.value, title, TextureDimension.Cube);
         }
     }
 }

@@ -52,6 +52,52 @@ namespace UnityEditor.Rendering
     [CustomEditor(typeof(VolumeComponent), true)]
     public class VolumeComponentEditor : Editor
     {
+        const string k_KeyPrefix = "CoreRP:VolumeComponent:UI_State:";
+
+        EditorPrefBool m_EditorPrefBool;
+
+        /// <summary>
+        /// If the editor for this <see cref="VolumeComponent"/> is expanded or not in the inspector
+        /// </summary>
+        public bool expanded
+        {
+            get => m_EditorPrefBool.value;
+            set => m_EditorPrefBool.value = value;
+        }
+
+        internal Type[] m_PipelineTypes;
+
+        internal Type[] pipelineTypes
+        {
+            get
+            {
+                if (m_PipelineTypes == null)
+                {
+                    var supportedOn = volumeComponent.GetType().GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
+                    if(supportedOn != null)
+                        m_PipelineTypes = supportedOn.pipelineTypes;
+                    else
+                        m_PipelineTypes = Array.Empty<Type>();
+                }
+
+                return m_PipelineTypes;
+            }
+        }
+
+        internal bool visible
+        {
+            get
+            {
+                if (RenderPipelineManager.currentPipeline == null)
+                    return false;
+
+                if (!pipelineTypes.Any())
+                    return true;
+
+                return pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType());
+            }
+        }
+
         class Styles
         {
             public static GUIContent overrideSettingText { get; } = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
@@ -84,6 +130,7 @@ namespace UnityEditor.Rendering
         /// The copy of the serialized property of the <see cref="VolumeComponent"/> being
         /// inspected. Unity uses this to track whether the editor is collapsed in the Inspector or not.
         /// </summary>
+        [Obsolete("Please use expanded property instead. #from(2022.2)", false)]
         public SerializedProperty baseProperty { get; internal set; }
 
         /// <summary>
@@ -237,6 +284,9 @@ namespace UnityEditor.Rendering
         internal void Init()
         {
             activeProperty = serializedObject.FindProperty("active");
+
+            var inspectorKey = inspector != null ? inspector.GetType().Name : string.Empty;
+            m_EditorPrefBool = new EditorPrefBool(k_KeyPrefix + inspectorKey + volumeComponent.GetType().Name, true);
 
             InitAdditionalPropertiesPreference();
 

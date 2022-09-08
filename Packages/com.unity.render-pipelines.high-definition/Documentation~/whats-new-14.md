@@ -6,7 +6,11 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ### Material Samples Transparency Scenes
 
+Transparent Shadows
 ![](Images/HDRP-MaterialSample-ShadowsTransparency.png)
+
+Transparent Stacking
+![](Images/HDRP-MaterialSample-StackingTransparency.png)
 
 These new scenes include examples and informations on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of the sample, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
@@ -61,6 +65,15 @@ HDRP 14.0 introduces denoising for path-traced frames with a choice of two diffe
 
 ![](Images/Path-Tracing-Denoise.png)
 
+### Volumetric Materials
+
+The Local Volumetric Fog volume was updated to support materials created directly in ShaderGraph. This new feature allows the creation of dynamic fog effects, learn more in the [Volumetric Material](Volumetric-Material.md) documentation page.
+![](Images/Aurora_Fog.png)
+
+### Local Volumetric Fog blending
+
+It's now possible to change the blend mode of the [Local Volumetric Fog](Local-Volumetric-Fog.md) component to create various effects such as removing the fog inside a house. A priority has also been added to control in which order the volumes are blended together.
+
 ## Updated
 
 ### Cloud Layer
@@ -81,6 +94,28 @@ Shaders of the fullscreen type can be used in fullscreen custom passes, custom p
 
 For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
 
+### Lens Flare
+
+When using Lens Flare, HDRP allow to remap the result of the occlusion to another value with a curve. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.
+
+[comment]: <> (// TODO add screenshot when all features merged)
+![](Images/LensFlare_OcclusionCurve.png)
+
+HDRP 14.0 allow Lens Flare to be occluded by Clouds, including Cloud Layer (for Directionnal Lights) and Volumetric Cloud.
+
+### New Eye Shader Subtype
+
+![](Images/EyeCaustic.gif)
+
+HDRP 14.0 includes a new Eye Shader type called **Eye Cinematic with Caustic**. This Eye Shader uses caustics to give a more realistic effect. This makes it more resource-intensive than other HDRP Eye Shaders.
+
 ### Renderer bounds access in ShaderGraph
 
 The [Object Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Object-Node.html) in Shader Graph has been updated to give access to the bounds of the current object being rendered. This information can be useful to compute refraction effect and such. Note that these bounds are available in world space.
+
+### Screen Space Reflection
+
+HDRP 14.0 give more control on PBR Accumulation SSR algorithm. The hit sample are using motion vector to reject sample based on the speed. We analyse the reflecting or/and reflected surface speed and give smooth control to weight sample. Including debug view to help setup.
+
+![](Images/ScreenSpaceReflection_SpeedRejection.png)
+![](Images/ScreenSpaceReflection_SpeedRejection_Debug.png)

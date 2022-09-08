@@ -24,7 +24,7 @@ if(_EnableDecalLayers)
 	// Decal layer of the decal
 	DecodeFromDecalPrepass(i.pos.xy, material);
 
-	if ((decalLayerMask & material.decalLayerMask) == 0)
+	if ((decalLayerMask & material.renderingLayerMask) == 0)
 	{
 		clip(-1);
 	}

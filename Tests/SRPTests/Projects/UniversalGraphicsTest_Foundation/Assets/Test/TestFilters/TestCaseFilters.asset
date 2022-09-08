@@ -15,6 +15,37 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 5ea759cdcf4f74574bc818dbb61b1945, type: 3}
+    - {fileID: 102900000, guid: d27c51a5aecee4e0e9c29141a0819c8b, type: 3}
+    - {fileID: 102900000, guid: 2236d967c83ebec47b8616c71fb0be17, type: 3}
+    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
+    - {fileID: 102900000, guid: a13b9207cccbd4cbb99cf2a72b761eef, type: 3}
+    - {fileID: 102900000, guid: 40c4ce99a7711204d978b31395d890b4, type: 3}
+    - {fileID: 102900000, guid: 74cb351d2fc32de4d812e3f2f08744e7, type: 3}
+    - {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
+    - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
+    - {fileID: 102900000, guid: 810b97dd4e5e5204b9e6ed3d05c42498, type: 3}
+    - {fileID: 102900000, guid: 8f1d00629fb57a8448b38a8822925713, type: 3}
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
+    - {fileID: 102900000, guid: e4bd4cb963e384819a1d8a13bc5127a8, type: 3}
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 99abb841000951945931ee709e2370a4, type: 3}
+    - {fileID: 102900000, guid: 5a37821ccdba7204096a71421610f99a, type: 3}
+    - {fileID: 102900000, guid: 55b848c185ee4cb43b24ae0449be53ed, type: 3}
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 5998559ab00db184ba4ce2490fa35a72, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-3312
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 94af32c68b09744d9a23b25ef0d62332, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -44,6 +75,16 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: e983e6ee0e89e14478c8f616dfbc3e20, type: 3}
+    - {fileID: 102900000, guid: ea8e093d73ca555418eb5f7ae5fb9b3d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash on iOS
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 6e7a83866a1e446b3becf7972371c5d0, type: 3}
     - {fileID: 102900000, guid: 773767ac5b09198408c0c084dc243abc, type: 3}
     ColorSpace: -1
@@ -62,6 +103,29 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9b853a2e2268046e49558e61eac1350b, type: 3}
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 0f9d67b5613ce4515969b745f7c08c5f, type: 3}
+    - {fileID: 102900000, guid: 72491ed40bf654eec9fef43f455e3916, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-3312
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c8a775519652940ac936ad7b75d2c615, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Bug: iPhone yamato instability for unknown reason.'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
@@ -199,6 +263,24 @@ MonoBehaviour:
     Reason: No GL on Deferred. Not supported.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
     - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
     - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
@@ -231,6 +313,25 @@ MonoBehaviour:
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-12033
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    - {fileID: 102900000, guid: a0968f13c5aeb489799df4c8d6d0a41a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-12033
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
     - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
     ColorSpace: -1
@@ -257,43 +358,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: URP-1199
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: URP-1199
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c8a775519652940ac936ad7b75d2c615, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: 'Bug: iPhone yamato instability for unknown reason.'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: e983e6ee0e89e14478c8f616dfbc3e20, type: 3}
-    - {fileID: 102900000, guid: ea8e093d73ca555418eb5f7ae5fb9b3d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Crash on iOS
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
@@ -327,3 +391,14 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Rendering Layers not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Unstable

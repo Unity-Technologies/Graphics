@@ -153,7 +153,9 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DrawSystem.Execute(cmd);
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
+                var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
             }
         }
 

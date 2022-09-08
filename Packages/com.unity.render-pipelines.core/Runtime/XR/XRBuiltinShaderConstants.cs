@@ -64,7 +64,50 @@ namespace UnityEngine.Experimental.Rendering
         static Vector4[] s_worldSpaceCameraPos = new Vector4[2];
 
         /// <summary>
-        /// Populate and upload shader constants used by the C++ builtin renderer.
+        /// Update the shader constant data used by the C++ builtin renderer.
+        /// </summary>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <param name="renderIntoTexture"></param>
+        /// <param name="viewIndex"></param>
+        public static void UpdateBuiltinShaderConstants(Matrix4x4 viewMatrix, Matrix4x4 projMatrix, bool renderIntoTexture, int viewIndex)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            s_cameraProjMatrix[viewIndex] = projMatrix;
+            s_viewMatrix[viewIndex] = viewMatrix;
+            s_projMatrix[viewIndex] = GL.GetGPUProjectionMatrix(s_cameraProjMatrix[viewIndex], renderIntoTexture);
+            s_viewProjMatrix[viewIndex] = s_projMatrix[viewIndex] * s_viewMatrix[viewIndex];
+            s_invCameraProjMatrix[viewIndex] = Matrix4x4.Inverse(s_cameraProjMatrix[viewIndex]);
+            s_invViewMatrix[viewIndex] = Matrix4x4.Inverse(s_viewMatrix[viewIndex]);
+            s_invProjMatrix[viewIndex] = Matrix4x4.Inverse(s_projMatrix[viewIndex]);
+            s_invViewProjMatrix[viewIndex] = Matrix4x4.Inverse(s_viewProjMatrix[viewIndex]);
+            s_worldSpaceCameraPos[viewIndex] = s_invViewMatrix[viewIndex].GetColumn(3);
+#endif
+        }
+
+        /// <summary>
+        /// Bind the shader constants used by the C++ builtin renderer via a command buffer. `UpdateBuiltinShaderConstants` should be called before to update the constants.
+        /// This is required to maintain compatibility with legacy code and shaders.
+        /// </summary>
+        /// <param name="cmd"></param>
+        public static void SetBuiltinShaderConstants(CommandBuffer cmd)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            cmd.SetGlobalMatrixArray(unity_StereoCameraProjection, s_cameraProjMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoCameraInvProjection, s_invCameraProjMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoMatrixV, s_viewMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoMatrixInvV, s_invViewMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoMatrixP, s_projMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoMatrixInvP, s_invProjMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoMatrixVP, s_viewProjMatrix);
+            cmd.SetGlobalMatrixArray(unity_StereoMatrixInvVP, s_invViewProjMatrix);
+            cmd.SetGlobalVectorArray(unity_StereoWorldSpaceCameraPos, s_worldSpaceCameraPos);
+#endif
+        }
+
+        /// <summary>
+        /// Update and bind shader constants used by the C++ builtin renderer given the XRPass. For better control of setting up builtin shader constants, see `UpdateBuiltinShaderConstants`
+        /// and `SetBuiltinShaderConstants` which do the same logic but could take in custom projection and view matricies instead.
         /// This is required to maintain compatibility with legacy code and shaders.
         /// </summary>
         /// <param name="xrPass"></param>

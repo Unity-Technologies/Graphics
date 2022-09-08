@@ -7,13 +7,7 @@
 //
 // UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal:  static fields
 //
-#define RENDERING_LIGHT_LAYERS_MASK (255)
-#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
-#define RENDERING_DECAL_LAYERS_MASK (65280)
-#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
-#define DEFAULT_RENDERING_LAYER_MASK (257)
-#define DEFAULT_DECAL_LAYERS (255)
-#define MAX_ENV2DLIGHT (32)
+#define RENDERING_LAYERS_MASK (65535)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
 // PackingRules = Exact
@@ -83,9 +77,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _AreaShadowAtlasSize;
     float4 _CachedShadowAtlasSize;
     float4 _CachedAreaShadowAtlasSize;
-    float4x4 _Env2DCaptureVP[32];
-    float4 _Env2DCaptureForward[32];
-    float4 _Env2DAtlasScaleOffset[32];
+    int _SpecularFade;
+    int _UnusedPadding1;
+    int _UnusedPadding2;
+    int _UnusedPadding3;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
@@ -113,7 +108,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _SlopeScaleDepthBias;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
-    float4 _PlanarAtlasData;
+    float4 _ReflectionAtlasCubeData;
+    float4 _ReflectionAtlasPlanarData;
     uint _NumTileFtplX;
     uint _NumTileFtplY;
     float g_fClustScale;
@@ -150,6 +146,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
     float _DeExposureMultiplier;
+    float4 _ScreenSizeOverride;
+    float4 _ScreenCoordScaleBias;
+    float _EnableRenderingLayers;
+    float _Pad1;
+    float _Pad2;
+    float _Pad3;
 CBUFFER_END
 
 

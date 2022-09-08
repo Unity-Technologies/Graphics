@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
 #if SRC_TEXTURE2D_X_ARRAY
 TEXTURE2D_ARRAY(_SourceTex);
@@ -42,11 +43,16 @@ Varyings VertQuad(Attributes input)
 float4 FragBilinear(Varyings input) : SV_Target
 {
     float4 outColor;
+    float2 uv = input.texcoord.xy;
+
+#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    uv = RemapFoveatedRenderingResolve(input.texcoord.xy);
+#endif
 
 #if SRC_TEXTURE2D_X_ARRAY
-    outColor = SAMPLE_TEXTURE2D_ARRAY(_SourceTex, sampler_LinearClamp, input.texcoord.xy, _SourceTexArraySlice);
+    outColor = SAMPLE_TEXTURE2D_ARRAY(_SourceTex, sampler_LinearClamp, uv, _SourceTexArraySlice);
 #else
-    outColor = SAMPLE_TEXTURE2D(_SourceTex, sampler_LinearClamp, input.texcoord.xy);
+    outColor = SAMPLE_TEXTURE2D(_SourceTex, sampler_LinearClamp, uv);
 #endif
 
     if (_SRGBRead && _SRGBWrite)

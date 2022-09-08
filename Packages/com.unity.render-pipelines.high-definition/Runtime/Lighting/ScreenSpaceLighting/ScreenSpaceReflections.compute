@@ -609,9 +609,13 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;
     float2 prevFrameUV = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
-    // TODO: optimize with max().
-    if ((prevFrameUV.x < 0) || (prevFrameUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) ||
-        (prevFrameUV.y < 0) || (prevFrameUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
+    // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
+    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
+
+    float2 diffLimit = _ColorPyramidUvScaleAndLimitPrevFrame.xy - _ColorPyramidUvScaleAndLimitPrevFrame.zw;
+    float2 diffLimitMipAdjusted = diffLimit * pow(2.0,1.5 + ceil(abs(mipLevel)));
+    float2 limit = _ColorPyramidUvScaleAndLimitPrevFrame.xy - diffLimitMipAdjusted;
+    if (any(prevFrameUV < float2(0.0,0.0)) || any(prevFrameUV > limit))
     {
         // Off-Screen.
         return;
@@ -620,9 +624,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
                     * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
 #ifdef SSR_APPROX
-    // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
-    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
-
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
     float3 color    = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
 

@@ -158,7 +158,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.8.19-exp.2",
+      "version": "7.8.23-exp.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -179,7 +179,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.testframework.graphics": "7.8.11-preview",
+        "com.unity.testframework.graphics": "7.8.23-exp.2",
         "com.unity.render-pipelines.high-definition": "file:./com.unity.render-pipelines.high-definition"
       }
     },

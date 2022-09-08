@@ -59,6 +59,8 @@ int _ReceiverMotionRejection;
 int _OccluderMotionRejection;
 // Value that tells us if the current history should be discarded based on scene-level data
 int _EnableExposureControl;
+// Contains history buffer size in xy and the uv scale in zw
+float4 _HistorySizeAndScale;
 
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
@@ -92,17 +94,19 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)centerCoord), velocity);
 
     // Compute the pixel coordinate for the history tapping
-    float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
+    float2 historyUVUnscaled = posInputs.positionNDC - velocity;
+    float2 historyTapCoord = historyUVUnscaled * _HistorySizeAndScale.xy;
+    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
 
     // If the pixel was outside of the screen during the previous frame, invalidate the history
-    if (historyTapCoord.x >= _ScreenSize.x || historyTapCoord.x < 0 || historyTapCoord.y >= _ScreenSize.y || historyTapCoord.y < 0)
+    if (any(historyTapCoord >= _HistorySizeAndScale.xy) || any(historyTapCoord < 0))
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = HISTORYREJECTIONFLAGS_REPROJECTION | HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION | HISTORYREJECTIONFLAGS_NORMAL | HISTORYREJECTIONFLAGS_MOTION;
         return;
     }
 
     // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
-    float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0).r;
+    float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyUV, 0).r;
     if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION | HISTORYREJECTIONFLAGS_NORMAL | HISTORYREJECTIONFLAGS_MOTION;
@@ -114,7 +118,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     DecodeFromNormalBuffer(centerCoord, normalData);
 
     // Compute the world space position (from previous frame)
-    float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
+    float3 historyPositionWS = ComputeWorldSpacePosition(historyUVUnscaled, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
     // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel.
     float maxRadius = ComputeMaxReprojectionWorldRadius(posInputs.positionWS, normalData.normalWS, _PixelSpreadAngleTangent);
@@ -188,33 +192,38 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     // Compute the velocity information for this pixel
     float2 velocity = float2(0.0, 0.0);
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)sourceCoord), velocity);
+
+    // Compute the pixel coordinate for the history tapping
+    float2 historyUVUnscaled = posInputs.positionNDC - velocity;
     #ifdef FULL_RESOLUTION_FILTER
-    float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
+    float2 historyTapCoord = (float2)(historyUVUnscaled * _HistorySizeAndScale.xy);
+    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
     #else
     // Remap the history tap coord into half res space and compensate for the half resolution half pixel shift
-    float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy * 0.5) + 0.25;
+    float2 historyTapCoord = (float2)((historyUVUnscaled * _HistorySizeAndScale.xy + 0.5) * 0.5);
+    float2 historyUV = historyTapCoord / _HistorySizeAndScale.xy * _HistorySizeAndScale.zw;
     #endif
 
     // Fetch the current value, history value and current sample count
 #if HISTORY_IS_ARRAY
     #if SINGLE_CHANNEL
         float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, currentCoord).x;
-        float history = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
-        float sampleCount = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
+        float history = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
+        float sampleCount = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyUV, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
     #else
         float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, currentCoord).xyz;
         // In case we are processing a color texture, it is always stored in the first three channels
-        float3 history = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).xyz;
-        float sampleCount = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).x;
+        float3 history = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).xyz;
+        float sampleCount = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyUV, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).x;
     #endif
 #else
     #if SINGLE_CHANNEL
         float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, currentCoord).x;
-        float2 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0).xy;
+        float2 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, 0).xy;
         float sampleCount = history.y;
     #else
         float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, currentCoord).xyz;
-        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0);
+        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, 0);
         history.xyz = max(history.xyz, 0);
         float sampleCount = history.w;
         if (_EnableExposureControl == 1)

@@ -29,6 +29,7 @@ namespace UnityEditor.VFX
 
         void UpdateOutputExpressions();
 
+        void ClearSlots();
         bool ResyncSlots(bool notify);
         void Invalidate(VFXModel.InvalidationCause cause);
         void Invalidate(VFXModel model, VFXModel.InvalidationCause cause);
@@ -250,6 +251,15 @@ namespace UnityEditor.VFX
             changed |= SyncSlots(VFXSlot.Direction.kInput, notify);
             changed |= SyncSlots(VFXSlot.Direction.kOutput, notify);
             return changed;
+        }
+
+        //Specific helper for VFXLibrary, doesn't notify, used before applying variants.
+        public void ClearSlots()
+        {
+            while (m_InputSlots.Count > 0)
+                InnerRemoveSlot(m_InputSlots.First(), false);
+            while (m_OutputSlots.Count > 0)
+                InnerRemoveSlot(m_OutputSlots.First(), false);
         }
 
         public void MoveSlots(VFXSlot.Direction direction, int movedIndex, int targetIndex)

@@ -57,7 +57,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the cubemap face bit is set, false otherwise.</returns>
         public static bool HasCubeFace(this ProbeRenderSteps steps, CubemapFace face)
         {
-            return steps.HasFlag(ProbeRenderStepsExt.FromCubeFace(face));
+            var flags = FromCubeFace(face);
+            return flags == 0 || (steps & flags) == flags; // Don't use Enum.HasFlag because it generates GCAlloc.
         }
 
         /// <summary>
@@ -223,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeRenderSteps m_RemainingRenderSteps = ProbeRenderSteps.None;
         bool m_HasPendingRenderRequest = false;
         uint m_RealtimeRenderCount = 0;
+        int m_LastStepFrameCount = -1;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
 #endif
@@ -276,6 +278,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // pick one bit or all remaining bits
                 ProbeRenderSteps nextSteps = timeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+
+                // limit work to once per frame if necessary
+                bool limitToOncePerFrame = (realtimeMode == ProbeSettings.RealtimeMode.EveryFrame || timeSlicing);
+                if (!nextSteps.IsNone() && limitToOncePerFrame)
+                {
+                    int frameCount = Time.frameCount;
+                    if (m_LastStepFrameCount == frameCount)
+                        nextSteps = ProbeRenderSteps.None;
+                    else
+                        m_LastStepFrameCount = frameCount;
+                }
+
                 m_RemainingRenderSteps &= ~nextSteps;
                 return nextSteps;
             }
@@ -290,6 +304,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void IncrementRealtimeRenderCount()
         {
             m_RealtimeRenderCount += 1;
+
+            texture.IncrementUpdateCount();
         }
 
         internal void RepeatRenderSteps(ProbeRenderSteps renderSteps)
@@ -305,7 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
             textureHash += (uint)texture.imageContentsHash.GetHashCode();
 #endif
             return textureHash;
-
         }
 
         internal bool requiresRealtimeUpdate
@@ -552,7 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool timeSlicing { get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
         /// <summary>
-        /// Resolution of the probe.
+        /// Resolution of the planar probe.
         /// </summary>
         public PlanarReflectionAtlasResolution resolution
         {
@@ -563,13 +578,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
             }
         }
+        /// <summary>
+        /// Resolution of the cube probe.
+        /// </summary>
+        public CubeReflectionResolution cubeResolution
+        {
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                return hdrp != null ? m_ProbeSettings.cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution) : ProbeSettings.k_DefaultCubeResolution;
+            }
+        }
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
-        public LightLayerEnum lightLayers
+        public RenderingLayerMask lightLayers
         { get => m_ProbeSettings.lighting.lightLayer; set => m_ProbeSettings.lighting.lightLayer = value; }
         /// <summary>This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1</summary>
-        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayers;
+        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)RenderingLayerMask.Everything : (uint)lightLayers;
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier
         { get => m_ProbeSettings.lighting.multiplier; set => m_ProbeSettings.lighting.multiplier = value; }

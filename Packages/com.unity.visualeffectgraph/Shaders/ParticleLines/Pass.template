@@ -25,19 +25,24 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	#if HAS_STRIPS
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 1;
-	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
+	uint index = id / vertexPerStripCount;
+	${VFXInitInstancing}
+	
+	const StripData stripData = GetStripDataFromStripIndex(index, instanceIndex);
 	uint relativeIndexInStrip = (id % vertexPerStripCount + 1) >> 1; // relative index of particle in strip
 
 	uint maxEdgeIndex = relativeIndexInStrip - (id & 1) + 1;
 	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 
-	uint index = GetParticleIndex(relativeIndexInStrip, stripData);
+	index = GetParticleIndex(relativeIndexInStrip, stripData);
 	#else
 	uint index = id >> 1;
 	#endif
 
-	${VFXInitInstancingOutput}
+	#if !HAS_STRIPS
+	${VFXInitInstancing}
+	#endif
 	${VFXLoadGraphValues}
 
 	ContextData contextData = instancingContextData[instanceActiveIndex];

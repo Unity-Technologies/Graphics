@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public partial class Environment
         {
+
             internal enum BackgroundType
             {
                 Skybox = 0,
@@ -16,27 +17,32 @@ namespace UnityEditor.Rendering.Universal
                 DontCare,
             }
 
-            public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                CameraUI.Environment.Styles.header,
-                Expandable.Environment,
-                k_ExpandedState,
-                FoldoutOption.Indent,
-                CED.Conditional(
-                    (serialized, owner) => (CameraRenderType)serialized.cameraType.intValue == CameraRenderType.Base,
+            public static readonly CED.IDrawer Drawer;
+
+            static Environment()
+            {
+                Drawer = CED.FoldoutGroup(
+                    CameraUI.Environment.Styles.header,
+                    Expandable.Environment,
+                    k_ExpandedState,
+                    FoldoutOption.Indent,
+                    CED.Conditional(
+                        (serialized, owner) => (CameraRenderType)serialized.cameraType.intValue == CameraRenderType.Base,
+                        CED.Group(
+                            Drawer_Environment_ClearFlags
+                        )
+                        ),
                     CED.Group(
-                        Drawer_Environment_ClearFlags
+                        Styles.volumesSettingsText,
+                        CED.Group(
+                            GroupOption.Indent,
+                            Drawer_Environment_VolumeUpdate,
+                            CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
+                            Drawer_Environment_VolumeTrigger
+                        )
                     )
-                    ),
-                CED.Group(
-                    Styles.volumesSettingsText,
-                    CED.Group(
-                        GroupOption.Indent,
-                        Drawer_Environment_VolumeUpdate,
-                        CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
-                        Drawer_Environment_VolumeTrigger
-                    )
-                )
-            );
+                );
+            }
 
             static BackgroundType GetBackgroundType(CameraClearFlags clearFlags)
             {

@@ -11,9 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Styles
         {
-            public static readonly GUIContent shadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Apply a hue to the shadows and adjust their level.");
-            public static readonly GUIContent midtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Apply a hue to the midtones and adjust their level.");
-            public static readonly GUIContent highlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Apply a hue to the highlights and adjust their level.");
+            public static readonly GUIContent shadowsLabel = EditorGUIUtility.TrTextContent("Shadows","Use this to control and apply a hue to the shadows.");
+            public static readonly GUIContent midtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Use this to control and apply a hue to the midtones.");
+            public static readonly GUIContent highlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Use this to control and apply a hue to the highlights.");
         }
 
         SerializedDataParameter m_Shadows;

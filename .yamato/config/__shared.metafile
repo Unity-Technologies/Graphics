@@ -260,19 +260,19 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     agent_package:
       type: Unity::VM
-      image: package-ci/win10:stable
+      image: package-ci/win10:v1.21.0-1103460
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
@@ -315,7 +315,7 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
     agents_project_OpenGLCore:
       default:
@@ -324,7 +324,7 @@ platforms:
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/mac:stable
+      image: package-ci/mac:v1.20.0-1079282
       flavor: m1.mac
     copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
@@ -397,7 +397,7 @@ platforms:
           - command: find_instabilities || exit 0
 
   OSX_Apple_Silicon:
-    name: OSX
+    name: OSX_Apple_Silicon
     os: macos
     components:
       - editor
@@ -405,12 +405,12 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-11-base:stable
+        image: slough-ops/macos-11-base:v11.5.4-1077566
         model: M1
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/mac:stable
+      image: package-ci/mac:v1.20.0-1079282
       flavor: m1.mac
     commands:
       [Metal]:
@@ -445,15 +445,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
@@ -498,11 +498,11 @@ platforms:
       default:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -566,11 +566,11 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -619,11 +619,11 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.15-testing:v0.0.7-909915
         flavor: b1.large
     commands:
       [Metal]:

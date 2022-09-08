@@ -182,18 +182,30 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderPassEvent renderPassEvent { get; set; }
 
+        /// <summary>
+        /// The render target identifiers for color attachments.
+        /// This is obsolete, use colorAttachmentHandles instead.
+        /// </summary>
         [Obsolete("Use colorAttachmentHandles")]
         public RenderTargetIdentifier[] colorAttachments
         {
             get => m_ColorAttachmentIds;
         }
 
+        /// <summary>
+        /// The render target identifier for color attachment.
+        /// This is obsolete, use colorAttachmentHandle instead.
+        /// </summary>
         [Obsolete("Use colorAttachmentHandle")]
         public RenderTargetIdentifier colorAttachment
         {
             get => m_ColorAttachmentIds[0];
         }
 
+        /// <summary>
+        /// The render target identifier for depth attachment.
+        /// This is obsolete, use depthAttachmentHandle instead.
+        /// </summary>
         [Obsolete("Use depthAttachmentHandle")]
         public RenderTargetIdentifier depthAttachment
         {
@@ -315,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        static internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
+        static internal DebugHandler GetActiveDebugHandler(ref RenderingData renderingData)
         {
             var debugHandler = renderingData.cameraData.renderer.DebugHandler;
             if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))
@@ -663,10 +675,11 @@ namespace UnityEngine.Rendering.Universal
         public abstract void Execute(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
-        /// TODO RENDERGRAPH
+        /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation
         /// </summary>
+        /// <param name="renderGraph"></param>
         /// <param name="renderingData"></param>
-        internal virtual void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public virtual void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
         }
@@ -725,6 +738,7 @@ namespace UnityEngine.Rendering.Universal
         /// Add a blit command to the context for execution. This applies the material to the color target.
         /// </summary>
         /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="data">RenderingData to access the active renderer.</param>
         /// <param name="source">Source texture or target identifier to blit from.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>

@@ -278,6 +278,19 @@ namespace UnityEngine.Rendering.HighDefinition
             High
         }
 
+        /// <summary>
+        /// TAA Sharpen mode.
+        /// </summary>
+        public enum TAASharpenMode
+        {
+            /// <summary>Low quality.</summary>
+            LowQuality,
+            /// <summary>Sharpen with a separate pass after TAA.</summary>
+            PostSharpen,
+            /// <summary>Run a Contrast Adaptive Sharpening pass after TAA.</summary>
+            ContrastAdaptiveSharpening
+        }
+
         /// <summary>Clear mode for the camera background.</summary>
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         /// <summary>HDR color used for clearing the camera background.</summary>
@@ -309,6 +322,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Quality of the anti-aliasing when using TAA.</summary>
         public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
 
+        /// <summary>How is the sharpening run sharpening.</summary>
+        public TAASharpenMode taaSharpenMode = TAASharpenMode.LowQuality;
+
+        /// <summary>How much to reduce the ringing from the TAA post-process sharpening. Note that some ringing might be visually desirable and that any value different than 0 will incur into a small additional cost.</summary>
+        [Range(0, 1)]
+        public float taaRingingReduction = 0.0f;
+
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
         [Range(0, 1)]
         public float taaHistorySharpening = 0.35f;
@@ -328,6 +348,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution. </summary>
         [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
         public float taaBaseBlendFactor = 0.875f;
+
+        /// <summary> Scale to apply to the jittering applied when TAA is enabled. </summary>
+        [Range(0.1f, 1.0f)]
+        public float taaJitterScale = 1.0f;
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
@@ -362,6 +386,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
+
+        /// <summary>Screen size used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenSizeOverride;
+
+        /// <summary>Transform used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenCoordScaleBias;
 
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
@@ -603,11 +633,14 @@ namespace UnityEngine.Rendering.HighDefinition
             data.stopNaNs = stopNaNs;
             data.taaSharpenStrength = taaSharpenStrength;
             data.TAAQuality = TAAQuality;
+            data.taaSharpenMode = taaSharpenMode;
+            data.taaRingingReduction = taaRingingReduction;
             data.taaHistorySharpening = taaHistorySharpening;
             data.taaAntiFlicker = taaAntiFlicker;
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
             data.taaBaseBlendFactor = taaBaseBlendFactor;
+            data.taaJitterScale = taaJitterScale;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;
@@ -636,6 +669,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.fsrSharpness = fsrSharpness;
 
             data.materialMipBias = materialMipBias;
+
+            data.screenSizeOverride = screenSizeOverride;
+            data.screenCoordScaleBias = screenCoordScaleBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;

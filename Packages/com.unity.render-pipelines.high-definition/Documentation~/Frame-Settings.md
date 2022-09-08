@@ -241,6 +241,16 @@ These settings determine the method that the Cameras and Reflection Probes using
     <td></td>
     <td>Select which material quality level to use when rendering from this Camera.<br>•From <strong>Quality Settings</strong>: The Camera uses the <strong>Material Quality Level</strong> property from your Unity Project's <strong>Quality Settings</strong>. To change this value, open the <strong>Project Settings</strong> window (menu: <strong>Edit</strong> &gt; <strong>Project Settings</strong>…), go to <strong>Quality</strong> &gt; <strong>HDRP</strong> &gt; <strong>Rendering</strong> and set the <strong>Material Quality Level</strong> to the value you want.</td>
   </tr>
+  <tr>
+    <td><strong>Asymmetric Projection</strong></td>
+    <td></td>
+    <td>Enable the checkbox to allow HDRP to account for asymmetric projection when evaluating the view direction based on pixel coordinates.</td>
+  </tr>
+    <tr>
+    <td><strong>Screen Coordinates Override</strong></td>
+    <td></td>
+    <td>Enable the checkbox to allow HDRP to use Screen Coordinates Override for post processing and custom passes. This allows post effects to be compatible with Cluster Display for example.</td>
+  </tr>
 </tbody>
 </table>
 
@@ -402,6 +412,7 @@ These settings control lighting features for your rendering components. Here you
 ### Asynchronous Compute Shaders
 
 These settings control which effects, if any, can make use execute compute Shader commands in parallel.
+This is only supported on DX12 and Vulkan. If Asynchronous execution is disabled or not supported the effects will fallback on a synchronous version.
 
 <table>
 <thead>

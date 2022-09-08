@@ -33,7 +33,7 @@ To add a Subgraph Dropdown node to a Subgraph:
 
 ## Compatibility
 
-[!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
+The Subgraph Dropdown [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
 
 ## Ports
 
@@ -60,6 +60,6 @@ In the following example, a Subgraph Dropdown node changes the UV channel it sen
 
 <!-- OPTIONAL. Any nodes that may be related to this node in some way that's worth mentioning -->
 
-[!include[nodes-related](./snippets/nodes-related.md)]
+[!include[nodes-related](./snippets/nodes-related.md)] Subgraph Dropdown node:
 
 - [Subgraph node](Sub-graph-Node.md)

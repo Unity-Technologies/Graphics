@@ -279,9 +279,6 @@ EditorBuildSettings:
     path: Assets/Scenes/803_SubSurfaceScatteringGlobalIllumination.unity
     guid: acbea951c17ce7944a2c6e9374b1a0f6
   - enabled: 1
-    path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
-    guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
-  - enabled: 1
     path: Assets/Scenes/901_Materials_HDRP_Variants.unity
     guid: 38deab1a2d6be0241b8c263d055b4ff4
   - enabled: 1
@@ -306,14 +303,8 @@ EditorBuildSettings:
     path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
     guid: cc33ef2ea5450204ab4fab18d90afaec
   - enabled: 1
-    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
-    guid: f2a5323c1c8df664cb7dd65071c61ab0
-  - enabled: 1
     path: Assets/Scenes/1000_RaytracingQualityKeyword_RR_Default.unity
     guid: caca4b7ac8b85534ebac9100ef8f9c7c
-  - enabled: 1
-    path: Assets/Scenes/1000_RaytracingQualityKeyword_PathTracer_Default.unity
-    guid: e94f1768c0fea4843a93cf691ba136fd
   - enabled: 1
     path: Assets/Scenes/1001_HalfResolutionThreshold_RTR.unity
     guid: 00792ceab642d9a4fbff4eb1b6d68993
@@ -348,15 +339,6 @@ EditorBuildSettings:
     path: Assets/Scenes/2008_Debug_SubSurfaceScattering.unity
     guid: bb4c2806fa330ce4a8015c64186b031d
   - enabled: 1
-    path: Assets/Scenes/2009_Debug_RTAS_ScreenSpaceReflections_InstanceID.unity
-    guid: 056c6092c4cc1d046ae735b88ac44337
-  - enabled: 1
-    path: Assets/Scenes/2009_Debug_RTAS_ScreenSpaceReflections_PrimitiveID.unity
-    guid: 9d32afd44c7a74e458fb78b75a84f166
-  - enabled: 1
-    path: Assets/Scenes/2009_Debug_RTAS_Shadows_PrimitiveID.unity
-    guid: b5dbda28632484a409651e54abc8dbae
-  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
@@ -371,6 +353,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5001_PathTracing.unity
     guid: 3666dc8006745714997c368c4375f316
+  - enabled: 1
+    path: Assets/Scenes/5001_PathTracing_Denoised_Intel.unity
+    guid: cad966ee513672648ba41246a9cf73a3
+  - enabled: 1
+    path: Assets/Scenes/5001_PathTracing_Denoised_Optix.unity
+    guid: 29f2d1a08755be249a0739067a3a86ca
   - enabled: 1
     path: Assets/Scenes/5002_PathTracing_GI.unity
     guid: 0ab35aa39f371ab4c8d53b46c225d0a5
@@ -437,4 +425,22 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/8003_FarPlaneCulling.unity
     guid: 531302efb75a33f409e705a90c451ddf
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10001_TerrainReflectionPerf/10001_TerrainReflectionPerf.unity
+    guid: d0b04a339d816d647a4ae5de58b883b7
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10002_TerrainReflectionQuality/10002_TerrainReflectionQuality.unity
+    guid: 49fbcf86265d96e47a1bc94434c5c51c
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10003_TerrainShadow/10003_TerrainShadow.unity
+    guid: 7637fa387d5f1214b867a85c2ae6e6f6
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10004_TerrainPathTracing/10004_TerrainPathTracing.unity
+    guid: 17783bea5cb403942948935bef51f927
+  - enabled: 1
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
+    guid: f2a5323c1c8df664cb7dd65071c61ab0
+  - enabled: 1
+    path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
+    guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
   m_configObjects: {}

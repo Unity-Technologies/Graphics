@@ -47,11 +47,10 @@ namespace UnityEditor.Rendering
 
         void DestroyEditor()
         {
-            if (m_Editor != null)
-            {
-                UnityEngine.Object.DestroyImmediate(m_Editor);
-            }
+            if (m_Editor == null)
+                return;
 
+            UnityEngine.Object.DestroyImmediate(m_Editor);
             m_Editor = null;
         }
 
@@ -105,6 +104,7 @@ namespace UnityEditor.Rendering
                 if (renderPipelineSettings == null)
                 {
                     CoreEditorUtils.DrawFixMeBox(string.Format(Styles.warningGlobalSettingsMissing, ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)), () => Ensure());
+                    DestroyEditor();
                 }
                 else
                 {
@@ -115,10 +115,13 @@ namespace UnityEditor.Rendering
                         EditorGUILayout.HelpBox(string.Format(Styles.warningSRPNotActive, ObjectNames.NicifyVariableName(RenderPipelineManager.currentPipeline.GetType().Name)), MessageType.Warning);
                     }
 
+                    if (m_Editor != null && m_Editor.target == null)
+                        DestroyEditor();
+
                     if (m_Editor == null)
                         m_Editor = Editor.CreateEditor(renderPipelineSettings);
 
-                    m_Editor.OnInspectorGUI();
+                    m_Editor?.OnInspectorGUI();
                 }
             }
 
@@ -162,7 +165,9 @@ namespace UnityEditor.Rendering
             }
 
             if (oldRenderPipelineSettings != renderPipelineSettings)
-                m_Editor = null;
+            {
+                DestroyEditor();
+            }
         }
     }
 }

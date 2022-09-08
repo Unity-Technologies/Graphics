@@ -600,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return true;
 
             // When sky is not set, ambient probe is always valid  (black probe)
-            if (visualEnv.skyType == 0) // None
+            if (visualEnv.skyType.value == 0) // None
                 return true;
 
             if (hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic && hdCamera.lightingSky != null &&
@@ -764,6 +764,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_VolumetricAmbientProbeOutputBufferParam, data.volumetricAmbientProbeResult);
                         ctx.cmd.SetComputeVectorParam(data.computeAmbientProbeCS, s_FogParameters, data.fogParameters);
                     }
+
+                    Hammersley.BindConstants(ctx.cmd, data.computeAmbientProbeCS);
+
                     ctx.cmd.DispatchCompute(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, 1, 1, 1);
                     if (data.ambientProbeResult != null)
                         ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
@@ -771,10 +774,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle GenerateSkyCubemap(RenderGraph renderGraph, HDCamera hdCamera, SkyUpdateContext skyContext)
+        TextureHandle GenerateSkyCubemap(RenderGraph renderGraph, HDCamera hdCamera, SkyUpdateContext skyContext, ComputeBuffer cloudsProbeBuffer)
         {
             var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
-            var volumetricClouds = skyContext.volumetricClouds;
 
             // TODO: Currently imported and not temporary only because of enlighten and the baking back-end requiring this texture instead of a more direct API.
             var outputCubemap = renderGraph.ImportTexture(renderingContext.skyboxCubemapRT);
@@ -787,7 +789,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Unfortunately, the global binding happens too late, so we need to bind it here.
                 SetGlobalSkyData(renderGraph, skyContext, m_BuiltinParameters);
                 outputCubemap = HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_facePixelCoordToViewDirMatrices,
-                    skyContext.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, outputCubemap);
+                    skyContext.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, cloudsProbeBuffer, outputCubemap);
             }
 
             // Generate mipmap for our cubemap
@@ -1061,6 +1063,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                     var renderingContext = cachedContext.renderingContext;
 
+                    // A: The evaluation of the volumetric clouds ambient probe buffer has to happen before the rendering of the sky cubemap (dynamic and static)
+                    // as it changes drastically the looks of the clouds. The output buffer where the result is stored is different on if it is static or dynamic.
+                    // The static one is "permanent" until recomputed, the dynamic one is recomputed no matter what at the beginning of the frame which guarantees
+                    // that it will be ready when we evaluate the clouds for the camera view.
+                    HDRenderPipeline hdrp = HDRenderPipeline.currentPipeline;
+                    ComputeBuffer volumetricCloudsProbe = hdrp.RenderVolumetricCloudsAmbientProbe(renderGraph, hdCamera, skyContext, staticSky);
+
                     if (IsCachedContextValid(skyContext))
                     {
                         forceUpdate |= skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
@@ -1071,7 +1080,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
                         (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                     {
-                        var skyCubemap = GenerateSkyCubemap(renderGraph, hdCamera, skyContext);
+                        var skyCubemap = GenerateSkyCubemap(renderGraph, hdCamera, skyContext, volumetricCloudsProbe);
 
                         if (updateAmbientProbe)
                         {

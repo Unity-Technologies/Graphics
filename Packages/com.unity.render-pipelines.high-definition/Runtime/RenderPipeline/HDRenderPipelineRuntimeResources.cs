@@ -108,6 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricLightingCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLightingFiltering.compute")]
             public ComputeShader volumetricLightingFilteringCS;
+
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
@@ -214,7 +215,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_MarschnerPS;
             [Reload("Runtime/Material/Hair/MultipleScattering/HairMultipleScatteringPreIntegration.compute")]
             public ComputeShader preIntegratedFiberScatteringCS;
-
+            [Reload("Runtime/Material/VolumetricMaterial/VolumetricMaterial.compute")]
+            public ComputeShader volumetricMaterialCS;
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
             public ComputeShader encodeBC6HCS;
@@ -349,6 +351,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+            [Reload("Runtime/PostProcessing/Shaders/PostSharpenPass.compute")]
+            public ComputeShader sharpeningCS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute")]
@@ -463,6 +467,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
 
+            // Precalculated eye caustic LUT
+            [Reload("Runtime/RenderPipelineResources/Texture/EyeCausticLUT16R.exr")]
+            public Texture3D eyeCausticLUT;
+
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
             public Texture2D cloudLutRainAO;
@@ -509,6 +517,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/ShaderLibrary/SolidColor.shadergraph")]
             public Shader objectIDPS;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/DefaultFogVolume.shadergraph")]
+            public Shader defaultFogVolumeShader;
         }
 
         [Serializable, ReloadGroup]

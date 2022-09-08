@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Ray tracing generic attributes
         SerializedDataParameter m_LastBounce;
+        SerializedDataParameter m_AmbientProbeDimmer;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_TextureLodBias;
@@ -67,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Ray Tracing shared parameters
             m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
@@ -201,6 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
                         PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                         PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                        PropertyField(m_AmbientProbeDimmer);
                     }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)

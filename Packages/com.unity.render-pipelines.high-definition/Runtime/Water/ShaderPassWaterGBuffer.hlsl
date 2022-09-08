@@ -83,10 +83,10 @@ void Frag(PackedVaryingsToPS packedInput,
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     // Light layers need to be set manually here as there is no mesh renderer
-    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.renderingLayers = RENDERING_LAYERS_MASK;
 
-    // We manually set the ambient probe as this is not a mesh renderer
-    builtinData.bakeDiffuseLighting = _WaterAmbientProbe.xyz;
+    // The indirect diffuse term will be injected in the lighting much later
+    builtinData.bakeDiffuseLighting = 0.0;
 
     // Compute the BSDF Data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);

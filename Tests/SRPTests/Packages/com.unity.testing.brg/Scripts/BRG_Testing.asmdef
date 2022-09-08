@@ -1,0 +1,32 @@
+{
+    "name": "Unity.RenderPipelines.BatchRendererGroup-Testing",
+    "references": [
+      "Unity.Burst",
+      "Unity.Mathematics",
+      "Unity.Collections",
+      "Unity.RenderPipelines.Core.Runtime",
+      "UnityEngine.UI",
+      "UnityEditor.TestRunner",
+      "UnityEngine.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+      {
+        "name": "com.unity.render-pipelines.high-definition",
+        "expression": "6.9.9",
+        "define": "HDRP_7_0_0_OR_NEWER"
+      },
+      {
+        "name": "com.unity.render-pipelines.universal",
+        "expression": "6.9.9",
+        "define": "URP_7_0_0_OR_NEWER"
+      }
+    ],
+    "noEngineReferences": false
+}

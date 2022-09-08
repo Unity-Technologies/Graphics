@@ -20,42 +20,43 @@ namespace UnityEditor.Rendering.Universal
     enum ShaderFeatures : long
     {
         None = 0,
-        MainLight = (1 << 0),
-        MainLightShadows = (1 << 1),
-        AdditionalLights = (1 << 2),
-        AdditionalLightShadows = (1 << 3),
-        VertexLighting = (1 << 4),
-        SoftShadows = (1 << 5),
-        MixedLighting = (1 << 6),
-        TerrainHoles = (1 << 7),
-        DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
-        AccurateGbufferNormals = (1 << 9),
-        ScreenSpaceOcclusion = (1 << 10),
-        ScreenSpaceShadows = (1 << 11),
-        UseFastSRGBLinearConversion = (1 << 12),
-        LightLayers = (1 << 13),
-        ReflectionProbeBlending = (1 << 14),
-        ReflectionProbeBoxProjection = (1 << 15),
-        DBufferMRT1 = (1 << 16),
-        DBufferMRT2 = (1 << 17),
-        DBufferMRT3 = (1 << 18),
-        DecalScreenSpace = (1 << 19),
-        DecalGBuffer = (1 << 20),
-        DecalNormalBlendLow = (1 << 21),
-        DecalNormalBlendMedium = (1 << 22),
-        DecalNormalBlendHigh = (1 << 23),
-        ForwardPlus = (1 << 24),
-        RenderPassEnabled = (1 << 25),
-        MainLightShadowsCascade = (1 << 26),
-        DrawProcedural = (1 << 27),
-        ScreenSpaceOcclusionAfterOpaque = (1 << 28),
-        AdditionalLightsKeepOffVariants = (1 << 29),
-        ShadowsKeepOffVariants = (1 << 30),
-        LODCrossFade = (1 << 31),
+        MainLight = (1L << 0),
+        MainLightShadows = (1L << 1),
+        AdditionalLights = (1L << 2),
+        AdditionalLightShadows = (1L << 3),
+        VertexLighting = (1L << 4),
+        SoftShadows = (1L << 5),
+        MixedLighting = (1L << 6),
+        TerrainHoles = (1L << 7),
+        DeferredShading = (1L << 8), // DeferredRenderer is in the list of renderer
+        AccurateGbufferNormals = (1L << 9),
+        ScreenSpaceOcclusion = (1L << 10),
+        ScreenSpaceShadows = (1L << 11),
+        UseFastSRGBLinearConversion = (1L << 12),
+        LightLayers = (1L << 13),
+        ReflectionProbeBlending = (1L << 14),
+        ReflectionProbeBoxProjection = (1L << 15),
+        DBufferMRT1 = (1L << 16),
+        DBufferMRT2 = (1L << 17),
+        DBufferMRT3 = (1L << 18),
+        DecalScreenSpace = (1L << 19),
+        DecalGBuffer = (1L << 20),
+        DecalNormalBlendLow = (1L << 21),
+        DecalNormalBlendMedium = (1L << 22),
+        DecalNormalBlendHigh = (1L << 23),
+        ForwardPlus = (1L << 24),
+        RenderPassEnabled = (1L << 25),
+        MainLightShadowsCascade = (1L << 26),
+        DrawProcedural = (1L << 27),
+        ScreenSpaceOcclusionAfterOpaque = (1L << 28),
+        AdditionalLightsKeepOffVariants = (1L << 29),
+        ShadowsKeepOffVariants = (1L << 30),
+        LODCrossFade = (1L << 31),
         DecalLayers = (1L << 32),
         OpaqueWriteRenderingLayers = (1L << 33),
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
+        LightCookies = (1L << 36),
     }
 
     [Flags]
@@ -113,8 +114,10 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendMedium;
         LocalKeyword m_DecalNormalBlendHigh;
         LocalKeyword m_ForwardPlus;
+        LocalKeyword m_FoveatedRenderingNonUniformRaster;
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
+        LocalKeyword m_LightCookies;
 
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
@@ -131,6 +134,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapACES;
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
+        LocalKeyword m_ScreenCoordOverride;
 
         Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
         Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
@@ -180,8 +184,10 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
             m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
+            m_FoveatedRenderingNonUniformRaster = TryGetLocalKeyword(shader, ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
+            m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -199,6 +205,8 @@ namespace UnityEditor.Rendering.Universal
             m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
             m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
+
+            m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
         }
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
@@ -362,9 +370,29 @@ namespace UnityEditor.Rendering.Universal
             {
                 stripDebugDisplayShaders = true;
             }
+
+            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building. For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
+            var wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
+            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+            }
+
+            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
+            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+            }
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            {
+                return true;
+            }
+
+            if (globalSettings != null && globalSettings.stripScreenCoordOverrideVariants && compilerData.shaderKeywordSet.IsEnabled(m_ScreenCoordOverride))
             {
                 return true;
             }
@@ -473,6 +501,16 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus))
                 return true;
 
+            // Strip Foveated Rendering variants on all platforms (except PS5)
+            // TODO: add a way to communicate this requirement from the xr plugin directly
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC)
+#endif
+            {
+                if (compilerData.shaderKeywordSet.IsEnabled(m_FoveatedRenderingNonUniformRaster))
+                    return true;
+            }
+
             // Screen Space Occlusion
             if (IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque))
             {
@@ -486,12 +524,23 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            // Decal DBuffer
-            if (stripTool.StripMultiCompile(
-                m_DBufferMRT1, ShaderFeatures.DBufferMRT1,
-                m_DBufferMRT2, ShaderFeatures.DBufferMRT2,
-                m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
-                return true;
+            if (IsGLDevice(compilerData))
+            {
+                // Decal DBuffer is not supported on gl
+                if (compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT1) ||
+                    compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT2) ||
+                    compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
+                    return true;
+            }
+            else
+            {
+                // Decal DBuffer
+                if (stripTool.StripMultiCompile(
+                    m_DBufferMRT1, ShaderFeatures.DBufferMRT1,
+                    m_DBufferMRT2, ShaderFeatures.DBufferMRT2,
+                    m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
+                    return true;
+            }
 
             if (IsGLDevice(compilerData))
             {
@@ -528,6 +577,9 @@ namespace UnityEditor.Rendering.Universal
             var stripUnusedLODCrossFadeVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedLODCrossFadeVariants == true;
             if (stripUnusedLODCrossFadeVariants &&
                 stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
+                return true;
+
+            if (stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies))
                 return true;
 
             string keywordNames = "";
@@ -787,71 +839,22 @@ namespace UnityEditor.Rendering.Universal
 #endif
         }
 
-        static bool TryGetRenderPipelineAssetsForBuildTarget(BuildTarget buildTarget, List<UniversalRenderPipelineAsset> urps)
-        {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            if (qualitySettings == null)
-                return false;
-
-            var property = qualitySettings.FindProperty("m_QualitySettings");
-            if (property == null)
-                return false;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
-
-            for (int i = 0; i < property.arraySize; i++)
-            {
-                bool isExcluded = false;
-
-                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
-                if (excludedTargetPlatforms == null)
-                    return false;
-
-                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
-                {
-                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
-                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
-                    {
-                        Debug.Log($"Excluding quality level {QualitySettings.names[i]} from stripping."); // TODO: remove after QA
-                        isExcluded = true;
-                        break;
-                    }
-                }
-
-                if (!isExcluded)
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-            }
-
-            return true;
-        }
-
         private static void FetchAllSupportedFeatures()
         {
-            List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
-            urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-
-            // TODO: Replace once we have official API for filtering urps per build target
-            if (!TryGetRenderPipelineAssetsForBuildTarget(EditorUserBuildSettings.activeBuildTarget, urps))
+            using (ListPool<UniversalRenderPipelineAsset>.Get(out var urps))
             {
-                // Fallback
-                Debug.LogWarning("Shader stripping per enabled quality levels failed! Stripping will use all quality levels. Please report a bug!");
-                for (int i = 0; i < QualitySettings.names.Length; i++)
+                EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urps);
+                s_SupportedFeaturesList.Clear();
+
+                foreach (UniversalRenderPipelineAsset urp in urps)
                 {
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-                }
-            }
+                    if (urp != null)
+                    {
+                        int rendererCount = urp.m_RendererDataList.Length;
 
-            s_SupportedFeaturesList.Clear();
-
-            foreach (UniversalRenderPipelineAsset urp in urps)
-            {
-                if (urp != null)
-                {
-                    int rendererCount = urp.m_RendererDataList.Length;
-
-                    for (int i = 0; i < rendererCount; ++i)
-                        s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                        for (int i = 0; i < rendererCount; ++i)
+                            s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                    }
                 }
             }
         }
@@ -924,11 +927,14 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
 
-            if (pipelineAsset.supportsLightLayers)
+            if (pipelineAsset.useRenderingLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;
 
             if (pipelineAsset.enableLODCrossFade)
                 shaderFeatures |= ShaderFeatures.LODCrossFade;
+
+            if (pipelineAsset.supportsLightCookies)
+                shaderFeatures |= ShaderFeatures.LightCookies;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
@@ -948,7 +954,7 @@ namespace UnityEditor.Rendering.Universal
                         accurateGbufferNormals |= universalRenderer.accurateGbufferNormals;
                         usesRenderPass |= universalRenderer.useRenderPassEnabled;
 
-                        if (pipelineAsset.supportsLightLayers)
+                        if (pipelineAsset.useRenderingLayers)
                         {
                             shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
                         }
@@ -1030,7 +1036,9 @@ namespace UnityEditor.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (universalRendererData.xrSystemData != null)
+                        {
                             shaderFeatures |= ShaderFeatures.DrawProcedural;
+                        }
 #endif
                     }
                 }

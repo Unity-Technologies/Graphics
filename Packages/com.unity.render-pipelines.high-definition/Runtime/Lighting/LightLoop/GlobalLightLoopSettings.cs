@@ -41,6 +41,36 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Available values for the reflection probe texture cache size.
+    /// </summary>
+    [Serializable]
+    public enum ReflectionProbeTextureCacheResolution
+    {
+        /// <summary>Resolution 512x512</summary>
+        Resolution512x512 = 512,
+        /// <summary>Resolution 1024x512</summary>
+        Resolution1024x512 = 1024 << 16 | 512,
+        /// <summary>Resolution 1024x1024</summary>
+        Resolution1024x1024 = 1024,
+        /// <summary>Resolution 2048x1024</summary>
+        Resolution2048x1024 = 2048 << 16 | 1024,
+        /// <summary>Resolution 2048x2048</summary>
+        Resolution2048x2048 = 2048,
+        /// <summary>Resolution 4096x2048</summary>
+        Resolution4096x2048 = 4096 << 16 | 2048,
+        /// <summary>Resolution 4096x4096</summary>
+        Resolution4096x4096 = 4096,
+        /// <summary>Resolution 8192x4096</summary>
+        Resolution8192x4096 = 8192 << 16 | 4096,
+        /// <summary>Resolution 8192x8192</summary>
+        Resolution8192x8192 = 8192,
+        /// <summary>Resolution 16384x8192</summary>
+        Resolution16384x8192 = 16384 << 16 | 8192,
+        /// <summary>Resolution 16384</summary>
+        Resolution16384x16384 = 16384,
+    }
+
+    /// <summary>
     /// Possible values for the texture 2D size used for planar reflection probes.
     /// </summary>
     [Serializable]
@@ -118,6 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
+    [Obsolete("The texture resolution limit in volumetric fogs have been removed. This enum is unused.")]
     public enum LocalVolumetricFogResolution
     {
         /// <summary>3D volume of 32x32x32 voxels.</summary>
@@ -154,10 +185,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cookieTexArraySize = 1,
 #pragma warning restore 618
 
-            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.Resolution1024,
-            reflectionProbeCacheSize = 64,
-            reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
             reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
+            reflectionProbeTexCacheSize = ReflectionProbeTextureCacheResolution.Resolution4096x4096,
+            reflectionProbeTexLastValidCubeMip = 3,
+            reflectionProbeTexLastValidPlanarMip = 0,
+            reflectionProbeDecreaseResToFit = true,
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
@@ -165,13 +197,20 @@ namespace UnityEngine.Rendering.HighDefinition
             maxDirectionalLightsOnScreen = 16,
             maxPunctualLightsOnScreen = 512,
             maxAreaLightsOnScreen = 64,
-            maxEnvLightsOnScreen = 64,
+            maxCubeReflectionOnScreen = HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2,
+            maxPlanarReflectionOnScreen = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen / 2,
             maxDecalsOnScreen = 512,
-            maxPlanarReflectionOnScreen = 16,
             maxLightsPerClusterCell = 8,
-            maxLocalVolumetricFogSize = LocalVolumetricFogResolution.Resolution32,
-            maxLocalVolumetricFogOnScreen = 64, // 8MB texture atlas allocated by default
+            maxLocalVolumetricFogOnScreen = 256,
         };
+
+        internal static Vector2Int GetReflectionProbeTextureCacheDim(ReflectionProbeTextureCacheResolution resolution)
+        {
+            if(resolution <= ReflectionProbeTextureCacheResolution.Resolution16384x16384)
+                return new Vector2Int((int)resolution, (int)resolution);
+
+            return new Vector2Int(((int)resolution >> 16), (int)resolution & 0xFFFF);
+        }
 
         /// <summary>Cookie atlas resolution.</summary>
         [FormerlySerializedAs("cookieSize")]
@@ -185,21 +224,41 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
+
         // We keep this property for the migration code (we need to know how many cookies we could have before).
         [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.", false)]
         internal int cookieTexArraySize;
 
-        /// <summary>Planar reflections atlas resolution.</summary>
+        // We keep this property for the migration code
+        /// <summary>Obsolete: Use planar reflection atlas.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]
+        [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead.", false)]
         public PlanarReflectionAtlasResolution planarReflectionAtlasSize;
-        /// <summary>Maximum number of cached reflection probes.</summary>
-        public int reflectionProbeCacheSize;
-        /// <summary>Reflection probes resolution.</summary>
-        public CubeReflectionResolution reflectionCubemapSize;
+
+        // We keep this property for the migration code
+        [SerializeField, Obsolete("There is no more texture array for cube reflection probes, use reflection probe atlases properties instead.", false)]
+        internal int reflectionProbeCacheSize;
+
+        // We keep this property for the migration code
+        [SerializeField, Obsolete("There is no more cube reflection probe size, use cube reflection probe size tiers instead.", false)]
+        internal CubeReflectionResolution reflectionCubemapSize;
+
+        // We keep this property for the migration code
+        [SerializeField, Obsolete("There is no more max env light on screen, use max planar and cube reflection probes on screen instead.", false)]
+        internal int maxEnvLightsOnScreen;
+
         /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
-        /// <summary>Reflection probes resolution.</summary>
+        /// <summary>Reflection probes format.</summary>
         public ReflectionAndPlanarProbeFormat reflectionProbeFormat;
+        /// <summary>Reflection probes texture cache size.</summary>
+        public ReflectionProbeTextureCacheResolution reflectionProbeTexCacheSize;
+        /// <summary>Last valid mip for cube reflection probes in the reflection probe's texture cache.</summary>
+        public int reflectionProbeTexLastValidCubeMip;
+        /// <summary>Last valid mip for planar reflection probes in the reflection probe's texture cache.</summary>
+        public int reflectionProbeTexLastValidPlanarMip;
+        /// <summary>Downsize the reflection probe resolution if the probe doesn't fit in the reflection probe's texture cache.</summary>
+        public bool reflectionProbeDecreaseResToFit;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;
@@ -215,15 +274,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of area lights at the same time on screen.</summary>
         public int maxAreaLightsOnScreen;
         /// <summary>Maximum number of environment lights at the same time on screen.</summary>
-        public int maxEnvLightsOnScreen;
+        public int maxCubeReflectionOnScreen;
+        /// <summary>Maximum number of planar lights at the same time on screen.</summary>
+        public int maxPlanarReflectionOnScreen;
         /// <summary>Maximum number of decals at the same time on screen.</summary>
         public int maxDecalsOnScreen;
-        /// <summary>Maximum number of planar reflections at the same time on screen.</summary>
-        public int maxPlanarReflectionOnScreen;
         /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
         public int maxLightsPerClusterCell;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
+        [Obsolete("The texture resolution limit in volumetric fogs have been removed. This field is unused.")]
         public LocalVolumetricFogResolution maxLocalVolumetricFogSize;
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>

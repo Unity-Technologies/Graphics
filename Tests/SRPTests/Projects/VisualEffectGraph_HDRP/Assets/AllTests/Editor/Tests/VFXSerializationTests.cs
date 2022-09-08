@@ -1073,6 +1073,28 @@ namespace UnityEditor.VFX.Test
             Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(string.Empty));
         }
 
+        [Test(Description = "Cover issue 1403202")]
+        public void Check_GPU_Event_In_Subgraph_With_Link()
+        {
+            string kSourceAssetMain = "Assets/AllTests/Editor/Tests/VFXGPUEvent_Main.vfx_";
+            var main = VFXTestCommon.CopyTemporaryGraph(kSourceAssetMain);
+
+            string kSourceAssetSubGraph = "Assets/AllTests/Editor/Tests/VFXGPUEvent_Subgraph.vfx_";
+            var subGraph = VFXTestCommon.CopyTemporaryGraph(kSourceAssetSubGraph);
+
+            var subgraphContext = main.children.OfType<VFXSubgraphContext>().FirstOrDefault();
+            Assert.IsNotNull(subgraphContext);
+
+            var subGraphAsset = subGraph.GetResource().asset;
+            Assert.IsNotNull(subGraphAsset);
+
+            subgraphContext.SetSettingValue("m_Subgraph", subGraphAsset);
+            Assert.AreEqual(subGraphAsset, subgraphContext.GetSettingValue("m_Subgraph"));
+
+            var path = AssetDatabase.GetAssetPath(main);
+            AssetDatabase.ImportAsset(path);
+        }
+
 
         //Cover regression test : 1315191
         [UnityTest]

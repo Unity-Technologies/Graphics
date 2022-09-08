@@ -18,16 +18,71 @@ public class HDRP_GraphicTestRunner
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        HDRP_TestSettings settings = null;
+        Camera camera = null;
+
+#if UNITY_EDITOR
+        // Load the test settings
+        var oldValueShaderUtil = UnityEditor.ShaderUtil.allowAsyncCompilation;
+        var oldValueEditorSettings = UnityEditor.EditorSettings.asyncShaderCompilation;
+
+        UnityEditor.ShaderUtil.allowAsyncCompilation = true;
+        UnityEditor.EditorSettings.asyncShaderCompilation = true;
+
         SceneManager.LoadScene(testCase.ScenePath);
 
-        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        // Wait for scene loading to retrieve settings/camera.
         for (int i = 0; i < 5; ++i)
             yield return new WaitForEndOfFrame();
 
-        // Load the test settings
-        var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+        settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
+        if (camera == null)
+        {
+            Assert.Fail("Missing camera for graphic tests.");
+        }
 
-        var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        // Purpose is to setup proper test aspect ratio for the camera to "see" all objects and trigger related shader compilation tasks.
+        int warmupTime = 1;
+        if (XRGraphicsAutomatedTests.enabled)
+            warmupTime = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, warmupTime, settings.ImageComparisonSettings);
+        else
+            camera.targetTexture = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+
+        // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
+        settings.doBeforeTest?.Invoke();
+
+        // Wait one rendered frame to trigger shader compilation.
+        for (int i = 0; i < warmupTime; ++i)
+            yield return new WaitForEndOfFrame();
+
+        // Wait for all compilation to end.
+        while (UnityEditor.ShaderUtil.anythingCompiling)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
+        camera.targetTexture = null;
+#endif
+
+        // Reload the scene to reset time in order to be deterministic.
+        SceneManager.LoadScene(testCase.ScenePath);
+
+        // Arbitrary wait for a few frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        // Used to be 5 but we changed the process a bit with shader compilation in editor so we need 4 to retain old behavior.
+        int frameSkip = 5;
+#if UNITY_EDITOR
+        frameSkip = 4;
+#endif
+
+        for (int i = 0; i < frameSkip; ++i)
+            yield return new WaitForEndOfFrame();
+
+        // Need to retrieve objects again after scene reload.
+        settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
         if (camera == null)
         {
@@ -145,6 +200,11 @@ public class HDRP_GraphicTestRunner
             else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
+
+#if UNITY_EDITOR
+        UnityEditor.ShaderUtil.allowAsyncCompilation = oldValueShaderUtil;
+        UnityEditor.EditorSettings.asyncShaderCompilation = oldValueEditorSettings;
+#endif
     }
 
 #if UNITY_EDITOR

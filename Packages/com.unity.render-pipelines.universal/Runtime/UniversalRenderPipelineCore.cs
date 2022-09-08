@@ -1,18 +1,45 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
 {
+    static class NativeArrayExtensions
+    {
+        public static unsafe ref readonly T UnsafeElementAt<T>(this NativeArray<T> array, int index) where T : struct
+        {
+            return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafeReadOnlyPtr(), index);
+        }
+
+        public static unsafe ref T UnsafeElementAtMutable<T>(this NativeArray<T> array, int index) where T : struct
+        {
+            return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafePtr(), index);
+        }
+    }
+
+    /// <summary>
+    /// Options for mixed lighting setup.
+    /// </summary>
     public enum MixedLightingSetup
     {
+        /// <summary>
+        /// Use this to disable mixed lighting.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Use this to select shadow mask.
+        /// </summary>
         ShadowMask,
+
+        /// <summary>
+        /// Use this to select subtractive.
+        /// </summary>
         Subtractive,
     };
 
@@ -143,8 +170,20 @@ namespace UnityEngine.Rendering.Universal
         /// True if mixed lighting is supported.
         /// </summary>
         public bool supportsMixedLighting;
+
+        /// <summary>
+        /// True if box projection is enabled for reflection probes.
+        /// </summary>
         public bool reflectionProbeBoxProjection;
+
+        /// <summary>
+        /// True if blending is enabled for reflection probes.
+        /// </summary>
         public bool reflectionProbeBlending;
+
+        /// <summary>
+        /// True if light layers are enabled.
+        /// </summary>
         public bool supportsLightLayers;
 
         /// <summary>
@@ -163,11 +202,39 @@ namespace UnityEngine.Rendering.Universal
         // We might change this API soon.
         Matrix4x4 m_ViewMatrix;
         Matrix4x4 m_ProjectionMatrix;
+        Matrix4x4 m_JitterMatrix;
 
         internal void SetViewAndProjectionMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
         {
             m_ViewMatrix = viewMatrix;
             m_ProjectionMatrix = projectionMatrix;
+            m_JitterMatrix = Matrix4x4.identity;
+        }
+
+        internal void SetViewProjectionAndJitterMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, Matrix4x4 jitterMatrix)
+        {
+            m_ViewMatrix = viewMatrix;
+            m_ProjectionMatrix = projectionMatrix;
+            m_JitterMatrix = jitterMatrix;
+        }
+
+        // Helper function to populate builtin stereo matricies as well as URP stereo matricies
+        internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd, bool renderIntoTexture)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjectionMatrix());
+                if (xr.singlePassEnabled)
+                {
+                    for (int viewId = 0; viewId < xr.viewCount; viewId++)
+                    {
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(GetViewMatrix(viewId), GetProjectionMatrix(viewId), renderIntoTexture, viewId);
+                    }
+                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
+                }
+            }
+#endif
         }
 
         /// <summary>
@@ -185,11 +252,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the camera projection matrix.
+        /// Returns the camera projection matrix. Might be jittered for temporal features.
         /// </summary>
         /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
         /// <returns> The camera projection matrix. </returns>
         public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                return m_JitterMatrix * xr.GetProjMatrix(viewIndex);
+#endif
+            return m_JitterMatrix * m_ProjectionMatrix;
+        }
+
+        internal Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
@@ -199,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z.
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
         /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
         /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
         /// </summary>
@@ -208,12 +284,27 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
+            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
+            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+        }
+
+        /// <summary>
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Does not include any camera jitter.
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
+        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+        /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
+        /// <returns></returns>
+        public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
+        {
+            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
+            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
         }
 
         /// <summary>
@@ -237,12 +328,15 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal Rect pixelRect;
+        internal bool useScreenCoordOverride;
+        internal Vector4 screenSizeOverride;
+        internal Vector4 screenCoordScaleBias;
         internal int pixelWidth;
         internal int pixelHeight;
         internal float aspectRatio;
 
         /// <summary>
-        /// Render scale to apply when creating camera textures.
+        /// Render scale to apply when creating camera textures. Scaled extents are rounded down to integers.
         /// </summary>
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
@@ -288,7 +382,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
 
+        /// <summary>
+        /// Returns true if XR rendering is enabled.
+        /// </summary>
         public bool xrRendering;
+
         internal bool requireSrgbConversion
         {
             get
@@ -319,8 +417,8 @@ namespace UnityEngine.Rendering.Universal
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
         /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
-        /// <returns> True if the camera device projection matrix is flipped. </returns>
         /// </summary>
+        /// <returns> True if the camera device projection matrix is flipped. </returns>
         public bool IsCameraProjectionMatrixFlipped()
         {
             // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
@@ -344,6 +442,15 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        /// <summary>
+        /// True if the render target's projection matrix is flipped. This happens when the pipeline is rendering
+        /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
+        /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
+        /// matrix when rendering with for cmd.Draw* and reading from camera textures.
+        /// </summary>
+        /// <param name="color">Color render target to check whether the matrix is flipped.</param>
+        /// <param name="depth">Depth render target which is used if color is null. By default <c>depth</c> is set to null.</param>
+        /// <returns> True if the render target's projection matrix is flipped. </returns>
         public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
         {
 
@@ -359,6 +466,22 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
         }
 
+        internal bool IsTemporalAAEnabled()
+        {
+            #if URP_EXPERIMENTAL_TAA_ENABLE
+            UniversalAdditionalCameraData additionalCameraData;
+            camera.TryGetComponent(out additionalCameraData);
+
+            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
+                   && (taaPersistentData != null)                                                                                     // Initialized
+                   && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
+                   && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
+                   && !camera.allowDynamicResolution;                                                                                 // No Dynamic Resolution
+            #else
+            return false;
+            #endif
+        }
+
         /// <summary>
         /// The sorting criteria used when drawing opaque objects by the internal URP render passes.
         /// When a GPU supports hidden surface removal, URP will rely on that information to avoid sorting opaque objects front to back and
@@ -367,9 +490,18 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="SortingCriteria"/>
         public SortingCriteria defaultOpaqueSortFlags;
 
-        internal XRPass xr;
+        /// <summary>
+        /// XRPass holds the render target information and a list of XRView.
+        /// XRView contains the parameters required to render (projection and view matrices, viewport, etc)
+        /// </summary>
+        public XRPass xr { get; internal set; }
+
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
+        /// <summary>
+        /// Is XR enabled or not.
+        /// This is obsolete, please use xr.enabled instead.
+        /// </summary>
         [Obsolete("Please use xr.enabled instead.", true)]
         public bool isStereoEnabled;
 
@@ -449,68 +581,207 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Color backgroundColor;
 
+        /// <summary>
+        /// Persistent TAA data, primarily for the accumulation texture.
+        /// </summary>
+        internal TaaPersistentData taaPersistentData;
+
+        // TAA settings.
+        internal TemporalAA.Settings taaSettings;
+
+        // Post-process history reset has been triggered for this camera.
+        internal bool resetHistory
+        {
+            get => taaSettings.resetHistoryFrames != 0;
+        }
+
+
+        /// <summary>
         /// Camera at the top of the overlay camera stack
         /// </summary>
         public Camera baseCamera;
     }
 
+    /// <summary>
+    /// Container struct for various data used for shadows in URP.
+    /// </summary>
     public struct ShadowData
     {
+        /// <summary>
+        /// True if main light shadows are enabled.
+        /// </summary>
         public bool supportsMainLightShadows;
+
+        /// <summary>
+        /// True if screen space shadows are required.
+        /// Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature
+        /// </summary>
         [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
         public bool requiresScreenSpaceShadowResolve;
+
+        /// <summary>
+        /// The width of the main light shadow map.
+        /// </summary>
         public int mainLightShadowmapWidth;
+
+        /// <summary>
+        /// The height of the main light shadow map.
+        /// </summary>
         public int mainLightShadowmapHeight;
+
+        /// <summary>
+        /// The number of shadow cascades.
+        /// </summary>
         public int mainLightShadowCascadesCount;
+
+        /// <summary>
+        /// The split between cascades.
+        /// </summary>
         public Vector3 mainLightShadowCascadesSplit;
+
         /// <summary>
         /// Main light last cascade shadow fade border.
         /// Value represents the width of shadow fade that ranges from 0 to 1.
         /// Where value 0 is used for no shadow fade.
         /// </summary>
         public float mainLightShadowCascadeBorder;
+
+        /// <summary>
+        /// True if additional lights shadows are enabled.
+        /// </summary>
         public bool supportsAdditionalLightShadows;
+
+        /// <summary>
+        /// The width of the additional light shadow map.
+        /// </summary>
         public int additionalLightsShadowmapWidth;
+
+        /// <summary>
+        /// The height of the additional light shadow map.
+        /// </summary>
         public int additionalLightsShadowmapHeight;
+
+        /// <summary>
+        /// True if soft shadows are enabled.
+        /// </summary>
         public bool supportsSoftShadows;
+
+        /// <summary>
+        /// The number of bits used.
+        /// </summary>
         public int shadowmapDepthBufferBits;
+
+        /// <summary>
+        /// A list of shadow bias.
+        /// </summary>
         public List<Vector4> bias;
+
+        /// <summary>
+        /// A list of resolution for the shadow maps.
+        /// </summary>
         public List<int> resolution;
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
     }
 
-    // Precomputed tile data.
+    /// <summary>
+    /// Precomputed tile data.
+    /// Tile left, right, bottom and top plane equations in view space.
+    /// Normals are pointing out.
+    /// </summary>
     public struct PreTile
     {
-        // Tile left, right, bottom and top plane equations in view space.
-        // Normals are pointing out.
+        /// <summary>
+        /// The left plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeLeft;
+
+        /// <summary>
+        /// The right plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeRight;
+
+        /// <summary>
+        /// The bottom plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeBottom;
+
+        /// <summary>
+        /// The top plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeTop;
     }
 
-    // Actual tile data passed to the deferred shaders.
+    /// <summary>
+    /// The tile data passed to the deferred shaders.
+    /// </summary>
     public struct TileData
     {
+        /// <summary>
+        /// The tile ID.
+        /// </summary>
         public uint tileID;         // 2x 16 bits
+
+        /// <summary>
+        /// The list bit mask.
+        /// </summary>
         public uint listBitMask;    // 32 bits
+
+        /// <summary>
+        /// The relative light offset.
+        /// </summary>
         public uint relLightOffset; // 16 bits is enough
+
+        /// <summary>
+        /// Unused variable.
+        /// </summary>
         public uint unused;
     }
 
-    // Actual point/spot light data passed to the deferred shaders.
+    /// <summary>
+    /// The point/spot light data passed to the deferred shaders.
+    /// </summary>
     public struct PunctualLightData
     {
+        /// <summary>
+        /// The world position.
+        /// </summary>
         public Vector3 wsPos;
+
+        /// <summary>
+        /// The radius of the light.
+        /// </summary>
         public float radius; // TODO remove? included in attenuation
+
+        /// <summary>
+        /// The color of the light.
+        /// </summary>
         public Vector4 color;
+
+        /// <summary>
+        /// The attenuation of the light.
+        /// </summary>
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+
+        /// <summary>
+        /// The direction for spot lights.
+        /// </summary>
         public Vector3 spotDirection;   // for spotLights
+
+        /// <summary>
+        /// The flags used.
+        /// </summary>
         public int flags;
+
+        /// <summary>
+        /// The occlusion probe info.
+        /// </summary>
         public Vector4 occlusionProbeInfo;
+
+        /// <summary>
+        /// The layer mask used.
+        /// </summary>
         public uint layerMask;
     }
 
@@ -542,6 +813,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int screenCoordScaleBias = Shader.PropertyToID("_ScreenCoordScaleBias");
+        public static readonly int screenSizeOverride = Shader.PropertyToID("_ScreenSizeOverride");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
@@ -600,102 +873,271 @@ namespace UnityEngine.Rendering.Universal
         public bool useFastSRGBLinearConversion;
     }
 
+    /// <summary>
+    /// Container class for keywords used in URP shaders.
+    /// </summary>
     public static class ShaderKeywordStrings
     {
+        /// <summary> Keyword used for shadows without cascades. </summary>
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
+
+        /// <summary> Keyword used for shadows with cascades. </summary>
         public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
+
+        /// <summary> Keyword used for screen space shadows. </summary>
         public static readonly string MainLightShadowScreen = "_MAIN_LIGHT_SHADOWS_SCREEN";
-        public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+
+        /// <summary> Keyword used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias. </summary>
+        public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW";
+
+        /// <summary> Keyword used for per vertex additional lights. </summary>
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
+
+        /// <summary> Keyword used for per pixel additional lights. </summary>
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
+
+        /// <summary> Keyword used for Forward+. </summary>
         internal static readonly string ForwardPlus = "_FORWARD_PLUS";
+
+        /// <summary> Keyword used for shadows on additional lights. </summary>
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
+
+        /// <summary> Keyword used for Box Projection with Reflection Probes. </summary>
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+
+        /// <summary> Keyword used for Reflection probe blending. </summary>
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
+
+        /// <summary> Keyword used for soft shadows. </summary>
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
+
+        /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
+
+        /// <summary> Keyword used for mixing lightmap shadows. </summary>
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
+
+        /// <summary> Keyword used for Shadowmask. </summary>
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+
+        /// <summary> Keyword used for Light Layers. </summary>
         public static readonly string LightLayers = "_LIGHT_LAYERS";
+
+        /// <summary> Keyword used for RenderPass. </summary>
         public static readonly string RenderPassEnabled = "_RENDER_PASS_ENABLED";
+
+        /// <summary> Keyword used for Billboard cameras. </summary>
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
+
+        /// <summary> Keyword used for Light Cookies. </summary>
         public static readonly string LightCookies = "_LIGHT_COOKIES";
 
+        /// <summary> Keyword used for no Multi Sampling Anti-Aliasing (MSAA). </summary>
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 4 per pixel sample count. </summary>
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 8 per pixel sample count. </summary>
         public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
 
+        /// <summary> Keyword used for Linear to SRGB conversions. </summary>
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+
+        /// <summary> Keyword used for less expensive Linear to SRGB conversions. </summary>
         internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
+        /// <summary> Keyword used for first target in the DBuffer. </summary>
         public static readonly string DBufferMRT1 = "_DBUFFER_MRT1";
+
+        /// <summary> Keyword used for second target in the DBuffer. </summary>
         public static readonly string DBufferMRT2 = "_DBUFFER_MRT2";
+
+        /// <summary> Keyword used for third target in the DBuffer. </summary>
         public static readonly string DBufferMRT3 = "_DBUFFER_MRT3";
+
+        /// <summary> Keyword used for low quality normal reconstruction in Decals. </summary>
         public static readonly string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
+
+        /// <summary> Keyword used for medium quality normal reconstruction in Decals. </summary>
         public static readonly string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
+
+        /// <summary> Keyword used for high quality normal reconstruction in Decals. </summary>
         public static readonly string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
+
+        /// <summary> Keyword used for Decal Layers. </summary>
         public static readonly string DecalLayers = "_DECAL_LAYERS";
 
+        /// <summary> Keyword used for writing Rendering Layers. </summary>
         public static readonly string WriteRenderingLayers = "_WRITE_RENDERING_LAYERS";
 
+        /// <summary> Keyword used for low quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
+
+        /// <summary> Keyword used for medium quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
+
+        /// <summary> Keyword used for high quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
         public static readonly string SmaaHigh = "_SMAA_PRESET_HIGH";
+
+        /// <summary> Keyword used for generic Panini Projection. </summary>
         public static readonly string PaniniGeneric = "_GENERIC";
+
+        /// <summary> Keyword used for unit distance Panini Projection. </summary>
         public static readonly string PaniniUnitDistance = "_UNIT_DISTANCE";
+
+        /// <summary> Keyword used for low quality Bloom. </summary>
         public static readonly string BloomLQ = "_BLOOM_LQ";
+
+        /// <summary> Keyword used for high quality Bloom. </summary>
         public static readonly string BloomHQ = "_BLOOM_HQ";
+
+        /// <summary> Keyword used for low quality Bloom dirt. </summary>
         public static readonly string BloomLQDirt = "_BLOOM_LQ_DIRT";
+
+        /// <summary> Keyword used for high quality Bloom dirt. </summary>
         public static readonly string BloomHQDirt = "_BLOOM_HQ_DIRT";
+
+        /// <summary> Keyword used for RGBM format for Bloom. </summary>
         public static readonly string UseRGBM = "_USE_RGBM";
+
+        /// <summary> Keyword used for Distortion. </summary>
         public static readonly string Distortion = "_DISTORTION";
+
+        /// <summary> Keyword used for Chromatic Aberration. </summary>
         public static readonly string ChromaticAberration = "_CHROMATIC_ABERRATION";
+
+        /// <summary> Keyword used for HDR Color Grading. </summary>
         public static readonly string HDRGrading = "_HDR_GRADING";
+
+        /// <summary> Keyword used for ACES Tonemapping. </summary>
         public static readonly string TonemapACES = "_TONEMAP_ACES";
+
+        /// <summary> Keyword used for Neutral Tonemapping. </summary>
         public static readonly string TonemapNeutral = "_TONEMAP_NEUTRAL";
+
+        /// <summary> Keyword used for Film Grain. </summary>
         public static readonly string FilmGrain = "_FILM_GRAIN";
+
+        /// <summary> Keyword used for Fast Approximate Anti-aliasing (FXAA). </summary>
         public static readonly string Fxaa = "_FXAA";
+
+        /// <summary> Keyword used for Dithering. </summary>
         public static readonly string Dithering = "_DITHERING";
+
+        /// <summary> Keyword used for Screen Space Occlusion, such as Screen Space Ambient Occlusion (SSAO). </summary>
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+
+        /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public static readonly string PointSampling = "_POINT_SAMPLING";
+
+        /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
         public static readonly string Rcas = "_RCAS";
+
+        /// <summary> Keyword used for Gamma 2.0. </summary>
         public static readonly string Gamma20 = "_GAMMA_20";
 
+        /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
-        public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
-        public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
-        public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
-        public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+        /// <summary> Keyword used for Spot lights. </summary>
         public static readonly string _SPOT = "_SPOT";
+
+        /// <summary> Keyword used for Directional lights. </summary>
         public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
+
+        /// <summary> Keyword used for Point lights. </summary>
         public static readonly string _POINT = "_POINT";
+
+        /// <summary> Keyword used for stencils when rendering with the Deferred rendering path. </summary>
         public static readonly string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
+
+        /// <summary> Keyword used for the first light when rendering with the Deferred rendering path. </summary>
         public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
+
+        /// <summary> Keyword used for the main light when rendering with the Deferred rendering path. </summary>
         public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
+
+        /// <summary> Keyword used for Accurate G-buffer normals when rendering with the Deferred rendering path. </summary>
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+
+        /// <summary> Keyword used for Mixed Lighting when rendering with the Deferred rendering path. </summary>
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+
+        /// <summary> Keyword used for Lightmaps. </summary>
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+
+        /// <summary> Keyword used for dynamic Lightmaps. </summary>
         public static readonly string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
+
+        /// <summary> Keyword used for Alpha testing. </summary>
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
+
+        /// <summary> Keyword used for combined directional Lightmaps. </summary>
         public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+
+        /// <summary> Keyword used for 2x detail mapping. </summary>
         public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
+
+        /// <summary> Keyword used for scaled detail mapping. </summary>
         public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
+
+        /// <summary> Keyword used for Clear Coat. </summary>
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
+
+        /// <summary> Keyword used for Clear Coat maps. </summary>
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
+
+        /// <summary> Keyword used for Debug Display. </summary>
         public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
+
+        /// <summary> Keyword used for LOD Crossfade. </summary>
         public static readonly string LOD_FADE_CROSSFADE = "LOD_FADE_CROSSFADE";
+
+        /// <summary> Keyword used for LOD Crossfade with ShaderGraph shaders. </summary>
         public static readonly string USE_UNITY_CROSSFADE = "USE_UNITY_CROSSFADE";
 
+        /// <summary> Keyword used for Emission. </summary>
         public static readonly string _EMISSION = "_EMISSION";
+
+        /// <summary> Keyword used for receiving shadows. </summary>
         public static readonly string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
+
+        /// <summary> Keyword used for opaque or transparent surface types. </summary>
         public static readonly string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
+
+        /// <summary> Keyword used for Alpha premultiply. </summary>
         public static readonly string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
+
+        /// <summary> Keyword used for Alpha modulate. </summary>
         public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
+
+        /// <summary> Keyword used for Normal maps. </summary>
         public static readonly string _NORMALMAP = "_NORMALMAP";
 
+        /// <summary> Keyword used for editor visualization. </summary>
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
+
+        /// <summary> Keyword used for foveated rendering. </summary>
+        public static readonly string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
+
+        /// <summary> Keyword used for applying scale and bias. </summary>
+        public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
+
+        /// <summary> Keyword used for half size downsampling. </summary>
+        public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
+
+        /// <summary> Keyword used for quarter size downsampling. </summary>
+        public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
+
+        /// <summary> Keyword used for eighth size downsampling. </summary>
+        public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
+
+        /// <summary> Keyword used for sixteenth size downsampling. </summary>
+        public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -780,6 +1222,17 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+        }
+
+        // Returns a UNORM based render texture format
+        // When supported by the device, this function will prefer formats with higher precision, but the same bit-depth
+        // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
+        internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
+        {
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.A2B10G10R10_UNormPack32, FormatUsage.Linear | FormatUsage.Render))
+                return GraphicsFormat.A2B10G10R10_UNormPack32;
+            else
+                return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
@@ -972,70 +1425,107 @@ namespace UnityEngine.Rendering.Universal
 #endif
         };
 
-        // called from DeferredLights.cs too
+        // Called from DeferredLights.cs too
+        /// <summary>
+        /// Calculates the attenuation for a given light and also direction for spot lights.
+        /// </summary>
+        /// <param name="lightType">The type of light.</param>
+        /// <param name="lightRange">The range of the light.</param>
+        /// <param name="lightLocalToWorldMatrix">The local to world light matrix.</param>
+        /// <param name="spotAngle">The spotlight angle.</param>
+        /// <param name="innerSpotAngle">The spotlight inner angle.</param>
+        /// <param name="lightAttenuation">The light attenuation.</param>
+        /// <param name="lightSpotDir">The spot light direction.</param>
         public static void GetLightAttenuationAndSpotDirection(
             LightType lightType, float lightRange, Matrix4x4 lightLocalToWorldMatrix,
             float spotAngle, float? innerSpotAngle,
             out Vector4 lightAttenuation, out Vector4 lightSpotDir)
         {
+            // Default is directional
             lightAttenuation = k_DefaultLightAttenuation;
             lightSpotDir = k_DefaultLightSpotDirection;
 
-            // Directional Light attenuation is initialize so distance attenuation always be 1.0
             if (lightType != LightType.Directional)
             {
-                // Light attenuation in universal matches the unity vanilla one (HINT_NICE_QUALITY).
-                // attenuation = 1.0 / distanceToLightSqr
-                // The smoothing factor makes sure that the light intensity is zero at the light range limit.
-                // (We used to offer two different smoothing factors.)
+                GetPunctualLightDistanceAttenuation(lightRange, ref lightAttenuation);
 
-                // The current smoothing factor matches the one used in the Unity lightmapper.
-                // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightRangeSqr)^2))^2
-                float lightRangeSqr = lightRange * lightRange;
-                float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
-                float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
-                float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
-                float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
-
-                // On all devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = oneOverLightRangeSqr;
-                lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
-            }
-
-            if (lightType == LightType.Spot)
-            {
-                Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
-                lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
-
-                // Spot Attenuation with a linear falloff can be defined as
-                // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
-                // This can be rewritten as
-                // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
-                // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
-                // If we precompute the terms in a MAD instruction
-                float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
-                // We neeed to do a null check for particle lights
-                // This should be changed in the future
-                // Particle lights will use an inline function
-                float cosInnerAngle;
-                if (innerSpotAngle.HasValue)
-                    cosInnerAngle = Mathf.Cos(innerSpotAngle.Value * Mathf.Deg2Rad * 0.5f);
-                else
-                    cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
-                float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
-                float invAngleRange = 1.0f / smoothAngleRange;
-                float add = -cosOuterAngle * invAngleRange;
-                lightAttenuation.z = invAngleRange;
-                lightAttenuation.w = add;
+                if (lightType == LightType.Spot)
+                {
+                    GetSpotDirection(ref lightLocalToWorldMatrix, out lightSpotDir);
+                    GetSpotAngleAttenuation(spotAngle, innerSpotAngle, ref lightAttenuation);
+                }
             }
         }
 
+        internal static void GetPunctualLightDistanceAttenuation(float lightRange, ref Vector4 lightAttenuation)
+        {
+            // Light attenuation in universal matches the unity vanilla one (HINT_NICE_QUALITY).
+            // attenuation = 1.0 / distanceToLightSqr
+            // The smoothing factor makes sure that the light intensity is zero at the light range limit.
+            // (We used to offer two different smoothing factors.)
+
+            // The current smoothing factor matches the one used in the Unity lightmapper.
+            // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightRangeSqr)^2))^2
+            float lightRangeSqr = lightRange * lightRange;
+            float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
+            float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
+            float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
+            float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRangeSqr);
+
+            // On all devices: Use the smoothing factor that matches the GI.
+            lightAttenuation.x = oneOverLightRangeSqr;
+            lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
+        }
+
+        internal static void GetSpotAngleAttenuation(
+            float spotAngle, float? innerSpotAngle,
+            ref Vector4 lightAttenuation)
+        {
+            // Spot Attenuation with a linear falloff can be defined as
+            // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+            // This can be rewritten as
+            // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+            // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+            // If we precompute the terms in a MAD instruction
+            float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
+            // We need to do a null check for particle lights
+            // This should be changed in the future
+            // Particle lights will use an inline function
+            float cosInnerAngle;
+            if (innerSpotAngle.HasValue)
+                cosInnerAngle = Mathf.Cos(innerSpotAngle.Value * Mathf.Deg2Rad * 0.5f);
+            else
+                cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
+            float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
+            float invAngleRange = 1.0f / smoothAngleRange;
+            float add = -cosOuterAngle * invAngleRange;
+
+            lightAttenuation.z = invAngleRange;
+            lightAttenuation.w = add;
+        }
+
+        internal static void GetSpotDirection(ref Matrix4x4 lightLocalToWorldMatrix, out Vector4 lightSpotDir)
+        {
+            Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
+            lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+        }
+
+        /// <summary>
+        /// Initializes common light constants.
+        /// </summary>
+        /// <param name="lights">List of lights to iterate.</param>
+        /// <param name="lightIndex">The index of the light.</param>
+        /// <param name="lightPos">The position of the light.</param>
+        /// <param name="lightColor">The color of the light.</param>
+        /// <param name="lightAttenuation">The attenuation of the light.</param>
+        /// <param name="lightSpotDir">The direction of the light.</param>
+        /// <param name="lightOcclusionProbeChannel">The occlusion probe channel for the light.</param>
         public static void InitializeLightConstants_Common(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
         {
             lightPos = k_DefaultLightPosition;
             lightColor = k_DefaultLightColor;
             lightOcclusionProbeChannel = k_DefaultLightsProbeChannel;
-            lightAttenuation = k_DefaultLightAttenuation;
+            lightAttenuation = k_DefaultLightAttenuation;  // Directional by default.
             lightSpotDir = k_DefaultLightSpotDirection;
 
             // When no lights are visible, main light will be set to -1.
@@ -1043,27 +1533,33 @@ namespace UnityEngine.Rendering.Universal
             if (lightIndex < 0)
                 return;
 
-            VisibleLight lightData = lights[lightIndex];
-            if (lightData.lightType == LightType.Directional)
+            // Avoid memcpys. Pass by ref and locals for multiple uses.
+            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
+            var light = lightData.light;
+            var lightLocalToWorld = lightData.localToWorldMatrix;
+            var lightType = lightData.lightType;
+
+            if (lightType == LightType.Directional)
             {
-                Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
+                Vector4 dir = -lightLocalToWorld.GetColumn(2);
                 lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
-                Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
+                Vector4 pos = lightLocalToWorld.GetColumn(3);
                 lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+
+                GetPunctualLightDistanceAttenuation(lightData.range, ref lightAttenuation);
+
+                if (lightType == LightType.Spot)
+                {
+                    GetSpotAngleAttenuation(lightData.spotAngle, light?.innerSpotAngle, ref lightAttenuation);
+                    GetSpotDirection(ref lightLocalToWorld, out lightSpotDir);
+                }
             }
 
             // VisibleLight.finalColor already returns color in active color space
             lightColor = lightData.finalColor;
-
-            GetLightAttenuationAndSpotDirection(
-                lightData.lightType, lightData.range, lightData.localToWorldMatrix,
-                lightData.spotAngle, lightData.light?.innerSpotAngle,
-                out lightAttenuation, out lightSpotDir);
-
-            Light light = lightData.light;
 
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 0 <= light.bakingOutput.occlusionMaskChannel &&
@@ -1107,6 +1603,7 @@ namespace UnityEngine.Rendering.Universal
         SMAA,
         GaussianDepthOfField,
         BokehDepthOfField,
+        TemporalAA,
         MotionBlur,
         PaniniProjection,
         UberPostProcess,
@@ -1114,6 +1611,35 @@ namespace UnityEngine.Rendering.Universal
         LensFlareDataDriven,
         MotionVectors,
         DrawFullscreen,
+
+        // PostProcessPass RenderGraph
+        RG_SetupPostFX,
+        RG_StopNaNs,
+        RG_SMAAMaterialSetup,
+        RG_SMAAEdgeDetection,
+        RG_SMAABlendWeight,
+        RG_SMAANeighborhoodBlend,
+        RG_SetupDoF,
+        RG_DOFComputeCOC,
+        RG_DOFDownscalePrefilter,
+        RG_DOFBlurH,
+        RG_DOFBlurV,
+        RG_DOFBlurBokeh,
+        RG_DOFPostFilter,
+        RG_DOFComposite,
+        RG_TAA,
+        RG_TAACopyHistory,
+        RG_MotionBlur,
+        RG_BloomSetupPass,
+        RG_BloomPrefilter,
+        RG_BloomFirstPass,
+        RG_BloomSecondPass,
+        RG_BloomUpsample,
+        RG_UberPostSetupBloomPass,
+        RG_UberPost,
+        RG_FinalSetup,
+        RG_FinalFSRScale,
+        RG_FinalBlit,
 
         FinalBlit
     }

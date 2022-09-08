@@ -127,6 +127,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] int m_LightOrder = 0;
 
+        [SerializeField] bool m_AlphaBlendOnOverlap = false; // This is now deprecated. Keep it here for backwards compatibility.
+
         [SerializeField] OverlapOperation m_OverlapOperation = OverlapOperation.Additive;
 
         [FormerlySerializedAs("m_PointLightDistance")]
@@ -147,7 +149,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
-
 
         Mesh m_Mesh;
 
@@ -256,19 +257,23 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
-        public Sprite lightCookieSprite { get => m_LightCookieSprite; set => m_LightCookieSprite = value; }
+        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } set => m_LightCookieSprite = value; }
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
         public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
+        /// <summary>
+        /// Checks if the alpha overlap operation is alpha blend.
+        /// This is obsolete.
+        /// </summary>
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
 
         /// <summary>
-        /// Returns the overlap operation mode.
+        /// Controls the overlap operation mode.
         /// </summary>
-        public OverlapOperation overlapOperation => m_OverlapOperation;
+        public OverlapOperation overlapOperation { get => m_OverlapOperation; set => m_OverlapOperation = value; }
 
         /// <summary>
         /// Gets or sets the light order. The lightOrder determines the order in which the lights are rendered onto the light textures.
@@ -460,6 +465,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
                 m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
                 m_NormalMapQuality = !m_UseNormalMap ? NormalMapQuality.Disabled : m_NormalMapQuality;
+                m_OverlapOperation = m_AlphaBlendOnOverlap ? OverlapOperation.AlphaBlend : m_OverlapOperation;
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }

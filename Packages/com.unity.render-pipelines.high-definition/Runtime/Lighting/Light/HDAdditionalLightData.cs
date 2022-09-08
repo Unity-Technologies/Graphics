@@ -1153,20 +1153,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Now the renderingLayerMask is used for shadow layers and not light layers
         [SerializeField, FormerlySerializedAs("lightlayersMask")]
-        LightLayerEnum m_LightlayersMask = LightLayerEnum.LightLayerDefault;
+        RenderingLayerMask m_LightlayersMask = RenderingLayerMask.LightLayerDefault;
         /// <summary>
         /// Controls which layer will be affected by this light
         /// </summary>
         /// <value></value>
-        public LightLayerEnum lightlayersMask
+        public RenderingLayerMask lightlayersMask
         {
-            get => linkShadowLayers ? (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
+            get => linkShadowLayers ? (RenderingLayerMask)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
             set
             {
                 m_LightlayersMask = value;
 
                 if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).lightLayer = m_LightlayersMask;
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).renderingLayerMask = (uint)m_LightlayersMask;
 
                 if (linkShadowLayers)
                     legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)m_LightlayersMask, legacyLight.renderingLayerMask);
@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint GetLightLayers()
         {
             int value = (int)lightlayersMask;
-            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+            return value < 0 ? (uint)RenderingLayerMask.Everything : (uint)value;
         }
 
         /// <summary>
@@ -1201,7 +1201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint GetShadowLayers()
         {
             int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
-            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+            return value < 0 ? (uint)RenderingLayerMask.Everything : (uint)value;
         }
 
         // Shadow Settings
@@ -1218,7 +1218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShadowNearPlane == value)
                     return;
 
-                m_ShadowNearPlane = Mathf.Clamp(value, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane);
+                m_ShadowNearPlane = Mathf.Clamp(value, 0, HDShadowUtils.k_MaxShadowNearPlane);
             }
         }
 
@@ -2213,7 +2213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void UpdateShadowRequestData(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
-            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality,
+            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, HDAreaShadowFilteringQuality areaFilteringQuality,
             Vector2 viewportSize, HDLightType lightType, int shadowIndex, ref HDShadowRequest shadowRequest)
         {
             Matrix4x4 invViewProjection = Matrix4x4.identity;
@@ -2258,7 +2258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case AreaLightShape.Rectangle:
                             Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
                             forwardOffset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
-                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
+                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, areaFilteringQuality,
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             shadowRequest.projectionType = BatchCullingProjectionType.Perspective;
                             break;
@@ -2271,11 +2271,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Assign all setting common to every lights
-            SetCommonShadowRequestSettings(shadowRequest, visibleLight, forwardOffset, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
+            SetCommonShadowRequestSettings(shadowRequest, visibleLight, forwardOffset, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality, areaFilteringQuality);
         }
 
         internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
-            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, out int shadowRequestCount)
+            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, HDAreaShadowFilteringQuality areaFilteringQuality, out int shadowRequestCount)
         {
             int firstShadowRequestIndex = -1;
             Vector3 cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
@@ -2339,7 +2339,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                     // Write per light type matrices, splitDatas and culling parameters
-                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, areaFilteringQuality, viewportSize, lightType, index, ref shadowRequest);
 
                     hasUpdatedRequestData = true;
                     shadowRequest.shouldUseCachedShadowData = false;
@@ -2375,7 +2375,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
                     // Write per light type matrices, splitDatas and culling parameters
-                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, areaFilteringQuality, viewportSize, lightType, index, ref shadowRequest);
                 }
 
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
@@ -2398,11 +2398,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowHasAtlasPlacement ? firstShadowRequestIndex : -1;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, float forwardOffset, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, float forwardOffset, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality, HDAreaShadowFilteringQuality areaFilteringQuality)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
-            float n = shadowNearPlane;
+            float n = lightType == HDLightType.Area || lightType == HDLightType.Spot && spotLightShape == SpotLightShape.Box ? shadowNearPlane : Mathf.Max(shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane);
             shadowRequest.zBufferParam = new Vector4((f - n) / n, 1.0f, (f - n) / (n * f), 1.0f / f);
             shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
             shadowRequest.normalBias = normalBias;
@@ -2493,7 +2493,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
             float baseBias = 5.0f;
             // If we are PCSS, the blur radius can be quite big, hence we need to tweak up the slope bias
-            if (filteringQuality == HDShadowFilteringQuality.High || filteringQuality == HDShadowFilteringQuality.VeryHigh)
+            if ((lightType != HDLightType.Area && filteringQuality == HDShadowFilteringQuality.High) ||
+                (lightType == HDLightType.Area && areaFilteringQuality == HDAreaShadowFilteringQuality.High))
             {
                 if (softness > 0.01f)
                 {
@@ -2845,6 +2846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case AreaLightShape.Rectangle:
                             lightData.lightUnit = LightUnit.Lumen;
                             lightData.intensity = k_DefaultAreaLightIntensity;
+                            lightData.shadowNearPlane = 0;
                             light.shadows = LightShadows.None;
                             break;
                         case AreaLightShape.Disc:
@@ -3462,7 +3464,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="lightLayerMask">Layer mask for receiving light</param>
         /// <param name="shadowLayerMask">Layer mask for shadow rendering</param>
-        public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
+        public void SetLightLayer(RenderingLayerMask lightLayerMask, RenderingLayerMask shadowLayerMask)
         {
             // disable the shadow / light layer link
             linkShadowLayers = false;
@@ -3512,7 +3514,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
         /// <param name="shadowLayerMask"></param>
-        public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
+        public void SetShadowLightLayer(RenderingLayerMask shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>
         /// Set the light culling mask.
@@ -3629,7 +3631,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.pointLightType = m_PointlightHDType;
             lightRenderData.spotLightShape = m_SpotLightShape;
             lightRenderData.areaLightShape = m_AreaLightShape;
-            lightRenderData.lightLayer = m_LightlayersMask;
+            lightRenderData.renderingLayerMask = (uint)m_LightlayersMask;
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
             lightRenderData.angularDiameter = m_AngularDiameter;

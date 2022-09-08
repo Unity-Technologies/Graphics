@@ -26,28 +26,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty defaultVolumeProfile;
         public SerializedProperty lookDevVolumeProfile;
 
-        public SerializedProperty lightLayerName0;
-        public SerializedProperty lightLayerName1;
-        public SerializedProperty lightLayerName2;
-        public SerializedProperty lightLayerName3;
-        public SerializedProperty lightLayerName4;
-        public SerializedProperty lightLayerName5;
-        public SerializedProperty lightLayerName6;
-        public SerializedProperty lightLayerName7;
-
-        public SerializedProperty decalLayerName0;
-        public SerializedProperty decalLayerName1;
-        public SerializedProperty decalLayerName2;
-        public SerializedProperty decalLayerName3;
-        public SerializedProperty decalLayerName4;
-        public SerializedProperty decalLayerName5;
-        public SerializedProperty decalLayerName6;
-        public SerializedProperty decalLayerName7;
+        public SerializedProperty defaultRenderingLayerMask;
+        public SerializedProperty renderingLayerNames;
+        internal ReorderableList renderingLayerNamesList;
 
         public SerializedProperty lensAttenuation;
         public SerializedProperty colorGradingSpace;
-        public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty supportRuntimeDebugDisplay;
+        public SerializedProperty specularFade;
         public SerializedProperty autoRegisterDiffusionProfiles;
 
         public SerializedProperty rendererListCulling;
@@ -114,37 +100,41 @@ namespace UnityEditor.Rendering.HighDefinition
             defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
             lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
 
-            lightLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName0);
-            lightLayerName1 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName1);
-            lightLayerName2 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName2);
-            lightLayerName3 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName3);
-            lightLayerName4 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName4);
-            lightLayerName5 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName5);
-            lightLayerName6 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName6);
-            lightLayerName7 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName7);
+            defaultRenderingLayerMask = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.defaultRenderingLayerMask);
+            renderingLayerNames = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.renderingLayerNames);
+            renderingLayerNamesList = new ReorderableList(serializedObject, renderingLayerNames, false, false, true, true)
+            {
+                drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    rect.y += 2.5f;
+                    SerializedProperty element = renderingLayerNames.GetArrayElementAtIndex(index);
+                    EditorGUI.PropertyField(rect, element, EditorGUIUtility.TrTextContent($"Layer {index}"), true);
 
-            decalLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName0);
-            decalLayerName1 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName1);
-            decalLayerName2 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName2);
-            decalLayerName3 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName3);
-            decalLayerName4 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName4);
-            decalLayerName5 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName5);
-            decalLayerName6 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName6);
-            decalLayerName7 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.decalLayerName7);
+                    if (element.stringValue == "")
+                    {
+                        element.stringValue = HDRenderPipelineGlobalSettings.GetDefaultLayerName(index);
+                        GUI.changed = true;
+                    }
+                },
+                onCanRemoveCallback = (ReorderableList list) => list.IsSelected(list.count - 1) && !list.IsSelected(0),
+                onCanAddCallback = (ReorderableList list) => list.count < 16,
+                onAddCallback = (ReorderableList list) =>
+                {
+                    int index = list.count;
+                    list.serializedProperty.arraySize = list.count + 1;
+                    list.serializedProperty.GetArrayElementAtIndex(index).stringValue = HDRenderPipelineGlobalSettings.GetDefaultLayerName(index);
+                },
+            };
 
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
             exportShaderVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.exportShaderVariants);
 
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
             colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
-            diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
-            m_DiffusionProfileUI = new DiffusionProfileSettingsListUI()
-            {
-                drawElement = DrawDiffusionProfileElement
-            };
             rendererListCulling = serializedObject.FindProperty("rendererListCulling");
 
             supportRuntimeDebugDisplay = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
+            specularFade               = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.specularFade);
             autoRegisterDiffusionProfiles = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.autoRegisterDiffusionProfiles);
 
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
@@ -218,13 +208,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorUtility.SetDirty(serializedObject.targetObject);
                 };
             }
-        }
-
-        public DiffusionProfileSettingsListUI m_DiffusionProfileUI;
-
-        void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
-        {
-            EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
     }
 }

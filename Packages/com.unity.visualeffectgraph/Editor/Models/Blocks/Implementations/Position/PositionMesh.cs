@@ -12,6 +12,7 @@ namespace UnityEditor.VFX.Block
         protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
             {"sourceMesh", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray()},
+            {"compositionPosition", new object[] { AttributeCompositionMode.Overwrite } }
         };
     }
 
@@ -49,9 +50,9 @@ namespace UnityEditor.VFX.Block
             get
             {
                 if (sourceMesh == SampleMesh.SourceType.Mesh)
-                    return "Position (Mesh)";
+                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position (Mesh)";
                 else
-                    return "Position (Skinned Mesh)";
+                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position (Skinned Mesh)";
             }
         }
 

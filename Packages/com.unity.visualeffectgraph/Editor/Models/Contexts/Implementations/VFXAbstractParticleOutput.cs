@@ -624,6 +624,27 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool IsInstancingFixedSize(out uint fixedSize)
+        {
+            fixedSize = 0;
+
+            VFXDataParticle data = (VFXDataParticle)GetData();
+            if (HasStrips())
+            {
+                fixedSize = (uint)data.GetSetting("stripCapacity").value;
+            }
+            else
+            {
+                bool hasKill = data.IsAttributeStored(VFXAttribute.Alive);
+                if (hasKill)
+                {
+                    fixedSize = (uint)data.GetSetting("capacity").value;
+                }
+            }
+
+            return fixedSize != 0;
+        }
+
         public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
         {
             switch (taskType)

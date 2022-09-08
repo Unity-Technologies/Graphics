@@ -451,7 +451,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
 
-                m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
+                if (m_LightCookieManager != null)
+                {
+                    m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
+                }
+                else
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, false);
+                }
             }
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -481,7 +488,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightIndex < 0)
                 return;
 
-            VisibleLight lightData = lights[lightIndex];
+            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
             Light light = lightData.light;
 
             if (light == null)
@@ -503,7 +510,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             var additionalLightData = light.GetUniversalAdditionalLightData();
-            lightLayerMask = RenderingLayerUtils.ToRenderingLayers(additionalLightData.lightLayerMask);
+            lightLayerMask = RenderingLayerUtils.ToValidRenderingLayers(additionalLightData.renderingLayers);
         }
 
         void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
@@ -542,7 +549,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     NativeArray<ShaderInput.LightData> additionalLightsData = new NativeArray<ShaderInput.LightData>(additionalLightsCount, Allocator.Temp);
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
-                        VisibleLight light = lights[i];
                         if (lightData.mainLightIndex != i)
                         {
                             ShaderInput.LightData data;
@@ -570,7 +576,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
-                        VisibleLight light = lights[i];
                         if (lightData.mainLightIndex != i)
                         {
                             uint lightLayerMask;
@@ -607,19 +612,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightData.additionalLightsCount == 0 || m_UseForwardPlus)
                 return lightData.additionalLightsCount;
 
-            var visibleLights = lightData.visibleLights;
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
             int globalDirectionalLightsCount = 0;
             int additionalLightsCount = 0;
 
             // Disable all directional lights from the perobject light indices
             // Pipeline handles main light globally and there's no support for additional directional lights atm.
-            for (int i = 0; i < visibleLights.Length; ++i)
+            int maxVisibleAdditionalLightsCount = UniversalRenderPipeline.maxVisibleAdditionalLights;
+            int len = lightData.visibleLights.Length;
+            for (int i = 0; i < len; ++i)
             {
-                if (additionalLightsCount >= UniversalRenderPipeline.maxVisibleAdditionalLights)
+                if (additionalLightsCount >= maxVisibleAdditionalLightsCount)
                     break;
 
-                VisibleLight light = visibleLights[i];
                 if (i == lightData.mainLightIndex)
                 {
                     perObjectLightIndexMap[i] = -1;

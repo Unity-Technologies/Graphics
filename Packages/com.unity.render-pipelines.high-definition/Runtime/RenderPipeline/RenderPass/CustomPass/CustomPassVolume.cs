@@ -39,9 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float fadeRadius;
 
         /// <summary>
-        /// The volume priority, used to determine the execution order when there is multiple volumes with the same injection point.
+        /// The volume priority, used to determine the execution order when there is multiple volumes with the same injection point. Custom Pass Volume with a higher value is rendered first.
         /// </summary>
-        [Tooltip("Sets the Volume priority in the stack. A higher value means higher priority. You can use negative values.")]
         public float priority;
 
         /// <summary>

@@ -1,3 +1,4 @@
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -39,6 +40,27 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_MainLightShadowCasterPass);
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
+        }
+
+        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            m_ForwardLights.ProcessLights(ref renderingData);
+
+            TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
+            TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
+
+            if (m_MainLightShadowCasterPass.Setup(ref renderingData))
+                mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderGraph, ref renderingData);
+            if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
+                additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, ref renderingData);
+
+            SetupRenderGraphCameraProperties(renderGraph, ref renderingData, true);
+
+            var targetHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+
+            ClearTargetsPass.Render(renderGraph, targetHandle, targetHandle, renderingData.cameraData);
+
+            m_RenderOpaqueForwardPass.Render(renderGraph, targetHandle, targetHandle, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
         }
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)

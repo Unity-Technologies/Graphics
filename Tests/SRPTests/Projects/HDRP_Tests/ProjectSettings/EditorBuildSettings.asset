@@ -102,6 +102,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1226_Lit_UVMapping_Displacement.unity
     guid: 2a9e6d17d05c12b428a235cc1edae5b9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1230_Lit_Translucent.unity
+    guid: e0af6434ca972984780123bff226e95d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
@@ -429,6 +432,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2405_EnlightenDynamicAreaLights.unity
     guid: 5fe2db8e1b1f1b3448bdcc75bea0e2b8
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2406_Area_Rect_Shadow_PCSS.unity
+    guid: 83ba1453f6583e241a881c38de7ef746
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2501_LightLayers.unity
     guid: 100c0e304d8aba84186dcd9bf48e5b85
   - enabled: 1
@@ -440,6 +446,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2505_Area_Light_ShadowMask_Baking.unity
     guid: 091dc511a7c5d714cba984414c7b7ecf
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2506_GenericRenderingLayer.unity
+    guid: 9c6cdebb557c212429b4f44f5c4c9f63
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2551_SSR.unity
     guid: 62f2b88cccb280246a9211bbcf0c8245
@@ -798,9 +807,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardOnly.unity
     guid: b8bed8c61a04a644f87582e26e3596f2
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardBoth.unity
-    guid: 3355ad2efd7c699418d5a0db666d2d01
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9402_AlphaToMask-Graph.unity
     guid: 4fb94469014a7ce468a32889d270785d
   - enabled: 1
@@ -845,4 +851,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9921_UnderWater.unity
     guid: 642f1a1637886b84bbebc5374aa46f6f
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9930-ScreenCoordOverride.unity
+    guid: dd3a50f35d082f84c84fe85bce8a792d
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9931-ScreenCoordOverrideCustomPostProcess.unity
+    guid: de4e06e4c791ada48819dfa7ae3a6287
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9932-ScreenCoordOverrideCustomPass.unity
+    guid: 7dc226b1df302974099dea1b528277a7
   m_configObjects: {}

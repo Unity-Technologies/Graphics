@@ -59,11 +59,21 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
 
+//NOTE: some shaders set target1 to be
+//   Blend 1 SrcAlpha OneMinusSrcAlpha
+//The reason for this blend mode is to let virtual texturing alpha dither work.
+//Anything using Target1 should write 1.0 or 0.0 in alpha to write / not write into the target.
 #ifdef UNITY_VIRTUAL_TEXTURING
-#define VT_BUFFER_TARGET SV_Target1
-#define EXTRA_BUFFER_TARGET SV_Target2
+    #define VT_BUFFER_TARGET SV_Target1
+    #define EXTRA_BUFFER_TARGET SV_Target2
+    #if defined(SHADER_API_PSSL)
+        //For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
+        //In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
+        //Thus, when VT is enabled, we force FMT_32_ABGR
+        #pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
+    #endif
 #else
-#define EXTRA_BUFFER_TARGET SV_Target1
+    #define EXTRA_BUFFER_TARGET SV_Target1
 #endif
 
 float GetDeExposureMultiplier()
@@ -91,7 +101,9 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
     // Init outMotionVector here to solve compiler warning (potentially unitialized variable)
     // It is init to the value of forceNoMotion (with 2.0)
-    outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
+    // Always write 1.0 in alpha since blend mode could be active on this target as a side effect of VT feedback buffer
+    // motion vector expected output format is RG16
+    outMotionVec = float4(2.0, 0.0, 0.0, 1.0);
 #endif
 
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
@@ -169,6 +181,8 @@ void Frag(PackedVaryingsToPS packedInput,
     {
         float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
         EncodeMotionVector(motionVec * 0.5, outMotionVec);
+        // Always write 1.0 in alpha since blend mode could be active on this target as a side effect of VT feedback buffer
+        // motion vector expected output format is RG16
         outMotionVec.zw = 1.0;
     }
 #endif
@@ -178,6 +192,6 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-    outVTFeedback = builtinData.vtPackedFeedback;
+    outVTFeedback = PackVTFeedbackWithAlpha(builtinData.vtPackedFeedback, input.positionSS.xy, builtinData.opacity);
 #endif
 }

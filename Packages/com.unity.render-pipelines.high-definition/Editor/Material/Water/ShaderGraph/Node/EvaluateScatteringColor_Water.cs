@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // Output zeros
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));
             }
         }

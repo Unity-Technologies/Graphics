@@ -44,7 +44,8 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Smoothness: 1
+    - _RedAdded: 0.2
+    - _Smoothness: 0.2
     m_Colors: []
   m_BuildTextureStacks: []
 --- !u!114 &3066030666941389754
@@ -59,4 +60,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 7

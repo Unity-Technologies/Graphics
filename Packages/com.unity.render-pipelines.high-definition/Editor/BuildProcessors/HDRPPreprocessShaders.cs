@@ -130,6 +130,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
             }
 
+            foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
+            {
+                if (areaShadowVariant.Key != shadowInitParams.areaShadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
+                        return true;
+            }
+
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
             // either we have a variant that don't support at all. We can't have both at the same time.
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
@@ -140,10 +147,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DECAL
 
-            // Strip the decal prepass variant when decals are disabled
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
-                !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
-                return true;
+            // Rendering layers and decal layers output to the same buffer
+            // Difference is that decal layers need also geometric normals, and rendering layers ignore _DISABLE_DECALS
+            // To reduce variants, we assume that enabling rendering layers will always enable decal layers, so we have 3 modes:
+            // - All off
+            // - Output layers and normal for relevant materials
+            // - Output layers and normals for everyone. (But if decal are disabled, buffer is only 16 bits so we don't write normals)
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer))
+                    return true;
+            }
+            else
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WriteRenderingLayer))
+                    return true;
+                // If we don't require the rendering layers, strip the decal prepass variant when decals are disabled
+                if ((inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) || inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBufferAndRenderingLayer)) &&
+                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
+                    return true;
+            }
 
             // If decal support, remove unused variant
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
@@ -256,58 +279,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static bool TryGetRenderPipelineAssetsForBuildTarget<T>(BuildTarget buildTarget, List<T> srpAssets) where T : RenderPipelineAsset
-        {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            if (qualitySettings == null)
-                return false;
-
-            var property = qualitySettings.FindProperty("m_QualitySettings");
-            if (property == null)
-                return false;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
-
-            var allQualityLevelsAreOverriden = true;
-            for (int i = 0; i < property.arraySize; i++)
-            {
-                bool isExcluded = false;
-
-                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
-                if (excludedTargetPlatforms == null)
-                    return false;
-
-                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
-                {
-                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
-                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
-                    {
-                        isExcluded = true;
-                        break;
-                    }
-                }
-
-                if (!isExcluded)
-                {
-                    var asset = QualitySettings.GetRenderPipelineAssetAt(i) as T;
-                    if (asset != null)
-                        srpAssets.Add(asset);
-                    else
-                        allQualityLevelsAreOverriden = false;
-                }
-            }
-
-            if (!allQualityLevelsAreOverriden)
-            {
-                // We need to check the fallback cases
-                if (GraphicsSettings.defaultRenderPipeline is T srpAsset)
-                    srpAssets.Add(srpAsset);
-            }
-
-            return true;
-        }
-
         static void GetAllValidHDRPAssets(BuildTarget buildTarget)
         {
             s_PlayerNeedRaytracing = false;
@@ -326,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
             //   AND at least one quality level does not have SRP override
             // Fetch all SRP overrides in all enabled quality levels for this platform
-            TryGetRenderPipelineAssetsForBuildTarget(buildTarget, _hdrpAssets);
+            buildTarget.TryGetRenderPipelineAssets<HDRenderPipelineAsset>(_hdrpAssets);
 
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
@@ -374,7 +345,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (!Application.isBatchMode)
                 {
-                    if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
+                    if (!EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
                         throw new UnityEditor.Build.BuildFailedException("Build canceled");
                 }
                 else
@@ -391,7 +362,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_PlayerNeedRaytracing = true;
                 }
             }
-
 
             Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
                 _hdrpAssets.Count,

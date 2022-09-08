@@ -2524,21 +2524,42 @@ namespace UnityEditor.VFX.UI
             VFXFilterWindow.Show(VFXViewWindow.GetWindow(this), e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
 
-        void OnEnterSubgraph(DropdownMenuAction e)
+        void EnterSubgraph(VFXModel node, bool openInNewTab)
         {
-            var node = e.userData as VFXModel;
+            VisualEffectResource resource = null;
             if (node is VFXSubgraphOperator subGraph)
             {
-                VFXViewWindow.GetWindow(this).PushResource(subGraph.subgraph.GetResource());
+                resource = subGraph.subgraph.GetResource();
             }
             else if (node is VFXSubgraphBlock subGraph2)
             {
-                VFXViewWindow.GetWindow(this).PushResource(subGraph2.subgraph.GetResource());
+                resource = subGraph2.subgraph.GetResource();
             }
             else if (node is VFXSubgraphContext subGraph3)
             {
-                VFXViewWindow.GetWindow(this).PushResource(subGraph3.subgraph.GetResource());
+                resource = subGraph3.subgraph.GetResource();
             }
+
+            var window = VFXViewWindow.GetWindow(resource, openInNewTab);
+
+            if (window != null)
+            {
+                // This can happen if the "no asset" window is opened
+                if (window.graphView.controller == null)
+                {
+                    window.LoadResource(resource);
+                }
+                window.Focus();
+            }
+            else
+            {
+                VFXViewWindow.GetWindow(this).PushResource(resource);
+            }
+        }
+
+        void OnEnterSubgraph(DropdownMenuAction e)
+        {
+            EnterSubgraph(e.userData as VFXModel, false);
         }
 
         void OnCreateNodeOnEdge(DropdownMenuAction e)
@@ -2608,7 +2629,7 @@ namespace UnityEditor.VFX.UI
 
                 if ((node.controller.model is VFXSubgraphOperator subOp && subOp.subgraph != null) || (node.controller.model is VFXSubgraphContext subCont && subCont.subgraph != null) || (node.controller.model is VFXSubgraphBlock subBlk && subBlk.subgraph != null))
                 {
-                    evt.menu.AppendAction("Enter Subgraph", OnEnterSubgraph, e => DropdownMenuAction.Status.Normal, node.controller.model);
+                    evt.menu.AppendAction("Open Subgraph", OnEnterSubgraph, e => DropdownMenuAction.Status.Normal, node.controller.model);
                 }
                 evt.menu.AppendAction("Clear Ignored Errors", a => node.controller.model.ClearIgnoredErrors(), node.controller.model.HasIgnoredErrors() ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
@@ -2827,7 +2848,10 @@ namespace UnityEditor.VFX.UI
 
         public void UpdateIsSubgraph()
         {
-            m_BackButton.style.display = controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.GetWindow(this).CanPopResource()
+            if (controller == null)
+                return;
+
+            m_BackButton.style.display = controller.graph != null && controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.GetWindow(this).CanPopResource()
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
         }

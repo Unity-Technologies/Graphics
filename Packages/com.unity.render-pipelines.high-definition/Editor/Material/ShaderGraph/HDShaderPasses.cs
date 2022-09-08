@@ -787,7 +787,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection GBufferKeywords = new KeywordCollection
         {
-            { CoreKeywordDescriptors.LightLayers },
+            { CoreKeywordDescriptors.RenderingLayers },
         };
 
         public static IncludeCollection GBufferIncludes = new IncludeCollection
@@ -1383,6 +1383,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.Shadow, 0 } };
             public static DefineCollection shadowMedium = new DefineCollection { { CoreKeywordDescriptors.Shadow, 1 } };
             public static DefineCollection shadowHigh = new DefineCollection { { CoreKeywordDescriptors.Shadow, 2 } };
+
+            // Area Shadows
+            public static DefineCollection areaShadowMedium = new DefineCollection { { CoreKeywordDescriptors.AreaShadow, 0 } };
+            public static DefineCollection areaShadowHigh = new DefineCollection { { CoreKeywordDescriptors.AreaShadow, 1 } };
 
             // Raytracing Quality
             public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };

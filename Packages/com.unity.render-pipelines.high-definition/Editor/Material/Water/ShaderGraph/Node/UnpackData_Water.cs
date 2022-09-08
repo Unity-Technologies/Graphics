@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine("$precision {1} = IN.{0}.x; $precision {2} = IN.{0}.y; $precision {3} = IN.{0}.z; $precision {4} = IN.{0}.w;",
+            sb.AppendLine("$precision {1} = saturate(IN.{0}.x); $precision {2} = IN.{0}.y; $precision {3} = IN.{0}.z; $precision {4} = IN.{0}.w;",
                 ShaderGeneratorNames.GetUVName(UVChannel.UV1),
                 GetVariableNameForSlot(kLowFrequencyHeightOutputSlotId),
                 GetVariableNameForSlot(kCustomFoamOutputSlotId),

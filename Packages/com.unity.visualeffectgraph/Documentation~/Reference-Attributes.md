@@ -19,7 +19,7 @@ The Initialize and Update Contexts use Simulation Attributes to apply behavior t
 
 ### Advanced Simulation Attributes
 
-Some attributes are a bit more advanced and will be used by default in most simulations. However, you can alter these attributes to enhance your behaviors
+Some attributes are a bit more advanced and will be used by default in most simulations. However, you can alter these attributes to enhance how other attributes behave.
 
 | Name       | Type    | Description                                                  | Default Value                                     |
 | ---------- | ------- | ------------------------------------------------------------ | ---------- |

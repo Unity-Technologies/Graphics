@@ -1,31 +1,77 @@
 using System;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Enum that defines the type of a given water surface.
+    /// </summary>
+    public enum WaterSurfaceType
+    {
+        /// <summary>
+        /// The water surface is either a Ocean, Sea, Lake or a large water body.
+        /// </summary>
+        [InspectorName("Ocean, Sea or Lake")]
+        OceanSeaLake,
+
+        /// <summary>
+        /// The water surface is a river a stream.
+        /// </summary>
+        River,
+
+        /// <summary>
+        /// The water surface is a pool or a small water body.
+        /// </summary>
+        Pool,
+    }
+
+    /// <summary>
+    /// Controls the type of geometry used to render the water surface.
+    /// </summary>
+    public enum WaterGeometryType
+    {
+        /// <summary>
+        /// The water surface will be rendered as a procedural quad.
+        /// </summary>
+        Quad,
+
+        /// <summary>
+        /// The water will be rendered with a mesh provided by the user.
+        /// </summary>
+        CustomMesh,
+
+        /// <summary>
+        /// The water surface will be rendered as a infinite plane.
+        /// </summary>
+        Infinite
+    }
+
+    /// <summary>
+    /// Controls how a property is defined for a water surface.
+    /// </summary>
+    public enum WaterPropertyOverrideMode
+    {
+        /// <summary>
+        /// The property in inherited from an other similar property.
+        /// </summary>
+        Inherit,
+
+        /// <summary>
+        /// The property needs to be specified individually.
+        /// </summary>
+        Custom,
+    }
+
+
     /// <summary>
     /// Water surface component.
     /// </summary>
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
-    public class WaterSurface : MonoBehaviour
+    public partial class WaterSurface : MonoBehaviour
     {
-        /// <summary>
-        /// Controls the type of geometry used to render the water surface when non infinite.
-        /// </summary>
-        public enum WaterGeometryType
-        {
-            /// <summary>
-            /// The water surface will be rendered as a procedural quad.
-            /// </summary>
-            Quad,
-            /// <summary>
-            /// The water will be rendered with a mesh provided by the user.
-            /// </summary>
-            Custom
-        }
-
         #region Instance Management
 
         // Management to avoid memory allocations at fetch time
@@ -66,88 +112,216 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water General
         /// <summary>
-        /// When enabled, the water surface is rendered as an infinite surface. This is designed to render seas and oceans.
+        /// Specifies the nature of the water body that the water system needs to simulate.
         /// </summary>
-        [Tooltip("When enabled, the water surface is rendered as an infinite surface. This is designed to render seas and oceans.")]
-        public bool infinite = true;
+        public WaterSurfaceType surfaceType = WaterSurfaceType.OceanSeaLake;
 
         /// <summary>
-        /// When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
+        /// Specifies the type of geometry used to render the water surface.
         /// </summary>
-        [Tooltip("When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
-        public bool highFrequencyBands = true;
+        public WaterGeometryType geometryType = WaterGeometryType.Infinite;
 
         /// <summary>
-        /// Specifies the type of geometry used to render the water surface when non infinite.
+        /// Sets the geometry to use when rendering in quad and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.
         /// </summary>
-        [Tooltip("Specifies the type of geometry used to render the water surface when non infinite.")]
-        public WaterGeometryType geometryType = WaterGeometryType.Quad;
-
-        /// <summary>
-        /// Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.
-        /// </summary>
-        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overridden to keep the surface of water leveled.")]
-        public Mesh geometry = null;
+        public Mesh mesh = null;
         #endregion
 
         #region Water CPU Simulation
         /// <summary>
         /// When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.
         /// </summary>
-        [Tooltip("When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.")]
         public bool cpuSimulation = false;
 
         /// <summary>
         /// Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.
         /// </summary>
-        [Tooltip("Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.")]
         public bool cpuFullResolution = false;
 
         /// <summary>
-        /// Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.
+        /// Specifies if the CPU simulation should evaluate the ripples as part of the simulation. Including ripples will allow a higher visual fidelity but the cost of the simulation will increase.
         /// </summary>
-        [Tooltip("Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.")]
-        public bool cpuEvaluateAllBands = false;
+        public bool cpuEvaluateRipples = false;
         #endregion
 
         #region Water Simulation
         /// <summary>
-        /// Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.
-        /// </summary>
-        [Tooltip("Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.")]
-        public float waterMaxPatchSize = 500.0f;
-
-        /// <summary>
-        /// Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).
-        /// </summary>
-        [Tooltip("Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).")]
-        public Vector4 amplitude = Vector4.one;
-
-        /// <summary>
-        /// Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.
-        /// </summary>
-        [Tooltip("Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.")]
-        public float choppiness = 0.9f;
-
-        /// <summary>
         /// Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.
         /// </summary>
-        [Tooltip("Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.")]
         public float timeMultiplier = 1.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float repetitionSize = 500.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public float largeWindSpeed = 30.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public float largeWindOrientationValue = 0.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public float largeCurrentSpeedValue = 0.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public float largeCurrentOrientationValue = 0.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public float largeChaos = 0.8f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public float largeBand0Multiplier = 1.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public bool largeBand0FadeToggle = true;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float largeBand0FadeStart = 1500.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float largeBand0FadeDistance = 3000.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float largeBand1Multiplier = 1.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public bool largeBand1FadeToggle = true;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float largeBand1FadeStart = 300.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float largeBand1FadeDistance = 800.0f;
+
+        /// <summary>
+        /// When enabled, the water system allows you to simulate and render a ripples simulation for finer details.
+        /// </summary>
+        public bool ripples = true;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesWindSpeed = 8.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public WaterPropertyOverrideMode ripplesWindOrientationMode = WaterPropertyOverrideMode.Inherit;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesWindOrientationValue = 0.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public WaterPropertyOverrideMode ripplesCurrentMode = WaterPropertyOverrideMode.Inherit;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesCurrentSpeedValue = 0.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesCurrentOrientationValue = 0.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesChaos = 0.8f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public bool ripplesFadeToggle = true;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesFadeStart = 50.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float ripplesFadeDistance = 200.0f;
         #endregion
 
         #region Water Material
         /// <summary>
         /// Sets a custom material that will be used to render the water surface. If set to None a default material is used.
         /// </summary>
-        [Tooltip("Sets a custom material that will be used to render the water surface. If set to None a default material is used.")]
         public Material customMaterial = null;
 
         /// <summary>
-        /// Controls the smoothness used to render the water surface.
+        ///
         /// </summary>
-        [Tooltip("Controls the smoothness used to render the water surface.")]
-        public float waterSmoothness = 0.95f;
+        [Tooltip("")]
+        public float startSmoothness = 0.95f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float endSmoothness = 0.85f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float smoothnessFadeStart = 100.0f;
+
+        /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public float smoothnessFadeDistance = 500.0f;
         #endregion
 
         #region Water Refraction
@@ -177,31 +351,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
         [ColorUsage(false)]
-        public Color scatteringColor = new Color(0.0f, 0.12f, 0.25f);
+        public Color scatteringColor = new Color(0.0f, 0.27f, 0.23f);
+
+        /// <summary>
+        /// Controls the intensity of the ambient scattering term. This can be adjusted for artistic purposes.
+        /// </summary>
+        [Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
+        public float ambientScattering = 0.1f;
 
         /// <summary>
         /// Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
         /// </summary>
         [Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
-        public float heightScattering = 0.5f;
+        public float heightScattering = 0.1f;
 
         /// <summary>
         /// Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
         /// </summary>
         [Tooltip("Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
-        public float displacementScattering = 0.5f;
+        public float displacementScattering = 0.3f;
 
         /// <summary>
         /// Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.
         /// </summary>
         [Tooltip("Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.")]
-        public float directLightTipScattering = 0.5f;
+        public float directLightTipScattering = 0.6f;
 
         /// <summary>
         /// Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.
         /// </summary>
         [Tooltip("Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.")]
-        public float directLightBodyScattering = 0.5f;
+        public float directLightBodyScattering = 0.4f;
         #endregion
 
         #region Water Caustics General
@@ -223,29 +403,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the vertical blending distance for the water caustics.")]
         public float causticsPlaneBlendDistance = 1.0f;
 
-        /// <summary>
-        /// Defines what algorithm is used for caustics rendering.
-        /// </summary>
-        public enum WaterCausticsType
-        {
-            /// <summary>
-            /// The water simulation is used to evaluate the caustics.
-            /// </summary>
-            Simulation,
-            /// <summary>
-            /// A procedural approach is used for the caustics
-            /// </summary>
-            Procedural
-        }
-
-        /// <summary>
-        /// Specifies the algorithm used to evaluate the caustics. Procedural is completely uncorrelated to the water simulation. Simulation relies on the normals of the selected band and has a higher cost.
-        /// </summary>
-        [Tooltip("Specifies the algorithm used to evaluate the caustics. Procedural is completely uncorrelated to the water simulation. Simulation relies on the normals of the selected band and has a higher cost.")]
-        public WaterCausticsType causticsAlgorithm = WaterCausticsType.Simulation;
-        #endregion
-
-        #region Water Caustics Simulation
         /// <summary>
         /// Defines the resolution a which caustics are rendered (simulation only).
         /// </summary>
@@ -269,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the resolution at which the water caustics are rendered (simulation only).
         /// </summary>
         [Tooltip("Specifies the resolution at which the water caustics are rendered (simulation only).")]
-        public WaterCausticsResolution causticsResolution = WaterCausticsResolution.Caustics512;
+        public WaterCausticsResolution causticsResolution = WaterCausticsResolution.Caustics256;
 
         /// <summary>
         /// Controls which band is used for the caustics evaluation.
@@ -280,47 +437,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts.
         /// </summary>
-        [Tooltip("Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts.")]
         public float virtualPlaneDistance = 5.0f;
-        #endregion
-
-        #region Water Caustics Procedural
-        /// <summary>
-        /// Sets the tiling factor of the under-water caustics.
-        /// </summary>
-        [Tooltip("Sets the tiling factor of the under-water caustics.")]
-        public float causticsTiling = 1.5f;
-
-        /// <summary>
-        /// Sets the scrolling speed of the under-water caustics.
-        /// </summary>
-        [Tooltip("Sets the scrolling speed of the under-water caustics.")]
-        public float causticsSpeed = 0.0f;
         #endregion
 
         #region Water Foam
         /// <summary>
+        ///
+        /// </summary>
+        [Tooltip("")]
+        public bool foam = true;
+
+        /// <summary>
         /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.
         /// </summary>
         [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.")]
-        public float simulationFoamAmount = 0.5f;
+        public float simulationFoamAmount = 0.3f;
 
         /// <summary>
         /// Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.
         /// </summary>
         [Tooltip("Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.")]
-        public float simulationFoamDrag = 0.5f;
+        public float simulationFoamDrag = 0.0f;
 
         /// <summary>
         /// Controls the simulation foam smoothness.
         /// </summary>
         [Tooltip("Controls the surface foam smoothness.")]
-        public float simulationFoamSmoothness = 0.3f;
+        public float simulationFoamSmoothness = 1.0f;
 
         /// <summary>
-        /// Set the texture used to attenuate or supress the simulation foam.
+        /// Set the texture used to attenuate or suppress the simulation foam.
         /// </summary>
-        [Tooltip("Sets the texture used to attenuate or supress the simulation foam.")]
         public Texture2D foamMask = null;
 
         /// <summary>
@@ -334,13 +481,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the offset of the foam mask in meters.")]
         public Vector2 foamMaskOffset = new Vector2(0.0f, 0.0f);
+
+        /// <summary>
+        /// Controls the foam amount depending on the wind speed.
+        /// </summary>
+        public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
+
+        /// <summary>
+        /// Set the texture used to attenuate or suppress the simulation foam.
+        /// </summary>
+        [Tooltip("Set the texture used to attenuate or suppress the simulation foam.")]
+        public Texture2D foamTexture = null;
+
+        /// <summary>
+        /// Set the per meter tiling for the foam texture.
+        /// </summary>
+        [Tooltip("Set the per meter tiling for the foam texture.")]
+        public float foamTextureTiling = 0.2f;
         #endregion
 
         #region Water Masking
         /// <summary>
-        /// Sets the texture used to attenuate or supress the lower, band X and Y, (red channel) or higher, band Z and W, (green channel) water frequencies.
+        /// Sets the texture used to attenuate or supress the swell, agiation and ripples water frequencies.
         /// </summary>
-        [Tooltip("Sets the texture used to attenuate or supress the lower, band X and Y, (red channel) or higher, band Z and W, (green channel) water frequencies.")]
         public Texture2D waterMask = null;
 
         /// <summary>
@@ -356,44 +519,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
         #endregion
 
-        #region Water Wind
-        /// <summary>
-        /// Sets the wind orientation in degrees. Zero means north (-x). Wind speed is clamped to be coherent with the patch size.
-        /// </summary>
-        [Tooltip("Sets the wind orientation in degrees. Zero means north (-x). Wind speed is clamped to be coherent with the patch size.")]
-        public float windOrientation = 0.0f;
-
-        /// <summary>
-        /// Controls the wind speed in kilometers per hour.
-        /// </summary>
-        [Tooltip("Controls the wind speed in kilometers per hour.")]
-        public float windSpeed = 30.0f;
-
-        /// <summary>
-        /// Controls the proportion in which the wind affects the current of the water.
-        /// </summary>
-        [Tooltip("Controls the proportion in which the wind affects the current of the water.")]
-        public float windAffectCurrent = 0.5f;
-
-        /// <summary>
-        /// Controls the foam amount depending on the wind speed.
-        /// </summary>
-        [Tooltip("Controls the foam amount depending on the wind speed.")]
-        public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
-        #endregion
-
         #region Water Rendering
         /// <summary>
-        /// Specifies the decal layers that affect the water surface.
+        /// Specifies the rendering layers that affect the water surface.
         /// </summary>
-        [Tooltip("Specifies the decal layers that affect the water surface.")]
-        public DecalLayerEnum decalLayerMask = DecalLayerEnum.DecalLayerDefault;
-
-        /// <summary>
-        /// Specifies the light layers that affect the water surface.
-        /// </summary>
-        [Tooltip("Specifies the light layers that affect the water surface.")]
-        public LightLayerEnum lightLayerMask = LightLayerEnum.LightLayerDefault;
+        [Tooltip("Specifies the rendering layers that affect the water surface.")]
+        public RenderingLayerMask renderingLayerMask = RenderingLayerMask.Default;
         #endregion
 
         #region Water Underwater
@@ -418,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.
         /// </summary>
-        [Tooltip(" Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.")]
+        [Tooltip("Sets a priority value that is used to define which surface should be considered for under water rendering in the case of multiple overlapping surfaces.")]
         public int volumePrority = 0;
 
         /// <summary>
@@ -437,11 +568,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, int bandCount, bool cpuSimActive, out bool gpuBuffersValid, out bool cpuBuffersValid)
+        internal void CheckResources(int bandResolution, int bandCount, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
         {
             // By default we shouldn't need an update
-            gpuBuffersValid = true;
-            cpuBuffersValid = true;
+            gpuSpectrumValid = true;
+            cpuSpectrumValid = true;
+            historyValid = true;
 
             // If the previously existing resources are not valid, just release them
             if (simulation != null && !simulation.ValidResources(bandResolution, bandCount))
@@ -457,8 +589,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (simulation == null)
             {
                 // In this case the CPU buffers are invalid and we need to rebuild them
-                gpuBuffersValid = false;
-                cpuBuffersValid = false;
+                gpuSpectrumValid = false;
+                cpuSpectrumValid = false;
+                historyValid = false;
 
                 // Create the simulation resources
                 simulation = new WaterSimulationResources();
@@ -478,31 +611,38 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!cpuSimulationActive && simulation.cpuBuffers != null)
             {
                 simulation.ReleaseSimulationBuffersCPU();
-                cpuBuffersValid = false;
+                cpuSpectrumValid = false;
             }
 
             // One more case that we need check here is that if the CPU became required
             if (cpuSimulationActive && simulation.cpuBuffers == null)
             {
                 simulation.AllocateSimulationBuffersCPU();
-                cpuBuffersValid = false;
+                cpuSpectrumValid = false;
+            }
+
+            // Evaluate the spectrum parameters
+            WaterSpectrumParameters spectrum = EvaluateSpectrumParams(surfaceType);
+
+            if (simulation.spectrum.numActiveBands != spectrum.numActiveBands)
+            {
+                historyValid = false;
             }
 
             // If the spectrum defining data changed, we need to invalidate the buffers
-            if (simulation.windSpeed != windSpeed
-                || simulation.windOrientation != windOrientation
-                || simulation.windAffectCurrent != windAffectCurrent
-                || simulation.patchSizes.x != waterMaxPatchSize)
+            if (simulation.spectrum != spectrum)
             {
-                gpuBuffersValid = false;
-                cpuBuffersValid = false;
+                // Mark the spectrums as invalid and assign the new one
+                gpuSpectrumValid = false;
+                cpuSpectrumValid = false;
+                simulation.spectrum = spectrum;
             }
 
             // TODO: Handle properly the change of resolution to be able to not do this every frame.
-            cpuBuffersValid = false;
+            cpuSpectrumValid = false;
 
             // Re-evaluate the simulation data
-            UpdateSimulationData();
+            simulation.rendering = EvaluateRenderingParams(surfaceType);
         }
 
         /// <summary>
@@ -520,18 +660,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Function that returns the number of frequency bands that the water surface CPU simulation evaluates.
-        /// </summary>
-        /// <returns>The number of bands that the water surface CPU simulation evaluates.</returns>
-        public int GetSimulationBandCountCPU()
-        {
-            if (highFrequencyBands)
-                return cpuEvaluateAllBands ? 4 : 2;
-            else
-                return 2;
-        }
-
-        /// <summary>
         /// Function that fills a WaterSimSearchData with the data of the current water surface.
         /// </summary>
         /// <param name="wsd">The water simulation search data to fill.</param>
@@ -544,10 +672,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 wsd.displacementData = simulation.cpuBuffers.displacementBufferCPU;
                 wsd.waterSurfaceElevation = transform.position.y;
                 wsd.simulationRes = (int)GetSimulationResolutionCPU();
-                wsd.choppiness = choppiness;
-                wsd.amplitude = simulation.waveAmplitude;
-                wsd.patchSizes = simulation.patchSizes;
-                wsd.bandCount = GetSimulationBandCountCPU();
+                wsd.spectrum = simulation.spectrum;
+                wsd.rendering = simulation.rendering;
+                wsd.activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(surfaceType, ripples, cpuEvaluateRipples);
                 return true;
             }
             return false;
@@ -585,6 +712,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void Awake()
         {
+            k_Migration.Migrate(this);
+
             // Add this water surface to the internal surface management
             RegisterInstance(this);
         }
@@ -601,14 +730,181 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterInstance(this);
         }
 
-        void UpdateSimulationData()
+        bool SpectrumParametersAreValid(WaterSpectrumParameters spectrum)
         {
-            simulation.windSpeed = windSpeed;
-            simulation.windOrientation = windOrientation;
-            simulation.windAffectCurrent = windAffectCurrent;
-            simulation.patchSizes = HDRenderPipeline.ComputeBandPatchSizes(waterMaxPatchSize);
-            simulation.patchWindSpeed = HDRenderPipeline.ComputeWindSpeeds(simulation.windSpeed, simulation.patchSizes);
-            HDRenderPipeline.ComputeMaximumWaveHeight(amplitude, simulation.patchWindSpeed.x, highFrequencyBands, out simulation.waveAmplitude, out simulation.maxWaveHeight);
+            return (simulation.spectrum == spectrum);
+        }
+
+        // Function that evaluates the spectrum data for the ocean/sea/lake case
+        WaterSpectrumParameters EvaluateSpectrumParams(WaterSurfaceType type)
+        {
+            WaterSpectrumParameters spectrum = new WaterSpectrumParameters();
+            switch (type)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                {
+                    // Compute the patch size of the biggest swell band
+                    float swellPatchSize = repetitionSize;
+
+                    // We need to evaluate the radio between the first and second band
+                    float swellSecondBandRatio = HDRenderPipeline.EvaluateSwellSecondPatchSize(swellPatchSize);
+
+                    // Propagate the high frequency bands flag
+                    spectrum.numActiveBands = ripples ? 3 : 2;
+
+                    // Deduce the patch sizes from the max patch size for the swell
+                    spectrum.patchSizes.x = swellPatchSize;
+                    spectrum.patchSizes.y = swellPatchSize / swellSecondBandRatio;
+                    spectrum.patchSizes.z = WaterConsts.k_RipplesBandSize;
+
+                    // Wind speed per band
+                    spectrum.patchWindSpeed.x = largeWindSpeed * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+                    spectrum.patchWindSpeed.y = largeWindSpeed * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+                    spectrum.patchWindSpeed.z = ripplesWindSpeed * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+
+                    // Keep track of the directionality is used
+                    spectrum.patchWindOrientation.x = largeWindOrientationValue;
+                    spectrum.patchWindOrientation.y = largeWindOrientationValue;
+                    spectrum.patchWindOrientation.z = ripplesWindOrientationMode == WaterPropertyOverrideMode.Inherit ? largeWindOrientationValue : ripplesWindOrientationValue;
+
+                    // Direction dampener
+                    spectrum.patchWindDirDampener.x = largeChaos;
+                    spectrum.patchWindDirDampener.y = largeChaos;
+                    spectrum.patchWindDirDampener.z = ripplesChaos;
+                }
+                break;
+                case WaterSurfaceType.River:
+                {
+                    // Propagate the high frequency bands flag
+                    spectrum.numActiveBands = ripples ? 2 : 1;
+
+                    // Deduce the patch sizes from the max patch size for the swell
+                    spectrum.patchSizes.x = repetitionSize;
+                    spectrum.patchSizes.y = WaterConsts.k_RipplesBandSize;
+
+                    // Wind speed per band
+                    spectrum.patchWindSpeed.x = largeWindSpeed * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+                    spectrum.patchWindSpeed.y = ripplesWindSpeed * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+
+                    // Keep track of the directionality is used
+                    spectrum.patchWindOrientation.x = largeWindOrientationValue;
+                    spectrum.patchWindOrientation.y = ripplesWindOrientationMode == WaterPropertyOverrideMode.Inherit ? largeWindOrientationValue : ripplesWindOrientationValue;
+
+                    // Direction dampener
+                    spectrum.patchWindDirDampener.x = largeChaos;
+                    spectrum.patchWindDirDampener.y = ripplesChaos;
+                }
+                break;
+                case WaterSurfaceType.Pool:
+                {
+                    // Propagate the high frequency bands flag
+                    spectrum.numActiveBands = 1;
+
+                    // Deduce the patch sizes from the max patch size for the swell
+                    spectrum.patchSizes.x = WaterConsts.k_RipplesBandSize;
+
+                    // Wind speed per band
+                    spectrum.patchWindSpeed.x = ripplesWindSpeed * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+
+                    // Keep track of the directionality is used
+                    spectrum.patchWindOrientation.x = ripplesWindOrientationValue;
+
+                    // Direction dampener
+                    spectrum.patchWindDirDampener.x = ripplesChaos;
+                }
+                break;
+            }
+
+            return spectrum;
+        }
+
+        WaterRenderingParameters EvaluateRenderingParams(WaterSurfaceType type)
+        {
+            WaterRenderingParameters rendering = new WaterRenderingParameters();
+
+            // Propagate the simulation time to the rendering structure
+            rendering.simulationTime = simulation.simulationTime;
+
+            switch (type)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                {
+                    // Deduce the patch sizes from the max patch size for the swell
+                    rendering.patchAmplitudeMultiplier.x = largeBand0Multiplier;
+                    rendering.patchAmplitudeMultiplier.y = largeBand1Multiplier;
+                    rendering.patchAmplitudeMultiplier.z = 1.0f;
+
+                    // Keep track of the directionality is used
+                    float swellCurrentSpeed = largeCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+                    rendering.patchCurrentSpeed.x = swellCurrentSpeed;
+                    rendering.patchCurrentSpeed.y = swellCurrentSpeed;
+                    rendering.patchCurrentSpeed.z = ripplesCurrentMode == WaterPropertyOverrideMode.Inherit ? swellCurrentSpeed : ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+
+                    // Keep track of the directionality is used
+                    rendering.patchCurrentOrientation.x = largeCurrentOrientationValue;
+                    rendering.patchCurrentOrientation.y = largeCurrentOrientationValue;
+                    rendering.patchCurrentOrientation.z = ripplesCurrentMode == WaterPropertyOverrideMode.Inherit ? largeCurrentOrientationValue : ripplesCurrentOrientationValue;
+
+                    // Fade parameters
+                    rendering.patchFadeStart.x = largeBand0FadeStart;
+                    rendering.patchFadeStart.y = largeBand1FadeStart;
+                    rendering.patchFadeStart.z = ripplesFadeStart;
+                    rendering.patchFadeDistance.x = largeBand0FadeDistance;
+                    rendering.patchFadeDistance.y = largeBand1FadeDistance;
+                    rendering.patchFadeDistance.z = ripplesFadeDistance;
+                    rendering.patchFadeValue.x = largeBand0FadeToggle ? 0.0f : 1.0f;
+                    rendering.patchFadeValue.y = largeBand1FadeToggle ? 0.0f : 1.0f;
+                    rendering.patchFadeValue.z = ripplesFadeToggle ? 0.0f : 1.0f;
+                }
+                break;
+                case WaterSurfaceType.River:
+                {
+                    // Deduce the patch sizes from the max patch size for the swell
+                    rendering.patchAmplitudeMultiplier.x = largeBand0Multiplier;
+                    rendering.patchAmplitudeMultiplier.y = ripples ? 1.0f : 0.0f;
+
+                    // Keep track of the directionality is used
+                    rendering.patchCurrentSpeed.x = largeCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+                    rendering.patchCurrentSpeed.y = ripplesCurrentMode == WaterPropertyOverrideMode.Inherit ? rendering.patchCurrentSpeed.x : ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+
+                    // Keep track of the directionality is used
+                    rendering.patchCurrentOrientation.x = largeCurrentOrientationValue;
+                    rendering.patchCurrentOrientation.y = ripplesCurrentMode == WaterPropertyOverrideMode.Inherit ? rendering.patchCurrentOrientation.x : ripplesCurrentOrientationValue;
+
+                    // Fade parameters
+                    rendering.patchFadeStart.x = largeBand0FadeStart;
+                    rendering.patchFadeStart.y = ripplesFadeStart;
+                    rendering.patchFadeDistance.x = largeBand0FadeDistance;
+                    rendering.patchFadeDistance.y = ripplesFadeDistance;
+                    rendering.patchFadeValue.x = largeBand0FadeToggle ? 0.0f : 1.0f;
+                    rendering.patchFadeValue.y = ripplesFadeToggle ? 0.0f : 1.0f;
+                }
+                break;
+                case WaterSurfaceType.Pool:
+                {
+                    // Deduce the patch sizes from the max patch size for the swell
+                    rendering.patchAmplitudeMultiplier.x = 1.0f;
+                    rendering.patchAmplitudeMultiplier.y = 0.0f;
+
+                    // Keep track of the directionality is used
+                    rendering.patchCurrentSpeed.x = ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
+
+                    // Keep track of the directionality is used
+                    rendering.patchCurrentOrientation.x = ripplesCurrentOrientationValue;
+
+                    // Fade parameters
+                    rendering.patchFadeStart.x = ripplesFadeStart;
+                    rendering.patchFadeDistance.x = ripplesFadeDistance;
+                    rendering.patchFadeValue.x = ripplesFadeToggle ? 0.0f : 1.0f;
+                }
+                break;
+            }
+            return rendering;
+        }
+
+        internal bool IsInfinite()
+        {
+            return (surfaceType == WaterSurfaceType.OceanSeaLake) ? geometryType == WaterGeometryType.Infinite : false;
         }
 
         void OnDestroy()
@@ -620,5 +916,26 @@ namespace UnityEngine.Rendering.HighDefinition
             if (simulation != null && simulation.AllocatedTextures())
                 simulation.ReleaseSimulationResources();
         }
+
+#if UNITY_EDITOR
+        // Path to the gizmos location
+        readonly static string s_gizmosLocationPath = "Packages/com.unity.render-pipelines.high-definition/Editor/RenderPipelineResources/Texture/WaterSurface";
+
+        void OnDrawGizmos()
+        {
+            switch (surfaceType)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                    Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "/OceanGizmo.png", true);
+                    break;
+                case WaterSurfaceType.River:
+                    Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "/RiverGizmo.png", true);
+                    break;
+                case WaterSurfaceType.Pool:
+                    Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "/PoolGizmo.png", true);
+                    break;
+            }
+        }
+#endif
     }
 }

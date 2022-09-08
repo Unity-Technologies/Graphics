@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
+    [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
     public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
@@ -68,6 +69,9 @@ namespace UnityEngine.Rendering.Universal
             return Create();
         }
 
+        /// <summary>
+        /// Editor-only function that Unity calls when the script is loaded or a value changes in the Inspector.
+        /// </summary>
         protected virtual void OnValidate()
         {
             SetDirty();
@@ -77,11 +81,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// This function is called when the object becomes enabled and active.
+        /// </summary>
         protected virtual void OnEnable()
         {
             SetDirty();
         }
 
+        /// <summary>
+        /// Specifies whether the renderer should use Native Render Pass.
+        /// </summary>
         public bool useNativeRenderPass
         {
             get => m_UseNativeRenderPass;

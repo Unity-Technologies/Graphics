@@ -44,11 +44,13 @@ Use one of the following options to open the **Rendering Debugger** window.
 
 * On a mobile device, use a three-finger double tap.
 
-You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
+You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
 ## <a name="ui-sections"></a>Rendering Debugger window sections
 
 The **Rendering Debugger** window contains the following sections:
+
+* [Display Stats](#display-stats)
 
 * [Frequently Used](#frequently-used)
 
@@ -61,6 +63,79 @@ The **Rendering Debugger** window contains the following sections:
 The following illustration shows the Rendering Debugger window in the Scene view.
 
 ![Rendering Debugger window.](../Images/rendering-debugger/rendering-debugger-ui-sections.png)
+
+### Display Stats
+
+The **Display Stats** panel is only visible in play mode. You can use it to debug performance issues in your project.
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="1"><strong>Debug&#160;Option</strong></th>
+      <th colspan="2"><strong>Description</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="1"><strong>Frame Rate</strong></td>
+      <td colspan="2">Displays the frame rate in frames per second for the current camera view.</td>
+    </tr>
+    <tr>
+      <td rowspan="1"><strong>Frame Time</strong></td>
+      <td colspan="2">Displays the total frame time for the current camera view.</td>
+    </tr>
+    <tr>
+      <td rowspan="1"><strong>RT Mode</strong></td>
+      <td colspan="2">If you enable ray tracing, it displays the ray tracing Tier used during rendering.</td>
+    </tr>
+    <tr>
+      <td rowspan="11"><strong>Count Rays</strong></td>
+      <td colspan="2">If you enable ray tracing, enable the checkbox to count the number of traced rays per effect (in MRays / frame).</td>
+    </tr>
+    <tr>
+      <td><strong>Ambient Occlusion</strong></td>
+      <td>The number of rays that were traced for Ambient Occlusion (AO) computations, when you enable RT AO.</td>
+    </tr>
+    <tr>
+      <td><strong>Shadows Directional</strong></td>
+      <td>The number of rays that were traced for directional lights, when you enable RT shadows.</td>
+    </tr>
+    <tr>
+      <td><strong>Shadows Area</strong></td>
+      <td>The number of rays that were traced towards area lights, when you enable RT shadows.</td>
+    <tr>
+      <td><strong>Shadows Point/Spot</strong></td>
+      <td>The number of rays that were traced towards punctual (point/spot) lights, when you enable RT shadows.</td>
+    </tr>
+    <tr>
+      <td><strong>Reflection Forward</strong></td>
+      <td>The number of rays that were traced for reflection computations using forward shading.</td>
+    </tr>
+    <tr>
+      <td><strong>Reflection Deferred</strong></td>
+      <td>TThe number of rays that were traced for reflection computations using deferred shading.</td>
+    <tr>
+      <td><strong>Diffuse GI Forward</strong></td>
+      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations using forward shading.</td>
+    </tr>
+    <tr>
+      <td><strong>Diffuse GI Deferred</strong></td>
+      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations using deferred shading.</td>
+    </tr>
+    <tr>
+      <td><strong>Recursive</strong></td>
+      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations when you enable recursive RT.</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td>The total number of rays that were traced.</td>
+    </tr>
+        <tr>
+      <td rowspan="1"><strong>Debug&#160;XR&#160;Layout</strong></td>
+      <td colspan="2">Enable to display XR passes debug informations.<br/><br/>This mode is only available in the editor and development builds.</td>
+    </tr>
+  </tbody>
+</table>
 
 ### Frequently Used
 

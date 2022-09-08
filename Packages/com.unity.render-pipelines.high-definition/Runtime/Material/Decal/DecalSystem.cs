@@ -9,32 +9,6 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>Decal Layers.</summary>
-    [Flags]
-    public enum DecalLayerEnum
-    {
-        /// <summary>The light will no affect any object.</summary>
-        Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Decal Layer 0.</summary>
-        DecalLayerDefault = 1 << 0,
-        /// <summary>Decal Layer 1.</summary>
-        DecalLayer1 = 1 << 1,
-        /// <summary>Decal Layer 2.</summary>
-        DecalLayer2 = 1 << 2,
-        /// <summary>Decal Layer 3.</summary>
-        DecalLayer3 = 1 << 3,
-        /// <summary>Decal Layer 4.</summary>
-        DecalLayer4 = 1 << 4,
-        /// <summary>Decal Layer 5.</summary>
-        DecalLayer5 = 1 << 5,
-        /// <summary>Decal Layer 6.</summary>
-        DecalLayer6 = 1 << 6,
-        /// <summary>Decal Layer 7.</summary>
-        DecalLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
-        Everything = 0xFF, // Custom name for "Everything" option
-    }
-
     partial class DecalSystem
     {
         // Relies on the order shader passes are declared in Decal.shader and DecalSubTarget.cs
@@ -504,7 +478,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateCachedDrawOrder()
             {
-                if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
+                // Material can be null here if it was destroyed.
+                if (m_Material != null && this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                 {
                     m_CachedDrawOrder = this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                 }
@@ -840,6 +815,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            public bool HasEmissivePass
+            {
+                get
+                {
+                    return m_cachedProjectorEmissivePassValue != -1;
+                }
+            }
+
             public int DrawOrder => m_CachedDrawOrder;
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
@@ -857,7 +840,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private bool[] m_CachedAffectsTransparency = new bool[kDecalBlockSize];
             private int[] m_CachedLayerMask = new int[kDecalBlockSize];
-            private DecalLayerEnum[] m_CachedDecalLayerMask = new DecalLayerEnum[kDecalBlockSize];
+            private RenderingLayerMask[] m_CachedDecalLayerMask = new RenderingLayerMask[kDecalBlockSize];
             private ulong[] m_CachedSceneLayerMask = new ulong[kDecalBlockSize];
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
             private Material m_Material;
@@ -990,6 +973,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DecalsVisibleThisFrame = QueryCullResults(cullRequest, cullResults);
             foreach (var pair in m_DecalSets)
                 pair.Value.EndCull(cullRequest[pair.Key]);
+        }
+
+        public bool HasAnyForwardEmissive()
+        {
+            foreach (var decalSet in m_DecalSetsRenderList)
+            {
+                if (decalSet.HasEmissivePass)
+                    return true;
+            }
+            return false;
         }
 
         public void RenderIntoDBuffer(CommandBuffer cmd)
@@ -1136,9 +1129,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, DebugOverlay debugOverlay)
         {
-            debugOverlay.SetViewport(cmd);
+            cmd.SetViewport(debugOverlay.Next());
             HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
-            debugOverlay.Next();
         }
 
         public void LoadCullResults(CullResult cullResult)

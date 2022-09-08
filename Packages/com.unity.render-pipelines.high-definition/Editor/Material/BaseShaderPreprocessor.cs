@@ -12,23 +12,33 @@ namespace UnityEditor.Rendering.HighDefinition
         ShaderKeyword ShadowLow;
         ShaderKeyword ShadowMedium;
         ShaderKeyword ShadowHigh;
-        ShaderKeyword ShadowVeryHigh;
+
+        ShaderKeyword AreaShadowMedium;
+        ShaderKeyword AreaShadowHigh;
 
         public Dictionary<HDShadowFilteringQuality, ShaderKeyword> ShadowVariants;
+        public Dictionary<HDAreaShadowFilteringQuality, ShaderKeyword> AreaShadowVariants;
 
         public ShadowKeywords()
         {
             ShadowLow = new ShaderKeyword("SHADOW_LOW");
             ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
             ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
-            ShadowVeryHigh = new ShaderKeyword("SHADOW_VERY_HIGH");
+
+            AreaShadowMedium = new ShaderKeyword("AREA_SHADOW_MEDIUM");
+            AreaShadowHigh = new ShaderKeyword("AREA_SHADOW_HIGH");
 
             ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
             {
                 {HDShadowFilteringQuality.Low, ShadowLow},
                 {HDShadowFilteringQuality.Medium, ShadowMedium},
                 {HDShadowFilteringQuality.High, ShadowHigh},
-                {HDShadowFilteringQuality.VeryHigh, ShadowVeryHigh},
+            };
+
+            AreaShadowVariants = new Dictionary<HDAreaShadowFilteringQuality, ShaderKeyword>
+            {
+                {HDAreaShadowFilteringQuality.Medium, AreaShadowMedium},
+                {HDAreaShadowFilteringQuality.High, AreaShadowHigh},
             };
         }
     }
@@ -45,12 +55,14 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_DecalsOFF;
         protected ShaderKeyword m_Decals3RT;
         protected ShaderKeyword m_Decals4RT;
-        protected ShaderKeyword m_LightLayers;
+        protected ShaderKeyword m_RenderingLayers;
         protected ShaderKeyword m_ShadowLow;
         protected ShaderKeyword m_ShadowMedium;
         protected ShaderKeyword m_ShadowHigh;
         protected ShaderKeyword m_WriteNormalBuffer;
         protected ShaderKeyword m_WriteDecalBuffer;
+        protected ShaderKeyword m_WriteRenderingLayer;
+        protected ShaderKeyword m_WriteDecalBufferAndRenderingLayer;
         protected ShaderKeyword m_WriteMSAADepth;
         protected ShaderKeyword m_SubsurfaceScattering;
         protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords;
@@ -87,9 +99,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DecalsOFF = new ShaderKeyword("DECALS_OFF");
             m_Decals3RT = new ShaderKeyword("DECALS_3RT");
             m_Decals4RT = new ShaderKeyword("DECALS_4RT");
-            m_LightLayers = new ShaderKeyword("LIGHT_LAYERS");
+            m_RenderingLayers = new ShaderKeyword("RENDERING_LAYERS");
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
             m_WriteDecalBuffer = new ShaderKeyword("WRITE_DECAL_BUFFER");
+            m_WriteRenderingLayer = new ShaderKeyword("WRITE_RENDERING_LAYER");
+            m_WriteDecalBufferAndRenderingLayer = new ShaderKeyword("WRITE_DECAL_BUFFER_AND_RENDERING_LAYER");
             m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
             m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");

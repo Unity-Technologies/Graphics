@@ -165,14 +165,14 @@ namespace UnityEditor.Rendering.Universal
                     serializedLight.Apply();
                 }
 
-                if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.supportsLightLayers && !isInPreset)
+                if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.useRenderingLayers && !isInPreset)
                 {
                     EditorGUI.BeginChangeCheck();
-                    DrawLightLayerMask(serializedLight.lightLayerMask, LightUI.Styles.lightLayer);
+                    EditorUtils.DrawRenderingLayerMask(serializedLight.renderingLayers, Styles.RenderingLayers);
                     if (EditorGUI.EndChangeCheck())
                     {
                         if (!serializedLight.customShadowLayers.boolValue)
-                            SyncLightAndShadowLayers(serializedLight, serializedLight.lightLayerMask);
+                            SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
                     }
                 }
             }
@@ -192,21 +192,6 @@ namespace UnityEditor.Rendering.Universal
                 if (target.renderingLayerMask != serialized.intValue)
                     target.renderingLayerMask = serialized.intValue;
             }
-        }
-
-        internal static void DrawLightLayerMask(SerializedProperty property, GUIContent style)
-        {
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            int lightLayer = property.intValue;
-
-            EditorGUI.BeginProperty(controlRect, style, property);
-
-            EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
-            if (EditorGUI.EndChangeCheck())
-                property.intValue = lightLayer;
-
-            EditorGUI.EndProperty();
         }
 
         static void DrawSpotShapeContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
@@ -267,9 +252,7 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             serializedLight.settings.DrawRenderMode();
-
-            using (new EditorGUI.DisabledScope(UniversalRenderPipeline.asset.supportsLightLayers))
-                serializedLight.settings.DrawCullingMask();
+            EditorGUILayout.PropertyField(serializedLight.settings.cullingMask, Styles.CullingMask);
         }
 
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
@@ -333,7 +316,7 @@ namespace UnityEditor.Rendering.Universal
                             EditorGUILayout.PropertyField(serializedLight.softShadowQualityProp, Styles.SoftShadowQuality);
                     }
 
-                    if (UniversalRenderPipeline.asset.supportsLightLayers)
+                    if (UniversalRenderPipeline.asset.useRenderingLayers)
                     {
                         EditorGUI.BeginChangeCheck();
                         EditorGUILayout.PropertyField(serializedLight.customShadowLayers, Styles.customShadowLayers);
@@ -342,12 +325,12 @@ namespace UnityEditor.Rendering.Universal
                         {
                             if (serializedLight.customShadowLayers.boolValue)
                             {
-                                serializedLight.settings.light.renderingLayerMask = serializedLight.shadowLayerMask.intValue;
+                                serializedLight.settings.light.renderingLayerMask = serializedLight.shadowRenderingLayers.intValue;
                             }
                             else
                             {
                                 serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties(); // we need to push above modification the modification on object as it is used to sync
-                                SyncLightAndShadowLayers(serializedLight, serializedLight.lightLayerMask);
+                                SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
                             }
                         }
 
@@ -356,10 +339,10 @@ namespace UnityEditor.Rendering.Universal
                             using (new EditorGUI.IndentLevelScope())
                             {
                                 EditorGUI.BeginChangeCheck();
-                                DrawLightLayerMask(serializedLight.shadowLayerMask, Styles.ShadowLayer);
+                                EditorUtils.DrawRenderingLayerMask(serializedLight.shadowRenderingLayers, Styles.ShadowLayer);
                                 if (EditorGUI.EndChangeCheck())
                                 {
-                                    serializedLight.settings.light.renderingLayerMask = serializedLight.shadowLayerMask.intValue;
+                                    serializedLight.settings.light.renderingLayerMask = serializedLight.shadowRenderingLayers.intValue;
                                     serializedLight.Apply();
                                 }
                             }

@@ -101,6 +101,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Updates the cell streaming for a <see cref="Camera"/>
         /// </summary>
+        /// <param name="cmd">The <see cref="CommandBuffer"/></param>
         /// <param name="camera">The <see cref="Camera"/></param>
         public void UpdateCellStreaming(CommandBuffer cmd, Camera camera)
         {

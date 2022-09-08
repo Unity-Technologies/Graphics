@@ -1,32 +1,168 @@
+using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
+using static UnityEditor.Rendering.HighDefinition.HDProbeUI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    // Alias for the display
+    using CED = CoreEditorDrawer<WaterSurfaceEditor>;
+
+    sealed class WaterPropertyParameterDrawer
+    {
+        internal static readonly string[] swellModeNames = new string[] { "Swell", "Custom" };
+        internal static readonly string[] agitationModeNames = new string[] { "Agitation", "Custom" };
+        static readonly int popupWidth = 70;
+        static readonly int doubleFieldMargin = 10;
+
+        public static void Draw(GUIContent title, SerializedProperty mode, SerializedProperty parameter, string[] modeNames)
+        {
+            // Save and reset the indent level
+            int previousIndentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            Rect rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= popupWidth + 2;
+
+            var popupRect = rect;
+            popupRect.x = rect.xMax + 2;
+            popupRect.width = popupWidth;
+            mode.enumValueIndex = EditorGUI.Popup(popupRect, mode.enumValueIndex, modeNames);
+
+            if (mode.enumValueIndex == (int)WaterPropertyOverrideMode.Inherit)
+            {
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUI.showMixedValue = true;
+            }
+
+            // Restore the indent level before leaving
+            EditorGUI.indentLevel = previousIndentLevel;
+
+            parameter.floatValue = EditorGUI.FloatField(rect, title, parameter.floatValue);
+
+            if (mode.intValue == (int)WaterPropertyOverrideMode.Inherit)
+            {
+                EditorGUI.showMixedValue = false;
+                EditorGUI.EndDisabledGroup();
+            }
+        }
+
+        public static void DrawMultiPropertiesGUI(GUIContent label, GUIContent subLabel0, SerializedProperty subContent0, GUIContent subLabel1, SerializedProperty subContent1)
+        {
+            // Draw the label for the whole line
+            var prefixLabel = EditorGUI.PrefixLabel(EditorGUILayout.GetControlRect(), label);
+
+            // Save and reset the indent level
+            int previousIndentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            // Save the previous label with
+            float previousLabelWith = EditorGUIUtility.labelWidth;
+
+            // First field
+            var speedRect = prefixLabel;
+            // Takes half the space
+            speedRect.width = speedRect.width / 2 - doubleFieldMargin;
+            // Evaluate the space for the first label
+            EditorGUIUtility.labelWidth = EditorStyles.label.CalcSize(subLabel0).x + 4;
+            // Draw the first property
+            subContent0.floatValue = EditorGUI.FloatField(speedRect, subLabel0, subContent0.floatValue);
+
+            // Second field
+            var orientationRect = prefixLabel;
+            // Takes half the space left
+            orientationRect.x += speedRect.width + 2 + doubleFieldMargin * 2;
+            orientationRect.width = orientationRect.width / 2 - 2 - doubleFieldMargin;
+            // Evaluate the space for the second label
+            EditorGUIUtility.labelWidth = EditorStyles.label.CalcSize(subLabel1).x + 2;
+            // Draw the second property
+            subContent1.floatValue = EditorGUI.FloatField(orientationRect, subLabel1, subContent1.floatValue);
+
+            // Restore the previous label width
+            EditorGUIUtility.labelWidth = previousLabelWith;
+
+            // Restore the indent level before leaving
+            EditorGUI.indentLevel = previousIndentLevel;
+        }
+
+        public static void DrawMultiPropertiesGUI(GUIContent label, SerializedProperty mode, string[] modeNames, GUIContent sublabel,
+                                                    GUIContent subLabel0, SerializedProperty subContent0, GUIContent subLabel1, SerializedProperty subContent1)
+        {
+            mode.enumValueIndex = EditorGUILayout.Popup(label, mode.enumValueIndex, modeNames);
+
+            if (mode.enumValueIndex == (int)WaterPropertyOverrideMode.Inherit)
+            {
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUI.showMixedValue = true;
+            }
+
+            DrawMultiPropertiesGUI(sublabel, subLabel0, subContent0, subLabel1, subContent1);
+
+            if (mode.intValue == (int)WaterPropertyOverrideMode.Inherit)
+            {
+                EditorGUI.showMixedValue = false;
+                EditorGUI.EndDisabledGroup();
+            }
+        }
+    }
+
     [CustomEditor(typeof(WaterSurface))]
-    sealed class WaterSurfaceEditor : Editor
+    sealed partial class WaterSurfaceEditor : Editor
     {
         // Geometry parameters
-        SerializedProperty m_Infinite;
-        SerializedProperty m_HighFrequencyBands;
+        SerializedProperty m_SurfaceType;
         SerializedProperty m_GeometryType;
-        SerializedProperty m_Geometry;
+        SerializedProperty m_Mesh;
 
         // CPU Simulation
         SerializedProperty m_CPUSimulation;
         SerializedProperty m_CPUFullResolution;
-        SerializedProperty m_CPUEvaluateAllBands;
+        SerializedProperty m_CPUEvaluateRipples;
 
         // Simulation parameters
-        SerializedProperty m_WaterMaxPatchSize;
-        SerializedProperty m_Amplitude;
-        SerializedProperty m_Choppiness;
         SerializedProperty m_TimeMultiplier;
+
+        // Large
+        SerializedProperty m_RepetitionSize;
+        SerializedProperty m_LargeWindSpeed;
+        SerializedProperty m_LargeWindOrientationValue;
+        SerializedProperty m_LargeCurrentSpeedValue;
+        SerializedProperty m_LargeCurrentOrientationValue;
+        SerializedProperty m_LargeChaos;
+
+        // Band0
+        SerializedProperty m_LargeBand0Multiplier;
+        SerializedProperty m_LargeBand0FadeToggle;
+        SerializedProperty m_LargeBand0FadeStart;
+        SerializedProperty m_LargeBand0FadeDistance;
+        // Band1
+        SerializedProperty m_LargeBand1Multiplier;
+        SerializedProperty m_LargeBand1FadeToggle;
+        SerializedProperty m_LargeBand1FadeStart;
+        SerializedProperty m_LargeBand1FadeDistance;
+
+        // Wind
+        SerializedProperty m_Ripples;
+        SerializedProperty m_RipplesWindSpeed;
+        SerializedProperty m_RipplesWindOrientationMode;
+        SerializedProperty m_RipplesWindOrientationValue;
+        SerializedProperty m_RipplesCurrentMode;
+        SerializedProperty m_RipplesCurrentSpeedValue;
+        SerializedProperty m_RipplesCurrentOrientationMode;
+        SerializedProperty m_RipplesCurrentOrientationValue;
+        SerializedProperty m_RipplesChaos;
+        SerializedProperty m_RipplesFadeToggle;
+        SerializedProperty m_RipplesFadeStart;
+        SerializedProperty m_RipplesFadeDistance;
 
         // Rendering parameters
         SerializedProperty m_CustomMaterial;
-        SerializedProperty m_WaterSmoothness;
+        SerializedProperty m_StartSmoothness;
+        SerializedProperty m_EndSmoothness;
+        SerializedProperty m_SmoothnessFadeStart;
+        SerializedProperty m_SmoothnessFadeDistance;
 
         // Refraction parameters
         SerializedProperty m_MaxRefractionDistance;
@@ -35,6 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Scattering parameters
         SerializedProperty m_ScatteringColor;
+        SerializedProperty m_AmbientScattering;
         SerializedProperty m_HeightScattering;
         SerializedProperty m_DisplacementScattering;
         SerializedProperty m_DirectLightTipScattering;
@@ -42,16 +179,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Caustic parameters (Common)
         SerializedProperty m_Caustics;
-        SerializedProperty m_CausticsIntensity;
-        // Simulation Caustics
-        SerializedProperty m_CausticsAlgorithm;
-        SerializedProperty m_CausticsResolution;
         SerializedProperty m_CausticsBand;
         SerializedProperty m_CausticsVirtualPlaneDistance;
-
-        // Procedural caustics
-        SerializedProperty m_CausticsTiling;
-        SerializedProperty m_CausticsSpeed;
+        SerializedProperty m_CausticsIntensity;
+        SerializedProperty m_CausticsResolution;
         SerializedProperty m_CausticsPlaneBlendDistance;
 
         // Water masking
@@ -60,22 +191,19 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_WaterMaskOffset;
 
         // Foam
+        SerializedProperty m_Foam;
         SerializedProperty m_SimulationFoamAmount;
         SerializedProperty m_SimulationFoamDrag;
         SerializedProperty m_SimulationFoamSmoothness;
+        SerializedProperty m_FoamTextureTiling;
+        SerializedProperty m_FoamTexture;
         SerializedProperty m_FoamMask;
         SerializedProperty m_FoamMaskExtent;
         SerializedProperty m_FoamMaskOffset;
-
-        // Wind
-        SerializedProperty m_WindOrientation;
-        SerializedProperty m_WindSpeed;
-        SerializedProperty m_WindAffectCurrent;
         SerializedProperty m_WindFoamCurve;
 
         // Rendering
-        SerializedProperty m_DecalLayerMask;
-        SerializedProperty m_LightLayerMask;
+        SerializedProperty m_RenderingLayerMask;
 
         // Underwater
         SerializedProperty m_UnderWater;
@@ -90,25 +218,57 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<WaterSurface>(serializedObject);
 
             // Geometry parameters
-            m_Infinite = o.Find(x => x.infinite);
-            m_HighFrequencyBands = o.Find(x => x.highFrequencyBands);
+            m_SurfaceType = o.Find(x => x.surfaceType);
             m_GeometryType = o.Find(x => x.geometryType);
-            m_Geometry = o.Find(x => x.geometry);
+            m_Mesh = o.Find(x => x.mesh);
 
             // CPU Simulation
             m_CPUSimulation = o.Find(x => x.cpuSimulation);
             m_CPUFullResolution = o.Find(x => x.cpuFullResolution);
-            m_CPUEvaluateAllBands = o.Find(x => x.cpuEvaluateAllBands);
+            m_CPUEvaluateRipples = o.Find(x => x.cpuEvaluateRipples);
 
             // Band definition parameters
-            m_WaterMaxPatchSize = o.Find(x => x.waterMaxPatchSize);
-            m_Amplitude = o.Find(x => x.amplitude);
-            m_Choppiness = o.Find(x => x.choppiness);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
+
+            // Swell
+            m_RepetitionSize = o.Find(x => x.repetitionSize);
+            m_LargeWindSpeed = o.Find(x => x.largeWindSpeed);
+            m_LargeWindOrientationValue = o.Find(x => x.largeWindOrientationValue);
+            m_LargeCurrentSpeedValue = o.Find(x => x.largeCurrentSpeedValue);
+            m_LargeCurrentOrientationValue = o.Find(x => x.largeCurrentOrientationValue);
+            m_LargeChaos = o.Find(x => x.largeChaos);
+
+            // Band0
+            m_LargeBand0Multiplier = o.Find(x => x.largeBand0Multiplier);
+            m_LargeBand0FadeToggle = o.Find(x => x.largeBand0FadeToggle);
+            m_LargeBand0FadeStart = o.Find(x => x.largeBand0FadeStart);
+            m_LargeBand0FadeDistance = o.Find(x => x.largeBand0FadeDistance);
+
+            // Band1
+            m_LargeBand1Multiplier = o.Find(x => x.largeBand1Multiplier);
+            m_LargeBand1FadeToggle = o.Find(x => x.largeBand1FadeToggle);
+            m_LargeBand1FadeStart = o.Find(x => x.largeBand1FadeStart);
+            m_LargeBand1FadeDistance = o.Find(x => x.largeBand1FadeDistance);
+
+            // Wind parameters
+            m_Ripples = o.Find(x => x.ripples);
+            m_RipplesWindSpeed = o.Find(x => x.ripplesWindSpeed);
+            m_RipplesWindOrientationValue = o.Find(x => x.ripplesWindOrientationValue);
+            m_RipplesWindOrientationMode = o.Find(x => x.ripplesWindOrientationMode);
+            m_RipplesCurrentMode = o.Find(x => x.ripplesCurrentMode);
+            m_RipplesCurrentSpeedValue = o.Find(x => x.ripplesCurrentSpeedValue);
+            m_RipplesCurrentOrientationValue = o.Find(x => x.ripplesCurrentOrientationValue);
+            m_RipplesChaos = o.Find(x => x.ripplesChaos);
+            m_RipplesFadeToggle = o.Find(x => x.ripplesFadeToggle);
+            m_RipplesFadeStart = o.Find(x => x.ripplesFadeStart);
+            m_RipplesFadeDistance = o.Find(x => x.ripplesFadeDistance);
 
             // Rendering parameters
             m_CustomMaterial = o.Find(x => x.customMaterial);
-            m_WaterSmoothness = o.Find(x => x.waterSmoothness);
+            m_StartSmoothness = o.Find(x => x.startSmoothness);
+            m_EndSmoothness = o.Find(x => x.endSmoothness);
+            m_SmoothnessFadeStart = o.Find(x => x.smoothnessFadeStart);
+            m_SmoothnessFadeDistance = o.Find(x => x.smoothnessFadeDistance);
 
             // Refraction parameters
             m_AbsorptionDistance = o.Find(x => x.absorptionDistance);
@@ -117,6 +277,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Scattering parameters
             m_ScatteringColor = o.Find(x => x.scatteringColor);
+            m_AmbientScattering = o.Find(x => x.ambientScattering);
             m_HeightScattering = o.Find(x => x.heightScattering);
             m_DisplacementScattering = o.Find(x => x.displacementScattering);
             m_DirectLightTipScattering = o.Find(x => x.directLightTipScattering);
@@ -124,41 +285,32 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Caustic parameters
             m_Caustics = o.Find(x => x.caustics);
-            m_CausticsIntensity = o.Find(x => x.causticsIntensity);
-            m_CausticsAlgorithm = o.Find(x => x.causticsAlgorithm);
-
-            // Simulation caustics
-            m_CausticsResolution = o.Find(x => x.causticsResolution);
             m_CausticsBand = o.Find(x => x.causticsBand);
             m_CausticsVirtualPlaneDistance = o.Find(x => x.virtualPlaneDistance);
-
-            // Procedural caustics
-            m_CausticsTiling = o.Find(x => x.causticsTiling);
-            m_CausticsSpeed = o.Find(x => x.causticsSpeed);
+            m_CausticsIntensity = o.Find(x => x.causticsIntensity);
+            m_CausticsResolution = o.Find(x => x.causticsResolution);
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
 
             // Foam
+            m_Foam = o.Find(x => x.foam);
             m_SimulationFoamAmount = o.Find(x => x.simulationFoamAmount);
             m_SimulationFoamDrag = o.Find(x => x.simulationFoamDrag);
             m_SimulationFoamSmoothness = o.Find(x => x.simulationFoamSmoothness);
+            m_FoamTextureTiling = o.Find(x => x.foamTextureTiling);
+            m_FoamTexture = o.Find(x => x.foamTexture);
+
             m_FoamMask = o.Find(x => x.foamMask);
             m_FoamMaskExtent = o.Find(x => x.foamMaskExtent);
             m_FoamMaskOffset = o.Find(x => x.foamMaskOffset);
+            m_WindFoamCurve = o.Find(x => x.windFoamCurve);
 
             // Water masking
             m_WaterMask = o.Find(x => x.waterMask);
             m_WaterMaskExtent = o.Find(x => x.waterMaskExtent);
             m_WaterMaskOffset = o.Find(x => x.waterMaskOffset);
 
-            // Wind parameters
-            m_WindOrientation = o.Find(x => x.windOrientation);
-            m_WindSpeed = o.Find(x => x.windSpeed);
-            m_WindFoamCurve = o.Find(x => x.windFoamCurve);
-            m_WindAffectCurrent = o.Find(x => x.windAffectCurrent);
-
             // Rendering
-            m_DecalLayerMask = o.Find(x => x.decalLayerMask);
-            m_LightLayerMask = o.Find(x => x.lightLayerMask);
+            m_RenderingLayerMask = o.Find(x => x.renderingLayerMask);
 
             // Underwater
             m_UnderWater = o.Find(x => x.underWater);
@@ -169,40 +321,174 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AbsorbtionDistanceMultiplier = o.Find(x => x.absorbtionDistanceMultiplier);
         }
 
-        // CPU Simulation
-        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP will evaluate the water simulation on the CPU for C# script height requests. Enabling this will significantly increase the CPU cost of the feature.");
-        static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("Full Resolution", "Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.");
-        static public readonly GUIContent k_CPUEvaluateAllBands = EditorGUIUtility.TrTextContent("Evaluate all bands", "Specifies if the CPU simulation should evaluate all four band (when active) or should limit itself to the first two bands. A higher band count will allow for a higher visual fidelity but the cost of the simulation will increase.");
-
-        static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
-        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
-        static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
-        static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Controls the smoothness used to render the water surface.");
-        static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
-        static public readonly GUIContent k_AbsorptionDistance = EditorGUIUtility.TrTextContent("Absorption Distance", "Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.");
-
-        static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
-        static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
-        static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.");
-        static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.");
-
-        static public readonly GUIContent k_CausticsBand = EditorGUIUtility.TrTextContent("Caustics Band", "Controls which band is used for the caustics evaluation.");
-
-        static public readonly GUIContent k_SimulationFoamSmoothness = EditorGUIUtility.TrTextContent("Simulation Foam Smoothness", "Controls the simulation foam smoothness.");
-        static public readonly GUIContent k_SimulationFoamDrag = EditorGUIUtility.TrTextContent("Simulation Foam Drag", "Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.");
-        static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.");
-
-        static public readonly GUIContent k_WindSpeed = EditorGUIUtility.TrTextContent("Wind Speed", "Controls the wind speed in kilometers per hour.");
-        static public readonly GUIContent k_WindAffectsCurrent = EditorGUIUtility.TrTextContent("Wind Affects current", "Controls the proportion in which the wind affects the current of the water.");
-
-        void SanitizeVector4(SerializedProperty property, float minValue, float maxValue)
+        static internal void WaterSurfaceGeneralSection(WaterSurfaceEditor serialized, Editor owner)
         {
-            Vector4 vec4 = property.vector4Value;
-            vec4.x = Mathf.Clamp(vec4.x, minValue, maxValue);
-            vec4.y = Mathf.Clamp(vec4.y, minValue, maxValue);
-            vec4.z = Mathf.Clamp(vec4.z, minValue, maxValue);
-            vec4.w = Mathf.Clamp(vec4.w, minValue, maxValue);
-            property.vector4Value = vec4;
+            {
+                WaterSurfaceType previousSurfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
+                EditorGUILayout.PropertyField(serialized.m_SurfaceType, k_SurfaceType);
+                WaterSurfaceType currentSurfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
+
+                switch (currentSurfaceType)
+                {
+                    case WaterSurfaceType.OceanSeaLake:
+                        {
+                            // If we were on something else than an ocean and swiched back to an ocean, we force the surface to be infite again
+                            if (previousSurfaceType != currentSurfaceType)
+                            serialized.m_GeometryType.enumValueIndex = (int)WaterGeometryType.Infinite;
+
+                            EditorGUILayout.PropertyField(serialized.m_GeometryType, k_GeometryType);
+                            using (new IndentLevelScope())
+                            {
+                                if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.CustomMesh)
+                                    EditorGUILayout.PropertyField(serialized.m_Mesh, k_Mesh);
+                            }
+                        }
+                        break;
+                    case WaterSurfaceType.River:
+                    case WaterSurfaceType.Pool:
+                        {
+                            // If infinite was set, we need to force it to quad
+                            if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Infinite)
+                                serialized.m_GeometryType.enumValueIndex = (int)WaterGeometryType.Quad;
+                            serialized.m_GeometryType.enumValueIndex = EditorGUILayout.Popup(k_GeometryType, serialized.m_GeometryType.enumValueIndex, k_GeometryTypeEnum);
+                            if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.CustomMesh)
+                                EditorGUILayout.PropertyField(serialized.m_Mesh, k_Mesh);
+                        }
+                        break;
+                };
+            }
+
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            // Display the CPU simulation check box, but only make it available if the asset allows it
+            bool cpuSimSupported = currentAsset.currentPlatformRenderPipelineSettings.waterCPUSimulation;
+            using (new EditorGUI.DisabledScope(!cpuSimSupported))
+            {
+                using (new BoldLabelScope())
+                    serialized.m_CPUSimulation.boolValue = EditorGUILayout.Toggle(k_CPUSimulation, serialized.m_CPUSimulation.boolValue);
+
+                using (new IndentLevelScope())
+                {
+                    if (serialized.m_CPUSimulation.boolValue)
+                    {
+                        if (currentAsset.currentPlatformRenderPipelineSettings.waterSimulationResolution == WaterSimulationResolution.Low64)
+                        {
+                            using (new EditorGUI.DisabledScope(true))
+                            {
+                                // When in 64, we always show that we are running the CPU simulation at full res.
+                                bool fakeToggle = true;
+                                EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
+                            }
+                        }
+                        else
+                        {
+                            EditorGUILayout.PropertyField(serialized.m_CPUFullResolution, k_CPUFullResolution);
+                        }
+
+                        WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
+
+                        // Does the surface support ripples
+                        bool canHaveRipples = (surfaceType == WaterSurfaceType.OceanSeaLake || surfaceType == WaterSurfaceType.River);
+
+                        if (canHaveRipples)
+                        {
+                            using (new EditorGUI.DisabledScope(!serialized.m_Ripples.boolValue))
+                            {
+                                // When we only have 2 bands, we should evaluate all bands
+                                EditorGUILayout.PropertyField(serialized.m_CPUEvaluateRipples, k_CPUEvaluateRipples);
+                            }
+                        }
+                        else
+                        {
+                            using (new EditorGUI.DisabledScope(true))
+                            {
+                                // When we only have 2 bands, we should evaluate all bands
+                                bool fakeToggle = true;
+                                EditorGUILayout.Toggle(k_CPUEvaluateRipples, fakeToggle);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Redirect to the asset if disabled
+            if (!cpuSimSupported)
+            {
+                HDEditorUtils.QualitySettingsHelpBox("Enable 'Script Interactions' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
+                    MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.waterCPUSimulation");
+                EditorGUILayout.Space();
+            }
+        }
+
+        static internal void WaterSurfaceMiscellaneousSection(WaterSurfaceEditor serialized, Editor owner)
+        {
+            if (HDRenderPipeline.currentPipeline != null)
+            {
+                bool lightLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportLightLayers;
+                bool decalLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecals &&
+                    HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecalLayers;
+
+                using (new IndentLevelScope())
+                {
+                    using (new EditorGUI.DisabledScope(!decalLayersEnabled && !lightLayersEnabled))
+                        EditorGUILayout.PropertyField(serialized.m_RenderingLayerMask);
+                }
+
+                if (!decalLayersEnabled)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control which decals affect water surfaces. There is a performance cost of enabling this option.",
+                        MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
+                    EditorGUILayout.Space();
+                }
+
+                if (!lightLayersEnabled)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
+                        MessageType.Info, HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportLightLayers");
+                    EditorGUILayout.Space();
+                }
+            }
+        }
+
+        class WaterGizmoProperties
+        {
+            public Texture2D oceanIconL = null;
+            public Texture2D oceanIconD = null;
+            public Texture2D riverIconL = null;
+            public Texture2D riverIconD = null;
+            public Texture2D poolIconL = null;
+            public Texture2D poolIconD = null;
+            public System.Reflection.MethodInfo setIconForObject = null;
+        }
+        static WaterGizmoProperties waterGizmo = null;
+
+        static WaterGizmoProperties RequestGizmoProperties()
+        {
+            if (waterGizmo == null)
+            {
+                waterGizmo = new WaterGizmoProperties();
+                waterGizmo.oceanIconL = (Texture2D)Resources.Load("OceanIcon_L");
+                waterGizmo.oceanIconD = (Texture2D)Resources.Load("OceanIcon_D");
+                waterGizmo.riverIconL = (Texture2D)Resources.Load("RiverIcon_L");
+                waterGizmo.riverIconD = (Texture2D)Resources.Load("RiverIcon_D");
+                waterGizmo.poolIconL = (Texture2D)Resources.Load("PoolIcon_L");
+                waterGizmo.poolIconD = (Texture2D)Resources.Load("PoolIcon_D");
+                waterGizmo.setIconForObject = typeof(EditorGUIUtility).GetMethod("SetIconForObject");
+            }
+            return waterGizmo;
+        }
+
+        static Texture2D PickWaterIcon(WaterSurface surface, WaterGizmoProperties wgp)
+        {
+            switch (surface.surfaceType)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                    return EditorGUIUtility.isProSkin ? wgp.oceanIconD : wgp.oceanIconL;
+                case WaterSurfaceType.River:
+                    return EditorGUIUtility.isProSkin ? wgp.riverIconD : wgp.riverIconL;
+                case WaterSurfaceType.Pool:
+                    return EditorGUIUtility.isProSkin ? wgp.poolIconD : wgp.poolIconL;
+            }
+            return wgp.oceanIconL;
         }
 
         public override void OnInspectorGUI()
@@ -213,289 +499,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.supportWater");
+                HDEditorUtils.QualitySettingsHelpBox("Enable the 'Water' system in your HDRP Asset to simulate and render water surfaces in your HDRP project.",
+                    MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.supportWater");
                 return;
             }
 
-            bool highFrequencyBands = false;
-            EditorGUILayout.LabelField("General", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_HighFrequencyBands);
-                highFrequencyBands = m_HighFrequencyBands.boolValue;
+            // Draw UI
+            WaterSurfaceUI.Inspector.Draw(this, this);
 
-                EditorGUILayout.PropertyField(m_Infinite);
-                using (new IndentLevelScope())
-                {
-                    if (!m_Infinite.boolValue)
-                    {
-                        EditorGUILayout.PropertyField(m_GeometryType);
-                        if ((WaterSurface.WaterGeometryType)m_GeometryType.enumValueIndex == WaterSurface.WaterGeometryType.Custom)
-                            EditorGUILayout.PropertyField(m_Geometry);
-                    }
-                }
-            }
+            // Handle the icons and w
+            var wgp = RequestGizmoProperties();
+            WaterSurface surface = (WaterSurface)(serializedObject.targetObject);
+            wgp.setIconForObject.Invoke(null, new object[] { surface, PickWaterIcon(surface, wgp) });
+            UnityEditor.GizmoUtility.SetIconEnabled(typeof(WaterSurface), false);
 
-            EditorGUILayout.LabelField("CPU Simulation", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                // Display the CPU simulation check box, but only make it available if the asset allows it
-                bool cpuSimSupported = currentAsset.currentPlatformRenderPipelineSettings.waterCPUSimulation;
-                using (new EditorGUI.DisabledScope(!cpuSimSupported))
-                {
-                    EditorGUILayout.PropertyField(m_CPUSimulation, k_CPUSimulation);
-                    using (new IndentLevelScope())
-                    {
-                        if (m_CPUSimulation.boolValue)
-                        {
-                            if (currentAsset.currentPlatformRenderPipelineSettings.waterSimulationResolution == WaterSimulationResolution.Low64)
-                            {
-                                using (new EditorGUI.DisabledScope(true))
-                                {
-                                    // When in 64, we always show that we are running the CPU simulation at full res.
-                                    bool fakeToggle = true;
-                                    EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
-                                }
-                            }
-                            else
-                            {
-                                EditorGUILayout.PropertyField(m_CPUFullResolution, k_CPUFullResolution);
-                            }
-
-                            if (!highFrequencyBands)
-                            {
-                                using (new EditorGUI.DisabledScope(true))
-                                {
-                                    // When we only have 2 bands, we should evaluate all bands
-                                    bool fakeToggle = true;
-                                    EditorGUILayout.Toggle(k_CPUEvaluateAllBands, fakeToggle);
-                                }
-                            }
-                            else
-                            {
-                                EditorGUILayout.PropertyField(m_CPUEvaluateAllBands, k_CPUEvaluateAllBands);
-                            }
-                        }
-                    }
-                }
-
-                // Redirect to the asset if disabled
-                if (!cpuSimSupported)
-                {
-                    HDEditorUtils.QualitySettingsHelpBox("Enable 'CPU Simulation' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
-                        MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.waterCPUSimulation");
-                    EditorGUILayout.Space();
-                }
-            }
-
-            EditorGUILayout.LabelField("Simulation", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_WaterMaxPatchSize);
-                m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 25.0f, 10000.0f);
-
-                using (new IndentLevelScope())
-                {
-                    if (m_HighFrequencyBands.boolValue)
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        m_Amplitude.vector4Value = EditorGUILayout.Vector4Field(k_Amplitude, m_Amplitude.vector4Value);
-                        if (EditorGUI.EndChangeCheck())
-                            SanitizeVector4(m_Amplitude, 0.0f, 1.0f);
-                    }
-                    else
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        Vector2 amplitude2D = new Vector2(m_Amplitude.vector4Value.x, m_Amplitude.vector4Value.y);
-                        amplitude2D = EditorGUILayout.Vector2Field(k_Amplitude, amplitude2D);
-                        m_Amplitude.vector4Value = new Vector4(amplitude2D.x, amplitude2D.y, m_Amplitude.vector4Value.z, m_Amplitude.vector4Value.w);
-                        if (EditorGUI.EndChangeCheck())
-                            SanitizeVector4(m_Amplitude, 0.0f, 1.0f);
-                    }
-                }
-
-                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 0.0f, 1.0f);
-                m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, m_TimeMultiplier.floatValue, 0.0f, 10.0f);
-            }
-
-            EditorGUILayout.LabelField("Material", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_CustomMaterial);
-                // Water Smoothness from 0.0f to 0.99f
-                m_WaterSmoothness.floatValue = EditorGUILayout.Slider(k_WaterSmoothness, m_WaterSmoothness.floatValue, 0.0f, 0.99f);
-            }
-
-            EditorGUILayout.LabelField("Refraction", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_RefractionColor);
-                m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider(k_MaxRefractionDistance, m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
-                m_AbsorptionDistance.floatValue = EditorGUILayout.Slider(k_AbsorptionDistance, m_AbsorptionDistance.floatValue, 0.0f, 100.0f);
-            }
-
-            EditorGUILayout.LabelField("Scattering", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_ScatteringColor);
-                m_HeightScattering.floatValue = EditorGUILayout.Slider(k_HeightScattering, m_HeightScattering.floatValue, 0.0f, 1.0f);
-                m_DisplacementScattering.floatValue = EditorGUILayout.Slider(k_DisplacementScattering, m_DisplacementScattering.floatValue, 0.0f, 1.0f);
-                m_DirectLightTipScattering.floatValue = EditorGUILayout.Slider(k_DirectLightTipScattering, m_DirectLightTipScattering.floatValue, 0.0f, 1.0f);
-                m_DirectLightBodyScattering.floatValue = EditorGUILayout.Slider(k_DirectLightBodyScattering, m_DirectLightBodyScattering.floatValue, 0.0f, 1.0f);
-            }
-
-            EditorGUILayout.LabelField("Caustics", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_Caustics);
-                if (m_Caustics.boolValue)
-                {
-                    EditorGUILayout.PropertyField(m_CausticsIntensity);
-                    m_CausticsIntensity.floatValue = Mathf.Max(m_CausticsIntensity.floatValue, 0.0f);
-
-                    EditorGUILayout.PropertyField(m_CausticsPlaneBlendDistance);
-                    m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(m_CausticsPlaneBlendDistance.floatValue, 0.0f);
-
-                    EditorGUILayout.PropertyField(m_CausticsAlgorithm);
-
-                    if ((WaterSurface.WaterCausticsType)m_CausticsAlgorithm.enumValueIndex == WaterSurface.WaterCausticsType.Simulation)
-                    {
-                        using (new IndentLevelScope())
-                        {
-                            EditorGUILayout.PropertyField(m_CausticsResolution);
-                            m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBand, m_CausticsBand.intValue, 0, highFrequencyBands ? 3 : 1);
-
-                            EditorGUILayout.PropertyField(m_CausticsVirtualPlaneDistance);
-                            m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(m_CausticsVirtualPlaneDistance.floatValue, 0.001f);
-                        }
-                    }
-                    else
-                    {
-                        using (new IndentLevelScope())
-                        {
-                            EditorGUILayout.PropertyField(m_CausticsTiling);
-                            m_CausticsTiling.floatValue = Mathf.Max(m_CausticsTiling.floatValue, 0.001f);
-                            EditorGUILayout.PropertyField(m_CausticsSpeed);
-                            m_CausticsSpeed.floatValue = Mathf.Clamp(m_CausticsSpeed.floatValue, 0.0f, 100.0f);
-                        }
-                    }
-                }
-            }
-
-            EditorGUILayout.LabelField("Masking", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_WaterMask);
-                if (m_WaterMask.objectReferenceValue != null)
-                {
-                    EditorGUILayout.PropertyField(m_WaterMaskExtent);
-                    EditorGUILayout.PropertyField(m_WaterMaskOffset);
-                }
-            }
-
-            EditorGUILayout.LabelField("Foam", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                // Surface foam
-                m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
-                m_SimulationFoamDrag.floatValue = EditorGUILayout.Slider(k_SimulationFoamDrag, m_SimulationFoamDrag.floatValue, 0.0f, 1.0f);
-                m_SimulationFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SimulationFoamSmoothness, m_SimulationFoamSmoothness.floatValue, 0.0f, 1.0f);
-
-                // Foam masking
-                EditorGUILayout.PropertyField(m_FoamMask);
-                if (m_FoamMask.objectReferenceValue != null)
-                {
-                    using (new IndentLevelScope())
-                    {
-                        EditorGUILayout.PropertyField(m_FoamMaskExtent);
-                        EditorGUILayout.PropertyField(m_FoamMaskOffset);
-                    }
-                }
-            }
-
-            EditorGUILayout.LabelField("Wind", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_WindOrientation);
-                m_WindSpeed.floatValue = EditorGUILayout.Slider(k_WindSpeed, m_WindSpeed.floatValue, 0.0f, 100.0f);
-                m_WindAffectCurrent.floatValue = EditorGUILayout.Slider(k_WindAffectsCurrent, m_WindAffectCurrent.floatValue, 0.0f, 1.0f);
-                EditorGUILayout.PropertyField(m_WindFoamCurve);
-            }
-
-            // Decal controls
-            EditorGUILayout.LabelField("Rendering", EditorStyles.boldLabel);
-            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecals)
-            {
-                bool decalLayerEnabled = false;
-                using (new IndentLevelScope())
-                {
-                    decalLayerEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecalLayers;
-                    using (new EditorGUI.DisabledScope(!decalLayerEnabled))
-                    {
-                        EditorGUILayout.PropertyField(m_DecalLayerMask);
-                    }
-                }
-
-                if (!decalLayerEnabled)
-                {
-                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control which decals affect water surfaces. There is a performance cost of enabling this option.",
-                        MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
-                    EditorGUILayout.Space();
-                }
-            }
-
-            if (HDRenderPipeline.currentPipeline != null)
-            {
-                bool lightLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportLightLayers;
-                using (new IndentLevelScope())
-                {
-                    using (new EditorGUI.DisabledScope(!lightLayersEnabled))
-                    {
-                        EditorGUILayout.PropertyField(m_LightLayerMask);
-                    }
-                }
-
-                if (!lightLayersEnabled)
-                {
-                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
-                        MessageType.Info, HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportLightLayers");
-                    EditorGUILayout.Space();
-                }
-            }
-
-            // Under Water Rendering
-            EditorGUILayout.LabelField("Underwater", EditorStyles.boldLabel);
-            using (new IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_UnderWater);
-                using (new IndentLevelScope())
-                {
-                    if (m_UnderWater.boolValue)
-                    {
-                        // Bounds data
-                        if (!m_Infinite.boolValue)
-                        {
-                            EditorGUILayout.PropertyField(m_VolumeBounds);
-                            m_VolumeBounds.floatValue = Mathf.Max(m_VolumeBounds.floatValue, 0.0f);
-                        }
-                        else
-                            EditorGUILayout.PropertyField(m_VolumeDepth);
-
-                        // Priority
-                        EditorGUILayout.PropertyField(m_VolumePriority);
-                        m_VolumePriority.intValue = m_VolumePriority.intValue > 0 ? m_VolumePriority.intValue : 0;
-
-                        // Transition size
-                        EditorGUILayout.PropertyField(m_TransitionSize);
-                        m_TransitionSize.floatValue = Mathf.Max(m_TransitionSize.floatValue, 0.0f);
-
-                        // View distance
-                        EditorGUILayout.PropertyField(m_AbsorbtionDistanceMultiplier);
-                        m_AbsorbtionDistanceMultiplier.floatValue = Mathf.Max(m_AbsorbtionDistanceMultiplier.floatValue, 0.0f);
-                    }
-                }
-            }
+            // Apply the properties
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -505,6 +523,97 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(WaterSurface waterSurface, GizmoType gizmoType)
         {
+        }
+    }
+
+    class WaterSurfaceUI
+    {
+        public static readonly CED.IDrawer Inspector;
+
+        public static readonly string generalHeader = "General";
+        public static readonly string simulationHeader = "Simulation";
+        public static readonly string appearanceHeader = "Appearance";
+        public static readonly string refractionHeader = "Refraction";
+        public static readonly string scatteringHeader = "Scattering";
+        public static readonly string miscellaneousHeader = "Miscellaneous";
+
+        enum Expandable
+        {
+            General = 1 << 0,
+            Simulation = 1 << 1,
+            Appearance = 1 << 2,
+            Miscellaneous = 1 << 3,
+        }
+
+        internal enum AdditionalProperties
+        {
+            Global = 1 << 0,
+        }
+
+        readonly static ExpandedState<Expandable, WaterSurface> k_ExpandedState = new ExpandedState<Expandable, WaterSurface>(0, "HDRP");
+        readonly internal static AdditionalPropertiesState<AdditionalProperties, WaterSurface> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, WaterSurface>(0, "HDRP");
+
+        internal static void RegisterEditor(HDLightEditor editor)
+        {
+            k_AdditionalPropertiesState.RegisterEditor(editor);
+        }
+
+        internal static void UnregisterEditor(HDLightEditor editor)
+        {
+            k_AdditionalPropertiesState.UnregisterEditor(editor);
+        }
+
+        [SetAdditionalPropertiesVisibility]
+        internal static void SetAdditionalPropertiesVisibility(bool value)
+        {
+            if (value)
+                k_AdditionalPropertiesState.ShowAll();
+            else
+                k_AdditionalPropertiesState.HideAll();
+        }
+
+        internal static bool ShowAdditionalProperties()
+        {
+            return k_AdditionalPropertiesState[WaterSurfaceUI.AdditionalProperties.Global];
+        }
+
+        [MenuItem("CONTEXT/WaterSurface/Show All Additional Properties...", false, 100)]
+        static void ShowAllAdditionalProperties(MenuCommand menuCommand)
+        {
+            CoreRenderPipelinePreferences.Open();
+        }
+
+        [MenuItem("CONTEXT/WaterSurface/Reset", false, 0)]
+        static void ResetLight(MenuCommand menuCommand)
+        {
+            GameObject go = ((WaterSurface)menuCommand.context).gameObject;
+            Assert.IsNotNull(go);
+
+            WaterSurface waterSurface = go.GetComponent<WaterSurface>();
+            switch (waterSurface.surfaceType)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                    WaterSurfacePresets.ApplyWaterOceanPreset(waterSurface);
+                    break;
+                case WaterSurfaceType.River:
+                    WaterSurfacePresets.ApplyWaterRiverPreset(waterSurface);
+                    break;
+                case WaterSurfaceType.Pool:
+                    WaterSurfacePresets.ApplyWaterPoolPreset(waterSurface);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        static WaterSurfaceUI()
+        {
+            Inspector = CED.Group(
+                CED.FoldoutGroup(generalHeader, Expandable.General, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceGeneralSection),
+                CED.FoldoutGroup(simulationHeader, Expandable.Simulation, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceSimulationSection),
+                CED.FoldoutGroup(appearanceHeader, Expandable.Appearance, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceAppearanceSection),
+                CED.FoldoutGroup(miscellaneousHeader, Expandable.Miscellaneous, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceMiscellaneousSection)
+            );
         }
     }
 }

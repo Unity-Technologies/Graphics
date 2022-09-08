@@ -276,6 +276,10 @@ namespace UnityEditor.VFX
                     var graph = GetGraph();
                     graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
                 }
+                else
+                {
+                    needsComputeBounds = false;
+                }
             }
             if (hasStrip)
             {
@@ -354,6 +358,7 @@ namespace UnityEditor.VFX
                 const uint kThreadPerGroup = 64;
                 if (paddedCapacity > kThreadPerGroup)
                     paddedCapacity = (uint)((paddedCapacity + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+
                 return (paddedCapacity + 3u) & ~3u; // Align on 4 boundary
             }
         }
@@ -657,26 +662,6 @@ namespace UnityEditor.VFX
             return voteResult.Value;
         }
 
-        public bool IsFixedSize(out uint fixedSize)
-        {
-            fixedSize = 0;
-
-            if (hasStrip)
-            {
-                fixedSize = stripCapacity * (particlePerStripCount - 1);
-            }
-            else
-            {
-                bool hasKill = IsAttributeStored(VFXAttribute.Alive);
-                if (hasKill)
-                {
-                    fixedSize = capacity;
-                }
-            }
-
-            return fixedSize != 0;
-        }
-
         public override void FillDescs(
             VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
@@ -816,6 +801,9 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemInWorldSpace;
             }
 
+            //Particle systems allow use of instanced rendering
+            systemFlag |= VFXSystemFlag.SystemUsesInstancedRendering;
+
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
                 systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext]
@@ -865,7 +853,7 @@ namespace UnityEditor.VFX
                 {
                     globalIndirectBufferIndex = outBufferDescs.Count;
                     systemBufferMappings.Add(new VFXMapping("indirectBuffer0", outBufferDescs.Count));
-                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity + 1, stride = 4 });
                 }
 
                 int currentIndirectBufferIndex = globalIndirectBufferIndex == -1 ? 0 : 1;
@@ -884,14 +872,14 @@ namespace UnityEditor.VFX
                             if (perCamera)
                                 bufferName += "PerCamera";
                             systemBufferMappings.Add(new VFXMapping(bufferName, outBufferDescs.Count));
-                            outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = bufferStride });
+                            outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity + 1, stride = bufferStride });
                         }
 
                         if (culler.HasFeature(VFXOutputUpdate.Features.Sort))
                         {
                             culler.sortedBufferIndex = outBufferDescs.Count;
                             for (uint i = 0; i < bufferCount; ++i)
-                                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 4 });
+                                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity + 1, stride = 4 });
                         }
                         else
                             culler.sortedBufferIndex = culler.bufferIndex;
@@ -926,10 +914,10 @@ namespace UnityEditor.VFX
                 sortBufferAIndex = outBufferDescs.Count;
                 sortBufferBIndex = sortBufferAIndex + 1;
 
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 8 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity + 1, stride = 8 });
                 systemBufferMappings.Add(new VFXMapping("sortBufferA", sortBufferAIndex));
 
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 8 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity + 1, stride = 8 });
                 systemBufferMappings.Add(new VFXMapping("sortBufferB", sortBufferBIndex));
             }
 
@@ -1183,7 +1171,7 @@ namespace UnityEditor.VFX
                             if (capacity > 4096) // Add scratch buffer
                             {
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", outBufferDescs.Count);
-                                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 8 });
+                                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity + 1, stride = 8 });
                             }
                             else
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", -1); // No scratchBuffer needed
@@ -1381,6 +1369,18 @@ namespace UnityEditor.VFX
 
             m_GraphValuesLayout.SetUniformBlocks(orderedUniforms);
             m_GraphValuesLayout.SetPaddedSize(m_SystemUniformMapper);
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            if (boundsMode == BoundsSettingMode.Automatic)
+            {
+                if (CanBeCompiled())
+                    manager.RegisterError("WarningAutomaticBoundsFlagChange", VFXErrorType.Warning,
+                        $"Changing the bounds mode to Automatic modifies the Culling Flags on the Visual Effect Asset to Always recompute bounds and simulate.");
+            }
         }
     }
 }

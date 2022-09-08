@@ -6,7 +6,8 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+// Enable the denoising UI only on windows
+#if ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -27,6 +28,11 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_UseAOV;
         SerializedDataParameter m_Temporal;
 
+#if !(ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN)
+        // This is used to prevent users from spamming the denoising package install button
+        bool s_DisplayDenoisingButtonInstall = true;
+#endif
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<PathTracing>(serializedObject);
@@ -39,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN
             m_Denoising = Unpack(o.Find(x => x.denoising));
             m_UseAOV = Unpack(o.Find(x => x.useAOVs));
             m_Temporal = Unpack(o.Find(x => x.temporal));
@@ -74,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_MaxIntensity);
                         PropertyField(m_SkyImportanceSampling);
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN
                         PropertyField(m_Denoising);
                         var denoiserType = m_Denoising.value.GetEnumValue<DenoiserType>();
                         bool supported = Denoiser.IsDenoiserTypeSupported(denoiserType);
@@ -98,10 +104,18 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                             }
                         }
 #else
-                        CoreEditorUtils.DrawFixMeBox("Path Tracing Denoising is not active in this project. To activate it, install the Unity Denoising package.", MessageType.Info, () =>
+                        if (s_DisplayDenoisingButtonInstall)
                         {
-                            PackageManager.Client.Add("com.unity.rendering.denoising");
-                        });
+                            CoreEditorUtils.DrawFixMeBox("Path Tracing Denoising is not active in this project. To activate it, install the Unity Denoising package.", MessageType.Info, () =>
+                            {
+                                PackageManager.Client.Add("com.unity.rendering.denoising");
+                                s_DisplayDenoisingButtonInstall = false;
+                            });
+                        }
+                        else
+                        {
+                            EditorGUILayout.HelpBox("Installing the denoising package. Please wait...", MessageType.Info, wide: true);
+                        }
 #endif
                     }
 

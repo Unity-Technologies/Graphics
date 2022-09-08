@@ -76,8 +76,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
-        /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Target</param>
+        /// <param name="source">Source render target.</param>
+        /// <param name="destination">Destination render target.</param>
+        /// <param name="downsampling">The downsampling method to use.</param>
         [Obsolete("Use RTHandles for source and destination.")]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
@@ -90,8 +91,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
-        /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Target</param>
+        /// <param name="source">Source render target.</param>
+        /// <param name="destination">Destination render target.</param>
+        /// <param name="downsampling">The downsampling method to use.</param>
         public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
             this.source = source;
@@ -132,8 +134,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.samplingMaterial = m_SamplingMaterial;
             m_PassData.copyColorMaterial = m_CopyColorMaterial;
             m_PassData.downsamplingMethod = m_DownsamplingMethod;
-            m_PassData.clearFlag = clearFlag;
-            m_PassData.clearColor = clearColor;
             m_PassData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
             var cmd = renderingData.commandBuffer;
@@ -154,8 +154,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var samplingMaterial = passData.samplingMaterial;
             var copyColorMaterial = passData.copyColorMaterial;
             var downsamplingMethod = passData.downsamplingMethod;
-            var clearFlag = passData.clearFlag;
-            var clearColor = passData.clearColor;
             var sampleOffsetShaderHandle = passData.sampleOffsetShaderHandle;
 
             if (samplingMaterial == null)
@@ -166,10 +164,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            // TODO RENDERGRAPH: cmd.Blit is not compatible with RG but RenderingUtils.Blits would still call into it in some cases
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
-                ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
                 switch (downsamplingMethod)
                 {
                     case Downsampling.None:
@@ -199,8 +195,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal Material samplingMaterial;
             internal Material copyColorMaterial;
             internal Downsampling downsamplingMethod;
-            internal ClearFlag clearFlag;
-            internal Color clearColor;
             internal int sampleOffsetShaderHandle;
         }
 
@@ -221,8 +215,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
                 passData.downsamplingMethod = m_DownsamplingMethod;
-                passData.clearFlag = clearFlag;
-                passData.clearColor = clearColor;
                 passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
@@ -234,25 +226,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 });
             }
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Set Global Copy Color", out var passData, base.profilingSampler))
-            {
-                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
-
-                passData.destination = builder.UseColorBuffer(destination, 0);
-                passData.cmd = renderingData.commandBuffer;
-
-                // TODO RENDERGRAPH: culling? force culling off for testing
-                builder.AllowPassCulling(false);
-
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
-                {
-                    data.cmd.SetGlobalTexture("_CameraOpaqueTexture", data.destination);
-                });
-            }
+            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraOpaqueTexture", destination, "Set Camera Opaque Texture");
 
             return destination;
-
         }
 
         /// <inheritdoc/>

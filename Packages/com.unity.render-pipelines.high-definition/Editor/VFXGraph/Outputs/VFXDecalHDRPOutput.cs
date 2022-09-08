@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.VFX.HDRP
 {
+    [VFXInfo]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
         public override string name
@@ -107,7 +108,7 @@ namespace UnityEditor.VFX.HDRP
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specifies the layer mask of the decal.")]
-        private DecalLayerEnum decalLayer = DecalLayerEnum.DecalLayerDefault;
+        private RenderingLayerMask decalLayer = RenderingLayerMask.DecalLayerDefault;
 
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
 

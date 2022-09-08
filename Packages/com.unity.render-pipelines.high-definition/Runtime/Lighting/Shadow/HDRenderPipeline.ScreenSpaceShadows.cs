@@ -234,11 +234,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HDShadowFilteringQuality.High:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_HIGH");
                     break;
-                case HDShadowFilteringQuality.VeryHigh:
-                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_VERY_HIGH");
-                    break;
                 default:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
+                    break;
+            }
+
+            switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality)
+            {
+                case HDAreaShadowFilteringQuality.Medium:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("AREA_SHADOW_MEDIUM");
+                    break;
+                case HDAreaShadowFilteringQuality.High:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("AREA_SHADOW_HIGH");
+                    break;
+                default:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("AREA_SHADOW_MEDIUM");
                     break;
             }
         }

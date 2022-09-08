@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MotionVectors,
             IsSky,
             PostProcessInput,
+            RenderingLayerMask,
         }
 
         [SerializeField]
@@ -50,11 +51,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Sample-Buffer");
 
+
+        public static List<HDSampleBufferNode> nodeList = new();
+
         public HDSampleBufferNode()
         {
             name = "HD Sample Buffer";
             synonyms = new string[] { "normal", "motion vector", "smoothness", "postprocessinput", "issky" };
             UpdateNodeAfterDeserialization();
+
+            nodeList.Add(this);
+        }
+
+        ~HDSampleBufferNode()
+        {
+            nodeList.Remove(this);
         }
 
         public override bool hasPreview { get { return true; } }
@@ -87,6 +98,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 case BufferType.PostProcessInput:
                     AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Color.black, ShaderStageCapability.Fragment));
                     channelCount = 4;
+                    break;
+                case BufferType.RenderingLayerMask:
+                    AddSlot(new Vector1MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
+                    channelCount = 1;
                     break;
             }
 
@@ -146,6 +161,10 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("return LOAD_TEXTURE2D_X_LOD(_CustomPostProcessInput, pixelCoords, 0);");
                                 break;
+                            case BufferType.RenderingLayerMask:
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine("return _EnableRenderingLayers ? UnpackMeshRenderingLayerMask(LOAD_TEXTURE2D_X_LOD(_RenderingLayerMaskTexture, pixelCoords, 0)) : 0;");
+                                break;
                             default:
                                 s.AppendLine("return 0.0;");
                                 break;
@@ -190,5 +209,41 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool RequiresDepthTexture(ShaderStageCapability stageCapability) => true;
         public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
+
+
+        static readonly ShaderMessage renderingLayerWarning = new ShaderMessage("Rendering Layer Mask Buffer is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning);
+
+        public override void ValidateNode()
+        {
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer == false && bufferType == BufferType.RenderingLayerMask)
+                owner.messageManager?.AddOrAppendError(owner, objectId, renderingLayerWarning);
+        }
+
+        private void UpdateWarningBadge(bool readableBuffer)
+        {
+            if (owner == null) return;
+
+            if (!readableBuffer && bufferType == BufferType.RenderingLayerMask)
+                owner.messageManager?.AddOrAppendError(owner, objectId, renderingLayerWarning);
+            else
+                owner.ClearErrorsForNode(this);
+        }
+
+        internal static void OnRenderingLayerMaskBufferChange(bool readableBuffer)
+        {
+            foreach (var node in nodeList)
+            {
+                if (node != null)
+                    node.UpdateWarningBadge(readableBuffer);
+            }
+
+            EditorApplication.delayCall += () => {
+                foreach (var node in nodeList)
+                {
+                    if (node != null && node.owner?.owner != null)
+                        node.owner.owner.Validate();
+                }
+            };
+        }
     }
 }

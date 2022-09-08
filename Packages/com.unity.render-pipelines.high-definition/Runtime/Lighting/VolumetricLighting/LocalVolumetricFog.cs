@@ -16,6 +16,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public Color albedo;
         /// <summary>Mean free path, in meters: [1, inf].</summary>
         public float meanFreePath; // Should be chromatic - this is an optimization!
+
+        /// <summary>
+        /// Specifies how the fog in the volume will interact with the fog.
+        /// </summary>
+        public LocalVolumetricFogBlendingMode blendingMode;
+
+        /// <summary>
+        /// Rendering priority of the volume, higher priority will be rendered first.
+        /// </summary>
+        public int priority;
+
         /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
         [FormerlySerializedAs("asymmetry")]
         public float anisotropy;   // . Not currently available for Local Volumetric Fog
@@ -59,6 +70,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
         public LocalVolumetricFogFalloffMode falloffMode;
 
+        /// <summary>The mask mode to use when writing this volume in the volumetric fog.</summary>
+        public LocalVolumetricFogMaskMode maskMode;
+
+        /// <summary>The material used to mask the local volumetric fog when the mask mode is set to Material. The material needs to use the "Fog Volume" material type in Shader Graph.</summary>
+        public Material materialMask;
+
         /// <summary>Minimum fog distance you can set in the meanFreePath parameter</summary>
         internal const float kMinFogDistance = 0.05f;
 
@@ -70,27 +87,31 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             albedo = color;
             meanFreePath = _meanFreePath;
+            blendingMode = LocalVolumetricFogBlendingMode.Additive;
+            priority = 0;
             anisotropy = _anisotropy;
 
             volumeMask = null;
+            materialMask = null;
             textureScrollingSpeed = Vector3.zero;
             textureTiling = Vector3.one;
             textureOffset = textureScrollingSpeed;
 
             size = Vector3.one;
 
-            positiveFade = Vector3.zero;
-            negativeFade = Vector3.zero;
+            positiveFade = Vector3.one * 0.1f;
+            negativeFade = Vector3.one * 0.1f;
             invertFade = false;
 
             distanceFadeStart = 10000;
             distanceFadeEnd = 10000;
 
             falloffMode = LocalVolumetricFogFalloffMode.Linear;
+            maskMode = LocalVolumetricFogMaskMode.Texture;
 
-            m_EditorPositiveFade = Vector3.zero;
-            m_EditorNegativeFade = Vector3.zero;
-            m_EditorUniformFade = 0;
+            m_EditorPositiveFade = positiveFade;
+            m_EditorNegativeFade = negativeFade;
+            m_EditorUniformFade = 0.1f;
             m_EditorAdvancedFade = false;
         }
 
@@ -128,14 +149,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
 
-            var atlas = LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas();
-            data.atlasOffset = LocalVolumetricFogManager.manager.volumeAtlas.GetTextureOffset(volumeMask);
-            data.atlasOffset.x /= (float)atlas.width;
-            data.atlasOffset.y /= (float)atlas.height;
-            data.atlasOffset.z /= (float)atlas.volumeDepth;
-            data.useVolumeMask = volumeMask != null ? 1 : 0;
-            float volumeMaskSize = volumeMask != null ? (float)volumeMask.width : 0.0f; // Volume Mask Textures are always cubic
-            data.maskSize = new Vector4(volumeMaskSize / atlas.width, volumeMaskSize / atlas.height, volumeMaskSize / atlas.volumeDepth, volumeMaskSize);
+            data.blendingMode = blendingMode;
+            data.albedo = (Vector3)(Vector4)albedo;
+
             data.textureScroll = textureOffset;
             data.textureTiling = textureTiling;
 
@@ -172,11 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Local Volumetric Fog parameters.</summary>
         public LocalVolumetricFogArtistParameters parameters = new LocalVolumetricFogArtistParameters(Color.white, 10.0f, 0.0f);
 
-        private Texture previousVolumeMask = null;
-#if UNITY_EDITOR
-        private int volumeMaskHash = 0;
-#endif
-
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
@@ -184,25 +195,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Gather and Update any parameters that may have changed.</summary>
         internal void PrepareParameters(float time)
         {
-            //Texture has been updated notify the manager
-            bool updated = previousVolumeMask != parameters.volumeMask;
-#if UNITY_EDITOR
-            int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
-            updated |= newMaskHash != volumeMaskHash;
-#endif
-
-            if (updated)
-            {
-                if (parameters.volumeMask != null)
-                    LocalVolumetricFogManager.manager.AddTextureIntoAtlas(parameters.volumeMask);
-
-                NotifyUpdatedTexure();
-                previousVolumeMask = parameters.volumeMask;
-#if UNITY_EDITOR
-                volumeMaskHash = newMaskHash;
-#endif
-            }
-
             parameters.Update(time);
         }
 
@@ -274,10 +266,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
             SceneView.duringSceneGui -= UpdateLocalVolumetricFogVisibilityPrefabStage;
 #endif
-        }
-
-        private void Update()
-        {
         }
 
         private void OnValidate()

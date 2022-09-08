@@ -33,17 +33,25 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Increment coordinates to the next overlay.
+        /// Increment coordinates to the next overlay and return the current overlay rect.
         /// </summary>
-        public void Next()
+        /// <param name="aspect">Aspect of the current overlay.</param>
+        /// <returns>Returns a rect of the current overlay.</returns>
+        public Rect Next(float aspect = 1.0f)
         {
-            x += overlaySize;
-            // Go to next line if it goes outside the screen.
-            if ((x + overlaySize) > m_ScreenWidth)
+            int overlayWidth = (int)(overlaySize * aspect);
+
+            if ((x + overlayWidth) > m_ScreenWidth && x > m_InitialPositionX)
             {
                 x = m_InitialPositionX;
                 y -= overlaySize;
             }
+
+            Rect rect = new Rect(x, y, overlayWidth, overlaySize);
+
+            x += overlayWidth;
+
+            return rect;
         }
 
         /// <summary>

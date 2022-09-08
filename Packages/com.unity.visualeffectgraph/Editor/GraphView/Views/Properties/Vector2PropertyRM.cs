@@ -68,6 +68,8 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate()
         {
+            if (m_VectorField != null)
+                m_VectorField.indeterminate = indeterminate;
             if (m_Slider != null)
                 m_Slider.indeterminate = indeterminate;
         }

@@ -9,6 +9,7 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -203,13 +204,16 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (Time.renderedFrameCount > 0)
                 {
+                    if (!HDRenderPipeline.isReady)
+                        return;
+
                     bool reimportAllHDShaderGraphsTriggered = false;
                     bool reimportAllMaterialsTriggered = false;
                     bool fileExist = true;
                     // We check the file existence only once to avoid IO operations every frame.
                     if (s_NeedToCheckProjSettingExistence)
                     {
-                        fileExist = System.IO.File.Exists("ProjectSettings/HDRPProjectSettings.asset");
+                        fileExist = System.IO.File.Exists(HDProjectSettings.filePath);
                         s_NeedToCheckProjSettingExistence = false;
                     }
 
@@ -331,44 +335,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void RegisterReferencedDiffusionProfiles(Material material)
         {
-            void AddDiffusionProfileToSettings(string propName)
+            foreach (var nameID in GetShaderDiffusionProfileProperties(material.shader))
             {
-                if (!material.HasProperty(propName))
-                    return;
+                if (!material.HasProperty(nameID))
+                    continue;
 
-                var diffusionProfileAsset = material.GetVector(propName);
-                string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
-                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(assetPath);
-
+                var diffusionProfile = GetDiffusionProfileAsset(material, nameID);
                 HDRenderPipelineGlobalSettings.instance.TryAutoRegisterDiffusionProfile(diffusionProfile);
-            }
-
-            AddDiffusionProfileToSettings("_DiffusionProfileAsset");
-
-            // ShaderGraph can reference custom diffusion profiles.
-            var shader = material.shader;
-            if (shader.IsShaderGraphAsset())
-            {
-                int propertyCount = ShaderUtil.GetPropertyCount(shader);
-                for (int propIdx = 0; propIdx < propertyCount; ++propIdx)
-                {
-                    var attributes = shader.GetPropertyAttributes(propIdx);
-                    bool hasDiffusionProfileAttribute = false;
-                    foreach (var attribute in attributes)
-                    {
-                        if (attribute == "DiffusionProfile")
-                        {
-                            propIdx++;
-                            hasDiffusionProfileAttribute = true;
-                            break;
-                        }
-                    }
-
-                    var type = ShaderUtil.GetPropertyType(shader, propIdx);
-                    if (hasDiffusionProfileAttribute && type == ShaderUtil.ShaderPropertyType.Vector)
-                        AddDiffusionProfileToSettings(ShaderUtil.GetPropertyName(shader, propIdx));
-                }
             }
         }
 
@@ -404,11 +377,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // Materials (.mat) post processing:
-                if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
                 if (material == null)
                     material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    continue;
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
@@ -500,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: Maybe systematically remove from s_CreateAssets just in case
 
                 //upgrade
-                while (assetVersion.version < latestVersion)
+                while (assetVersion.version >= 0 && assetVersion.version < latestVersion)
                 {
                     k_Migrations[assetVersion.version](material, id);
                     assetVersion.version++;

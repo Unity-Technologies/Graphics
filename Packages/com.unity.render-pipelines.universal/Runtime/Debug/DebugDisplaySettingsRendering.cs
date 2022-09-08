@@ -375,6 +375,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
+
+        /// <inheritdoc/>
         public bool AreAnySettingsActive => (postProcessingDebugMode != DebugPostProcessingMode.Auto) ||
         (fullScreenDebugMode != DebugFullScreenMode.None) ||
         (sceneOverrideMode != DebugSceneOverrideMode.None) ||
@@ -383,13 +385,16 @@ namespace UnityEngine.Rendering.Universal
         !enableMsaa ||
         !enableHDR;
 
+        /// <inheritdoc/>
         public bool IsPostProcessingAllowed => (postProcessingDebugMode != DebugPostProcessingMode.Disabled) &&
         (sceneOverrideMode == DebugSceneOverrideMode.None) &&
         (mipInfoMode == DebugMipInfoMode.None);
 
+        /// <inheritdoc/>
         public bool IsLightingActive => (sceneOverrideMode == DebugSceneOverrideMode.None) &&
         (mipInfoMode == DebugMipInfoMode.None);
 
+        /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
         {
             switch (sceneOverrideMode)
@@ -412,6 +417,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         IDebugDisplaySettingsPanelDisposable IDebugDisplaySettingsData.CreatePanel()
         {
             return new SettingsPanel(this);

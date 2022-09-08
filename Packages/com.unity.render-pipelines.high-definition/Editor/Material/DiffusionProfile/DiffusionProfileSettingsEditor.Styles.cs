@@ -1,60 +1,41 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     sealed partial class DiffusionProfileSettingsEditor
     {
-        sealed class Styles
+        static class Styles
         {
-            public readonly GUIContent profilePreview0 = new GUIContent("Diffusion Profile Preview");
-            public readonly GUIContent profilePreview1 = new GUIContent("Shows the fraction of light scattered from the source (center).");
-            public readonly GUIContent profilePreview2 = new GUIContent("The distance to the boundary of the image corresponds to the Max Radius.");
-            public readonly GUIContent profilePreview3 = new GUIContent("Note that the intensity of pixels around the center may be clipped.");
-            public readonly GUIContent transmittancePreview0 = new GUIContent("Transmittance Preview");
-            public readonly GUIContent transmittancePreview1 = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
-            public readonly GUIContent transmittancePreview2 = new GUIContent("Can be viewed as a cross section of a slab of material illuminated by white light from the left.");
-            public readonly GUIContent profileScatteringColor = new GUIContent("Scattering Color", "Determines the shape of the profile. It should be similar to the diffuse color of the material.");
-            public readonly GUIContent profileScatteringDistanceMultiplier = new GUIContent("Multiplier", "Multiplier applied to the Scattering Color. Determines the effective radius of the filter.");
-            public readonly GUIContent profileTransmissionTint = new GUIContent("Transmission tint", "Color which tints transmitted light. Alpha is ignored.");
-            public readonly GUIContent profileMaxRadius = new GUIContent("Max Radius", "Effective radius of the filter (in millimeters). The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Reducing the distance increases the sharpness of the result.");
-            public readonly GUIContent texturingMode = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] texturingModeOptions = new GUIContent[2]
+            public static readonly GUIContent scatteringLabel = EditorGUIUtility.TrTextContent("Scattering");
+            public static readonly GUIContent profileScatteringColor = EditorGUIUtility.TrTextContent("Scattering Color", "Controls the shape of the Diffusion Profile, and should be similar to the diffuse color of the Material.");
+            public static readonly GUIContent profileScatteringDistanceMultiplier = EditorGUIUtility.TrTextContent("Multiplier", "Acts as a multiplier on the scattering color to control how far light travels below the surface, and controls the effective radius of the filter.");
+            public static readonly GUIContent profileTransmissionTint = EditorGUIUtility.TrTextContent("Transmission Tint", "Specifies the tint of the translucent lighting transmitted through objects.");
+            public static readonly GUIContent profileMaxRadius = EditorGUIUtility.TrTextContent("Max Radius", "The maximum radius of the effect you define in Scattering Color and Multiplier.");
+
+            public static readonly GUIContent profileWorldScale = EditorGUIUtility.TrTextContent("World Scale", "Controls the scale of Unity's world units for this Diffusion Profile.");
+            public static readonly GUIContent profileIor = EditorGUIUtility.TrTextContent("Index of Refraction", "Controls the refractive behavior of the Material, where larger values increase the intensity of specular reflection.");
+
+            public static readonly GUIContent subsurfaceScatteringLabel = EditorGUIUtility.TrTextContent("Subsurface Scattering only");
+            public static readonly GUIContent texturingMode = EditorGUIUtility.TrTextContent("Texturing Mode", "Specifies when HDRP applies the albedo of the Material.");
+
+            public static readonly GUIContent transmissionLabel = EditorGUIUtility.TrTextContent("Transmission only");
+            public static readonly GUIContent profileTransmissionMode = EditorGUIUtility.TrTextContent("Transmission Mode", "Specifies how HDRP calculates light transmission.");
+            public static readonly GUIContent profileMinMaxThickness = EditorGUIUtility.TrTextContent("Thickness Remap Values (Min-Max)", "Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map.");
+            public static readonly GUIContent profileThicknessRemap = EditorGUIUtility.TrTextContent("Thickness Remap (Min-Max)", "Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map.");
+
+
+            public static readonly GUIContent profilePreview0 = EditorGUIUtility.TrTextContent("Diffusion Profile Preview");
+            public static readonly GUIContent profilePreview1 = EditorGUIUtility.TrTextContent("Displays the fraction of lights scattered from the source located in the center.");
+            public static readonly GUIContent transmittancePreview0 = EditorGUIUtility.TrTextContent("Transmittance Preview");
+            public static readonly GUIContent transmittancePreview1 = EditorGUIUtility.TrTextContent("Displays the fraction of light passing through the GameObject depending on the values from the Thickness Remap (mm).");
+            public static GUIStyle miniBoldButton => s_MiniBoldButton.Value;
+            static readonly Lazy<GUIStyle> s_MiniBoldButton = new ( () => new GUIStyle(GUI.skin.label)
             {
-                new GUIContent("Pre- and post-scatter", "HDRP performs texturing during both the lighting and the subsurface scattering passes. This blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no subsurface scattering lighting."),
-                new GUIContent("Post-scatter",          "HDRP performs texturing only during the subsurface scattering pass. Preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture contains subsurface scattering lighting (for example a photo of skin).")
-            };
-            public readonly GUIContent profileTransmissionMode = new GUIContent("Transmission Mode", "Configures the simulation of light passing through thin objects. Depends on the thickness value (which HDRP applies in the normal direction).");
-            public readonly GUIContent[] transmissionModeOptions = new GUIContent[2]
-            {
-                new GUIContent("Thick Object",      "Choose this mode for thick objects. For performance reasons, transmitted light ignores occlusion (shadows)."),
-                new GUIContent("Thin Object",       "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface.")
-            };
-            public readonly GUIContent profileMinMaxThickness = new GUIContent("Thickness Remap Values (Min-Max)", "Shows the values of the thickness remap below (in millimeters).");
-            public readonly GUIContent profileThicknessRemap = new GUIContent("Thickness Remap (Min-Max)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
-            public readonly GUIContent profileWorldScale = new GUIContent("World Scale", "Size of the world unit in meters.");
-            public readonly GUIContent profileIor = new GUIContent("Index of Refraction", "Select the index of refraction for this Diffusion Profile. For reference, skin is 1.4 and most materials are between 1.3 and 1.5.");
-            public readonly GUIStyle centeredMiniBoldLabel = new GUIStyle(GUI.skin.label);
-
-            public readonly GUIContent SubsurfaceScatteringLabel = new GUIContent("Subsurface Scattering only");
-            public readonly GUIContent TransmissionLabel = new GUIContent("Transmission only");
-
-
-            public Styles()
-            {
-                centeredMiniBoldLabel.alignment = TextAnchor.MiddleCenter;
-                centeredMiniBoldLabel.fontSize = 10;
-                centeredMiniBoldLabel.fontStyle = FontStyle.Bold;
-            }
-        }
-
-        static Styles s_Styles;
-
-        // Can't use a static initializer in case we need to create GUIStyle in the Styles class as
-        // these can only be created with an active GUI rendering context
-        void CheckStyles()
-        {
-            if (s_Styles == null)
-                s_Styles = new Styles();
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 10,
+                fontStyle = FontStyle.Bold
+            });
         }
     }
 }

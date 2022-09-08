@@ -67,7 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
-        LocalVolumetricFog, // WARNING: Currently lightlistbuild.compute assumes Local Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after LocalVolumetricFog. TODO: Fix .compute code.
         Count
     }
 
@@ -235,9 +234,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Decals.</summary>
         Decal = (1 << LightCategory.Decal),
         /// <summary>Local Volumetric Fog.</summary>
-        LocalVolumetricFog = (1 << LightCategory.LocalVolumetricFog),
+        [Obsolete("Unused")]
+        LocalVolumetricFog = 0,
         /// <summary>Local Volumetric Fog.</summary>
-        [Obsolete("Use LocalVolumetricFog", false)]
+        [Obsolete("Unused", true)]
         [InspectorName("Local Volumetric Fog")]
         DensityVolumes = LocalVolumetricFog
     };
@@ -264,11 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int g_iNumSamplesMSAA;
         public uint _EnvLightIndexShift;
         public uint _DecalIndexShift;
-
-        public uint _LocalVolumetricFogIndexShift;
-        public uint _Pad0_SVLL;
-        public uint _Pad1_SVLL;
-        public uint _Pad2_SVLL;
     }
 
     internal struct ProcessedProbeData
@@ -284,8 +279,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxPunctualLightsOnScreen = 2048;
         internal const int k_MaxAreaLightsOnScreen = 1024;
         internal const int k_MaxDecalsOnScreen = 2048;
-        internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        internal const int k_MaxEnvLightsOnScreen = 1024;
+        internal const int k_MaxPlanarReflectionsOnScreen = 16;
+        internal const int k_MaxCubeReflectionsOnScreen = 64;
         internal const int k_MaxLightsPerClusterCell = 24;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
@@ -311,33 +306,21 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxAreaLightsOnScreen;
         int m_MaxDecalsOnScreen;
         int m_MaxLightsOnScreen;
+        int m_MaxPlanarReflectionsOnScreen;
+        int m_MaxCubeReflectionsOnScreen;
         int m_MaxEnvLightsOnScreen;
-        int m_MaxPlanarReflectionOnScreen;
 
         internal class LightLoopTextureCaches
         {
             // Structure for cookies used by directional and spotlights
             public LightCookieManager lightCookieManager { get; private set; }
-            public ReflectionProbeCache reflectionProbeCache { get; private set; }
-            public PlanarReflectionProbeCache reflectionPlanarProbeCache { get; private set; }
-            public List<Matrix4x4> env2DCaptureVP { get; private set; }
-            public List<Vector4> env2DCaptureForward { get; private set; }
-            public List<Vector4> env2DAtlasScaleOffset { get; private set; } = new List<Vector4>();
+            public ReflectionProbeTextureCache reflectionProbeTextureCache { get; private set; }
 
             public void Initialize(HDRenderPipelineAsset hdrpAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iBLFilterBSDFArray)
             {
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
                 lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
-
-                env2DCaptureVP = new List<Matrix4x4>();
-                env2DCaptureForward = new List<Vector4>();
-                for (int i = 0, c = Mathf.Max(1, lightLoopSettings.maxPlanarReflectionOnScreen); i < c; ++i)
-                {
-                    env2DCaptureVP.Add(Matrix4x4.identity);
-                    env2DCaptureForward.Add(Vector4.zero);
-                    env2DAtlasScaleOffset.Add(Vector4.zero);
-                }
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
                 GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionProbeFormat == ReflectionAndPlanarProbeFormat.R11G11B10 ?
@@ -349,30 +332,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    probeCacheFormat = GraphicsFormat.RGB_BC6H_SFloat;
                 //}
 
-                int reflectionCubeSize = lightLoopSettings.reflectionProbeCacheSize;
-                int reflectionCubeResolution = (int)lightLoopSettings.reflectionCubemapSize;
-                if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionCubeSize, reflectionCubeResolution, iBLFilterBSDFArray.Length) > k_MaxCacheSize)
-                    reflectionCubeSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionCubeResolution, iBLFilterBSDFArray.Length);
-                reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
+                Vector2Int cacheDim = GlobalLightLoopSettings.GetReflectionProbeTextureCacheDim(lightLoopSettings.reflectionProbeTexCacheSize);
 
-                // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
-                GraphicsFormat planarProbeCacheFormat = (GraphicsFormat)hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-                int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionAtlasSize;
-                reflectionPlanarProbeCache = new PlanarReflectionProbeCache(defaultResources, (IBLFilterGGX)iBLFilterBSDFArray[0], reflectionPlanarResolution, planarProbeCacheFormat, true);
+                reflectionProbeTextureCache = new ReflectionProbeTextureCache(defaultResources, iBLFilterBSDFArray, cacheDim.x, cacheDim.y, probeCacheFormat,
+                    lightLoopSettings.reflectionProbeDecreaseResToFit, lightLoopSettings.reflectionProbeTexLastValidCubeMip, lightLoopSettings.reflectionProbeTexLastValidPlanarMip);
             }
 
             public void Cleanup()
             {
-                reflectionProbeCache.Release();
-                reflectionPlanarProbeCache.Release();
+                reflectionProbeTextureCache.Release();
                 lightCookieManager.Release();
             }
 
             public void NewFrame()
             {
                 lightCookieManager.NewFrame();
-                reflectionProbeCache.NewFrame();
-                reflectionPlanarProbeCache.NewFrame();
+                reflectionProbeTextureCache.NewFrame();
+            }
+
+            public void NewRender()
+            {
+                reflectionProbeTextureCache.NewRender();
             }
         }
 
@@ -450,6 +430,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
+        EnvLightReflectionData m_EnvLightReflectionData = new EnvLightReflectionData();
+
         // This control if we use cascade borders for directional light by default
         static internal readonly bool s_UseCascadeBorders = true;
 
@@ -507,7 +489,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDGpuLightsBuilder gpuLightList => m_GpuLightsBuilder;
 
         int m_TotalLightCount = 0;
-        int m_LocalVolumetricFogCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -730,9 +711,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen;
             m_MaxAreaLightsOnScreen = lightLoopSettings.maxAreaLightsOnScreen;
             m_MaxDecalsOnScreen = lightLoopSettings.maxDecalsOnScreen;
-            m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
+            m_MaxPlanarReflectionsOnScreen = Math.Min(lightLoopSettings.maxPlanarReflectionOnScreen, HDRenderPipeline.k_MaxPlanarReflectionsOnScreen);
+            m_MaxCubeReflectionsOnScreen = Math.Min(lightLoopSettings.maxCubeReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
+            m_MaxEnvLightsOnScreen = m_MaxPlanarReflectionsOnScreen + m_MaxCubeReflectionsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
-            m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
 
             // Cluster
             {
@@ -831,10 +813,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[] { "SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH" };
+            var shadowKeywords = new[] { "SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH" };
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
+
+            var areaShadowKeywords = new[] { "AREA_SHADOW_MEDIUM", "AREA_SHADOW_HIGH" };
+            foreach (var p in areaShadowKeywords)
+                Shader.DisableKeyword(p);
+            Shader.EnableKeyword(areaShadowKeywords[(int)shadowParams.areaShadowFilteringQuality]);
 
             // Setup screen space shadow map usage.
             // Screen space shadow map are currently only used with Raytracing and are a global keyword.
@@ -906,6 +893,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void LightLoopNewRender()
         {
             m_ScreenSpaceShadowsUnion.Clear();
+
+            m_TextureCaches.NewRender();
         }
 
         void LightLoopNewFrame(CommandBuffer cmd, HDCamera hdCamera)
@@ -932,6 +921,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_TextureCaches.lightCookieManager.ResetAllocator();
                 m_TextureCaches.lightCookieManager.ClearAtlasTexture(cmd);
+            }
+
+            if (m_DebugDisplaySettings.data.lightingDebugSettings.clearReflectionProbeAtlas)
+            {
+                m_TextureCaches.reflectionProbeTextureCache.Clear(cmd);
             }
 
             bool apvIsEnabled = IsAPVEnabled();
@@ -1148,7 +1142,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
-            Vector4 atlasScaleOffset = Vector4.zero;
 
             // 31 bits index, 1 bit cache type
             var envIndex = int.MinValue;
@@ -1193,7 +1186,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     planarTextureFilteringParameters.captureFarPlane = probe.settings.cameraSettings.frustum.farClipPlane;
 
                     // Fetch the slice and do the filtering
-                    var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, ref planarTextureFilteringParameters, out int fetchIndex);
+                    var scaleOffset = m_TextureCaches.reflectionProbeTextureCache.FetchPlanarReflectionProbe(cmd, probe, ref planarTextureFilteringParameters, out int fetchIndex);
 
                     // We don't need to provide the capture position
                     // It is already encoded in the 'worldToCameraRHSMatrix'
@@ -1203,23 +1196,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
 
                     // If the max number of planar on screen is reached
-                    if (fetchIndex >= m_MaxPlanarReflectionOnScreen)
+                    if (fetchIndex >= m_MaxPlanarReflectionsOnScreen)
                     {
-                        Debug.LogWarning("Maximum planar reflection probe on screen reached. To fix this error, increase the maximum number of planar reflections on screen in the HDRP asset.");
+                        Debug.LogWarning("Maximum planar reflection probes on screen reached. To fix this error, increase the 'Maximum Planar Reflection Probes on Screen' property in the HDRP asset.");
                         break;
                     }
-
-                    atlasScaleOffset = scaleOffset;
-
-                    m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
-                    m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
 
                     // Propagate the smoothness information to the env light data
                     envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
 
                     var capturedForwardWS = renderData.captureRotation * Vector3.forward;
                     //capturedForwardWS.z *= -1; // Transform to RHS standard
-                    m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
+
+                    SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
 
                     //We must use the setting resolved from the probe, not from the frameSettings.
                     //Using the frmaeSettings from the probe is wrong because it can be disabled (not ticking on using custom frame settings in the probe reflection component)
@@ -1231,10 +1220,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case HDAdditionalReflectionData reflectionData:
                 {
-                    uint textureHash = reflectionData.GetTextureHash();
-                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture, textureHash);
+                    // Fetch the slice and do the filtering
+                    var scaleOffset = m_TextureCaches.reflectionProbeTextureCache.FetchCubeReflectionProbe(cmd, probe, out int fetchIndex);
+
                     // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                    envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
+                    envIndex = scaleOffset == Vector4.zero ? int.MinValue : (fetchIndex + 1);
+
+                    // If the max number of reflection probes on screen is reached
+                    if (fetchIndex >= m_MaxCubeReflectionsOnScreen)
+                    {
+                        Debug.LogWarning("Maximum reflection probes on screen reached. To fix this error, increase the 'Maximum Cube Reflection Probes on Screen' property in the HDRP asset.");
+                        break;
+                    }
+
+                    SetCubeReflectionData(fetchIndex, ref scaleOffset);
 
                     // Calculate settings to use for the probe
                     var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
@@ -1695,9 +1694,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var totalProbes = cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count;
 
-            m_ProcessedReflectionProbeData.Resize(cullResults.visibleReflectionProbes.Length);
-            m_ProcessedPlanarProbeData.Resize(hdProbeCullingResults.visibleProbes.Count);
-
             int maxProbeCount = Math.Min(totalProbes, m_MaxEnvLightsOnScreen);
             UpdateSortKeysArray(maxProbeCount);
 
@@ -1709,6 +1705,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (enableReflectionProbes)
             {
+                m_ProcessedReflectionProbeData.Resize(cullResults.visibleReflectionProbes.Length);
+
                 for (int probeIndex = 0; probeIndex < cullResults.visibleReflectionProbes.Length; probeIndex++)
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
@@ -1747,6 +1745,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (enablePlanarProbes)
             {
+                m_ProcessedPlanarProbeData.Resize(hdProbeCullingResults.visibleProbes.Count);
+
                 for (int planarProbeIndex = 0; planarProbeIndex < hdProbeCullingResults.visibleProbes.Count; planarProbeIndex++)
                 {
                     var probe = hdProbeCullingResults.visibleProbes[planarProbeIndex];
@@ -1784,14 +1784,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
                 {
-                    // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                    uint sortKey = m_SortKeys[sortIndex];
-                    LightVolumeType lightVolumeType;
-                    int probeIndex;
-                    int listType;
-                    UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
+                    ProcessedProbeData processedProbe = GetSortedProcessedProbe(sortIndex);
 
-                    ProcessedProbeData processedProbe = (listType == 0) ? m_ProcessedReflectionProbeData[probeIndex] : m_ProcessedPlanarProbeData[probeIndex];
+                    if (processedProbe.hdProbe.HasValidRenderedData())
+                        m_TextureCaches.reflectionProbeTextureCache.ReserveReflectionProbeSlot(processedProbe.hdProbe);
+                }
+
+                for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
+                {
+                    // In 1. we have already classify and sorted the light, we need to use this sorted order here
+                    ProcessedProbeData processedProbe = GetSortedProcessedProbe(sortIndex);
 
                     EnvLightData envLightData = new EnvLightData();
 
@@ -1803,6 +1805,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                         {
                             var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
+                            LightVolumeType lightVolumeType = GetSortedLightVolumeType(sortIndex);
                             GetEnvLightVolumeDataAndBound(processedProbe.hdProbe, lightVolumeType, worldToView, viewIndex);
                         }
 
@@ -1817,13 +1820,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        ProcessedProbeData GetSortedProcessedProbe(int sortIndex)
+        {
+            UnpackProbeSortKey(m_SortKeys[sortIndex], out _, out int probeIndex, out int listType);
+            return (listType == 0) ? m_ProcessedReflectionProbeData[probeIndex] : m_ProcessedPlanarProbeData[probeIndex];
+        }
+
+        LightVolumeType GetSortedLightVolumeType(int sortIndex)
+        {
+            UnpackProbeSortKey(m_SortKeys[sortIndex], out LightVolumeType lightVolumeType, out _, out _);
+            return lightVolumeType;
+        }
+
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(
             CommandBuffer cmd,
             HDCamera hdCamera,
             CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults,
-            LocalVolumetricFogList localVolumetricFogList,
             DebugDisplaySettings debugDisplaySettings,
             AOVRequestData aovRequest)
         {
@@ -1855,10 +1869,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
 
-                // Because we don't support baking planar reflection probe, we can clear the atlas.
-                // Every visible probe will be blitted again.
-                m_TextureCaches.reflectionPlanarProbeCache.ClearAtlasAllocator();
-
                 m_ScreenSpaceShadowIndex = 0;
                 m_ScreenSpaceShadowChannelSlot = 0;
                 // Set all the light data to invalid
@@ -1869,13 +1879,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CurrentScreenSpaceShadowData[i].valid = false;
                 }
 
-                // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
-                m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
-
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
                     cullResults.visibleLights.Length + cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count
-                    + decalDatasCount + m_LocalVolumetricFogCount);
+                    + decalDatasCount);
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
@@ -1924,18 +1931,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // The OBBs are camera-relative, the matrix is not. Fix it.
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
-
-                    for (int i = 0, n = m_LocalVolumetricFogCount; i < n; i++)
-                    {
-                        // Local Volumetric Fog are not lights and therefore should not affect light classification.
-                        LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(localVolumetricFogList.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
-
-                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
-                    }
                 }
 
-                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount;
+                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount;
 
                 Debug.Assert(m_TotalLightCount == m_GpuLightsBuilder.lightsPerView[0].boundsCount);
 
@@ -2064,21 +2062,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Atlases
             cb._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
             cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
-            cb._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
-            cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
-
-            // Planar reflections
-            for (int i = 0; i < asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen; ++i)
-            {
-                for (int j = 0; j < 16; ++j)
-                    cb._Env2DCaptureVP[i * 16 + j] = m_TextureCaches.env2DCaptureVP[i][j];
-
-                for (int j = 0; j < 4; ++j)
-                    cb._Env2DCaptureForward[i * 4 + j] = m_TextureCaches.env2DCaptureForward[i][j];
-
-                for (int j = 0; j < 4; ++j)
-                    cb._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
-            }
+            cb._ReflectionAtlasCubeData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasCubeData();
+            cb._ReflectionAtlasPlanarData = m_TextureCaches.reflectionProbeTextureCache.GetTextureAtlasPlanarData();
+            cb._EnvSliceSize = m_TextureCaches.reflectionProbeTextureCache.GetEnvSliceSize();
 
             // Light info
             cb._PunctualLightCount = (uint)m_GpuLightsBuilder.punctualLightCount;
@@ -2091,6 +2077,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
             cb._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
             cb._EnableDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? 1u : 0u;
+            cb._EnableRenderingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer) ? 1u : 0u;
             cb._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
             const float C = (float)(1 << k_Log2NumClusters);
@@ -2110,6 +2097,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Misc
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
+            cb._SpecularFade       = m_GlobalSettings.specularFade ? 1 : 0;
         }
 
         void PushLightDataGlobalParams(CommandBuffer cmd)
@@ -2134,10 +2122,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
             }
 
+            ConstantBuffer.PushGlobal(cmd, m_EnvLightReflectionData, HDShaderIDs._EnvLightReflectionData);
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
-            cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
-            cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
+            cmd.SetGlobalTexture(HDShaderIDs._ReflectionAtlas, m_TextureCaches.reflectionProbeTextureCache.GetAtlasTexture());
 
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
@@ -2176,6 +2164,28 @@ namespace UnityEngine.Rendering.HighDefinition
             // If this light has ray traced contact shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdAdditionalLightData.rayTraceContactShadow)
                 rayTracingShadowFlag = 1.0f;
+        }
+
+        unsafe void SetPlanarReflectionData(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset, ref Vector3 capturedForwardWS)
+        {
+            Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
+
+            for (int j = 0; j < 16; ++j)
+                m_EnvLightReflectionData._PlanarCaptureVP[index * 16 + j] = vp[j];
+
+            for (int j = 0; j < 4; ++j)
+                m_EnvLightReflectionData._PlanarScaleOffset[index * 4 + j] = scaleOffset[j];
+
+            for (int j = 0; j < 3; ++j)
+                m_EnvLightReflectionData._PlanarCaptureForward[index * 4 + j] = capturedForwardWS[j];
+        }
+
+        unsafe void SetCubeReflectionData(int index, ref Vector4 scaleOffset)
+        {
+            Debug.Assert(index < k_MaxCubeReflectionsOnScreen);
+
+            for (int j = 0; j < 4; ++j)
+                m_EnvLightReflectionData._CubeScaleOffset[index * 4 + j] = scaleOffset[j];
         }
     }
 }

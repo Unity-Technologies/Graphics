@@ -23,7 +23,7 @@ Pass
 
 	HLSLPROGRAM
 	#pragma target 4.5
-	#pragma multi_compile _ LIGHT_LAYERS
+	#pragma multi_compile _ RENDERING_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile_fragment DECALS_3RT DECALS_4RT
     #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
@@ -60,7 +60,8 @@ ${VFXIncludeRP("VFXDecal.template")}
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+        uint instanceActiveIndex = i.instanceActiveIndex;
+        ${VFXLoadGraphValues}
 #endif
         //TODO Ludovic: pass graphValues here
 		VFXComputePixelOutputToDBuffer(i,outDBuffer);

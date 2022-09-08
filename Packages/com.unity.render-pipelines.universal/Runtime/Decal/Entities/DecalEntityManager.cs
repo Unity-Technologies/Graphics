@@ -306,6 +306,25 @@ namespace UnityEngine.Rendering.Universal
             return chunkIndex;
         }
 
+        public void UpdateAllDecalEntitiesData()
+        {
+            foreach (var entityChunk in entityChunks)
+            {
+                for (int i = 0; i < entityChunk.count; ++i)
+                {
+                    var decalProjector = entityChunk.decalProjectors[i];
+                    if (decalProjector == null)
+                        continue;
+
+                    var entity = entityChunk.decalEntities[i];
+                    if (!IsValid(entity))
+                        continue;
+
+                    UpdateDecalEntityData(entity, decalProjector);
+                }
+            }
+        }
+
         public void UpdateDecalEntityData(DecalEntity decalEntity, DecalProjector decalProjector)
         {
             var decalItem = m_DecalEntityIndexer.GetItem(decalEntity);
@@ -349,7 +368,7 @@ namespace UnityEngine.Rendering.Universal
             cachedChunk.sceneLayerMasks[arrayIndex] = sceneLayerMask;
             cachedChunk.fadeFactors[arrayIndex] = fadeFactor;
             cachedChunk.scaleModes[arrayIndex] = decalProjector.scaleMode;
-            cachedChunk.decalLayerMasks[arrayIndex] = decalProjector.decalLayerMask;
+            cachedChunk.renderingLayerMasks[arrayIndex] = RenderingLayerUtils.ToValidRenderingLayers(decalProjector.renderingLayerMask);
 
             cachedChunk.positions[arrayIndex] = decalProjector.transform.position;
             cachedChunk.rotation[arrayIndex] = decalProjector.transform.rotation;

@@ -95,21 +95,13 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 {
     return inverseModelMatrix;
 }
-float4x4 GetRawUnityObjectToWorld()
-{
-    return unity_ObjectToWorld;
-}
-float4x4 GetRawUnityWorldToObject()
-{
-    return unity_WorldToObject;
-}
 //End of compatibility functions
 
 float4x4 VFXGetObjectToWorldMatrix()
 {
     // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
-#ifdef HAVE_VFX_MODIFICATION
-    return GetRawUnityObjectToWorld();
+#if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
+    return GetSGVFXUnityObjectToWorld();
 #else
     return GetObjectToWorldMatrix();
 #endif
@@ -118,8 +110,8 @@ float4x4 VFXGetObjectToWorldMatrix()
 float4x4 VFXGetWorldToObjectMatrix()
 {
     // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
-#ifdef HAVE_VFX_MODIFICATION
-    return GetRawUnityWorldToObject();
+#if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
+    return GetSGVFXUnityWorldToObject();
 #else
     return GetWorldToObjectMatrix();
 #endif

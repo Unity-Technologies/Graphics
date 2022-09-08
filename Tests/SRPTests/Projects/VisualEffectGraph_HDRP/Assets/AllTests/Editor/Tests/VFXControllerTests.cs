@@ -1166,6 +1166,41 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
+        [UnityTest][Description("(Non regression test for Jira case UUM-2272")]
+        public IEnumerator ConvertToSubgraphOperator_AfterCopyPaste()
+        {
+            testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
+            // Create default VFX Graph
+            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            File.WriteAllText(testAssetRandomFileName, templateString);
+            AssetDatabase.ImportAsset(testAssetRandomFileName);
+
+            // Open this vfx the same way it would be done by a user
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+            viewController.ApplyChanges();
+            yield return null;
+            window.graphView.ExecuteCommand(ExecuteCommandEvent.GetPooled("SelectAll"));
+            window.graphView.CopySelectionCallback();
+            window.graphView.PasteCallback();
+            yield return null;
+
+            var addOperator = ScriptableObject.CreateInstance<Operator.Add>();
+            viewController.graph.AddChild(addOperator);
+            viewController.ApplyChanges();
+            yield return null;
+
+            VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, window.graphView.Query<VFXOperatorUI>().ToList().Select(t => t.controller), Rect.zero, testSubgraphSubOperatorAssetName);
+            yield return null;
+
+            window.graphView.controller = null;
+        }
+
         [UnityTest][Description("(Non regression test for FB case #1419176")]
         public IEnumerator Rename_Asset_Dont_Lose_Subgraph()
         {
@@ -1180,7 +1215,9 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
 
             var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
             var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
 
             // Convert the first set attribute block into a subgraph block
             var initializeContext = viewController.graph.children.OfType<VFXBasicInitialize>().Single();

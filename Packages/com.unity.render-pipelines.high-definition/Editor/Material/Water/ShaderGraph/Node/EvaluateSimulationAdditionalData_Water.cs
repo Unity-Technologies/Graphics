@@ -88,13 +88,13 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // Output zeros
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kSurfaceGradientOutputSlotId));
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kLowFrequencySurfaceGradientOutputSlotId));
-                sb.AppendLine("$precision {0} = 0.0",
+                sb.AppendLine("$precision {0} = 0.0;",
                     GetVariableNameForSlot(kSurfaceFoamOutputSlotId));
-                sb.AppendLine("$precision {0} = 0.0",
+                sb.AppendLine("$precision {0} = 0.0;",
                     GetVariableNameForSlot(kDeepFoamOutputSlotId));
             }
         }

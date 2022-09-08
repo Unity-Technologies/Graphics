@@ -26,6 +26,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_MEASURE_OCCLUSION // Used for non-taa rendering
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -57,6 +58,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_MEASURE_OCCLUSION // Used for non-taa rendering
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -88,6 +90,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_MEASURE_OCCLUSION // Used for non-taa rendering
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -119,6 +122,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile _ FLARE_OCCLUSION
+            #pragma multi_compile _ FLARE_MEASURE_OCCLUSION // Used for non-taa rendering
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -144,6 +148,9 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #pragma target 5.0
             #pragma vertex vertOcclusion
             #pragma fragment fragOcclusion
+
+            #pragma multi_compile _ FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD
+            #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MainLightShadow)))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex, BatchCullingProjectionType.Orthographic);
-                settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.supportsLightLayers;
+                settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
@@ -237,11 +237,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
 
-                SetupMainLightShadowReceiverConstants(cmd, shadowLight, ref shadowData);
+                SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, ref shadowData);
             }
         }
 
-        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, ref ShadowData shadowData)
+        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, ref VisibleLight shadowLight, ref ShadowData shadowData)
         {
             Light light = shadowLight.light;
             bool softShadows = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("Main Light Shadowmap", out var passData, base.profilingSampler))
             {
-                InitPassData(ref passData, ref renderingData, ref graph);
+                InitPassData(ref passData, ref renderingData);
 
                 if (!m_CreateEmptyShadowmap)
                 {
@@ -347,12 +347,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("Set Main Shadow Globals", out var passData, base.profilingSampler))
             {
-                InitPassData(ref passData, ref renderingData, ref graph);
+                InitPassData(ref passData, ref renderingData);
 
                 passData.shadowmapTexture = shadowTexture;
 
                 if (shadowTexture.IsValid())
-                    builder.UseDepthBuffer(shadowTexture, DepthAccess.Read);
+                    builder.ReadTexture(shadowTexture);
 
                 builder.AllowPassCulling(false);
 
@@ -361,19 +361,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (data.emptyShadowmap)
                     {
                         data.pass.SetEmptyMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
-                        data.shadowmapTexture = data.graph.defaultResources.defaultShadowTexture;
+                        data.shadowmapTexture = context.defaultResources.defaultShadowTexture;
                     }
 
-                    data.renderingData.commandBuffer.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
+                    context.cmd.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
                 });
                 return passData.shadowmapTexture;
             }
         }
 
-        void InitPassData(ref PassData passData, ref RenderingData renderingData, ref RenderGraph graph)
+        void InitPassData(ref PassData passData, ref RenderingData renderingData)
         {
             passData.pass = this;
-            passData.graph = graph;
 
             passData.emptyShadowmap = m_CreateEmptyShadowmap;
             passData.shadowmapID = m_MainLightShadowmapID;

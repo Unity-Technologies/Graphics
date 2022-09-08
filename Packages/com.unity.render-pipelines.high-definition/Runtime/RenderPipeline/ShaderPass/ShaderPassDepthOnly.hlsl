@@ -3,7 +3,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
-#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #endif
 
@@ -67,7 +67,7 @@ void Frag(  PackedVaryingsToPS packedInput
                 #endif
 
                 // Decal buffer must be last as it is bind but we can optionally write into it (based on _DISABLE_DECALS)
-                #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+                #if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
                 , out float4 outDecalBuffer : SV_TARGET_DECAL
                 #endif
             #endif
@@ -127,15 +127,19 @@ void Frag(  PackedVaryingsToPS packedInput
     EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer);
     #endif
 
-    #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
     DecalPrepassData decalPrepassData;
+    #ifdef _DISABLE_DECALS
+    ZERO_INITIALIZE(DecalPrepassData, decalPrepassData);
+    #else
     // We don't have the right to access SurfaceData in a shaderpass.
     // However it would be painful to have to add a function like ConvertSurfaceDataToDecalPrepassData() to every Material to return geomNormalWS anyway
     // Here we will put the constrain that any Material requiring to support Decal, will need to have geomNormalWS as member of surfaceData (and we already require normalWS anyway)
     decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-    decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
-    EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
     #endif
+    decalPrepassData.renderingLayerMask = GetMeshRenderingLayerMask();
+    EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
+#endif
 
 #endif // SCENESELECTIONPASS
 }

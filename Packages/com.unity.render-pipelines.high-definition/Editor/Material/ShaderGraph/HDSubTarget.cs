@@ -130,6 +130,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 patchedSubShader.renderQueue = renderQueue;
                 context.AddSubShader(patchedSubShader);
             }
+
+            foreach (var kernel in EnumerateKernels())
+            {
+                context.AddKernel(kernel);
+            }
         }
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
@@ -195,13 +200,74 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 CollectPassKeywords(ref passDescriptor);
 
-
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
 
             subShaderDescriptor.passes = finalPasses;
 
             return subShaderDescriptor;
+        }
+
+        protected KernelDescriptor PostProcessKernel(KernelDescriptor kernel)
+        {
+            // Process the kernel's pass basis.
+            var passDescriptor = kernel.passDescriptorReference;
+            passDescriptor.passTemplatePath = templatePath;
+            passDescriptor.sharedTemplateDirectories = sharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
+
+            // Add the subShader to enable fields that depends on it
+            var originalRequireFields = passDescriptor.requiredFields;
+            // Duplicate require fields to avoid unwanted shared list modification
+            passDescriptor.requiredFields = new FieldCollection();
+            if (originalRequireFields != null)
+                foreach (var field in originalRequireFields)
+                    passDescriptor.requiredFields.Add(field.field);
+            passDescriptor.requiredFields.Add(subShaderField);
+
+            IncludeCollection finalIncludes = new IncludeCollection();
+
+            // Replace include placeholders if necessary:
+            foreach (var include in passDescriptor.includes)
+            {
+                var path = include.path;
+
+                if (path == CoreIncludes.kPassPlaceholder)
+                    path = subShaderInclude;
+                if (path == CoreIncludes.kPostDecalsPlaceholder)
+                    path = postDecalsInclude;
+                if (path == CoreIncludes.kRaytracingPlaceholder)
+                    path = raytracingInclude;
+                if (path == CoreIncludes.kPathtracingPlaceholder)
+                    path = pathtracingInclude;
+
+                if (!String.IsNullOrEmpty(path))
+                    finalIncludes.Add(path, include.location, include.fieldConditions);
+            }
+            passDescriptor.includes = finalIncludes;
+
+            // Replace valid pixel blocks by automatic thing so we don't have to write them
+            var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
+            GetActiveBlocks(ref tmpCtx);
+            if (passDescriptor.validPixelBlocks == null)
+                passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
+            if (passDescriptor.validVertexBlocks == null)
+                passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+
+            // Add various collections, most are init in HDShaderPasses.cs
+            passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+
+            passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+            passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
+
+            // Overwrite the pass pragmas with just the kernel pragma for now.
+            passDescriptor.pragmas = new PragmaCollection { Pragma.Kernel(kernel.name) };
+
+            CollectPassKeywords(ref passDescriptor);
+
+            kernel.passDescriptorReference = passDescriptor;
+            kernel.sharedTemplateDirectories = sharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
+
+            return kernel;
         }
 
         protected virtual void CollectPassKeywords(ref PassDescriptor pass) { }
@@ -219,6 +285,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
 
+        protected IEnumerable<KernelDescriptor> EnumerateKernels()
+        {
+            if (target.supportComputeForVertexSetup)
+            {
+                yield return PostProcessKernel(HDShaderKernels.GenerateVertexSetup());
+            }
+        }
+
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, null, null);
@@ -226,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.Add(gui);
         }
 
-        protected abstract void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList);
+        protected virtual void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList) {}
 
         public override object saveContext
         {

@@ -7,7 +7,7 @@ using System;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Data-Driven Lens Flare can be added on any gameobeject
+    /// Data-Driven Lens Flare can be added on any gameobject
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Lens Flare (SRP)")]
@@ -91,10 +91,19 @@ namespace UnityEngine.Rendering
         /// If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen
         /// </summary>
         public bool allowOffScreen = false;
+        /// <summary>
+        /// If volumetricCloudOcclusion is true then use the volumetric cloud (on HDRP only) for the occlusion
+        /// </summary>
+        public bool volumetricCloudOcclusion = false;
 
         /// Our default celestial body will have an angular radius of 3.3 degrees. This is an arbitrary number, but must be kept constant
         /// so the occlusion radius for direct lights is consistent regardless of near / far clip plane configuration.
         private static float sCelestialAngularRadius = 3.3f * Mathf.PI / 180.0f;
+
+        /// <summary>
+        /// OcclusionRemapCurve allow the occlusion [from 0 to 1] to be remap with any desired shape.
+        /// </summary>
+        public TextureCurve occlusionRemapCurve = new TextureCurve(AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f), 1.0f, false, new Vector2(0.0f, 1.0f));
 
         /// <summary>
         /// Retrieves the projected occlusion radius from a particular celestial in the infinity plane with an angular radius.

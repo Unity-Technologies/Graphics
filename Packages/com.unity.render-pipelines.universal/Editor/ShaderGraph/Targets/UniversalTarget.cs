@@ -16,17 +16,45 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
+    /// <summary>
+    /// Options for the material type.
+    /// </summary>
     public enum MaterialType
     {
+        /// <summary>
+        /// Use this for URP lit.
+        /// </summary>
         Lit,
+
+        /// <summary>
+        /// Use this for URP unlit.
+        /// </summary>
         Unlit,
+
+        /// <summary>
+        /// Use this for sprite lit.
+        /// </summary>
         SpriteLit,
+
+        /// <summary>
+        /// Use this for Sprite unlit.
+        /// </summary>
         SpriteUnlit,
     }
 
+    /// <summary>
+    /// Workflow modes for the shader.
+    /// </summary>
     public enum WorkflowMode
     {
+        /// <summary>
+        /// Use this for specular workflow.
+        /// </summary>
         Specular,
+
+        /// <summary>
+        /// Use this for metallic workflow.
+        /// </summary>
         Metallic,
     }
 
@@ -968,7 +996,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthNormalsOnly(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
-                keywords = new KeywordCollection(),
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.GBufferNormalsOct },
                 includes = CoreIncludes.DepthNormalsOnly,
 
                 // Custom Interpolator Support
@@ -1960,6 +1988,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor FoveatedRendering = new KeywordDescriptor()
+        {
+            displayName = "Foveated Rendering Non Uniform Raster",
+            referenceName = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
         {
             displayName = "Scene Selection Pass",
@@ -2024,6 +2062,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
             referenceName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Ambient Occlusion",
+            referenceName = "_SCREEN_SPACE_OCCLUSION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

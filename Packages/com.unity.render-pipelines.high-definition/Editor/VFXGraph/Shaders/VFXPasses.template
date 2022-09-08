@@ -107,8 +107,7 @@ void frag(ps_input i
     #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
         alpha *= SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).a;
          #ifndef IS_OPAQUE_PARTICLE
-            ${VFXLoadParameter:{alphaRemap}}
-            alpha = SampleCurve(alphaRemap, alpha);
+            alpha = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, alpha);
          #endif
     #endif
     #endif
