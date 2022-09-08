@@ -58,7 +58,7 @@ MonoBehaviour:
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
       planarReflectionAtlasSize: 1024
-      reflectionProbeCacheSize: 32
+      reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 1
       reflectionProbeFormat: 74
@@ -140,6 +140,7 @@ MonoBehaviour:
       singlePass: 1
       occlusionMesh: 1
       cameraJitter: 0
+      allowMotionBlur: 1
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000400000005000000
       NearBlurMaxRadius:
