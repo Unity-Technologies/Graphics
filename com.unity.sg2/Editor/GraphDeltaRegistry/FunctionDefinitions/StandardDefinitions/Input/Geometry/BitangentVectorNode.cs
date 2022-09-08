@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "BitangentVector",
+                    displayName: "Space",
                     options: REF.OptionList.Bitangents
                 ),
                 new ParameterUIDescriptor(
