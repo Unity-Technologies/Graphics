@@ -77,6 +77,7 @@
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
+  * [Reduce shader variants in your build](Shader-Stripping)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
   * [Decal](Decal.md)
   * [Surface Type](Surface-Type.md)
