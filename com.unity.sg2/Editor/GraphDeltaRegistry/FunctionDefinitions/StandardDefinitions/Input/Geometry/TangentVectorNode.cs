@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "TangentVector",
+                    displayName: "Space",
                     options: REF.OptionList.Tangents
                 ),
                 new ParameterUIDescriptor(

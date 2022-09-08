@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "ViewDir",
+                    displayName: "Space",
                     options: REF.OptionList.ViewDirections
                 ),
                 new ParameterUIDescriptor(

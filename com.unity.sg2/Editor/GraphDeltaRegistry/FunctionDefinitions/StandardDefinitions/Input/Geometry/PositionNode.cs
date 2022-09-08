@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Position",
+                    displayName: "Space",
                     options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
