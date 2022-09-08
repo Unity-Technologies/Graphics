@@ -30,10 +30,6 @@ When you enable Light Layers, Unity shows the following extra properties on each
 
     ![](../Images/lighting/light-layers/light-layers-prop-shadow-layers.png)
 
-Enabling Light Layers disables the **Culling Mask** property on Lights (Rendering > Culling Mask).
-
-![](../Images/lighting/light-layers//light-layers-prop-culling-mask-disabled.png)<br/>*Unity disables Culling Mask when you enable Light Layers.*
-
 ## How to edit Light Layer names
 
 To edit the names of Light Layers:
