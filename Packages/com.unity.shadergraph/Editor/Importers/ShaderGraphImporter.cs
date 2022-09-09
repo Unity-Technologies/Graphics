@@ -240,6 +240,11 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
+
+            // In case a target couldn't be imported properly, we register a dependency to reimport this ShaderGraph when the current render pipeline type changes
+            if (graph.allPotentialTargets.Any(t => t is MultiJsonInternal.UnknownTargetType))
+                ctx.DependsOnCustomDependency(RenderPipelineChangedCallback.k_CustomDependencyKey);
+
             var sgMetadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
             sgMetadata.hideFlags = HideFlags.HideInHierarchy;
             sgMetadata.assetDependencies = new List<UnityEngine.Object>();
