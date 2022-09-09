@@ -43,4 +43,32 @@ int3 GetNeighborAxisOffset(int i)
     return NeighborAxisOffset[i];
 }
 
+void SetProbeDirty(RWStructuredBuffer<int> buffer, uint probeIndex)
+{
+    uint index = probeIndex >> 5;
+    int bitmask = 1 << (probeIndex & 31);
+    InterlockedOr(buffer[index], bitmask);
+}
+
+void ClearProbeDirty(RWStructuredBuffer<int> buffer, uint probeIndex)
+{
+    uint index = probeIndex >> 5;
+    int bitmask = 1 << (probeIndex & 31);
+    InterlockedAnd(buffer[index], ~bitmask);
+}
+
+bool IsProbeDirty(StructuredBuffer<int> buffer, uint probeIndex)
+{
+    uint index = probeIndex >> 5;
+    int bitmask = 1 << (probeIndex & 31);
+    return (buffer[index] & bitmask) != 0;
+}
+
+bool IsProbeDirty(RWStructuredBuffer<int> buffer, uint probeIndex)
+{
+    uint index = probeIndex >> 5;
+    int bitmask = 1 << (probeIndex & 31);
+    return (buffer[index] & bitmask) != 0;
+}
+
 #endif // endof PROBE_PROPAGATION_GLOBALS

@@ -28,6 +28,7 @@ Shader "Hidden/Debug/DebugDirtyProbes"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 
             struct appdata
             {
@@ -66,8 +67,8 @@ Shader "Hidden/Debug/DebugDirtyProbes"
                 uint probeTriangleIndex = (v.vertexID / 3u) & 1u;
                 uint probeVertexIndex = v.vertexID - probeIndex1D * 6u - probeTriangleIndex * 3u;
 
-                bool dirty = _ProbeVolumeDirtyProbes[probeIndex1D];
-                
+                bool dirty = IsProbeDirty(_ProbeVolumeDirtyProbes, probeIndex1D);
+
                 float2 vertexPositionOS = (probeTriangleIndex == 1u)
                     ? float2((probeVertexIndex & 1u), saturate(probeVertexIndex))
                     : float2(saturate(probeVertexIndex), saturate((float)probeVertexIndex - 1.0));

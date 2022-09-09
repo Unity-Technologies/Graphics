@@ -319,7 +319,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
 #ifdef DIRTY_PROBES_ENABLED
         if (!IsBoundaryProbe(probeCoordinate, uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ))
-            && !_DirtyProbes[probeIndex])
+            && !IsProbeDirty(_DirtyProbes, probeIndex))
         {
             _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
             return;
@@ -444,7 +444,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                    neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
                 {
                     uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
-                    _NextDirtyProbes[neighborProbeIndex] = true;
+                    SetProbeDirty(_NextDirtyProbes, neighborProbeIndex);
                 }
             }
         }

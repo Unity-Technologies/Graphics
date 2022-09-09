@@ -232,7 +232,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         _HitRadianceCacheAxis[hitAxisIndex] = EncodeRadiance(lighting);
 
 #ifdef DIRTY_PROBES_ENABLED
-        _DirtyProbes[probeIndex] = true;
+        SetProbeDirty(_DirtyProbes, probeIndex);
 #endif
     }
 }

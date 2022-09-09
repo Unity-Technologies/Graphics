@@ -326,10 +326,10 @@ void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
     if (readIndex < _ProbeVolumeAtlasReadBufferCount)
     {
 #ifdef DIRTY_PROBES_ENABLED
-        if (!_DirtyProbes[readIndex])
+        if (!IsProbeDirty(_DirtyProbes, readIndex))
             return;
 
-        _DirtyProbes[readIndex] = false;
+        ClearProbeDirty(_DirtyProbes, readIndex);
 #endif
 
         uint3 writeIndex = ComputeWriteIndexFromReadIndex(readIndex, _ProbeVolumeResolution);

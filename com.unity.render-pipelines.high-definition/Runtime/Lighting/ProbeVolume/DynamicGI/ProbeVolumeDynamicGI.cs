@@ -1331,8 +1331,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ProbeVolume.EnsureBuffer<NeighborAxis>(ref propagationPipelineData.neighbors, probeVolume.NeighborAxisLength);
                 probeVolume.SetNeighborAxis(propagationPipelineData.neighbors);
 
-                ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyProbes0, probeVolume.DataValidityLength);
-                ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyProbes1, probeVolume.DataValidityLength);
+                var packedDirtyProbesLength = probeVolume.DataValidityLength >> 5;
+                ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyProbes0, packedDirtyProbesLength);
+                ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyProbes1, packedDirtyProbesLength);
                 
                 propagationPipelineData.buffersDataVersion = dataVersion;
                 return true;
