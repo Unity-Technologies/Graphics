@@ -250,10 +250,12 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPPBlurs,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
+        Sharpening,
         ContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
+        CustomPassBufferClearDebug,
 
         AOVExecute,
         AOVOutput,

@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
-                    CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+                    CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
                     if (checkScope.changed)
                     {
                         UpdateStackCamerasOutput(p, camera =>

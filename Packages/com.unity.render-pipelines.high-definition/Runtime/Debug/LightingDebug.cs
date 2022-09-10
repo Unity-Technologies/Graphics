@@ -76,34 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
         IndirectPlanarProbe = 1 << 8,
     }
 
-    /// <summary>
-    /// Debug Light Layers Filtering.
-    /// </summary>
-    [GenerateHLSL]
-    [Flags]
-    public enum DebugLightLayersMask
-    {
-        /// <summary>No light layer debug.</summary>
-        None = 0,
-        /// <summary>Debug light layer 1.</summary>
-        LightLayer1 = 1 << 0,
-        /// <summary>Debug light layer 2.</summary>
-        LightLayer2 = 1 << 1,
-        /// <summary>Debug light layer 3.</summary>
-        LightLayer3 = 1 << 2,
-        /// <summary>Debug light layer 4.</summary>
-        LightLayer4 = 1 << 3,
-        /// <summary>Debug light layer 5.</summary>
-        LightLayer5 = 1 << 4,
-        /// <summary>Debug light layer 6.</summary>
-        LightLayer6 = 1 << 5,
-        /// <summary>Debug light layer 7.</summary>
-        LightLayer7 = 1 << 6,
-        /// <summary>Debug light layer 8.</summary>
-        LightLayer8 = 1 << 7,
-    }
-
-
     static class DebugLightHierarchyExtensions
     {
 
@@ -253,7 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return debugLightingMode != DebugLightingMode.None
                 || debugLightFilterMode != DebugLightFilterMode.None
-                || debugLightLayers
                 || overrideSmoothness
                 || overrideAlbedo
                 || overrideNormal
@@ -267,13 +238,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public DebugLightFilterMode debugLightFilterMode = DebugLightFilterMode.None;
         /// <summary>Current Full Screen Lighting debug mode.</summary>
         public DebugLightingMode debugLightingMode = DebugLightingMode.None;
-        /// <summary>True if light layers visualization is enabled.</summary>
-        public bool debugLightLayers = false;
-        /// <summary>Current Light Layers Filtering mode.</summary>
-        public DebugLightLayersMask debugLightLayersFilterMask = (DebugLightLayersMask)(-1); // Select Everything by default
-        /// <summary>True if light layers visualization uses light layers of the selected light.</summary>
+        /// <summary>Current filtered Rendering Layer Mask.</summary>
+        public RenderingLayerMask debugLightLayersFilterMask = RenderingLayerMask.Everything;
+        /// <summary>True if filter should match Light Layer mask of the selected light.</summary>
         public bool debugSelectionLightLayers = false;
-        /// <summary>True if light layers visualization uses shadow layers of the selected light.</summary>
+        /// <summary>True if filter should match Custom Shadow Layer mask of the selected light.</summary>
         public bool debugSelectionShadowLayers = false;
         /// <summary>Rendering Layers Debug Colors.</summary>
         public Vector4[] debugRenderingLayersColors = GetDefaultRenderingLayersColorPalette();
@@ -401,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsDebugDisplayRemovePostprocess()
         {
             return debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
-                debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
                 debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
                 debugLightingMode == DebugLightingMode.ProbeVolumeSampledSubdivision;
         }
@@ -419,7 +388,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4(240, 228, 66) / 255,
                 new Vector4(0, 114, 178) / 255,
                 new Vector4(213, 94, 0) / 255,
-                new Vector4(170, 68, 170) / 255
+                new Vector4(170, 68, 170) / 255,
+                new Vector4(1.0f, 0.5f, 0.5f),
+                new Vector4(0.5f, 1.0f, 0.5f),
+                new Vector4(0.5f, 0.5f, 1.0f),
+                new Vector4(0.5f, 1.0f, 1.0f),
+                new Vector4(0.75f, 0.25f, 1.0f),
+                new Vector4(0.25f, 1.0f, 0.75f),
+                new Vector4(0.25f, 0.25f, 0.75f),
+                new Vector4(0.75f, 0.25f, 0.25f),
             };
 
             int i = 0;

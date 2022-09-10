@@ -361,7 +361,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     #endif
 
 #if HAS_REFRACTION
-
+        uint perPixelEnvStart = envLightStart;
+        uint perPixelEnvCount = envLightCount;
         // For refraction to be stable, we should reuse the same refraction probe for the whole object.
         // Otherwise as if the object span different tiles it could produce a different refraction probe picking and thus have visual artifacts.
         // For this we need to find the tile that is at the center of the object that is being rendered.
@@ -391,7 +392,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 envLightData = FetchEnvLight(FetchIndex(envLightStart, 0));
             }
-            else // If no refraction probe, use sky with a default proxy extent.
+            else if (perPixelEnvCount > 0) // If no refraction probe at the object center, we either fallback on the per pixel result.
+            {
+                envLightData = FetchEnvLight(FetchIndex(perPixelEnvStart, 0));
+            }
+            else // .. or the sky
             {
                 envLightData = InitDefaultRefractionEnvLightData(0);
             }

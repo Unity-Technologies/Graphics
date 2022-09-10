@@ -136,7 +136,7 @@ Shader "HDRP/TerrainLit"
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
-            #pragma multi_compile_fragment _ LIGHT_LAYERS
+            #pragma multi_compile_fragment _ RENDERING_LAYERS
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
@@ -237,7 +237,7 @@ Shader "HDRP/TerrainLit"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
-            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER
+            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
@@ -525,5 +525,6 @@ Shader "HDRP/TerrainLit"
 
     Dependency "BaseMapShader" = "Hidden/HDRP/TerrainLit_Basemap"
     Dependency "BaseMapGenShader" = "Hidden/HDRP/TerrainLit_BasemapGen"
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "UnityEditor.Rendering.HighDefinition.TerrainLitGUI"
 }

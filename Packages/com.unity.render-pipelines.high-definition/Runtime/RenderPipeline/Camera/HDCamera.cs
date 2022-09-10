@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightInstanceID;
             public uint frameCount;
             public GPULightType lightType;
+            public Matrix4x4 transform;
         }
 
         /// <summary>
@@ -220,6 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GlobalIllumination1,
             RayTracedReflections,
             VolumetricClouds,
+            RayTracedAmbientOcclusion,
             Count
         }
 
@@ -265,6 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4[] frustumPlaneEquations;
         internal int taaFrameIndex;
         internal float taaSharpenStrength;
+        internal float taaRingingReduction;
         internal float taaHistorySharpening;
         internal float taaAntiFlicker;
         internal float taaMotionVectorRejection;
@@ -610,6 +613,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
         internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
+        internal HDAdditionalCameraData.TAASharpenMode taaSharpenMode { get; private set; } = HDAdditionalCameraData.TAASharpenMode.LowQuality;
+
         internal bool resetPostProcessingHistory = true;
         internal bool didResetPostProcessingHistoryInLastFrame = false;
 
@@ -646,6 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
+            shadowHistoryUsage[screenSpaceShadowIndex].transform = lightData.transform.localToWorldMatrix;
         }
 
         internal bool EffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
@@ -1174,7 +1180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < 6; ++i)
                 for (int j = 0; j < 4; ++j)
                     cb._FrustumPlanes[i * 4 + j] = frustumPlaneEquations[i][j];
-            cb._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
+            cb._TaaFrameInfo = new Vector4(taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.LowQuality ? taaSharpenStrength : 0, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
             cb._GlobalMipBias = globalMipBias;
@@ -1491,6 +1497,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     antialiasing = m_AdditionalCameraData.antialiasing;
                     SMAAQuality = m_AdditionalCameraData.SMAAQuality;
                     TAAQuality = m_AdditionalCameraData.TAAQuality;
+                    taaSharpenMode = m_AdditionalCameraData.taaSharpenMode;
+                    taaRingingReduction = m_AdditionalCameraData.taaRingingReduction;
                     taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
                     taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
                     taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;

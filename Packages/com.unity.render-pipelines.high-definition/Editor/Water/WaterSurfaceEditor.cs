@@ -203,8 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_WindFoamCurve;
 
         // Rendering
-        SerializedProperty m_DecalLayerMask;
-        SerializedProperty m_LightLayerMask;
+        SerializedProperty m_RenderingLayerMask;
 
         // Underwater
         SerializedProperty m_UnderWater;
@@ -311,8 +310,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WaterMaskOffset = o.Find(x => x.waterMaskOffset);
 
             // Rendering
-            m_DecalLayerMask = o.Find(x => x.decalLayerMask);
-            m_LightLayerMask = o.Find(x => x.lightLayerMask);
+            m_RenderingLayerMask = o.Find(x => x.renderingLayerMask);
 
             // Underwater
             m_UnderWater = o.Find(x => x.underWater);
@@ -423,36 +421,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static internal void WaterSurfaceMiscellaneousSection(WaterSurfaceEditor serialized, Editor owner)
         {
-            // Decal controls
-            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecals)
+            if (HDRenderPipeline.currentPipeline != null)
             {
-                bool decalLayerEnabled = false;
+                bool lightLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportLightLayers;
+                bool decalLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecals &&
+                    HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecalLayers;
+
                 using (new IndentLevelScope())
                 {
-                    decalLayerEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecalLayers;
-                    using (new EditorGUI.DisabledScope(!decalLayerEnabled))
-                    {
-                        EditorGUILayout.PropertyField(serialized.m_DecalLayerMask);
-                    }
+                    using (new EditorGUI.DisabledScope(!decalLayersEnabled && !lightLayersEnabled))
+                        EditorGUILayout.PropertyField(serialized.m_RenderingLayerMask);
                 }
 
-                if (!decalLayerEnabled)
+                if (!decalLayersEnabled)
                 {
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control which decals affect water surfaces. There is a performance cost of enabling this option.",
                         MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
                     EditorGUILayout.Space();
-                }
-            }
-
-            if (HDRenderPipeline.currentPipeline != null)
-            {
-                bool lightLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportLightLayers;
-                using (new IndentLevelScope())
-                {
-                    using (new EditorGUI.DisabledScope(!lightLayersEnabled))
-                    {
-                        EditorGUILayout.PropertyField(serialized.m_LightLayerMask);
-                    }
                 }
 
                 if (!lightLayersEnabled)

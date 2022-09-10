@@ -135,4 +135,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             ENDHLSL
         }
     }
+
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

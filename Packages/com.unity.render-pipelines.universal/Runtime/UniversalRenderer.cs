@@ -549,11 +549,13 @@ namespace UnityEngine.Rendering.Universal
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
+            bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
+
             // Depth prepass is generated in the following cases:
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - Render passes require it
-            bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !CanCopyDepth(ref renderingData.cameraData);
+            bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && (!CanCopyDepth(ref renderingData.cameraData) || forcePrepass);
             requiresDepthPrepass |= isSceneViewCamera;
             requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= isPreviewCamera;
@@ -670,7 +672,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
                 var baseRenderer = (UniversalRenderer)baseCameraData.scriptableRenderer;
-                m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                if (m_ColorBufferSystem != baseRenderer.m_ColorBufferSystem)
+                {
+                    m_ColorBufferSystem.Dispose();
+                    m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                }
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
                 m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
                 m_XRTargetHandleAlias = baseRenderer.m_XRTargetHandleAlias;
@@ -687,7 +693,7 @@ namespace UnityEngine.Rendering.Universal
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
 
-            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -991,31 +997,11 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyColorPass);
             }
 
-            // Temporal Anti-alias (TAA) persistent data (over frame)
-            if (cameraData.taaPersistentData != null)
-            {
-                if (cameraData.IsTemporalAAEnabled())
-                {
-                    bool xrMultipassEnabled = false;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
-#endif
-                    bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
-
-                    // Fill new history with current frame
-                    if(allocation)
-                        cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
-                }
-                else
-                    cameraData.taaPersistentData.DeallocateTargets();
-            }
-
             // Motion vectors
-            // TAA in postprocess requires it to function. Force motion vec pass for TAA.
-            if (renderPassInputs.requiresMotionVectors || cameraData.IsTemporalAAEnabled())
+            if (renderPassInputs.requiresMotionVectors)
             {
                 var colorDesc = cameraTargetDescriptor;
-                colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
+                colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
                 RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
 
@@ -1279,6 +1265,10 @@ namespace UnityEngine.Rendering.Universal
                 if (needsNormals || needsDepth)
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }
+
+            // TAA in postprocess requires it to function.
+            if (renderingData.cameraData.IsTemporalAAEnabled())
+                inputSummary.requiresMotionVectors = true;
 
             return inputSummary;
         }

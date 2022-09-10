@@ -73,15 +73,14 @@ To import one of the HDRP sample Eye Prefabs into your scene:
 2. In the Project window, go to **Assets** > **Samples** > **High Definition RP.**  Open the folder that matches your current Unity version number, then open **Material Samples > Prefabs.**
 3. Click and drag one of the four Eye Variant Prefabs into the Hierarchy window.
 
-[!TIP]
-<When the eye appears in your scene, it might have a green tint. To remove this green tint, fix the Eye Material’s diffusion profiles:
+**Tip:** When the eye appears in your scene, it might have a green tint. To remove this green tint, fix the Eye Material’s diffusion profiles:
 1. Select the Eye Prefab in the Hierarchy window.
 2. In the Inspector window, find the Material that  begins with M_EyeSG and open the dropdown underneath it.
 3. Expand **Exposed Properties** > **Sclera**
 4. In the information box below **Sclera Diffusion Profile**, click **Fix.**
 5. Repeat these steps for the **Iris Diffusion Profile** in the Inspector under **Exposed Properties.**
 ![img](Images/SGEye_inspector.png)
-Inspector window with the **Sclera Diffusion Profile** fix option highlighted.>
+Inspector window with the **Sclera Diffusion Profile** fix option highlighted.
 
 <a name="eye-textures"></a>
 
@@ -89,7 +88,7 @@ Inspector window with the **Sclera Diffusion Profile** fix option highlighted.>
 
 You must provide seperate Texture maps for the Iris and Sclera. This is because of the way that properties for subsurface scattering, limbal ring, smoothness, and other surface information blends between the Iris and Sclera. This means you need to create a Sclera map with no Iris information, and an Iris map with no Sclera information:
 
-![](C:/Unity%20repo/unity/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/eye-shader-sclera-map.png)![](C:/Unity%20repo/unity/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/eye-shader-iris-map.png)
+![](Images/eye-shader-sclera-map.png)![](Images/eye-shader-iris-map.png)
 
 ## Properties
 

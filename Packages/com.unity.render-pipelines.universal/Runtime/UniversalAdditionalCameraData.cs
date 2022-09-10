@@ -656,7 +656,11 @@ namespace UnityEngine.Rendering.Universal
         public bool resetHistory
         {
             get => m_TaaSettings.resetHistoryFrames != 0;
-            set => m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
+            set
+            {
+                m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
+                m_MotionVectorsPersistentData.Reset();
+            }
         }
 #endif
 

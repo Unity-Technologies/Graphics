@@ -262,6 +262,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.AccurateGbufferNormals = true;
             this.UseJobSystem = true;
+            if (SystemInfo.graphicsDeviceName.Contains("Apple M"))
+            {
+                // Currently Apple silicon machines do not support native render passes
+                useNativeRenderPass = false;
+            }
             this.UseRenderPass = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
         }
@@ -374,6 +379,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
+                if (this.GbufferAttachments != null)
+                {
+                    // Release the old handles before creating the new one
+                    for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+                    {
+                        RTHandles.Release(this.GbufferAttachments[i]);
+                    }
+                }
+
                 this.GbufferAttachments = new RTHandle[gbufferSliceCount];
                 this.GbufferFormats = new GraphicsFormat[gbufferSliceCount];
                 this.GbufferTextureHandles = new TextureHandle[gbufferSliceCount];

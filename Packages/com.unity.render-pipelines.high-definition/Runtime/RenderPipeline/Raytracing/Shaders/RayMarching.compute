@@ -132,13 +132,13 @@ void RAY_MARCH_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
                 ZERO_INITIALIZE(BuiltinData, builtinData);
                 uint  featureFlags = UINT_MAX;
                 DecodeFromGBuffer(resultCoords, featureFlags, bsdfData, builtinData);
-                builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+                builtinData.renderingLayers = RENDERING_LAYERS_MASK;
 
                 // Fit the data to the standard lit model
                 StandardBSDFData standardLitData;
                 ZERO_INITIALIZE(StandardBSDFData, standardLitData);
                 standardLitData.shadowMasks = 1;
-                standardLitData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+                standardLitData.renderingLayers = RENDERING_LAYERS_MASK;
                 FitToStandardLit(bsdfData, builtinData, resultCoords, standardLitData);
 
                 // Encode the standard lit into the gbuffer

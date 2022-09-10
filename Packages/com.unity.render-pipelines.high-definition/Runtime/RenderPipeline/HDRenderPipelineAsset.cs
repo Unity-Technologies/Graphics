@@ -20,6 +20,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
+        void OnEnable()
+        {
+            ///////////////////////////
+            // This is not optimal.
+            // When using AssetCache, this is not called. [TODO: fix it]
+            // It will be called though if you import it.
+            Migrate();
+            ///////////////////////////
+
+            HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
+        }
+
         void Reset()
         {
 #if UNITY_EDITOR
@@ -105,21 +117,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
-            => globalSettings.renderingLayerMaskNames;
+            => globalSettings.renderingLayerNames;
 
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
         public override string[] prefixedRenderingLayerMaskNames
-            => globalSettings.prefixedRenderingLayerMaskNames;
+            => globalSettings.prefixedRenderingLayerNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames => globalSettings.lightLayerNames;
+        [Obsolete("Use renderingLayerNames")]
+        public string[] lightLayerNames => renderingLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames => globalSettings.decalLayerNames;
+        [Obsolete("Use renderingLayerNames")]
+        public string[] decalLayerNames => renderingLayerNames;
+
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] renderingLayerNames => globalSettings.renderingLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader

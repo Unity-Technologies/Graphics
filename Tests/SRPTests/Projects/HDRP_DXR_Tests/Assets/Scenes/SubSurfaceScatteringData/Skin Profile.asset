@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
   m_Name: Skin Profile
   m_EditorClassIdentifier: 
-  m_Version: 1
-  profiles: []
   profile:
-    scatteringDistance: {r: 0.37647057, g: 0.12614721, b: 0.12614721, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.2509804, b: 0.2509804, a: 1}
+    scatteringDistanceMultiplier: 0.5026178
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 0
     transmissionMode: 0
@@ -23,3 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1076698821
+  m_Version: 2

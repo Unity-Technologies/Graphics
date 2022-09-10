@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tests_Diffusion_Profile_Settings_MaxRadius_20
   m_EditorClassIdentifier: 
   profile:
-    name: MaxRadius_20
-    scatteringDistance: {r: 1.9321873, g: 0, b: 0, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0, b: 0, a: 1}
+    scatteringDistanceMultiplier: 2.5796218
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 0
@@ -22,5 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1074259817
-  m_Version: 1
-  profiles: []
+  m_Version: 2

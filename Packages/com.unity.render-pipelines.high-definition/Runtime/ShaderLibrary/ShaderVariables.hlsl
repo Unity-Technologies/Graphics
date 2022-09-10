@@ -160,6 +160,8 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
+TEXTURE2D_X(_RenderingLayerMaskTexture);
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
 // In HDRP, all material samplers have the possibility of having a mip bias.

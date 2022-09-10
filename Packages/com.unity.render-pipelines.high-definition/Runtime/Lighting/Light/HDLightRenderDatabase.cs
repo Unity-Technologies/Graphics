@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDAdditionalLightData.PointLightHDType pointLightType;
         public SpotLightShape spotLightShape;
         public AreaLightShape areaLightShape;
-        public LightLayerEnum lightLayer;
+        public uint renderingLayerMask;
         public float fadeDistance;
         public float distance;
         public float angularDiameter;

@@ -44,15 +44,15 @@ struct LightLoopOutput
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
 
-#define REFL_ATLAS_CUBE_PADDING _ReflectionAtlasData.x
-#define REFL_ATLAS_CUBE_MIP_PADDING _ReflectionAtlasData.y
-#define REFL_ATLAS_PLANAR_PADDING _ReflectionAtlasData.z
-#define REFL_ATLAS_TEXEL_SIZE _ReflectionAtlasData.w
+#define REFL_ATLAS_CUBE_PADDING _ReflectionAtlasCubeData.xy
+#define REFL_ATLAS_CUBE_MIP_PADDING _ReflectionAtlasCubeData.z
+#define REFL_ATLAS_PLANAR_PADDING _ReflectionAtlasPlanarData.xy
+#define REFL_ATLAS_TEXEL_SIZE _ReflectionAtlasPlanarData.zw
 
 float2 GetReflectionAtlasCoordsCube(float4 scaleOffset, float3 dir, float lod)
 {
     float2 uv = saturate(PackNormalOctQuadEncode(dir) * 0.5 + 0.5);
-    float padding = REFL_ATLAS_CUBE_PADDING;
+    float2 padding = REFL_ATLAS_CUBE_PADDING;
     // Every octahedral mip has at least one texel padding. This improves octahedral mapping as it always should have border for every mip.
     padding *= pow(2.0, max(lod - REFL_ATLAS_CUBE_MIP_PADDING, 0.0));
     float2 size = scaleOffset.xy - padding;
@@ -62,10 +62,10 @@ float2 GetReflectionAtlasCoordsCube(float4 scaleOffset, float3 dir, float lod)
 
 float2 GetReflectionAtlasCoordsPlanar(float4 scaleOffset, float2 uv, float lod)
 {
-    float padding = REFL_ATLAS_PLANAR_PADDING;
+    float2 padding = REFL_ATLAS_PLANAR_PADDING;
     float2 size = scaleOffset.xy - padding;
     float2 offset = scaleOffset.zw + 0.5 * padding;
-    float paddingClamp = REFL_ATLAS_TEXEL_SIZE * pow(2.0, ceil(lod)) * 0.5;
+    float2 paddingClamp = REFL_ATLAS_TEXEL_SIZE * pow(2.0, ceil(lod)) * 0.5;
     float2 minClamp = scaleOffset.zw + paddingClamp;
     float2 maxClamp = scaleOffset.zw + scaleOffset.xy - paddingClamp;
     return clamp(uv * size + offset, minClamp, maxClamp);

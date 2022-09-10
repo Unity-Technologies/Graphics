@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // We need to set the history as invalid if the light has moved (rotated or translated),
             float historyValidity = 1.0f;
-            if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
+            if (hdCamera.shadowHistoryUsage[lightData.screenSpaceShadowIndex].transform != additionalLightData.transform.localToWorldMatrix
                 || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType))
                 historyValidity = 0.0f;
 
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     additionalLightData.filterSizeTraced, true);
             }
 
-            // Now that we have overriden this history, mark is as used by this light
+            // Now that we have overridden this history, mark is as used by this light
             hdCamera.PropagateShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType);
 
             return denoisedBuffer;

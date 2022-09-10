@@ -795,6 +795,7 @@ namespace UnityEditor.Rendering
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
         /// <typeparam name="TEnum">Type of the mask used</typeparam>
+        /// <typeparam name="TState">Type of the persistent state</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedStateBase</param>
         /// <param name="foldoutState">The ExpandedStateBase describing the component</param>
@@ -812,6 +813,7 @@ namespace UnityEditor.Rendering
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
         /// <typeparam name="TEnum">Type of the mask used</typeparam>
+        /// <typeparam name="TState">Type of the persistent state</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedStateBase</param>
         /// <param name="foldoutState">The ExpandedStateBase describing the component</param>
@@ -829,6 +831,7 @@ namespace UnityEditor.Rendering
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
         /// <typeparam name="TEnum">Type of the mask used</typeparam>
+        /// <typeparam name="TState">Type of the persistent state</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedStateBase</param>
         /// <param name="foldoutState">The ExpandedStateBase describing the component</param>
@@ -847,6 +850,7 @@ namespace UnityEditor.Rendering
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
         /// <typeparam name="TEnum">Type of the mask used</typeparam>
+        /// <typeparam name="TState">Type of the persistent state</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedStateBase</param>
         /// <param name="foldoutState">The ExpandedStateBase describing the component</param>

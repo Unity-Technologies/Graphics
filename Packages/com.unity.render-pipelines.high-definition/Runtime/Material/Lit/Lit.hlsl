@@ -9,6 +9,7 @@
 #define MATERIAL_INCLUDE_TRANSMISSION
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
@@ -37,12 +38,12 @@ TEXTURE2D_X(_GBufferTexture0);
 TEXTURE2D_X(_GBufferTexture1);
 TEXTURE2D_X(_GBufferTexture2);
 TEXTURE2D_X(_GBufferTexture3); // Bake lighting and/or emissive
-TEXTURE2D_X(_GBufferTexture4); // VTFeedbakc or Light layer or shadow mask
-TEXTURE2D_X(_GBufferTexture5); // Light layer or shadow mask
+TEXTURE2D_X(_GBufferTexture4); // VTFeedback or Rendering layer or shadow mask
+TEXTURE2D_X(_GBufferTexture5); // Rendering layer or shadow mask
 TEXTURE2D_X(_GBufferTexture6); // shadow mask
 
 
-TEXTURE2D_X(_LightLayersTexture);
+TEXTURE2D_X(_RenderingLayersTexture);
 #ifdef SHADOWS_SHADOWMASK
 TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to know which gbuffer is used for shadow mask
 #endif
@@ -71,11 +72,11 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
     #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer5
 #endif
 
-#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
-#define OUT_GBUFFER_LIGHT_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
+#if defined(RENDERING_LAYERS) && defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_RENDERING_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
 #define OUT_GBUFFER_SHADOWMASK OUT_GBUFFER_OPTIONAL_SLOT_2
-#elif defined(LIGHT_LAYERS)
-#define OUT_GBUFFER_LIGHT_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
+#elif defined(RENDERING_LAYERS)
+#define OUT_GBUFFER_RENDERING_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_SHADOWMASK OUT_GBUFFER_OPTIONAL_SLOT_1
 #endif
@@ -409,7 +410,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
 
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
-    bsdfData.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+    bsdfData.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor :
+        ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
@@ -714,10 +716,13 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         outGBuffer3.y = surfaceData.ambientOcclusion;
     }
 
-#ifdef LIGHT_LAYERS
-    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    // Channels xyz are not written to because of the ColorMask
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
+#ifdef RENDERING_LAYERS
+    // Output rendering layers to buffer. Also write geometric normal for use in lighting pass
+    // We have to write it again in case the material has disabled decals and normal was not written during prepass
+    DecalPrepassData decalPrepassData;
+    decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
+    decalPrepassData.renderingLayerMask = GetMeshRenderingLayerMask();
+    EncodeIntoDecalPrepassBuffer(decalPrepassData, OUT_GBUFFER_RENDERING_LAYERS);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -750,17 +755,6 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     GBufferType0 inGBuffer0 = LOAD_TEXTURE2D_X(_GBufferTexture0, positionSS);
     GBufferType1 inGBuffer1 = LOAD_TEXTURE2D_X(_GBufferTexture1, positionSS);
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D_X(_GBufferTexture2, positionSS);
-
-    // Avoid to introduce a new variant for light layer as it is already long to compile
-    if (_EnableLightLayers)
-    {
-        float4 inGBuffer4 = LOAD_TEXTURE2D_X(_LightLayersTexture, positionSS);
-        builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
-    }
-    else
-    {
-        builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
-    }
 
     // We know the GBufferType no need to use abstraction
 #ifdef SHADOWS_SHADOWMASK
@@ -829,8 +823,14 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     NormalData normalData;
     DecodeFromNormalBuffer(inGBuffer1, normalData);
     bsdfData.normalWS = normalData.normalWS;
-    bsdfData.geomNormalWS = bsdfData.normalWS; // No geometric normal in deferred, use normal map
+    bsdfData.geomNormalWS = bsdfData.normalWS; // If geometric normal is not available, fallback on normal map
     bsdfData.perceptualRoughness = normalData.perceptualRoughness;
+
+    // Avoid to introduce a new variant for light layer as it is already long to compile
+    float4 inGBuffer4 = LOAD_TEXTURE2D_X(_RenderingLayersTexture, positionSS);
+    builtinData.renderingLayers = _EnableLightLayers ? UnpackMeshRenderingLayerMask(inGBuffer4) : RENDERING_LAYERS_MASK;
+    if (_EnableDecalLayers && (_EnableRenderingLayers || _EnableLightLayers))
+        bsdfData.geomNormalWS = UnpackNormalOctQuadEncode(inGBuffer4.zw * 2.0 - 1.0);
 
     // Decompress feature-specific data from the G-Buffer.
     bool pixelHasMetallic = HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE);
@@ -1166,7 +1166,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Handle IBL + area light + multiscattering.
     // Note: use the not modified by anisotropy iblPerceptualRoughness here.
     float specularReflectivity;
-    GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+    float F90 = ComputeF90(bsdfData.fresnel0);
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, F90, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.diffuseFGD = 1.0;
 #endif
@@ -1340,7 +1341,9 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float LdotV, NdotH, LdotH, invLenLV;
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    // This F90 term can be used as a way to suppress completely specular when using the specular workflow.
+    float F90 = ComputeF90(bsdfData.fresnel0);
+    float3 F = F_Schlick(bsdfData.fresnel0, F90, LdotH);
     // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
     // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
     // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.

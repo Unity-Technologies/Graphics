@@ -121,7 +121,7 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS,
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers = RENDERING_LAYERS_MASK,
                           bool withPoint = true, bool withArea = true, bool withDistant = true,
                           float3 lightPosition = FLT_MAX)
 {
@@ -302,7 +302,7 @@ float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir);
+        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir).rgb;
     }
 #endif
 
@@ -498,7 +498,7 @@ bool SampleLights(LightList lightList,
         }
         else // lightType == PTLIGHT_SKY
         {
-            float2 uv = SampleSky(inputSample);
+            float2 uv = SampleSky(inputSample.xy);
             outgoingDir = MapUVToSkyDirection(uv);
             value = GetSkyValue(outgoingDir);
             pdf = GetSkyLightWeight(lightList) * GetSkyPDFFromValue(value);
@@ -894,7 +894,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
 
 LightList CreateLightList(float3 position, bool sampleLocalLights, float3 lightPosition = FLT_MAX)
 {
-    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, sampleLocalLights, !sampleLocalLights, lightPosition);
+    return CreateLightList(position, 0.0, RENDERING_LAYERS_MASK, sampleLocalLights, sampleLocalLights, !sampleLocalLights, lightPosition);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED

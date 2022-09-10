@@ -1,4 +1,5 @@
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -118,7 +119,6 @@ namespace UnityEngine.Rendering.Universal
     };
 
     // All of TAA here, work on TAA == work on this file.
-    // TODO: should be instance? Should own it's material/shader?
     static class TemporalAA
     {
         static internal class ShaderConstants
@@ -133,7 +133,6 @@ namespace UnityEngine.Rendering.Universal
             public TemporalAAQuality quality;
             public int resetHistoryFrames;  // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
 
-            // TODO: Hardcode these? Here for test and preset configuration
             public float frameInfluence;
 
             public static Settings Create()
@@ -213,26 +212,92 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void ExecutePass(CommandBuffer cmd, Material taaMaterial, ref CameraData cameraData, RTHandle source, RTHandle destination, RenderTexture motionVectors)
         {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
+            {
+                ref var taa = ref cameraData.taaSettings;
+
+                int multipassId = 0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                multipassId = cameraData.xr.multipassId;
+#endif
+
+                float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
+
+                taaMaterial.SetFloat(ShaderConstants._TaaFrameInfluence, taaInfluence);
+                taaMaterial.SetTexture(ShaderConstants._TaaAccumulationTex, cameraData.taaPersistentData.accumulationTexture(multipassId));
+                taaMaterial.SetTexture(ShaderConstants._TaaMotionVectorTex, motionVectors);
+
+                int kHistoryCopyPass = (int)TemporalAAQuality.High + 1;
+
+                Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, (int)taa.quality);
+                var history = cameraData.taaPersistentData.accumulationTexture(multipassId);
+                Blitter.BlitCameraTexture(cmd, destination, history, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, kHistoryCopyPass);
+            }
+        }
+
+        private class TaaPassData
+        {
+            internal TextureHandle dstTex;
+            internal TextureHandle srcColorTex;
+            internal TextureHandle srcDepthTex;
+            internal TextureHandle srcMotionVectorTex;
+            internal TextureHandle srcTaaAccumTex;
+
+            internal Material material;
+            internal int passIndex;
+
+            internal float taaInfluence;
+        }
+
+        internal static void Render(RenderGraph renderGraph, Material taaMaterial, ref CameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dst)
+        {
             ref var taa = ref cameraData.taaSettings;
+            float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
 
             int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
             multipassId = cameraData.xr.multipassId;
 #endif
+            TextureHandle srcAccumulation = renderGraph.ImportTexture(cameraData.taaPersistentData.accumulationTexture(multipassId));
 
-            float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
+            using (var builder = renderGraph.AddRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
+            {
+                passData.dstTex = builder.UseColorBuffer(dst, 0);
+                passData.srcColorTex = builder.ReadTexture(srcColor);
+                passData.srcDepthTex = builder.ReadTexture(srcDepth);
+                passData.srcMotionVectorTex = builder.ReadTexture(srcMotionVectors);
+                passData.srcTaaAccumTex = builder.ReadTexture(srcAccumulation);
 
-            taaMaterial.SetFloat(ShaderConstants._TaaFrameInfluence, taaInfluence);
-            taaMaterial.SetTexture(ShaderConstants._TaaAccumulationTex, cameraData.taaPersistentData.accumulationTexture(multipassId));
-            taaMaterial.SetTexture(ShaderConstants._TaaMotionVectorTex, motionVectors);
+                passData.material = taaMaterial;
+                passData.passIndex = (int)taa.quality;
+
+                passData.taaInfluence = taaInfluence;
+
+                builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) =>
+                {
+                    data.material.SetFloat(ShaderConstants._TaaFrameInfluence, data.taaInfluence);
+                    data.material.SetTexture(ShaderConstants._TaaAccumulationTex, data.srcTaaAccumTex);
+                    data.material.SetTexture(ShaderConstants._TaaMotionVectorTex, data.srcMotionVectorTex);
+                    data.material.SetTexture("_CameraDepthTexture", data.srcDepthTex); // TODO: Use a constant for the name.
+
+                    Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex);
+                });
+            }
 
             int kHistoryCopyPass = (int)TemporalAAQuality.High + 1;
+            using (var builder = renderGraph.AddRenderPass<TaaPassData>("Temporal Anti-aliasing Copy History", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAACopyHistory)))
+            {
+                passData.dstTex = builder.UseColorBuffer(srcAccumulation, 0);
+                passData.srcColorTex = builder.ReadTexture(dst);
 
-            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, (int)taa.quality);
-            var history = cameraData.taaPersistentData.accumulationTexture(multipassId);
-            Blitter.BlitCameraTexture(cmd, destination, history, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, kHistoryCopyPass);
+                passData.material = taaMaterial;
+                passData.passIndex = kHistoryCopyPass;
+
+                builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) =>
+                {
+                    Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex);
+                });
+            }
         }
-
-        // TODO: RenderGraph
     }
 }

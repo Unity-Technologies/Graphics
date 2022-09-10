@@ -69,9 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter rayBias = new ClampedFloatParameter(0.001f, 0.0f, 0.1f);
 
         /// <summary>
-        /// Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.
+        /// When enabled, the culling region for punctual and area lights shadow maps is increased from frustum culling to extended culling. For Directional lights, cascades are not extended, but additional objects may appear in the cascades.
         /// </summary>
-        [Tooltip("Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.")]
+        [Tooltip("When enabled, the culling region for punctual and area lights shadow maps is increased from frustum culling to extended culling. For Directional lights, cascades are not extended, but additional objects may appear in the cascades.")]
         [FormerlySerializedAs("extendCulling")]
         public BoolParameter extendShadowCulling = new BoolParameter(false);
 
@@ -96,19 +96,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls how the ray tracing acceleration structure is build.
         /// </summary>
+        [Tooltip("Controls how the ray tracing acceleration structure is build.")]
         [AdditionalProperty]
         public RTASBuildModeParameter buildMode = new RTASBuildModeParameter(RTASBuildMode.Automatic);
 
         /// <summary>
         /// Controls how the maximum distance for the ray tracing culling is defined.
         /// </summary>
+        [Tooltip("Controls how the maximum distance for the ray tracing culling is defined.")]
         [AdditionalProperty]
         public RTASCullingModeParameter cullingMode = new RTASCullingModeParameter(RTASCullingMode.ExtendedFrustum);
 
         /// <summary>
-        /// Controls the manual culling distance.
+        /// Specifies the radius of the sphere used to cull objects out of the ray tracing acceleration structure when the culling mode is set to Sphere.
         /// </summary>
-        [Tooltip("Controls the manual culling distance.")]
+        [Tooltip("Specifies the radius of the sphere used to cull objects out of the ray tracing acceleration structure when the culling mode is set to Sphere.")]
         public MinFloatParameter cullingDistance = new MinFloatParameter(1000.0f, 0.01f);
 
         /// <summary>

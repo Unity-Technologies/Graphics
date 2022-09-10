@@ -2845,10 +2845,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
 
     // Handle base FGD texture fetches for IBL + area light + multiscattering:
-
+    float F90 = ComputeF90(f0forCalculatingFGD);
     GetPreIntegratedFGDGGXAndDisneyDiffuse(preLightData.baseLayerNdotV,
         preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
         f0forCalculatingFGD,
+        F90,
         preLightData.specularFGD[BASE_LOBEA_IDX],
         diffuseFGD[0],
         specularReflectivity[BASE_LOBEA_IDX]);
@@ -2856,6 +2857,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     GetPreIntegratedFGDGGXAndDisneyDiffuse(preLightData.baseLayerNdotV,
         preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
         f0forCalculatingFGD,
+        F90,
         preLightData.specularFGD[BASE_LOBEB_IDX],
         diffuseFGD[1],
         specularReflectivity[BASE_LOBEB_IDX]);
@@ -3631,7 +3633,8 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
 #else
         // If we don't recompute the stack per dirac lights, we ensure the coatmask make us lerp
         // to the usual LdotH Schlick term.
-        bottomF = F_Schlick(bsdfData.fresnel0, savedLdotH);
+        float F90 = ComputeF90(bsdfData.fresnel0);
+        bottomF = F_Schlick(bsdfData.fresnel0, F90, savedLdotH);
         BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, bottomF);
 #endif
 
@@ -3662,7 +3665,8 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // preLightData.layeredRoughnessB[1] = bsdfData.roughnessBB;
 
         // TODO: Proper Fresnel
-        float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
+        float F90 = ComputeF90(bsdfData.fresnel0);
+        float3 F = F_Schlick(bsdfData.fresnel0, F90, savedLdotH);
 
         BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, F);
 

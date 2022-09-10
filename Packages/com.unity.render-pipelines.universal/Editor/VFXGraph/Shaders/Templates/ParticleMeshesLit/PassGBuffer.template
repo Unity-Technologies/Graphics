@@ -59,6 +59,7 @@ Pass
         ${VFXAdditionalInterpolantsDeclaration}
     
         UNITY_VERTEX_OUTPUT_STEREO
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
     };
     
     struct ps_output

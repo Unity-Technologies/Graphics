@@ -472,14 +472,44 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Enable or disable Rendering layers Debug
+        /// </summary>
+        /// <param name="value">Desired Rendering Layers Debug Mode.</param>
+        public void SetDebugLightLayersMode(bool value)
+        {
+            if (value)
+            {
+                data.ResetExclusiveEnumIndices();
+                data.lightingDebugSettings.debugLightFilterMode = DebugLightFilterMode.None;
+
+                var builtins = typeof(Builtin.BuiltinData);
+                var attr = builtins.GetCustomAttributes(true)[0] as GenerateHLSL;
+                var renderingLayers = Array.IndexOf(builtins.GetFields(), builtins.GetField("renderingLayers"));
+
+                SetDebugViewMaterial(attr.paramDefinesStart + renderingLayers);
+            }
+            else
+            {
+                SetDebugViewMaterial(0);
+            }
+        }
+
+        internal bool IsDebuggingRenderingLayers()
+        {
+            var builtins = typeof(Builtin.BuiltinData);
+            var attr = builtins.GetCustomAttributes(true)[0] as GenerateHLSL;
+            var renderingLayers = Array.IndexOf(builtins.GetFields(), builtins.GetField("renderingLayers"));
+
+            return data.materialDebugSettings.debugViewMaterial[0] == 1 && data.materialDebugSettings.debugViewMaterial[1] == attr.paramDefinesStart + renderingLayers;
+        }
+
+        /// <summary>
         /// Returns the current Light Layers Debug Mask.
         /// </summary>
         /// <returns>Current Light Layers Debug Mask.</returns>
-        public DebugLightLayersMask GetDebugLightLayersMask()
+        public RenderingLayerMask GetDebugLightLayersMask()
         {
             var settings = data.lightingDebugSettings;
-            if (!settings.debugLightLayers)
-                return 0;
 
 #if UNITY_EDITOR
             if (settings.debugSelectionLightLayers)
@@ -491,8 +521,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 0;
 
                 if (settings.debugSelectionShadowLayers)
-                    return (DebugLightLayersMask)light.GetShadowLayers();
-                return (DebugLightLayersMask)light.GetLightLayers();
+                    return (RenderingLayerMask)light.GetShadowLayers();
+                return (RenderingLayerMask)light.GetLightLayers();
             }
 #endif
 
@@ -643,7 +673,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.fullScreenDebugMode = FullScreenDebugMode.None;
             data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
             data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
-            data.lightingDebugSettings.debugLightLayers = false;
         }
 
         /// <summary>
@@ -724,7 +753,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (value != FullScreenDebugMode.None)
             {
                 data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
-                data.lightingDebugSettings.debugLightLayers = false;
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
             }
@@ -772,33 +800,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
-                data.lightingDebugSettings.debugLightLayers = false;
             }
             data.lightingDebugSettings.debugLightFilterMode = value;
-        }
-
-        /// <summary>
-        /// Set the current Light layers Debug Mode
-        /// </summary>
-        /// <param name="value">Desired Light Layers Debug Mode.</param>
-        public void SetDebugLightLayersMode(bool value)
-        {
-            if (value)
-            {
-                data.ResetExclusiveEnumIndices();
-                data.lightingDebugSettings.debugLightFilterMode = DebugLightFilterMode.None;
-
-                var builtins = typeof(Builtin.BuiltinData);
-                var attr = builtins.GetCustomAttributes(true)[0] as GenerateHLSL;
-                var renderingLayers = Array.IndexOf(builtins.GetFields(), builtins.GetField("renderingLayers"));
-
-                SetDebugViewMaterial(attr.paramDefinesStart + renderingLayers);
-            }
-            else
-            {
-                SetDebugViewMaterial(0);
-            }
-            data.lightingDebugSettings.debugLightLayers = value;
         }
 
         /// <summary>
@@ -812,7 +815,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.fullScreenDebugMode = FullScreenDebugMode.None;
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
-                data.lightingDebugSettings.debugLightLayers = false;
             }
             data.lightingDebugSettings.debugLightingMode = value;
         }
@@ -845,7 +847,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
-                data.lightingDebugSettings.debugLightLayers = false;
                 data.fullScreenDebugMode = FullScreenDebugMode.None;
             }
             data.mipMapDebugSettings.debugMipMapMode = value;
@@ -1127,6 +1128,62 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(CreateMissingDebugShadersWarning());
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.CommonMaterialProperties, getter = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setter = value => SetDebugViewCommonMaterialProperty((MaterialSharedProperty)value), autoEnum = typeof(MaterialSharedProperty), getIndex = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.debugViewMaterialCommonValue = (MaterialSharedProperty)value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Material, getter = () => (data.materialDebugSettings.debugViewMaterial[0]) == 0 ? 0 : data.materialDebugSettings.debugViewMaterial[1], setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialDebugSettings.materialEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.materialEnumIndex = value; } });
+            {
+                var container = new DebugUI.Container()
+                {
+                    isHiddenCallback = () => !IsDebuggingRenderingLayers(),
+                    children =
+                    {
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = LightingStrings.LightLayersUseSelectedLight,
+                            getter = () => data.lightingDebugSettings.debugSelectionLightLayers,
+                            setter = value => data.lightingDebugSettings.debugSelectionLightLayers = value,
+                            flags = DebugUI.Flags.EditorOnly,
+                        },
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = LightingStrings.LightLayersSwitchToLightShadowLayers,
+                            getter = () => data.lightingDebugSettings.debugSelectionShadowLayers,
+                            setter = value => data.lightingDebugSettings.debugSelectionShadowLayers = value,
+                            flags = DebugUI.Flags.EditorOnly,
+                            isHiddenCallback = () => !data.lightingDebugSettings.debugSelectionLightLayers
+                        }
+                    }
+                };
+
+                {
+                    var field = new DebugUI.BitField
+                    {
+                        nameAndTooltip = LightingStrings.LightLayersFilterLayers,
+                        getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
+                        setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)value,
+                        enumType = typeof(RenderingLayerMask),
+                        isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers
+                    };
+
+                    for (int i = 0; i < HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames.Length; i++)
+                        field.enumNames[i + 1].text = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames[i];
+                    container.children.Add(field);
+                }
+
+                var layersColor = new DebugUI.Foldout() { nameAndTooltip = LightingStrings.LightLayersColor, flags = DebugUI.Flags.EditorOnly };
+                for (int i = 0; i < HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames.Length; i++)
+                {
+                    int index = i;
+                    layersColor.children.Add(new DebugUI.ColorField
+                    {
+                        displayName = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames[i],
+                        flags = DebugUI.Flags.EditorOnly,
+                        getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
+                        setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value
+                    });
+                }
+
+                container.children.Add(layersColor);
+                list.Add(container);
+            }
+
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Engine, getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.engineEnumIndex = value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Attributes, getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.attributesEnumIndex = value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Properties, getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.propertiesEnumIndex = value; } });
@@ -1237,8 +1294,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip LightHierarchyDebugMode = new() { name = "Light Hierarchy Debug Mode", tooltip = "Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for." };
             public static readonly NameAndTooltip LightLayersVisualization = new() { name = "Light Layers Visualization", tooltip = "Visualize the light layers of GameObjects in your Scene." };
 
-            public static readonly NameAndTooltip LightLayersUseSelectedLight = new() { name = "Use Selected Light", tooltip = "Visualize GameObjects affected by the selected light." };
-            public static readonly NameAndTooltip LightLayersSwitchToLightShadowLayers = new() { name = "Switch To Light's Shadow Layers", tooltip = "Visualize GameObjects that cast shadows for the selected light." };
+            public static readonly NameAndTooltip LightLayersUseSelectedLight = new() { name = "Filter with Light Layers from Selected Light", tooltip = "Highlight Renderers affected by the selected light." };
+            public static readonly NameAndTooltip LightLayersSwitchToLightShadowLayers = new() { name = "Use Light's Shadow Layer Mask", tooltip = "Highlight Renderers that cast shadows for the selected light." };
             public static readonly NameAndTooltip LightLayersFilterLayers = new() { name = "Filter Layers", tooltip = "Use the drop-down to filter light layers that you want to visialize." };
             public static readonly NameAndTooltip LightLayersColor = new() { name = "Layers Color", tooltip = "Select the display color of each light layer." };
 
@@ -1440,63 +1497,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lighting.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightingDebugMode, getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
                 lighting.children.Add(new DebugUI.BitField { nameAndTooltip = LightingStrings.LightHierarchyDebugMode, getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode)});
 
-                lighting.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.LightLayersVisualization, getter = () => data.lightingDebugSettings.debugLightLayers, setter = value => SetDebugLightLayersMode(value)});
-
-                {
-                    var container = new DebugUI.Container()
-                    {
-                        isHiddenCallback = () => !data.lightingDebugSettings.debugLightLayers,
-                        children =
-                        {
-                            new DebugUI.BoolField
-                            {
-                                nameAndTooltip = LightingStrings.LightLayersUseSelectedLight,
-                                getter = () => data.lightingDebugSettings.debugSelectionLightLayers,
-                                setter = value => data.lightingDebugSettings.debugSelectionLightLayers = value,
-                                flags = DebugUI.Flags.EditorOnly,
-                            },
-                            new DebugUI.BoolField
-                            {
-                                nameAndTooltip = LightingStrings.LightLayersSwitchToLightShadowLayers,
-                                getter = () => data.lightingDebugSettings.debugSelectionShadowLayers,
-                                setter = value => data.lightingDebugSettings.debugSelectionShadowLayers = value,
-                                flags = DebugUI.Flags.EditorOnly,
-                                isHiddenCallback = () => !data.lightingDebugSettings.debugSelectionLightLayers
-                            }
-                        }
-                    };
-
-                    {
-                        var field = new DebugUI.BitField
-                        {
-                            nameAndTooltip = LightingStrings.LightLayersFilterLayers,
-                            getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
-                            setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)value,
-                            enumType = typeof(DebugLightLayersMask),
-                            isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers
-                        };
-
-                        for (int i = 0; i < 8; i++)
-                            field.enumNames[i + 1].text = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i];
-                        container.children.Add(field);
-                    }
-
-                    var layersColor = new DebugUI.Foldout() { nameAndTooltip = LightingStrings.LightLayersColor, flags = DebugUI.Flags.EditorOnly };
-                    for (int i = 0; i < 8; i++)
-                    {
-                        int index = i;
-                        layersColor.children.Add(new DebugUI.ColorField
-                        {
-                            displayName = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i],
-                            flags = DebugUI.Flags.EditorOnly,
-                            getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
-                            setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value
-                        });
-                    }
-
-                    container.children.Add(layersColor);
-                    lighting.children.Add(container);
-                }
                 list.Add(lighting);
             }
 

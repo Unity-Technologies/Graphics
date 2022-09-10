@@ -145,7 +145,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ZERO_INITIALIZE(BuiltinData, builtinData);
     uint  featureFlags = UINT_MAX;
     DecodeFromGBuffer(currentCoord, featureFlags, bsdfData, builtinData);
-    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.renderingLayers = RENDERING_LAYERS_MASK;
     builtinData.shadowMask0 = 1.0;
     builtinData.shadowMask1 = 1.0;
     builtinData.shadowMask2 = 1.0;
@@ -239,7 +239,7 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     BuiltinData builtinData;
     ZERO_INITIALIZE(BuiltinData, builtinData);
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_DiffuseLightingTextureRW, currentCoord).xyz;  // This also contain emissive (and * AO if no lightlayers)
-    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.renderingLayers = RENDERING_LAYERS_MASK;
     builtinData.shadowMask0 = 1.0;
     builtinData.shadowMask1 = 1.0;
     builtinData.shadowMask2 = 1.0;

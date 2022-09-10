@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string k_DefaultListName = "Custom Passes";
 
+        static MethodInfo reorderableListInvalidateCacheMethod = typeof(ReorderableList).GetMethod("InvalidateCacheRecursive", BindingFlags.NonPublic | BindingFlags.Instance);
+
         static class Styles
         {
             public static readonly GUIContent isGlobal = EditorGUIUtility.TrTextContent("Mode", "Global Volumes affect the Camera wherever the Camera is in the Scene and Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider. A camera volume is applied only for the target camera.");
@@ -188,7 +190,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             if (EditorGUI.EndChangeCheck())
+            {
+                // UUM-8410 custom pass UI height is not updated
+                reorderableListInvalidateCacheMethod.Invoke(m_CustomPassList, null);
                 serializedObject.ApplyModifiedProperties();
+            }
         }
 
         void DrawCustomPassReorderableList()

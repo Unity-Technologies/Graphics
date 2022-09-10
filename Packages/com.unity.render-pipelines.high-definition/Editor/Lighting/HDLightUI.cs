@@ -275,7 +275,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, LightUI.Styles.lightLayer);
                     if (change.changed && serialized.linkShadowLayers.boolValue)
+                    {
+                        Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
                         SyncLightAndShadowLayers(serialized, owner);
+                    }
                 }
             }
         }
@@ -1350,7 +1353,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new EditorGUI.DisabledGroupScope(serialized.linkShadowLayers.hasMultipleDifferentValues))
                         {
                             ++EditorGUI.indentLevel;
-                            HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                            HDEditorUtils.DrawRenderingLayerMask(serialized.settings.renderingLayerMask, s_Styles.shadowLayerMaskText);
                             --EditorGUI.indentLevel;
                         }
                     }

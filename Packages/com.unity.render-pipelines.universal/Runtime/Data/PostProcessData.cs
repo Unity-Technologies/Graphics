@@ -101,6 +101,9 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/PostProcessing/Bloom.shader")]
             public Shader bloomPS;
 
+            /// <summary>
+            /// The Temporal-antialiasing Post Processing shader.
+            /// </summary>
             [Reload("Shaders/PostProcessing/TemporalAA.shader")]
             public Shader temporalAntialiasingPS;
 

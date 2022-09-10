@@ -349,8 +349,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterTessellationFadeStart = settings.tessellationFactorFadeStart.value;
             cb._WaterTessellationFadeRange = settings.tessellationFactorFadeRange.value;
 
-            // Bind the decal layer data
-            cb._WaterDecalLayer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? ((uint)currentWater.decalLayerMask) : ShaderVariablesGlobal.DefaultDecalLayers;
+            // Bind the rendering layer data for decal layers
+            cb._WaterRenderingLayer = (uint)currentWater.renderingLayerMask;
         }
 
         void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater, bool gpuResourcesInvalid, bool validHistory, ShaderVariablesWater shaderVariablesWater)
@@ -732,7 +732,7 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.tipScatteringHeight = waterSurface.directLightTipScattering;
             profile.waterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
             profile.maxRefractionDistance = Mathf.Min(waterSurface.absorptionDistance, waterSurface.maxRefractionDistance);
-            profile.lightLayers = (uint)waterSurface.lightLayerMask;
+            profile.renderingLayers = (uint)waterSurface.renderingLayerMask;
             profile.cameraUnderWater = waterSurfaceIndex == m_UnderWaterSurfaceIndex ? 1 : 0;
             profile.transparencyColor = new Vector3(Mathf.Min(waterSurface.refractionColor.r, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.g, 0.99f),

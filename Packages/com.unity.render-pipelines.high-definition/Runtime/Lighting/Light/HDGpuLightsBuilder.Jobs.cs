@@ -142,8 +142,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private static uint GetLightLayer(bool lightLayersEnabled, in HDLightRenderData lightRenderData)
             {
-                int lightLayerMaskValue = (int)lightRenderData.lightLayer;
-                uint lightLayerValue = lightLayerMaskValue < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayerMaskValue;
+                int lightLayerMaskValue = (int)lightRenderData.renderingLayerMask;
+                uint lightLayerValue = lightLayerMaskValue < 0 ? (uint)RenderingLayerMask.Everything : lightRenderData.renderingLayerMask;
                 return lightLayersEnabled ? lightLayerValue : uint.MaxValue;
             }
 
