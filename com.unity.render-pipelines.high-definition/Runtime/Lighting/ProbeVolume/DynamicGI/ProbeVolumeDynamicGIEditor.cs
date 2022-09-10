@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void DebugDrawDirtyProbes(ProbeVolume probeVolume, Camera camera)
         {
-            var dirtyProbes = probeVolume.propagationPipelineData.GetNextDirtyProbes();
+            var dirtyProbes = probeVolume.propagationPipelineData.GetDirtyProbes();
             if (dirtyProbes == null || !dirtyProbes.IsValid())
                 return;
 
