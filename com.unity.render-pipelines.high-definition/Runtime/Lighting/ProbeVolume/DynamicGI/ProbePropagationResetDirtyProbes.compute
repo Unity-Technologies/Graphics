@@ -1,0 +1,47 @@
+#pragma kernel ResetDirtyProbes
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
+
+RWStructuredBuffer<int> _DirtyProbes;
+uint _ProbeCount;
+uint _ResolutionXY;
+uint _ResolutionX;
+uint _ResolutionY;
+uint _ResolutionZ;
+
+uint3 ProbeIndexToProbeCoordinatesUint(uint probeIndex)
+{
+    uint probeZ = probeIndex / _ResolutionXY;
+    probeIndex -= probeZ * _ResolutionXY;
+
+    uint probeY = probeIndex / _ResolutionX;
+    uint probeX = probeIndex % _ResolutionX;
+
+    return uint3(probeX, probeY, probeZ);
+}
+
+bool IsBoundaryProbe(uint3 probeCoordinate)
+{
+    return probeCoordinate.x == 0
+        || probeCoordinate.y == 0
+        || probeCoordinate.z == 0
+        || probeCoordinate.x + 1 == _ResolutionX
+        || probeCoordinate.y + 1 == _ResolutionY
+        || probeCoordinate.z + 1 == _ResolutionZ;
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void ResetDirtyProbes(uint3 id : SV_DispatchThreadID)
+{
+    const uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
+        if (IsBoundaryProbe(probeCoordinate))
+            SetProbeDirty(_DirtyProbes, probeIndex);
+        else
+            ClearProbeDirty(_DirtyProbes, probeIndex);
+    }
+}

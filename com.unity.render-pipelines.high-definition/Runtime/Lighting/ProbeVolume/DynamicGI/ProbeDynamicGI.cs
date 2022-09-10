@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Advanced control to clear all dynamic GI buffers in the event lighting blows up when tuning")]
         public BoolParameter clear = new BoolParameter(false);
         [Tooltip("Use per probe dirty flag to run propagation only for probes whose neighborhood has changed during last simulation.")]
-        public BoolParameter useDirtyFlag = new BoolParameter(true);
+        public BoolParameter useDirtyFlags = new BoolParameter(true);
 
         [Serializable]
         public sealed class ProbeVolumeDynamicGIBasisParameter : VolumeParameter<ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasis>
