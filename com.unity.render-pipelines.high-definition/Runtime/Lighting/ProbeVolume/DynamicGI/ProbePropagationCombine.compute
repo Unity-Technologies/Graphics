@@ -320,19 +320,8 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
 
 
 [numthreads(GROUP_SIZE, 1, 1)]
-void CombinePropagationAxis(
-    uint3 id : SV_DispatchThreadID
-#ifdef DIRTY_PROBES_ENABLED
-    , uint3 groupId : SV_GroupID
-#endif
-    )
+void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
 {
-#ifdef DIRTY_PROBES_ENABLED
-    bool isAnyProbeDirtyInGroup = (_DirtyProbes[groupId.x * 2] | _DirtyProbes[groupId.x * 2 + 1]) != 0;
-    if (!isAnyProbeDirtyInGroup)
-        return;
-#endif
-
     const uint readIndex = id.x;
     if (readIndex < _ProbeVolumeAtlasReadBufferCount)
     {

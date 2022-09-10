@@ -436,6 +436,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                 int i = neighborAxisLookup.index;
 
                 int3 offset = GetNeighborAxisOffset(i);
+                // When we gathered radiance from neighbors in miss directions we were adding the offset,
+                // but here we try to predict which probes will gather changes from us so we subtract.
                 int3 neighborProbeCoordinate = probeCoordinate - offset;
 
                 if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
