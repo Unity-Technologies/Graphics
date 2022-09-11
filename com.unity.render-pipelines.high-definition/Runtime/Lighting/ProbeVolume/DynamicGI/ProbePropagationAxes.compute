@@ -1,5 +1,5 @@
 #pragma kernel PropagateLight
-#define GROUP_SIZE 64
+#define GROUP_SIZE 4
 // #pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
@@ -306,16 +306,19 @@ RADIANCE GetPreviousAxisRadiance(int index)
 // Our ZH Fit produces results that are closer to the monte carlo naive projection ground turth than the sample peaks approach does. Both approaches are reasonable however.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_ZH_FIT
 
-[numthreads(GROUP_SIZE, 1, 1)]
-void PropagateLight(uint3 id : SV_DispatchThreadID)
+[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
+void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const int index = id.x;
-    if (index < _ProbeVolumeNeighborsCount)
-    {
-        const uint axisIndex = (uint)index / _ProbeVolumeProbeCount;
-        const uint probeIndex = (uint)index - axisIndex * _ProbeVolumeProbeCount;
+    const uint3 resolution = uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ);
+    const uint3 groupResolution = (resolution + GROUP_SIZE - 1) / GROUP_SIZE;
+    const uint axisIndex = groupId.z / groupResolution.z;
+    const uint3 groupCoordinate = uint3(groupId.x, groupId.y, groupId.z - axisIndex * groupResolution.z);
+    const uint3 probeCoordinate = groupCoordinate * GROUP_SIZE + threadId;
 
-        uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
+    if (all(probeCoordinate < resolution))
+    {
+        const int probeIndex = ProbeCoordinateToIndex(probeCoordinate);
+        const int index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex))

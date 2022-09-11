@@ -1169,9 +1169,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int numHits = propagationPipelineData.neighbors.count;
-            int dispatchX = (numHits + 63) / 64;
-            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+            int dispatchX = ((int)data.resolutionX + 3) / 4;
+            int dispatchY = ((int)data.resolution.y + 3) / 4;
+            int dispatchZ = ((int)data.resolution.z + 3) / 4 * s_NeighborAxis.Length;
+            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
         }
 
         static void UpdateAmbientProbe(SphericalHarmonicsL2 ambientProbe, float multiplier)
