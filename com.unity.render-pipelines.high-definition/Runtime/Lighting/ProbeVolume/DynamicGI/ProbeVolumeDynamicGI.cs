@@ -1261,8 +1261,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int dispatchX = (numProbes + 63) / 64;
-            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+            int dispatchX = (probeVolume.parameters.resolutionX + 3) / 4;
+            int dispatchY = (probeVolume.parameters.resolutionY + 3) / 4;
+            int dispatchZ = (probeVolume.parameters.resolutionZ + 3) / 4;
+            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
         }
 
         internal void DispatchPropagationOutputDynamicSH(
@@ -1332,8 +1334,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", 2f);
             cmd.SetComputeFloatParam(shader, "_Sharpness", 6f);
 
-            int dispatchX = (numProbes + 63) / 64;
-            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+            int dispatchX = (size.x + 3) / 4;
+            int dispatchY = (size.y + 3) / 4;
+            int dispatchZ = (size.z + 3) / 4;
+            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
         }
 
         Material GetDebugDirtyProbeMaterial()

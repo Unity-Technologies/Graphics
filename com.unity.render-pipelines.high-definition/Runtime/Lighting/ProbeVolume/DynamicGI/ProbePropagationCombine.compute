@@ -1,5 +1,5 @@
 #pragma kernel CombinePropagationAxis
-#define GROUP_SIZE 64
+#define GROUP_SIZE 4
 //#pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
@@ -318,23 +318,31 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
     return ProjectPropagationAxisFromFit(probeIndex);
 }
 
-
-[numthreads(GROUP_SIZE, 1, 1)]
-void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
+int ProbeCoordinateToIndex(uint3 probeCoordinate)
 {
-    const uint readIndex = id.x;
-    if (readIndex < _ProbeVolumeAtlasReadBufferCount)
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
+    return probeCoordinate.z * (resolution.x * resolution.y) + probeCoordinate.y * resolution.x + probeCoordinate.x;
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
+void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
+{
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
+    const uint3 probeCoordinate = groupId * GROUP_SIZE + threadId;
+
+    if (all(probeCoordinate < resolution))
     {
+        const int probeIndex = ProbeCoordinateToIndex(probeCoordinate);
+
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, readIndex))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex))
             return;
 #endif
 
-        uint3 writeIndex = ComputeWriteIndexFromReadIndex(readIndex, _ProbeVolumeResolution);
-        const float validity = ReadValidity(readIndex);
+        const float validity = ReadValidity(probeIndex);
 
-        SHOutgoingRadiosityWithProjectedConstantsPacked bakedOutgoingRadiosityProjectedConstantsPacked = ReadBakedSH(readIndex);
-        SHIncomingIrradiance dynamicIncomingIrradiance = ProjectPropagationAxis(readIndex);
+        SHOutgoingRadiosityWithProjectedConstantsPacked bakedOutgoingRadiosityProjectedConstantsPacked = ReadBakedSH(probeIndex);
+        SHIncomingIrradiance dynamicIncomingIrradiance = ProjectPropagationAxis(probeIndex);
 
         SHOutgoingRadiosity dynamicOutgoingRadiosity = SHOutgoingRadiosityComputeFromIncomingIrradiance(dynamicIncomingIrradiance);
         SHOutgoingRadiosityWithProjectedConstants bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosityProjectedConstantsPacked);
@@ -352,6 +360,6 @@ void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
 
         bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosity);
         bakedOutgoingRadiosityProjectedConstantsPacked = SHOutgoingRadiosityWithProjectedConstantsPackedCompute(bakedOutgoingRadiosityProjectedConstants);
-        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(writeIndex, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
+        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(probeCoordinate, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
     }
 }
