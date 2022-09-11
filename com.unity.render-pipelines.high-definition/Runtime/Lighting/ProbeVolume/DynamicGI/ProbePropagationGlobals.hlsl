@@ -71,4 +71,18 @@ bool IsProbeDirty(RWStructuredBuffer<int> buffer, uint probeIndex)
     return (buffer[index] & bitmask) != 0;
 }
 
+uint CoordinateToIndex(uint3 coordinate, uint3 resolution)
+{
+    return coordinate.z * (resolution.x * resolution.y) + coordinate.y * resolution.x + coordinate.x;
+}
+
+uint ProbeCoordinateToGroupedIndex(uint3 coordinate, uint3 resolution, uint groupSize)
+{
+    const uint3 groupCoordinate = coordinate / groupSize;
+    const uint3 groupResolution = (resolution + (groupSize - 1)) / groupSize;
+    const uint3 threadCoordinate = coordinate - groupCoordinate * groupSize;
+
+    return CoordinateToIndex(groupCoordinate, groupResolution) * (groupSize * groupSize * groupSize) + CoordinateToIndex(threadCoordinate, uint3(groupSize, groupSize, groupSize));
+}
+
 #endif // endof PROBE_PROPAGATION_GLOBALS

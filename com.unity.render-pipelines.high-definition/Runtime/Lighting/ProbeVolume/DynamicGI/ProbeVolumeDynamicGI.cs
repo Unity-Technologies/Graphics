@@ -952,6 +952,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", engineData.maxNeighborDistance);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionXY", (int)engineData.resolutionXY);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionX", (int)engineData.resolutionX);
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionY", (int)engineData.resolution.y);
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionZ", (int)engineData.resolution.z);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", engineData.resolutionInverse);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
@@ -1045,8 +1047,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(shader, "_ResolutionZ", (int)data.resolution.z);
             cmd.SetComputeIntParam(shader, "_DirtyAll", dirtyAll ? 1 : 0);
 
-            int dispatchX = (numProbes + 63) / 64;
-            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+            int dispatchX = ((int)data.resolutionX + 3) / 4;
+            int dispatchY = ((int)data.resolution.y + 3) / 4;
+            int dispatchZ = ((int)data.resolution.z + 3) / 4;
+            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
         }
 
         void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume,
@@ -1431,7 +1435,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 ProbeVolume.EnsureBuffer<NeighborAxis>(ref propagationPipelineData.neighbors, probeVolume.NeighborAxisLength);
                 probeVolume.SetNeighborAxis(propagationPipelineData.neighbors);
 
-                var packedDirtyFlagsLength = probeVolume.DataValidityLength >> 5;
+                var groupCountX = (probeVolume.parameters.resolutionX + 3) / 4;
+                var groupCountY = (probeVolume.parameters.resolutionY + 3) / 4;
+                var groupCountZ = (probeVolume.parameters.resolutionZ + 3) / 4;
+                var groupCount = groupCountX * groupCountY * groupCountZ;
+
+                var packedDirtyFlagsLength = groupCount << 1;
                 ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyFlags0, packedDirtyFlagsLength);
                 ProbeVolume.EnsureBuffer<int>(ref propagationPipelineData.dirtyFlags1, packedDirtyFlagsLength);
                 
@@ -1452,8 +1461,12 @@ namespace UnityEngine.Rendering.HighDefinition
             var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
             var hasHitNeighborAxes = hitNeighborAxisLength != 0;
             var hitNeighborAxisLengthOrOne = hasHitNeighborAxes ? hitNeighborAxisLength : 1;
-            int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
-            int numAxis = numProbes * s_NeighborAxis.Length;
+
+            var groupCountX = (probeVolume.parameters.resolutionX + 3) / 4;
+            var groupCountY = (probeVolume.parameters.resolutionY + 3) / 4;
+            var groupCountZ = (probeVolume.parameters.resolutionZ + 3) / 4;
+            var groupCount = groupCountX * groupCountY * groupCountZ;
+            int numAxis = groupCount * 64 * s_NeighborAxis.Length;
             
             if (propagationPipelineData.radianceEncoding != radianceEncoding)
             {

@@ -47,6 +47,8 @@ float _Sharpness;
 float _ProbeVolumeDGIMaxNeighborDistance;
 uint _ProbeVolumeDGIResolutionXY;
 uint _ProbeVolumeDGIResolutionX;
+uint _ProbeVolumeDGIResolutionY;
+uint _ProbeVolumeDGIResolutionZ;
 float3 _ProbeVolumeDGIResolutionInverse;
 
 float3 _ProbeVolumeDGIBoundsRight;
@@ -237,7 +239,10 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsSimilarEqual(_HitRadianceCacheAxis[hitAxisIndex], lighting))
-            SetProbeDirty(_ProbeVolumeDirtyFlags, probeIndex);
+        {
+            const uint3 resolution = uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ);
+            SetProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, 4));
+        }
 #endif
 
         _HitRadianceCacheAxis[hitAxisIndex] = EncodeRadiance(lighting);

@@ -321,7 +321,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
         const int index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
 
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, GROUP_SIZE)))
         {
             _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
             return;
@@ -446,8 +446,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
                    neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
                    neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
                 {
-                    uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
-                    SetProbeDirty(_ProbeVolumeNextDirtyFlags, neighborProbeIndex);
+                    SetProbeDirty(_ProbeVolumeNextDirtyFlags, ProbeCoordinateToGroupedIndex(neighborProbeCoordinate, resolution, GROUP_SIZE));
                 }
             }
         }

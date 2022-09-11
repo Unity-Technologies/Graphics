@@ -332,12 +332,12 @@ void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_Grou
 
     if (all(probeCoordinate < resolution))
     {
-        const int probeIndex = ProbeCoordinateToIndex(probeCoordinate);
-
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, GROUP_SIZE)))
             return;
 #endif
+
+        const int probeIndex = ProbeCoordinateToIndex(probeCoordinate);
 
         const float validity = ReadValidity(probeIndex);
 
