@@ -1,47 +1,20 @@
 #pragma kernel ResetDirtyFlags
-#define GROUP_SIZE 4
 //#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 
 RWStructuredBuffer<int> _ProbeVolumeDirtyFlags;
-uint _ProbeCount;
-uint _ResolutionXY;
-uint _ResolutionX;
-uint _ResolutionY;
-uint _ResolutionZ;
 int _DirtyAll;
 
-uint3 ProbeIndexToProbeCoordinatesUint(uint probeIndex)
-{
-    uint probeZ = probeIndex / _ResolutionXY;
-    probeIndex -= probeZ * _ResolutionXY;
-
-    uint probeY = probeIndex / _ResolutionX;
-    uint probeX = probeIndex % _ResolutionX;
-
-    return uint3(probeX, probeY, probeZ);
-}
-
-bool IsBoundaryProbe(uint3 probeCoordinate)
-{
-    return probeCoordinate.x == 0
-        || probeCoordinate.y == 0
-        || probeCoordinate.z == 0
-        || probeCoordinate.x + 1 == _ResolutionX
-        || probeCoordinate.y + 1 == _ResolutionY
-        || probeCoordinate.z + 1 == _ResolutionZ;
-}
-
-[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
 void ResetDirtyFlags(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const uint3 resolution = uint3(_ResolutionX, _ResolutionY, _ResolutionZ);
-    const uint3 probeCoordinate = groupId * GROUP_SIZE + threadId;
+    const uint3 resolution = uint3(_ProbeVolumeResolution);
+    const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
 
     if (all(probeCoordinate < resolution))
     {
-        uint groupedProbeIndex = ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, GROUP_SIZE);
+        uint groupedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
         if (DirtyAll || IsBoundaryProbe(probeCoordinate))
             SetProbeDirty(_ProbeVolumeDirtyFlags, groupedProbeIndex);
         else

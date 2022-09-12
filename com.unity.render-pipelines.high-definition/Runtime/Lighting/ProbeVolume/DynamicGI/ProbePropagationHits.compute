@@ -45,10 +45,6 @@ float _InfiniteBounce;
 float _Sharpness;
 
 float _ProbeVolumeDGIMaxNeighborDistance;
-uint _ProbeVolumeDGIResolutionXY;
-uint _ProbeVolumeDGIResolutionX;
-uint _ProbeVolumeDGIResolutionY;
-uint _ProbeVolumeDGIResolutionZ;
 float3 _ProbeVolumeDGIResolutionInverse;
 
 float3 _ProbeVolumeDGIBoundsRight;
@@ -164,20 +160,9 @@ float3 EstimateIncomingBounceLightAtHit(uint probeIndex, SurfaceHitData hit)
     #endif
 }
 
-float3 ProbeIndexToProbeCoordinates(uint probeIndex)
+float3 ProbeCoordinatesToWorldPosition(uint3 probeCoordinates, float3x3 probeVolumeLtw)
 {
-    uint probeZ = probeIndex / _ProbeVolumeDGIResolutionXY;
-    probeIndex -= probeZ * _ProbeVolumeDGIResolutionXY;
-
-    uint probeY = probeIndex / _ProbeVolumeDGIResolutionX;
-    uint probeX = probeIndex % _ProbeVolumeDGIResolutionX;
-
-    return float3(probeX, probeY, probeZ) + 0.5;
-}
-
-float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVolumeLtw)
-{
-    float3 localPosition = ((probeCoordinates * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
+    float3 localPosition = (((probeCoordinates + 0.5) * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
     return mul(localPosition, probeVolumeLtw) + GetAbsolutePositionWS(_ProbeVolumeDGIBoundsCenter);
 }
 
@@ -215,7 +200,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         UnpackIndicesAndValidity(neighborData.indexValidity, probeIndex, axisIndex, probeValidity);
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
-        const float3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
+        const uint3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
         const float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
 
         // Early out at far distances
@@ -239,10 +224,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsSimilarEqual(_HitRadianceCacheAxis[hitAxisIndex], lighting))
-        {
-            const uint3 resolution = uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ);
-            SetProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, 4));
-        }
+            SetProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate));
 #endif
 
         _HitRadianceCacheAxis[hitAxisIndex] = EncodeRadiance(lighting);

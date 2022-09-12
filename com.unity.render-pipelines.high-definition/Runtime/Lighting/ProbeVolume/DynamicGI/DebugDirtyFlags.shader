@@ -2,8 +2,6 @@ Shader "Hidden/Debug/DebugDirtyFlags"
 {
     Properties
     {
-        _ProbeVolumeResolution("_ProbeVolumeResolution", Vector) = (0, 0, 0, 0)
-        _ProbeVolumeProbeDisplayRadiusWS("_ProbeVolumeProbeDisplayRadiusWS", Float) = 1.0
     }
 
     SubShader
@@ -42,33 +40,20 @@ Shader "Hidden/Debug/DebugDirtyFlags"
                 float2 uv : TEXCOORD0;
             };
 
-            float3 _ProbeVolumeResolution;
             float4x4 _ProbeIndex3DToPositionWSMatrix;
             float _ProbeVolumeProbeDisplayRadiusWS;
             StructuredBuffer<int> _ProbeVolumeDirtyFlags;
-
-            uint3 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution)
-            {
-                // _ProbeVolumeAtlasReadBuffer[z * resolutionY * resolutionX + y * resolutionX + x]
-                // TODO: Could implement as floating point operations, which is likely faster.
-                // Would need to verify precision.
-                uint x = readIndex % (uint)resolution.x;
-                uint y = (readIndex / (uint)resolution.x) % (uint)resolution.y;
-                uint z = readIndex / ((uint)resolution.y * (uint)resolution.x);
-
-                return uint3(x, y, z);
-            }
 
             v2f vert(appdata v)
             {
                 v2f o;
 
-                uint probeIndex1D = v.vertexID / 6u;
+                uint probeIndex = v.vertexID / 6u;
                 uint probeTriangleIndex = (v.vertexID / 3u) & 1u;
-                uint probeVertexIndex = v.vertexID - probeIndex1D * 6u - probeTriangleIndex * 3u;
+                uint probeVertexIndex = v.vertexID - probeIndex * 6u - probeTriangleIndex * 3u;
 
-                uint3 probeIndex3D = ComputeWriteIndexFromReadIndex(probeIndex1D, _ProbeVolumeResolution);
-                bool dirty = IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeIndex3D, (uint3)_ProbeVolumeResolution, 4));
+                uint3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
+                bool dirty = IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate));
 
                 float2 vertexPositionOS = (probeTriangleIndex == 1u)
                     ? float2((probeVertexIndex & 1u), saturate(probeVertexIndex))
@@ -77,7 +62,7 @@ Shader "Hidden/Debug/DebugDirtyFlags"
                 vertexPositionOS = vertexPositionOS * 2.0 - 1.0;
                 vertexPositionOS *= _ProbeVolumeProbeDisplayRadiusWS;
 
-                float3 probeOriginWS = mul(_ProbeIndex3DToPositionWSMatrix, float4(probeIndex3D, 1.0)).xyz;
+                float3 probeOriginWS = mul(_ProbeIndex3DToPositionWSMatrix, float4(probeCoordinate, 1.0)).xyz;
                 float3 probeOriginRWS = GetCameraRelativePositionWS(probeOriginWS);
                 
                 float3 cameraRightWS = mul(float4(1.0, 0.0, 0.0, 0.0), UNITY_MATRIX_V).xyz;

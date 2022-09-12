@@ -152,8 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var data = probeVolume.parameters.ConvertToEngineData(probeVolume.GetPipelineData(), hdrp.GetProbeVolumeAtlasSHRTDepthSliceCount(), probeVolume.parameters.distanceFadeStart, probeVolume.parameters.distanceFadeEnd);
 
                         Shader.SetGlobalFloat("_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
-                        Shader.SetGlobalInt("_ProbeVolumeDGIResolutionXY", (int)data.resolutionXY);
-                        Shader.SetGlobalInt("_ProbeVolumeDGIResolutionX", (int)data.resolutionX);
+                        Shader.SetGlobalVector("_ProbeVolumeResolution", data.resolution);
                         Shader.SetGlobalVector("_ProbeVolumeDGIResolutionInverse", data.resolutionInverse);
                         Shader.SetGlobalVector( "_ProbeVolumeDGIBoundsRight", obb.right);
                         Shader.SetGlobalVector( "_ProbeVolumeDGIBoundsUp", obb.up);

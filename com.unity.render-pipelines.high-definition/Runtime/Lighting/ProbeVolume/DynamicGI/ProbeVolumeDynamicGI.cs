@@ -950,10 +950,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var obb = pipelineData.BoundingBox;
             var engineData = pipelineData.EngineData;
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", engineData.maxNeighborDistance);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionXY", (int)engineData.resolutionXY);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionX", (int)engineData.resolutionX);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionY", (int)engineData.resolution.y);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionZ", (int)engineData.resolution.z);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", engineData.resolution);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", engineData.resolutionInverse);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
@@ -1037,17 +1034,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var data = probeVolume.GetPipelineData().EngineData;
             var propagationPipelineData = probeVolume.GetPropagationPipelineData();
-            int numProbes = (int)data.resolutionXY * (int)data.resolution.z;
 
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyFlags", propagationPipelineData.GetNextDirtyFlags());
-            cmd.SetComputeIntParam(shader, "_ProbeCount", numProbes);
-            cmd.SetComputeIntParam(shader, "_ResolutionXY", (int)data.resolutionXY);
-            cmd.SetComputeIntParam(shader, "_ResolutionX", (int)data.resolutionX);
-            cmd.SetComputeIntParam(shader, "_ResolutionY", (int)data.resolution.y);
-            cmd.SetComputeIntParam(shader, "_ResolutionZ", (int)data.resolution.z);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", data.resolution);
             cmd.SetComputeIntParam(shader, "_DirtyAll", dirtyAll ? 1 : 0);
 
-            int dispatchX = ((int)data.resolutionX + 3) / 4;
+            int dispatchX = ((int)data.resolution.x + 3) / 4;
             int dispatchY = ((int)data.resolution.y + 3) / 4;
             int dispatchZ = ((int)data.resolution.z + 3) / 4;
             cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
@@ -1133,10 +1125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", engineData.maxNeighborDistance);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionXY", (int)engineData.resolutionXY);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionX", (int)engineData.resolutionX);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionY", (int)engineData.resolution.y);
-            cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIResolutionZ", (int)engineData.resolution.z);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", engineData.resolution);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGILightLayers", unchecked((int)engineData.lightLayers));
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIEngineDataIndex", pipelineData.EngineDataIndex);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", engineData.resolutionInverse);
@@ -1173,7 +1162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int dispatchX = ((int)data.resolutionX + 3) / 4;
+            int dispatchX = ((int)data.resolution.x + 3) / 4;
             int dispatchY = ((int)data.resolution.y + 3) / 4;
             int dispatchZ = ((int)data.resolution.z + 3) / 4 * s_NeighborAxis.Length;
             cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);

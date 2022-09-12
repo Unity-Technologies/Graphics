@@ -21,7 +21,6 @@ StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
 RWTexture3D<float4> _ProbeVolumeAtlasWriteTextureSH;
 
 uint _ProbeVolumeAtlasReadBufferCount;
-float3 _ProbeVolumeResolution;
 float3 _ProbeVolumeAtlasBias;
 float4 _ProbeVolumeAtlasResolutionAndSliceCount;
 float3 _ProbeVolumeAtlasSHRotateRight;

@@ -1,5 +1,4 @@
 #pragma kernel CombinePropagationAxis
-#define GROUP_SIZE 4
 //#pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
@@ -25,7 +24,6 @@ StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
 RWTexture3D<float4> _ProbeVolumeAtlasWriteTextureSH;
 
 uint _ProbeVolumeAtlasReadBufferCount;
-float3 _ProbeVolumeResolution;
 float3 _ProbeVolumeAtlasBias;
 float4 _ProbeVolumeAtlasResolutionAndSliceCount;
 float3 _ProbeVolumeAtlasSHRotateRight;
@@ -318,26 +316,19 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
     return ProjectPropagationAxisFromFit(probeIndex);
 }
 
-int ProbeCoordinateToIndex(uint3 probeCoordinate)
-{
-    const uint3 resolution = (uint3)_ProbeVolumeResolution;
-    return probeCoordinate.z * (resolution.x * resolution.y) + probeCoordinate.y * resolution.x + probeCoordinate.x;
-}
-
-[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
 void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const uint3 resolution = (uint3)_ProbeVolumeResolution;
-    const uint3 probeCoordinate = groupId * GROUP_SIZE + threadId;
+    const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
 
-    if (all(probeCoordinate < resolution))
+    if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
     {
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, GROUP_SIZE)))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate)))
             return;
 #endif
 
-        const int probeIndex = ProbeCoordinateToIndex(probeCoordinate);
+        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
 
         const float validity = ReadValidity(probeIndex);
 

@@ -7,8 +7,6 @@ float _ProbeVolumeDebugNeighborQuadScale;
 int _ProbeVolumeDebugNeighborMode;
 
 float _ProbeVolumeDGIMaxNeighborDistance;
-uint _ProbeVolumeDGIResolutionXY;
-uint _ProbeVolumeDGIResolutionX;
 float3 _ProbeVolumeDGIResolutionInverse;
 
 float3 _ProbeVolumeDGIBoundsRight;
@@ -26,21 +24,10 @@ void OrhoNormalAxis(float3 n, out float3 b1, out float3 b2)
     b2 = isNegativeZFrame ? float3(-1.0, 0.0, 0.0) : float3(b, 1.0 - n.y * n.y * a, -n.y);
 }
 
-float3 ProbeIndexToProbeCoordinates(uint probeIndex)
-{
-    uint probeZ = probeIndex / _ProbeVolumeDGIResolutionXY;
-    probeIndex -= probeZ * _ProbeVolumeDGIResolutionXY;
-
-    uint probeY = probeIndex / _ProbeVolumeDGIResolutionX;
-    uint probeX = probeIndex % _ProbeVolumeDGIResolutionX;
-
-    return float3(probeX, probeY, probeZ) + 0.5;
-}
-
 float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates)
 {
     float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
-    float3 localPosition = ((probeCoordinates * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
+    float3 localPosition = (((probeCoordinates + 0.5) * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
     return mul(localPosition, probeVolumeLtw) + _ProbeVolumeDGIBoundsCenter;
 }
 
@@ -67,8 +54,8 @@ VaryingsType VertMeshProcedural(uint vertexID, uint instanceID)
     float probeValidity;
     UnpackIndicesAndValidity(neighborData.indexValidity, probeIndex, axisIndex, probeValidity);
 
-    float3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
-    float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate);
+    uint3 probeCoordinate = ProbeIndexToProbeCoordinates(probeIndex);
+    float3 worldPosition = ProbeCoordinatesToWorldPosition(probeCoordinate);
 
     float3 normal = UnpackNormal(neighborData.normalAxis);
     float4 albedoDistance = UnpackAlbedoAndDistance(neighborData.albedoDistance, _ProbeVolumeDGIMaxNeighborDistance);

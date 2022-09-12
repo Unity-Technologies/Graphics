@@ -1,5 +1,4 @@
 #pragma kernel PropagateLight
-#define GROUP_SIZE 4
 // #pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
@@ -56,10 +55,6 @@ float _PropagationContribution;
 float _PropagationSharpness;
 float _Sharpness;
 
-uint _ProbeVolumeDGIResolutionXY;
-uint _ProbeVolumeDGIResolutionX;
-uint _ProbeVolumeDGIResolutionY;
-uint _ProbeVolumeDGIResolutionZ;
 float3 _ProbeVolumeDGIResolutionInverse;
 float _ProbeVolumeDGIMaxNeighborDistance;
 
@@ -75,22 +70,6 @@ float _RangeInFrontOfCamera;
 float _RangeBehindCamera;
 
 float4 _AmbientProbe[SH_PACKED_COEFFICIENT_COUNT];
-
-uint3 ProbeIndexToProbeCoordinatesUint(uint probeIndex)
-{
-    uint probeZ = probeIndex / _ProbeVolumeDGIResolutionXY;
-    probeIndex -= probeZ * _ProbeVolumeDGIResolutionXY;
-
-    uint probeY = probeIndex / _ProbeVolumeDGIResolutionX;
-    uint probeX = probeIndex % _ProbeVolumeDGIResolutionX;
-
-    return uint3(probeX, probeY, probeZ);
-}
-
-int ProbeCoordinateToIndex(uint3 probeCoordinate)
-{
-    return probeCoordinate.z * _ProbeVolumeDGIResolutionX * _ProbeVolumeDGIResolutionY + probeCoordinate.y * _ProbeVolumeDGIResolutionX + probeCoordinate.x;
-}
 
 float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVolumeLtw)
 {
@@ -208,16 +187,6 @@ float3 ProbeVolumeEvaluateIncomingRadiance(SHIncomingIrradiance shIncomingIrradi
     return incomingRadiance;
 }
 
-bool IsBoundaryProbe(uint3 probeCoordinate, uint3 resolution)
-{
-    return (probeCoordinate.x == 0)
-        || (probeCoordinate.y == 0)
-        || (probeCoordinate.z == 0)
-        || ((probeCoordinate.x + 1) == resolution.x)
-        || ((probeCoordinate.y + 1) == resolution.y)
-        || ((probeCoordinate.z + 1) == resolution.z);
-}
-
 float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int axisIndex, float3x3 probeVolumeLtw)
 {
     float3 neighborDirection = _RayAxis[axisIndex].xyz;
@@ -306,22 +275,22 @@ RADIANCE GetPreviousAxisRadiance(int index)
 // Our ZH Fit produces results that are closer to the monte carlo naive projection ground turth than the sample peaks approach does. Both approaches are reasonable however.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_ZH_FIT
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, GROUP_SIZE)]
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
 void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const uint3 resolution = uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ);
-    const uint3 groupResolution = (resolution + GROUP_SIZE - 1) / GROUP_SIZE;
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
+    const uint3 groupResolution = (resolution + BLOCK_SIZE - 1) / BLOCK_SIZE;
     const uint axisIndex = groupId.z / groupResolution.z;
     const uint3 groupCoordinate = uint3(groupId.x, groupId.y, groupId.z - axisIndex * groupResolution.z);
-    const uint3 probeCoordinate = groupCoordinate * GROUP_SIZE + threadId;
+    const uint3 probeCoordinate = groupCoordinate * BLOCK_SIZE + threadId;
 
     if (all(probeCoordinate < resolution))
     {
-        const int probeIndex = ProbeCoordinateToIndex(probeCoordinate);
+        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
         const int index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
 
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToGroupedIndex(probeCoordinate, resolution, GROUP_SIZE)))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate)))
         {
             _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
             return;
@@ -341,7 +310,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY)
         SHIncomingIrradiance shIncomingIrradianceProbeCurrent;
         ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradianceProbeCurrent);
-        if (IsBoundaryProbe(probeCoordinate, uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ)))
+        if (IsBoundaryProbe(probeCoordinate))
         {
             float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, axisIndex, probeVolumeLtw);
             shIncomingIrradianceProbeCurrent = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
@@ -386,13 +355,11 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
                 int3 offset = GetNeighborAxisOffset(i);
                 int3 neighborProbeCoordinate = probeCoordinate + offset;
 
-                if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
-                   neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
-                   neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
+                if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (uint3)_ProbeVolumeResolution))
                 {
                     #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
                     #else
-                        uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
+                        uint neighborProbeIndex = ProbeCoordinateToProbeIndex(neighborProbeCoordinate);
                         float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
                         incomingMissRadiance += prevAxisRadiance * neighborAxisLookup.propagationWeight * InvalidScale(probeAxisValidity);
@@ -442,11 +409,10 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
                 // but here we try to predict which probes will gather changes from us so we subtract.
                 int3 neighborProbeCoordinate = probeCoordinate - offset;
 
-                if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
-                   neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
-                   neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
+                if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (uint3)_ProbeVolumeResolution))
                 {
-                    SetProbeDirty(_ProbeVolumeNextDirtyFlags, ProbeCoordinateToGroupedIndex(neighborProbeCoordinate, resolution, GROUP_SIZE));
+                    uint3 neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
+                    SetProbeDirty(_ProbeVolumeNextDirtyFlags, neighborPaddedIndex);
                 }
             }
         }
