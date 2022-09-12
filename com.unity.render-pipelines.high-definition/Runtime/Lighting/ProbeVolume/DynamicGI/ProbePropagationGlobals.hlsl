@@ -113,4 +113,17 @@ uint3 ProbeIndexToProbeCoordinates(uint probeIndex)
     return uint3(probeX, probeY, probeZ);
 }
 
+uint ProbeCount()
+{
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
+    return resolution.x * resolution.y * resolution.z;
+}
+
+uint PaddedProbeCount()
+{
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
+    const uint3 blockCounts = (resolution + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
+    return blockCounts.x * blockCounts.y * blockCounts.z * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE);
+}
+
 #endif // endof PROBE_PROPAGATION_GLOBALS

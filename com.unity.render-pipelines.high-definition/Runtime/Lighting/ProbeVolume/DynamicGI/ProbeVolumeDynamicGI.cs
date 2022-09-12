@@ -832,7 +832,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIResetDirtyFlags)))
                     DispatchResetDirtyFlags(cmd, probeVolume, dirtyAll);
             }
-            
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
                 DispatchPropagationAxes(cmd, probeVolume, previousRadianceCacheInvalid, in data);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
@@ -930,8 +930,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int dispatchX = (numProbes + 63) / 64;
-            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+            int dispatchX = (probeVolume.parameters.resolutionX + 3) / 4;
+            int dispatchY = (probeVolume.parameters.resolutionY + 3) / 4;
+            int dispatchZ = (probeVolume.parameters.resolutionZ + 3) / 4;
+            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
         }
 
         void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume,

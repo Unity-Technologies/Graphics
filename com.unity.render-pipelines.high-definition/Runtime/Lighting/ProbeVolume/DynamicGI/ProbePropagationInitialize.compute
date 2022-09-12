@@ -1,5 +1,4 @@
 #pragma kernel InitializePropagationAxis
-#define GROUP_SIZE 64
 //#pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
@@ -134,7 +133,7 @@ float3 ComputeDirectionFromHalton(uint i)
     return sampleDirection;
 }
 
-void ComputeProbeBasisFromSHSamplePeaks(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int readIndex)
+void ComputeProbeBasisFromSHSamplePeaks(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int writeIndex)
 {
     for (int i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
     {
@@ -143,11 +142,11 @@ void ComputeProbeBasisFromSHSamplePeaks(SHIncomingIrradiance shIncomingIrradianc
         float3 incomingHitRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS);
         incomingHitRadiance *= basisAxisHit.amplitude;
 
-        _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
+        _RadianceCacheAxis[i * ProbeCount() + writeIndex] = EncodeRadiance(incomingHitRadiance);
     }
 }
 
-void ComputeProbeBasisFromSHZHFit(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int readIndex)
+void ComputeProbeBasisFromSHZHFit(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int writeIndex)
 {
     for (int i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
     {
@@ -166,11 +165,11 @@ void ComputeProbeBasisFromSHZHFit(SHIncomingIrradiance shIncomingIrradiance, flo
         // We need to scale down the radiance by the actual amplitude of the window to complete the projection.
         incomingHitRadiance *= basisAxisHit.amplitude;
 
-        _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
+        _RadianceCacheAxis[i * ProbeCount() + writeIndex] = EncodeRadiance(incomingHitRadiance);
     }
 }
 
-void ComputeProbeBasisFromSHMonteCarloNaiveProjection(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int readIndex)
+void ComputeProbeBasisFromSHMonteCarloNaiveProjection(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int writeIndex)
 {
 #define IMPORTANCE_SAMPLING_ENABLED
 #if !defined(IMPORTANCE_SAMPLING_ENABLED)
@@ -241,11 +240,11 @@ void ComputeProbeBasisFromSHMonteCarloNaiveProjection(SHIncomingIrradiance shInc
             incomingHitRadiance += sampleIncomingRadiance * differentialArea * ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS);
         }
 
-        _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(incomingHitRadiance);
+        _RadianceCacheAxis[i * ProbeCount() + writeIndex] = EncodeRadiance(incomingHitRadiance);
     }
 }
 
-void ComputeProbeBasisFromSHMonteCarloProgressiveLeastSquares(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int readIndex)
+void ComputeProbeBasisFromSHMonteCarloProgressiveLeastSquares(SHIncomingIrradiance shIncomingIrradiance, float3x3 probeVolumeLtw, int writeIndex)
 {
     // Progressive Least-Squares Encoding for Linear Bases
     // https://jcgt.org/published/0009/01/02/
@@ -314,8 +313,8 @@ void ComputeProbeBasisFromSHMonteCarloProgressiveLeastSquares(SHIncomingIrradian
 
     for (i = 0; i < NEIGHBOR_AXIS_COUNT; ++i)
     {
-        _RadianceCacheAxis[i * _ProbeVolumeAtlasReadBufferCount + readIndex] = EncodeRadiance(coefficients[i]);
-    }    
+        _RadianceCacheAxis[i * ProbeCount() + writeIndex] = EncodeRadiance(coefficients[i]);
+    }
 }
 
 #define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
@@ -333,12 +332,15 @@ void ComputeProbeBasisFromSHMonteCarloProgressiveLeastSquares(SHIncomingIrradian
 // radial basis is sharper than the spherical harmonic.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_SAMPLE_PEAKS
 
-[numthreads(GROUP_SIZE, 1, 1)]
-void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
+void InitializePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const uint readIndex = id.x;
-    if (readIndex < _ProbeVolumeAtlasReadBufferCount)
+    const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
+
+    if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
     {
+        const uint readIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
+        
         SHOutgoingRadiosityWithProjectedConstantsPacked bakedOutgoingRadiosityProjectedConstantsPacked = ReadBakedSH(readIndex);
         SHOutgoingRadiosityWithProjectedConstants bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosityProjectedConstantsPacked);
         SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(bakedOutgoingRadiosityProjectedConstants);
@@ -350,17 +352,19 @@ void InitializePropagationAxis(uint3 id : SV_DispatchThreadID)
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
 
+        const uint writeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
+
 #if BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
-        ComputeProbeBasisFromSHMonteCarloNaiveProjection(shIncomingIrradiance, probeVolumeLtw, readIndex);
+        ComputeProbeBasisFromSHMonteCarloNaiveProjection(shIncomingIrradiance, probeVolumeLtw, writeIndex);
 
 #elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_PROGRESSIVE_LEAST_SQUARES
-        ComputeProbeBasisFromSHMonteCarloProgressiveLeastSquares(shIncomingIrradiance, probeVolumeLtw, readIndex);
+        ComputeProbeBasisFromSHMonteCarloProgressiveLeastSquares(shIncomingIrradiance, probeVolumeLtw, writeIndex);
 
 #elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_ZH_FIT
-        ComputeProbeBasisFromSHZHFit(shIncomingIrradiance, probeVolumeLtw, readIndex);
+        ComputeProbeBasisFromSHZHFit(shIncomingIrradiance, probeVolumeLtw, writeIndex);
 
 #elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_SAMPLE_PEAKS
-        ComputeProbeBasisFromSHSamplePeaks(shIncomingIrradiance, probeVolumeLtw, readIndex);
+        ComputeProbeBasisFromSHSamplePeaks(shIncomingIrradiance, probeVolumeLtw, writeIndex);
 #endif
     }
 }
