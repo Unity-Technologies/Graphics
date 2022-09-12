@@ -868,7 +868,7 @@ namespace UnityEngine.Rendering.HighDefinition
             profiles[index] = profile;
 
             overrides.diffusionProfiles.value = profiles;
-            EditorUtility.SetDirty(this);
+            EditorUtility.SetDirty(overrides);
             return true;
         }
 
