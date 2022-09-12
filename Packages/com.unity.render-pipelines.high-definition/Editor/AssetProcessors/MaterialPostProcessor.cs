@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static void OnWillCreateAsset(string asset)
         {
-            if (asset.ToLowerInvariant().EndsWith(".mat"))
+            if (asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
             {
                 MaterialPostprocessor.s_CreatedAssets.Add(asset);
                 return;

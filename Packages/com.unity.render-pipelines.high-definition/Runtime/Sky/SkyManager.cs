@@ -925,7 +925,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     firstFreeContext = i;
             }
 
-            if (name == "")
+            if (name?.Length == 0)
                 name = "SkyboxCubemap";
 
             if (firstFreeContext != -1)

@@ -43,9 +43,7 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                if (owner.isBlendModeOpaque && !(owner is VFXDecalHDRPOutput))
-                    return false;
-                return true;
+                return !owner.isBlendModeOpaque || (owner is VFXDecalHDRPOutput);
             }
         }
 

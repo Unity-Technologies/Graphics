@@ -828,12 +828,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // if the build target does not match the editor OS, then we have to check using the graphic api list
             bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
 
-            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+            return autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
                 && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
-                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
-                return true;
-
-            return false;
+                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem);
         }
 
 #endif

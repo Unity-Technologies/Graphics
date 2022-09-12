@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         AtlasElement FindFreeElementWithSize(int size)
         {
-            AtlasElement FindFreeElement(int size, AtlasElement elem)
+            static AtlasElement FindFreeElement(int size, AtlasElement elem)
             {
                 if (elem.size == size)
                 {

@@ -567,7 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Conversion  from km/h to m/s  is the 0.277778f factor
                 // We apply a minus to see something moving in the right direction
-                Vector2 windVector = -windDirection * settings.globalWindSpeed.GetValue(hdCamera) * delaTime * 0.277778f;
+                Vector2 windVector = 0.277778f * delaTime * settings.globalWindSpeed.GetValue(hdCamera) * -windDirection;
 
                 // Animate the offsets
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;

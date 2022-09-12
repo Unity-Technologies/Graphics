@@ -660,9 +660,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Compute the simulation coordinates
             Vector2 uv = new Vector2(positionAWS.x, positionAWS.z);
-            Vector2 uvBand0 = (uv - HDRenderPipeline.OrientationToDirection(currentOrientation.x) * currentSpeed.x * simulationTime) / wsd.spectrum.patchSizes.x;
-            Vector2 uvBand1 = (uv - HDRenderPipeline.OrientationToDirection(currentOrientation.y) * currentSpeed.y * simulationTime) / wsd.spectrum.patchSizes.y;
-            Vector2 uvBand2 = (uv - HDRenderPipeline.OrientationToDirection(currentOrientation.z) * currentSpeed.z * simulationTime) / wsd.spectrum.patchSizes.z;
+            Vector2 uvBand0 = (uv - currentSpeed.x * simulationTime * HDRenderPipeline.OrientationToDirection(currentOrientation.x)) / wsd.spectrum.patchSizes.x;
+            Vector2 uvBand1 = (uv - currentSpeed.y * simulationTime * HDRenderPipeline.OrientationToDirection(currentOrientation.y)) / wsd.spectrum.patchSizes.y;
+            Vector2 uvBand2 = (uv - currentSpeed.z * simulationTime * HDSRenderPipeline.OrientationToDirection(currentOrientation.z)) / wsd.spectrum.patchSizes.z;
 
             // Accumulate the displacement from the various layers
             float3 totalDisplacement = 0.0f;

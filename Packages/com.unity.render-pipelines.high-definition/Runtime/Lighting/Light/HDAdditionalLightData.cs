@@ -2633,18 +2633,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     CreateChildEmissiveMeshViewerIfNeeded();
                     UpdateAreaLightEmissiveMesh();
                 }
-                if (m_ChildEmissiveMeshViewer.gameObject.isStatic != gameObject.isStatic)
-                    m_ChildEmissiveMeshViewer.gameObject.isStatic = gameObject.isStatic;
-                if (GameObjectUtility.GetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject) != GameObjectUtility.GetStaticEditorFlags(gameObject))
-                    GameObjectUtility.SetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject, GameObjectUtility.GetStaticEditorFlags(gameObject));
+                if (m_ChildEmissiveMeshViewer.isStatic != gameObject.isStatic)
+                    m_ChildEmissiveMeshViewer.isStatic = gameObject.isStatic;
+                if (GameObjectUtility.GetStaticEditorFlags(m_ChildEmissiveMeshViewer) != GameObjectUtility.GetStaticEditorFlags(gameObject))
+                    GameObjectUtility.SetStaticEditorFlags(m_ChildEmissiveMeshViewer, GameObjectUtility.GetStaticEditorFlags(gameObject));
             }
 #endif
 
             //auto change layer on emissive mesh
             if (areaLightEmissiveMeshLayer == -1
                 && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
-                && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
-                m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
+                && m_ChildEmissiveMeshViewer.layer != gameObject.layer)
+                m_ChildEmissiveMeshViewer.layer = gameObject.layer;
 
             // Delayed cleanup when removing emissive mesh from timeline
             if (needRefreshEmissiveMeshesFromTimeLineUpdate)

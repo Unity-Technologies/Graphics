@@ -245,8 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return false;
             }
 
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraData == null)
+            if (!m_OutputCamera.TryGetComponent<HDAdditionalCameraData>(out var cameraData))
             {
                 m_OutputCamera.gameObject.AddComponent(typeof(HDAdditionalCameraData));
                 cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();

@@ -190,8 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
-            m_UseSafePath = SystemInfo.graphicsDeviceVendor
-                .ToLowerInvariant().Contains("intel");
+            m_UseSafePath = SystemInfo.graphicsDeviceVendor.Contains("intel", StringComparison.InvariantCultureIgnoreCase);
 
             // Project-wide LUT size for all grading operations - meaning that internal LUTs and
             // user-provided LUTs will have to be this size

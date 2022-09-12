@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Return true if the light must be added to the baking
         public static bool LightDataGIExtract(Light light, ref LightDataGI lightDataGI)
         {
-            var add = light.GetComponent<HDAdditionalLightData>();
-            if (add == null)
+            if (!light.TryGetComponent<HDAdditionalLightData>(out var add))
             {
                 add = HDUtils.s_DefaultHDAdditionalLightData;
             }

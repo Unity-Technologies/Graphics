@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Sort the overlapping volumes by priority order (smaller first, then larger and finally globals)
             m_OverlappingPassVolumes.Sort((v1, v2) =>
             {
-                float GetVolumeExtent(CustomPassVolume volume)
+                static float GetVolumeExtent(CustomPassVolume volume)
                 {
                     float extent = 0;
                     foreach (var collider in volume.m_OverlappingColliders)

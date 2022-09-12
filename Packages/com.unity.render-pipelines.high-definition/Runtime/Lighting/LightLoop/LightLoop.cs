@@ -1664,8 +1664,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void PreprocessReflectionProbeData(ref ProcessedProbeData processedData, VisibleReflectionProbe probe, HDCamera hdCamera)
         {
-            var add = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
-            if (add == null)
+            if (!probe.reflectionProbe.TryGetComponent<HDAdditionalReflectionData>(out var add))
             {
                 add = HDUtils.s_DefaultHDAdditionalReflectionData;
                 Vector3 distance = Vector3.one * probe.blendDistance;

@@ -99,8 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             StaticLightingSky result = null;
             foreach (var go in scene.GetRootGameObjects())
             {
-                result = go.GetComponent<StaticLightingSky>();
-                if (result != null)
+                if (go.TryGetComponent<StaticLightingSky>(out result))
                     break;
             }
 

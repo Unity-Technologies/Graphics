@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var ray = new Ray(capturePosition, Vector3.down);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                var startPoint = capturePosition - Vector3.up * 0.5f * capturePointPreviewSize;
+                var startPoint = capturePosition - 0.5f * capturePointPreviewSize * Vector3.up;
                 var c = InfluenceVolumeUI.k_GizmoThemeColorBase;
                 c.a = 0.8f;
                 Handles.color = c;
