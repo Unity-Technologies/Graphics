@@ -5,8 +5,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 
-int _ProbeVolumeProbeCount;
-
 RWStructuredBuffer<RADIANCE> _RadianceCacheAxis;
 StructuredBuffer<RADIANCE> _PreviousRadianceCacheAxis;
 
@@ -22,7 +20,7 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
 
 float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
 {
-    const uint index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
+    const uint index = axisIndex * ProbeCount() + probeIndex;
     return DecodeRadiance(_PreviousRadianceCacheAxis[index]);
 }
 

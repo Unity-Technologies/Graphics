@@ -206,7 +206,7 @@ SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSampl
 
         SHIncomingIrradianceAccumulate(incomingIrradiance, basisAxisHit.mean, radiance);
 
-        localIndex += _ProbeVolumeAtlasReadBufferCount;
+        localIndex += ProbeCount();
     }
 
     return incomingIrradiance;
@@ -232,7 +232,7 @@ SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit
 
         SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentLobe);
 
-        localIndex += _ProbeVolumeAtlasReadBufferCount;
+        localIndex += ProbeCount();
     }
 
     return incomingIrradiance;
@@ -282,7 +282,7 @@ SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonte
 
             sampleIncomingRadiance += radiance * (ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS) / basisAxisHit.amplitude);
 
-            localIndex += _ProbeVolumeAtlasReadBufferCount;
+            localIndex += ProbeCount();
         }
 
         SHIncomingIrradianceAccumulate(incomingIrradiance, sampleDirectionWS, sampleIncomingRadiance * differentialArea);

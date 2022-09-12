@@ -97,7 +97,7 @@ uint ProbeCoordinateToPaddedProbeIndex(uint3 probeCoordinate)
     const uint3 blockCoordinate = probeCoordinate / BLOCK_SIZE;
     const uint3 blockCounts = (resolution + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
     const uint3 inBlockCoordinate = probeCoordinate - blockCoordinate * BLOCK_SIZE;
-    const uint3 blockStart = CoordinateToIndex(blockCoordinate, blockCounts) * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE);
+    const uint blockStart = CoordinateToIndex(blockCoordinate, blockCounts) * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE);
     
     return blockStart + CoordinateToIndex(inBlockCoordinate, BLOCK_SIZE);
 }

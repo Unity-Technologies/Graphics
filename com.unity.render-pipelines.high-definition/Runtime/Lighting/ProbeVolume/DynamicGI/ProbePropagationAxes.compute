@@ -287,7 +287,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
     if (all(probeCoordinate < resolution))
     {
         const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
-        const int index = axisIndex * _ProbeVolumeProbeCount + probeIndex;
+        const int index = axisIndex * ProbeCount() + probeIndex;
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate)))
@@ -328,7 +328,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
             NeighborAxisLookup neighborAxisLookup = _SortedNeighborAxisLookups[neighborAxisIndexOffset + l];
             int i = neighborAxisLookup.index;
 
-            uint sampleAxis = i * _ProbeVolumeProbeCount + probeIndex;
+            uint sampleAxis = i * ProbeCount() + probeIndex;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
 
             uint hitIndex = 0;
@@ -355,7 +355,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
                 int3 offset = GetNeighborAxisOffset(i);
                 int3 neighborProbeCoordinate = probeCoordinate + offset;
 
-                if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (uint3)_ProbeVolumeResolution))
+                if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (int3)_ProbeVolumeResolution))
                 {
                     #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
                     #else
@@ -409,9 +409,9 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
                 // but here we try to predict which probes will gather changes from us so we subtract.
                 int3 neighborProbeCoordinate = probeCoordinate - offset;
 
-                if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (uint3)_ProbeVolumeResolution))
+                if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (int3)_ProbeVolumeResolution))
                 {
-                    uint3 neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
+                    uint neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
                     SetProbeDirty(_ProbeVolumeNextDirtyFlags, neighborPaddedIndex);
                 }
             }
