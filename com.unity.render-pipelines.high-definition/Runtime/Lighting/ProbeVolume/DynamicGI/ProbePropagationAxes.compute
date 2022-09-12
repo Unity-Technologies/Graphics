@@ -287,12 +287,13 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
     if (all(probeCoordinate < resolution))
     {
         const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
-        const int index = axisIndex * ProbeCount() + probeIndex;
+        const int paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
+        const int paddedIndex = axisIndex * PaddedProbeCount() + paddedProbeIndex;
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate)))
         {
-            _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
+            _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
             return;
         }
 #endif
@@ -303,7 +304,7 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
         // Early out at far distances
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
-            _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
+            _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
             return;
         }
 
@@ -359,8 +360,8 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
                 {
                     #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
                     #else
-                        uint neighborProbeIndex = ProbeCoordinateToProbeIndex(neighborProbeCoordinate);
-                        float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
+                        uint neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
+                        float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborPaddedIndex, axisIndex);
 
                         incomingMissRadiance += prevAxisRadiance * neighborAxisLookup.propagationWeight * InvalidScale(probeAxisValidity);
                     #endif
@@ -394,10 +395,10 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
         }
 
         const float3 radiance = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
-        _RadianceCacheAxis[index] = EncodeRadiance(radiance);
+        _RadianceCacheAxis[paddedIndex] = EncodeRadiance(radiance);
 
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsSimilarEqual(GetPreviousAxisRadiance(index), radiance))
+        if (!IsSimilarEqual(GetPreviousAxisRadiance(paddedIndex), radiance))
         {
             for (int l = 0; l < PROPAGATION_AXIS_AMOUNT; ++l)
             {

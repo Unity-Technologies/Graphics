@@ -206,7 +206,7 @@ SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSampl
 
         SHIncomingIrradianceAccumulate(incomingIrradiance, basisAxisHit.mean, radiance);
 
-        localIndex += ProbeCount();
+        localIndex += PaddedProbeCount();
     }
 
     return incomingIrradiance;
@@ -232,7 +232,7 @@ SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit
 
         SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentLobe);
 
-        localIndex += ProbeCount();
+        localIndex += PaddedProbeCount();
     }
 
     return incomingIrradiance;
@@ -282,7 +282,7 @@ SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonte
 
             sampleIncomingRadiance += radiance * (ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS) / basisAxisHit.amplitude);
 
-            localIndex += ProbeCount();
+            localIndex += PaddedProbeCount();
         }
 
         SHIncomingIrradianceAccumulate(incomingIrradiance, sampleDirectionWS, sampleIncomingRadiance * differentialArea);
@@ -323,8 +323,10 @@ void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_Grou
 
     if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
     {
+        const int paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
+
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate)))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))
             return;
 #endif
 
@@ -333,7 +335,7 @@ void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_Grou
         const float validity = ReadValidity(probeIndex);
 
         SHOutgoingRadiosityWithProjectedConstantsPacked bakedOutgoingRadiosityProjectedConstantsPacked = ReadBakedSH(probeIndex);
-        SHIncomingIrradiance dynamicIncomingIrradiance = ProjectPropagationAxis(probeIndex);
+        SHIncomingIrradiance dynamicIncomingIrradiance = ProjectPropagationAxis(paddedProbeIndex);
 
         SHOutgoingRadiosity dynamicOutgoingRadiosity = SHOutgoingRadiosityComputeFromIncomingIrradiance(dynamicIncomingIrradiance);
         SHOutgoingRadiosityWithProjectedConstants bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosityProjectedConstantsPacked);

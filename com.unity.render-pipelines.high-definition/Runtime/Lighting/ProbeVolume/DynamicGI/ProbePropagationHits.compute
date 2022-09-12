@@ -120,12 +120,12 @@ float3 EvaluateDirectLightingAtHit(SurfaceHitData hit)
     return directLighting;
 }
 
-float3 EvaluateBRDFLambertApproximate(uint probeIndex, float3 surfaceNormal, float sharpness, in float4 _RayAxis[NEIGHBOR_AXIS_COUNT])
+float3 EvaluateBRDFLambertApproximate(uint paddedProbeIndex, float3 surfaceNormal, float sharpness, in float4 _RayAxis[NEIGHBOR_AXIS_COUNT])
 {
     float3 color = 0;
     for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
     {
-        float3 prevAxisRadiance = ReadPreviousPropagationAxis(probeIndex, i);
+        float3 prevAxisRadiance = ReadPreviousPropagationAxis(paddedProbeIndex, i);
         float3 axis = _RayAxis[i].xyz;
 
         BasisAxisHit basisAxisHit = ComputeBasisAxisHit(axis, sharpness);
@@ -144,7 +144,7 @@ float3 EvaluateBRDFLambertApproximate(uint probeIndex, float3 surfaceNormal, flo
     return color;
 }
 
-float3 EstimateIncomingBounceLightAtHit(uint probeIndex, SurfaceHitData hit)
+float3 EstimateIncomingBounceLightAtHit(uint paddedProbeIndex, SurfaceHitData hit)
 {
     #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
         return 0;
@@ -152,7 +152,7 @@ float3 EstimateIncomingBounceLightAtHit(uint probeIndex, SurfaceHitData hit)
         const float maxAlbedoChannel = max(max(hit.albedo.r, hit.albedo.g), hit.albedo.b);
         const float3 infiniteBounceAlbedo = maxAlbedoChannel > _MaxAlbedo ? hit.albedo * _MaxAlbedo / maxAlbedoChannel : hit.albedo;
 
-        float3 incomingIrradiance = EvaluateBRDFLambertApproximate(probeIndex, hit.normal, _Sharpness, _RayAxis);
+        float3 incomingIrradiance = EvaluateBRDFLambertApproximate(paddedProbeIndex, hit.normal, _Sharpness, _RayAxis);
         incomingIrradiance *= _InfiniteBounce;
         incomingIrradiance *= infiniteBounceAlbedo;
 
@@ -210,9 +210,10 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         }
 
         const SurfaceHitData hit = ConstructSurfaceHit(neighborData, worldPosition, probeVolumeLtw);
+        const uint paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
 
         #if defined(COMPUTE_INFINITE_BOUNCE)
-            float3 lighting = EstimateIncomingBounceLightAtHit(probeIndex, hit) * InvalidScale(probeValidity);
+            float3 lighting = EstimateIncomingBounceLightAtHit(paddedProbeIndex, hit) * InvalidScale(probeValidity);
         #else
             float3 lighting = 0;
         #endif
@@ -224,7 +225,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsSimilarEqual(_HitRadianceCacheAxis[hitAxisIndex], lighting))
-            SetProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate));
+            SetProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex);
 #endif
 
         _HitRadianceCacheAxis[hitAxisIndex] = EncodeRadiance(lighting);

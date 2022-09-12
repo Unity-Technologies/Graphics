@@ -18,9 +18,9 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
     return !(distAlongV < rangeInFrontOfCamera && distAlongV > -rangeBehindCamera);
 }
 
-float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
+float3 ReadPreviousPropagationAxis(uint paddedProbeIndex, uint axisIndex)
 {
-    const uint index = axisIndex * ProbeCount() + probeIndex;
+    const uint index = axisIndex * PaddedProbeCount() + paddedProbeIndex;
     return DecodeRadiance(_PreviousRadianceCacheAxis[index]);
 }
 
