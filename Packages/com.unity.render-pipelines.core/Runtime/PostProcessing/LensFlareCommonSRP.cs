@@ -247,10 +247,10 @@ namespace UnityEngine.Rendering
                 return l * l / (d * (d * d + l * l));
             }
 
-            Vector3 p1Global = lightPositionWS + lightSide * lightWidth * 0.5f;
-            Vector3 p2Global = lightPositionWS - lightSide * lightWidth * 0.5f;
-            Vector3 p1Front = lightPositionWS + cam.transform.right * lightWidth * 0.5f;
-            Vector3 p2Front = lightPositionWS - cam.transform.right * lightWidth * 0.5f;
+            Vector3 p1Global = lightPositionWS + 0.5f * lightWidth * lightSide;
+            Vector3 p2Global = lightPositionWS - 0.5f * lightWidth * lightSide;
+            Vector3 p1Front = lightPositionWS + 0.5f * lightWidth * cam.transform.right;
+            Vector3 p2Front = lightPositionWS - 0.5f * lightWidth * cam.transform.right;
 
             Vector3 p1World = cam.transform.InverseTransformPoint(p1Global);
             Vector3 p2World = cam.transform.InverseTransformPoint(p2Global);

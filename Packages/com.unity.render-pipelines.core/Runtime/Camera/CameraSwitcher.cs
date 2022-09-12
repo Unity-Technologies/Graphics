@@ -106,12 +106,10 @@ namespace UnityEngine.Rendering
                     // If we witch back to the original camera, put back the transform in it.
                     if (m_CurrentCamera == m_OriginalCamera)
                     {
-                        m_OriginalCamera.transform.position = m_OriginalCameraPosition;
-                        m_OriginalCamera.transform.rotation = m_OriginalCameraRotation;
+                        m_OriginalCamera.transform.SetPositionAndRotation(m_OriginalCameraPosition, m_OriginalCameraRotation);
                     }
 
-                    transform.position = m_CurrentCamera.transform.position;
-                    transform.rotation = m_CurrentCamera.transform.rotation;
+                    transform.SetPositionAndRotation(m_CurrentCamera.transform.position, m_CurrentCamera.transform.rotation);
                 }
             }
         }

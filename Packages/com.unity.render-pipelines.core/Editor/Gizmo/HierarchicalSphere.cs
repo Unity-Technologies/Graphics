@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
                 if (filled)
                 {
                     material.SetPass(0);
-                    Matrix4x4 drawMatrix = Matrix4x4.TRS((Vector3)Handles.matrix.GetColumn(3), Quaternion.identity, Vector3.one * radius * 2f);
+                    Matrix4x4 drawMatrix = Matrix4x4.TRS((Vector3)Handles.matrix.GetColumn(3), Quaternion.identity, 2f * radius * Vector3.one);
                     Graphics.DrawMeshNow(k_MeshSphere, drawMatrix);
                 }
 

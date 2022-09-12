@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering
         static bool NeighbourhoodIsEmptySpace(Vector3 pos, float searchDistance, Bounds boundsToCheckAgainst)
         {
 
-            Vector3 halfExtents = Vector3.one * searchDistance * 0.5f;
+            Vector3 halfExtents = 0.5f * searchDistance * Vector3.one;
             Vector3 brickCenter = pos + halfExtents;
 
             Collider[] colliders = Physics.OverlapBox(brickCenter, halfExtents);

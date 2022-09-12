@@ -56,8 +56,7 @@ namespace UnityEngine.Rendering.UI
                 if (!t.gameObject.activeInHierarchy)
                     continue;
 
-                var c = t.GetComponent<DebugUIHandlerWidget>();
-                if (c != null)
+                if (t.TryGetComponent<DebugUIHandlerWidget>(out var c))
                     list.Add(c);
             }
 

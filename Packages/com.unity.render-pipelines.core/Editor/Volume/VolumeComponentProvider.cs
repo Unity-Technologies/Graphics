@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering
             var volumeComponentTypesFiltered =
                 VolumeManager.GetSupportedVolumeComponents(currentPipeline.GetType());
 
-            if (volumeComponentTypesFiltered.Any())
+            if (volumeComponentTypesFiltered.Count > 0)
             {
                 var rootNode = new PathNode();
 

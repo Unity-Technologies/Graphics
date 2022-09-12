@@ -314,8 +314,7 @@ namespace UnityEngine.Rendering
                 serializedProfiles.Add(item);
             }
 
-            foreach (var set in bakingSets)
-                serializedBakingSets.Add(set);
+            serializedBakingSets.AddRange(bakingSets);
         }
 
         internal BakingSet CreateNewBakingSet(string name)

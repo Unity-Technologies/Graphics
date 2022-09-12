@@ -104,8 +104,7 @@ namespace UnityEditor.Rendering.LookDev
                 return;
 
             SceneManager.MoveGameObjectToScene(gameObject, m_PreviewScene);
-            gameObject.transform.position = position;
-            gameObject.transform.rotation = rotation;
+            gameObject.transform.SetPositionAndRotation(position, rotation);
             if (persistent)
                 m_PersistentGameObjects.Add(gameObject);
             else
@@ -195,16 +194,13 @@ namespace UnityEditor.Rendering.LookDev
             go.hideFlags = HideFlags.HideAndDontSave;
             go.layer = k_PreviewCullingLayerIndex;
 
-            var meshRenderer = go.GetComponent<MeshRenderer>();
-            if (meshRenderer != null)
+            if (go.TryGetComponent<MeshRenderer>(out var meshRenderer))
                 meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
 
-            var skinnedMeshRenderer = go.GetComponent<SkinnedMeshRenderer>();
-            if (skinnedMeshRenderer != null)
+            if (go.TryGetComponent<SkinnedMeshRenderer>(out var skinnedMeshRenderer))
                 skinnedMeshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
 
-            var lineRenderer = go.GetComponent<LineRenderer>();
-            if (lineRenderer != null)
+            if (go.TryGetComponent<LineRenderer>(out var lineRenderer))
                 lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
 
             var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
