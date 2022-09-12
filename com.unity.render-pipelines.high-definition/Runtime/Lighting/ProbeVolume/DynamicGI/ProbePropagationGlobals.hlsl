@@ -104,11 +104,12 @@ uint ProbeCoordinateToPaddedProbeIndex(uint3 probeCoordinate)
 
 uint3 ProbeIndexToProbeCoordinates(uint probeIndex)
 {
-    uint probeZ = probeIndex / (_ProbeVolumeResolution.x * _ProbeVolumeResolution.y);
-    probeIndex -= probeZ * (_ProbeVolumeResolution.x * _ProbeVolumeResolution.y);
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
+    uint probeZ = probeIndex / (resolution.x * resolution.y);
+    probeIndex -= probeZ * (resolution.x * resolution.y);
 
-    uint probeY = probeIndex / _ProbeVolumeResolution.x;
-    uint probeX = probeIndex % _ProbeVolumeResolution.x;
+    uint probeY = probeIndex / resolution.x;
+    uint probeX = probeIndex % resolution.x;
 
     return uint3(probeX, probeY, probeZ);
 }
