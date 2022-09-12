@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering
                         ).ToList();
 
                     // if there are any, assume the material has been upgraded
-                    if (matchingUpgraders.Any())
+                    if (matchingUpgraders.Count > 0)
                     {
                         result |= SerializedShaderPropertyUsage.UsedByUpgraded;
 

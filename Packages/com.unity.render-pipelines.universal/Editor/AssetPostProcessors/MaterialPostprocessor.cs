@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
     {
         static void OnWillCreateAsset(string asset)
         {
-            if (!asset.ToLowerInvariant().EndsWith(".mat"))
+            if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
             {
                 return;
             }

@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.Universal
 
         void InitIfNeeded()
         {
-            if (m_CoreConvertersList.Any())
+            if (m_CoreConvertersList.Count > 0)
                 return;
             m_CoreConvertersList = new List<RenderPipelineConverter>();
 
@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering.Universal
                 m_ContainerChoices.Add(container.name);
             }
 
-            if (m_ConverterContainers.Any())
+            if (m_ConverterContainers.Count > 0)
             {
                 GetConverters();
             }
@@ -240,7 +240,7 @@ namespace UnityEditor.Rendering.Universal
             string theme = EditorGUIUtility.isProSkin ? "dark" : "light";
             InitIfNeeded();
 
-            if (m_ConverterContainers.Any())
+            if (m_ConverterContainers.Count > 0)
             {
                 m_SerializedObject = new SerializedObject(this);
                 converterEditorAsset.CloneTree(rootVisualElement);
@@ -285,7 +285,7 @@ namespace UnityEditor.Rendering.Universal
             // If not then Init Button should be active
             // Get all active converters
 
-            if (m_ConverterStates.Any())
+            if (m_ConverterStates.Count > 0)
             {
                 foreach (ConverterState state in m_ConverterStates)
                 {
@@ -385,7 +385,7 @@ namespace UnityEditor.Rendering.Universal
 
         void ConverterStatusInfo(int index, VisualElement item)
         {
-            Tuple<string, Texture2D> info = converterStateInfoDisabled;;
+            Tuple<string, Texture2D> info = converterStateInfoDisabled;
             // Check if it is active
             if (m_ConverterStates[index].isActive)
             {
