@@ -323,7 +323,7 @@ void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_Grou
 
     if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
     {
-        const int paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
+        const int paddedProbeIndex = GroupAndThreadToPaddedProbeIndex(groupId, threadId);
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))

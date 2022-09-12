@@ -312,6 +312,27 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        internal static Vector4 PackProbeVolumeResolution(Vector3 resolution)
+        {
+            return new Vector4(
+                resolution.x,
+                resolution.y,
+                resolution.z,
+                resolution.x * resolution.y);
+        }
+        
+        internal static Vector4 PackProbeVolumeBlockParams(Vector3 resolution)
+        {
+            var blockCountX = ((int)resolution.x + 3) / 4;
+            var blockCountY = ((int)resolution.y + 3) / 4;
+            var blockCountZ = ((int)resolution.z + 3) / 4;
+            return new Vector4(
+                blockCountX,
+                blockCountX * blockCountY,
+                blockCountX * blockCountY * blockCountZ * 64,
+                resolution.x * resolution.y * resolution.z);
+        }
+
         private static uint PackAlbedoAndDistance(Vector3 color, float distance, float maxDistance)
         {
             float albedoR = Mathf.Clamp01(color.x);
@@ -892,11 +913,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var pipelineData = ref probeVolume.GetPipelineData();
             var obb = pipelineData.BoundingBox;
 
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, new Vector3(
+            var resolution = new Vector3(
                 probeVolume.parameters.resolutionX,
                 probeVolume.parameters.resolutionY,
                 probeVolume.parameters.resolutionZ
-            ));
+            );
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", PackProbeVolumeResolution(resolution));
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(resolution));
+
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
                 1.0f / (float) probeVolume.parameters.resolutionX,
                 1.0f / (float) probeVolume.parameters.resolutionY,
@@ -952,7 +976,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var obb = pipelineData.BoundingBox;
             var engineData = pipelineData.EngineData;
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", engineData.maxNeighborDistance);
-            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", engineData.resolution);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", PackProbeVolumeResolution(engineData.resolution));
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(engineData.resolution));
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", engineData.resolutionInverse);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
@@ -1038,7 +1063,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var propagationPipelineData = probeVolume.GetPropagationPipelineData();
 
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyFlags", propagationPipelineData.GetNextDirtyFlags());
-            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", data.resolution);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", PackProbeVolumeResolution(data.resolution));
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(data.resolution));
             cmd.SetComputeIntParam(shader, "_DirtyAll", dirtyAll ? 1 : 0);
 
             int dispatchX = ((int)data.resolution.x + 3) / 4;
@@ -1127,7 +1153,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", engineData.maxNeighborDistance);
-            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", engineData.resolution);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", PackProbeVolumeResolution(engineData.resolution));
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(engineData.resolution));
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGILightLayers", unchecked((int)engineData.lightLayers));
             cmd.SetComputeIntParam(shader, "_ProbeVolumeDGIEngineDataIndex", pipelineData.EngineDataIndex);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIResolutionInverse", engineData.resolutionInverse);
@@ -1164,9 +1191,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int dispatchX = ((int)data.resolution.x + 3) / 4;
-            int dispatchY = ((int)data.resolution.y + 3) / 4;
-            int dispatchZ = ((int)data.resolution.z + 3) / 4 * s_NeighborAxis.Length;
+            int dispatchX = ((int)engineData.resolution.x + 3) / 4;
+            int dispatchY = ((int)engineData.resolution.y + 3) / 4;
+            int dispatchZ = ((int)engineData.resolution.z + 3) / 4 * s_NeighborAxis.Length;
             cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
         }
 
@@ -1205,11 +1232,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var pipelineData = ref probeVolume.GetPipelineData();
             var obb = pipelineData.BoundingBox;
 
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, new Vector3(
+            var resolution = new Vector3(
                 probeVolume.parameters.resolutionX,
                 probeVolume.parameters.resolutionY,
                 probeVolume.parameters.resolutionZ
-            ));
+            );
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", PackProbeVolumeResolution(resolution));
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(resolution));
+            
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
                 1.0f / (float) probeVolume.parameters.resolutionX,
                 1.0f / (float) probeVolume.parameters.resolutionY,
@@ -1279,7 +1309,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2", true);
             CoreUtils.SetKeyword(shader, "DIRTY_FLAGS_DISABLED", true);
 
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, (Vector3)size);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeResolution", PackProbeVolumeResolution(size));
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(size));
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
                 1.0f / size.x,
                 1.0f / size.y,
@@ -1380,7 +1411,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var resolution = new Vector3(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
             var probeRadiusWS = (parameters.size.x / resolution.x + parameters.size.y / resolution.y + parameters.size.z / resolution.z) * (1f / 3f * 1f / 32f);
 
-            materialPropertyBlock.SetVector("_ProbeVolumeResolution", resolution);
+            materialPropertyBlock.SetVector("_ProbeVolumeResolution", PackProbeVolumeResolution(resolution));
+            materialPropertyBlock.SetVector("_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(resolution));
             materialPropertyBlock.SetMatrix("_ProbeIndex3DToPositionWSMatrix", probeIndex3DToPositionWSMatrix);
             materialPropertyBlock.SetFloat("_ProbeVolumeProbeDisplayRadiusWS", probeRadiusWS);
             materialPropertyBlock.SetBuffer("_ProbeVolumeDirtyFlags", dirtyFlags);

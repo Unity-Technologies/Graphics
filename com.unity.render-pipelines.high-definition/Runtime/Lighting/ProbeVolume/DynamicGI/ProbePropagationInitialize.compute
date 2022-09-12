@@ -352,7 +352,7 @@ void InitializePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_G
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
 
-        const uint paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
+        const uint paddedProbeIndex = GroupAndThreadToPaddedProbeIndex(groupId, threadId);
 
 #if BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
         ComputeProbeBasisFromSHMonteCarloNaiveProjection(shIncomingIrradiance, probeVolumeLtw, paddedProbeIndex);

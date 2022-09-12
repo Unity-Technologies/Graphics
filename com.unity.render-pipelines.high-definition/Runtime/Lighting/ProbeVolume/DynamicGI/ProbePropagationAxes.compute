@@ -278,20 +278,19 @@ RADIANCE GetPreviousAxisRadiance(int index)
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
 void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const uint3 resolution = (uint3)_ProbeVolumeResolution;
-    const uint3 groupResolution = (resolution + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    const uint axisIndex = groupId.z / groupResolution.z;
-    const uint3 groupCoordinate = uint3(groupId.x, groupId.y, groupId.z - axisIndex * groupResolution.z);
-    const uint3 probeCoordinate = groupCoordinate * BLOCK_SIZE + threadId;
+    const uint4 resolution = (uint4)_ProbeVolumeResolution;
+    const uint blockCountZ = (resolution.z + (BLOCK_SIZE + 1)) / BLOCK_SIZE;
+    const uint axisIndex = groupId.z / blockCountZ;
+    const uint3 probeGroup = groupId - uint3(0, 0, axisIndex * blockCountZ);
+    const uint3 probeCoordinate = probeGroup * BLOCK_SIZE + threadId;
 
-    if (all(probeCoordinate < resolution))
+    if (all(probeCoordinate < (uint3)resolution))
     {
-        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
-        const int paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
-        const int paddedIndex = axisIndex * PaddedProbeCount() + paddedProbeIndex;
+        const uint paddedProbeIndex = GroupAndThreadToPaddedProbeIndex(probeGroup, threadId);
+        const uint paddedIndex = paddedProbeIndex + axisIndex * PaddedProbeCount();
 
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, ProbeCoordinateToPaddedProbeIndex(probeCoordinate)))
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))
         {
             _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
             return;
@@ -324,6 +323,8 @@ void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadI
 
         BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[axisIndex].xyz, _Sharpness);
         
+        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
+
         for(int l=0; l < PROPAGATION_AXIS_AMOUNT; ++l)
         {
             NeighborAxisLookup neighborAxisLookup = _SortedNeighborAxisLookups[neighborAxisIndexOffset + l];

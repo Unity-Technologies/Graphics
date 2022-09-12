@@ -5,17 +5,16 @@
 
 RWStructuredBuffer<int> _ProbeVolumeDirtyFlags;
 int _DirtyAll;
-int _DirtyAll;
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
 void ResetDirtyFlags(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
 {
-    const uint3 resolution = uint3(_ProbeVolumeResolution);
+    const uint3 resolution = (uint3)_ProbeVolumeResolution;
     const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
 
     if (all(probeCoordinate < resolution))
     {
-        const uint paddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(probeCoordinate);
+        const uint paddedProbeIndex = GroupAndThreadToPaddedProbeIndex(groupId, threadId);
         if (_DirtyAll || IsBoundaryProbe(probeCoordinate))
             SetProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex);
         else
