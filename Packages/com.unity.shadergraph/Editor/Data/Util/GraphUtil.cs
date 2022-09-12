@@ -332,7 +332,7 @@ namespace UnityEditor.ShaderGraph
 
             var duplicateNumber = 1;
             existingDuplicateNumbers.Sort();
-            if (existingDuplicateNumbers.Any() && existingDuplicateNumbers.First() == 1)
+            if (existingDuplicateNumbers.Count > 0 && existingDuplicateNumbers.First() == 1)
             {
                 duplicateNumber = existingDuplicateNumbers.Last() + 1;
                 for (var i = 1; i < existingDuplicateNumbers.Count; i++)

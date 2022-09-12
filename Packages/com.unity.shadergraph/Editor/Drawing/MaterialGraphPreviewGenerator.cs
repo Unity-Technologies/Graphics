@@ -167,14 +167,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Camera.targetTexture = renderTexture;
             if (mode == PreviewMode.Preview3D)
             {
-                m_Camera.transform.position = -Vector3.forward * 5;
-                m_Camera.transform.rotation = Quaternion.identity;
+                m_Camera.transform.SetPositionAndRotation(-Vector3.forward * 5, Quaternion.identity);
                 m_Camera.orthographic = false;
             }
             else
             {
-                m_Camera.transform.position = -Vector3.forward * 2;
-                m_Camera.transform.rotation = Quaternion.identity;
+                m_Camera.transform.SetPositionAndRotation(-Vector3.forward * 2, Quaternion.identity);
                 m_Camera.orthographicSize = 1;
                 m_Camera.orthographic = true;
             }

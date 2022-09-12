@@ -28,10 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public RenderStateCollection Add(RenderStateCollection renderStates)
         {
-            foreach (RenderStateCollection.Item item in renderStates)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(renderStates);
 
             return this;
         }

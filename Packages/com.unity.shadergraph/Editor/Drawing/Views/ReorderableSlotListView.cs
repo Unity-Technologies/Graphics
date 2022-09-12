@@ -254,7 +254,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // For each list entry get the slot with that ID
             for (int i = 0; i < list.list.Count; i++)
             {
-                var currentSlot = slots.Where(s => s.id == (int)list.list[i]).FirstOrDefault();
+                var currentSlot = slots.FirstOrDefault(s => s.id == (int)list.list[i]);
                 m_Node.AddSlot(currentSlot);
             }
 

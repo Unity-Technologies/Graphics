@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             m_FunctionName.RegisterCallback<FocusOutEvent>(s =>
             {
-                if (m_FunctionName.value == "")
+                if (m_FunctionName.value?.Length == 0)
                     m_FunctionName.value = CustomFunctionNode.defaultFunctionName;
                 else
                     m_FunctionName.value = NodeUtils.ConvertToValidHLSLIdentifier(m_FunctionName.value);
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             m_FunctionBody.RegisterCallback<FocusOutEvent>(s =>
             {
-                if (m_FunctionBody.value == "")
+                if (m_FunctionBody.value?.Length == 0)
                     m_FunctionBody.value = CustomFunctionNode.defaultFunctionBody;
 
                 if (m_FunctionBody.value != node.functionBody)

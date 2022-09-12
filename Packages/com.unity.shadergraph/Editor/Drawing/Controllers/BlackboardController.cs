@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.AddGraphInput(shaderInputReference);
 
             // If no categoryToAddItemToGuid is provided, add the input to the default category
-            if (categoryToAddItemToGuid == String.Empty)
+            if (categoryToAddItemToGuid?.Length == 0)
             {
                 var defaultCategory = graphData.categories.FirstOrDefault();
                 AssertHelpers.IsNotNull(defaultCategory, "Default category reference is null.");
@@ -442,7 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     selectedCategories.Add(selectable as SGBlackboardCategory);
                 }
             }
-            if (selectedCategories.Any())
+            if (selectedCategories.Count > 0)
             {
                 selectedCategoryGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
             }

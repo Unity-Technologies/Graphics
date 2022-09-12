@@ -263,7 +263,7 @@ namespace UnityEditor.ShaderGraph
                 return ErrorShader(shaderName, $"Error in Shader Graph {path}: {ShaderKeyword.kVariantLimitWarning}");
             }
 
-            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+            foreach (var activeNode in activeNodeList.Where(f => f != null))
             {
                 activeNode.SetUsedByGenerator();
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);

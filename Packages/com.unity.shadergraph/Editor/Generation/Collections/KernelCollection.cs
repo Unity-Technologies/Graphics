@@ -27,10 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public KernelCollection Add(KernelCollection passes)
         {
-            foreach (KernelCollection.Item item in passes)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(passes);
 
             return this;
         }

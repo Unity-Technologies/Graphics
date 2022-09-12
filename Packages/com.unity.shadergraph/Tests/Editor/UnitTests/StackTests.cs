@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.GetNodes<BlockNode>().Count());
-            Assert.AreEqual(1, graph.fragmentContext.blocks.Count());
+            Assert.AreEqual(1, graph.fragmentContext.blocks.Count);
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(0, graph.GetNodes<BlockNode>().Count());
-            Assert.AreEqual(0, graph.fragmentContext.blocks.Count());
+            Assert.AreEqual(0, graph.fragmentContext.blocks.Count);
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(2, graph.GetNodes<BlockNode>().Count());
-            Assert.AreEqual(2, graph.fragmentContext.blocks.Count());
+            Assert.AreEqual(2, graph.fragmentContext.blocks.Count);
             Assert.AreEqual(nodeB, graph.fragmentContext.blocks[0].value);
         }
 
