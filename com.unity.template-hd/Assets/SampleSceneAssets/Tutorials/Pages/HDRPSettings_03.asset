@@ -42,15 +42,16 @@ MonoBehaviour:
           to dedicated <b>Quality Levels</b>. \n\n1. Go to <b>Edit</b> > <b>Project
           Settings</b> > <b>Quality.</b>\n\nSee that this project offers 5 quality
           levels: <b>Low</b>, <b>Medium</b> and <b>High,</b> as well as 2 quality
-          levels with Ray Tracing enabled called <b>Very High</b> and <b>Ultra.</b>\n\n2.
-          Switch to <b>Low Quality</b> and notice that the Fog will disappear. \n\nThis
-          occurs because in the <b>Low</b> quality level, the Volumetric Fog is disabled.
-          You can also locate the <b>1HDRPLowQuality</b> asset in the <i>Project</i>
-          Window and verify that indeed <b>Lighting</b> > <b>Volumetrics</b> > <b>Volumetric
-          Fog</b> is turned off. \n\n3. Change back to <b>Medium Quality.</b>\n\n\n<b>Important</b>\n\nIf
-          you have a Ray Tracing capable GPU, you can try the <b>Very High</b> and
-          <b>Ultra</b> quality levels. Depending on your GPU's performance, the framerate
-          might be heavily impacted. "
+          levels with Ray Tracing enabled called <b>Ray Tracing</b> and <b>Ray Tracing
+          (Realtime GI).</b>\n\n2. Switch to <b>Low Quality</b> and notice that the
+          Fog will disappear. \n\nThis occurs because in the <b>Low</b> quality level,
+          the Volumetric Fog is disabled. You can also locate the <b>1HDRPLowQuality</b>
+          asset in the <i>Project</i> Window and verify that indeed <b>Lighting</b>
+          > <b>Volumetrics</b> > <b>Volumetric Fog</b> is turned off. \n\n3. Change
+          back to <b>Medium Quality.</b>\n\n\n<b>Important</b>\n\nIf you have a Ray
+          Tracing capable GPU, you can try the <b>Ray Tracing</b> and <b>Ray Tracing
+          (Realtime GI)</b> quality levels. Depending on your GPU's performance,
+          the framerate might be heavily impacted. "
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
