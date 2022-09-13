@@ -796,18 +796,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeVolume.EnsureVolumeBuffers(probeVolume, encodingMode);
 
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume, radianceEncoding);
+            var dirtyAll = false;
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
-                    DispatchClearPreviousRadianceCache(cmd, probeVolume, radianceEncoding);
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIInitialize)))
+                    DispatchPropagationInitialize(cmd, probeVolume, in giSettings, in shaderGlobals, radianceEncoding);
 
-                var initializeRadianceCacheWithBakedSH = true;
-                if (initializeRadianceCacheWithBakedSH)
-                {
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIInitialize)))
-                        DispatchPropagationInitialize(cmd, probeVolume, in giSettings, in shaderGlobals, radianceEncoding);
-                    previousRadianceCacheInvalid = false;
-                }
+                previousRadianceCacheInvalid = false;
+                dirtyAll = true;
             }
 
             if (probeVolume.HitNeighborAxisLength != 0)
@@ -819,7 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (giSettings.useDirtyFlags.value)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIResetDirtyProbes)))
-                    DispatchResetDirtyProbes(cmd, probeVolume);
+                    DispatchResetDirtyProbes(cmd, probeVolume, dirtyAll);
             }
             
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
@@ -1017,7 +1013,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchResetDirtyProbes(CommandBuffer cmd, ProbeVolumeHandle probeVolume)
+        void DispatchResetDirtyProbes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, bool dirtyAll)
         {
             var kernel = _PropagationResetDirtyProbes.FindKernel("ResetDirtyProbes");
             var shader = _PropagationResetDirtyProbes;
@@ -1032,6 +1028,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(shader, "_ResolutionX", (int)data.resolutionX);
             cmd.SetComputeIntParam(shader, "_ResolutionY", (int)data.resolution.y);
             cmd.SetComputeIntParam(shader, "_ResolutionZ", (int)data.resolution.z);
+            cmd.SetComputeIntParam(shader, "_DirtyAll", dirtyAll ? 1 : 0);
 
             int dispatchX = (numProbes + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);

@@ -10,6 +10,7 @@ uint _ResolutionXY;
 uint _ResolutionX;
 uint _ResolutionY;
 uint _ResolutionZ;
+int _DirtyAll;
 
 uint3 ProbeIndexToProbeCoordinatesUint(uint probeIndex)
 {
@@ -39,7 +40,7 @@ void ResetDirtyProbes(uint3 id : SV_DispatchThreadID)
     if (probeIndex < _ProbeCount)
     {
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
-        if (IsBoundaryProbe(probeCoordinate))
+        if (_DirtyAll || IsBoundaryProbe(probeCoordinate))
             SetProbeDirty(_DirtyProbes, probeIndex);
         else
             ClearProbeDirty(_DirtyProbes, probeIndex);
