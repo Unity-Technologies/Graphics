@@ -797,6 +797,7 @@ namespace UnityEditor.Rendering.Universal
             var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
             var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
 
+            bool allQualityLevelsAreOverridden = true;
             for (int i = 0; i < property.arraySize; i++)
             {
                 bool isExcluded = false;
@@ -817,7 +818,18 @@ namespace UnityEditor.Rendering.Universal
                 }
 
                 if (!isExcluded)
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
+                {
+                    if(QualitySettings.GetRenderPipelineAssetAt(i) is UniversalRenderPipelineAsset urpAsset)
+                        urps.Add(urpAsset);
+                    else
+                       allQualityLevelsAreOverridden = false;
+                }
+            }
+
+            if (!allQualityLevelsAreOverridden || urps.Count == 0)
+            {
+                if (GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset urpAsset)
+                    urps.Add(urpAsset);
             }
 
             return true;
@@ -826,16 +838,26 @@ namespace UnityEditor.Rendering.Universal
         private static void FetchAllSupportedFeatures()
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
-            urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
 
             // TODO: Replace once we have official API for filtering urps per build target
             if (!TryGetRenderPipelineAssetsForBuildTarget(EditorUserBuildSettings.activeBuildTarget, urps))
             {
                 // Fallback
                 Debug.LogWarning("Shader stripping per enabled quality levels failed! Stripping will use all quality levels. Please report a bug!");
+
+                bool allQualityLevelsAreOverridden = true;
                 for (int i = 0; i < QualitySettings.names.Length; i++)
                 {
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
+                    if(QualitySettings.GetRenderPipelineAssetAt(i) is UniversalRenderPipelineAsset urpAsset)
+                        urps.Add(urpAsset);
+                    else
+                        allQualityLevelsAreOverridden = false;
+                }
+
+                if (!allQualityLevelsAreOverridden || urps.Count == 0)
+                {
+                    if(GraphicsSettings.defaultRenderPipeline is UniversalRenderPipelineAsset defaultAsset)
+                        urps.Add(defaultAsset);
                 }
             }
 
