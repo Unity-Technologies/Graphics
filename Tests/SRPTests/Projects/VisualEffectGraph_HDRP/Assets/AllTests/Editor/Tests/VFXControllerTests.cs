@@ -1,17 +1,20 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.VFX.UI;
 using System.IO;
-using UnityEditor.VFX.Block.Test;
-using UnityEngine.UIElements;
+using System.Linq;
+
+using NUnit.Framework;
+
+using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
+
+using UnityEditor.VFX.Block;
+using UnityEditor.VFX.Block.Test;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
 {
@@ -27,8 +30,10 @@ namespace UnityEditor.VFX.Test
 
         const string testAssetMainSubgraph = "Assets/TmpTests/VFXGraphSubGraph_Main.vfx";
         const string testSubgraphSubOperatorAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfxoperator";
+        const string testSubgraphBlockAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfxblock";
 
         private int m_StartUndoGroupId;
+        private string testAssetRandomFileName;
 
         [SetUp]
         public void CreateTestAsset()
@@ -62,6 +67,11 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(testSubgraphAssetName);
             AssetDatabase.DeleteAsset(testSubgraphSubAssetName);
             AssetDatabase.DeleteAsset(testSubgraphSubOperatorAssetName);
+            AssetDatabase.DeleteAsset(testSubgraphBlockAssetName);
+            if (!string.IsNullOrEmpty(testAssetRandomFileName))
+            {
+                AssetDatabase.DeleteAsset(testAssetRandomFileName);
+            }
         }
 
         #pragma warning disable 0414
@@ -1154,6 +1164,56 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < 16; ++i)
                 yield return null;
+        }
+
+        [UnityTest][Description("(Non regression test for FB case #1419176")]
+        public IEnumerator Rename_Asset_Dont_Lose_Subgraph()
+        {
+            testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
+            // Create default VFX Graph
+            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            File.WriteAllText(testAssetRandomFileName, templateString);
+            AssetDatabase.ImportAsset(testAssetRandomFileName);
+
+            // Open this vfx the same way it would be done by a user
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            var viewController = window.graphView.controller;
+
+            // Convert the first set attribute block into a subgraph block
+            var initializeContext = viewController.graph.children.OfType<VFXBasicInitialize>().Single();
+            var setAttributeBlock = initializeContext.children.OfType<SetAttribute>().First();
+            var controller = viewController.GetNodeController(setAttributeBlock, 0);
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, new [] { controller }, Rect.zero, testSubgraphBlockAssetName);
+            viewController.ApplyChanges();
+
+            var subGraphBlock = window.graphView.controller.AllSlotContainerControllers
+                .Select(x => x.model)
+                .OfType<VFXSubgraphBlock>()
+                .Single();
+            Assert.IsNotNull(subGraphBlock.subgraph);
+
+            // Rename the asset
+            var newFileName = $"zz-random_{Guid.NewGuid()}.vfx";
+            var result = AssetDatabase.RenameAsset(testAssetRandomFileName, newFileName);
+            Assert.IsEmpty(result);
+            testAssetRandomFileName = $"Assets/TmpTests/{newFileName}";
+
+            yield return null;
+            yield return null;
+
+            // Check the subgraph is still properly referenced
+            subGraphBlock = window.graphView.controller.AllSlotContainerControllers
+                .Select(x => x.model)
+                .OfType<VFXSubgraphBlock>()
+                .Single();
+            Assert.IsNotNull(subGraphBlock.subgraph);
+
+            window.Close();
+
+            yield return null;
         }
     }
 }
