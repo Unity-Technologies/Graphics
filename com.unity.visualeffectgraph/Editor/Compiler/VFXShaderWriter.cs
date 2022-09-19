@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
             int startIndex = 0;
             while (true)
             {
-                int index = str.IndexOf(tag, startIndex);
+                int index = str.IndexOf(tag, startIndex, StringComparison.Ordinal);
                 if (index == -1)
                     break;
 
