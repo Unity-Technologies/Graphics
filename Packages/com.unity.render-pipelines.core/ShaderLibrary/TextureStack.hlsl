@@ -12,12 +12,19 @@
 #include "Packing.hlsl"
 
 /*
+    Warning: the following guide is subject to change due to VT's experimental status.
+    For more information, visit https://docs.unity3d.com/ScriptReference/UnityEngine.VirtualTexturingModule.html.
+
     This header adds the following pseudo definitions. Actual types etc may vary depending
     on vt- being on or off.
 
         struct StackInfo { opaque struct ... }
-        StackInfo PrepareStack(float2 uv, Stack object);
-        float4 SampleStack(StackInfo info, Texture tex);
+        struct VTProperty { opaque struct ... }
+        struct VTPropertyWithTextureType { VTProperty + int layerTextureType[4] }
+
+        StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
+        float4 SampleVTLayerWithTextureType(VTPropertyWithTextureType vtPropWithTexType, VtInputParameters vtParams, StackInfo info, [immediate] int layerIndex)
+        ("int layerIndex" cannot be a variable or expression, must be an immediate constant)
 
     To use this in your materials add the following to various locations in the shader:
 
@@ -49,19 +56,67 @@
 
     NOTE: The Stack shaderlab property and DECLARE_STACKn define need to match i.e. the same name and same texture slots.
 
-    Then in the pixel shader function (likely somewhere at the beginning) do a call:
+    Then in the pixel shader function (likely somewhere at the beginning) do:
 
-        StackInfo info = PrepareStack(uvs, MyFancyStack);
+        VTPropertyWithTextureType vtPropWithTexType = AddTextureType(BuildVTProperties_MyFancyStack(), TEXTURETYPE_DEFAULT, TEXTURETYPE_DEFAULT, ...);
+        // or: TEXTURETYPE_NORMALTANGENTSPACE / TEXTURETYPE_NORMALOBJECTSPACE, match with each texture slot's actual texture type.
+
+        VtInputParameters vtParams;
+        vtParams.uv = uv;
+        vtParams.lodOrOffset = 0.0f;
+        ...
+        StackInfo info = PrepareVT(vtPropWithTexType.vtProperty, vtParams);
 
     Then later on when you want to sample the actual texture do a call(s):
 
-        float4 color = SampleStack(info, TextureSlot1);
-        float4 color2 = SampleStack(info, TextureSlot2);
+        // LayerIndex must be an immediate constant, do not use a variable or expression.
+        float4 color1 = SampleVTLayerWithTextureType(vtPropWithTexType, vtParams, info, 0);
+        float4 color2 = SampleVTLayerWithTextureType(vtPropWithTexType, vtParams, info, 1);
         ...
 
-    The above steps can be repeated for multiple stacks. But be sure that when using the SampleStack you always
-    pass in the result of the PrepareStack for the correct stack the texture belongs to.
+    The above steps can be repeated for multiple stacks. But be sure that when using the SampleVTLayerWithTextureType you always
+    pass in the VtInputParameters + the result of the AddTextureType and PrepareVT for the correct stack the texture belongs to.
 
+    Also, for tiles to be automatically loaded, you need to write to the VT Feedback texture
+    (SV_Target1) by yourself in the "ForwardOnly" pass. For example:
+
+        #if defined(UNITY_VIRTUAL_TEXTURING) && defined(SHADER_API_PSSL)
+            // Prevent loss of precision on some Sony platforms.
+            #pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
+        #endif
+
+        void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                , out float4 outVTFeedback : SV_Target1
+            #endif
+            , ...)
+        {
+            ... (PrepareVT and SampleVTLayerWithTextureType called at some point)
+
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                float4 resolveOutput = GetResolveOutput(info);
+                float4 vtPackedFeedback = GetPackedVTFeedback(resolveOutput);
+                outVTFeedback = PackVTFeedbackWithAlpha(vtPackedFeedback, screenSpacePos.xy, color1.a);
+                // Include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+                // for "PackVTFeedbackWithAlpha".
+            #endif
+
+            ...
+        }
+
+    If multiple stacks are present on the same pixel, alternate between resolve outputs in the following manner
+    and pass the result to "GetPackedVTFeedback", etc... to ensure that all relevant tiles get loaded properly:
+
+        ...
+        float4 resolveOutput = GetResolveOutput(info);
+        float4 resolveOutput2 = GetResolveOutput(info2);
+        float4 resolveOutputs[2] = { resolveOutput, resolveOutput2 };
+
+        uint pixelColumn = screenSpacePos.x;
+        float4 actualResolveOutput = resolveOutputs[(pixelColumn + _FrameCount) % 2];
+        float4 vtPackedFeedback = GetPackedVTFeedback(actualResolveOutput);
+        outVTFeedback = PackVTFeedbackWithAlpha(vtPackedFeedback, ...
+        ...
 */
 
 #if defined(UNITY_VIRTUAL_TEXTURING) && !defined(FORCE_VIRTUAL_TEXTURING_OFF)
@@ -408,11 +463,11 @@ float4 ApplyTextureType(float4 value, int textureType)
 }
 
 // if we _could_ express it as a function, the function signature would be:
-//   float4 SampleVTLayerWithTextureType(VTPropertyWithTextureType vtProperty, VtInputParameters vtParams, StackInfo info, [immediate] int layerIndex)
+//   float4 SampleVTLayerWithTextureType(VTPropertyWithTextureType vtPropWithTexType, VtInputParameters vtParams, StackInfo info, [immediate] int layerIndex)
 // NOTE: layerIndex here can only be an immediate constant (i.e. 0,1,2, or 3) -- it CANNOT be a variable or expression
 // this is because we use macro concatentation on it when VT is disabled
 
-#define SampleVTLayerWithTextureType(vtProperty, vtParams, info, layerIndex) \
-    ApplyTextureType(SampleVTLayer(vtProperty.vtProperty, vtParams, info, layerIndex), vtProperty.layerTextureType[layerIndex])
+#define SampleVTLayerWithTextureType(vtPropWithTexType, vtParams, info, layerIndex) \
+    ApplyTextureType(SampleVTLayer(vtPropWithTexType.vtProperty, vtParams, info, layerIndex), vtPropWithTexType.layerTextureType[layerIndex])
 
 #endif //TEXTURESTACK_include
