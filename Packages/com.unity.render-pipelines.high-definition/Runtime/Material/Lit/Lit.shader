@@ -1245,5 +1245,6 @@ Shader "HDRP/Lit"
         }
     }
 
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.LitGUI"
 }

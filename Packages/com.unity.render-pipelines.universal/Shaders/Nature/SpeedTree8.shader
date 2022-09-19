@@ -251,5 +251,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
         }
     }
 
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "SpeedTree8ShaderGUI"
 }

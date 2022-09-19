@@ -1,22 +1,16 @@
-Shader "Hidden/HDRP/MaterialError"
+Shader "Hidden/Core/FallbackError"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
-            HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
+            CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 4.5
+            #pragma target 2.0
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #pragma editor_sync_compilation
+            #include "UnityCG.cginc"
 
             struct appdata_t {
                 float4 vertex : POSITION;
@@ -33,17 +27,15 @@ Shader "Hidden/HDRP/MaterialError"
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.vertex = TransformObjectToHClip(v.vertex.xyz);
+                o.vertex = UnityObjectToClipPos(v.vertex);
                 return o;
             }
-
-            float4 frag (v2f i) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
-                return float4(1,0,1,1);
+                return fixed4(1,0,1,1);
             }
-            ENDHLSL
+            ENDCG
         }
     }
-
-    Fallback "Hidden/Core/FallbackError"
+    Fallback Off
 }
