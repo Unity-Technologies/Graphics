@@ -67,6 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void SetDefaultDiffusionProfile(Material mat)
         {
+            if (!mat.HasVector("Diffusion_Profile_Asset"))
+                return;
+
             string matDiffProfile = HDUtils.ConvertVector4ToGUID(mat.GetVector("Diffusion_Profile_Asset"));
             string guid = "";
             long localID;
