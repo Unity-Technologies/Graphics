@@ -8,6 +8,19 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Defines if Unity will copy the depth that can be bound in shaders as _CameraDepthTexture after the opaques pass or after the transparents pass.
+    /// </summary>
+    public enum CopyDepthMode
+    {
+        /// <summary>Depth will be copied after the opaques pass</summary>
+        AfterOpaques = 0,
+        // Reserve space for after transparent mode
+        // AfterTransparents = 1,
+        /// <summary>Depth will be written by a depth prepass</summary>
+        ForcePrepass = 2
+    }
+
     [Serializable, ReloadGroup, ExcludeFromPreset]
     public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
@@ -78,7 +91,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
-        const int k_LatestAssetVersion = 1;
+        const int k_LatestAssetVersion = 2;
         [SerializeField] int m_AssetVersion = 0;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
@@ -86,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
+        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
@@ -174,6 +188,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_DepthPrimingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Copy depth mode.
+        /// </summary>
+        public CopyDepthMode copyDepthMode
+        {
+            get => m_CopyDepthMode;
+            set
+            {
+                SetDirty();
+                m_CopyDepthMode = value;
             }
         }
 
@@ -281,6 +308,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Default to old intermediate texture mode for compatibility reason.
                 m_IntermediateTextureMode = IntermediateTextureMode.Always;
+            }
+
+            if (m_AssetVersion <= 1)
+            {
+                // To avoid breaking existing projects, keep the old AfterOpaques behaviour. The new AfterTransparents default will only apply to new projects.
+                m_CopyDepthMode = CopyDepthMode.AfterOpaques;
             }
 
             m_AssetVersion = k_LatestAssetVersion;
