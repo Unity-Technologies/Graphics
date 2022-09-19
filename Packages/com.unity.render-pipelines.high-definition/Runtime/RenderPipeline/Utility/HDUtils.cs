@@ -755,7 +755,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 buildTarget == UnityEditor.BuildTarget.PS5 ||
                 // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
                 // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
-                buildTarget == UnityEditor.BuildTarget.CloudRendering ||
                 buildTarget == UnityEditor.BuildTarget.LinuxHeadlessSimulation);
         }
 

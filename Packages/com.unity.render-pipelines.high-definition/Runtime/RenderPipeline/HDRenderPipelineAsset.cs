@@ -20,6 +20,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
+        void OnEnable()
+        {
+            ///////////////////////////
+            // This is not optimal.
+            // When using AssetCache, this is not called. [TODO: fix it]
+            // It will be called though if you import it.
+            Migrate();
+            ///////////////////////////
+
+            HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
+        }
+
         void Reset()
         {
 #if UNITY_EDITOR

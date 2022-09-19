@@ -190,7 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
-                return ResetPathTracing(camID, camData);
             }
 
             // Check sky dirtiness
@@ -198,7 +197,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
-                return ResetPathTracing(camID, camData);
             }
 
             // Check fog dirtiness
@@ -206,7 +204,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
-                return ResetPathTracing(camID, camData);
             }
 
             // Check materials dirtiness

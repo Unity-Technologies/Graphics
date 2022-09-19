@@ -406,7 +406,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     // TODO: add an if()?
     {
         float cosZenithAngle = L.y;
-        float distToLight = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
+		float distToLight = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
         float fragmentHeight = posInput.positionWS.y;
         color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                                           _HeightFogExponents, cosZenithAngle,
@@ -447,6 +447,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
     else
 #endif
@@ -525,6 +526,7 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
         #else
         shadow = screenSpaceAreaShadow.x;
         #endif
+        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
 #endif
 
