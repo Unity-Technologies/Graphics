@@ -472,8 +472,8 @@ namespace UnityEngine.Rendering.Universal
                             new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
                             new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
                         );
+                        m_CopyDepthPass.MssaSamples = 1;
                     }
-                    m_CopyDepthPass.MssaSamples = 1;
 
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);

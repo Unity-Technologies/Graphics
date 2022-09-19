@@ -109,7 +109,7 @@ Pass
         return fadeMaskSeed;
     }
 
-    void GetSurfaceData(Varyings input, half3 viewDirectioWS, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
+    void GetSurfaceData(Varyings input, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
             half4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
@@ -120,6 +120,12 @@ Pass
             $Varyings.texCoord1: input.texCoord1.xy = input.texCoord1.xy * scale + offset;
             $Varyings.texCoord2: input.texCoord2.xy = input.texCoord2.xy * scale + offset;
             $Varyings.texCoord3: input.texCoord3.xy = input.texCoord3.xy * scale + offset;
+            half3 normalWS = TransformObjectToWorldDir(half3(0, 1, 0));
+            half3 tangentWS = TransformObjectToWorldDir(half3(1, 0, 0));
+            half3 bitangentWS = TransformObjectToWorldDir(half3(0, 0, 1));
+            half sign = dot(cross(normalWS, tangentWS), bitangentWS) > 0 ? 1 : -1;
+            $Varyings.normalWS:  input.normalWS.xyz = normalWS;
+            $Varyings.tangentWS: input.tangentWS.xyzw = half4(tangentWS, sign);
         #else
             #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
                 LODDitheringTransition(ComputeFadeMaskSeed(positionSS), unity_LODFade.x);
