@@ -250,8 +250,7 @@ namespace UnityEngine.Rendering.Universal
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle == RenderTargetHandle.CameraTarget,
-                    hasPassesAfterPostProcessing);
+                    postProcessDestHandle == RenderTargetHandle.CameraTarget);
 
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
