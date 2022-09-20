@@ -68,6 +68,7 @@ namespace UnityEditor.VFX
             //Relaunch previously skipped OnCompileResource
             if (assetToReimport != null)
             {
+                AssetDatabase.StartAssetEditing();
                 foreach (var assetPath in assetToReimport)
                 {
                     try
@@ -79,6 +80,7 @@ namespace UnityEditor.VFX
                         Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
                     }
                 }
+                AssetDatabase.StopAssetEditing();
             }
         }
 
