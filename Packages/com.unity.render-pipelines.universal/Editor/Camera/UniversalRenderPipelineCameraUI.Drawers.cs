@@ -91,6 +91,10 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck() || camType != originalCamType)
             {
                 p.cameraType.intValue = (int)camType;
+                if (camType == CameraRenderType.Overlay)
+                {
+                    p.baseCameraSettings.clearFlags.intValue = (int)CameraClearFlags.Nothing;
+                }
             }
 
             EditorGUILayout.Space();
