@@ -33,7 +33,7 @@ struct InputData
 {
     float3  positionWS;
     float4  positionCS;
-    half3   normalWS;
+    float3  normalWS;
     half3   viewDirectionWS;
     float4  shadowCoord;
     half    fogCoord;
