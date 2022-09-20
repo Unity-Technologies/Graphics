@@ -237,13 +237,17 @@ namespace UnityEditor.Rendering.Universal
                     if(result != taa.quality)
                         taa.quality = result;
 
-                    taa.frameInfluence = EditorGUILayout.Slider( nameof(taa.frameInfluence), taa.frameInfluence, 0, 1);
+                    taa.frameInfluence = EditorGUILayout.Slider( "Frame Influence", taa.frameInfluence, 0, 1);
 
-                    var rect = GUILayoutUtility.GetRect(Styles.taaResetHistory, GUIStyle.none);
-                    rect.x = rect.x + 32;
-                    rect.width = rect.width - 32;
-                    if (GUI.Button(rect, Styles.taaResetHistory))
-                        taa.resetHistoryFrames += 2; // XR both eyes
+                    // Add a button to reset history if we are in developer mode
+                    if (EditorPrefs.GetBool("DeveloperMode"))
+                    {
+                        var rect = GUILayoutUtility.GetRect(Styles.taaResetHistory, GUIStyle.none);
+                        rect.x = rect.x + 32;
+                        rect.width = rect.width - 32;
+                        if (GUI.Button(rect, Styles.taaResetHistory))
+                            taa.resetHistoryFrames += 2; // XR both eyes
+                    }
                 }
             }
 #endif

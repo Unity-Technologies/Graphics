@@ -1272,9 +1272,14 @@ namespace UnityEngine.Rendering.Universal
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }
 
-            // TAA in postprocess requires it to function.
+            // NOTE: TAA and motion vector dependencies added here to share between Execute and Render (Graph) paths.
+            // TAA in postprocess requires motion to function.
             if (renderingData.cameraData.IsTemporalAAEnabled())
                 inputSummary.requiresMotionVectors = true;
+
+            // Motion vectors imply depth
+            if (inputSummary.requiresMotionVectors)
+                inputSummary.requiresDepthTexture = true;
 
             return inputSummary;
         }

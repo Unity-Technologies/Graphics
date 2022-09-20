@@ -22,11 +22,11 @@ namespace UnityEngine.Rendering.Universal
             GraphicsFormat.B8G8R8A8_UNorm,
         };
 
-        RenderTextureDescriptor m_Rtd;
+        RenderTextureDescriptor m_RtDesc;
         RTHandle m_AccumulationTexture;
         RTHandle m_AccumulationTexture2;
 
-        public RenderTextureDescriptor rtd => m_Rtd;
+        public RenderTextureDescriptor rtd => m_RtDesc;
         public RTHandle accumulationTexture(int index) => index != 0 ? m_AccumulationTexture2 : m_AccumulationTexture;
 
         public TaaPersistentData()
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Init(int sizeX, int sizeY, GraphicsFormat format, VRTextureUsage vrUsage, TextureDimension texDim)
         {
-            if ((m_Rtd.width != sizeX || m_Rtd.height != sizeY || m_AccumulationTexture == null) &&
+            if ((m_RtDesc.width != sizeX || m_RtDesc.height != sizeY || m_AccumulationTexture == null) &&
                 (sizeX > 0 && sizeY >0))
             {
                 RenderTextureDescriptor desc = new RenderTextureDescriptor();
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.bindMS = false;
                 desc.useDynamicScale = false;
 
-                m_Rtd = desc;
+                m_RtDesc = desc;
 
                 DeallocateTargets();
             }
@@ -94,14 +94,14 @@ namespace UnityEngine.Rendering.Universal
             // So during allocation, the logic is as simple as allocate it if it's non-null.
             if (m_AccumulationTexture == null)
             {
-                m_AccumulationTexture = RTHandles.Alloc(m_Rtd, FilterMode.Bilinear, TextureWrapMode.Clamp, name:"_TaaAccumulationTex");
+                m_AccumulationTexture = RTHandles.Alloc(m_RtDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, name:"_TaaAccumulationTex");
                 didAlloc = true;
             }
 
             // Second eye for XR multipass (the persistent data is shared, for now)
             if (xrMultipassEnabled && m_AccumulationTexture2 == null)
             {
-                m_AccumulationTexture = RTHandles.Alloc(m_Rtd, FilterMode.Bilinear, TextureWrapMode.Clamp, name:"_TaaAccumulationTex2");
+                m_AccumulationTexture2 = RTHandles.Alloc(m_RtDesc, FilterMode.Bilinear, TextureWrapMode.Clamp, name:"_TaaAccumulationTex2");
                 didAlloc = true;
             }
 
