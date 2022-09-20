@@ -365,7 +365,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             if (self.panel is BaseVisualElementPanel p)
             {
                 if (s_GraphViewShader == null)
-                    s_GraphViewShader = Shader.Find(Shaders.k_GraphView);
+                    return; // s_GraphViewShader = Shader.Find(Shaders.k_GraphView);
 
                 p.standardShader = s_GraphViewShader;
                 HostView ownerView = p.ownerObject as HostView;
