@@ -172,6 +172,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ChangePreviewZoomCommand : ICommand
     {
         public const string UserPrefsKey = "PreviewZoom";
+        const float k_ZoomMin = 0.2f;
+        const float k_ZoomMax = 5.0f;
 
         float m_NewPreviewZoom;
         public ChangePreviewZoomCommand(float newPreviewZoom)
@@ -185,7 +187,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangePreviewZoomCommand command
         )
         {
-            graphModel.MainPreviewData.scale += command.m_NewPreviewZoom;
+            graphModel.MainPreviewData.scale = Mathf.Clamp(graphModel.MainPreviewData.scale + command.m_NewPreviewZoom, k_ZoomMin, k_ZoomMax);
 
             // Lets the preview manager know to re-render the main preview output
             previewUpdateDispatcher.OnMainPreviewDataChanged();
