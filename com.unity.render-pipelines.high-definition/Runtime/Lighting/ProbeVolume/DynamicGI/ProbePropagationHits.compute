@@ -134,6 +134,12 @@ float3 EvaluateBRDFLambertApproximate(uint probeIndex, float3 surfaceNormal, flo
 
         float integral = ComputeBasisAxisHitAndClampedCosineProductIntegral(basisAxisHit, surfaceNormal);
 
+        // Need to scale by our "normalized integral" of each lobe because our basis amplitude coefficients are defined around the assumption that
+        // integration in say a white furnace test includes this a post normalization by the lobe integral.
+        // We could just as easily push this scale factor into the amplitude coefficients and not have to worry about it here,
+        // but then we would have to worry about dividing it out in other locations in the pipeline.
+        integral *= ComputeBasisAxisHitIntegralFromSharpness(basisAxisHit);
+
         color += prevAxisRadiance * integral;
     }
 
