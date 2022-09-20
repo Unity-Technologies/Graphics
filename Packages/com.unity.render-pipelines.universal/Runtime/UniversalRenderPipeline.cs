@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         {
 #if RENDER_GRAPH_ENABLED
-            useRenderGraph = asset.enableRenderGraph;
+            useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
 #else
             useRenderGraph = false;
 #endif
