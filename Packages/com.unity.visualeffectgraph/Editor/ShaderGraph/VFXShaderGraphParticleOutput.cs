@@ -341,9 +341,15 @@ namespace UnityEditor.VFX
 
         public override bool HasSorting()
         {
-            var materialBlendMode = GetMaterialBlendMode();
-
-            return base.HasSorting() || ((sort == SortActivationMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            {
+                var materialBlendMode = GetMaterialBlendMode();
+                return (sort == SortActivationMode.On
+                        || (sort == SortActivationMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)))
+                       && !HasStrips(true);
+            }
+            return base.HasSorting();
         }
 
         public override bool isBlendModeOpaque
