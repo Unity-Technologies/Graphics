@@ -824,6 +824,17 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
 
+        // Returns a UNORM based render texture format
+        // When supported by the device, this function will prefer formats with higher precision, but the same bit-depth
+        // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
+        internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
+        {
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.A2B10G10R10_UNormPack32, FormatUsage.Linear | FormatUsage.Render))
+                return GraphicsFormat.A2B10G10R10_UNormPack32;
+            else
+                return GraphicsFormat.R8G8B8A8_UNorm;
+        }
+
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
