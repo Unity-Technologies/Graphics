@@ -27,6 +27,10 @@ namespace UnityEngine.Rendering
                 get { return m_Panel; }
                 internal set
                 {
+                    /// Frequenlty used panels do now own widgets
+                    if (value != null && value.flags.HasFlag(DebugUI.Flags.FrequentlyUsed))
+                        return;
+
                     m_Panel = value;
 
                     // Bubble down

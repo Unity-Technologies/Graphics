@@ -47,13 +47,13 @@ namespace UnityEngine.Rendering
 
         internal static class WidgetFactory
         {
-            public static DebugUI.EnumField CreateComponentSelector(DebugDisplaySettingsVolume data, Action<DebugUI.Field<int>, int> refresh)
+            public static DebugUI.EnumField CreateComponentSelector(SettingsPanel panel, Action<DebugUI.Field<int>, int> refresh)
             {
                 int componentIndex = 0;
                 var componentNames = new List<GUIContent>() { Styles.none };
                 var componentValues = new List<int>() { componentIndex++ };
 
-                foreach (var type in data.volumeDebugSettings.volumeComponentsPathAndType)
+                foreach (var type in panel.data.volumeDebugSettings.volumeComponentsPathAndType)
                 {
                     componentNames.Add(new GUIContent() { text = type.Item1 });
                     componentValues.Add(componentIndex++);
@@ -62,28 +62,28 @@ namespace UnityEngine.Rendering
                 return new DebugUI.EnumField
                 {
                     displayName = Strings.component,
-                    getter = () => data.volumeDebugSettings.selectedComponent,
-                    setter = value => data.volumeDebugSettings.selectedComponent = value,
+                    getter = () => panel.data.volumeDebugSettings.selectedComponent,
+                    setter = value => panel.data.volumeDebugSettings.selectedComponent = value,
                     enumNames = componentNames.ToArray(),
                     enumValues = componentValues.ToArray(),
-                    getIndex = () => data.volumeComponentEnumIndex,
-                    setIndex = value => { data.volumeComponentEnumIndex = value; },
+                    getIndex = () => panel.data.volumeComponentEnumIndex,
+                    setIndex = value => { panel.data.volumeComponentEnumIndex = value; },
                     onValueChanged = refresh
                 };
             }
 
-            public static DebugUI.ObjectPopupField CreateCameraSelector(DebugDisplaySettingsVolume data, Action<DebugUI.Field<Object>, Object> refresh)
+            public static DebugUI.ObjectPopupField CreateCameraSelector(SettingsPanel panel, Action<DebugUI.Field<Object>, Object> refresh)
             {
                 return new DebugUI.ObjectPopupField
                 {
                     displayName = Strings.camera,
-                    getter = () => data.volumeDebugSettings.selectedCamera,
+                    getter = () => panel.data.volumeDebugSettings.selectedCamera,
                     setter = value =>
                     {
-                        var c = data.volumeDebugSettings.cameras.ToArray();
-                        data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
+                        var c = panel.data.volumeDebugSettings.cameras.ToArray();
+                        panel.data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
                     },
-                    getObjects = () => data.volumeDebugSettings.cameras,
+                    getObjects = () => panel.data.volumeDebugSettings.cameras,
                     onValueChanged = refresh
                 };
             }
@@ -331,17 +331,14 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private class SettingsPanel : DebugDisplaySettingsPanel
+        [DisplayInfo(name = "Volume", order = int.MaxValue)]
+        internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsVolume>
         {
-            readonly DebugDisplaySettingsVolume m_Data;
-
-            public override string PanelName => "Volume";
-
             public SettingsPanel(DebugDisplaySettingsVolume data)
+                : base(data)
             {
-                m_Data = data;
-                AddWidget(WidgetFactory.CreateComponentSelector(m_Data, (_, __) => Refresh()));
-                AddWidget(WidgetFactory.CreateCameraSelector(m_Data, (_, __) => Refresh()));
+                AddWidget(WidgetFactory.CreateComponentSelector(this, (_, __) => Refresh()));
+                AddWidget(WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh()));
             }
 
             DebugUI.Table m_VolumeTable = null;
