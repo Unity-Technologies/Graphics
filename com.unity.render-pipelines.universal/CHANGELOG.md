@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed lighting banding issue on mobile platforms.
 - Fixed multi_compile_instancing on SimpleLit shader on SM 2.0.
+- The behavior of setting a camera's Background Type to "Dont Care" has changed on mobile. Previously, "Dont Care" would behave identically to "Solid Color" on mobile. Now, "Dont Care" corresponds to the render target being filled with arbitrary data at the beginning of the frame, which may be faster in some situations. Note that there are no guarantees for the exact content of the render target, so projects should use "Dont care" only if they are guaranteed to render to, or otherwise write every pixel every frame.
 
 ### Changed
 - Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
