@@ -362,7 +362,7 @@ float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist
         value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
     #else
         // We allow a reasonable max distance of 10 times the "atDistance" (so that objects do not end up appearing black)
-        value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(dist, surfaceData.atDistance * 10.0));
+        value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(dist, max(surfaceData.atDistance, REAL_EPS) * 10.0));
     #endif
     }
 #endif

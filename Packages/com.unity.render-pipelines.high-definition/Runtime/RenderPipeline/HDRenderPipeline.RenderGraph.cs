@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateParentExposure(m_RenderGraph, hdCamera);
 
                 TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
-                TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
+                TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa, true);
                 m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
                 TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
                 TextureHandle rayCountTexture = RayCountManager.CreateRayCountTexture(m_RenderGraph);
@@ -1786,7 +1786,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa)
+        TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, bool fallbackToBlack = false)
         {
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
@@ -1804,7 +1804,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     msaaSamples = msaa ? hdCamera.msaaSamples : MSAASamples.None,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
-                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+                    name = msaa ? "CameraColorMSAA" : "CameraColor",
+                    fallBackToBlackTexture = fallbackToBlack
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = colorFastMemDesc
 #endif
