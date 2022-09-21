@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering
         {
             ProcessSettings(settings);
 
-            if (!m_Enabled && !s_ActiveInstanceDirty)
+            if (!m_Enabled || !s_ActiveInstanceDirty)
             {
                 s_ActiveInstanceDirty = false;
                 return;

@@ -67,7 +67,7 @@ RTHandle rtHandleUsingFunctor = RTHandles.Alloc(ComputeRTHandleSize, colorFormat
 RTHandle fixedSize = RTHandles.Alloc(256, 256, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureDimension.Tex2D);
 ```
 
-When you no longer need a particular RTHande, you can release it. To do this, call the `Release` method.
+When you no longer need a particular RTHandle, you can release it. To do this, call the `Release` method.
 
 ```c#
 myRTHandle.Release();
@@ -90,7 +90,7 @@ This example is one of many different overrides for the `SetRenderTarget` functi
 
 ## Using RTHandles in shaders
 
-When you sample from a full-screen render texture in a shader in the usual way, UVs span the whole 0 to 1 range. This is not always the case with `RTHandles`. The current rendering might only occur in a partial viewport. To take this into account, you must apply a scale to UVs when you sample `RTHandles` that use a scale. All the information necessary to handle `RTHandles` specificity inside shaders is in the `RTHandeProperties` structure that the `RTHandleSystem` instance provides. To access it, use:
+When you sample from a full-screen render texture in a shader in the usual way, UVs span the whole 0 to 1 range. This is not always the case with `RTHandles`. The current rendering might only occur in a partial viewport. To take this into account, you must apply a scale to UVs when you sample `RTHandles` that use a scale. All the information necessary to handle `RTHandles` specificity inside shaders is in the `RTHandleProperties` structure that the `RTHandleSystem` instance provides. To access it, use:
 
 ```c#
 RTHandleProperties rtHandleProperties = RTHandles.rtHandleProperties;

@@ -53,7 +53,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
-        Matrix4x4[] m_PrevViewProjM = new Matrix4x4[2];
         bool m_ResetHistory;
         int m_DitheringTextureIndex;
         RenderTargetIdentifier[] m_MRT2;
@@ -788,58 +787,57 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region Motion Blur
-#if ENABLE_VR && ENABLE_XR_MODULE
-        // Hold the stereo matrices to avoid allocating arrays every frame
-        internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
-#endif
-        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, int source, int destination)
+        static readonly int kShaderPropertyId_ViewProjM = Shader.PropertyToID("_ViewProjM");
+        static readonly int kShaderPropertyId_PrevViewProjM = Shader.PropertyToID("_PrevViewProjM");
+        static readonly int kShaderPropertyId_ViewProjMStereo = Shader.PropertyToID("_ViewProjMStereo");
+        static readonly int kShaderPropertyId_PrevViewProjMStereo = Shader.PropertyToID("_PrevViewProjMStereo");
+
+        void UpdateMotionBlurMatrices(ref Material material, Camera camera, XRPass xr)
         {
-            var material = m_Materials.cameraMotionBlur;
+            MotionVectorsPersistentData motionData = null;
+
+            if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                motionData = additionalCameraData.motionVectorsPersistentData;
+
+            if (motionData == null)
+                return;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+            if (xr.enabled && xr.singlePassEnabled)
             {
-                var viewProj0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
-                var viewProj1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
                 if (m_ResetHistory)
                 {
-                    viewProjMatrixStereo[0] = viewProj0;
-                    viewProjMatrixStereo[1] = viewProj1;
-                    material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
+                    material.SetMatrixArray(kShaderPropertyId_PrevViewProjMStereo, motionData.viewProjectionStereo);
                 }
                 else
-                    material.SetMatrixArray("_PrevViewProjMStereo", m_PrevViewProjM);
-
-                m_PrevViewProjM[0] = viewProj0;
-                m_PrevViewProjM[1] = viewProj1;
+                    material.SetMatrixArray(kShaderPropertyId_PrevViewProjMStereo, motionData.previousViewProjectionStereo);
             }
             else
 #endif
             {
-                int prevViewProjMIdx = 0;
+                int viewProjMIdx = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                    prevViewProjMIdx = cameraData.xr.multipassId;
+                if (xr.enabled)
+                    viewProjMIdx = xr.multipassId;
 #endif
-                // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-                // relies on SetupCameraProperties instead of handling its own matrices.
-                // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-                var proj = cameraData.GetProjectionMatrix();
-                var view = cameraData.GetViewMatrix();
-                var viewProj = proj * view;
-
-                material.SetMatrix("_ViewProjM", viewProj);
+                material.SetMatrix(kShaderPropertyId_ViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
 
                 if (m_ResetHistory)
-                    material.SetMatrix("_PrevViewProjM", viewProj);
+                    material.SetMatrix(kShaderPropertyId_PrevViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
                 else
-                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
-
-                m_PrevViewProjM[prevViewProjMIdx] = viewProj;
+                    material.SetMatrix(kShaderPropertyId_PrevViewProjM, motionData.previousViewProjectionStereo[viewProjMIdx]);
             }
+        }
 
-            material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
-            material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
+        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        {
+                var material = m_Materials.cameraMotionBlur;
+
+
+                UpdateMotionBlurMatrices(ref material, cameraData.camera, cameraData.xr);
+
+                material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
+                material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 

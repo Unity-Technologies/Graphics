@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -10,6 +11,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class LightUtility
     {
+
+        public static bool CheckForChange(Light2D.LightType a, ref Light2D.LightType b)
+        {
+            var changed = a != b;
+            b = a;
+            return changed;
+        }
         public static bool CheckForChange(int a, ref int b)
         {
             var changed = a != b;
@@ -31,7 +39,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return changed;
         }
 
-        private struct ParametricLightMeshVertex
+        [Serializable]
+        internal struct ParametricLightMeshVertex
         {
             public float3 position;
             public Color color;
@@ -293,7 +302,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             };
         }
 
-#if UNITY_EDITOR
         public static int GetShapePathHash(Vector3[] path)
         {
             unchecked
@@ -313,7 +321,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return hashCode;
             }
         }
-#endif
 
     }
 }
