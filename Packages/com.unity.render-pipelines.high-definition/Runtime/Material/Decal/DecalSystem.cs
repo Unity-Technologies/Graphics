@@ -504,7 +504,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateCachedDrawOrder()
             {
-                if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
+                // Material can be null here if it was destroyed.
+                if (m_Material != null && this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                 {
                     m_CachedDrawOrder = this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                 }

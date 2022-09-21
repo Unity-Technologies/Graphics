@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls how the ray tracing acceleration structure is build.
         /// </summary>
+        [Tooltip("Controls how the ray tracing acceleration structure is build.")]
         [AdditionalProperty]
         public RTASBuildModeParameter buildMode = new RTASBuildModeParameter(RTASBuildMode.Automatic);
 

@@ -479,6 +479,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CustomPassUtils.Initialize();
 
             LensFlareCommonSRP.Initialize();
+
+            Hammersley.Initialize();
         }
 
 #if UNITY_EDITOR
@@ -594,7 +596,18 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
 #endif
-            if (DLSSPass.SetupFeature(m_GlobalSettings))
+            HDRenderPipeline.SetupDLSSFeature(m_GlobalSettings);
+        }
+
+        internal static void SetupDLSSFeature(HDRenderPipelineGlobalSettings globalSettings)
+        {
+            if (globalSettings == null)
+            {
+                Debug.LogError("Tried to setup DLSS with a null globalSettings object.");
+                return;
+            }
+
+            if (DLSSPass.SetupFeature(globalSettings))
             {
                 HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
             }
@@ -1965,8 +1978,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
                             }
 
-                            // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
-                            PropagateScreenSpaceShadowData();
+                            // Let's make sure to keep track of lights that will generate screen space shadows.
+                            CollectScreenSpaceShadowData();
 
                             renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
@@ -1975,6 +1988,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
+
+            // Now that all cameras have been rendered, let's make sure to keep track of update the screen space shadow data
+            PropagateScreenSpaceShadowData();
 
             DynamicResolutionHandler.ClearSelectedCamera();
 
@@ -1988,17 +2004,30 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        void CollectScreenSpaceShadowData()
+        {
+            // For every unique light that has been registered, make sure it is kept track of
+            foreach (ScreenSpaceShadowData ssShadowData in m_CurrentScreenSpaceShadowData)
+            {
+                if (ssShadowData.valid)
+                {
+                    HDAdditionalLightData currentAdditionalLightData = ssShadowData.additionalLightData;
+                    m_ScreenSpaceShadowsUnion.Add(currentAdditionalLightData);
+                }
+            }
+
+            if (m_CurrentSunLightAdditionalLightData != null)
+            {
+                m_ScreenSpaceShadowsUnion.Add(m_CurrentSunLightAdditionalLightData);
+            }
+        }
+
         void PropagateScreenSpaceShadowData()
         {
             // For every unique light that has been registered, update the previous transform
             foreach (HDAdditionalLightData lightData in m_ScreenSpaceShadowsUnion)
             {
                 lightData.previousTransform = lightData.transform.localToWorldMatrix;
-            }
-
-            if (m_CurrentSunLightAdditionalLightData != null)
-            {
-                m_CurrentSunLightAdditionalLightData.previousTransform = m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix;
             }
         }
 

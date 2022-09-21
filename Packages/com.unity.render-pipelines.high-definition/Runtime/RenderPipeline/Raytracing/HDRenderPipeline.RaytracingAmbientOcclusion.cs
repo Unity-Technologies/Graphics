@@ -17,6 +17,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTAOApplyIntensityKernel = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
+        private float EvaluateRayTracedAmbientOcclusionHistoryValidity(HDCamera hdCamera)
+        {
+            // Evaluate the history validity
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedAmbientOcclusion, (int)HDCamera.HistoryEffectFlags.RayTraced) ? 1.0f : 0.0f;
+            return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
+        }
+
+        private void PropagateRayTracedAmbientOcclusionHistoryValidity(HDCamera hdCamera)
+        {
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedAmbientOcclusion, (int)HDCamera.HistoryEffectFlags.RayTraced);
+        }
+
         float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
         {
             float remappedRayLength = (Mathf.Clamp(ssoSettings.rayLength, 1.25f, 1.5f) - 1.25f) / 0.25f;
@@ -158,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (aoSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                float historyValidity = EvaluateRayTracedAmbientOcclusionHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
@@ -182,7 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ddParams.halfResolutionFilter = false;
                 ddParams.jitterFilter = false;
                 ddParams.fullResolutionInput = true;
-                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                TextureHandle result = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                PropagateRayTracedAmbientOcclusionHistoryValidity(hdCamera);
+                return result;
             }
             else
                 return traceAOResult.signalBuffer;

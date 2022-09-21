@@ -183,17 +183,25 @@ uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
 {
     uint s_elementIdx = v_elementIdx;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    if (!fastPath)
+    if (fastPath)
+    {
+        // s_elementIdx by construction is scalar if fast path, however the compiler seems to insist to move it in a vector register after a WaveReadLaneFirst inside the  if (s_elementIdx != -1) branch.
+        // This redundant call to read first lane is there to force the hand and we moved the seemingly uglier code of having WaveReadLaneFirst in the two branches separately.
+        // Note that fastPath is scalar, so we won't be executing the two branch together.
+        s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+    }
+    else
     {
         // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
         s_elementIdx = WaveActiveMin(v_elementIdx);
-    }
-    // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-    // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin.
-    // If that's not the case we make sure the index is put into a scalar register.
-    if (s_elementIdx != -1)
-    {
-        s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin.
+        // If that's not the case we make sure the index is put into a scalar register.
+        if (s_elementIdx != -1)
+        {
+            s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+        }
+
     }
 
 #endif

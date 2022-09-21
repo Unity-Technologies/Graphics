@@ -597,6 +597,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.depthBuffer = null;
                     m_BuiltinParameters.cubemapFace = (CubemapFace)i;
 
+                    Hammersley.BindConstants(m_BuiltinParameters.commandBuffer, m_ComputeAmbientProbeCS);
+
+
                     CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, renderingContext.skyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
                     skyRenderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking.value);
                     if (cloudRenderer != null)

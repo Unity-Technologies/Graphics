@@ -257,7 +257,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, LightUI.Styles.lightLayer);
                     if (change.changed && serialized.linkShadowLayers.boolValue)
+                    {
+                        Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
                         SyncLightAndShadowLayers(serialized, owner);
+                    }
                 }
             }
         }

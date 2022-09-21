@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // We need to set the history as invalid if the directional light has rotated
             float historyValidity = 1.0f;
-            if (additionalLightData.previousTransform.rotation != additionalLightData.transform.localToWorldMatrix.rotation
+            if (hdCamera.shadowHistoryUsage[dirShadowIndex].transform != additionalLightData.transform.localToWorldMatrix
                 || !hdCamera.ValidShadowHistory(additionalLightData, dirShadowIndex, GPULightType.Directional))
                 historyValidity = 0.0f;
 
