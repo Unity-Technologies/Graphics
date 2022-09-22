@@ -40,6 +40,14 @@ namespace UnityEditor.Rendering.Universal
             m_OutputWarningCameras.Clear();
 
             UpdateCameras();
+
+            Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
+        }
+
+        void ReconstructReferenceToAdditionalDataSO()
+        {
+            OnDisable();
+            OnEnable();
         }
 
         void UpdateCameras()
@@ -312,6 +320,7 @@ namespace UnityEditor.Rendering.Universal
         public new void OnDisable()
         {
             base.OnDisable();
+            Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
         // IsPreset is an internal API - lets reuse the usable part of this function

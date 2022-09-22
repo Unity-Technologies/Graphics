@@ -273,10 +273,14 @@ namespace UnityEditor.Rendering
         public static void DrawEnumPopup<TEnum>(Rect rect, GUIContent label, SerializedProperty serializedProperty)
             where TEnum : Enum
         {
-            EditorGUI.BeginChangeCheck();
-            var newValue = (TEnum)EditorGUI.EnumPopup(rect, label, serializedProperty.GetEnumValue<TEnum>());
-            if (EditorGUI.EndChangeCheck())
-                serializedProperty.SetEnumValue(newValue);
+            using (new EditorGUI.MixedValueScope(serializedProperty.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                var newValue = (TEnum)EditorGUI.EnumPopup(rect, label, serializedProperty.GetEnumValue<TEnum>());
+                if (EditorGUI.EndChangeCheck())
+                    serializedProperty.SetEnumValue(newValue);
+            }
+
             EditorGUI.EndProperty();
         }
 
@@ -1074,12 +1078,14 @@ namespace UnityEditor.Rendering
         public static void DrawPopup(GUIContent label, SerializedProperty property, string[] options)
         {
             var mode = property.intValue;
-            EditorGUI.BeginChangeCheck();
-
             if (mode >= options.Length)
-                Debug.LogError(string.Format("Invalid option while trying to set {0}", label.text));
+                Debug.LogError($"Invalid option while trying to set {label.text}");
 
-            mode = EditorGUILayout.Popup(label, mode, options);
+            EditorGUI.BeginChangeCheck();
+            using (new EditorGUI.MixedValueScope(property.hasMultipleDifferentValues))
+            {
+                mode = EditorGUILayout.Popup(label, mode, options);
+            }
             if (EditorGUI.EndChangeCheck())
                 property.intValue = mode;
         }
