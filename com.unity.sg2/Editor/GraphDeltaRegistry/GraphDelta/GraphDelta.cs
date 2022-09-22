@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             onBuild?.Invoke(node);
         }
 
-        private readonly List<string> contextNodes = new();
+        private List<string> contextNodes = new();
 
         public NodeHandler AddNode<T>(string name, Registry registry)  where T : INodeDefinitionBuilder
         {
@@ -408,6 +408,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private IEnumerable<NodeHandler> GetContextNodesInOrder(Registry registry)
         {
+            if(contextNodes != null)
+            {
+                foreach(var cn in contextNodes)
+                {
+                    yield return GetNode(cn, registry);
+                }
+                yield break;
+            }
+
             NodeHandler step = null;
             foreach(var node in GetNodes(registry))
             {
@@ -419,8 +428,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             PortHandler outPort = null;
+            contextNodes = new List<string>();
             while (step != null)
             {
+                contextNodes.Add(step.ID.FullPath);
                 yield return step;
 
                 outPort = step.GetPort("Out");
