@@ -598,6 +598,7 @@ namespace UnityEngine.Rendering.Universal
 
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
+            createColorTexture |= renderPassInputs.requiresColorTextureCreated;
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -1236,6 +1237,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
+            internal bool requiresColorTextureCreated;
             internal bool requiresMotionVectors;
             internal RenderPassEvent requiresDepthNormalAtEvent;
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
@@ -1256,6 +1258,13 @@ namespace UnityEngine.Rendering.Universal
                 bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
                 bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
+
+                // TODO: Need a better way to handle this, probably worth to recheck after render graph
+                // DBuffer requires color texture created as it does not handle y flip correctly
+                if (pass is DBufferRenderPass dBufferRenderPass)
+                {
+                    inputSummary.requiresColorTextureCreated = true;
+                }
 
                 inputSummary.requiresDepthTexture |= needsDepth;
                 inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
