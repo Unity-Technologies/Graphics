@@ -24,7 +24,7 @@ In the menu, you can type in the search bar to look for specific nodes, or brows
 
 To build a graph, you need to connect nodes together. To do so, click the **Output Slot** of a node, and drag that connection into the **Input Slot** of another node.
 
-Start by connecting the Color node to the **Base Color** [block]() of our [Fragment Stack]().
+Start by connecting the Color node to the **Base Color** block of our Fragment Stack.
 
 ![](images/MyFirstShaderGraph_02.png)
 
@@ -67,7 +67,7 @@ To create a new property, use the **Add (+)** button on the top right corner of 
 
 ![](images/MyFirstShaderGraph_07.png)
 
-This adds a new property in the Blackboard with the following options in the **Node Settings** tab of the [Graph Inspector]() when the property is selected.
+This adds a new property in the Blackboard with the following options in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) when the property is selected.
 
 ![](images/MyFirstShaderGraph_08.png)
 
@@ -99,7 +99,7 @@ Save your graph, and return to the Material's Inspector. The property now appear
 
 ## More Tutorials
 
-Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide]() for tips on how to convert the master node to a [Master Stack]().
+Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide](Upgrade-Guide-10-0-x.md) for tips on how to convert the master node to a [Master Stack](Master-Stack.md).
 
 To keep exploring how to use Shader Graph to author shaders, check out these blog posts:
 
