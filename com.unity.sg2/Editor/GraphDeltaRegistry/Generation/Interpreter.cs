@@ -395,30 +395,22 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (port.IsInput && isContext)
                     {
                         //var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(Registry.Types.GraphType.kEntry).GetData();
-                        //var connectedPort = port.GetConnectedPorts().FirstOrDefault();
-                        using (var connectedPortEnum = port.GetConnectedPorts().GetEnumerator())
+                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                        if (connectedPort != null) // connected input port-
                         {
-                            if (connectedPortEnum.MoveNext())
+                            var connectedNode = connectedPort.GetNode();
+                            if (connectedNode.HasMetadata("_contextDescriptor"))
                             {
-                                var connectedPort = connectedPortEnum.Current;
-                                if (connectedPort != null) // connected input port-
-                                {
-                                    var connectedNode = connectedPort.GetNode();
-                                    if (connectedNode.HasMetadata("_contextDescriptor"))
-                                    {
-                                        mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = In.{connectedPort.ID.LocalPath.Replace("out_", "")};");
-                                    }
-                                    else
-                                    {
-                                        mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = {ApplyConversionAndReturnConvertedVariable(connectedPort, port, registry, container, ref mainBodyFunctionBuilder, port.GetShaderType(registry, container).Name, ref shaderFunctions)};");
-                                    }
-                                }
-
-                                else // not connected.
-                                {
-                                    EvaluateContextOutputInitialization(mainBodyFunctionBuilder, port, outputVariables[varIndex++].Name, registry);
-                                }
+                                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = In.{connectedPort.ID.LocalPath.Replace("out_","")};");
                             }
+                            else
+                            {
+                                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = {ApplyConversionAndReturnConvertedVariable(connectedPort, port, registry, container, ref mainBodyFunctionBuilder, port.GetShaderType(registry, container).Name, ref shaderFunctions)};");
+                            }
+                        }
+                        else // not connected.
+                        {
+                            EvaluateContextOutputInitialization(mainBodyFunctionBuilder, port, outputVariables[varIndex++].Name, registry);
                         }
                     }
                     else if(!port.IsInput && !isContext)
