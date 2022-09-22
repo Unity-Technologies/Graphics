@@ -115,8 +115,7 @@ namespace UnityEngine.Rendering.Universal
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
                 createColorTexture |= createDepthTexture;
 #endif
-            useDepthPriming = IsDepthPrimingEnabled();
-            useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth);
+            useDepthPriming = IsDepthPrimingEnabled(ref renderingData.cameraData);
 
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
@@ -510,8 +509,9 @@ namespace UnityEngine.Rendering.Universal
             bool cameraHasPostProcessingWithDepth = applyPostProcessing && cameraData.postProcessingRequiresDepthTexture;
 
             bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
+            bool depthPrimingEnabled = IsDepthPrimingEnabled(ref cameraData);
 
-            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || depthPrimingEnabled;
             bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && (!CanCopyDepth(ref cameraData) || forcePrepass);
             requiresDepthPrepass |= cameraData.isSceneViewCamera;
             // requiresDepthPrepass |= isGizmosEnabled;
@@ -528,13 +528,14 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthPrepass && this.renderingModeActual == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
                 requiresDepthPrepass = false;
 
-            requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
+            requiresDepthPrepass |= depthPrimingEnabled;
             return requiresDepthPrepass;
         }
 
         bool RequireDepthTexture(ref RenderingData renderingData, RenderPassInputSummary renderPassInputs, bool requiresDepthPrepass)
         {
-            bool requiresDepthTexture = renderingData.cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
+            bool depthPrimingEnabled = IsDepthPrimingEnabled(ref renderingData.cameraData);
+            bool requiresDepthTexture = renderingData.cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || depthPrimingEnabled;
 
             // TODO RENDERGRAPH: re-enable the cameraHasPostProcessingWithDepth check once post processing is ported
             var createDepthTexture = (requiresDepthTexture/* || cameraHasPostProcessingWithDepth*/) && !requiresDepthPrepass;
@@ -542,7 +543,7 @@ namespace UnityEngine.Rendering.Universal
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= (renderingModeActual == RenderingMode.Deferred && !useRenderPassEnabled);
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
-            createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
+            createDepthTexture |= depthPrimingEnabled;
             // TODO: seems like with mrt depth is not taken from first target. Investigate if this is needed
             createDepthTexture |= m_RenderingLayerProvidesRenderObjectPass;
 
