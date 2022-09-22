@@ -1,5 +1,5 @@
 #pragma kernel CSMain
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
+${VFXPragmaOnlyRenderers}
 ${VFXPragmaRequire}
 
 ${VFXGlobalInclude}
@@ -104,8 +104,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
     maxThreadId = min(maxThreadId, contextData.maxParticleCount);
 #else
-    uint maxThreadId = instancingPrefixSum[instanceActiveIndex] - (instanceActiveIndex == 0u ? 0u : instancingPrefixSum[instanceActiveIndex - 1]);
-    uint nbEvents = eventCountPrefixSum[instanceActiveIndex] - (instanceActiveIndex == 0u ? 0u : eventCountPrefixSum[instanceActiveIndex - 1]);
+    uint maxThreadId = instancingPrefixSum[instanceActiveIndex];
+    uint nbEvents = eventCountPrefixSum[instanceActiveIndex];
+
+    [branch]
+    if (instanceActiveIndex > 0u)
+    {
+        maxThreadId -= instancingPrefixSum[instanceActiveIndex - 1];
+        nbEvents -= eventCountPrefixSum[instanceActiveIndex - 1];
+    }
+
     uint currentSpawnIndex = initParams.spawnIndex;
 #endif
 
@@ -127,7 +135,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
             uint nbEvents = VFX_STATIC_SOURCE_COUNT;
         #endif
 
-        startEventIndex = instanceActiveIndex > 0u ? eventCountPrefixSum[instanceActiveIndex - 1] : 0u;
+        startEventIndex = 0u;
+        [branch]
+        if (instanceActiveIndex > 0u)
+        {
+            startEventIndex = eventCountPrefixSum[instanceActiveIndex - 1];
+        }
         #if USE_PREFIX_SUM_SPAWNCOUNT
             sourceIndex = BinarySearchPrefixSum(id, spawnCountPrefixSum, startEventIndex, startEventIndex + nbEvents) - startEventIndex;
         #endif

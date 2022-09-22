@@ -73,6 +73,11 @@ float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
     return VFXTransformPositionObjectToClip(posOS);
 }
 
+float3 VFXTransformPreviousObjectToWorld(float3 posOS)
+{
+    return mul(GetPrevObjectToWorldMatrix(),  float4(posOS, 1.0)).xyz;
+}
+
 float3 VFXTransformPositionWorldToView(float3 posWS)
 {
     return TransformWorldToView(posWS);

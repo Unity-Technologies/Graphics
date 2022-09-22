@@ -44,8 +44,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_AreaShadowNoDenoiseKernel;
         int m_WriteShadowTextureDebugKernel;
 
-        // Temporary variable that allows us to store the world to local matrix of the lights
-        Matrix4x4 m_WorldToLocalArea = new Matrix4x4();
         // Temporary variables that allow us to read and write the right channels from the history buffer
         Vector4 m_ShadowChannelMask0 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         Vector4 m_ShadowChannelMask1 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -59,9 +57,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             HDRenderPipelineAsset hdPipelineAsset = hdrp.m_Asset;
-            GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
             int numShadowSlices = Math.Max((int)Math.Ceiling(hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
-            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
+            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
                 enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ScreenSpaceShadowHistoryBuffer{1}", viewName, frameIndex));
         }
 
@@ -72,9 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             HDRenderPipelineAsset hdPipelineAsset = hdrp.m_Asset;
-            GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
             int numShadowSlices = Math.Max((int)Math.Ceiling(hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
-            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
+            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
                 enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryValidityBuffer{1}", viewName, frameIndex));
         }
 
@@ -82,9 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             HDRenderPipelineAsset hdPipelineAsset = hdrp.m_Asset;
-            GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
             int numShadowSlices = Math.Max((int)Math.Ceiling(hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
-            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
+            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
                 enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryDistanceBuffer{1}", viewName, frameIndex));
         }
 

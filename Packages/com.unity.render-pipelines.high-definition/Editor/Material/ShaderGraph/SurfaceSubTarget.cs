@@ -57,12 +57,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             yield return PostProcessSubShader(GetSubShaderDescriptor());
 
-            // Always omit DXR SubShader for VFX until DXR support is added.
-            if (!TargetsVFX())
-            {
-                if (supportRaytracing || supportPathtracing)
-                    yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
-            }
+
+            if (supportRaytracing || supportPathtracing)
+                yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+
         }
 
         protected virtual SubShaderDescriptor GetSubShaderDescriptor()

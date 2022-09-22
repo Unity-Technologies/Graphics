@@ -199,13 +199,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetDecalAtlasMipCount()
         {
             int size = Math.Max(currentPlatformRenderPipelineSettings.decalSettings.atlasWidth, currentPlatformRenderPipelineSettings.decalSettings.atlasHeight);
-            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+            return CoreUtils.GetMipCount(size);
         }
 
         internal int GetCookieAtlasMipCount()
         {
             int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize;
-            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+            return CoreUtils.GetMipCount(size);
         }
 
         internal int GetReflectionProbeMipCount()
@@ -282,6 +282,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
 
+        // Flag that defines if VFX ray tracing is supported by the current asset and platform
+        bool m_VFXRayTracingSupported = false;
+
         /// <summary>
         ///  Flag that defines if ray tracing is supported by the current HDRP asset and platform
         /// </summary>
@@ -337,6 +340,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
+            m_VFXRayTracingSupported = m_Asset.currentPlatformRenderPipelineSettings.supportVFXRayTracing && m_RayTracingSupported;
+            VFXManager.SetRayTracingEnabled(m_VFXRayTracingSupported);
 
 #if UNITY_EDITOR
             UpgradeResourcesIfNeeded();
@@ -461,6 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
+                    fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
                     offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = defaultResources.shaders.probeVolumeBlendStatesCS,
@@ -624,10 +630,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoAmbientProbeBaking = false
                 ,
                 autoDefaultReflectionProbeBaking = false
-                ,
-                #pragma warning disable 618
-                enlightenLightmapper = false
-                #pragma warning restore 618
                 ,
                 rendersUIOverlay = true
             };
@@ -2342,6 +2344,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // With the Frame Settings now properly set up, we can resolve the sample budget.
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);
+            currentFrameSettings.sssResolvedDownsampleSteps = currentFrameSettings.GetResolvedSssDownsampleSteps(m_Asset);
 
             // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
             if (additionalCameraData.fullscreenPassthrough)

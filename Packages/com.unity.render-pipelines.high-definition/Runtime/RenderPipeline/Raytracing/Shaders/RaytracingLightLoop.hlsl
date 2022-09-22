@@ -104,9 +104,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         refractionHierarchyWeight = 1.0;
     }
 #endif
-
+#ifdef  MODIFY_BAKED_DIFFUSE_LIGHTING
     // Make sure the baked diffuse lighting is tinted with the diffuse color
     ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+#endif
 
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...

@@ -62,6 +62,7 @@ namespace UnityEditor.VFX.HDRP
                 yield return nameof(useAlphaClipping);
                 yield return nameof(doubleSided);
                 yield return nameof(shaderGraph);
+                yield return nameof(enableRayTracing);
             }
         }
 
@@ -74,6 +75,7 @@ namespace UnityEditor.VFX.HDRP
                     yield return setting;
                 }
                 yield return nameof(shaderGraph);
+                yield return nameof(enableRayTracing);
             }
         }
     }

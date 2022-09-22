@@ -75,6 +75,11 @@ float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
     return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
 }
 
+float3 VFXTransformPreviousObjectToWorld(float3 posOS)
+{
+    return TransformPreviousObjectToWorld(posOS);
+}
+
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
     float3 posWS = TransformObjectToWorld(posOS);
@@ -100,21 +105,41 @@ float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
 
 float4x4 VFXGetObjectToWorldMatrix()
 {
-// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+#if defined(SHADER_STAGE_RAY_TRACING)
+    float3x4 objToWorld3x4 = ObjectToWorld3x4();
+    float4x4 objToWorld = float4x4(
+        objToWorld3x4._m00, objToWorld3x4._m01, objToWorld3x4._m02, objToWorld3x4._m03,
+        objToWorld3x4._m10, objToWorld3x4._m11, objToWorld3x4._m12, objToWorld3x4._m13,
+        objToWorld3x4._m20, objToWorld3x4._m21, objToWorld3x4._m22, objToWorld3x4._m23,
+        0,0,0,1);
+    return objToWorld;
+#else
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
 #if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
     return GetSGVFXUnityObjectToWorld();
-#else
-    return GetObjectToWorldMatrix();
+    #else
+        return GetObjectToWorldMatrix();
+    #endif
 #endif
 }
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
-// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+#if defined(SHADER_STAGE_RAY_TRACING)
+    float3x4 worldToObj3x4 = WorldToObject3x4();
+    float4x4 worldToObj = float4x4(
+        worldToObj3x4._m00, worldToObj3x4._m01, worldToObj3x4._m02, worldToObj3x4._m03,
+        worldToObj3x4._m10, worldToObj3x4._m11, worldToObj3x4._m12, worldToObj3x4._m13,
+        worldToObj3x4._m20, worldToObj3x4._m21, worldToObj3x4._m22, worldToObj3x4._m23,
+        0,0,0,1);
+    return worldToObj;
+#else
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
 #if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
     return GetSGVFXUnityWorldToObject();
-#else
-    return GetWorldToObjectMatrix();
+    #else
+        return GetWorldToObjectMatrix();
+    #endif
 #endif
 }
 

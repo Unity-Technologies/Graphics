@@ -342,6 +342,9 @@ EditorBuildSettings:
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
+    path: Assets/Scenes/3001_AreaShadowsDeferredTiny.unity
+    guid: bb2a3b72e71b4e64ea4683b9739d887a
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsForward.unity
     guid: 18a3a10168d8d3847abf880a745f365e
   - enabled: 1
@@ -443,4 +446,25 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
     guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9001_VFX_AmbientOcclusion.unity
+    guid: ece85605ed9d9bc468419c09376c6a28
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9002_VFX_DirectionalShadow.unity
+    guid: eeebd4a57cc35a741bf3fd4b6efe40a8
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9003_VFX_PointShadow.unity
+    guid: 3b9e82fa2793e1f468692eb02c9ee0f3
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9004_VFX_RecursiveRayTracing.unity
+    guid: fdf63ac918de220469b4dbbcbe95bfc1
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9005_VFX_ReflectionsPerformance.unity
+    guid: ab1304064f2e12540a267e8c95dcde10
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9006_VFX_ReflectionsQuality.unity
+    guid: a9b7e232bed6cf84e8618b4e1fdc6931
+  - enabled: 1
+    path: Assets/Scenes/9000_VFX_RayTracing/9007_VFX_DecimationCullingSG.unity
+    guid: 58c5f860d60bbeb40928ebf6c92a47f4
   m_configObjects: {}

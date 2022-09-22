@@ -20,8 +20,26 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public BoolParameter activate = new BoolParameter(false);
         Material m_Material;
+        CompositionFilter m_CurrentFilter;
 
-        public bool IsActive() => m_Material != null;
+        public bool IsActive(HDCamera hdCamera)
+        {
+            if (m_Material == null)
+                return false;
+
+            hdCamera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out var layerData);
+            if (activate.value == false || layerData == null || layerData.layerFilters == null)
+                return false;
+
+            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.CHROMA_KEYING);
+            if (index < 0)
+                return false;
+
+            // Keep the current filter for the rendering avoiding to re-fetch it later on
+            m_CurrentFilter = layerData.layerFilters[index];
+
+            return true;
+        }
 
         public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.BeforePostProcess;
 
@@ -37,30 +55,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             Debug.Assert(m_Material != null);
 
-            AdditionalCompositorData layerData = null;
-            camera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out layerData);
+            camera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out var layerData);
 
-            if (activate.value == false || layerData == null || layerData.layerFilters == null)
-            {
-                HDUtils.BlitCameraTexture(cmd, source, destination);
-                return;
-            }
-
-            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.CHROMA_KEYING);
-            if (index < 0)
-            {
-                HDUtils.BlitCameraTexture(cmd, source, destination);
-                return;
-            }
-
-            var filter = layerData.layerFilters[index];
             Vector4 keyParams;
-            keyParams.x = filter.keyThreshold;
-            keyParams.y = filter.keyTolerance;
-            keyParams.z = filter.spillRemoval;
+            keyParams.x = m_CurrentFilter.keyThreshold;
+            keyParams.y = m_CurrentFilter.keyTolerance;
+            keyParams.z = m_CurrentFilter.spillRemoval;
             keyParams.w = 1.0f;
 
-            m_Material.SetVector(ShaderIDs.k_KeyColor, filter.maskColor);
+            m_Material.SetVector(ShaderIDs.k_KeyColor, m_CurrentFilter.maskColor);
             m_Material.SetVector(ShaderIDs.k_KeyParams, keyParams);
             m_Material.SetTexture(ShaderIDs.k_InputTexture, source);
             HDUtils.DrawFullScreen(cmd, m_Material, destination);

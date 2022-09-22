@@ -52,6 +52,8 @@ namespace UnityEditor.VFX
 
         public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
 
+        public virtual bool GetSupportsRayTracing() => false;
+
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
 
         // List of shader properties that currently are not supported for exposure in VFX shaders (for all pipeline).
@@ -98,6 +100,21 @@ namespace UnityEditor.VFX
         public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
         {
             return new ShaderGraphBinder();
+        }
+
+        public virtual IEnumerable<GraphicsDeviceType> GetSupportedGraphicDevices()
+        {
+            yield return GraphicsDeviceType.Direct3D11;
+            yield return GraphicsDeviceType.OpenGLCore;
+            yield return GraphicsDeviceType.OpenGLES3;
+            yield return GraphicsDeviceType.Metal;
+            yield return GraphicsDeviceType.Vulkan;
+            yield return GraphicsDeviceType.XboxOne;
+            yield return GraphicsDeviceType.GameCoreXboxOne;
+            yield return GraphicsDeviceType.GameCoreXboxSeries;
+            yield return GraphicsDeviceType.PlayStation4;
+            yield return GraphicsDeviceType.PlayStation5;
+            yield return GraphicsDeviceType.Switch;
         }
     }
 }

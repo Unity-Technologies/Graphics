@@ -53,7 +53,9 @@ void RTASDebug()
 
     // Create and init the RayIntersection structure for this
     RayIntersectionDebug rayIntersection;
-    rayIntersection.t = 0.0f;
+    rayIntersection.t = FLT_INF;
+    rayIntersection.instanceIndex = 0;
+    rayIntersection.primitiveIndex = 0;
 
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, _LayerMask, 0, 1, 0, rayDescriptor, rayIntersection);

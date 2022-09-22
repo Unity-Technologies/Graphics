@@ -24,6 +24,11 @@ float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
     return (float4)0.0f;
 }
 
+float3 VFXTransformPreviousObjectToWorld(float3 posOS)
+{
+    return (float3)0.0f;
+}
+
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
     return (float4)0.0f;

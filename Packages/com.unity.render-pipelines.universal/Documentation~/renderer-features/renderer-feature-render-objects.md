@@ -4,7 +4,7 @@ URP draws objects in the **DrawOpaqueObjects** and **DrawTransparentObjects** pa
 
 ## How to use the Render Objects Renderer Feature
 
-See: [How to use the Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md).
+See: [How to use the Render Objects Renderer Feature](how-to-custom-effect-render-objects.md).
 
 ## Properties
 

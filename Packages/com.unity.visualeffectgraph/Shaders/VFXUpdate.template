@@ -1,5 +1,5 @@
 #pragma kernel CSMain
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
+${VFXPragmaOnlyRenderers}
 ${VFXPragmaRequire}
 
 ${VFXGlobalInclude}
@@ -8,6 +8,10 @@ ${VFXGlobalDeclaration}
 #define IndirectOutputType uint
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
+
+#ifdef VFX_RT_DECIMATION_FACTOR
+#pragma multi_compile _ VFX_COMPUTE_AABBS
+#endif
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
@@ -148,16 +152,24 @@ void CSMain(uint3 groupId          : SV_GroupID,
         AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 #endif
 #endif
-#if VFX_COMPUTE_BOUNDS
-		${VFXLoadSize}
-#if VFX_WORLD_SPACE
-        ${VFXLoadParameter:{worldToLocal}}
-#else
-        float4x4 worldToLocal = (float4x4)0;
-#endif
+#if VFX_COMPUTE_BOUNDS || VFX_COMPUTE_AABBS
+    {
+    #if VFX_COMPUTE_BOUNDS
+        ${VFXLoadSize}
+        #if VFX_WORLD_SPACE
+            ${VFXLoadParameter:{worldToLocal}}
+        #else
+            float4x4 worldToLocal = (float4x4)0;
+        #endif
 		InitReduction(attributes, size3, tid, instanceIndex, worldToLocal);
+    #endif
+    }
+    #if VFX_COMPUTE_AABBS
+            ${VFXLoadSizeRT}
+            int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+            FillAabbBuffer(attributes, size3, index, instanceIndex, rayTracingDecimationFactor);
+    #endif
 #endif
-
 	}
 	#if VFX_COMPUTE_BOUNDS
 	PerformBoundsReduction(index, tid, instanceIndex, nbMax);

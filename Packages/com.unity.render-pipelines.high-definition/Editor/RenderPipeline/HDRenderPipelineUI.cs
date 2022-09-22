@@ -879,6 +879,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVFXRayTracing,
+                    Styles.supportVFXRayTracing);
 
                 // If ray tracing is enabled by the asset but the current system does not support it display a warning
                 if (!HDRenderPipeline.currentSystemSupportsRayTracing)
@@ -944,6 +946,18 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 serialized.renderPipelineSettings.sssSampleBudget.ValueGUI<int>(Styles.sssSampleBudget);
+
+                EditorGUI.BeginChangeCheck();
+                serialized.renderPipelineSettings.sssDownsampleSteps.ValueGUI<int>(Styles.sssDownsampleSteps);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    for (var i = 0; i < serialized.renderPipelineSettings.sssDownsampleSteps.GetSchemaLevelCount(); ++i)
+                    {
+                        var prop = serialized.renderPipelineSettings.sssDownsampleSteps.values.GetArrayElementAtIndex(i);
+                        prop.SetInline(Mathf.Clamp(prop.GetInline<int>(), 0, (int)DefaultSssDownsampleSteps.Max));
+                    }
+                }
+
                 --EditorGUI.indentLevel;
             }
 

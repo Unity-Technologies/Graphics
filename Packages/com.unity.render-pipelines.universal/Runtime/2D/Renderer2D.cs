@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
         FinalBlitPass m_FinalBlitPass;
-        Light2DCullResult m_LightCullResult;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
@@ -72,8 +71,7 @@ namespace UnityEngine.Rendering.Universal
 
             supportedRenderingFeatures = new RenderingFeatures();
 
-            m_LightCullResult = new Light2DCullResult();
-            m_Renderer2DData.lightCullResult = m_LightCullResult;
+            m_Renderer2DData.lightCullResult = new Light2DCullResult();
         }
 
         protected override void Dispose(bool disposing)
@@ -83,6 +81,9 @@ namespace UnityEngine.Rendering.Universal
             m_DepthTextureHandle?.Release();
             m_UpscalePass.Dispose();
             m_FinalBlitPass?.Dispose();
+
+            CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_SamplingMaterial);
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -300,7 +301,8 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.cullingOptions = CullingOptions.None;
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
-            m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
+            var cullResult = m_Renderer2DData.lightCullResult as Light2DCullResult;
+            cullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
     }
 }

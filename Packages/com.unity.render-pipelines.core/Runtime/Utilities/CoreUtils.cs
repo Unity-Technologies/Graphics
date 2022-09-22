@@ -1553,6 +1553,26 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Gets the Mip Count for a given size
+        /// </summary>
+        /// <param name="size">The size to obtain the mip count</param>
+        /// <returns>The mip count</returns>
+        public static int GetMipCount(int size)
+        {
+            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+        }
+
+        /// <summary>
+        /// Gets the Mip Count for a given size
+        /// </summary>
+        /// <param name="size">The size to obtain the mip count</param>
+        /// <returns>The mip count</returns>
+        public static int GetMipCount(float size)
+        {
+            return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+        }
+
+        /// <summary>
         /// Get the last declared value from an enum Type
         /// </summary>
         /// <typeparam name="T">Type of the enum</typeparam>

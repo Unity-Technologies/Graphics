@@ -7,9 +7,9 @@ namespace UnityEngine.Rendering.Universal
     {
         DebugFrameTiming m_DebugFrameTiming = new DebugFrameTiming();
 
+        [DisplayInfo(name = "Display Stats", order = int.MinValue)]
         private class StatsPanel : DebugDisplaySettingsPanel
         {
-            public override string PanelName => "Display Stats";
             public override DebugUI.Flags Flags => DebugUI.Flags.RuntimeOnly;
 
             public StatsPanel(DebugFrameTiming frameTiming)

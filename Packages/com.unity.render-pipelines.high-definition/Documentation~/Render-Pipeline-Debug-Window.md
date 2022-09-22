@@ -162,6 +162,26 @@ The **Material** panel has tools that you can use to visualize different Materia
       <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader. The properties available depend on the HDRP Material type you select in the drop-down.</td>
     </tr>
     <tr>
+      <td rowspan="5"><strong>Rendering Layer Mask</strong></td>
+      <td colspan="2">These parameters only appear when you set the Material Debug Option to Rendering Layers.</td>
+    </tr>
+    <tr>
+      <td><strong>Filter with Light Layers from Selected Light</strong></td>
+      <td>Enable the checkbox to visualize GameObjects that the selected light affects.</td>
+    </tr>
+    <tr>
+      <td><strong>Use Light&#39;s Shadow Layer Mask</strong></td>
+      <td>Enable the checkbox to visualize GameObjects that cast shadows for the selected light.</td>
+    </tr>
+    <tr>
+      <td><strong>Filter Layers</strong></td>
+      <td>Use the drop-down to filter layers that you want to display. GameObjects that have a matching layer appear in a specific color. Use **Layers Color** to define this color.</td>
+    </tr>
+    <tr>
+      <td><strong>Layers Color</strong></td>
+      <td>Use the color pickers to select the display color of each rendering layer.</td>
+    </tr>
+    <tr>
       <td rowspan="1"><strong>Engine</strong></td>
       <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on a screen that uses a specific Shader. The properties available are the same as <Strong>Material</Strong> but are in the form that the lighting engine uses them (for example, <Strong>Smoothness</Strong> is <Strong>Perceptual Roughness</Strong>).</td>
     </tr>
@@ -337,26 +357,6 @@ The **Lighting** panel has tools that you can use to visualize various component
 <tr>
 <td><strong>Hierarchy Debug Mode</strong></td>
 <td colspan="2">Use the drop-down to select a light type to display the direct lighting for or a Reflection Probe type to display the indirect lighting for.</td>
-</tr>
-<tr>
-<td rowspan="5"><strong>Light Layers Visualization</strong></td>
-<td colspan="2">Enable the checkbox to visualize light layers of objects in your Scene.</td>
-</tr>
-<tr>
-<td><strong>Use Selected Light</strong></td>
-<td>Enable the checkbox to visualize objects affected by the selected light.</td>
-</tr>
-<tr>
-<td><strong>Switch to Light&#39;s Shadow Layers</strong></td>
-<td>Enable the checkbox to visualize objects casting shadows for the selected light.</td>
-</tr>
-<tr>
-<td><strong>Filter Layers</strong></td>
-<td>Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color.</td>
-</tr>
-<tr>
-<td><strong>Layers Color</strong></td>
-<td>Use the color pickers to select the display color of each light layer.</td>
 </tr>
 </tbody></table>
 

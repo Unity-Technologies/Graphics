@@ -284,13 +284,13 @@ In HDRP, you set up fog, inside a [Volume](Volumes.md), so you can change fog se
 
 In addition to fog, HDRP also supports local volumetric fog. You can use this to control the density of fog in an area. For more detailed control, you can use a 3D Mask texture to control the color and the density inside the volume itself. For more information see the [Local Volumetric Fog section](Local-Volumetric-Fog.md)
 
-### Light Layers
+### Rendering Layers
 
 ![](Images/HDRPFeatures-LightLayers.png)
 
-Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.md).
+Rendering Layers are LayerMasks that you specify for Lights, Decals and Meshes. Lights only illuminate Meshes that are on matching Rendering Layers. You can also use Rendering Layers in the shadow map settings to decouple shadows from lighting. For more information on Rendering Layers, see the [Rendering Layers documentation](Rendering-Layers.md).
 
-You can use Light layers in the shadow map dropdown to control which GameObject receives a shadow from which light. By default, both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent. This means that when a GameObject receives light it also casts shadows. For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers).
+You can use Rendering layers in the shadow map dropdown to control which GameObject receives a shadow from which light. By default, both Light Rendering Layers and Shadow Map Rendering Layers are synchronized so the result is coherent. This means that when a GameObject receives light it also casts shadows. For more information on Shadow Map Rendering Layers, see the [Shadow Rendering Layer section](Rendering-Layers.md#ShadowLightLayers).
 
 ### Screen space ambient occlusion
 
@@ -460,9 +460,9 @@ To help you to debug lighting in your Scene, HDRP includes various lighting debu
 - Reflection
 - Refraction
 
-#### Light layer debug mode
+#### Rendering Layer Mask debug mode
 
-HDRP includes a [light layer](Light-Layers.md) debug mode that displays the light layers assigned to each GameObject or highlights GameObjects that match the light layers of a specific Light.
+HDRP includes a [Rendering Layer](Rendering-Layers.md) debug mode that displays the Rendering Layer Mask of each GameObject or highlights GameObjects that match the Rendering Layer Mask of a specific Light.
 
 For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 

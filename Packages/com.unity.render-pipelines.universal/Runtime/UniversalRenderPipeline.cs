@@ -232,6 +232,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_DebugDisplaySettingsUI.UnregisterDebug();
 
+            Blitter.Cleanup();
+
             base.Dispose(disposing);
 
             Shader.globalRenderPipeline = string.Empty;
@@ -283,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         {
 #if RENDER_GRAPH_ENABLED
-            useRenderGraph = asset.enableRenderGraph;
+            useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
 #else
             useRenderGraph = false;
 #endif

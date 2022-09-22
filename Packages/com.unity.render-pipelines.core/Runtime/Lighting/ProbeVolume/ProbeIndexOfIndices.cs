@@ -1,10 +1,15 @@
 
+using System.Collections.Generic;
+
 namespace UnityEngine.Rendering
 {
-    internal class ProbeCellIndices
+    internal class ProbeGlobalIndirection
     {
         const int kUintPerEntry = 3;
         internal int estimatedVMemCost { get; private set; }
+
+        // IMPORTANT! IF THIS VALUE CHANGES DATA NEEDS TO BE REBAKED.
+        internal const int kEntryMaxSubdivLevel = 3;
 
         internal struct IndexMetaData
         {
@@ -54,70 +59,117 @@ namespace UnityEngine.Rendering
         ComputeBuffer m_IndexOfIndicesBuffer;
         uint[] m_IndexOfIndicesData;
 
-        Vector3Int m_CellCount;
-        Vector3Int m_CellMin;
         int m_CellSizeInMinBricks;
+
+        Vector3Int m_EntriesCount;
+        Vector3Int m_EntryMin;
+        Vector3Int m_EntryMax;
+
+        internal void GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int maxEntry)
+        {
+            minEntry = m_EntryMin;
+            maxEntry = m_EntryMax;
+        }
 
         bool m_NeedUpdateComputeBuffer;
 
-        internal Vector3Int GetCellIndexDimension() => m_CellCount;
-        internal Vector3Int GetCellMinPosition() => m_CellMin;
+        internal Vector3Int GetGlobalIndirectionDimension() => m_EntriesCount;
+        internal Vector3Int GetGlobalIndirectionMinEntry() => m_EntryMin;
+
+        int entrySizeInBricks => Mathf.Min((int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, kEntryMaxSubdivLevel), m_CellSizeInMinBricks);
+        internal int entriesPerCellDimension => m_CellSizeInMinBricks / Mathf.Max(1, entrySizeInBricks);
 
         int GetFlatIndex(Vector3Int normalizedPos)
         {
-            return normalizedPos.z * (m_CellCount.x * m_CellCount.y) + normalizedPos.y * m_CellCount.x + normalizedPos.x;
+            return normalizedPos.z * (m_EntriesCount.x * m_EntriesCount.y) + normalizedPos.y * m_EntriesCount.x + normalizedPos.x;
         }
 
-        internal ProbeCellIndices(Vector3Int cellMin, Vector3Int cellMax, int cellSizeInMinBricks)
+        internal ProbeGlobalIndirection(Vector3Int cellMin, Vector3Int cellMax, int cellSizeInMinBricks)
         {
-            Vector3Int cellCount = cellMax + Vector3Int.one - cellMin;
-            m_CellCount = cellCount;
-            m_CellMin = cellMin;
             m_CellSizeInMinBricks = cellSizeInMinBricks;
-            int flatCellCount = cellCount.x * cellCount.y * cellCount.z;
-            int bufferSize = kUintPerEntry * flatCellCount;
-            m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, kUintPerEntry * sizeof(uint));
+
+            Vector3Int cellCount = cellMax + Vector3Int.one - cellMin;
+            m_EntriesCount = cellCount * entriesPerCellDimension;
+            m_EntryMin = cellMin * entriesPerCellDimension;
+
+            m_EntryMax = (cellMax + Vector3Int.one) * entriesPerCellDimension - Vector3Int.one;
+
+            int flatEntryCount = m_EntriesCount.x * m_EntriesCount.y * m_EntriesCount.z;
+            int bufferSize = kUintPerEntry * flatEntryCount;
+            m_IndexOfIndicesBuffer = new ComputeBuffer(flatEntryCount, kUintPerEntry * sizeof(uint));
             m_IndexOfIndicesData = new uint[bufferSize];
             m_NeedUpdateComputeBuffer = false;
-            estimatedVMemCost = flatCellCount * kUintPerEntry * sizeof(uint);
+            estimatedVMemCost = flatEntryCount * kUintPerEntry * sizeof(uint);
         }
 
-        internal int GetFlatIdxForCell(Vector3Int cellPosition)
+
+        internal int GetFlatIdxForEntry(Vector3Int entryPosition)
         {
-            Vector3Int normalizedPos = cellPosition - m_CellMin;
+            Vector3Int normalizedPos = entryPosition - m_EntryMin;
             Debug.Assert(normalizedPos.x >= 0 && normalizedPos.y >= 0 && normalizedPos.z >= 0);
 
             return GetFlatIndex(normalizedPos);
         }
 
-        internal void UpdateCell(int cellFlatIdx, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        internal int[] GetFlatIndicesForCell(Vector3Int cellPosition)
         {
-            int minSubdivCellSize = ProbeReferenceVolume.CellSize(cellUpdateInfo.minSubdivInCell);
-            IndexMetaData metaData = new IndexMetaData();
-            metaData.minSubdiv = cellUpdateInfo.minSubdivInCell;
-            metaData.minLocalIdx = cellUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
-            metaData.maxLocalIdx = cellUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
-            metaData.firstChunkIndex = cellUpdateInfo.firstChunkIndex;
+            Vector3Int firstEntryPosition = cellPosition * entriesPerCellDimension;
+            int entriesPerCellDim = m_CellSizeInMinBricks / entrySizeInBricks;
 
-            metaData.Pack(out uint[] packedVals);
+            int[] outListOfIndices = new int[entriesPerCellDimension * entriesPerCellDimension * entriesPerCellDimension];
 
-            for (int i = 0; i < kUintPerEntry; ++i)
+            int i = 0;
+            for (int x = 0; x < entriesPerCellDim; ++x)
             {
-                m_IndexOfIndicesData[cellFlatIdx * kUintPerEntry + i] = packedVals[i];
+                for (int y = 0; y < entriesPerCellDim; ++y)
+                {
+                    for (int z = 0; z < entriesPerCellDim; ++z)
+                    {
+                        outListOfIndices[i++] = GetFlatIdxForEntry(firstEntryPosition + new Vector3Int(x, y, z));
+                    }
+                }
+            }
+
+            return outListOfIndices;
+        }
+
+        internal void UpdateCell(int[] cellEntriesIndices, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        {
+            for (int entry = 0; entry < cellEntriesIndices.Length; ++entry)
+            {
+                int entryIndex = cellEntriesIndices[entry];
+                ProbeBrickIndex.IndirectionEntryUpdateInfo entryUpdateInfo = cellUpdateInfo.entriesInfo[entry];
+
+                int minSubdivCellSize = ProbeReferenceVolume.CellSize(entryUpdateInfo.minSubdivInCell);
+                IndexMetaData metaData = new IndexMetaData();
+                metaData.minSubdiv = entryUpdateInfo.minSubdivInCell;
+                metaData.minLocalIdx = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.zero : entryUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
+                metaData.maxLocalIdx = entryUpdateInfo.hasOnlyBiggerBricks ? Vector3Int.one : entryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
+                metaData.firstChunkIndex = entryUpdateInfo.firstChunkIndex;
+
+                metaData.Pack(out uint[] packedVals);
+
+                for (int i = 0; i < kUintPerEntry; ++i)
+                {
+                    m_IndexOfIndicesData[entryIndex * kUintPerEntry + i] = packedVals[i];
+                }
             }
 
             m_NeedUpdateComputeBuffer = true;
         }
 
-        internal void MarkCellAsUnloaded(int cellFlatIdx)
+        internal void MarkEntriesAsUnloaded(int[] entriesFlatIndices)
         {
-            for (int i = 0; i < kUintPerEntry; ++i)
+            for (int entry = 0; entry < entriesFlatIndices.Length; ++entry)
             {
-                m_IndexOfIndicesData[cellFlatIdx * kUintPerEntry + i] = 0xFFFFFFFF;
+                for (int i = 0; i < kUintPerEntry; ++i)
+                {
+                    m_IndexOfIndicesData[entriesFlatIndices[entry] * kUintPerEntry + i] = 0xFFFFFFFF;
+                }
             }
-
             m_NeedUpdateComputeBuffer = true;
         }
+
 
         internal void PushComputeData()
         {

@@ -185,7 +185,6 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
 #endif
-            Blitter.Initialize(data.shaders.coreBlitPS, data.shaders.coreBlitColorAndDepthPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -386,8 +385,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
 
             CleanupRenderGraphResources();
-
-            Blitter.Cleanup();
 
             LensFlareCommonSRP.Dispose();
         }
@@ -599,6 +596,7 @@ namespace UnityEngine.Rendering.Universal
 
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
+            createColorTexture |= renderPassInputs.requiresColorTextureCreated;
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -1234,6 +1232,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
+            internal bool requiresColorTextureCreated;
             internal bool requiresMotionVectors;
             internal RenderPassEvent requiresDepthNormalAtEvent;
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
@@ -1255,6 +1254,13 @@ namespace UnityEngine.Rendering.Universal
                 bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
 
+                // TODO: Need a better way to handle this, probably worth to recheck after render graph
+                // DBuffer requires color texture created as it does not handle y flip correctly
+                if (pass is DBufferRenderPass dBufferRenderPass)
+                {
+                    inputSummary.requiresColorTextureCreated = true;
+                }
+
                 inputSummary.requiresDepthTexture |= needsDepth;
                 inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
                 inputSummary.requiresNormalsTexture |= needsNormals;
@@ -1266,9 +1272,14 @@ namespace UnityEngine.Rendering.Universal
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }
 
-            // TAA in postprocess requires it to function.
+            // NOTE: TAA and motion vector dependencies added here to share between Execute and Render (Graph) paths.
+            // TAA in postprocess requires motion to function.
             if (renderingData.cameraData.IsTemporalAAEnabled())
                 inputSummary.requiresMotionVectors = true;
+
+            // Motion vectors imply depth
+            if (inputSummary.requiresMotionVectors)
+                inputSummary.requiresDepthTexture = true;
 
             return inputSummary;
         }

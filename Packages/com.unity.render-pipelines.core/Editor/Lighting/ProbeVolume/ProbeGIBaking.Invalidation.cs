@@ -197,5 +197,139 @@ namespace UnityEngine.Rendering
 
             probeHasEmptySpaceInGrid.Dispose();
         }
+
+        internal static void RecomputeValidityAfterBake()
+        {
+            // We need to start from scratch, so reset this.
+            s_ForceInvalidatedProbesAndTouchupVols.Clear();
+            var prv = ProbeReferenceVolume.instance;
+
+            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
+            var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
+            foreach (var touchup in touchupVolumes)
+            {
+                m_BakingProfile = prv.sceneData.GetProfileForScene(touchup.gameObject.scene); // We need to grab a profile. The last one will have to do.
+                if (touchup.isActiveAndEnabled)
+                {
+                    touchup.GetOBBandAABB(out var obb, out var aabb);
+                    touchupVolumesAndBounds.Add((obb, aabb, touchup));
+
+                }
+            }
+
+            float cellSize = prv.MaxBrickSize();
+            var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
+
+            List<BakingCell> bakingCells = new List<BakingCell>();
+
+            // Then for each cell we need to convert to baking cell and repeat the invalidation scheme.
+            foreach (var cellInfo in prv.cells)
+            {
+                var cell = cellInfo.Value.cell;
+                var bakingCell = ConvertCellToBakingCell(cell);
+                var position = cell.position;
+                var posWS = new Vector3(position.x * cellSize, position.y * cellSize, position.z * cellSize);
+
+                Bounds cellBounds = new Bounds();
+                cellBounds.min = posWS;
+                cellBounds.max = posWS + (Vector3.one * cellSize);
+
+                // Find the subset of touchup volumes that will be considered for this cell.
+                // Capacity of the list to cover the worst case.
+                var localTouchupVolumes = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
+                foreach (var touchup in touchupVolumesAndBounds)
+                {
+                    if (touchup.aabb.Intersects(cellBounds))
+                        localTouchupVolumes.Add(touchup);
+                }
+
+                for (int i=0; i< bakingCell.probePositions.Length; ++i)
+                {
+                    var probePos = bakingCell.probePositions[i];
+                    // Restore validity modified by the touchup volume before going forward.
+                    bool wasForceInvalidated = bakingCell.touchupVolumeInteraction[i] > 0.0f && bakingCell.touchupVolumeInteraction[i] <= 1;
+                    if (wasForceInvalidated)
+                    {
+                        bakingCell.validity[i] = 0.0f;
+                    }
+
+                    var probeValidity = bakingCell.validity[i];
+                    bakingCell.touchupVolumeInteraction[i] = 0.0f; // Reset as we don't force write it and we might have stale data from previous.
+
+                    bool invalidatedProbe = false;
+                    foreach (var touchup in localTouchupVolumes)
+                    {
+                        var touchupBound = touchup.aabb;
+                        var touchupVolume = touchup.touchupVolume;
+
+                        // We check a small box around the probe to give some leniency (a couple of centimeters).
+                        var probeBounds = new Bounds(bakingCell.probePositions[i], new Vector3(0.02f, 0.02f, 0.02f));
+                        if (ProbeVolumePositioning.OBBAABBIntersect(touchup.obb, probeBounds, touchupBound))
+                        {
+                            if (touchupVolume.mode == ProbeTouchupVolume.Mode.InvalidateProbes)
+                            {
+                                invalidatedProbe = true;
+                                // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
+                                bakingCell.touchupVolumeInteraction[i] = 0.5f;
+
+                                if (probeValidity < 0.05f) // We just want to add probes that were not already invalid or close to.
+                                {
+                                    s_ForceInvalidatedProbesAndTouchupVols[bakingCell.probePositions[i]] = touchupBound;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    float currValidity = invalidatedProbe ? 1.0f : probeValidity;
+                    byte currValidityNeighbourMask = 255;
+                    bakingCell.validity[i] = currValidity;
+                    bakingCell.validityNeighbourMask[i] = currValidityNeighbourMask;
+                }
+                ComputeValidityMasks(bakingCell);
+
+                bakingCells.Add(bakingCell);
+            }
+
+            // Unload it all as we are gonna load back with newly written cells.
+            foreach (var sceneData in prv.perSceneDataList)
+            {
+                prv.AddPendingAssetRemoval(sceneData.asset);
+            }
+
+            // Make sure unloading happens.
+            prv.PerformPendingOperations();
+
+
+            // We now need to make sure we find for each PerSceneData
+            foreach (var data in prv.perSceneDataList)
+            {
+                List<BakingCell> newCells = new List<BakingCell>();
+                // This is a bit naive now. Should be fine tho.
+                for (int i=0; i<data.asset.cells.Length; ++i)
+                {
+                    var currCell = data.asset.cells[i];
+                    var bc = bakingCells.Find(x => x.index == currCell.index);
+                    newCells.Add(bc);
+                }
+
+                // Write bake the assets.
+                WriteBakingCells(data, newCells);
+                data.ResolveCells();
+            }
+
+
+            // We can now finally reload.
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            foreach (var sceneData in prv.perSceneDataList)
+            {
+                prv.AddPendingAssetLoading(sceneData.asset);
+            }
+
+            prv.PerformPendingOperations();
+        }
     }
 }

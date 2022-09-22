@@ -119,6 +119,25 @@ float3 GetElementSize(InternalAttributesElement attributes)
     return size3;
 }
 
+float3 GetElementSizeRT(InternalAttributesElement attributes, GraphValues graphValues)
+{
+    float3 size3 = GetElementSize(attributes);
+
+    float3 rtScale = float3(1,1,1);
+
+#if VFX_USE_RT_CUSTOM_SCALE
+    $splice(VFXLoadRayTracedScaling)
+    rtScale = float3(rayTracedScaling,1.0f);
+#else
+    #ifdef VFX_RT_DEFAULT_SCALE
+        rtScale = VFX_RT_DEFAULT_SCALE;
+    #endif
+#endif
+
+    size3 *= rtScale;
+    return size3;
+}
+
 #if HAS_STRIPS
 #define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index, uint instanceIndex)

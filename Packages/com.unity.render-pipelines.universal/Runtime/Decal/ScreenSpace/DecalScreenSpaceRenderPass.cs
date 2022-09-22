@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                RenderingUtils.SetScaleBiasRt(cmd, in renderingData);
+
                 NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, m_Settings.normalBlend == DecalNormalBlend.Low);

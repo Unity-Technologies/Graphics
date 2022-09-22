@@ -221,6 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var mask = overrideDepthState ? RenderStateMask.Depth : 0;
             mask |= overrideDepthState && !depthWrite ? RenderStateMask.Stencil : 0;
+            if (overrideStencil)
+                mask |= RenderStateMask.Stencil;
             var stateBlock = new RenderStateBlock(mask)
             {
                 depthState = new DepthState(depthWrite, depthCompareFunction),

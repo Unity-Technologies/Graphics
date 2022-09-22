@@ -6,14 +6,14 @@ The High Definition Render Pipeline (HDRP) adds menu items to the Unity menu bar
 
 This section includes all the menu items under the **Edit > Rendering** menu fold-out.
 
-### Decal Layers
+### Rendering Layers
 
-This section includes all the menu items under the **Edit > Rendering > Decal Layers** menu fold-out.
+This section includes all the menu items under the **Edit > Rendering > Rendering Layers** menu fold-out.
 
 | **Item**                                                     | **Description**                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **Add HDRP Decal Layer Default to Loaded Mesh Renderers and Terrains** | Adds the **Decal Layer Default** item to every Mesh Renderer and Terrain in the currently open scene. This is useful when upgrading your HDRP project from Unity 2020.1 to 2020.2, if you want to use [Decal Layers](Decal.md#decal-layers). |
-| **Add HDRP Decal Layer Default to Selected Mesh Renderers and Terrains** | Adds the **Decal Layer Default** item to every selected Mesh Renderer and Terrain in the currently open scene. This is useful when upgrading your HDRP project from Unity 2020.1 to 2020.2, if you want to use [Decal Layers](Decal.md#decal-layers). |
+| **Add HDRP Default Layer Mask to Loaded Mesh Renderers and Terrains** | Adds the **Default Rendering Layer Mask** item to every Mesh Renderer and Terrain in the currently open scene. This is useful when upgrading your HDRP project from Unity 2020.1 to 2020.2, if you want to use [Decal Layers](Decal.md#decal-layers). |
+| **Add HDRP Default Layer Mask to Selected Mesh Renderers and Terrains** | Adds the **Default Rendering Layer Mask** item to every selected Mesh Renderer and Terrain in the currently open scene. This is useful when upgrading your HDRP project from Unity 2020.1 to 2020.2, if you want to use [Decal Layers](Decal.md#decal-layers). |
 
 
 

@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialReimporter.ReimportAllMaterials();
         }
 
-        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Default Layer Mask to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        [MenuItem("Edit/Rendering/Rendering Layers/Add HDRP Default Layer Mask to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeDefaultRenderingLayerMask()
         {
             var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Default Layer Mask to Selected Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 1)]
+        [MenuItem("Edit/Rendering/Rendering Layers/Add HDRP Default Layer Mask to Selected Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 1)]
         internal static void UpgradeDefaultRenderingLayerMaskForSelection()
         {
             var selection = UnityEditor.Selection.objects;

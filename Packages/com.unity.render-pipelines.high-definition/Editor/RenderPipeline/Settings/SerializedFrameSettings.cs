@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty sssQualityMode;
         public SerializedProperty sssQualityLevel;
         public SerializedProperty sssCustomSampleBudget;
+        public SerializedProperty sssDownsampleSteps;
         public SerializedProperty lodBias;
         public SerializedProperty lodBiasMode;
         public SerializedProperty lodBiasQualityLevel;
@@ -86,6 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
             sssQualityMode = rootData.FindPropertyRelative("sssQualityMode");
             sssQualityLevel = rootData.FindPropertyRelative("sssQualityLevel");
             sssCustomSampleBudget = rootData.FindPropertyRelative("sssCustomSampleBudget");
+            sssDownsampleSteps = rootData.FindPropertyRelative("sssCustomDownsampleSteps");
             lodBias = rootData.FindPropertyRelative("lodBias");
             lodBiasMode = rootData.FindPropertyRelative("lodBiasMode");
             lodBiasQualityLevel = rootData.FindPropertyRelative("lodBiasQualityLevel");

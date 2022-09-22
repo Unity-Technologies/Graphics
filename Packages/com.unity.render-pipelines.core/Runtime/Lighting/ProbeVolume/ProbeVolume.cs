@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
         [HideInInspector]
-        [Tooltip("Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.")]
+        [Tooltip("Whether Unity should fill empty space between renderers with bricks at the lowest subdivision level.")]
         public bool fillEmptySpaces = false;
 
 #if UNITY_EDITOR
@@ -231,6 +231,13 @@ namespace UnityEngine.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
+
+        struct CellDebugData
+        {
+            public Vector4  center;
+            public Color    color;
+        }
+
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
         void OnDrawGizmos()
         {
@@ -307,28 +314,47 @@ namespace UnityEngine.Rendering
 
             if (debugDisplay.drawCells)
             {
-                IEnumerable<Vector4> GetVisibleCellCentersAndState()
+                IEnumerable<CellDebugData> GetVisibleCellDebugData()
                 {
+                    Color s_LoadedColor = new Color(0, 1, 0.5f, 0.2f);
+                    Color s_UnloadedColor = new Color(1, 0.0f, 0.0f, 0.2f);
+                    Color s_LowScoreColor = new Color(0, 0, 0, 0.2f);
+                    Color s_HighScoreColor = new Color(1, 1, 0, 0.2f);
+
+                    var prv = ProbeReferenceVolume.instance;
+
+                    float minStreamingScore = prv.minStreamingScore;
+                    float streamingScoreRange = prv.maxStreamingScore - prv.minStreamingScore;
+
                     if (debugDisplay.realtimeSubdivision)
                     {
-                        foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
+                        foreach (var kp in prv.realtimeSubdivisionInfo)
                         {
                             var center = kp.Key.center;
-                            yield return new Vector4(center.x, center.y, center.z, 1.0f);
+                            yield return new CellDebugData { center = center, color = s_LoadedColor };
                         }
                     }
                     else
                     {
                         foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (ShouldCullCell(cellInfo.cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                            if (ShouldCullCell(cellInfo.cell.position, prv.GetTransform().posWS))
                                 continue;
 
                             var cell = cellInfo.cell;
                             var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
-                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
-                            center.w = cellInfo.loaded ? 1.0f : 0.0f;
-                            yield return center;
+                            var output = new CellDebugData();
+                            output.center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
+                            if (debugDisplay.displayCellStreamingScore)
+                            {
+                                float lerpFactor = (cellInfo.streamingScore - minStreamingScore) / streamingScoreRange;
+                                output.color = Color.Lerp(s_HighScoreColor, s_LowScoreColor, lerpFactor);
+                            }
+                            else
+                            {
+                                output.color = cellInfo.loaded ? s_LoadedColor : s_UnloadedColor;
+                            }
+                            yield return output;
                         }
                     }
                 }
@@ -339,15 +365,15 @@ namespace UnityEngine.Rendering
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
                 cellGizmo.Clear();
-                foreach (var center in GetVisibleCellCentersAndState())
+                foreach (var cell in GetVisibleCellDebugData())
                 {
-                    bool loaded = center.w == 1.0f;
-
-                    Gizmos.color = loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f);
+                    Gizmos.color = cell.color;
                     Gizmos.matrix = trs;
 
-                    Gizmos.DrawCube(center, Vector3.one * cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
+                    Gizmos.DrawCube(cell.center, Vector3.one * cellSizeInMeters);
+                    var wireColor = cell.color;
+                    wireColor.a = 1.0f;
+                    cellGizmo.AddWireCube(cell.center, Vector3.one * cellSizeInMeters, wireColor);
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
                 Gizmos.matrix = oldGizmoMatrix;

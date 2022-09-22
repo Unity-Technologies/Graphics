@@ -5,6 +5,7 @@
   * [11 / Unity 2021.1](whats-new-11.md)
   * [12 / Unity 2021.2](whats-new-12.md)
   * [13 / Unity 2022.1](whats-new-13.md)
+  * [14 / Unity 2022.2](whats-new-14.md)
 * Features
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
@@ -143,7 +144,7 @@
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
   * [Local Volumetric Fog](Local-Volumetric-Fog.md)
-  * [Light Layers](Light-Layers.md)
+  * [Rendering Layers](Rendering-Layers.md)
   * [Shadows](Shadows-in-HDRP.md)
   * [Shadowmasks](Lighting-Mode-Shadowmask.md)
   * [Volumetric Lighting](Volumetric-Lighting.md)

@@ -517,6 +517,14 @@ namespace UnityEngine.Rendering
             version++;
 #endif
         }
+
+        /// <summary>
+        /// Delegate for custom sorting comparison.
+        /// </summary>
+        /// <param name="x">First object.</param>
+        /// <param name="y">Second object.</param>
+        /// <returns>-1 if x smaller than y, 1 if x bigger than y and 0 otherwise.</returns>
+        public delegate int SortComparer(T x, T y);
     }
 
     /// <summary>
@@ -577,6 +585,62 @@ namespace UnityEngine.Rendering
             }
         }
 
+        // C# SUCKS
+        // Had to copy paste because it's apparently impossible to pass a sort delegate where T is Comparable<T>, otherwise some boxing happens and allocates...
+        // So two identical versions of the function, one with delegate but no Comparable and the other with just the comparable.
+        static int Partition<T>(T[] data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
+        {
+            var pivot = data[left];
+
+            --left;
+            ++right;
+            while (true)
+            {
+                var c = 0;
+                var lvalue = default(T);
+                do
+                {
+                    ++left;
+                    lvalue = data[left];
+                    c = comparer(lvalue, pivot);
+                }
+                while (c < 0);
+
+                var rvalue = default(T);
+                do
+                {
+                    --right;
+                    rvalue = data[right];
+                    c = comparer(rvalue, pivot);
+                }
+                while (c > 0);
+
+                if (left < right)
+                {
+                    data[right] = lvalue;
+                    data[left] = rvalue;
+                }
+                else
+                {
+                    return right;
+                }
+            }
+        }
+
+        static void QuickSort<T>(T[] data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
+        {
+            if (left < right)
+            {
+                int pivot = Partition(data, left, right, comparer);
+
+                if (pivot >= 1)
+                    QuickSort(data, left, pivot, comparer);
+
+                if (pivot + 1 < right)
+                    QuickSort(data, pivot + 1, right, comparer);
+            }
+        }
+
         /// <summary>
         /// Perform a quick sort on the DynamicArray
         /// </summary>
@@ -585,6 +649,18 @@ namespace UnityEngine.Rendering
         public static void QuickSort<T>(this DynamicArray<T> array) where T : IComparable<T>, new()
         {
             QuickSort<T>(array, 0, array.size - 1);
+            array.BumpVersion();
+        }
+
+        /// <summary>
+        /// Perform a quick sort on the DynamicArray
+        /// </summary>
+        /// <typeparam name="T">Type of the array.</typeparam>
+        /// <param name="array">Array on which to perform the quick sort.</param>
+        /// <param name="comparer">Comparer used for sorting.</param>
+        public static void QuickSort<T>(this DynamicArray<T> array, DynamicArray<T>.SortComparer comparer) where T : new()
+        {
+            QuickSort<T>(array, 0, array.size - 1, comparer);
             array.BumpVersion();
         }
     }

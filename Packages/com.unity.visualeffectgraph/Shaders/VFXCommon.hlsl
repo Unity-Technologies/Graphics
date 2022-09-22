@@ -87,6 +87,7 @@ float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorld
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionWorldToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionWorldToPreviousClip(pos); }
 float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionWorldToNonJitteredClip(pos); }
+float3 TransformPreviousVFXPositionToWorld(float3 pos) { return pos; }
 float3x3 GetVFXToViewRotMatrix() { return VFXGetWorldToViewRotMatrix(); }
 float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
@@ -97,6 +98,7 @@ float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorld
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
 float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionObjectToNonJitteredClip(pos); }
+float3 TransformPreviousVFXPositionToWorld(float3 pos) { return VFXTransformPreviousObjectToWorld(pos); }
 float3x3 GetVFXToViewRotMatrix() { return mul(VFXGetWorldToViewRotMatrix(), (float3x3)VFXGetObjectToWorldMatrix()); }
 float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFXGetViewWorldPosition(), 1.0f)).xyz; }
 #endif
@@ -113,6 +115,23 @@ float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
     float3 outVec = cross(v1, v2);
     outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
     return outVec;
+}
+
+float3 GetViewOrRayDirection(float3 position)
+{
+#if defined(SHADER_STAGE_RAY_TRACING)
+    #if SHADERPASS != SHADERPASS_RAYTRACING_VISIBILITY
+        //Is only really correct for mirror reflections
+        float3 camPos = GetViewVFXPosition();
+        float camToOrigin = length(camPos - ObjectRayOrigin());
+        float3 virtualOrigin = ObjectRayOrigin() - camToOrigin * ObjectRayDirection();
+        return -normalize(position - virtualOrigin);
+    #else
+        return normalize(ObjectRayDirection());
+    #endif
+#else
+    return GetVFXToViewRotMatrix()[2];
+#endif
 }
 
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
@@ -700,6 +719,55 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 {
     return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
 }
+//////////////////
+// Orient Utils //
+//////////////////
+
+void GetCameraPlaneFacingAxes(float3x3 viewRot, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    axisX = viewRot[0].xyz;
+    axisY = viewRot[1].xyz;
+    axisZ =  -viewRot[2].xyz;
+}
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+void GetRayFacingAxes(float3x3 viewRot, float3 position, float3 worldUp, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    axisZ = -GetViewOrRayDirection(position);
+    #if SHADERPASS != SHADERPASS_RAYTRACING_VISIBILITY
+    axisX = VFXSafeNormalizedCross(worldUp, axisZ, float3(1,0,0));
+    #else
+    axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
+    #endif
+    axisY = cross(axisZ,axisX);
+}
+#endif
+
+void GetCameraPlaneOrRayFacingAxes(float3x3 viewRot, float3 position, float3 worldUp, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        GetRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);
+    #else
+        GetCameraPlaneFacingAxes(viewRot, axisX, axisY, axisZ);
+    #endif
+}
+
+void GetCameraPositionFacingAxes(float3x3 viewRot, float3 position, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    axisZ = normalize(position - GetViewVFXPosition());
+    axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
+    axisY = cross(axisZ,axisX);
+}
+
+
+void GetCameraPositionOrRayFacingAxes(float3x3 viewRot, float3 position, float3 worldUp, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        GetRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);
+    #else
+        GetCameraPositionFacingAxes(viewRot, position, axisX, axisY, axisZ);
+    #endif
+}
 
 ////////////////
 // Prefix Sum //
@@ -727,9 +795,14 @@ uint BinarySearchPrefixSum(uint value, StructuredBuffer<uint> prefixSum,uint sta
         }
     }
     uint index = left;
-    uint prevValue = index > startIndex ? prefixSum[index - 1] : 0;
-    remainder = value - prevValue;
 
+    uint prevValue = 0;
+    [branch]
+    if (index > startIndex)
+    {
+        prevValue = prefixSum[index - 1];
+    }
+    remainder = value - prevValue;
     return index;
 }
 
@@ -766,7 +839,7 @@ uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint dispatchWidth)
 // Bounds reduction utils //
 ////////////////////////////
 
-#include "VFXBoundsReduction.hlsl"
+#include "VFXBoundsUtils.hlsl"
 
 
 //////////////////////

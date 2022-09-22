@@ -56,7 +56,8 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
             {
                 float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
-                if (validity > _ValidityThreshold)
+                float threshold = UNITY_ACCESS_INSTANCED_PROP(Props, _DilationThreshold);
+                if (validity > threshold)
                 {
                     return float4(1, 0, 0, 1);
                 }

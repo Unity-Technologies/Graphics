@@ -211,6 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
         public static readonly int _SssSampleBudget = Shader.PropertyToID("_SssSampleBudget");
+        public static readonly int _SssDownsampleSteps = Shader.PropertyToID("_SssDownsampleSteps");
         public static readonly int _MaterialID = Shader.PropertyToID("_MaterialID");
 
         public static readonly int g_TileListOffset = Shader.PropertyToID("g_TileListOffset");
@@ -310,6 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraSssDiffuseLightingBuffer = Shader.PropertyToID("_CameraSssDiffuseLightingTexture");
         public static readonly int _CameraFilteringBuffer = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource = Shader.PropertyToID("_IrradianceSource");
+        public static readonly int _IrradianceSourceDownsampled = Shader.PropertyToID("_IrradianceSourceDownsampled");
 
         // Planar reflection filtering
         public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");
@@ -756,6 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AreaShadowHistoryRW = Shader.PropertyToID("_AreaShadowHistoryRW");
         public static readonly int _AnalyticProbBuffer = Shader.PropertyToID("_AnalyticProbBuffer");
         public static readonly int _AnalyticHistoryBuffer = Shader.PropertyToID("_AnalyticHistoryBuffer");
+        public static readonly int _AnalyticHistoryBufferRW = Shader.PropertyToID("_AnalyticHistoryBufferRW");
         public static readonly int _RaytracingLightRadius = Shader.PropertyToID("_RaytracingLightRadius");
         public static readonly int _RaytracingSpotAngle = Shader.PropertyToID("_RaytracingSpotAngle");
         public static readonly int _RaytracedShadowIntegration = Shader.PropertyToID("_RaytracedShadowIntegration");

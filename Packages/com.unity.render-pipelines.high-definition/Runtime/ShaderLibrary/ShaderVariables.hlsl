@@ -347,6 +347,18 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #endif
 }
 
+float4x4 RevertCameraTranslationFromInverseMatrix(float4x4 inverseModelMatrix)
+{
+    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    // To handle camera relative rendering we need to apply translation before converting to object space
+    float4x4 translationMatrix = { { 1.0, 0.0, 0.0, -_WorldSpaceCameraPos.x },{ 0.0, 1.0, 0.0, -_WorldSpaceCameraPos.y },{ 0.0, 0.0, 1.0, -_WorldSpaceCameraPos.z },{ 0.0, 0.0, 0.0, 1.0 } };
+    return mul(inverseModelMatrix, translationMatrix);
+    #else
+    return inverseModelMatrix;
+    #endif
+}
+
+
 void ApplyCameraRelativeXR(inout float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)

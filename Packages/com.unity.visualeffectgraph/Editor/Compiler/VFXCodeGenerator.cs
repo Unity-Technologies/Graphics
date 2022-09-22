@@ -14,6 +14,7 @@ using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -452,7 +453,7 @@ namespace UnityEditor.VFX
             buildVertexPropertiesGeneration = vertexInputsGeneration.ToString();
         }
 
-        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
+        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData, bool raytracing,
             out string interpolatorsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
@@ -462,7 +463,7 @@ namespace UnityEditor.VFX
 
             var additionalInterpolantsGeneration = new VFXShaderWriter();
             var additionalInterpolantsPreparation = new VFXShaderWriter();
-
+            string varyingVariableName = raytracing ? "input." : "output.";
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
@@ -483,7 +484,7 @@ namespace UnityEditor.VFX
                         additionalInterpolantsGeneration.WriteLine();
                     }
                     additionalInterpolantsGeneration.ExitScope();
-                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "output." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
+                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, varyingVariableName + filteredNamedExpression.name, filteredNamedExpression.name + "__");
                     additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
                 }
             }
@@ -652,6 +653,14 @@ namespace UnityEditor.VFX
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
 
+            // Per-block defines
+            var defines = Enumerable.Empty<string>();
+            foreach (var block in context.activeFlattenedChildrenWithImplicit)
+                defines = defines.Concat(block.defines);
+            var uniqueDefines = new HashSet<string>(defines);
+            foreach (var define in uniqueDefines)
+                globalIncludeContent.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
+
             // Per-block includes
             var includes = Enumerable.Empty<string>();
             foreach (var block in context.activeFlattenedChildrenWithImplicit)
@@ -750,6 +759,12 @@ namespace UnityEditor.VFX
             var useCubeArray = contextData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
             var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
             ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
+            if (VFXLibrary.currentSRPBinder != null)
+            {
+                var allowedRenderers = new StringBuilder("#pragma only_renderers ");
+                allowedRenderers.Append(String.Join(" ", VFXLibrary.currentSRPBinder.GetSupportedGraphicDevices().Select(d => DeviceTypeToShaderString(d))));
+                ReplaceMultiline(stringBuilder, "${VFXPragmaOnlyRenderers}", allowedRenderers);
+            }
 
             foreach (var addionalReplacement in context.additionalReplacements)
             {
@@ -765,6 +780,23 @@ namespace UnityEditor.VFX
             context.EndCompilation();
             return stringBuilder;
         }
+
+        static string DeviceTypeToShaderString(GraphicsDeviceType deviceType) => deviceType switch
+        {
+            GraphicsDeviceType.Direct3D11 => "d3d11",
+            GraphicsDeviceType.OpenGLCore => "glcore",
+            GraphicsDeviceType.OpenGLES2 => "gles",
+            GraphicsDeviceType.OpenGLES3 => "gles3",
+            GraphicsDeviceType.Metal => "metal",
+            GraphicsDeviceType.Vulkan => "vulkan",
+            GraphicsDeviceType.XboxOne => "xboxone",
+            GraphicsDeviceType.GameCoreXboxOne => "xboxone",
+            GraphicsDeviceType.GameCoreXboxSeries => "xboxseries",
+            GraphicsDeviceType.PlayStation4 => "playstation",
+            GraphicsDeviceType.Switch => "switch",
+            GraphicsDeviceType.PlayStation5 => "ps5",
+            _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
+        };
 
         private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXContextCompiledData contextData)
         {

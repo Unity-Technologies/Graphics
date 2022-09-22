@@ -406,6 +406,14 @@ These settings control lighting features for your rendering components. Here you
     <td></td>
     <td>The custom number of samples to use for Subsurface Scattering calculations when to set the <strong>Quality Mode</strong> to <strong>Override Quality Settings</strong>.</td>
   </tr>
+  <tr>
+    <td></td>
+    <td><strong>Custom Downsample Level</strong></td>
+    <td></td>
+    <td>The number of levels to down sample the source irradiance texture, before Subsurface Scattering will sample it. This is only for samples outside of the group shared cache.</td>
+  </tr>
+
+
 </tbody>
 </table>
 

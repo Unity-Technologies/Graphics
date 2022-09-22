@@ -1,8 +1,8 @@
 using System.Linq;
 
 using UnityEditor.Experimental;
+using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
-
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
         const string k_PackageName = "com.unity.visualeffectgraph";
         const string k_AdditionalSamples = "VisualEffectGraph Additions";
         const string k_AdditionalHelpers = "OutputEvent Helpers";
-        const string k_ManualUrl = @"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html";
+        const string k_ManualUrl = @"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@{0}/index.html";
         const string k_ForumUrl = @"https://forum.unity.com/forums/visual-effect-graph.428/";
         const string k_SpaceShipUrl = @"https://github.com/Unity-Technologies/SpaceshipDemo";
         const string k_SamplesUrl = @"https://github.com/Unity-Technologies/VisualEffectGraph-Samples";
@@ -21,6 +21,9 @@ namespace UnityEditor.VFX.UI
 
         readonly Button m_installSamplesButton;
         readonly Button m_installHelpersButton;
+
+        string m_ManualUrlWithVersion;
+        ListRequest m_PackageManagerRequest;
 
         public VFXHelpDropdownButton(VFXView vfxView)
             : base(
@@ -54,7 +57,15 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnMainButton()
         {
-            GotoUrl(k_ManualUrl);
+            if (string.IsNullOrEmpty(m_ManualUrlWithVersion))
+            {
+                var assembly = GetType().Assembly;
+                var packageInfo = PackageManager.PackageInfo.FindForAssembly(assembly);
+                var version = string.Join('.', packageInfo.version.Split(".").Take(2));
+                m_ManualUrlWithVersion = string.Format(k_ManualUrl, version);
+            }
+
+            GotoUrl(m_ManualUrlWithVersion);
         }
 
         void GotoUrl(string url) => Help.BrowseURL(url);

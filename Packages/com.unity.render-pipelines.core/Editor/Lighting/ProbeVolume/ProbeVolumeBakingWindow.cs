@@ -39,19 +39,23 @@ namespace UnityEngine.Rendering
             public static readonly Texture probeVolumeIcon = EditorGUIUtility.IconContent("LightProbeGroup Icon").image; // For now it's not the correct icon, we need to request it
             public static readonly Texture debugIcon = EditorGUIUtility.IconContent("DebuggerEnabled").image;
 
-            public static readonly GUIContent sceneLightingSettings = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
-            public static readonly GUIContent activeScenarioLabel = new GUIContent("Active Scenario", EditorGUIUtility.IconContent("FilterSelectedOnly").image);
+            public static readonly GUIContent sceneLightingSettings = new GUIContent("Active Lighting Settings", EditorGUIUtility.IconContent("LightingSettings Icon").image, "Lighting Settings used for all Scenes in this Baking Set");
+            public static readonly GUIContent activeScenarioLabel = new GUIContent("Active Scenario", EditorGUIUtility.IconContent("FilterSelectedOnly").image, "The currently active lighting Scenario.");
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
             public static readonly GUIContent bakingSetsTitle = new GUIContent("Baking Sets");
             public static readonly GUIContent debugButton = new GUIContent(Styles.debugIcon);
             public static readonly GUIContent stats = new GUIContent("Stats");
-            public static readonly GUIContent scenarioCostStat = new GUIContent("Active Scenario Size On Disk", "Size on disk used by the baked data of the currently selected lighting scenario.");
-            public static readonly GUIContent totalCostStat = new GUIContent("Baking Set Total Size On Disk", "Size on disk used by baked data of all lighting scenarios of the set.");
+            public static readonly GUIContent scenarioCostStat = new GUIContent("Scenario Size", "Size of the current Scenario's lighting data.");
+            public static readonly GUIContent totalCostStat = new GUIContent("Baking Set Size", "Size of the lighting data for all Scenarios in this Baking Set.");
 
             public static readonly GUIContent invalidLabel = new GUIContent("Out of Date");
             public static readonly GUIContent emptyLabel = new GUIContent("Not Baked");
             public static readonly GUIContent notLoadedLabel = new GUIContent("Set is not Loaded");
             public static readonly GUIContent[] scenariosStatusLabel = new GUIContent[] { GUIContent.none, notLoadedLabel, invalidLabel, emptyLabel };
+
+
+            public static readonly GUIContent loadScenesButton = new GUIContent("Load All Scenes In Set", "Load all of the Scenes in this Baking Set.");
+            public static readonly GUIContent clearButton = new GUIContent("Clear Baked Data", "Clear baked lighting data for all loaded Scenes.");
 
             public static readonly GUIStyle labelRed = "CN StatusError";
 
@@ -222,10 +226,10 @@ namespace UnityEngine.Rendering
             {
                 if (m_BakingSets.count == 1)
                 {
-                    EditorUtility.DisplayDialog("Can't delete baking set", "You can't delete the last Baking set. You need to have at least one.", "Ok");
+                    EditorUtility.DisplayDialog("Cannot delete this Baking Set", "Unable to delete. Projects must contain at least one Baking Set.", "Ok");
                     return;
                 }
-                if (EditorUtility.DisplayDialog("Delete the selected baking set?", $"Deleting the baking set will also delete it's profile asset on disk.\nDo you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
+                if (EditorUtility.DisplayDialog("Delete this Baking Set and associated asset on disk?", $"Deleting the baking set will also delete it's profile asset on disk.\nDo you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                 {
                     var pathToDelete = AssetDatabase.GetAssetPath(sceneData.bakingSets[list.index].profile);
                     if (!String.IsNullOrEmpty(pathToDelete))
@@ -801,13 +805,13 @@ namespace UnityEngine.Rendering
                         EditorGUILayout.LabelField(Styles.totalCostStat, EditorGUIUtility.TrTextContent((sharedCost / (float)(1000 * 1000)).ToString("F1") + " MB"));
                     }
                     else
-                        EditorGUILayout.HelpBox("Somes scenes of the set are not currently loaded. Stats can't be displayed", MessageType.Info);
+                        EditorGUILayout.HelpBox("Cannot display statistics because not all Scenes in this Set are loaded.", MessageType.Info);
                     EditorGUI.indentLevel--;
                 }
             }
             else
             {
-                EditorGUILayout.HelpBox("You need to assign at least one scene with probe volumes to configure the baking settings", MessageType.Error, true);
+                EditorGUILayout.HelpBox("Add a Probe Volume to a Scene in this Baking Set to configure these settings.", MessageType.Error, true);
             }
 
             EditorGUILayout.EndScrollView();
@@ -868,9 +872,9 @@ namespace UnityEngine.Rendering
 
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginDisabledGroup(Lightmapping.isRunning);
-            if (GUILayout.Button("Load All Scenes In Set", GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button(Styles.loadScenesButton, GUILayout.ExpandWidth(true)))
                 LoadScenesInBakingSet(GetCurrentBakingSet());
-            if (GUILayout.Button("Clear Loaded Scenes Data"))
+            if (GUILayout.Button(Styles.clearButton))
                 Lightmapping.Clear();
             EditorGUI.EndDisabledGroup();
             if (Lightmapping.isRunning)
@@ -881,7 +885,7 @@ namespace UnityEngine.Rendering
             else
             {
                 if (ButtonWithDropdownList(k_GenerateLighting, k_BakeOptionsText, BakeButtonCallback))
-                    BakeButtonCallback(0);
+                    BakeButtonCallback(1); // By default we bake only loaded scene.
             }
             EditorGUILayout.EndHorizontal();
         }

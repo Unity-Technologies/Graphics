@@ -13,7 +13,6 @@ using Unity.Jobs;
 #if USE_BURST
 using Unity.Burst;
 #endif
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -31,6 +30,8 @@ namespace UnityEngine.Rendering
 
         static void ApplyVirtualOffsets(Vector3[] positions, out Vector3[] offsets)
         {
+            var cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
+
             var voSettings = m_BakingSettings.virtualOffsetSettings;
             if (!voSettings.useVirtualOffset)
             {
@@ -47,7 +48,7 @@ namespace UnityEngine.Rendering
                     Physics.queriesHitBackfaces = true;
 
                 AddOccluders();
-                DoApplyVirtualOffsets(positions, out offsets, voSettings);
+                DoApplyVirtualOffsets(positions, out offsets, voSettings, cellToVolumes);
             }
             finally
             {
@@ -157,7 +158,76 @@ namespace UnityEngine.Rendering
             ms_AddedOccluders.ForEach(Object.DestroyImmediate);
         }
 
-        static void DoApplyVirtualOffsets(Vector3[] probePositions, out Vector3[] probeOffsets, VirtualOffsetSettings voSettings)
+        struct TouchupsPerCell
+        {
+            public List<(ProbeTouchupVolume touchup, ProbeReferenceVolume.Volume obb, Vector3 center, Vector3 offset)> appliers;
+            public List<(ProbeTouchupVolume touchup, ProbeReferenceVolume.Volume obb, Vector3 center)> overriders;
+        }
+
+        static Dictionary<int, TouchupsPerCell> GetTouchupsPerCell(out bool hasAppliers)
+        {
+            float cellSize = m_BakingProfile.cellSizeInMeters;
+            hasAppliers = false;
+
+            Dictionary<int, TouchupsPerCell> cellToVolumes = new();
+            foreach (var touchup in Object.FindObjectsOfType<ProbeTouchupVolume>())
+            {
+                if (!touchup.isActiveAndEnabled || (touchup.mode != ProbeTouchupVolume.Mode.ApplyVirtualOffset && touchup.mode != ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings))
+                    continue;
+
+                hasAppliers |= touchup.mode == ProbeTouchupVolume.Mode.ApplyVirtualOffset;
+                touchup.GetOBBandAABB(out var obb, out var aabb);
+
+                Vector3Int min = Vector3Int.FloorToInt(aabb.min / cellSize);
+                Vector3Int max = Vector3Int.FloorToInt(aabb.max / cellSize);
+
+                for (int x = min.x; x <= max.x; x++)
+                {
+                    for (int y = min.y; y <= max.y; y++)
+                    {
+                        for (int z = min.z; z <= max.z; z++)
+                        {
+                            var cell = PosToIndex(new Vector3Int(x, y, z));
+                            if (!cellToVolumes.TryGetValue(cell, out var volumes))
+                                cellToVolumes[cell] = volumes = new TouchupsPerCell() { appliers = new(), overriders = new() };
+
+                            if (touchup.mode == ProbeTouchupVolume.Mode.ApplyVirtualOffset)
+                                volumes.appliers.Add((touchup, obb, touchup.transform.position, touchup.GetVirtualOffset()));
+                            else
+                                volumes.overriders.Add((touchup, obb, touchup.transform.position));
+                        }
+
+                    }
+                }
+            }
+
+            return cellToVolumes;
+        }
+
+        static Vector3[] DoForceVirtualOffsets(Vector3[] positions, Dictionary<int, TouchupsPerCell> cellToVolumes)
+        {
+            float cellSize = m_BakingProfile.cellSizeInMeters;
+            var offsets = new Vector3[positions.Length];
+            for (int i = 0; i < positions.Length; i++)
+            {
+                int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[i] / cellSize));
+                if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
+                {
+                    foreach (var (touchup, obb, center, offset) in volumes.appliers)
+                    {
+                        if (touchup.ContainsPoint(obb, center, positions[i]))
+                        {
+                            positions[i] += offset;
+                            offsets[i] = offset;
+                            break;
+                        }
+                    }
+                }
+            }
+            return offsets;
+        }
+
+        static void DoApplyVirtualOffsets(Vector3[] probePositions, out Vector3[] probeOffsets, VirtualOffsetSettings voSettings, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
             // Limit memory usage based on ray cast / hit structures (of which there are lots per position)
             int maxPositionsPerBatch;
@@ -176,6 +246,8 @@ namespace UnityEngine.Rendering
             var positions = new NativeArray<Vector3>(probePositions, Allocator.TempJob);
             var offsets = new NativeArray<Vector3>(probePositions.Length, Allocator.TempJob, NativeArrayOptions.ClearMemory);
             var searchDistanceForPosition = new NativeArray<float>(positions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var rayOriginBiasForPosition = new NativeArray<float>(positions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var geometryBiasForPosition = new NativeArray<float>(positions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             var positionIndex = new NativeArray<int>(positions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             // Allocate ray cast/hit data
@@ -207,6 +279,7 @@ namespace UnityEngine.Rendering
                 positions = positions,
                 positionIndex = positionIndex,
                 searchDistanceForPosition = searchDistanceForPosition,
+                rayOriginBiasForPosition = rayOriginBiasForPosition,
                 queryParams = new QueryParameters(voSettings.collisionMask, true, QueryTriggerInteraction.UseGlobal, true),
             };
             var pushOutGeometryJob = new PushOutGeometryJob
@@ -214,6 +287,7 @@ namespace UnityEngine.Rendering
                 voSettings = voSettings,
                 positions = positions,
                 offsets = offsets,
+                geometryBiasForPosition = geometryBiasForPosition,
                 positionIndex = positionIndex,
             };
             var jobHandles = new JobHandle[2];
@@ -226,6 +300,7 @@ namespace UnityEngine.Rendering
 
                 int nextBatchIdx = 1;
                 int batchPosIdx = 0;
+                float cellSize = m_BakingProfile.cellSizeInMeters;
                 while (batchPosIdx < positions.Length)
                 {
                     // Run a quick overlap check for each search box before setting up rays for the position
@@ -238,13 +313,44 @@ namespace UnityEngine.Rendering
 
                         var scaleForSearchDist = voSettings.searchMultiplier;
                         var distanceSearch = scaleForSearchDist * searchDistance;
+                        float rayOriginBias = voSettings.rayOriginBias;
+                        float geometryBias = voSettings.outOfGeoOffset;
 
-                        var positionHasCollider = Physics.CheckBox(positions[batchPosIdx], new Vector3(distanceSearch, distanceSearch, distanceSearch), Quaternion.identity, voSettings.collisionMask);
-
-                        if (positionHasCollider)
+                        int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
+                        bool hasTouchups = cellToVolumes.TryGetValue(cellIndex, out var volumes), adjusted = false;
+                        if (hasTouchups)
                         {
+                            foreach (var (touchup, obb, center, offset) in volumes.appliers)
+                            {
+                                if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                                {
+                                    positions[batchPosIdx] += offset;
+                                    offsets[batchPosIdx] = offset;
+                                    adjusted = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!adjusted && Physics.CheckBox(positions[batchPosIdx], new Vector3(distanceSearch, distanceSearch, distanceSearch), Quaternion.identity, voSettings.collisionMask))
+                        {
+                            if (hasTouchups)
+                            {
+                                foreach (var (touchup, obb, center) in volumes.overriders)
+                                {
+                                    if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                                    {
+                                        rayOriginBias = touchup.rayOriginBias;
+                                        geometryBias = touchup.geometryBias;
+                                        break;
+                                    }
+                                }
+                            }
+
                             positionIndex[batchPosStart + overlapCount] = batchPosIdx;
                             searchDistanceForPosition[batchPosStart + overlapCount] = distanceSearch;
+                            rayOriginBiasForPosition[batchPosStart + overlapCount] = rayOriginBias;
+                            geometryBiasForPosition[batchPosStart + overlapCount] = geometryBias;
                             ++overlapCount;
                         }
                     }
@@ -308,6 +414,8 @@ namespace UnityEngine.Rendering
                 positions.Dispose();
                 offsets.Dispose();
                 searchDistanceForPosition.Dispose();
+                rayOriginBiasForPosition.Dispose();
+                geometryBiasForPosition.Dispose();
                 positionIndex.Dispose();
 
                 raycastCommands[0].Dispose();
@@ -332,6 +440,8 @@ namespace UnityEngine.Rendering
             [ReadOnly] public NativeArray<int> positionIndex;
             [NativeDisableContainerSafetyRestriction]
             [ReadOnly] public NativeArray<float> searchDistanceForPosition;
+            [NativeDisableContainerSafetyRestriction]
+            [ReadOnly] public NativeArray<float> rayOriginBiasForPosition;
 
             [ReadOnly] public int startIdx;
 
@@ -347,6 +457,7 @@ namespace UnityEngine.Rendering
                 int posIdx = positionIndex[i + startIdx];
                 var position = positions[posIdx];
                 var searchDistance = searchDistanceForPosition[i + startIdx];
+                var rayOriginBias = rayOriginBiasForPosition[i + startIdx];
 
                 int cmdIdx = i * kRayDirectionsPerPosition;
 
@@ -356,7 +467,7 @@ namespace UnityEngine.Rendering
                 for (var j = 0; j < kRayDirectionsPerPosition; ++j)
                 {
                     var direction = kRayDirections[j];
-                    var origin = position + direction * voSettings.rayOriginBias;
+                    var origin = position + direction * rayOriginBias;
                     raycastCommands[cmdIdx++] = new RaycastCommand(origin, direction, queryParams, searchDistance);
                 }
             }
@@ -419,11 +530,15 @@ namespace UnityEngine.Rendering
             [NativeDisableContainerSafetyRestriction]
             [WriteOnly] public NativeArray<Vector3> offsets;
 
+            [NativeDisableContainerSafetyRestriction]
+            [ReadOnly] public NativeArray<float> geometryBiasForPosition;
+
             public void Execute(int i)
             {
                 int cmdIdx = i * kRayDirectionsPerPosition;
                 int posIdx = positionIndex[i + startIdx];
-                var offset = PushOutOfGeometry(cmdIdx, voSettings.outOfGeoOffset, voSettings.maxHitsPerRay);
+                float geometryBias = geometryBiasForPosition[i + startIdx];
+                var offset = PushOutOfGeometry(cmdIdx, geometryBias, voSettings.maxHitsPerRay);
                 positions[posIdx] += offset;
                 offsets[posIdx] = offset;
             }
@@ -490,6 +605,101 @@ namespace UnityEngine.Rendering
 
                 return Vector3.zero;
             }
+        }
+
+        static internal void RecomputeVOForDebugOnly()
+        {
+            var prv = ProbeReferenceVolume.instance;
+            GeneratePhysicsComponentToModList();
+            if (prv.perSceneDataList.Count > 0)
+            {
+                SetBakingContext(prv.perSceneDataList);
+            }
+            else return;
+
+
+            globalBounds = prv.globalBounds;
+            CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize());
+            cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
+
+            m_BakingBatch = new BakingBatch(128, cellCount);
+
+            List<BakingCell> bakingCells = new List<BakingCell>();
+
+            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+            {
+                var cell = cellInfo.cell;
+                var bakingCell = ConvertCellToBakingCell(cell);
+                var positions = bakingCell.probePositions;
+
+                for (int i=0; i<positions.Length; ++i)
+                {
+                    int probeHash = m_BakingBatch.GetProbePositionHash(positions[i]);
+                    int subdivLevel = bakingCell.bricks[i / 64].subdivisionLevel;
+                    if (m_BakingBatch.uniqueBrickSubdiv.TryGetValue(probeHash, out int currSubdiv))
+                    {
+                        subdivLevel = Mathf.Min(subdivLevel, currSubdiv);
+                    }
+                    m_BakingBatch.uniqueBrickSubdiv[probeHash] = subdivLevel;
+                }
+
+                ApplyVirtualOffsets(bakingCell.probePositions, out Vector3[] newOffsets);
+
+                // Remove offsets before handing it over for debug
+                for (int i = 0; i < positions.Length; ++i)
+                {
+                    bakingCell.probePositions[i] -= newOffsets[i];
+                }
+
+                bakingCell.offsetVectors = newOffsets;
+
+                // We need to force rebuild debug stuff.
+                cellInfo.debugProbes = null;
+
+                bakingCells.Add(bakingCell);
+            }
+
+            RestorePhysicsComponentsAfterBaking();
+            CleanupOccluders();
+
+            // Unload it all as we are gonna load back with newly written cells.
+            foreach (var sceneData in prv.perSceneDataList)
+            {
+                prv.AddPendingAssetRemoval(sceneData.asset);
+            }
+
+            // Make sure unloading happens.
+            prv.PerformPendingOperations();
+
+
+            // We now need to make sure we find for each PerSceneData
+            foreach (var data in prv.perSceneDataList)
+            {
+                List<BakingCell> newCells = new List<BakingCell>();
+                // This is a bit naive now. Should be fine tho.
+                for (int i = 0; i < data.asset.cells.Length; ++i)
+                {
+                    var currCell = data.asset.cells[i];
+                    var bc = bakingCells.Find(x => x.index == currCell.index);
+                    newCells.Add(bc);
+                }
+
+                // Write bake the assets.
+                WriteBakingCells(data, newCells);
+                data.ResolveCells();
+            }
+
+
+            // We can now finally reload.
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            foreach (var sceneData in prv.perSceneDataList)
+            {
+                prv.AddPendingAssetLoading(sceneData.asset);
+            }
+
+            prv.PerformPendingOperations();
         }
     }
 }

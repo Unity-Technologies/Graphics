@@ -208,8 +208,7 @@ namespace UnityEngine.Rendering.Universal
 
                     int instanceCount = instanceIndex - instanceStart;
                     bool isReachedMaximumBatchSize = instanceCount >= 250;
-                    bool isLastDecal = i == visibleDecalCount - 1;
-                    if (isReachedMaximumBatchSize || isLastDecal)
+                    if (isReachedMaximumBatchSize)
                     {
                         subCalls[subCallIndex++] = new DecalSubDrawCall()
                         {
@@ -218,6 +217,16 @@ namespace UnityEngine.Rendering.Universal
                         };
                         instanceStart = instanceIndex;
                     }
+                }
+
+                int remainingInstanceCount = instanceIndex - instanceStart;
+                if (remainingInstanceCount != 0)
+                {
+                    subCalls[subCallIndex++] = new DecalSubDrawCall()
+                    {
+                        start = instanceStart,
+                        end = instanceIndex,
+                    };
                 }
 
                 subCallCount[0] = subCallIndex;

@@ -9,7 +9,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
         [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
         [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
-        [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
         [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
         [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
     }
@@ -28,6 +27,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
@@ -36,13 +36,14 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_3 __
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
 
             struct Attributes
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-                float2  uv          : TEXCOORD0;
+                float2 uv           : TEXCOORD0;
+                UNITY_SKINNED_VERTEX_INPUTS
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -64,9 +65,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
-            half4 _MainTex_ST;
-            float4 _Color;
-            half4 _RendererColor;
+
+            // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
+            CBUFFER_START(UnityPerMaterial)
+                half4 _MainTex_ST;
+                half4 _NormalMap_ST;  // Is this the right way to do this?
+                half4 _Color;
+            CBUFFER_END
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
@@ -89,7 +94,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 Varyings o = (Varyings)0;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                UNITY_SKINNED_VERTEX_COMPUTE(v);
 
+                v.positionOS = UnityFlipSprite(v.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
@@ -97,7 +104,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
 
-                o.color = v.color * _Color * _RendererColor;
+                o.color = v.color * _Color * unity_SpriteColor;
                 return o;
             }
 
@@ -124,9 +131,12 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 
             #pragma vertex NormalsRenderingVertex
             #pragma fragment NormalsRenderingFragment
+
+            #pragma multi_compile _ SKINNED_SPRITE
 
             struct Attributes
             {
@@ -134,6 +144,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float4 color        : COLOR;
                 float2 uv           : TEXCOORD0;
                 float4 tangent      : TANGENT;
+                UNITY_SKINNED_VERTEX_INPUTS
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -152,14 +163,22 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
-            half4 _NormalMap_ST;  // Is this the right way to do this?
+
+            // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
+            CBUFFER_START( UnityPerMaterial )
+                half4 _MainTex_ST;
+                half4 _NormalMap_ST;  // Is this the right way to do this?
+                half4 _Color;
+            CBUFFER_END
 
             Varyings NormalsRenderingVertex(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
                 UNITY_SETUP_INSTANCE_ID(attributes);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                UNITY_SKINNED_VERTEX_COMPUTE(attributes);
 
+                attributes.positionOS = UnityFlipSprite(attributes.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.color = attributes.color;
@@ -187,15 +206,19 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
+
+            #pragma multi_compile _ SKINNED_SPRITE
 
             struct Attributes
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2 uv           : TEXCOORD0;
+                UNITY_SKINNED_VERTEX_INPUTS
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -212,22 +235,28 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
-            float4 _MainTex_ST;
-            float4 _Color;
-            half4 _RendererColor;
+
+            // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
+            CBUFFER_START( UnityPerMaterial )
+                half4 _MainTex_ST;
+                half4 _NormalMap_ST;  // Is this the right way to do this?
+                half4 _Color;
+            CBUFFER_END
 
             Varyings UnlitVertex(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
                 UNITY_SETUP_INSTANCE_ID(attributes);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                UNITY_SKINNED_VERTEX_COMPUTE(attributes);
 
+                attributes.positionOS = UnityFlipSprite( attributes.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.color = attributes.color * _Color * _RendererColor;
+                o.color = attributes.color * _Color * unity_SpriteColor;
                 return o;
             }
 

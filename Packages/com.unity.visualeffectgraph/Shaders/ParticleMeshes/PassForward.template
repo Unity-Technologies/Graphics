@@ -1,14 +1,15 @@
 // Forward pass
 Pass
-{		
+{
+    Name ${VFXPassForward}
 	Tags { "LightMode"=${VFXPassForward} }
-	
+
 	${VFXStencilForward}
 
 	HLSLPROGRAM
 	#pragma target 4.5
 	${VFXPassForwardAdditionalPragma}
-	
+
 	${VFXInclude("Shaders/ParticleMeshes/PassForwardCommon.template")}
 	ENDHLSL
 }

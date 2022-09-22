@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
 
@@ -114,6 +115,13 @@ namespace UnityEditor.VFX.HDRP
 
             return false;
         }
+
+        public override bool GetSupportsRayTracing()
+        {
+            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing &&
+                   HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportVFXRayTracing;
+        }
+
 
         public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
         {
@@ -251,6 +259,15 @@ namespace UnityEditor.VFX.HDRP
                 fieldDependencies = ElementSpaceDependencies,
                 useFragInputs = true
             };
+        }
+
+        public override IEnumerable<GraphicsDeviceType> GetSupportedGraphicDevices()
+        {
+            foreach (var device in base.GetSupportedGraphicDevices())
+            {
+                if (HDUtils.IsSupportedGraphicDevice(device))
+                    yield return device;
+            }
         }
     }
 }

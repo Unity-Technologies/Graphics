@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // APV
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeFragmentationDebug.shader")]
+            public Shader probeVolumeFragmentationDebugShader;
             [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
             public Shader probeVolumeOffsetDebugShader;
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
@@ -116,6 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
+            [Reload("Runtime/Material/SubsurfaceScattering/RandomDownsample.compute")]
+            public ComputeShader subsurfaceScatteringDownsampleCS;
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
             public Shader combineLightingPS;
 

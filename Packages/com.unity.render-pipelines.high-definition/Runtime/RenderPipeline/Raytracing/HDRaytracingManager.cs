@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.VFX;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -65,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Static variables used for the dirtiness and manual rtas management
         const int maxNumSubMeshes = 32;
         static RayTracingSubMeshFlags[] subMeshFlagArray = new RayTracingSubMeshFlags[maxNumSubMeshes];
+        static uint[] vfxSystemMasks = new uint[maxNumSubMeshes];
         static List<Material> materialArray = new List<Material>(maxNumSubMeshes);
         static Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
 
@@ -225,62 +227,54 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public static AccelerationStructureStatus AddInstanceToRAS(RayTracingAccelerationStructure targetRTAS, Renderer currentRenderer, HDEffectsParameters effectsParameters, ref bool transformDirty, ref bool materialsDirty)
         {
-            // Get all the materials of the mesh renderer
-            currentRenderer.GetSharedMaterials(materialArray);
-            // If the array is null, we are done
-            if (materialArray == null) return AccelerationStructureStatus.NullMaterial;
+            if (currentRenderer is VFXRenderer vfxRenderer)
+                return AddVFXInstanceToRAS(targetRTAS, vfxRenderer, effectsParameters, ref transformDirty, ref materialsDirty);
+            return AddRegularInstanceToRAS(targetRTAS, currentRenderer, effectsParameters, ref transformDirty, ref materialsDirty);
+        }
 
+        private static AccelerationStructureStatus AddRegularInstanceToRAS(RayTracingAccelerationStructure targetRTAS,
+            Renderer currentRenderer, HDEffectsParameters effectsParameters, ref bool transformDirty, ref bool materialsDirty)
+        {
             // For every sub-mesh/sub-material let's build the right flags
             int numSubMeshes = 1;
-            if (!(currentRenderer.GetType() == typeof(SkinnedMeshRenderer)))
-            {
-                currentRenderer.TryGetComponent(out MeshFilter meshFilter);
-                if (meshFilter == null || meshFilter.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
-                numSubMeshes = meshFilter.sharedMesh.subMeshCount;
-            }
-            else
+            if (currentRenderer.GetType() == typeof(SkinnedMeshRenderer))
             {
                 SkinnedMeshRenderer skinnedMesh = (SkinnedMeshRenderer)currentRenderer;
                 if (skinnedMesh.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
+                currentRenderer.GetSharedMaterials(materialArray);
                 numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
             }
+            else
+            {
+                currentRenderer.TryGetComponent(out MeshFilter meshFilter);
+                if (meshFilter == null || meshFilter.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
+                currentRenderer.GetSharedMaterials(materialArray);
+                numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+            }
+
+            // If the material array is null, we are done
+            if (materialArray == null) return AccelerationStructureStatus.NullMaterial;
 
             // Let's clamp the number of sub-meshes to avoid throwing an unwanted error
             numSubMeshes = Mathf.Min(numSubMeshes, maxNumSubMeshes);
 
-            // Get the layer of this object
-            int objectLayerValue = 1 << currentRenderer.gameObject.layer;
-
-            // We need to build the instance flag for this renderer
-            uint instanceFlag = 0x00;
-
             bool doubleSided = false;
             bool materialIsOnlyTransparent = true;
             bool hasTransparentSubMaterial = false;
-
-            // We disregard the ray traced shadows option when in Path Tracing
-            bool rayTracedShadow = effectsParameters.shadows && !effectsParameters.pathTracing;
-
-            // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
-            bool pathTracing = effectsParameters.pathTracing && (bool)((effectsParameters.ptLayerMask & objectLayerValue) != 0);
-
-            for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
+            for (int subGeomIdx = 0; subGeomIdx < numSubMeshes; ++subGeomIdx)
             {
                 // Initially we consider the potential mesh as invalid
                 bool validMesh = false;
-                if (materialArray.Count > meshIdx)
+                if (materialArray.Count > subGeomIdx)
                 {
                     // Grab the material for the current sub-mesh
-                    Material currentMaterial = materialArray[meshIdx];
+                    Material currentMaterial = materialArray[subGeomIdx];
 
                     // Make sure that the material is HDRP's and non-decal
                     if (IsValidRayTracedMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
-
-                        // First mark the thing as valid
-                        subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled;
 
                         // Evaluate what kind of materials we are dealing with
                         bool alphaTested = IsAlphaTestedMaterial(currentMaterial);
@@ -290,15 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         materialIsOnlyTransparent &= transparentMaterial;
                         hasTransparentSubMaterial |= transparentMaterial;
 
-                        // Append the additional flags depending on what kind of sub mesh this is
-                        if (!transparentMaterial && !alphaTested)
-                            subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.ClosestHitOnly;
-                        else if (transparentMaterial)
-                            subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.UniqueAnyHitCalls;
-
-                        // Check if we want to enable double-sidedness for the mesh
-                        // (note that a mix of single and double-sided materials will result in a double-sided mesh in the AS)
-                        doubleSided |= currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+                        ComputeSubMeshFlag(subGeomIdx, transparentMaterial, alphaTested, currentMaterial, ref doubleSided);
 
                         // Check if the material has changed since last time we were here
                         if (!materialsDirty)
@@ -310,7 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If the mesh was not valid, exclude it (without affecting sidedness)
                 if (!validMesh)
-                    subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Disabled;
+                    subMeshFlagArray[subGeomIdx] = RayTracingSubMeshFlags.Disabled;
             }
 
             // If the material is considered opaque, every sub-mesh has to be enabled and with unique any hit calls
@@ -318,6 +304,124 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                     subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.UniqueAnyHitCalls;
 
+            // We need to build the instance flag for this renderer
+            uint instanceFlag = ComputeInstanceFlag(currentRenderer, currentRenderer.shadowCastingMode, effectsParameters,
+                hasTransparentSubMaterial, materialIsOnlyTransparent);
+
+            // If the object was not referenced
+            if (instanceFlag == 0) return AccelerationStructureStatus.Added;
+
+            targetRTAS.AddInstance(currentRenderer, subMeshFlags: subMeshFlagArray, enableTriangleCulling: !doubleSided,
+                    mask: instanceFlag);
+
+            // Indicates that a transform has changed in our scene (mesh or light)
+            transformDirty |= currentRenderer.transform.hasChanged;
+            currentRenderer.transform.hasChanged = false;
+
+            // return the status
+            return (!materialIsOnlyTransparent && hasTransparentSubMaterial)
+                ? AccelerationStructureStatus.TransparencyIssue
+                : AccelerationStructureStatus.Added;
+        }
+
+        private static AccelerationStructureStatus AddVFXInstanceToRAS(RayTracingAccelerationStructure targetRTAS, VFXRenderer currentRenderer, HDEffectsParameters effectsParameters, ref bool transformDirty, ref bool materialsDirty)
+        {
+
+            // If we should exclude Visual effects, skip right now
+            if (!effectsParameters.includeVFX)
+                return AccelerationStructureStatus.Excluded;
+
+            currentRenderer.GetSharedMaterials(materialArray);
+            int numSubGeom = materialArray.Count;
+
+            // If the material array is null, we are done
+            if (materialArray == null) return AccelerationStructureStatus.NullMaterial;
+
+            // Let's clamp the number of sub-meshes to avoid throwing an unwanted error
+            numSubGeom = Mathf.Min(numSubGeom, maxNumSubMeshes);
+
+            bool materialIsOnlyTransparent = true;
+            bool hasTransparentSubMaterial = false;
+            int compactedSubGeomIndex = 0; // For VFX, we expect no holes in the system mask array
+            bool hasAnyValidInstance = false;
+            for (int subGeomIdx = 0; subGeomIdx < numSubGeom; ++subGeomIdx)
+            {
+                if (materialArray.Count > subGeomIdx)
+                {
+                    // Grab the material for the current sub-mesh
+                    Material currentMaterial = materialArray[subGeomIdx];
+
+                    // Make sure that the material is HDRP's and non-decal
+                    if (IsValidRayTracedMaterial(currentMaterial))
+                    {
+                        // Evaluate what kind of materials we are dealing with
+                        bool transparentMaterial = IsTransparentMaterial(currentMaterial);
+
+                        // Aggregate the transparency info
+                        materialIsOnlyTransparent &= transparentMaterial;
+                        hasTransparentSubMaterial |= transparentMaterial;
+
+                        ShadowCastingMode shadowCastingMode = currentMaterial.FindPass("ShadowCaster") != -1 ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                        uint instanceFlag = ComputeInstanceFlag(currentRenderer, shadowCastingMode, effectsParameters, transparentMaterial, transparentMaterial);
+                        hasAnyValidInstance |= (instanceFlag != 0);
+                        vfxSystemMasks[compactedSubGeomIndex] = instanceFlag;
+                        compactedSubGeomIndex++;
+
+                        // Check if the material has changed since last time we were here
+                        if (!materialsDirty)
+                        {
+                            materialsDirty |= UpdateMaterialCRC(currentMaterial.GetInstanceID(), currentMaterial.ComputeCRC());
+                        }
+                    }
+                }
+
+            }
+
+            // If the object was not referenced
+            if (!hasAnyValidInstance) return AccelerationStructureStatus.Added;
+
+            // Add it to the acceleration structure
+            targetRTAS.AddVFXInstances(currentRenderer, vfxSystemMasks);
+
+            // Indicates that a transform has changed in our scene (mesh or light)
+            transformDirty |= currentRenderer.transform.hasChanged;
+            currentRenderer.transform.hasChanged = false;
+
+            // return the status
+            return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
+        }
+
+        private static void ComputeSubMeshFlag(int meshIdx, bool transparentMaterial, bool alphaTested,
+            Material currentMaterial,
+            ref bool doubleSided)
+        {
+            // Mark the thing as valid
+            subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled;
+
+            // Append the additional flags depending on what kind of sub mesh this is
+            if (!transparentMaterial && !alphaTested)
+                subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.ClosestHitOnly;
+            else if (transparentMaterial)
+                subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.UniqueAnyHitCalls;
+
+            // Check if we want to enable double-sidedness for the mesh
+            // (note that a mix of single and double-sided materials will result in a double-sided mesh in the AS)
+            doubleSided |= currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+        }
+
+        private static uint ComputeInstanceFlag(Renderer currentRenderer, ShadowCastingMode shadowCastingMode, HDEffectsParameters effectsParameters,
+            bool hasTransparentSubMaterial, bool materialIsOnlyTransparent)
+        {
+            uint instanceFlag = 0x00;
+
+            // Get the layer of this object
+            int objectLayerValue = 1 << currentRenderer.gameObject.layer;
+
+            // We disregard the ray traced shadows option when in Path Tracing
+            bool rayTracedShadow = effectsParameters.shadows && !effectsParameters.pathTracing;
+
+            // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
+            bool pathTracing = effectsParameters.pathTracing && (bool)((effectsParameters.ptLayerMask & objectLayerValue) != 0);
 
             // Propagate the opacity mask only if all sub materials are opaque
             bool isOpaque = !hasTransparentSubMaterial;
@@ -331,40 +435,52 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hasTransparentSubMaterial)
                 {
                     // Raise the shadow casting flag if needed
-                    instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadowTransparent) : 0x00);
+                    instanceFlag |= ((shadowCastingMode != ShadowCastingMode.Off)
+                        ? (uint)(RayTracingRendererFlag.CastShadowTransparent)
+                        : 0x00);
                 }
                 else
                 {
                     // Raise the shadow casting flag if needed
-                    instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadowOpaque) : 0x00);
+                    instanceFlag |= ((shadowCastingMode != ShadowCastingMode.Off)
+                        ? (uint)(RayTracingRendererFlag.CastShadowOpaque)
+                        : 0x00);
                 }
             }
 
             // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
-            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
+            bool meshIsVisible = shadowCastingMode != ShadowCastingMode.ShadowsOnly;
 
             if (effectsParameters.ambientOcclusion && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Ambient Occlusion flag if needed
-                instanceFlag |= ((effectsParameters.aoLayerMask & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.AmbientOcclusion) : 0x00;
+                instanceFlag |= ((effectsParameters.aoLayerMask & objectLayerValue) != 0)
+                    ? (uint)(RayTracingRendererFlag.AmbientOcclusion)
+                    : 0x00;
             }
 
             if (effectsParameters.reflections && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Screen Space Reflection flag if needed
-                instanceFlag |= ((effectsParameters.reflLayerMask & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.Reflection) : 0x00;
+                instanceFlag |= ((effectsParameters.reflLayerMask & objectLayerValue) != 0)
+                    ? (uint)(RayTracingRendererFlag.Reflection)
+                    : 0x00;
             }
 
             if (effectsParameters.globalIllumination && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Global Illumination flag if needed
-                instanceFlag |= ((effectsParameters.giLayerMask & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.GlobalIllumination) : 0x00;
+                instanceFlag |= ((effectsParameters.giLayerMask & objectLayerValue) != 0)
+                    ? (uint)(RayTracingRendererFlag.GlobalIllumination)
+                    : 0x00;
             }
 
             if (effectsParameters.recursiveRendering && meshIsVisible)
             {
                 // Raise the Recursive Rendering flag if needed
-                instanceFlag |= ((effectsParameters.recursiveLayerMask & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.RecursiveRendering) : 0x00;
+                instanceFlag |= ((effectsParameters.recursiveLayerMask & objectLayerValue) != 0)
+                    ? (uint)(RayTracingRendererFlag.RecursiveRendering)
+                    : 0x00;
             }
 
             if (effectsParameters.pathTracing && meshIsVisible)
@@ -373,18 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceFlag |= (uint)(RayTracingRendererFlag.PathTracing);
             }
 
-            // If the object was not referenced
-            if (instanceFlag == 0) return AccelerationStructureStatus.Added;
-
-            // Add it to the acceleration structure
-            targetRTAS.AddInstance(currentRenderer, subMeshFlags: subMeshFlagArray, enableTriangleCulling: !doubleSided, mask: instanceFlag);
-
-            // Indicates that a transform has changed in our scene (mesh or light)
-            transformDirty |= currentRenderer.transform.hasChanged;
-            currentRenderer.transform.hasChanged = false;
-
-            // return the status
-            return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
+            return instanceFlag;
         }
 
         void CollectLightsForRayTracing(HDCamera hdCamera, ref bool transformDirty)
@@ -513,6 +618,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pathTracing = pathTracingSettings.enable.value;
             parameters.ptLayerMask = pathTracingSettings.layerMask.value;
 
+            // Aggregate the VFX parameters
+            parameters.includeVFX = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RaytracingVFX);
+
             // We need to check if at least one effect will require the acceleration structure
             parameters.rayTracingRequired = parameters.ambientOcclusion || parameters.reflections
                 || parameters.globalIllumination || parameters.recursiveRendering || parameters.subSurface
@@ -540,6 +648,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
+
+            if (m_VFXRayTracingSupported && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RaytracingVFX))
+                VFXManager.RequestRtasAabbConstruction();
 
             // Collect the lights
             CollectLightsForRayTracing(hdCamera, ref m_RTASManager.transformsDirty);

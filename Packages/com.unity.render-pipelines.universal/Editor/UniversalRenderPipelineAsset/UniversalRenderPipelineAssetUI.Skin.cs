@@ -83,6 +83,15 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
             public static GUIContent conservativeEnclosingSphere = EditorGUIUtility.TrTextContent("Conservative Enclosing Sphere", "Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades. Disable this option only for compatibility purposes of existing projects created in previous Unity versions.");
 
+            public static GUIContent softShadowsQuality = EditorGUIUtility.TrTextContent("Quality", "Default shadow quality setting for Lights.");
+            public static GUIContent[] softShadowsQualityAssetOptions =
+            {
+                EditorGUIUtility.TrTextContent(nameof(SoftShadowQuality.Low)),
+                EditorGUIUtility.TrTextContent(nameof(SoftShadowQuality.Medium)),
+                EditorGUIUtility.TrTextContent(nameof(SoftShadowQuality.High))
+            };
+            public static int[] softShadowsQualityAssetValues =  { (int)SoftShadowQuality.Low, (int)SoftShadowQuality.Medium, (int)SoftShadowQuality.High };
+
             // Post-processing
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");

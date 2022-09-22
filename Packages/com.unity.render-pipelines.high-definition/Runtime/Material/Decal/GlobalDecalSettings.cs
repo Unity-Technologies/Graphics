@@ -8,11 +8,13 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public struct GlobalDecalSettings
     {
+        internal const int k_DefaultAtlasSize = 4096;
+
         internal static GlobalDecalSettings NewDefault() => new GlobalDecalSettings()
         {
             drawDistance = 1000,
-            atlasWidth = 4096,
-            atlasHeight = 4096
+            atlasWidth = k_DefaultAtlasSize,
+            atlasHeight = k_DefaultAtlasSize
         };
 
         /// <summary>Maximum draw distance.</summary>

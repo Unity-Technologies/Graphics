@@ -209,13 +209,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static string k_PanelMaterials = "Material";
         static string k_PanelLighting = "Lighting";
         static string k_PanelRendering = "Rendering";
-        static string k_PanelDecals = "Decals";
 
         DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
         DebugUI.Widget[] m_DebugLightingItems;
         DebugUI.Widget[] m_DebugRenderingItems;
-        DebugUI.Widget[] m_DebugDecalsItems;
 
         static GUIContent[] s_LightingFullScreenDebugStrings = null;
         static int[] s_LightingFullScreenDebugValues = null;
@@ -300,8 +298,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public MonitorsDebugSettings monitorsDebugSettings = new MonitorsDebugSettings();
             /// <summary>Current false color debug settings.</summary>
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
+
             /// <summary>Current decals debug settings.</summary>
-            public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
+            [Obsolete("decalsDebugSettings has been deprecated, please use HDDebugDisplaySettings.Instance.decalSettings instead", false)]
+            public DecalsDebugSettings decalsDebugSettings = HDDebugDisplaySettings.Instance.decalSettings.m_Data;
+
             /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Index of screen space shadow to display.</summary>
@@ -1072,7 +1073,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_DebugDisplayStatsItems = list.ToArray();
-            var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
+            var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true, groupIndex: int.MinValue);
             panel.flags = DebugUI.Flags.RuntimeOnly;
             panel.children.Add(m_DebugDisplayStatsItems);
         }
@@ -1239,12 +1240,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             RegisterLightingDebug();
-        }
-
-        void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
-            RegisterDecalsDebug();
         }
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
@@ -1962,37 +1957,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 graph.UnRegisterDebug();
         }
 
-        static class DecalStrings
-        {
-            public static readonly NameAndTooltip DisplayAtlas = new() { name = "Display Atlas", tooltip = "Enable the checkbox to debug and display the decal atlas for a Camera in the top left of that Camera's view." };
-            public static readonly NameAndTooltip MipLevel = new() { name = "Mip Level", tooltip = "Use the slider to select the mip level for the decal atlas." };
-        }
-
-        void RegisterDecalsDebug()
-        {
-            var decalAffectingTransparent = new DebugUI.Container()
-            {
-                displayName = "Decals Affecting Transparent Objects",
-                children =
-                {
-                    new DebugUI.BoolField { nameAndTooltip = DecalStrings.DisplayAtlas, getter = () => data.decalsDebugSettings.displayAtlas, setter = value => data.decalsDebugSettings.displayAtlas = value},
-                    new DebugUI.UIntField { nameAndTooltip = DecalStrings.MipLevel, getter = () => data.decalsDebugSettings.mipLevel, setter = value => data.decalsDebugSettings.mipLevel = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline)?.GetDecalAtlasMipCount() }
-                }
-            };
-
-            m_DebugDecalsItems = new DebugUI.Widget[]
-            {
-                CreateMissingDebugShadersWarning(),
-                decalAffectingTransparent
-            };
-
-            var panel = DebugManager.instance.GetPanel(k_PanelDecals, true);
-            panel.children.Add(m_DebugDecalsItems);
-        }
-
         internal void RegisterDebug()
         {
-            RegisterDecalsDebug();
             RegisterDisplayStatsDebug();
             RegisterMaterialDebug();
             RegisterLightingDebug();
@@ -2002,7 +1968,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UnregisterDebug()
         {
-            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
             UnregisterDisplayStatsDebug();
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);

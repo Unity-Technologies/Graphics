@@ -6,16 +6,12 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    FragInputs fragInput;
+    GetCurrentVertexAndBuildFragInputs(attributeData, currentVertex, fragInput);
 
     // Evaluate the incident direction
     const float3 incidentDir = WorldRayDirection();
-
-    // Build the Frag inputs from the intersection vertice
-    FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
@@ -60,16 +56,12 @@ void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayP
 
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    FragInputs fragInput;
+    GetCurrentVertexAndBuildFragInputs(attributeData, currentVertex, fragInput);
 
     // Evaluate the incident direction
     const float3 incidentDir = WorldRayDirection();
-
-    // Build the Frag inputs from the intersection vertice
-    FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

@@ -1,9 +1,13 @@
 #pragma kernel CSMain
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
+${VFXPragmaOnlyRenderers}
 ${VFXPragmaRequire}
 
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
+
+#ifdef VFX_RT_DECIMATION_FACTOR
+#pragma multi_compile _ VFX_COMPUTE_AABBS
+#endif
 
 #if HAS_STRIPS
 RWStructuredBuffer<uint> stripDataBuffer;
@@ -274,5 +278,10 @@ ${VFXFeedSortingKeys}
 #endif
             }
 		}
+        #if VFX_COMPUTE_AABBS
+                ${VFXLoadSizeRT}
+                int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+                FillAabbBuffer(attributes, size3, index, instanceIndex, rayTracingDecimationFactor);
+        #endif
 	}
 }

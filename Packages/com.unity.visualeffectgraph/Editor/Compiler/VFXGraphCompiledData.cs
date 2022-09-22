@@ -751,6 +751,7 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
             {
+                List<VFXContext> failingContexts = null;
                 foreach (var context in contexts)
                 {
                     var gpuMapper = graph.BuildGPUMapper(context);
@@ -776,10 +777,19 @@ namespace UnityEditor.VFX
                                 content = generatedContent
                             });
                         }
+                        else
+                        {
+                            failingContexts ??= new List<VFXContext>();
+                            failingContexts.Add(context);
+                        }
                     }
                 }
 
-                var resource = m_Graph.GetResource();
+                if (failingContexts != null)
+                {
+                    var failingContextNames = failingContexts.Select(o => string.IsNullOrEmpty(o.label) ? o.name : $"{o.name} ({o.label})").Aggregate((a, b) => $"{a}, {b}");
+                    throw new InvalidOperationException($"Code generation failure from context {failingContextNames}");
+                }
             }
             finally
             {
@@ -1208,13 +1218,8 @@ namespace UnityEditor.VFX
             }
             catch (Exception e)
             {
-                VisualEffectAsset asset = null;
-
-                if (m_Graph.visualEffectResource != null)
-                    asset = m_Graph.visualEffectResource.asset;
-
-                Debug.LogError(string.Format("{2} : Exception while compiling expression graph: {0}: {1}", e, e.StackTrace, (asset != null) ? asset.name : "(Null Asset)"), asset);
-
+                var error = $"Unity cannot compile the VisualEffectAsset at path \"{assetPath}\" because of the following exception:\n{e}";
+                Debug.LogError(error);
                 CleanRuntimeData();
             }
             finally

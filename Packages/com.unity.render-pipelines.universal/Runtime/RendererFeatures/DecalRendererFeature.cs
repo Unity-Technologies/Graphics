@@ -517,8 +517,8 @@ namespace UnityEngine.Rendering.Universal
                         m_DBufferRenderPass.dBufferDepth
                     );
                     m_CopyDepthPass.CopyToDepth = true;
+                    m_CopyDepthPass.MssaSamples = 1;
                 }
-                m_CopyDepthPass.MssaSamples = 1;
             }
             else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseRenderPass)
             {

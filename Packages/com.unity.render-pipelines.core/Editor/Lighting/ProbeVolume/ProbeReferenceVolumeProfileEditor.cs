@@ -17,14 +17,14 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             // TODO: Better tooltip are needed here.
-            public static readonly GUIContent maxDistanceBetweenProbes = new GUIContent("Max Distance Between Probes", "The maximal distance between two probes in meters. Determines how many bricks are in a streamable unit.");
-            public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
-            public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
+            public static readonly GUIContent maxDistanceBetweenProbes = new GUIContent("Max Probe Spacing", "Maximum distance between probes, in meters. Determines the number of bricks in a streamable unit.");
+            public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Probe Spacing", "Minimum distance between probes, in meters.");
+            public static readonly string simplificationLevelsHighWarning = "It is not recommended to use more than 3 subdivision levels due to memory and performance costs.";
             public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
-            public static readonly GUIContent minRendererVolumeSize = new GUIContent("Min Renderer Volume Size", "Specifies the minimum bounding box volume of renderers to consider placing probes around.");
-            public static readonly GUIContent renderersLayerMask = new GUIContent("Layer Mask", "Specifies the layer mask for renderers when placing probes.");
-            public static readonly GUIContent rendererFilterSettings = new GUIContent("Renderers Filter Settings");
-            public static readonly GUIContent keepSamePlacement = new GUIContent("Freeze Placement", "If the option is set, the placement is derived from already baked data even if geometry is changed. This can be used to bake compatible scenarios with minor changes in geometry in the scene.");
+            public static readonly GUIContent minRendererVolumeSize = new GUIContent("Min Renderer Size", "The smallest Renderer size to consider when placing probes.");
+            public static readonly GUIContent renderersLayerMask = new GUIContent("Layer Mask", "Specify Layers to use when generating probe positions.");
+            public static readonly GUIContent rendererFilterSettings = new GUIContent("Renderer Filter Settings");
+            public static readonly GUIContent keepSamePlacement = new GUIContent("Freeze Placement", "Don't recalculate probe positions after the first bake. Allows blending between Scenarios that include small differences in Scene geometry.");
 
             public static readonly GUIStyle labelFont = new GUIStyle(EditorStyles.label);
         }
@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering
 
                 int levels = m_SimplificationLevels.intValue;
                 MessageType helpBoxType = MessageType.Info;
-                string helpBoxText = $"Scene will contain at most {levels} simplification levels.";
+                string helpBoxText = $"This Baking Set can use a maximum of {levels} probe subdivision levels.";
                 if (levels == 5)
                 {
                     helpBoxType = MessageType.Warning;

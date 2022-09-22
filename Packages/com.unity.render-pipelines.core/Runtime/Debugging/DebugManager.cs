@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.UI;
+
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH
 using UnityEngine.UI;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -317,6 +321,24 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns the panel index
+        /// </summary>
+        /// <param name="displayName">The displayname for the panel</param>
+        /// <returns>The index for the panel or -1 if not found.</returns>
+        public int PanelIndex([DisallowNull] string displayName)
+        {
+            displayName ??= string.Empty;
+
+            for (int i = 0; i < m_Panels.Count; ++i)
+            {
+                if (displayName.Equals(m_Panels[i].displayName, StringComparison.InvariantCultureIgnoreCase))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
         /// Request DebugWindow to open the specified panel.
         /// </summary>
         /// <param name="index">Index of the debug window panel to activate.</param>
@@ -346,16 +368,8 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0, bool overrideIfExist = false)
         {
-            DebugUI.Panel p = null;
-
-            foreach (var panel in m_Panels)
-            {
-                if (panel.displayName == displayName)
-                {
-                    p = panel;
-                    break;
-                }
-            }
+            int panelIndex = PanelIndex(displayName);
+            DebugUI.Panel p = panelIndex >= 0 ? m_Panels[panelIndex] : null;
 
             if (p != null)
             {
@@ -424,6 +438,47 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Gets an <see cref="DebugUI.Widget[]"/> matching the given <see cref="DebugUI.Flags"/>
+        /// </summary>
+        /// <param name="flags">The flags of the widget</param>
+        /// <returns>Reference to the requested debug item.</returns>
+        public DebugUI.Widget[] GetItems(DebugUI.Flags flags)
+        {
+            using (ListPool<DebugUI.Widget>.Get(out var temp))
+            {
+                foreach (var panel in m_Panels)
+                {
+                    var widgets = GetItemsFromContainer(flags, panel);
+                    temp.AddRange(widgets);
+                }
+
+                return temp.ToArray();
+            }
+        }
+
+        internal DebugUI.Widget[] GetItemsFromContainer(DebugUI.Flags flags, DebugUI.IContainer container)
+        {
+            using (ListPool<DebugUI.Widget>.Get(out var temp))
+            {
+                foreach (var child in container.children)
+                {
+                    if (child.flags.HasFlag(flags))
+                    {
+                        temp.Add(child);
+                        continue;
+                    }
+
+                    if (child is DebugUI.IContainer containerChild)
+                    {
+                        temp.AddRange(GetItemsFromContainer(flags, containerChild));
+                    }
+                }
+
+                return temp.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Get a Debug Item.
         /// </summary>
         /// <param name="queryPath">Path of the debug item.</param>
@@ -453,8 +508,7 @@ namespace UnityEngine.Rendering
                 if (child.queryPath == queryPath)
                     return child;
 
-                var containerChild = child as DebugUI.IContainer;
-                if (containerChild != null)
+                if (child is DebugUI.IContainer containerChild)
                 {
                     var w = GetItem(queryPath, containerChild);
                     if (w != null)

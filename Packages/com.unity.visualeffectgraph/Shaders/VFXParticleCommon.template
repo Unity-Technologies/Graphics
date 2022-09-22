@@ -53,8 +53,36 @@ o.instanceActiveIndex = instanceActiveIndex;
 #endif
 ${VFXEnd}
 
+${VFXBegin:VFXGetRTScalingFactor}
+float3 rtScale = float3(1,1,1);
+#if VFX_USE_RT_CUSTOM_SCALE
+    ${VFXLoadParameter:{rayTracedScaling}}
+    rtScale = float3(rayTracedScaling, 1.0f);
+#else
+    #ifdef VFX_RT_DEFAULT_SCALE
+        rtScale = VFX_RT_DEFAULT_SCALE;
+    #endif
+#endif
+${VFXEnd}
+
+
 ${VFXBegin:VFXLoadSize}
 float3 size3 = float3(attributes.size,attributes.size,attributes.size);
+#if VFX_USE_SCALEX_CURRENT
+size3.x *= attributes.scaleX;
+#endif
+#if VFX_USE_SCALEY_CURRENT
+size3.y *= attributes.scaleY;
+#endif
+#if VFX_USE_SCALEZ_CURRENT
+size3.z *= attributes.scaleZ;
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXLoadSizeRT}
+float3 size3 = float3(attributes.size,attributes.size,attributes.size);
+${VFXGetRTScalingFactor}
+size3 *= rtScale;
 #if VFX_USE_SCALEX_CURRENT
 size3.x *= attributes.scaleX;
 #endif
@@ -167,6 +195,22 @@ float4 cPos = TransformPositionVFXToNonJitteredClip(vPos);
 	o.VFX_VARYING_VELOCITY_CPOS = cPos;
 #endif
 
+}
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXVertexComputeDisplacement}
+float displacement = 0.0;
+#if VFX_FEATURE_MOTION_VECTORS
+uint elementToVFXBaseIndex;
+float3 previousWS;
+
+${VFXLoadParameter:{currentFrameIndex}}
+if (TryGetElementToVFXBaseIndex(index, instanceIndex, elementToVFXBaseIndex, currentFrameIndex))
+{
+    float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
+    previousWS = TransformPreviousVFXPositionToWorld(mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz);
+    displacement = length(currentWS - previousWS);
 }
 #endif
 ${VFXEnd}
@@ -372,6 +416,18 @@ ${VFXBegin:VFXFeedSortingKeys}
 #endif //VFX_[CRITERION]_SORT_KEY
                 output.index = index;
                 output.sortKey *= SORTING_SIGN;
+${VFXEnd}
+
+${VFXBegin:VFXGetIndexFromRTPrimitiveIndex}
+#ifdef VFX_RT_DECIMATION_FACTOR
+int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+#else
+int rayTracingDecimationFactor = 1;
+#endif
+uint index = PrimitiveIndex() * rayTracingDecimationFactor;
+uint instanceIndex =  asuint(_InstanceIndex);
+uint instanceActiveIndex = asuint(_InstanceActiveIndex);
+VFXGetInstanceCurrentIndex(index);
 ${VFXEnd}
 
 ${VFXBegin:VFXDeclareAppendOutputIndirectBuffer}

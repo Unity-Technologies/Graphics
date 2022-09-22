@@ -13,7 +13,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
-#if (SHADERPASS == SHADERPASS_FORWARD)
+#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 
     // The light loop (or lighting architecture) is in charge to:
@@ -33,22 +33,34 @@
         #ifdef HDRP_MATERIAL_TYPE_SIMPLE
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
             #define _DISABLE_SSR
+        #if defined(SHADER_STAGE_RAY_TRACING)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
+        #endif
         #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+        #if defined(SHADER_STAGE_RAY_TRACING)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+        #endif
         #endif
     #endif
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
-#else // (SHADERPASS == SHADERPASS_FORWARD)
+#else // (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
 
 #ifdef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/SmokeLighting/SixWaySmokeLit.hlsl"
 #else
     #ifdef HDRP_MATERIAL_TYPE_SIMPLE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+        #if defined(SHADER_STAGE_RAY_TRACING)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
+        #endif
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+        #if defined(SHADER_STAGE_RAY_TRACING)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+        #endif
     #endif
 #endif
 
@@ -98,9 +110,11 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
         #endif
     #endif
     builtinData.emissiveColor *= opacity;
-
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    PostInitBuiltinData(-WorldRayDirection(),posInputs,surfaceData, builtinData);
+    #else
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
-
+    #endif
     return builtinData;
 }
 
@@ -156,7 +170,9 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #endif
 
     color.a *= VFXGetSoftParticleFade(i);
-    VFXClipFragmentColor(color.a,i);
+    #if !defined(SHADER_STAGE_RAY_TRACING)
+    VFXClipFragmentColor(color.a, i);
+    #endif
     surfaceData.baseColor = saturate(color.rgb);
 
     #if IS_OPAQUE_PARTICLE

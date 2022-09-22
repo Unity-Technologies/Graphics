@@ -23,12 +23,12 @@ The [Frame Settings](Frame-Settings.md) control the rendering passes that Camera
 
 Use this section to set default values for the Frame Settings that all Cameras use if you don't enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
 
-## Layers Names
+## Rendering Layers
 
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
-| Light Layer Names                     | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md). |
-| Decal Layer Names                     | The name displayed on decals and Meshes when using [Decal Layers](Decal.md). |
+| Default Mesh Rendering Layer Mask | Defines the Default Rendering Layer Mask for any Terrains or Renderer you create after you set this property.<br/> To set a Layer Mast on existing Terrains or Renderers, use [Decal Layers](Decal.md.) |
+| Rendering Layer Names     | Defines the number and names of the Rendering Layers in your project. |
 
 ## Custom Post Process Orders
 

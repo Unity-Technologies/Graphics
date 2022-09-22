@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Jobs;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -1127,7 +1124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas = null;
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, DebugOverlay debugOverlay)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, Rendering.DebugOverlay debugOverlay)
         {
             cmd.SetViewport(debugOverlay.Next());
             HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);

@@ -1413,7 +1413,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     customPP.SetupIfNeeded();
 
-                    if (customPP is IPostProcessComponent pp && pp.IsActive())
+                    if (customPP is IPostProcessComponent pp && pp.IsActive(hdCamera))
                     {
                         if (hdCamera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
                         {

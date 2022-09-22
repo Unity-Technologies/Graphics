@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
                                                                  (int)DefaultSssSampleBudgetForQualityLevel.Medium,
                                                                  (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
+                sssDownsampleSteps = new IntScalableSetting(new[] { (int)DefaultSssDownsampleSteps.Low,
+                                                                    (int)DefaultSssDownsampleSteps.Medium,
+                                                                    (int)DefaultSssDownsampleSteps.High }, ScalableSettingSchemaId.With3Levels),
                 supportVolumetrics = true,
                 supportDistortion = true,
                 supportTransparentBackface = true,
@@ -138,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightSettings = LightSettings.NewDefault(),
 
                 supportRayTracing = false,
+                supportVFXRayTracing = false,
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
@@ -215,6 +219,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSubsurfaceScattering;
         /// <summary>Sample budget for the Subsurface Scattering algorithm.</summary>
         public IntScalableSetting sssSampleBudget;
+        /// <summary>Downsample input texture for the Subsurface Scattering algorithm.</summary>
+        public IntScalableSetting sssDownsampleSteps;
         /// <summary>Support volumetric lighting.</summary>
         public bool supportVolumetrics;
         /// <summary>Support volumetric clouds.</summary>
@@ -309,6 +315,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
+        /// <summary> Support ray tracing of VFXs.</summary>
+        public bool supportVFXRayTracing;
+
         /// <summary>Support ray tracing mode.</summary>
         public SupportedRayTracingMode supportedRayTracingMode;
 

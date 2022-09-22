@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.Test
         {
             if (Directory.Exists(tempBasePath))
             {
-                foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
+                foreach (var file in Directory.EnumerateFiles(tempBasePath, "*.*", SearchOption.AllDirectories))
                 {
                     try
                     {
@@ -85,6 +85,19 @@ namespace UnityEditor.VFX.Test
                     {
                     }
                 }
+
+                foreach (var directory in Directory.EnumerateDirectories(tempBasePath))
+                {
+                    try
+                    {
+                        Directory.Delete(directory);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                }
+
+                Directory.Delete(tempBasePath);
             }
         }
 

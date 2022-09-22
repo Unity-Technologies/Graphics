@@ -70,6 +70,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
         public VFXExpression activationExpression => m_ActivationSlot.GetExpression();
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
+        public virtual IEnumerable<string> defines { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
 
         public override void OnEnable()
