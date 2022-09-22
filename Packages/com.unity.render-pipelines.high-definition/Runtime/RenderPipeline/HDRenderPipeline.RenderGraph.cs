@@ -692,11 +692,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class ForwardPassData
         {
             public RendererListHandle rendererList;
-            public ComputeBufferHandle lightListTile;
-            public ComputeBufferHandle lightListCluster;
+            public BufferHandle lightListTile;
+            public BufferHandle lightListCluster;
 
-            public ComputeBufferHandle perVoxelOffset;
-            public ComputeBufferHandle perTileLogBaseTweak;
+            public BufferHandle perVoxelOffset;
+            public BufferHandle perTileLogBaseTweak;
             public FrameSettings frameSettings;
         }
 
@@ -731,14 +731,14 @@ namespace UnityEngine.Rendering.HighDefinition
             bool useFptl = frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque) && opaque;
 
             data.frameSettings = frameSettings;
-            data.lightListTile = builder.ReadComputeBuffer(lightLists.lightList);
-            data.lightListCluster = builder.ReadComputeBuffer(lightLists.perVoxelLightLists);
+            data.lightListTile = builder.ReadBuffer(lightLists.lightList);
+            data.lightListCluster = builder.ReadBuffer(lightLists.perVoxelLightLists);
 
             if (!useFptl)
             {
-                data.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
+                data.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
                 if (lightLists.perTileLogBaseTweak.IsValid())
-                    data.perTileLogBaseTweak = builder.ReadComputeBuffer(lightLists.perTileLogBaseTweak);
+                    data.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
             }
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
 

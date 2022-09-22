@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CombineLightingPass;
         // End Disney SSS Model
 
+        // This is use to be able to read stencil value in compute shader
+        Material m_SSSCopyStencilForSplitLighting;
+
         // List of every diffusion profile data we need
         Vector4[] m_SSSShapeParamsAndMaxScatterDists;
         Vector4[] m_SSSTransmissionTintsAndFresnel0;
@@ -42,6 +45,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
 
+            m_SSSCopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
+            m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
+            m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
+
             m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
 
             // fill the list with the max number of diffusion profile so we dont have
@@ -65,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CleanupSubsurfaceScatteringRT();
 
             CoreUtils.Destroy(m_CombineLightingPass);
+            CoreUtils.Destroy(m_SSSCopyStencilForSplitLighting);
         }
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
@@ -188,6 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int sampleBudget;
             public int downsampleSteps;
             public bool needTemporaryBuffer;
+            public Material copyStencilForSplitLighting;
             public Material combineLighting;
             public int numTilesX;
             public int numTilesY;
@@ -200,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle cameraFilteringBuffer;
             public TextureHandle downsampleBuffer;
             public TextureHandle sssBuffer;
-            public ComputeBufferHandle coarseStencilBuffer;
+            public BufferHandle  coarseStencilBuffer;
         }
 
         TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
@@ -219,6 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.subsurfaceScatteringDownsampleCS = m_SubsurfaceScatteringDownsampleCS;
                 passData.subsurfaceScatteringDownsampleCSKernel = m_SubsurfaceScatteringDownsampleKernel;
                 passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.msaaEnabled;
+                passData.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
                 passData.combineLighting = m_CombineLightingPass;
                 passData.numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
                 passData.numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
@@ -231,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
-                passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
+                passData.coarseStencilBuffer = builder.ReadBuffer(prepassOutput.coarseStencilBuffer);
 
                 if (passData.downsampleSteps > 0)
                 {

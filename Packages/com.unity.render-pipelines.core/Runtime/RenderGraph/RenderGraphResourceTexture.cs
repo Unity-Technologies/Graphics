@@ -415,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         // Another C# nicety.
         // We need to re-implement the whole thing every time because:
-        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
+        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, GraphicsBuffers etc)
         // - We can't use a virtual release function because it will capture 'this' in the lambda for RemoveAll generating GCAlloc in the process.
         override public void PurgeUnusedResources(int currentFrameIndex)
         {

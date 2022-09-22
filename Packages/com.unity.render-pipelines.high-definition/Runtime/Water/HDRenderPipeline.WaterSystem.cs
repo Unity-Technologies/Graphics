@@ -38,9 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_InternalWaterMaterial;
         const int k_WaterGBuffer = 0;
         Mesh m_TessellableMesh;
-        ComputeBuffer m_WaterIndirectDispatchBuffer;
-        ComputeBuffer m_WaterPatchDataBuffer;
-        ComputeBuffer m_WaterCameraFrustrumBuffer;
+        GraphicsBuffer m_WaterIndirectDispatchBuffer;
+        GraphicsBuffer m_WaterPatchDataBuffer;
+        GraphicsBuffer m_WaterCameraFrustrumBuffer;
         FrustumGPU[] m_WaterCameraFrustumCPU = new FrustumGPU[1];
 
         // Other internal rendering data
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Handles the water profiles
         const int k_MaxNumWaterSurfaceProfiles = 16;
         WaterSurfaceProfile[] m_WaterSurfaceProfileArray = new WaterSurfaceProfile[k_MaxNumWaterSurfaceProfiles];
-        ComputeBuffer m_WaterProfileArrayGPU;
+        GraphicsBuffer m_WaterProfileArrayGPU;
 
         // Caustics data
         GraphicsBuffer m_CausticsGeometry;
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CausticsMaterial;
 
         // Water line and under water
-        ComputeBuffer m_WaterCameraHeightBuffer;
+        GraphicsBuffer m_WaterCameraHeightBuffer;
 
         void InitializeWaterSystem()
         {
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeInstancingData();
 
             // Water profile management
-            m_WaterProfileArrayGPU = new ComputeBuffer(k_MaxNumWaterSurfaceProfiles, System.Runtime.InteropServices.Marshal.SizeOf<WaterSurfaceProfile>());
+            m_WaterProfileArrayGPU = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_MaxNumWaterSurfaceProfiles, System.Runtime.InteropServices.Marshal.SizeOf<WaterSurfaceProfile>());
 
             // Create the caustics water geometry
             m_CausticsGeometry = new GraphicsBuffer(GraphicsBuffer.Target.Raw, WaterConsts.k_WaterCausticsMeshNumQuads * 6, sizeof(int));
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CausticsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterCausticsPS);
 
             // Waterline / Underwater
-            m_WaterCameraHeightBuffer = new ComputeBuffer(1 * 4, sizeof(float));
+            m_WaterCameraHeightBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1 * 4, sizeof(float));
 
             // Make sure the CPU simulation stuff is properly initialized
             InitializeCPUWaterSimulation();
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeInstancingData()
         {
             // Allocate the indirect instancing buffer
-            m_WaterIndirectDispatchBuffer = new ComputeBuffer(5, sizeof(int), ComputeBufferType.IndirectArguments);
+            m_WaterIndirectDispatchBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 5, sizeof(int));
 
             // Initialize the parts of the buffer with valid values
             uint[] indirectBufferCPU = new uint[5];
@@ -195,10 +195,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterIndirectDispatchBuffer.SetData(indirectBufferCPU);
 
             // Allocate the per instance data
-            m_WaterPatchDataBuffer = new ComputeBuffer(7 * 7, sizeof(float) * 4, ComputeBufferType.Structured);
+            m_WaterPatchDataBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 7 * 7, sizeof(float) * 4);
 
             // Allocate the frustum buffer
-            m_WaterCameraFrustrumBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(FrustumGPU)));
+            m_WaterCameraFrustrumBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(FrustumGPU)));
         }
 
         void UpdateShaderVariablesWater(WaterSurface currentWater, int surfaceIndex, ref ShaderVariablesWater cb)
@@ -674,9 +674,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle causticsData;
 
             // Other resources
-            public ComputeBufferHandle indirectBuffer;
-            public ComputeBufferHandle patchDataBuffer;
-            public ComputeBufferHandle frustumBuffer;
+            public BufferHandle indirectBuffer;
+            public BufferHandle patchDataBuffer;
+            public BufferHandle frustumBuffer;
             public TextureHandle depthPyramid;
 
             // Water rendered to this buffer
@@ -684,15 +684,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
 
             // Light Cluster data
-            public ComputeBufferHandle layeredOffsetsBuffer;
-            public ComputeBufferHandle logBaseBuffer;
+            public BufferHandle layeredOffsetsBuffer;
+            public BufferHandle logBaseBuffer;
 
             // Output buffers
             public TextureHandle gbuffer0;
             public TextureHandle gbuffer1;
             public TextureHandle gbuffer2;
             public TextureHandle gbuffer3;
-            public ComputeBufferHandle heightBuffer;
+            public BufferHandle heightBuffer;
         }
 
         class WaterRenderingSSRData
@@ -710,8 +710,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public TextureHandle gbuffer1;
             public TextureHandle gbuffer3;
-            public ComputeBufferHandle heightBuffer;
-            public ComputeBufferHandle waterSurfaceProfiles;
+            public BufferHandle heightBuffer;
+            public BufferHandle waterSurfaceProfiles;
 
             // Output texture
             public TextureHandle normalBuffer;
@@ -752,8 +752,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderWaterSurface(CommandBuffer cmd,
             RTHandle displacementBuffer, RTHandle additionalDataBuffer, RTHandle causticsBuffer, RTHandle depthPyramid,
-            ComputeBuffer layeredOffsetsBuffer, ComputeBuffer logBaseBuffer,
-            ComputeBuffer cameraHeightBuffer, ComputeBuffer patchDataBuffer, ComputeBuffer indirectBuffer, ComputeBuffer cameraFrustumBuffer,
+            GraphicsBuffer layeredOffsetsBuffer, GraphicsBuffer logBaseBuffer,
+            GraphicsBuffer cameraHeightBuffer, GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer,
             WaterRenderingParameters parameters)
         {
             // Raise the keywords for band count
@@ -872,7 +872,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderWaterSurfaceGBuffer(RenderGraph renderGraph, HDCamera hdCamera,
                                         WaterSurface currentWater, WaterRendering settings, int surfaceIdx, bool evaluateCameraPos,
-                                        TextureHandle depthBuffer, TextureHandle depthPyramid, ComputeBufferHandle layeredOffsetsBuffer, ComputeBufferHandle logBaseBuffer,
+                                        TextureHandle depthBuffer, TextureHandle depthPyramid, BufferHandle layeredOffsetsBuffer, BufferHandle logBaseBuffer,
                                         TextureHandle WaterGbuffer0, TextureHandle WaterGbuffer1, TextureHandle WaterGbuffer2, TextureHandle WaterGbuffer3)
         {
             using (var builder = renderGraph.AddRenderPass<WaterRenderingGBufferData>("Render Water Surface GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingGBuffer)))
@@ -885,18 +885,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.gbuffer1 = builder.UseColorBuffer(WaterGbuffer1, 1);
                 passData.gbuffer2 = builder.UseColorBuffer(WaterGbuffer2, 2);
                 passData.gbuffer3 = builder.UseColorBuffer(WaterGbuffer3, 3);
-                passData.heightBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
+                passData.heightBuffer = builder.WriteBuffer(renderGraph.ImportBuffer(m_WaterCameraHeightBuffer));
 
                 // Import all the textures into the system
                 passData.displacementTexture = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
                 passData.additionalData = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 passData.causticsData = passData.parameters.simulationCaustics ? renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
-                passData.indirectBuffer = renderGraph.ImportComputeBuffer(m_WaterIndirectDispatchBuffer);
-                passData.patchDataBuffer = renderGraph.ImportComputeBuffer(m_WaterPatchDataBuffer);
-                passData.frustumBuffer = renderGraph.ImportComputeBuffer(m_WaterCameraFrustrumBuffer);
+                passData.indirectBuffer = renderGraph.ImportBuffer(m_WaterIndirectDispatchBuffer);
+                passData.patchDataBuffer = renderGraph.ImportBuffer(m_WaterPatchDataBuffer);
+                passData.frustumBuffer = renderGraph.ImportBuffer(m_WaterCameraFrustrumBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.layeredOffsetsBuffer = builder.ReadComputeBuffer(layeredOffsetsBuffer);
-                passData.logBaseBuffer = builder.ReadComputeBuffer(logBaseBuffer);
+                passData.layeredOffsetsBuffer = builder.ReadBuffer(layeredOffsetsBuffer);
+                passData.logBaseBuffer = builder.ReadBuffer(logBaseBuffer);
 
                 // Request the output textures
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
@@ -1043,8 +1043,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.gbuffer3 = builder.ReadTexture(WaterGbuffer3);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.normalBuffer = builder.WriteTexture(normalBuffer);
-                passData.heightBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
-                passData.waterSurfaceProfiles = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterProfileArrayGPU));
+                passData.heightBuffer = builder.WriteBuffer(renderGraph.ImportBuffer(m_WaterCameraHeightBuffer));
+                passData.waterSurfaceProfiles = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterProfileArrayGPU));
 
                 builder.SetRenderFunc(
                     (WaterRenderingSSRData data, RenderGraphContext ctx) =>
@@ -1150,12 +1150,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gbuffer2;
             public TextureHandle gbuffer3;
             public TextureHandle depthBuffer;
-            public ComputeBufferHandle waterSurfaceProfiles;
+            public BufferHandle waterSurfaceProfiles;
             public TextureHandle scatteringFallbackTexture;
             public TextureHandle volumetricLightingTexture;
-            public ComputeBufferHandle heightBuffer;
-            public ComputeBufferHandle perVoxelOffset;
-            public ComputeBufferHandle perTileLogBaseTweak;
+            public BufferHandle heightBuffer;
+            public BufferHandle perVoxelOffset;
+            public BufferHandle perTileLogBaseTweak;
 
             // Water rendered to this buffer
             public TextureHandle colorBuffer;
@@ -1186,12 +1186,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.gbuffer2 = builder.ReadTexture(waterGBuffer.waterGBuffer2);
                 passData.gbuffer3 = builder.ReadTexture(waterGBuffer.waterGBuffer3);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
-                passData.waterSurfaceProfiles = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterProfileArrayGPU));
+                passData.waterSurfaceProfiles = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterProfileArrayGPU));
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
                 passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
-                passData.heightBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
-                passData.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
-                passData.perTileLogBaseTweak = builder.ReadComputeBuffer(lightLists.perTileLogBaseTweak);
+                passData.heightBuffer = builder.WriteBuffer(renderGraph.ImportBuffer(m_WaterCameraHeightBuffer));
+                passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
+                passData.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
 
                 // Request the output textures
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);

@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
             public TextureHandle causticsData;
-            public ComputeBufferHandle cameraHeightBuffer;
+            public BufferHandle cameraHeightBuffer;
 
             // Water rendered to this buffer
             public TextureHandle outputColorBuffer;
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // All the required textures
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
-                passData.cameraHeightBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_WaterCameraHeightBuffer));
+                passData.cameraHeightBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterCameraHeightBuffer));
 
                 // Bind the caustics buffer that may be required
                 passData.causticsData = waterSurface.caustics ? renderGraph.ImportTexture(waterSurface.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;

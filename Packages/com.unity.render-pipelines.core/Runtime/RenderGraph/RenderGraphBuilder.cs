@@ -143,11 +143,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Specify a Compute Buffer resource to read from during the pass.
+        /// Specify a Graphics Buffer resource to read from during the pass.
         /// </summary>
-        /// <param name="input">The Compute Buffer resource to read from during the pass.</param>
+        /// <param name="input">The Graphics Buffer resource to read from during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public ComputeBufferHandle ReadComputeBuffer(in ComputeBufferHandle input)
+        public BufferHandle ReadBuffer(in BufferHandle input)
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceRead(input.handle);
@@ -155,11 +155,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Specify a Compute Buffer resource to write to during the pass.
+        /// Specify a Graphics Buffer resource to write to during the pass.
         /// </summary>
-        /// <param name="input">The Compute Buffer resource to write to during the pass.</param>
+        /// <param name="input">The Graphics Buffer resource to write to during the pass.</param>
         /// <returns>An updated resource handle to the input resource.</returns>
-        public ComputeBufferHandle WriteComputeBuffer(in ComputeBufferHandle input)
+        public BufferHandle WriteBuffer(in BufferHandle input)
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
@@ -168,28 +168,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Create a new Render Graph Compute Buffer resource.
-        /// This Compute Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
+        /// Create a new Render Graph Graphics Buffer resource.
+        /// This Graphics Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
-        /// <param name="desc">Compute Buffer descriptor.</param>
-        /// <returns>A new transient ComputeBufferHandle.</returns>
-        public ComputeBufferHandle CreateTransientComputeBuffer(in ComputeBufferDesc desc)
+        /// <param name="desc">Graphics Buffer descriptor.</param>
+        /// <returns>A new transient GraphicsBufferHandle.</returns>
+        public BufferHandle CreateTransientBuffer(in BufferDesc desc)
         {
-            var result = m_Resources.CreateComputeBuffer(desc, m_RenderPass.index);
+            var result = m_Resources.CreateBuffer(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
         }
 
         /// <summary>
-        /// Create a new Render Graph Compute Buffer resource using the descriptor from another Compute Buffer.
-        /// This Compute Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
+        /// Create a new Render Graph Graphics Buffer resource using the descriptor from another Graphics Buffer.
+        /// This Graphics Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
-        /// <param name="computebuffer">Compute Buffer from which the descriptor should be used.</param>
-        /// <returns>A new transient ComputeBufferHandle.</returns>
-        public ComputeBufferHandle CreateTransientComputeBuffer(in ComputeBufferHandle computebuffer)
+        /// <param name="graphicsbuffer">Graphics Buffer from which the descriptor should be used.</param>
+        /// <returns>A new transient GraphicsBufferHandle.</returns>
+        public BufferHandle CreateTransientBuffer(in BufferHandle graphicsbuffer)
         {
-            var desc = m_Resources.GetComputeBufferResourceDesc(computebuffer.handle);
-            var result = m_Resources.CreateComputeBuffer(desc, m_RenderPass.index);
+            var desc = m_Resources.GetBufferResourceDesc(graphicsbuffer.handle);
+            var result = m_Resources.CreateBuffer(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
         }

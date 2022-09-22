@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Runtime Initialization data
         bool m_DenoiserInitialized;
         Texture2D m_OwnenScrambledTexture;
-        ComputeBuffer m_PointDistribution;
+        GraphicsBuffer m_PointDistribution;
 
         // Kernels that may be required
         int m_BilateralFilterSingleKernel;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Data required for the online initialization
             m_DenoiserInitialized = false;
             m_OwnenScrambledTexture = rpResources.textures.owenScrambledRGBATex;
-            m_PointDistribution = new ComputeBuffer(16 * 4, 2 * sizeof(float));
+            m_PointDistribution = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 16 * 4, 2 * sizeof(float));
         }
 
         public void Release()
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int gatherKernel;
 
             // Other parameters
-            public ComputeBufferHandle pointDistribution;
+            public BufferHandle pointDistribution;
             public ComputeShader diffuseDenoiserCS;
 
             public Texture2D owenScrambledTexture;
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Other parameters
                 passData.diffuseDenoiserCS = m_DiffuseDenoiser;
 
-                passData.pointDistribution = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_PointDistribution));
+                passData.pointDistribution = builder.ReadBuffer(renderGraph.ImportBuffer(m_PointDistribution));
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);

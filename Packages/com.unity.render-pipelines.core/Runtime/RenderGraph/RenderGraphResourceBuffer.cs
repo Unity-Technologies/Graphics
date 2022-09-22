@@ -4,29 +4,29 @@ using System.Diagnostics;
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     /// <summary>
-    /// Compute Buffer resource handle.
+    /// Graphics Buffer resource handle.
     /// </summary>
-    [DebuggerDisplay("ComputeBuffer ({handle.index})")]
-    public struct ComputeBufferHandle
+    [DebuggerDisplay("Buffer ({handle.index})")]
+    public struct BufferHandle
     {
-        private static ComputeBufferHandle s_NullHandle = new ComputeBufferHandle();
+        private static BufferHandle s_NullHandle = new BufferHandle();
 
         /// <summary>
-        /// Returns a null compute buffer handle
+        /// Returns a null graphics buffer handle
         /// </summary>
-        /// <returns>A null compute buffer handle.</returns>
-        public static ComputeBufferHandle nullHandle { get { return s_NullHandle; } }
+        /// <returns>A null graphics buffer handle.</returns>
+        public static BufferHandle nullHandle { get { return s_NullHandle; } }
 
         internal ResourceHandle handle;
 
-        internal ComputeBufferHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer, shared); }
+        internal BufferHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Buffer, shared); }
 
         /// <summary>
-        /// Cast to ComputeBuffer
+        /// Cast to GraphicsBuffer
         /// </summary>
-        /// <param name="buffer">Input ComputeBufferHandle</param>
-        /// <returns>Resource as a Compute Buffer.</returns>
-        public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetComputeBuffer(buffer) : null;
+        /// <param name="buffer">Input BufferHandle</param>
+        /// <returns>Resource as a Graphics Buffer.</returns>
+        public static implicit operator GraphicsBuffer(BufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetBuffer(buffer) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -36,44 +36,48 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// Descriptor used to create compute buffer resources
+    /// Descriptor used to create graphics buffer resources
     /// </summary>
-    public struct ComputeBufferDesc
+    public struct BufferDesc
     {
         ///<summary>Number of elements in the buffer..</summary>
         public int count;
         ///<summary>Size of one element in the buffer. Has to match size of buffer type in the shader.</summary>
         public int stride;
-        ///<summary>Type of the buffer, default is ComputeBufferType.Default (structured buffer).</summary>
-        public ComputeBufferType type;
-        /// <summary>Compute Buffer name.</summary>
+        /// <summary>Graphics Buffer name.</summary>
         public string name;
+        /// <summary>The intended usage of a GraphicsBuffer.</summary>
+        public GraphicsBuffer.Target target;
+        /// <summary>The intended update mode of a GraphicsBuffer.</summary>
+        public GraphicsBuffer.UsageFlags usageFlags;
 
         /// <summary>
-        /// ComputeBufferDesc constructor.
+        /// BufferDesc constructor.
         /// </summary>
         /// <param name="count">Number of elements in the buffer.</param>
         /// <param name="stride">Size of one element in the buffer.</param>
-        public ComputeBufferDesc(int count, int stride)
+        public BufferDesc(int count, int stride)
             : this()
         {
             this.count = count;
             this.stride = stride;
-            type = ComputeBufferType.Default;
+            this.target = GraphicsBuffer.Target.Structured;
+            this.usageFlags = GraphicsBuffer.UsageFlags.None;
         }
 
         /// <summary>
-        /// ComputeBufferDesc constructor.
+        /// BufferDesc constructor.
         /// </summary>
         /// <param name="count">Number of elements in the buffer.</param>
         /// <param name="stride">Size of one element in the buffer.</param>
-        /// <param name="type">Type of the buffer.</param>
-        public ComputeBufferDesc(int count, int stride, ComputeBufferType type)
+        /// <param name="target">Type of the buffer.</param>
+        public BufferDesc(int count, int stride, GraphicsBuffer.Target target)
             : this()
         {
             this.count = count;
             this.stride = stride;
-            this.type = type;
+            this.target = target;
+            this.usageFlags = GraphicsBuffer.UsageFlags.None;
         }
 
         /// <summary>
@@ -86,20 +90,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             hashCode = hashCode * 23 + count;
             hashCode = hashCode * 23 + stride;
-            hashCode = hashCode * 23 + (int)type;
+            hashCode = hashCode * 23 + (int)target;
+            hashCode = hashCode * 23 + (int)usageFlags;
 
             return hashCode;
         }
     }
 
 
-    [DebuggerDisplay("ComputeBufferResource ({desc.name})")]
-    class ComputeBufferResource : RenderGraphResource<ComputeBufferDesc, ComputeBuffer>
+    [DebuggerDisplay("BufferResource ({desc.name})")]
+    class BufferResource : RenderGraphResource<BufferDesc, GraphicsBuffer>
     {
         public override string GetName()
         {
             if (imported)
-                return "ImportedComputeBuffer"; // No getter for compute buffer name.
+                return "ImportedGraphicsBuffer"; // No getter for graphics buffer name.
             else
                 return desc.name;
         }
@@ -110,14 +115,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // To work around this, we just copy/pasted the implementation in each final class...
         public override void CreatePooledGraphicsResource()
         {
-            Debug.Assert(m_Pool != null, "ComputeBufferResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
+            Debug.Assert(m_Pool != null, "GraphicsBufferResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
 
             int hashCode = desc.GetHashCode();
 
             if (graphicsResource != null)
-                throw new InvalidOperationException(string.Format("ComputeBufferResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+                throw new InvalidOperationException(string.Format("GraphicsBufferResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
 
-            var pool = m_Pool as ComputeBufferPool;
+            var pool = m_Pool as BufferPool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
             {
                 CreateGraphicsResource(desc.name);
@@ -131,10 +136,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public override void ReleasePooledGraphicsResource(int frameIndex)
         {
             if (graphicsResource == null)
-                throw new InvalidOperationException($"ComputeBufferResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+                throw new InvalidOperationException($"BufferResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
 
             // Shared resources don't use the pool
-            var pool = m_Pool as ComputeBufferPool;
+            var pool = m_Pool as BufferPool;
             if (pool != null)
             {
                 pool.ReleaseResource(cachedHash, graphicsResource, frameIndex);
@@ -146,8 +151,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override void CreateGraphicsResource(string name = "")
         {
-            graphicsResource = new ComputeBuffer(desc.count, desc.stride, desc.type);
-            graphicsResource.name = name == "" ? $"RenderGraphComputeBuffer_{desc.count}_{desc.stride}_{desc.type}" : name;
+            graphicsResource = new GraphicsBuffer(desc.target, desc.usageFlags, desc.count, desc.stride);
+            graphicsResource.name = name == "" ? $"RenderGraphBuffer_{desc.count}_{desc.stride}_{desc.target}" : name;
         }
 
         public override void ReleaseGraphicsResource()
@@ -159,45 +164,45 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override void LogCreation(RenderGraphLogger logger)
         {
-            logger.LogLine($"Created ComputeBuffer: {desc.name}");
+            logger.LogLine($"Created GraphicsBuffer: {desc.name}");
         }
 
         public override void LogRelease(RenderGraphLogger logger)
         {
-            logger.LogLine($"Released ComputeBuffer: {desc.name}");
+            logger.LogLine($"Released GraphicsBuffer: {desc.name}");
         }
     }
 
-    class ComputeBufferPool : RenderGraphResourcePool<ComputeBuffer>
+    class BufferPool : RenderGraphResourcePool<GraphicsBuffer>
     {
-        protected override void ReleaseInternalResource(ComputeBuffer res)
+        protected override void ReleaseInternalResource(GraphicsBuffer res)
         {
             res.Release();
         }
 
-        protected override string GetResourceName(ComputeBuffer res)
+        protected override string GetResourceName(GraphicsBuffer res)
         {
-            return "ComputeBufferNameNotAvailable"; // ComputeBuffer.name is a setter only :(
+            return "GraphicsBufferNameNotAvailable"; // GraphicsBuffer.name is a setter only :(
         }
 
-        protected override long GetResourceSize(ComputeBuffer res)
+        protected override long GetResourceSize(GraphicsBuffer res)
         {
             return res.count * res.stride;
         }
 
         override protected string GetResourceTypeName()
         {
-            return "ComputeBuffer";
+            return "GraphicsBuffer";
         }
 
-        override protected int GetSortIndex(ComputeBuffer res)
+        override protected int GetSortIndex(GraphicsBuffer res)
         {
             return res.GetHashCode();
         }
 
         // Another C# nicety.
         // We need to re-implement the whole thing every time because:
-        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
+        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, GraphicsBuffers etc)
         // - We can't use a virtual release function because it will capture this in the lambda for RemoveAll generating GCAlloc in the process.
         override public void PurgeUnusedResources(int currentFrameIndex)
         {

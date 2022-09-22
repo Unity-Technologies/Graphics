@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle downsampledDepthBuffer;
 
             public TextureHandle stencilBuffer;
-            public ComputeBufferHandle coarseStencilBuffer;
+            public BufferHandle coarseStencilBuffer;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
@@ -810,7 +810,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle inputDepth;
             public TextureHandle resolvedStencil;
-            public ComputeBufferHandle coarseStencilBuffer;
+            public BufferHandle coarseStencilBuffer;
         }
 
         // This pass build the coarse stencil buffer if requested (i.e. when resolveOnly: false) and perform the MSAA resolve of the
@@ -833,8 +833,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.resolveKernel = passData.resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
 
                 passData.inputDepth = builder.ReadTexture(output.depthBuffer);
-                passData.coarseStencilBuffer = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
+                passData.coarseStencilBuffer = builder.WriteBuffer(
+                    renderGraph.CreateBuffer(new BufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
                 if (passData.resolveIsNecessary)
                     passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
                 else
