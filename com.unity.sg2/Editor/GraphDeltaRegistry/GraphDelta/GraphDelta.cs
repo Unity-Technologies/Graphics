@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             onBuild?.Invoke(node);
         }
 
-        private List<string> contextNodes = new();
+        private List<string> contextNodes;
 
         public NodeHandler AddNode<T>(string name, Registry registry)  where T : INodeDefinitionBuilder
         {
