@@ -109,7 +109,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _SlopeScaleDepthBias;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
-    float4 _ReflectionAtlasData;
+    float4 _ReflectionAtlasCubeData;
+    float4 _ReflectionAtlasPlanarData;
     uint _NumTileFtplX;
     uint _NumTileFtplY;
     float g_fClustScale;

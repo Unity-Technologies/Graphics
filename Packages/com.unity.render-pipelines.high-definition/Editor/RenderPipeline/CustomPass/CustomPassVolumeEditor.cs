@@ -266,7 +266,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 SearchWindow.Open(new SearchWindowContext(windowPosition), searchObject);
             };
 
-            m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
+            m_CustomPassList.onReorderCallback = (index) =>
+            {
+                serializedObject.ApplyModifiedProperties();
+                ClearCustomPassCache();
+            };
 
             m_CustomPassList.onRemoveCallback = (list) =>
             {

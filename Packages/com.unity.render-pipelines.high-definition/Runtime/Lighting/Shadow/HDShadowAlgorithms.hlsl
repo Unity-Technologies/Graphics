@@ -165,7 +165,7 @@ bool EvalShadow_PositionTC(HDShadowData sd, float2 texelSize, float3 positionWS,
 float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
     float2 texelSize = sd.isInCachedAtlas ? _CachedShadowAtlasSize.zw : _ShadowAtlasSize.zw;
-    float3 normalBias = EvalShadow_NormalBiasProj(sd.worldTexelSize, sd.normalBias, normalWS, L_dist);
+    float3 normalBias = EvalShadow_NormalBiasProj(sd.worldTexelSize, sd.normalBias, normalWS, perspective ? L_dist : 1.0f);
     float3 posTC;
 
     return EvalShadow_PositionTC(sd, texelSize, positionWS, normalBias, perspective, posTC) ? PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS) : 1.0f;
@@ -369,12 +369,12 @@ float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D t
 }
 
 // TODO: optimize this using LinearEyeDepth() to avoid having to pass the shadowToWorld matrix
-float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, SamplerState sampl, float3 positionWS, float3 L, float3 lightPositionWS)
+float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, SamplerState sampl, float3 positionWS, float3 L, float3 lightPositionWS, bool perspective)
 {
     float2 texelSize = sd.isInCachedAtlas ? _CachedShadowAtlasSize.zw : _ShadowAtlasSize.zw;
 
     float4 closestNDC = { 0,0,0,1 };
-    float2 texelIdx = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, closestNDC.xy, true);
+    float2 texelIdx = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, closestNDC.xy, perspective);
 
     // sample the shadow map
     closestNDC.z = SAMPLE_TEXTURE2D_LOD(tex, sampl, texelIdx, 0).x;
@@ -383,6 +383,6 @@ float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, 
     float4 closestWS = mul(closestNDC, sd.shadowToWorld);
     float3 occluderPosWS = closestWS.xyz / closestWS.w;
 
-    return distance(occluderPosWS, lightPositionWS);
+    return perspective ? distance(occluderPosWS, lightPositionWS) : dot(lightPositionWS - occluderPosWS , L);
 }
 #endif

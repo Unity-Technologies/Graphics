@@ -21,9 +21,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(fragInput.positionRWS - ObjectRayOrigin());
-    rayIntersection.t = travelDistance;
-    rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
+    rayIntersection.t = RayTCurrent();
+    rayIntersection.cone.width += rayIntersection.t * rayIntersection.cone.spreadAngle;
 
     PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, fragInput.positionRWS);
 
@@ -38,13 +37,6 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
     // No need for SurfaceData after this line
 #ifdef HAS_LIGHTLOOP
-    // We do not want to use the diffuse when we compute the indirect diffuse
-    if (_RayTracingDiffuseLightingOnly)
-    {
-        builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-        builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-    }
-
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
     float3 reflected = float3(0.0, 0.0, 0.0);
@@ -153,8 +145,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     float3 viewWS = -WorldRayDirection();
 
     // Compute the distance of the ray
-    float travelDistance = length(fragInput.positionRWS - ObjectRayOrigin());
-    rayIntersection.t = travelDistance;
+    rayIntersection.t = RayTCurrent();
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

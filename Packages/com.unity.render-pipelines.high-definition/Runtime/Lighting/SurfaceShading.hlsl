@@ -136,7 +136,7 @@ float3 EvaluateTransmittance_Punctual(LightLoopContext lightLoopContext,
     // TODO: SHADOW BIAS.
     float distBackFaceToLight = GetPunctualShadowClosestDistance(lightLoopContext.shadowContext, s_linear_clamp_sampler,
                                                                  posInput.positionWS, light.shadowIndex, L, light.positionRWS,
-                                                                 light.lightType == GPULIGHTTYPE_POINT);
+                                                                 light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
 
     // Our subsurface scattering models use the semi-infinite planar slab assumption.
     // Therefore, we need to find the thickness along the normal.

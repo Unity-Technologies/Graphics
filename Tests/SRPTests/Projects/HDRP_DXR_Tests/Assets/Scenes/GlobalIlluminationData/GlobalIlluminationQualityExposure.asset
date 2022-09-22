@@ -348,6 +348,9 @@ MonoBehaviour:
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.01
+  fullResolutionSS:
+    m_OverrideState: 0
+    m_Value: 1
   m_MaxRaySteps:
     m_OverrideState: 0
     m_Value: 32
@@ -370,7 +373,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
-      m_Bits: 1847
+      m_Bits: 4294967295
   textureLodBias:
     m_OverrideState: 0
     m_Value: 7
@@ -379,7 +382,7 @@ MonoBehaviour:
     m_Value: 2.2
   m_ClampValue:
     m_OverrideState: 1
-    m_Value: 0.83
+    m_Value: 4
   mode:
     m_OverrideState: 1
     m_Value: 2

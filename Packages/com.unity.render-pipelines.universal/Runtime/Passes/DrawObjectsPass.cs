@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                         bool renderIntoTexture = data.m_Albedo != renderingData.cameraData.xr.renderTarget;
-                        XRBuiltinShaderConstants.Update(renderingData.cameraData.xr, renderingData.commandBuffer, renderIntoTexture);
+                        renderingData.cameraData.PushBuiltinShaderConstantsXR(renderingData.commandBuffer, renderIntoTexture);
                         XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
                     }
 #endif

@@ -184,6 +184,25 @@ namespace UnityEngine.Rendering.Universal
             m_ProjectionMatrix = projectionMatrix;
         }
 
+        // Helper function to populate builtin stereo matricies as well as URP stereo matricies
+        internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd, bool renderIntoTexture)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjectionMatrix());
+                if (xr.singlePassEnabled)
+                {
+                    for (int viewId = 0; viewId < xr.viewCount; viewId++)
+                    {
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(GetViewMatrix(viewId), GetProjectionMatrix(viewId), renderIntoTexture, viewId);
+                    }
+                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
+                }
+            }
+#endif
+        }
+
         /// <summary>
         /// Returns the camera view matrix.
         /// </summary>
@@ -803,6 +822,17 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+        }
+
+        // Returns a UNORM based render texture format
+        // When supported by the device, this function will prefer formats with higher precision, but the same bit-depth
+        // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
+        internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
+        {
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.A2B10G10R10_UNormPack32, FormatUsage.Linear | FormatUsage.Render))
+                return GraphicsFormat.A2B10G10R10_UNormPack32;
+            else
+                return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,

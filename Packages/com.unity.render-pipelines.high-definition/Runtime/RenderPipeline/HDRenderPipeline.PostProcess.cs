@@ -401,6 +401,8 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_LiftGammaGain.GetHashCode() * 23 +
                    m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
                    m_Curves.GetHashCode() * 23 +
+                   m_TonemappingFS.GetHashCode() * 23 +
+                   m_ColorGradingFS.GetHashCode() * 23 +
                    HDROutputIsActive().GetHashCode()
 #if UNITY_EDITOR
                    * 23
@@ -514,7 +516,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
                 bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
-                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, taaEnabled);
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
                 if (taaEnabled)
                 {
                     LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
@@ -2153,11 +2155,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofPrefilterCS.EnableKeyword("HIGH_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("HIGH_QUALITY");
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
             else
             {
                 parameters.dofPrefilterCS.EnableKeyword("LOW_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("LOW_QUALITY");
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
 
             if (bothLayersActive || nearLayerActive)
@@ -3156,12 +3160,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle source;
             public TextureHandle depthBuffer;
             public TextureHandle occlusion;
+            public TextureHandle sunOcclusion;
             public HDCamera hdCamera;
             public Vector2Int viewport;
             public bool taaEnabled;
         }
 
-        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, bool taaEnabled)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture, bool taaEnabled)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -3175,6 +3180,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample);
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
+                        passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
+                    else
+                        passData.sunOcclusion = TextureHandle.nullHandle;
                     passData.taaEnabled = taaEnabled;
 
                     builder.SetRenderFunc(
@@ -3189,8 +3198,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.viewProjMatrix,
-                                ctx.cmd, data.taaEnabled,
-                                HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                ctx.cmd, data.sunOcclusion.IsValid() ? data.sunOcclusion : null, data.taaEnabled,
+                                HDShaderIDs._FlareSunOcclusionTex, HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
                         });
                 }
@@ -4206,6 +4215,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
         }
 
+        /// <summary>
+        ///  Returns whether the data for HDR is detected properly from the device. If this returns false it is suggested that a calibration screen is used to set the min/max nits limits and paperwhite values.
+        /// </summary>
+        /// <returns>Whether the data for HDR is detected properly from the device.</returns>
+        public static bool HDRDataDetectedProperly()
+        {
+            return HDROutputSettings.main.minToneMapLuminance >= 0 && HDROutputSettings.main.maxToneMapLuminance > 0 && HDROutputSettings.main.paperWhiteNits > 0;
+        }
+
         static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             var minNits = HDROutputSettings.main.minToneMapLuminance;
@@ -4213,6 +4231,20 @@ namespace UnityEngine.Rendering.HighDefinition
             var paperWhite = HDROutputSettings.main.paperWhiteNits;
             int eetfMode = 0;
             float hueShift = 0.0f;
+
+            bool failedToDetectLimits = minNits < 0 || maxNits <= 0;
+            if (failedToDetectLimits && tonemappingComponent.detectBrightnessLimits.value)
+            {
+                minNits = 0;
+                maxNits = 1000;
+                Debug.LogWarning("The platform failed to detect min and max nits, minNits: 0 and maxNits: 1000 are used as default, but it is heavily suggested that the title provides a calibration screen to manually set the limits.");
+            }
+            bool failedToPaperwhite = paperWhite <= 0;
+            if (failedToPaperwhite && tonemappingComponent.detectPaperWhite.value)
+            {
+                paperWhite = 300;
+                Debug.LogWarning("The platform failed to detect paper white values, paperwhite: 300 will be used as default, but it is heavily suggested that the title provides a calibration screen to manually set the value.");
+            }
 
             TonemappingMode hdrTonemapMode = tonemappingComponent.GetHDRTonemappingMode();
 

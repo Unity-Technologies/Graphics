@@ -219,6 +219,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_DebugDisplaySettingsUI.UnregisterDebug();
 
+            Blitter.Cleanup();
+
             base.Dispose(disposing);
 
             Shader.globalRenderPipeline = "";

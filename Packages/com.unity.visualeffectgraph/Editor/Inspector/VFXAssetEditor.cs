@@ -233,7 +233,7 @@ class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
             m_VisualEffect.pause = true;
-            m_RemainingFramesToRender = 2;
+            m_RemainingFramesToRender = 1;
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
             m_VisualEffectGO.transform.localPosition = Vector3.zero;
@@ -345,13 +345,10 @@ class VisualEffectAssetEditor : Editor
         {
             m_VisualEffect.pause = !m_IsAnimated;
 
-            if (m_IsAnimated)
+            if (!m_IsAnimated)
             {
-                DestroyImmediate(m_PreviewTexture);
-                m_PreviewTexture = null;
+                StopRendering();
             }
-            else
-                CopyRenderedFrame();
         }
 
         GUI.enabled = m_IsAnimated;
@@ -365,7 +362,6 @@ class VisualEffectAssetEditor : Editor
 
     private static GUIContent[] s_PlayPauseIcons;
     private bool m_IsAnimated;
-    private Texture m_PreviewTexture;
     private Rect m_LastArea;
 
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
@@ -380,10 +376,10 @@ class VisualEffectAssetEditor : Editor
             return;
 
         if (isRepaint && r != m_LastArea)
-            RequestNewFrame();
+            RequestSingleFrame();
 
         if (VFXPreviewGUI.TryDrag2D(ref m_Angles, m_LastArea))
-            RequestNewFrame();
+            RequestSingleFrame();
 
         if (renderer.bounds.size != Vector3.zero)
         {
@@ -428,7 +424,7 @@ class VisualEffectAssetEditor : Editor
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + Event.current.delta.y * .015f;
-            RequestNewFrame();
+            RequestSingleFrame();
         }
 
         if (m_Mat == null)
@@ -461,25 +457,23 @@ class VisualEffectAssetEditor : Editor
         }
 
         if (!m_IsAnimated && m_RemainingFramesToRender == 0)
-            CopyRenderedFrame();
+            StopRendering();
 
         if (m_IsAnimated)
             Repaint();
-        else if (m_PreviewTexture != null)
-            EditorGUI.DrawPreviewTexture(m_LastArea, m_PreviewTexture);
+        else
+            EditorGUI.DrawPreviewTexture(m_LastArea, m_PreviewUtility.renderTexture);
     }
 
-    void RequestNewFrame()
+    void RequestSingleFrame()
     {
         if (m_RemainingFramesToRender < 0)
-            m_RemainingFramesToRender = 2;
+            m_RemainingFramesToRender = 1;
     }
 
-    void CopyRenderedFrame()
+    void StopRendering()
     {
         m_RemainingFramesToRender = -1;
-        m_PreviewTexture = new Texture2D(m_PreviewUtility.renderTexture.width, m_PreviewUtility.renderTexture.height, m_PreviewUtility.renderTexture.graphicsFormat, TextureCreationFlags.DontInitializePixels);
-        Graphics.CopyTexture(m_PreviewUtility.renderTexture, m_PreviewTexture);
     }
 
     Material m_Mat;
@@ -493,11 +487,6 @@ class VisualEffectAssetEditor : Editor
         if (m_PreviewUtility != null)
         {
             m_PreviewUtility.Cleanup();
-        }
-
-        if (m_PreviewTexture != null)
-        {
-            DestroyImmediate(m_PreviewTexture);
         }
     }
 

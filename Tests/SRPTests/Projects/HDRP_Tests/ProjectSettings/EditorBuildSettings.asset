@@ -102,6 +102,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1226_Lit_UVMapping_Displacement.unity
     guid: 2a9e6d17d05c12b428a235cc1edae5b9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1230_Lit_Translucent.unity
+    guid: e0af6434ca972984780123bff226e95d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1

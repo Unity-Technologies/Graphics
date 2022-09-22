@@ -41,9 +41,15 @@ SAMPLER(sampler_FlareTex);
 TEXTURE2D(_FlareOcclusionRemapTex);
 SAMPLER(sampler_FlareOcclusionRemapTex);
 
-#if defined(HDRP_FLARE) && defined(FLARE_OCCLUSION)
+#if defined(HDRP_FLARE)
+#if defined(FLARE_OCCLUSION)
 TEXTURE2D_X(_FlareOcclusionTex);
 SAMPLER(sampler_FlareOcclusionTex);
+#endif
+#if defined(FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD)
+TEXTURE2D_X(_FlareSunOcclusionTex);
+SAMPLER(sampler_FlareSunOcclusionTex);
+#endif
 #endif
 
 float4 _FlareColorValue;
@@ -132,7 +138,14 @@ float GetOcclusion(float ratio)
 #else
             if (depth0 < _ScreenPosZ)
 #endif
+            {
+#if defined(FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD)
+                float cloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
+                contrib += sample_Contrib * saturate(cloudOcclusion);
+#else
                 contrib += sample_Contrib;
+#endif
+            }
         }
         else if (_OcclusionOffscreen > 0.0f)
         {
@@ -162,7 +175,6 @@ VaryingsLensFlare vertOcclusion(AttributesLensFlare input, uint instanceID : SV_
     float screenRatio = screenParam.y / screenParam.x;
 #endif
 
-    //float2 quadPos = float2(2.0f, -2.0f) * GetQuadVertexPosition(input.vertexID).xy + float2(-1.0f, 1.0f);
     float2 quadPos = 2.0f * GetQuadVertexPosition(input.vertexID).xy - 1.0f;
     float2 uv = GetQuadTexCoord(input.vertexID);
     uv.x = 1.0f - uv.x;

@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Additional lighting settings
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Makes the render pipeline include mixed-lighting Shader Variants in the build.");
-            public static GUIContent useRenderingLayers = EditorGUIUtility.TrTextContent("Use Rendering Layers", "When enabled, you can configure specific Lights to affect only specific GameObjects. For the Deferred Rendering Path, Unity allocates an extra render target.");
+            public static GUIContent useRenderingLayers = EditorGUIUtility.TrTextContent("Use Rendering Layers", "When enabled, rendering layers are used to select which lights an object is affected by. When using the Deferred rendering path, this option allocates an extra render target.");
             public static GUIContent supportsLightCookies = EditorGUIUtility.TrTextContent("Light Cookies", "Makes the render pipeline include light cookies Shader Variants in the build.");
 
             // Shadow settings

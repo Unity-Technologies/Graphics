@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEngine
 {
@@ -7,9 +8,31 @@ namespace UnityEngine
 
     public class InputManagerEntry
     {
-        public enum Kind { KeyOrButton, Mouse, Axis }
-        public enum Axis { X, Y, Third, Fourth, Fifth, Sixth, Seventh, Eigth }
-        public enum Joy { All, First, Second }
+        public enum Kind
+        {
+            KeyOrButton,
+            Mouse,
+            Axis
+        }
+
+        public enum Axis
+        {
+            X,
+            Y,
+            Third,
+            Fourth,
+            Fifth,
+            Sixth,
+            Seventh,
+            Eigth
+        }
+
+        public enum Joy
+        {
+            All,
+            First,
+            Second
+        }
 
         public string name = "";
         public string desc = "";
@@ -25,20 +48,10 @@ namespace UnityEngine
         public Kind kind = Kind.Axis;
         public Axis axis = Axis.X;
         public Joy joystick = Joy.All;
-
-        internal bool IsEqual((string name, InputManagerEntry.Kind kind) partialEntry)
-            => this.name == partialEntry.name && this.kind == partialEntry.kind;
-
-        internal bool IsEqual(InputManagerEntry other)
-            => this.name == other.name && this.kind == other.kind;
     }
 
     public static class InputRegistering
     {
-        static List<InputManagerEntry> s_PendingInputsToRegister = new List<InputManagerEntry>();
-
-        static bool havePendingOperation => s_PendingInputsToRegister.Count > 0;
-
         static void CopyEntry(SerializedProperty spAxis, InputManagerEntry entry)
         {
             spAxis.FindPropertyRelative("m_Name").stringValue = entry.name;
@@ -80,55 +93,31 @@ namespace UnityEngine
             return result;
         }
 
-        static void MakeUniquePendingInputsToRegister()
+        internal static List<InputManagerEntry> GetEntriesWithoutDuplicates(List<InputManagerEntry> entries)
         {
-            for (int pendingIndex = s_PendingInputsToRegister.Count - 1; pendingIndex > 0; --pendingIndex)
-            {
-                InputManagerEntry pendingEntry = s_PendingInputsToRegister[pendingIndex];
-                int checkedIndex = pendingIndex - 1;
-                for (; checkedIndex > -1 && !pendingEntry.IsEqual(s_PendingInputsToRegister[checkedIndex]); --checkedIndex) ;
-
-                if (checkedIndex == -1)
-                    continue;
-
-                // There is a duplicate entry in PendingInputesToRegister.
-                // Debug.LogWarning($"Two entries with same name and kind are tryed to be added at same time. Only first occurence is kept. Name:{pendingEntry.name} Kind:{pendingEntry.kind}");
-
-                // Keep only first.
-                // Counting decreasingly will have no impact on index before pendingIndex. So we can safely remove it.
-                s_PendingInputsToRegister.RemoveAt(pendingIndex);
-            }
+            return entries
+                .GroupBy(x => new { x.name, x.kind }) // Create groups { name, kind }
+                .Select(y => y.First()) // Select first entry from each group, ignoring duplicates
+                .ToList();
         }
 
-        static void RemovePendingInputsToAddThatAreAlreadyRegistered(List<(string name, InputManagerEntry.Kind kind)> cachedEntries, List<InputManagerEntry> newEntries)
+        internal static List<InputManagerEntry> GetEntriesWithoutAlreadyRegistered(List<InputManagerEntry> entries, List<(string name, InputManagerEntry.Kind kind)> cachedEntries)
         {
-            for (int newIndex = newEntries.Count - 1; newIndex >= 0; --newIndex)
-            {
-                var newEntry = newEntries[newIndex];
-                int checkedIndex = cachedEntries.Count - 1;
-                for (; checkedIndex > -1 && !newEntry.IsEqual(cachedEntries[checkedIndex]); --checkedIndex) ;
-
-                if (checkedIndex == -1)
-                    continue;
-
-                // There is a already a cached entry that correspond.
-                // Debug.LogWarning($"Another entry with same name and kind already exist. Skiping this one. Name:{newEntry.name} Kind:{newEntry.kind}");
-
-                // Keep only first.
-                // Counting decreasingly will have no impact on index before pendingIndex. So we can safely remove it.
-                s_PendingInputsToRegister.RemoveAt(newIndex);
-            }
+            return entries
+                .Where(entry => !cachedEntries.Any(cachedEntry => cachedEntry.name == entry.name && cachedEntry.kind == entry.kind))
+                .ToList();
         }
 
-        static void DelayedRegisterInput()
+        public static void RegisterInputs(List<InputManagerEntry> entries)
         {
-            // Exit quickly if nothing more to register
-            // (case when several different class try to register, only first call will do all)
-            if (!havePendingOperation)
-                return;
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+            Debug.LogWarning("Trying to add entry in the legacy InputManager but using InputSystem package. Skipping.");
+            return;
+#else
 
             // Grab reference to input manager
             var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset");
+
             // Temporary fix. This happens some time with HDRP init when it's called before asset database is initialized (probably related to package load order).
             if (assets.Length == 0)
                 return;
@@ -142,30 +131,19 @@ namespace UnityEngine
             // At this point, we assume that entries in spAxes are already unique.
 
             // Ensure no double entry are tried to be registered (trim early)
-            MakeUniquePendingInputsToRegister();
+            var uniqueEntries = GetEntriesWithoutDuplicates(entries);
 
-            // Cache already existing entries to minimaly use serialization
+            // Cache already existing entries to minimally use serialization
             var cachedEntries = GetCachedInputs(spAxes);
+
             // And trim pending entries regarding already cached ones.
-            RemovePendingInputsToAddThatAreAlreadyRegistered(cachedEntries, s_PendingInputsToRegister);
+            var uniqueNewEntries = GetEntriesWithoutAlreadyRegistered(uniqueEntries, cachedEntries);
 
             // Add now unique entries
-            AddEntriesWithoutCheck(spAxes, s_PendingInputsToRegister);
+            AddEntriesWithoutCheck(spAxes, uniqueNewEntries);
 
             // Commit
             soInputManager.ApplyModifiedProperties();
-        }
-
-        public static void RegisterInputs(List<InputManagerEntry> entries)
-        {
-#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
-            Debug.LogWarning("Trying to add entry in the legacy InputManager but using InputSystem package. Skiping.");
-            return;
-#else
-            s_PendingInputsToRegister.AddRange(entries);
-
-            //delay the call in order to do only one pass event if several different class register inputs
-            EditorApplication.delayCall += DelayedRegisterInput;
 #endif
         }
     }

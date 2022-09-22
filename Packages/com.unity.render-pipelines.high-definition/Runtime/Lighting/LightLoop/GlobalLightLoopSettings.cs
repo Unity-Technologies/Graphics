@@ -46,18 +46,28 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public enum ReflectionProbeTextureCacheResolution
     {
-        /// <summary>Size 512</summary>
-        Resolution512 = 512,
-        /// <summary>Size 1024</summary>
-        Resolution1024 = 1024,
-        /// <summary>Size 2048</summary>
-        Resolution2048 = 2048,
-        /// <summary>Size 4096</summary>
-        Resolution4096 = 4096,
-        /// <summary>Size 8192</summary>
-        Resolution8192 = 8192,
-        /// <summary>Size 16384</summary>
-        Resolution16384 = 16384
+        /// <summary>Resolution 512x512</summary>
+        Resolution512x512 = 512,
+        /// <summary>Resolution 1024x512</summary>
+        Resolution1024x512 = 1024 << 16 | 512,
+        /// <summary>Resolution 1024x1024</summary>
+        Resolution1024x1024 = 1024,
+        /// <summary>Resolution 2048x1024</summary>
+        Resolution2048x1024 = 2048 << 16 | 1024,
+        /// <summary>Resolution 2048x2048</summary>
+        Resolution2048x2048 = 2048,
+        /// <summary>Resolution 4096x2048</summary>
+        Resolution4096x2048 = 4096 << 16 | 2048,
+        /// <summary>Resolution 4096x4096</summary>
+        Resolution4096x4096 = 4096,
+        /// <summary>Resolution 8192x4096</summary>
+        Resolution8192x4096 = 8192 << 16 | 4096,
+        /// <summary>Resolution 8192x8192</summary>
+        Resolution8192x8192 = 8192,
+        /// <summary>Resolution 16384x8192</summary>
+        Resolution16384x8192 = 16384 << 16 | 8192,
+        /// <summary>Resolution 16384</summary>
+        Resolution16384x16384 = 16384,
     }
 
     /// <summary>
@@ -176,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
 
             reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
-            reflectionProbeTexCacheSize = ReflectionProbeTextureCacheResolution.Resolution2048,
+            reflectionProbeTexCacheSize = ReflectionProbeTextureCacheResolution.Resolution4096x4096,
             reflectionProbeTexLastValidCubeMip = 3,
             reflectionProbeTexLastValidPlanarMip = 0,
             reflectionProbeDecreaseResToFit = true,
@@ -193,6 +203,14 @@ namespace UnityEngine.Rendering.HighDefinition
             maxLightsPerClusterCell = 8,
             maxLocalVolumetricFogOnScreen = 256,
         };
+
+        internal static Vector2Int GetReflectionProbeTextureCacheDim(ReflectionProbeTextureCacheResolution resolution)
+        {
+            if(resolution <= ReflectionProbeTextureCacheResolution.Resolution16384x16384)
+                return new Vector2Int((int)resolution, (int)resolution);
+
+            return new Vector2Int(((int)resolution >> 16), (int)resolution & 0xFFFF);
+        }
 
         /// <summary>Cookie atlas resolution.</summary>
         [FormerlySerializedAs("cookieSize")]
@@ -212,6 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int cookieTexArraySize;
 
         // We keep this property for the migration code
+        /// <summary>Obsolete: Use planar reflection atlas.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]
         [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead.", false)]
         public PlanarReflectionAtlasResolution planarReflectionAtlasSize;

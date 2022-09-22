@@ -693,13 +693,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
-                        data.debugOverlay.SetViewport(ctx.cmd);
+                        ctx.cmd.SetViewport(data.debugOverlay.Next());
                         mpb.SetTexture(HDShaderIDs._InputCubemap, data.skyReflectionTexture);
                         mpb.SetFloat(HDShaderIDs._Mipmap, data.lightingDebugSettings.skyReflectionMipmap);
                         mpb.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
                         mpb.SetFloat(HDShaderIDs._SliceIndex, data.lightingDebugSettings.cubeArraySliceIndex);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                        data.debugOverlay.Next();
                     });
             }
         }
@@ -736,7 +735,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Debug.Assert(data.atlasTexture.dimension == TextureDimension.Tex2D || data.atlasTexture.dimension == TextureDimension.Tex2DArray);
 
-                        data.debugOverlay.SetViewport(ctx.cmd);
+                        ctx.cmd.SetViewport(data.debugOverlay.Next((float)data.atlasTexture.width / data.atlasTexture.height));
 
                         int shaderPass;
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -755,7 +754,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugBlitMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mpb);
-                        data.debugOverlay.Next();
                     });
             }
         }
@@ -896,6 +894,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         var lightingDebug = data.lightingDebugSettings;
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
+                        Rect rect;
+
                         switch (lightingDebug.shadowDebugMode)
                         {
                             case ShadowMapDebugMode.VisualizeShadowMap:
@@ -917,32 +917,31 @@ namespace UnityEngine.Rendering.HighDefinition
                                     }
                                 }
 #endif
-
                                 for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
                                 {
-                                    data.shadowManager.DisplayShadowMap(data.shadowTextures, shadowIndex, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                    data.debugOverlay.Next();
+                                    rect = data.debugOverlay.Next();
+                                    data.shadowManager.DisplayShadowMap(data.shadowTextures, shadowIndex, ctx.cmd, data.debugShadowMapMaterial, rect.x, rect.y, rect.width, rect.height, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                                 }
                                 break;
                             case ShadowMapDebugMode.VisualizePunctualLightAtlas:
-                                data.shadowManager.DisplayShadowAtlas(data.shadowTextures.punctualShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                data.debugOverlay.Next();
+                                rect = data.debugOverlay.Next();
+                                data.shadowManager.DisplayShadowAtlas(data.shadowTextures.punctualShadowResult, ctx.cmd, data.debugShadowMapMaterial, rect.x, rect.y, rect.width, rect.height, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                                 break;
                             case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
-                                data.shadowManager.DisplayCachedPunctualShadowAtlas(data.shadowTextures.cachedPunctualShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                data.debugOverlay.Next();
+                                rect = data.debugOverlay.Next();
+                                data.shadowManager.DisplayCachedPunctualShadowAtlas(data.shadowTextures.cachedPunctualShadowResult, ctx.cmd, data.debugShadowMapMaterial, rect.x, rect.y, rect.width, rect.height, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                                 break;
                             case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
-                                data.shadowManager.DisplayShadowCascadeAtlas(data.shadowTextures.directionalShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                data.debugOverlay.Next();
+                                rect = data.debugOverlay.Next();
+                                data.shadowManager.DisplayShadowCascadeAtlas(data.shadowTextures.directionalShadowResult, ctx.cmd, data.debugShadowMapMaterial, rect.x, rect.y, rect.width, rect.height, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                                 break;
                             case ShadowMapDebugMode.VisualizeAreaLightAtlas:
-                                data.shadowManager.DisplayAreaLightShadowAtlas(data.shadowTextures.areaShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                data.debugOverlay.Next();
+                                rect = data.debugOverlay.Next();
+                                data.shadowManager.DisplayAreaLightShadowAtlas(data.shadowTextures.areaShadowResult, ctx.cmd, data.debugShadowMapMaterial, rect.x, rect.y, rect.width, rect.height, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                                 break;
                             case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
-                                data.shadowManager.DisplayCachedAreaShadowAtlas(data.shadowTextures.cachedAreaShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                data.debugOverlay.Next();
+                                rect = data.debugOverlay.Next();
+                                data.shadowManager.DisplayCachedAreaShadowAtlas(data.shadowTextures.cachedAreaShadowResult, ctx.cmd, data.debugShadowMapMaterial, rect.x, rect.y, rect.width, rect.height, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                                 break;
                             default:
                                 break;

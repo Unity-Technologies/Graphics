@@ -23,9 +23,8 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(fragInput.positionRWS - WorldRayOrigin());
-    rayIntersection.t = travelDistance;
-    rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
+    rayIntersection.t = RayTCurrent();
+    rayIntersection.cone.width += rayIntersection.t * abs(rayIntersection.cone.spreadAngle);
 
     PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, fragInput.positionRWS);
 
@@ -59,10 +58,18 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 #ifdef _SURFACE_TYPE_TRANSPARENT
     // If the mesh has a refraction mode, then we do proper refraction
     #if HAS_REFRACTION
-        // Inverse the ior ratio if we are leaving the medium (we are hitting a back face)
+        // We only allow for inside-medium paths if the surface is flagged as non-thin refractive and is double sided
+        #if defined(_REFRACTION_THIN) || !defined(_DOUBLESIDED_ON)
+        float invIOR = 1.0;
+        #else
         float invIOR = bsdfData.ior;
+        #endif
+
+        #if !defined(_REFRACTION_THIN)
+        // Inverse the ior ratio if we are leaving the medium (we are hitting a back face)
         if (fragInput.isFrontFace)
             invIOR = 1.0f / invIOR;
+        #endif
 
         // Let's compute the refracted direction
         float3 refractedDir = refract(incidentDirection, bsdfData.normalWS, invIOR);
@@ -229,8 +236,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     float3 viewWS = -WorldRayDirection();
 
     // Compute the distance of the ray
-    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - WorldRayOrigin());
-    rayIntersection.t = travelDistance;
+    rayIntersection.t = RayTCurrent();
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

@@ -275,7 +275,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, LightUI.Styles.lightLayer);
                     if (change.changed && serialized.linkShadowLayers.boolValue)
+                    {
+                        Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
                         SyncLightAndShadowLayers(serialized, owner);
+                    }
                 }
             }
         }
@@ -1168,7 +1171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (lightType != HDLightType.Directional)
-                    EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
+                    EditorGUILayout.Slider(serialized.shadowNearPlane, 0, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
 
                 bool fullShadowMask = false;
                 if (serialized.settings.isMixed)
@@ -1397,7 +1400,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             DrawEnableShadowMap(serialized, owner);
             if (serialized.type != HDLightType.Directional)
-                EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
+                EditorGUILayout.Slider(serialized.shadowNearPlane, 0, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
         }
 
         static bool HasShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)

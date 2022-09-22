@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightInstanceID;
             public uint frameCount;
             public GPULightType lightType;
+            public Matrix4x4 transform;
         }
 
         /// <summary>
@@ -220,6 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GlobalIllumination1,
             RayTracedReflections,
             VolumetricClouds,
+            RayTracedAmbientOcclusion,
             Count
         }
 
@@ -414,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (CoreUtils.IsSceneFilteringEnabled())
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType != CameraType.Reflection)
                     return HDAdditionalCameraData.ClearColorMode.Color;
 
                 if (m_AdditionalCameraData != null)
@@ -646,6 +648,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
+            shadowHistoryUsage[screenSpaceShadowIndex].transform = lightData.transform.localToWorldMatrix;
         }
 
         internal bool EffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
@@ -1221,6 +1224,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Default to identity scale-bias.
             cb._ScreenCoordScaleBias = additionalCameraDataIsNull ? new Vector4(1, 1, 0, 0) : m_AdditionalCameraData.screenCoordScaleBias;
+        }
+
+        unsafe internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                cmd.SetViewProjectionMatrices(m_XRViewConstants[0].viewMatrix, m_XRViewConstants[0].projMatrix);
+                if (xr.singlePassEnabled)
+                {
+                    for (int viewId = 0; viewId < viewCount; viewId++)
+                    {
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(m_XRViewConstants[viewId].viewMatrix, m_XRViewConstants[viewId].projMatrix, true, viewId);
+                    }
+                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
+                }
+            }
+#endif
         }
 
         unsafe internal void UpdateShaderVariablesXRCB(ref ShaderVariablesXR cb)

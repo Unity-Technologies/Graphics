@@ -77,6 +77,8 @@ namespace UnityEngine.Rendering
 
                     if (sharedProfile != null)
                     {
+                        m_InternalProfile.name = sharedProfile.name;
+
                         foreach (var item in sharedProfile.components)
                         {
                             var itemCopy = Instantiate(item);

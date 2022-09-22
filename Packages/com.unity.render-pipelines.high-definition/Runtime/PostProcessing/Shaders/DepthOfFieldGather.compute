@@ -7,6 +7,7 @@
 #pragma kernel KMainNear MAIN=KMainNear  NEAR
 #pragma kernel KMainFar  MAIN=KMainFar FAR
 
+#pragma multi_compile _ LOW_RESOLUTION
 #pragma multi_compile _ USE_TILES
 #pragma multi_compile _ ENABLE_ALPHA
 
@@ -21,6 +22,16 @@ RW_TEXTURE2D_X(float, _OutputAlphaTexture);
 
 SAMPLER(sampler_LinearClamp);
 SAMPLER(sampler_TrilinearClamp);
+
+//Only enable sampler usage on higher resolutions.
+//on low resolutions with hardware DRS (quarter res) having a bilinear sampler can add dynamic resolution artifacts due to rounding of pixels during dof pyramid downsample
+//the proper fix would be to constrain the available DRS resolutions to multiples of 8, so we can perform a good quarter res downsample and not loose the extra column.
+//To avoid complexity, we just use a Load (no filter) so we grab the closest sample. Using a filter will aggravate this artifact and cause jitterness on the dof blur result.
+#if LOW_RESOLUTION
+#define USE_SAMPLER 0
+#else
+#define USE_SAMPLER 1
+#endif
 
 #if FAR
 #define SamplerTap sampler_TrilinearClamp
@@ -118,10 +129,16 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         // low clipping values
         float clipping = 1.0 - abs(dot(sampTap, barrelUV));
         sampTap = sampTap * sampDist * clipping + uv;
+        #if USE_SAMPLER
         sampTap = ClampAndScaleUVPostProcessTexture(sampTap, _PostProcessScreenSize.zw, texelsToClamp);
 
         CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
+        #else
+        sampTap = clamp(sampTap.xy, 0, 1.0 - _TexelSize.zw * 0.5) * _TexelSize.xy;
+        CTYPE sampColor = LOAD_TEXTURE2D_X_LOD(_InputTexture, sampTap, mip).CTYPE_SWIZZLE;
+        float sampCoC = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, sampTap, mip).x;
+        #endif
 
         #if NEAR
         {

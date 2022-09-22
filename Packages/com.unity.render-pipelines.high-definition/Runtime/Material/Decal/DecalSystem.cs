@@ -504,7 +504,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateCachedDrawOrder()
             {
-                if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
+                // Material can be null here if it was destroyed.
+                if (m_Material != null && this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                 {
                     m_CachedDrawOrder = this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                 }
@@ -840,6 +841,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            public bool HasEmissivePass
+            {
+                get
+                {
+                    return m_cachedProjectorEmissivePassValue != -1;
+                }
+            }
+
             public int DrawOrder => m_CachedDrawOrder;
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
@@ -992,6 +1001,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 pair.Value.EndCull(cullRequest[pair.Key]);
         }
 
+        public bool HasAnyForwardEmissive()
+        {
+            foreach (var decalSet in m_DecalSetsRenderList)
+            {
+                if (decalSet.HasEmissivePass)
+                    return true;
+            }
+            return false;
+        }
+
         public void RenderIntoDBuffer(CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
@@ -1136,9 +1155,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, DebugOverlay debugOverlay)
         {
-            debugOverlay.SetViewport(cmd);
+            cmd.SetViewport(debugOverlay.Next());
             HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
-            debugOverlay.Next();
         }
 
         public void LoadCullResults(CullResult cullResult)

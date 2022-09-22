@@ -54,6 +54,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingFallbackHierachyParameter lastBounce = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
+        /// Controls the dimmer applied to the ambient and legacy light probes.
+        /// </summary>
+        [Tooltip("Controls the dimmer applied to the ambient and legacy light probes.")]
+        [AdditionalProperty]
+        public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Default constructor for the recursive rendering volume component.
         /// </summary>
         public RecursiveRendering()

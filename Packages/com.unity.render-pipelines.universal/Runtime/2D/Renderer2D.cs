@@ -259,8 +259,7 @@ namespace UnityEngine.Rendering.Universal
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
-                    afterPostProcessColorHandle.nameID == k_CameraTarget.nameID,
-                    hasPassesAfterPostProcessing);
+                    afterPostProcessColorHandle.nameID == k_CameraTarget.nameID);
 
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = afterPostProcessColorHandle;

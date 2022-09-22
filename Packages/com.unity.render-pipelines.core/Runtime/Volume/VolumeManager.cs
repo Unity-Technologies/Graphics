@@ -564,6 +564,9 @@ namespace UnityEngine.Rendering
         static bool IsVolumeRenderedByCamera(Volume volume, Camera camera)
         {
 #if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
+            // GameObject for default global volume may not belong to any scene, following check prevents it from being culled
+            if (!volume.gameObject.scene.IsValid())
+                return true;
             // IsGameObjectRenderedByCamera does not behave correctly when camera is null so we have to catch it here.
             return camera == null ? true : UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
 #else

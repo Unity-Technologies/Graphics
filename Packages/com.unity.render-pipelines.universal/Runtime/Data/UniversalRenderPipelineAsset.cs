@@ -671,6 +671,18 @@ namespace UnityEngine.Rendering.Universal
             DestroyRenderers();
             var pipeline = new UniversalRenderPipeline(this);
             CreateRenderers();
+
+            // Blitter can only be initialized after renderers have been created and ResourceReloader has been
+            // called on potentially empty shader resources
+            foreach (var data in m_RendererDataList)
+            {
+                if (data is UniversalRendererData universalData)
+                {
+                    Blitter.Initialize(universalData.shaders.coreBlitPS, universalData.shaders.coreBlitColorAndDepthPS);
+                    break;
+                }
+            }
+
             return pipeline;
         }
 

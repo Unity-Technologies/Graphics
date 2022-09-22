@@ -63,12 +63,10 @@ namespace UnityEngine.Experimental.Rendering
                             s_MirrorViewMaterialProperty.SetVector(k_ScaleBiasRt, scaleBiasRt);
                             s_MirrorViewMaterialProperty.SetFloat(k_SourceTexArraySlice, blitParam.srcTexArraySlice);
 
-                            if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None && blitParam.foveatedRenderingInfo != IntPtr.Zero)
+                            if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster) && blitParam.foveatedRenderingInfo != IntPtr.Zero)
                             {
                                 cmd.ConfigureFoveatedRendering(blitParam.foveatedRenderingInfo);
-
-                                if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
-                                    cmd.EnableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
+                                cmd.EnableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
                             }
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
@@ -78,12 +76,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if (XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None)
+            if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
             {
+                cmd.DisableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
                 cmd.ConfigureFoveatedRendering(IntPtr.Zero);
-
-                if (XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster))
-                    cmd.DisableShaderKeyword("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
             }
         }
 

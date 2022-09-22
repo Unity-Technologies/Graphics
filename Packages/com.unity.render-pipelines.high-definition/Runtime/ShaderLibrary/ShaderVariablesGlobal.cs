@@ -193,7 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CookieAtlasSize;
         public Vector4 _CookieAtlasData;
-        public Vector4 _ReflectionAtlasData;
+        public Vector4 _ReflectionAtlasCubeData;
+        public Vector4 _ReflectionAtlasPlanarData;
 
         // Tile/Cluster
         public uint _NumTileFtplX;

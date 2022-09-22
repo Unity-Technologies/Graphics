@@ -236,10 +236,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
                 data.m_RenderPipelineSettings.cubeReflectionResolution = new RenderPipelineSettings.ReflectionProbeResolutionScalableSetting(cubeResolutions, ScalableSettingSchemaId.With3Levels);
 
-                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize;
+                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize * 6;
                 int planarReflectionAtlasArea = (int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize;
                 int reflectionProbeTexCacheSize = Mathf.NextPowerOfTwo((int)Mathf.Sqrt(cubeReflectionAtlasArea + planarReflectionAtlasArea));
-                lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512, (int)ReflectionProbeTextureCacheResolution.Resolution16384);
+                lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512x512, (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
 
                 lightLoopSettings.maxCubeReflectionOnScreen = Mathf.Clamp(lightLoopSettings.maxEnvLightsOnScreen - lightLoopSettings.maxPlanarReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
 #pragma warning restore 618
@@ -367,11 +367,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool Migrate()
             => k_Migration.Migrate(this);
-
-        // This is not optimal.
-        // When using AssetCache, this is not called. [TODO: fix it]
-        // It will be called though if you import it.
-        void OnEnable()
-            => Migrate();
     }
 }

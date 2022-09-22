@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Enable to allow Materials to receive decals.");
 
-            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when the not using a normal map).");
+            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when a normal map is not used).");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
@@ -555,11 +555,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (zTest != null)
                     materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
 
-                bool showTransparentCullMode = transparentCullMode != null && doubleSidedEnable.floatValue == 0;
+                bool showTransparentCullMode = transparentCullMode != null;
                 if (transparentBackfaceEnable != null)
                     showTransparentCullMode &= transparentBackfaceEnable.floatValue == 0;
+
                 if (showTransparentCullMode)
-                    materialEditor.ShaderProperty(transparentCullMode, Styles.transparentCullModeText);
+                {
+                    if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && transparentCullMode != null)
+                        materialEditor.ShaderProperty(transparentCullMode, Styles.transparentCullModeText);
+                    else
+                    {
+                        EditorGUI.BeginDisabledGroup(true);
+                        EditorGUILayout.Popup(Styles.transparentCullModeText, 0, new string[] { "Off" });
+                        EditorGUI.EndDisabledGroup();
+                    }
+                }
 
                 EditorGUI.indentLevel--;
             }

@@ -764,6 +764,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_VolumetricAmbientProbeOutputBufferParam, data.volumetricAmbientProbeResult);
                         ctx.cmd.SetComputeVectorParam(data.computeAmbientProbeCS, s_FogParameters, data.fogParameters);
                     }
+
+                    Hammersley.BindConstants(ctx.cmd, data.computeAmbientProbeCS);
+
                     ctx.cmd.DispatchCompute(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, 1, 1, 1);
                     if (data.ambientProbeResult != null)
                         ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
