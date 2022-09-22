@@ -515,13 +515,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
-                bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
-                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
-                if (taaEnabled)
-                {
-                    LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
-                }
-
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
@@ -571,7 +564,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture);
+                bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                if (taaEnabled)
+                {
+                    LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
+                    LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
+                }
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture, taaEnabled);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph);
@@ -3232,12 +3231,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture)
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture, bool taaEnabled)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
-                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
                     passData.source = builder.WriteTexture(source);
@@ -3245,7 +3242,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.occlusion = builder.ReadTexture(occlusionHandle);
+                    passData.taaEnabled = taaEnabled;
+                    if (taaEnabled)
+                    {
+                        TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+                        passData.occlusion = builder.ReadTexture(occlusionHandle);
+                    }
 
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
@@ -3260,9 +3262,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
-                                ShaderConfig.s_CameraRelativeRendering != 0,
+                                ShaderConfig.s_CameraRelativeRendering != 0, data.taaEnabled,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                data.hdCamera.mainViewConstants.viewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
