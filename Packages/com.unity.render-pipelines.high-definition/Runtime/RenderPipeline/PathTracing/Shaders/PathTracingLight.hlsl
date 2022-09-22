@@ -302,7 +302,7 @@ float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir);
+        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir).rgb;
     }
 #endif
 
@@ -498,7 +498,7 @@ bool SampleLights(LightList lightList,
         }
         else // lightType == PTLIGHT_SKY
         {
-            float2 uv = SampleSky(inputSample);
+            float2 uv = SampleSky(inputSample.xy);
             outgoingDir = MapUVToSkyDirection(uv);
             value = GetSkyValue(outgoingDir);
             pdf = GetSkyLightWeight(lightList) * GetSkyPDFFromValue(value);

@@ -194,7 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_Output.IsValid());
                 var requestedDesc = GetAtlasDesc();
                 // We check if we need to refresh the desc. It is needed for directional lights.
-                if (renderGraph.GetTextureDesc(m_Output).width != requestedDesc.width)
+                var outputDesc = renderGraph.GetTextureDesc(m_Output);
+                if (outputDesc.width != requestedDesc.width ||
+                    outputDesc.height != requestedDesc.height)
                 {
                     renderGraph.RefreshSharedTextureDesc(m_Output, requestedDesc);
                 }
