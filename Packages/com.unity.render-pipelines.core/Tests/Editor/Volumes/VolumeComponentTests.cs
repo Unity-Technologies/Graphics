@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Tests
 
             Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEngine.Rendering.VolumeManager");
             var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
-                types, typeof(RenderPipeline)) as List<(string, Type)>;
+                types, typeof(RenderPipeline), typeof(RenderPipelineAsset)) as List<(string, Type)>;
 
 
             Assert.NotNull(volumeComponents);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using UnityEngine.Assertions;
 
 #if UNITY_EDITOR
@@ -43,25 +44,27 @@ namespace UnityEngine.Rendering
 
         static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
 
-        internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
+        internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType, Type currentRenderPipelineAsset)
         {
-            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
+            if (currentPipelineType != null && s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
                 out var supportedVolumeComponents))
                 return supportedVolumeComponents;
 
-            supportedVolumeComponents = FilterVolumeComponentTypes(
-                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
-            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
+            supportedVolumeComponents = FilterVolumeComponentTypes(instance.baseComponentTypeArray, currentPipelineType, currentRenderPipelineAsset);
+            if (currentPipelineType != null)
+                s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
 
             return supportedVolumeComponents;
         }
 
-        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
+        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType, Type currentPipelineAsset)
         {
             var volumes = new List<(string, Type)>();
             foreach (var t in types)
             {
                 string path = string.Empty;
+
+                var supportedOnRenderPipelines = t.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
 
                 var attrs = t.GetCustomAttributes(false);
 
@@ -75,7 +78,9 @@ namespace UnityEngine.Rendering
                         case VolumeComponentMenu attrMenu:
                         {
                             path = attrMenu.menu;
-                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                            if(supportedOnRenderPipelines != null && supportedOnRenderPipelines.GetSupportedMode(currentPipelineAsset) == SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported)
+                                skipComponent = true;
+                            else if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
                                 skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
                             break;
                         }

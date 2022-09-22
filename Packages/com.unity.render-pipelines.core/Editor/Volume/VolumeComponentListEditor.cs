@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering
             var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
             editor.inspector = m_BaseEditor;
             editor.Init();
+            editor.DetermineVisibility();
 
             if (forceOpen)
                 editor.expanded = true;
@@ -129,10 +130,19 @@ namespace UnityEditor.Rendering
                 m_Editors[index] = editor;
         }
 
+        void DetermineEditorsVisibility(RenderPipelineAsset previous, RenderPipelineAsset next)
+        {
+            foreach (var editor in m_Editors)
+            {
+                editor.DetermineVisibility();
+            }
+        }
+
         int m_CurrentHashCode;
 
         void ClearEditors()
         {
+            RenderPipelineManager.activeRenderPipelineAssetChanged -= DetermineEditorsVisibility;
             if (m_Editors?.Any() ?? false)
             {
                 // Disable all editors first
@@ -160,6 +170,7 @@ namespace UnityEditor.Rendering
                 CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
 
             m_CurrentHashCode = asset.GetComponentListHashCode();
+            RenderPipelineManager.activeRenderPipelineAssetChanged += DetermineEditorsVisibility;
         }
 
         /// <summary>
