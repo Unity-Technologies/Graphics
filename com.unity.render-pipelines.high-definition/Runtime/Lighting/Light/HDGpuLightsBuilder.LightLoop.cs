@@ -683,7 +683,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ref HDAdditionalLightDataUpdateInfo updateInfo = ref UnsafeUtility.AsRef<HDAdditionalLightDataUpdateInfo>(updateInfosUnsafePtr + additionalLightDataIndex);
 
                         shadowRequest.shouldUseCachedShadowData = false;
-
+                        shadowRequest.shouldRenderCachedComponent = false;
                         shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                         // Write per light type matrices, splitDatas and culling parameters
