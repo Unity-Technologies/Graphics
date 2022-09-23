@@ -1,11 +1,11 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.Toolbars;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [EditorToolbarElement(id, typeof(GraphViewEditorWindow))]
-    public sealed class ShaderGraphShowInProjectButton : MainToolbarButton
+    sealed class ShaderGraphShowInProjectButton : MainToolbarButton
     {
         public const string id = "ShaderGraph/Main/ShowInProject";
 

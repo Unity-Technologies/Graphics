@@ -1,6 +1,6 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphModelState, command);
+                undoUpdater.SaveState(graphModelState);
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphModelState, command);
+                undoUpdater.SaveState(graphModelState);
             }
 
             var nodeModel = command.NodeModel;

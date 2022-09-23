@@ -1,6 +1,4 @@
-using UnityEngine.Assertions;
-
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     static class AssertHelpers
     {

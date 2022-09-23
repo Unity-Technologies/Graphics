@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class ShaderGraphAssetUtils
+    static class ShaderGraphAssetUtils
     {
         public static readonly string kBlackboardContextName = Registry.ResolveKey<PropertyContext>().Name;
         public static readonly string kMainEntryContextName = Registry.ResolveKey<Defs.ShaderGraphContext>().Name;

@@ -1,18 +1,18 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class SliderPart : SingleFieldPart<Slider, float>
+    class SliderPart : SingleFieldPart<Slider, float>
     {
         protected override string UXMLTemplateName => "StaticPortParts/SliderPart";
         protected override string FieldName => "sg-slider";
 
         public SliderPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName)

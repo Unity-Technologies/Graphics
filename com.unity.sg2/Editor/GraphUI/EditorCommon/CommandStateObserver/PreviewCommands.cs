@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphDelta;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.PreviewService.PreviewRenderMode;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
 
-    public static class PreviewCommands
+    static class PreviewCommands
     {
         public static void RegisterCommandHandlers(
             BaseGraphTool graphTool,
@@ -58,10 +57,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ChangePreviewExpandedCommand : ModelCommand<IGraphElementModel>
+    class ChangePreviewExpandedCommand : ModelCommand<GraphElementModel>
     {
         bool m_IsPreviewExpanded;
-        public ChangePreviewExpandedCommand(bool isPreviewExpanded, IReadOnlyList<IGraphElementModel> models)
+        public ChangePreviewExpandedCommand(bool isPreviewExpanded, IReadOnlyList<GraphElementModel> models)
             : base("Change Preview Expansion", "Change Previews Expansion", models)
         {
             m_IsPreviewExpanded = isPreviewExpanded;
@@ -76,7 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphViewState, command);
+                undoStateUpdater.SaveState(graphViewState);
             }
 
             using (var graphUpdater = graphViewState.UpdateScope)
@@ -95,7 +94,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ChangePreviewMeshCommand : ICommand
+    class ChangePreviewMeshCommand : ICommand
     {
         public const string UserPrefsKey = "PreviewMesh";
 
@@ -125,12 +124,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
     }
 
 
-    public class ChangePreviewModeCommand : ModelCommand<GraphDataNodeModel>
+    class ChangePreviewModeCommand : ModelCommand<GraphDataNodeModel>
     {
         PreviewRenderMode m_PreviewMode;
 
         // Needed for the ModelPropertyField used by the SGNodeFieldsInspector
-        public ChangePreviewModeCommand(object previewMode, IModel model)
+        public ChangePreviewModeCommand(object previewMode, Model model)
             : base("Change Preview Mode", "Change Preview Modes", new []{ model as GraphDataNodeModel })
         {
             m_PreviewMode = (PreviewRenderMode)previewMode;
@@ -145,7 +144,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveState(graphModelState);
             }
 
             using(var graphUpdater = graphModelState.UpdateScope)
@@ -173,7 +172,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ChangePreviewZoomCommand : ICommand
+    class ChangePreviewZoomCommand : ICommand
     {
         public const string UserPrefsKey = "PreviewZoom";
         const float k_ZoomMin = 0.2f;
@@ -198,7 +197,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ChangePreviewRotationCommand : ICommand
+    class ChangePreviewRotationCommand : ICommand
     {
         public const string UserPrefsKey = "PreviewRotation";
 
@@ -221,7 +220,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ChangePreviewSizeCommand : ICommand
+    class ChangePreviewSizeCommand : ICommand
     {
         public const string UserPrefsKey = "PreviewSize";
 

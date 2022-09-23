@@ -1,8 +1,8 @@
 //using System;
-//using UnityEditor.GraphToolsFoundation.Overdrive;
+//using Unity.GraphToolsFoundation.Editor;
 //using UnityEditor.Overlays;
 //using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
-//using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+//using Unity.CommandStateObserver;
 //using UnityEngine.UIElements;
 
 //namespace UnityEditor.ShaderGraph.GraphUI.Controllers

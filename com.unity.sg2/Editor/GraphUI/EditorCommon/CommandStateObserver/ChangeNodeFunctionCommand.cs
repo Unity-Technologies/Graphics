@@ -1,5 +1,5 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphViewState, command);
+                undoUpdater.SaveState(graphViewState);
             }
             command.m_GraphDataNodeModel.ChangeNodeFunction(command.m_newFunctionName);
             using var graphUpdater = graphViewState.UpdateScope;

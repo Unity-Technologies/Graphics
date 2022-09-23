@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -20,8 +20,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class SubgraphOutputsInspector : SGFieldsInspector
+    class SubgraphOutputsInspector : SGFieldsInspector
     {
+        // TODO GTF UPGRADE: support edition of multiple models.
+
         class SubgraphOutputRow
         {
             public string Name;
@@ -34,26 +36,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
         List<SubgraphOutputRow> m_OutputRows;
         ListPropertyField m_OutputRowListField;
 
-        public SubgraphOutputsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName)
+        public SubgraphOutputsInspector(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
+            : base(name, models, rootView, parentClassName)
         {
             m_OutputRows = new List<SubgraphOutputRow>();
             m_AvailableTypes = ShaderGraphExampleTypes.SubgraphOutputTypes.ToArray();
 
-            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
-            m_ContextNodeModel = contextNodeModel;
-            m_Stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
+            var contextNodeModels = m_Models.OfType<GraphDataContextNodeModel>();
+            if (!contextNodeModels.Any()) return;
+            m_ContextNodeModel = contextNodeModels.First();
+            m_Stencil = (ShaderGraphStencil)m_ContextNodeModel.GraphModel.Stencil;
 
             var typeNames = m_AvailableTypes.Select(GetTypeDisplayName).ToList();
             var controller = new SubgraphOutputListViewController();
             controller.beforeItemsRemoved += indices =>
             {
                 Debug.Assert(indices.Count == 1, "UNIMPLEMENTED: Remove multiple subgraph outputs");
-                m_OwnerElement.RootView.Dispatch(new RemoveContextEntryCommand((GraphDataContextNodeModel)model, m_OutputRows[indices[0]].Name));
+                RootView.Dispatch(new RemoveContextEntryCommand(m_ContextNodeModel, m_OutputRows[indices[0]].Name));
             };
 
             m_OutputRowListField = new ListPropertyField(
-                m_OwnerElement.RootView,
+                RootView,
                 m_OutputRows,
                 controller: controller,
                 makeItem: () =>
@@ -72,14 +75,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         if (evt.newValue == evt.previousValue) return;
                         var uniqueName = GetUniqueOutputName(evt.newValue);
-                        m_OwnerElement.RootView.Dispatch(new RenameContextEntryCommand(contextNodeModel, m_OutputRows[i].Name, uniqueName));
+                        RootView.Dispatch(new RenameContextEntryCommand(m_ContextNodeModel, m_OutputRows[i].Name, uniqueName));
                     });
 
                     var dropdownField = ve.Q<DropdownField>();
                     dropdownField.SetValueWithoutNotify(dropdownField.choices[m_OutputRows[i].TypeIndex]);
                     dropdownField.RegisterValueChangedCallback(_ => // Event gives us a string, not the index
                     {
-                        m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_OutputRows[i].Name, m_AvailableTypes[dropdownField.index]));
+                        RootView.Dispatch(new ChangeContextEntryTypeCommand(m_ContextNodeModel, m_OutputRows[i].Name, m_AvailableTypes[dropdownField.index]));
                     });
                 }
             );
@@ -87,7 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_OutputRowListField.listView.itemsAdded += _ => // SGListViewController doesn't supply indices
             {
                 var entryName = GetUniqueOutputName("New");
-                m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand(m_ContextNodeModel, entryName, TypeHandle.Float));
+                RootView.Dispatch(new AddContextEntryCommand(m_ContextNodeModel, entryName, TypeHandle.Float));
             };
 
             m_OutputRowListField.listView.name = "sg-subgraph-output-list";
@@ -112,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
-            yield return new LabelPropertyField("Inputs", m_OwnerElement.RootView);
+            yield return new LabelPropertyField("Inputs", RootView);
             yield return m_OutputRowListField;
         }
 

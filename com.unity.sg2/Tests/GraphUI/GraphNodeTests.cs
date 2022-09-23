@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 using UnityEngine.TestTools;
 using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     [TestFixture]
-    public class GraphNodeTests : BaseGraphWindowTest
+    class GraphNodeTests : BaseGraphWindowTest
     {
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var beforeContextCount = beforeContexts.Count;
             Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
 
-            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<INodeModel>() { beforeContexts[0] });
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<AbstractNodeModel>() { beforeContexts[0] });
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
@@ -242,7 +242,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_TestInteractionHelper.ConnectNodes("Float", "Truncate");
             m_TestInteractionHelper.ConnectNodes("Truncate", "Add", "Out", "B");
 
-            Assert.AreEqual(2, m_GraphView.GraphModel.EdgeModels.Count, "Initial graph should have 2 edges");
+            Assert.AreEqual(2, m_GraphView.GraphModel.WireModels.Count, "Initial graph should have 2 edges");
 
             var middleNode = m_Window.GetNodeModelFromGraphByName("Truncate");
 
@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_TestEventHelper.SendDeleteCommand();
             yield return null;
 
-            Assert.AreEqual(0, m_GraphView.GraphModel.EdgeModels.Count, "Deleting a node should delete the connected edges");
+            Assert.AreEqual(0, m_GraphView.GraphModel.WireModels.Count, "Deleting a node should delete the connected edges");
             Assert.IsFalse(m_GraphView.GraphModel.NodeModels.Contains(middleNode), "Deleted node should be removed from the graph");
         }
 
@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
-            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<INodeModel>() { nodeModel });
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<AbstractNodeModel>() { nodeModel });
 
             Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 2);
         }
@@ -338,7 +338,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
             }
 
-            m_GraphView.Dispatch(new CreateEdgeCommand(multiply.InputsById["A"], vec2.OutputsById["Out"]));
+            m_GraphView.Dispatch(new CreateWireCommand(multiply.InputsById["A"], vec2.OutputsById["Out"]));
             yield return null;
 
             foreach (var port in multiply.Ports)
@@ -346,8 +346,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Multiply node connected to Vector 2 should show Vector 2 type");
             }
 
-            var createdEdge = vec2.GetConnectedEdges().First();
-            m_GraphView.Dispatch(new DeleteEdgeCommand(createdEdge));
+            var createdEdge = vec2.GetConnectedWires().First();
+            m_GraphView.Dispatch(new DeleteWireCommand(createdEdge));
             yield return null;
 
             foreach (var port in multiply.Ports)
@@ -370,7 +370,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
             var vec2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector 2");
 
-            m_GraphView.Dispatch(new CreateEdgeCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
+            m_GraphView.Dispatch(new CreateWireCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
             yield return null;
 
             foreach (var port in multiply1.Ports)
@@ -383,7 +383,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
             }
 
-            m_GraphView.Dispatch(new CreateEdgeCommand(multiply1.InputsById["A"], vec2.OutputsById["Out"]));
+            m_GraphView.Dispatch(new CreateWireCommand(multiply1.InputsById["A"], vec2.OutputsById["Out"]));
             yield return null;
 
             foreach (var port in multiply1.Ports)
@@ -396,8 +396,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Second multiply node in a series should react to upstream change to Vector 2");
             }
 
-            var createdEdge = vec2.GetConnectedEdges().First();
-            m_GraphView.Dispatch(new DeleteEdgeCommand(createdEdge));
+            var createdEdge = vec2.GetConnectedWires().First();
+            m_GraphView.Dispatch(new DeleteWireCommand(createdEdge));
             yield return null;
 
             foreach (var port in multiply1.Ports)

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.CommandStateObserver;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI

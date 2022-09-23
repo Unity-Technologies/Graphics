@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class ShaderGraphTypes
+    static class ShaderGraphTypes
     {
         // TODO: This should eventually be more flexible, but for now serves its purpose
         static readonly Dictionary<string, TypeHandle> k_TypeHandlesByName = new()

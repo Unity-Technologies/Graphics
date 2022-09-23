@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Configuration;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.CommandStateObserver;
+using Unity.GraphToolsFoundation;
 
 using SerializedMesh = UnityEditor.ShaderGraph.Utils.SerializableMesh;
 
@@ -111,7 +109,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ShaderGraphModel : GraphModel
+    class ShaderGraphModel : GraphModel
     {
         [SerializeField]
         private SerializableGraphHandler graphHandlerBox = new();
@@ -138,13 +136,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public GraphModelStateComponent graphModelStateComponent;
 
         #region CopyPasteData
-        [NonSerialized]
-        Dictionary<INodeModel, INodeModel> m_DuplicatedNodesMap = new();
-
-        // Contains mapping of guids of every node that was copied to its connected edges
-        [NonSerialized]
-        Dictionary<string, IEnumerable<IEdgeModel>> m_NodeGuidToEdgesClipboard = new();
-
         /// <summary>
         /// ShaderGraphViewSelection and SGBlackboardViewSelection sets this to true
         /// prior to a cut operation as we need to handle it a little differently
@@ -216,7 +207,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public override bool CanBeSubgraph() => isSubGraph;
-        protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
+        protected override Type GetWireType(PortModel toPort, PortModel fromPort)
         {
             return typeof(GraphDataEdgeModel);
         }
@@ -225,13 +216,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return typeof(SectionModel);
         }
 
-        public override IEdgeModel CreateEdge(IPortModel toPort, IPortModel fromPort, SerializableGUID guid = default)
+        public override WireModel CreateWire(PortModel toPort, PortModel fromPort, SerializableGUID guid = default)
         {
-            IPortModel resolvedEdgeSource;
-            List<IPortModel> resolvedEdgeDestinations;
+            PortModel resolvedEdgeSource;
+            List<PortModel> resolvedEdgeDestinations;
             resolvedEdgeSource = HandleRedirectNodesCreation(toPort, fromPort, out resolvedEdgeDestinations);
 
-            var edgeModel = base.CreateEdge(toPort, fromPort, guid);
+            var edgeModel = base.CreateWire(toPort, fromPort, guid);
             if (resolvedEdgeSource is not GraphDataPortModel fromDataPort)
                 return edgeModel;
 
@@ -245,7 +236,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return edgeModel;
         }
 
-        public override IReadOnlyCollection<IGraphElementModel> DeleteEdges(IReadOnlyCollection<IEdgeModel> edgeModels)
+        public override IReadOnlyCollection<GraphElementModel> DeleteWires(IReadOnlyCollection<WireModel> edgeModels)
         {
             // Remove CLDS edges as well
             foreach (var edge in edgeModels)
@@ -254,10 +245,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     Disconnect(sourcePort, destPort);
             }
 
-            return base.DeleteEdges(edgeModels);
+            return base.DeleteWires(edgeModels);
         }
 
-        public override GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true)
+        public override GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<VariableDeclarationModel> variableModels, bool deleteUsages = true)
         {
             // Remove any ports that correspond to this property on the property context
             // as it causes issues with future port compability tests if the junk isnt cleared
@@ -277,10 +268,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return base.DeleteVariableDeclarations(variableModels, deleteUsages);
         }
 
-        IPortModel HandleRedirectNodesCreation(IPortModel toPort, IPortModel fromPort, out List<IPortModel> resolvedDestinations)
+        PortModel HandleRedirectNodesCreation(PortModel toPort, PortModel fromPort, out List<PortModel> resolvedDestinations)
         {
             var resolvedSource = fromPort;
-            resolvedDestinations = new List<IPortModel>();
+            resolvedDestinations = new List<PortModel>();
 
             if (toPort is { NodeModel: RedirectNodeModel toRedir })
             {
@@ -322,7 +313,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Tries to connect two GraphData ports at the data level.
         /// </summary>
-        /// <param name="src">Source port.</paDram>
+        /// <param name="src">Source port.</param>
         /// <param name="dst">Destination port.</param>
         /// <returns>True if the connection was successful, false otherwise.</returns>
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
@@ -335,7 +326,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Disconnects two GraphData ports at the data level.
         /// </summary>
-        /// <param name="src">Source port.</paDram>
+        /// <param name="src">Source port.</param>
         /// <param name="dst">Destination port.</param>
         public void Disconnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
@@ -344,9 +335,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 dst.owner.graphDataName, dst.graphDataName);
         }
 
-        static bool PortsFormCycle(IPortModel fromPort, IPortModel toPort)
+        static bool PortsFormCycle(PortModel fromPort, PortModel toPort)
         {
-            var queue = new Queue<IPortNodeModel>();
+            var queue = new Queue<PortNodeModel>();
             queue.Enqueue(fromPort.NodeModel);
 
             while (queue.Count > 0)
@@ -364,7 +355,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return false;
         }
 
-        protected override bool IsCompatiblePort(IPortModel startPortModel, IPortModel compatiblePortModel)
+        protected override bool IsCompatiblePort(PortModel startPortModel, PortModel compatiblePortModel)
         {
             if (startPortModel.Direction == compatiblePortModel.Direction) return false;
 
@@ -404,7 +395,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // GTF tries to copy edges over on its own, we don't want to do that,
         // we mostly handle edge duplication on our side of things
-        public override IEdgeModel DuplicateEdge(IEdgeModel sourceEdge, INodeModel targetInputNode, INodeModel targetOutputNode)
+        public override WireModel DuplicateWire(WireModel sourceEdge, AbstractNodeModel targetInputNode, AbstractNodeModel targetOutputNode)
         {
             return null;
         }
@@ -414,23 +405,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         /// <param name="sourceNodeModel"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
         /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
-        /// <param name="stateComponentUpdater"> The graph model state updater needed to mark the newly created node for observers</param>
-        /// <param name="edges"> List of any edge models that are being duplicated as well </param>
-        /// <returns></returns>
-        public override INodeModel DuplicateNode(
-            INodeModel sourceNodeModel,
-            Vector2 delta,
-            IStateComponentUpdater stateComponentUpdater = null,
-            List<IEdgeModel> edges = null)
+        public override AbstractNodeModel DuplicateNode(
+            AbstractNodeModel sourceNodeModel,
+            Vector2 delta)
         {
-            if (edges != null)
-            {
-                // Get all input edges on the node being duplicated
-                var connectedEdges = edges.Where(edgeModel => edgeModel.ToNodeGuid == sourceNodeModel.Guid);
-                if(connectedEdges.Any())
-                    m_NodeGuidToEdgesClipboard.Add(sourceNodeModel.Guid.ToString(), connectedEdges);
-            }
-
             var pastedNodeModel = sourceNodeModel.Clone();
             // Set GraphModel BEFORE OnDefineNode as it is commonly used during it
             pastedNodeModel.GraphModel = this;
@@ -487,12 +465,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             AddNode(pastedNodeModel);
             pastedNodeModel.OnDuplicateNode(sourceNodeModel);
 
-            var graphModelStateUpdater = stateComponentUpdater as GraphModelStateComponent.StateUpdater;
-            graphModelStateUpdater?.MarkNew(pastedNodeModel);
-
-            // Add to mapping so we can perform edge fixup after
-            m_DuplicatedNodesMap.Add(sourceNodeModel, pastedNodeModel);
-
             if (pastedNodeModel is IGraphElementContainer container)
             {
                 foreach (var element in container.GraphElementModels)
@@ -502,73 +474,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return pastedNodeModel;
         }
 
-        public void HandlePostDuplicationEdgeFixup()
-        {
-            if (m_DuplicatedNodesMap.Count != 0)
-            {
-                try
-                {
-                    // Key is the original node, Value is the duplicated node
-                    foreach (var (key, value) in m_DuplicatedNodesMap)
-                    {
-                        if (!m_NodeGuidToEdgesClipboard.TryGetValue(key.Guid.ToString(), out var originalNodeConnections))
-                            continue;
-                        foreach (var originalNodeEdge in originalNodeConnections)
-                        {
-                            var duplicatedIncomingNode = m_DuplicatedNodesMap.FirstOrDefault(pair => pair.Key.Guid == originalNodeEdge.FromNodeGuid).Value;
-                            IEdgeModel edgeModel = null;
-                            // If any node that was copied has an incoming edge from a node that was ALSO
-                            // copied, then we need to find the duplicated copy of the incoming node
-                            // and create the edge between these new duplicated nodes instead
-                            if (duplicatedIncomingNode is NodeModel duplicatedIncomingNodeModel)
-                            {
-                                var fromPort = FindOutputPortByName(duplicatedIncomingNodeModel, originalNodeEdge.FromPortId);
-                                var toPort = FindInputPortByName(value, originalNodeEdge.ToPortId);
-                                Assert.IsNotNull(fromPort);
-                                Assert.IsNotNull(toPort);
-                                edgeModel = CreateEdge(toPort, fromPort);
-                            }
-                            else // Just copy that connection over to the new duplicated node
-                            {
-                                var toPort = FindInputPortByName(value, originalNodeEdge.ToPortId);
-                                var fromNodeModel = NodeModels.FirstOrDefault(model => model.Guid == originalNodeEdge.FromNodeGuid);
-                                if (fromNodeModel != null)
-                                {
-                                    var fromPort = FindOutputPortByName(fromNodeModel, originalNodeEdge.FromPortId);
-                                    Assert.IsNotNull(fromPort);
-                                    Assert.IsNotNull(toPort);
-                                    edgeModel = CreateEdge(toPort, fromPort);
-                                }
-                            }
-                            if (edgeModel != null)
-                            {
-                                using (var graphModelStateUpdater = graphModelStateComponent.UpdateScope)
-                                {
-                                    graphModelStateUpdater?.MarkNew(edgeModel);
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception edgeFixupException)
-                {
-                    Debug.Log("Exception Thrown while trying to handle post copy-paste edge fixup." + edgeFixupException);
-                }
-                finally
-                {
-                    // We always want to make sure that these dictionaries are cleared to prevent from endless looping
-                    m_DuplicatedNodesMap.Clear();
-                    m_NodeGuidToEdgesClipboard.Clear();
-                }
-            }
-        }
-
-        public static IPortModel FindInputPortByName(INodeModel nodeModel, string portID)
+        public static PortModel FindInputPortByName(AbstractNodeModel nodeModel, string portID)
         {
             return ((NodeModel)nodeModel).InputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
-        public static IPortModel FindOutputPortByName(INodeModel nodeModel, string portID)
+        public static PortModel FindOutputPortByName(AbstractNodeModel nodeModel, string portID)
         {
             return ((NodeModel)nodeModel).OutputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
@@ -588,7 +499,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (VariableDeclarations.Any(declarationModel => declarationModel.Guid == sourceDataVariable.Guid))
                 copiedVariable.AssignNewGuid();
             else
-                copiedVariable.Guid = sourceDataVariable.Guid;
+                copiedVariable.SetGuid(sourceDataVariable.Guid);
 
             /* Init variable declaration model */
             InitVariableDeclarationModel(
@@ -618,18 +529,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 section.InsertItem(copiedVariable, -1);
             }
 
-            return (TDeclType)((IVariableDeclarationModel)copiedVariable);
+            return (TDeclType)((VariableDeclarationModel)copiedVariable);
         }
 
-        protected override IVariableDeclarationModel InstantiateVariableDeclaration(
+        protected override VariableDeclarationModel InstantiateVariableDeclaration(
             Type variableTypeToCreate,
             TypeHandle variableDataType,
             string variableName,
             ModifierFlags modifierFlags,
             bool isExposed,
-            IConstant initializationModel,
+            Constant initializationModel,
             SerializableGUID guid,
-            Action<IVariableDeclarationModel, IConstant> initializationCallback = null
+            Action<VariableDeclarationModel, Constant> initializationCallback = null
         )
         {
             if (variableTypeToCreate != typeof(GraphDataVariableDeclarationModel))
@@ -641,15 +552,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return InitVariableDeclarationModel(graphDataVar, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
         }
 
-        IVariableDeclarationModel InitVariableDeclarationModel(
+        VariableDeclarationModel InitVariableDeclarationModel(
             GraphDataVariableDeclarationModel graphDataVar,
             TypeHandle variableDataType,
             string variableName,
             ModifierFlags modifierFlags,
             bool isExposed,
-            IConstant initializationModel,
+            Constant initializationModel,
             SerializableGUID guid,
-            Action<IVariableDeclarationModel, IConstant> initializationCallback)
+            Action<VariableDeclarationModel, Constant> initializationCallback)
         {
             // If the guid starts with a number, it will produce an invalid identifier in HLSL.
             var fieldName = "_" + graphDataVar.Guid;
@@ -681,7 +592,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphDataVar.graphDataName = fieldName;
 
             if (guid.Valid)
-                graphDataVar.Guid = guid;
+                graphDataVar.SetGuid(guid);
             graphDataVar.GraphModel = this;
             graphDataVar.DataType = variableDataType;
             graphDataVar.Title = displayName;
@@ -695,7 +606,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // TODO: (Sai) Would it be better to have a way to gather any variable nodes
         // linked to a blackboard item at a GraphHandler level instead of here?
-        public IEnumerable<INodeModel> GetLinkedVariableNodes(string variableName)
+        public IEnumerable<AbstractNodeModel> GetLinkedVariableNodes(string variableName)
         {
             return NodeModels.Where(
                 node => node is GraphDataVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
@@ -774,7 +685,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public override IVariableNodeModel CreateVariableNode(IVariableDeclarationModel declarationModel,
+        public override VariableNodeModel CreateVariableNode(VariableDeclarationModel declarationModel,
             Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default)
         {
             Action<VariableNodeModel> initCallback = variableNodeModel =>
@@ -794,6 +705,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return this.CreateNode<GraphDataVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
         }
 
-        protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
+        protected override Type GetVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
     }
 }

@@ -1,13 +1,10 @@
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     //public class RemovePortPart : BaseModelViewPart
     //{
-    //    public RemovePortPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName) : base(name, model, ownerElement, parentClassName)
+    //    public RemovePortPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName) : base(name, model, ownerElement, parentClassName)
     //    {
     //    }
 

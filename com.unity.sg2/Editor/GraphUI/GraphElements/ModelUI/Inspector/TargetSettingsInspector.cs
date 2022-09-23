@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Dictionary<Target, bool> m_TargetFoldouts = new();
 
-        public TargetSettingsInspector(List<JsonData<Target>> activeTargets, string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName)
+        public TargetSettingsInspector(List<JsonData<Target>> activeTargets, string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
+            : base(name, models, rootView, parentClassName)
         {
             m_GraphTargets = activeTargets;
         }
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (target.displayName == targetName)
                 {
                     m_GraphTargets.Add(target);
-                    m_OwnerElement.RootView.Dispatch(new ChangeActiveTargetsCommand());
+                    RootView.Dispatch(new ChangeActiveTargetsCommand());
                     m_TargetListPropertyField.listView.itemsSource = m_GraphTargets;
                     m_TargetListPropertyField.listView.Rebuild();
 
@@ -109,14 +109,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnTargetRemoved()
         {
-            m_OwnerElement.RootView.Dispatch(new ChangeActiveTargetsCommand());
+            RootView.Dispatch(new ChangeActiveTargetsCommand());
 
             BuildFields();
         }
 
         void OnTargetSettingsChanged()
         {
-            m_OwnerElement.RootView.Dispatch(new ChangeTargetSettingsCommand());
+            RootView.Dispatch(new ChangeTargetSettingsCommand());
 
             BuildFields();
         }
@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var propertyFieldList = new List<BaseModelPropertyField>();
 
-            var labelField = new LabelPropertyField("Active Targets", m_OwnerElement.RootView);
+            var labelField = new LabelPropertyField("Active Targets", RootView);
             propertyFieldList.Add(labelField);
 
             // TODO: Multi-Target support needs more architecting, disabling the ability to change targets for now.
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var targetSettingsView =
                     new TargetSettingsPropertyField(
-                    m_OwnerElement.RootView,
+                    RootView,
                     activeTarget.value,
                     m_TargetFoldouts,
                     BuildFields,

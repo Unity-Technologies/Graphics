@@ -1,11 +1,15 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class NodeUpgradePart : BaseModelViewPart
+    class NodeUpgradePart : BaseMultipleModelViewsPart
     {
+        // TODO GTF UPGRADE: support edition of multiple models.
+
         const string k_RootClassName = "sg-node-upgrade-part";
 
         static string GetUpgradeMessage(string deprecatedTypeName)
@@ -15,8 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 $"See the {deprecatedTypeName} documentation for more information.";
         }
 
-        public NodeUpgradePart(string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName) { }
+        public NodeUpgradePart(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
+            : base(name, models, rootView, parentClassName) { }
 
         VisualElement m_Root;
         public override VisualElement Root => m_Root;
@@ -29,10 +33,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (!m_Models.OfType<GraphDataNodeModel>().Any()) return;
 
             m_Root.Clear();
 
+            var graphDataNodeModel = m_Models.OfType<GraphDataNodeModel>().First();
             if (graphDataNodeModel.currentVersion >= graphDataNodeModel.latestAvailableVersion)
             {
                 // Nothing to show if no upgrade is needed.
@@ -60,14 +65,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void UpgradeNode()
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
-            m_OwnerElement.RootView.Dispatch(new UpgradeNodeCommand(graphDataNodeModel));
+            if (!m_Models.OfType<GraphDataNodeModel>().Any()) return;
+            var graphDataNodeModel = m_Models.OfType<GraphDataNodeModel>().First();
+            RootView.Dispatch(new UpgradeNodeCommand(graphDataNodeModel));
         }
 
         void DismissUpgrade()
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
-            m_OwnerElement.RootView.Dispatch(new DismissNodeUpgradeCommand(graphDataNodeModel));
+            if (!m_Models.OfType<GraphDataNodeModel>().Any()) return;
+            var graphDataNodeModel = m_Models.OfType<GraphDataNodeModel>().First();
+            RootView.Dispatch(new DismissNodeUpgradeCommand(graphDataNodeModel));
         }
     }
 }

@@ -1,14 +1,14 @@
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphProcessor : IGraphProcessor
+    class ShaderGraphProcessor : GraphProcessor
     {
         const string k_RedirectMissingInputMessage = "Node has no input and default value will be 0.";
         const string k_OutOfDateNodeMessage = "There is a newer version of this node available. Inspect node for details.";
 
-        public GraphProcessingResult ProcessGraph(IGraphModel graphModel, GraphChangeDescription changes)
+        public override GraphProcessingResult ProcessGraph(GraphModel graphModel, GraphChangeDescription changes)
         {
             var result = new GraphProcessingResult();
 
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (node)
                 {
-                    case RedirectNodeModel redirectNode when !redirectNode.GetIncomingEdges().Any() && redirectNode.GetConnectedEdges().Any():
+                    case RedirectNodeModel redirectNode when !redirectNode.GetIncomingEdges().Any() && redirectNode.GetConnectedWires().Any():
                         result.AddWarning(k_RedirectMissingInputMessage, node);
                         break;
 

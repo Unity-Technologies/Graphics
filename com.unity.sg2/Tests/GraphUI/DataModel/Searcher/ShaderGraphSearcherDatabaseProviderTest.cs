@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Searcher;
+using Unity.ItemLibrary.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // make a mock shader graph model
             // get the list of node seacher items
             // check that the display names are in the list as searcher item names
-            // make sure that a SearcherDatabase can be made
+            // make sure that a ItemLibraryDatabase can be made
         }
 
         // TODO (Brett) This test is currently not being run as part of the suite
@@ -42,16 +42,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             ShaderGraphRegistry registry = new ShaderGraphRegistry();
             ShaderGraphModel shaderGraphModel = new ShaderGraphModelMock(registry);
 
-            // Test SearcherItem list from an empty registry
+            // Test ItemLibraryItem list from an empty registry
             var searcherItems = ShaderGraphSearcherDatabaseProvider.GetNodeSearcherItems(shaderGraphModel);
-            Assert.Zero(searcherItems.Count, "SearcherItem list created from an empty Registry should be empty");
-            
+            Assert.Zero(searcherItems.Count, "ItemLibraryItem list created from an empty Registry should be empty");
 
-            // Test SearcherDatabase creation from empty SearcherItem list
+
+            // Test ItemLibraryDatabase creation from empty ItemLibraryItem list
             Assert.DoesNotThrow(() =>
             {
-                SearcherDatabase db = new(searcherItems);
-            }, "Should be able to create a SearcherDatabase from an empty SearcherItem list");
+                ItemLibraryDatabase db = new(searcherItems);
+            }, "Should be able to create a ItemLibraryDatabase from an empty ItemLibraryItem list");
         }
 
         // TODO (Brett) Correct this test once a testable registry can be created.
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // make a mock shader graph model
             // get the list of node seacher items
             // check that the duplicated dispaly name only appears in one searcher item
-            // make sure that a SearcherDatabase can be made
+            // make sure that a ItemLibraryDatabase can be made
         }
     }
 }

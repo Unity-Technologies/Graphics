@@ -1,8 +1,8 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+﻿using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphSectionModel : SectionModel
+    class ShaderGraphSectionModel : SectionModel
     {
         public ShaderGraphSectionModel()
         {

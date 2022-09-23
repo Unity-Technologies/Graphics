@@ -1,17 +1,17 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class AddRedirectNodeCommand : UndoableCommand
+    class AddRedirectNodeCommand : UndoableCommand
     {
         static readonly Vector2 k_RedirectSize = new(56, 25);
 
-        public readonly IEdgeModel Edge;
+        public readonly WireModel Edge;
         public readonly Vector2 Position;
 
-        public AddRedirectNodeCommand(IEdgeModel edge, Vector2 position)
+        public AddRedirectNodeCommand(WireModel edge, Vector2 position)
         {
             Edge = edge;
             Position = position;
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphModelState, command);
+                undoUpdater.SaveState(graphModelState);
             }
 
             var graphModel = graphModelState.GraphModel;
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var fromPort = command.Edge.FromPort;
             var toPort = command.Edge.ToPort;
 
-            graphModel.DeleteEdge(command.Edge);
+            graphModel.DeleteWire(command.Edge);
             updater.MarkDeleted(command.Edge);
 
             var nodeModel = graphModel.CreateNode<RedirectNodeModel>(position: command.Position - k_RedirectSize / 2);
@@ -43,8 +43,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             updater.MarkNew(new[]
             {
-                graphModel.CreateEdge(nodeModel.InputPort, fromPort),
-                graphModel.CreateEdge(toPort, nodeModel.OutputPort)
+                graphModel.CreateWire(nodeModel.InputPort, fromPort),
+                graphModel.CreateWire(toPort, nodeModel.OutputPort)
             });
         }
     }

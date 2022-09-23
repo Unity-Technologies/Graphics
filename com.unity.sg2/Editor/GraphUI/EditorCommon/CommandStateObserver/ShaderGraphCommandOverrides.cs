@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class ShaderGraphCommandOverrides
+    static class ShaderGraphCommandOverrides
     {
         public static void HandleBypassNodes(
             UndoStateComponent undoState,
@@ -49,14 +45,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveStates(new IUndoableStateComponent[] { graphModelState, selectionState }, command);
+                undoStateUpdater.SaveStates(graphModelState, selectionState);
             }
 
             var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
 
             // Partition out redirect nodes because they get special delete behavior.
             var redirects = new List<RedirectNodeModel>();
-            var nonRedirects = new List<IGraphElementModel>();
+            var nonRedirects = new List<GraphElementModel>();
 
             foreach (var model in modelsToDelete)
             {
@@ -83,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     switch (model)
                     {
-                        case IEdgeModel edge:
+                        case WireModel edge:
                             if (edge.ToPort.NodeModel is RedirectNodeModel redirect)
                             {
                                 // Reset types on disconnected redirect nodes.
@@ -110,15 +106,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        static List<IGraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
+        static List<GraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
         {
             foreach (var redirect in redirects)
             {
                 var inputEdgeModel = redirect.GetIncomingEdges().FirstOrDefault();
                 var outputEdgeModels = redirect.GetOutgoingEdges().ToList();
 
-                graphModel.DeleteEdge(inputEdgeModel);
-                graphModel.DeleteEdges(outputEdgeModels);
+                graphModel.DeleteWire(inputEdgeModel);
+                graphModel.DeleteWires(outputEdgeModels);
 
                 graphUpdater.MarkDeleted(inputEdgeModel);
                 graphUpdater.MarkDeleted(outputEdgeModels);
@@ -127,7 +123,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 foreach (var outputEdgeModel in outputEdgeModels)
                 {
-                    var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
+                    var edge = graphModel.CreateWire(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
                     graphUpdater.MarkNew(edge);
                 }
             }

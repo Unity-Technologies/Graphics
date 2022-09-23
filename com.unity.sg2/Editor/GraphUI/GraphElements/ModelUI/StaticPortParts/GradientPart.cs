@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -6,15 +6,15 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GradientPart : SingleFieldPart<GradientField, Gradient>
+    class GradientPart : SingleFieldPart<GradientField, Gradient>
     {
         protected override string UXMLTemplateName => "StaticPortParts/GradientPart";
         protected override string FieldName => "sg-gradient-field";
 
         public GradientPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string portName) : base(name, model, ownerElement, parentClassName, portName)
         { }

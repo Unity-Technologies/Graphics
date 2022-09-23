@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ColorPart : SingleFieldPart<ColorField, Color>
+    class ColorPart : SingleFieldPart<ColorField, Color>
     {
         protected override string UXMLTemplateName => "StaticPortParts/ColorPart";
         protected override string FieldName => "sg-color-field";
@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         int length =>
             m_IncludeAlpha ? 4 : 3;
 
-        public ColorPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, bool includeAlpha, bool isHdr = false)
+        public ColorPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, bool includeAlpha, bool isHdr = false)
             : base(name, model, ownerElement, parentClassName, portName)
         {
             m_IncludeAlpha = includeAlpha;

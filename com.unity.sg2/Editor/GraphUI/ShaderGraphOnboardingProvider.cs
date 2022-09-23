@@ -1,18 +1,13 @@
-using System.IO;
-using System.Text;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphDelta;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using UnityEngine.Rendering;
+using Unity.CommandStateObserver;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphOnboardingProvider : OnboardingProvider
+    class ShaderGraphOnboardingProvider : OnboardingProvider
     {
-        public override VisualElement CreateOnboardingElements(Dispatcher commandDispatcher)
+        public override VisualElement CreateOnboardingElements(ICommandTarget commandTarget)
         {
             var template = new GraphTemplate<ShaderGraphStencil>("ShaderGraph");
             var promptTitle = string.Format(k_PromptToCreateTitle, template.GraphTypeName);
@@ -29,14 +24,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             button.clicked += () =>
             {
                 var graphAsset = CreateBlankShaderGraph();
-                Selection.activeObject = graphAsset as Object;
+                Selection.activeObject = graphAsset;
             };
             container.Add(button);
 
             return container;
         }
 
-        public static IGraphAsset CreateBlankShaderGraph()
+        static GraphAsset CreateBlankShaderGraph()
         {
             var template = new GraphTemplate<ShaderGraphStencil>("ShaderGraph");
             var promptTitle = string.Format(k_PromptToCreateTitle, template.GraphTypeName);

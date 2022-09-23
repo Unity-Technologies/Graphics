@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -8,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// This class overrides the blackboards selection and context menu operation handler
     /// We need it in order to handle cut operations with a slightly different logic
     /// </summary>
-    public class SGBlackboardViewSelection : BlackboardViewSelection
+    class SGBlackboardViewSelection : BlackboardViewSelection
     {
         public SGBlackboardViewSelection(RootView view, BlackboardViewModel viewModel)
             : base(view, viewModel) { }

@@ -4,11 +4,11 @@ using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class ShaderGraphExampleTypes
+    static class ShaderGraphExampleTypes
     {
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
         public static readonly TypeHandle AnimationClip = typeof(AnimationClip).GenerateTypeHandle();
@@ -62,9 +62,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // This is a sister function used with ShaderGraphStencil.GetConstantNodeValueType--
         // TypeHandles are primarily used to setup the icon that GTF will use,
         // but the TypeHandle then gets routed through GetConstantNodeValueType where a type handle is
-        // mapped to an IConstant type-- it's a bit round about, but for SG's purposes, we only care about
-        // having an IConstant impl for the type if it has an inline editor for the port.
-        // If the IConstant return type doesn't have one setup by default,
+        // mapped to an Constant type-- it's a bit round about, but for SG's purposes, we only care about
+        // having an Constant impl for the type if it has an inline editor for the port.
+        // If the Constant return type doesn't have one setup by default,
         // It can be expressed such as:
         //    [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
         //    static class GDSExt

@@ -1,5 +1,7 @@
 using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -7,12 +9,12 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [GraphElementsExtensionMethodsCache(typeof(ModelInspectorView))]
-    public static class ModelInspectorViewFactoryExtensions
+    static class ModelInspectorViewFactoryExtensions
     {
-        public static IModelView CreateVariableDeclarationInspector(this ElementBuilder elementBuilder, GraphDataVariableDeclarationModel model)
+        public static MultipleModelsView CreateVariableDeclarationInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataVariableDeclarationModel> models)
         {
             var ui = new ShaderGraphModelInspector();
-            ui.Setup(model, elementBuilder.View, elementBuilder.Context);
+            ui.Setup(models, elementBuilder.View, elementBuilder.Context);
 
             if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
             {
@@ -20,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        var variableInspector = new GraphDataVariableSettingsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        var variableInspector = new GraphDataVariableSettingsInspector(ModelInspector.fieldsPartName, models, ui.RootView, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(variableInspector);
                         break;
                     }
@@ -29,8 +31,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         // GTF-provided common variable declaration settings
                         var inspectorFields = VariableFieldsInspector.Create(ModelInspector.fieldsPartName,
-                            model,
-                            ui,
+                            models,
+                            ui.RootView,
                             ModelInspector.ussClassName,
                             // Hide editor for the serialized m_IsExposed field for now, as it's not meaningful to us
                             filter: field => field.Name != "m_IsExposed" && ModelInspectorView.AdvancedSettingsFilter(field));
@@ -45,16 +47,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
-        public static IModelView CreateVariableNodeInspector(this ElementBuilder elementBuilder, GraphDataVariableNodeModel model)
+        public static MultipleModelsView CreateVariableNodeInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataVariableNodeModel> models)
         {
-            return elementBuilder.CreateVariableDeclarationInspector((GraphDataVariableDeclarationModel) model.VariableDeclarationModel);
+            return elementBuilder.CreateVariableDeclarationInspector(models.Select(m => (GraphDataVariableDeclarationModel)m.VariableDeclarationModel));
         }
 
-        public static IModelView CreateContextSectionInspector(this ElementBuilder elementBuilder, GraphDataContextNodeModel model)
+        public static MultipleModelsView CreateContextSectionInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataContextNodeModel> models)
         {
             var ui = new ShaderGraphModelInspector();
 
-            ui.Setup(model, elementBuilder.View, elementBuilder.Context);
+            ui.Setup(models, elementBuilder.View, elementBuilder.Context);
 
             if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
             {
@@ -62,6 +64,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
+                        // TODO GTF UPGRADE: support edition of multiple models.
+                        var model = models.First();
                         if (model.GraphModel is not ShaderGraphModel {IsSubGraph: true} ||
                             !model.TryGetNodeHandler(out var reader) ||
                             reader.ID.LocalPath != Registry.ResolveKey<ShaderGraphContext>().Name)
@@ -69,7 +73,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             break;
                         }
 
-                        var subgraphOutputs = new SubgraphOutputsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        var subgraphOutputs = new SubgraphOutputsInspector(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(subgraphOutputs);
 
                         break;
@@ -83,11 +87,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
-        public static IModelView CreateSectionInspector(this ElementBuilder elementBuilder, GraphDataNodeModel model)
+        public static MultipleModelsView CreateSectionInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataNodeModel> models)
         {
             var ui = new ShaderGraphModelInspector();
 
-            ui.Setup(model, elementBuilder.View, elementBuilder.Context);
+            ui.Setup(models, elementBuilder.View, elementBuilder.Context);
 
             if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
             {
@@ -95,13 +99,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        var upgradePrompt = new NodeUpgradePart("sg-node-upgrade", model, ui, ModelInspector.ussClassName);
+                        var upgradePrompt = new NodeUpgradePart("sg-node-upgrade", models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(upgradePrompt);
 
-                        var staticPorts = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        var staticPorts = new StaticPortsInspector(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(staticPorts);
 
-                        var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(inspectorFields);
                         break;
                     }
@@ -129,16 +133,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <summary>
-        /// Creates a new inspector for an <see cref="IGraphModel"/>.
+        /// Creates a new inspector for an <see cref="GraphModel"/>.
         /// </summary>
         /// <param name="elementBuilder">The element builder.</param>
-        /// <param name="model">The graph model for which we want to create an inspector UI.</param>
+        /// <param name="models">The graph models for which we want to create an inspector UI.</param>
         /// <returns>An inspector UI for the graph.</returns>
-        public static IModelView CreateSectionInspector(this ElementBuilder elementBuilder, IGraphModel model)
+        public static MultipleModelsView CreateSectionInspector(this ElementBuilder elementBuilder, GraphModel model)
         {
+            var models = new[] { model };
             var ui = new ShaderGraphModelInspector();
             var view = elementBuilder.View as ModelInspectorView;
-            ui.Setup(model, view, elementBuilder.Context);
+            ui.Setup(models, view, elementBuilder.Context);
 
             if (model.Asset is ShaderGraphAsset graphAsset && !graphAsset.ShaderGraphModel.IsSubGraph)
             {
@@ -148,7 +153,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         case SectionType.Settings:
                         {
-                            var targetSettingsField = new TargetSettingsInspector(graphAsset.ShaderGraphModel.Targets, ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                            var targetSettingsField = new TargetSettingsInspector(graphAsset.ShaderGraphModel.Targets, ModelInspector.fieldsPartName, models, view, ModelInspector.ussClassName);
                             ui.PartList.AppendPart(targetSettingsField);
                             break;
                         }

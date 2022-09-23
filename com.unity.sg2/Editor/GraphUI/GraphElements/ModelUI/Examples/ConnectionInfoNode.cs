@@ -1,8 +1,8 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ConnectionInfoNode : CollapsibleInOutNode
+    class ConnectionInfoNode : CollapsibleInOutNode
     {
         public const string InfoTextPartName = "info-container";
 

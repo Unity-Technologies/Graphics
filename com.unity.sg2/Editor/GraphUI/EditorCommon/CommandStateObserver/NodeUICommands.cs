@@ -1,7 +1,7 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphViewState, command);
+                undoUpdater.SaveState(graphViewState);
             }
 
             if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphViewState, command);
+                undoUpdater.SaveState(graphViewState);
             }
 
             if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;

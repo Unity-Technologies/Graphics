@@ -1,11 +1,11 @@
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GraphTypeConstant : BaseShaderGraphConstant
+    class GraphTypeConstant : BaseShaderGraphConstant
     {
         internal GraphType.Length GetLength() => IsInitialized ? GraphTypeHelpers.GetLength(GetField()) : GraphType.Length.Four;
         internal GraphType.Height GetHeight() => IsInitialized ? GraphTypeHelpers.GetHeight(GetField()) : GraphType.Height.One;

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -9,7 +9,7 @@ using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class SubGraphTests : BaseGraphWindowTest
+    class SubGraphTests : BaseGraphWindowTest
     {
         protected override string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultSubGraphAssetName}.{ShaderGraphStencil.SubGraphExtension}";
         ModelInspectorView m_InspectorView;

@@ -1,19 +1,19 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class BoolPart : SingleFieldPart<Toggle, bool>
+    class BoolPart : SingleFieldPart<Toggle, bool>
     {
         protected override string UXMLTemplateName => "StaticPortParts/BoolPart";
         protected override string FieldName => "sg-bool-field";
 
         public BoolPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName) { }

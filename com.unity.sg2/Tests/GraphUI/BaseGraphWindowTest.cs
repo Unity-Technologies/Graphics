@@ -1,19 +1,13 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using UnityEngine;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Searcher;
-using Assert = UnityEngine.Assertions.Assert;
-using Object = UnityEngine.Object;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class BaseGraphWindowTest
+    class BaseGraphWindowTest
     {
         protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 

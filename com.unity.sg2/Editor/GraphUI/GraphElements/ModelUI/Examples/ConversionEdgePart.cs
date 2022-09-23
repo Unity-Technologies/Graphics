@@ -1,10 +1,10 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ConversionEdgePart : EdgeBubblePart
+    class ConversionEdgePart : WireBubblePart
     {
-        public ConversionEdgePart(string name, IGraphElementModel model, IModelView ownerElement,
+        public ConversionEdgePart(string name, GraphElementModel model, ModelView ownerElement,
             string parentClassName) : base(name, model, ownerElement, parentClassName)
         {
         }

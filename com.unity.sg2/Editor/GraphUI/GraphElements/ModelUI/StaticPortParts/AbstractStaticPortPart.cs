@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// AbstractStaticPortPart is a node part that reads/writes a static port on a node.
     /// </summary>
-    public abstract class AbstractStaticPortPart : BaseModelViewPart
+    abstract class AbstractStaticPortPart : BaseModelViewPart
     {
         /// <summary>
         /// Update this part's UI using the given port reader.
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected string m_PortName;
 
-        public AbstractStaticPortPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
+        protected AbstractStaticPortPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName)
         {
             m_PortName = portName;

@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     [TestFixture]
-    public class GraphEdgeTests : BaseGraphWindowTest
+    class GraphEdgeTests : BaseGraphWindowTest
     {
         [UnityTest]
         public IEnumerator TestSaveLoadEdges()
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             // Verify that edge is preserved
             {
-                var edge = m_GraphView.GraphModel.EdgeModels.FirstOrDefault();
+                var edge = m_GraphView.GraphModel.WireModels.FirstOrDefault();
                 Assert.IsNotNull(edge, "Edge should exist in loaded graph");
 
                 Assert.IsTrue(edge.FromPort is

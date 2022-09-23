@@ -1,12 +1,8 @@
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.UIElements;
-
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     //public class AddPortPart : BaseModelViewPart
     //{
-    //    public AddPortPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName)
+    //    public AddPortPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName)
     //        : base(name, model, ownerElement, parentClassName) { }
 
     //    protected override void BuildPartUI(VisualElement parent)

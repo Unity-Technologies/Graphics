@@ -1,12 +1,12 @@
 using Debug = UnityEngine.Debug;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GraphDataNode : CollapsibleInOutNode
+    class GraphDataNode : CollapsibleInOutNode
     {
         public const string PREVIEW_HINT = "Preview.Exists";
         public NodePreviewPart NodePreview => m_NodePreviewPart;
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.BuildContextualMenu(evt);
         }
 
-        private IModelViewPart GetPartForPortField(
+        private ModelViewPart GetPartForPortField(
             PortHandler portHandler,
             FieldHandler fieldHandler,
             ParameterUIDescriptor parameterUIDescriptor)

@@ -1,14 +1,14 @@
 
 using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    public abstract class BaseShaderGraphConstant : IConstant, ISerializationCallbackReceiver
+    abstract class BaseShaderGraphConstant : Constant, ISerializationCallbackReceiver
     {
         [SerializeReference]
         protected ShaderGraphModel graphModel;
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 StoreValueForCopy();
         }
 
-        public object ObjectValue
+        public override object ObjectValue
         {
             get => IsInitialized ? GetValue() : DefaultValue;
             set {
@@ -72,13 +72,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         abstract protected object GetValue();
         abstract protected void SetValue(object value);
-        abstract public object DefaultValue { get; }
-        abstract public Type Type { get; }
-        abstract public TypeHandle GetTypeHandle();
 
-        public void Initialize(TypeHandle constantTypeHandle) { }
+        public override void Initialize(TypeHandle constantTypeHandle) { }
 
-        public IConstant Clone()
+        public override Constant Clone()
         {
             var copy = (BaseShaderGraphConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);

@@ -1,12 +1,12 @@
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.CommandStateObserver;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class AddContextEntryCommand : UndoableCommand
+    class AddContextEntryCommand : UndoableCommand
     {
         readonly GraphDataContextNodeModel m_Model;
         readonly string m_Name;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveState(graphModelState);
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class RemoveContextEntryCommand : UndoableCommand
+    class RemoveContextEntryCommand : UndoableCommand
     {
         readonly GraphDataContextNodeModel m_Model;
         readonly string m_Name;
@@ -53,15 +53,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveState(graphModelState);
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
 
             var model = command.m_Model;
             var oldPort = model.GetInputPortForEntry(command.m_Name);
-            var oldEdges = oldPort.GetConnectedEdges().ToList();
-            model.GraphModel.DeleteEdges(oldEdges);
+            var oldEdges = oldPort.GetConnectedWires().ToList();
+            model.GraphModel.DeleteWires(oldEdges);
             graphUpdater.MarkDeleted(oldEdges);
 
             command.m_Model.RemoveEntry(command.m_Name);
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class RenameContextEntryCommand : UndoableCommand
+    class RenameContextEntryCommand : UndoableCommand
     {
         readonly GraphDataContextNodeModel m_Model;
         readonly string m_OldName;
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveState(graphModelState);
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             model.CreateEntry(command.m_NewName, currentType);
 
             var newPort = model.GetInputPortForEntry(command.m_NewName);
-            foreach (var edge in oldPort.GetConnectedEdges().ToList())
+            foreach (var edge in oldPort.GetConnectedWires().ToList())
             {
                 edge.ToPort = newPort;
                 graphUpdater.MarkChanged(edge);
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class ChangeContextEntryTypeCommand : UndoableCommand
+    class ChangeContextEntryTypeCommand : UndoableCommand
     {
         readonly GraphDataContextNodeModel m_Model;
         readonly string m_Name;
@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveState(graphModelState);
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
@@ -144,8 +144,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO (Joe): SG1 preserves edges, even if the type is invalid. Figure out how we can represent that.
             var model = command.m_Model;
             var oldPort = model.GetInputPortForEntry(command.m_Name);
-            var oldEdges = oldPort.GetConnectedEdges().ToList();
-            model.GraphModel.DeleteEdges(oldEdges);
+            var oldEdges = oldPort.GetConnectedWires().ToList();
+            model.GraphModel.DeleteWires(oldEdges);
             graphUpdater.MarkDeleted(oldEdges);
 
             model.RemoveEntry(command.m_Name);

@@ -1,9 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.GraphToolsFoundation;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -11,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Represents an instance of a blackboard property/keyword on the graph
     /// </summary>
-    public class GraphDataVariableNodeModel : VariableNodeModel, IGraphDataOwner
+    class GraphDataVariableNodeModel : VariableNodeModel, IGraphDataOwner
     {
         [SerializeField]
         string m_GraphDataName;
@@ -66,22 +65,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        protected override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
+        protected override PortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
-            return new GraphDataPortModel
-            {
-                Direction = direction,
-                Orientation = orientation,
-                PortType = portType,
-                DataTypeHandle = dataType,
-                Title = portName ?? "",
-                UniqueName = portId,
-                Options = options,
-                NodeModel = this,
-                GraphModel = GraphModel
-            };
+            return new GraphDataPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
         }
     }
 }

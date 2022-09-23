@@ -1,43 +1,45 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     class GraphDataVariableSettingField<T> : SGModelPropertyField<T>
     {
+        // TODO GTF UPGRADE: support edition of multiple models.
+
         public GraphDataVariableSettingField(
             ICommandTarget commandTarget,
-            GraphDataVariableDeclarationModel model,
+            IEnumerable<GraphDataVariableDeclarationModel> models,
             VariableSetting s
         )
-            : base(commandTarget, model, null, s.Label, null,
-                (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand(model, s, newValue)),
-                _ => (T)s.GetAsObject(model)) { }
+            : base(commandTarget, models, null, s.Label, null,
+                (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand(models.First(), s, newValue)),
+                _ => (T)s.GetAsObject(models.First())) { }
     }
 
-    public class GraphDataVariableSettingsInspector : SGFieldsInspector
+    class GraphDataVariableSettingsInspector : SGFieldsInspector
     {
-        GraphDataVariableDeclarationModel graphDataModel => (GraphDataVariableDeclarationModel)m_Model;
+        IEnumerable<GraphDataVariableDeclarationModel> graphDataModel => m_Models.OfType<GraphDataVariableDeclarationModel>();
 
-        public GraphDataVariableSettingsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName) { }
+        public GraphDataVariableSettingsInspector(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
+            : base(name, models, rootView, parentClassName) { }
 
         BaseModelPropertyField MakeSettingField(VariableSetting s)
         {
             var fieldTypeParam = s.SettingType;
             var fieldType = typeof(GraphDataVariableSettingField<>).MakeGenericType(fieldTypeParam);
-            return (BaseModelPropertyField)Activator.CreateInstance(fieldType, m_OwnerElement.RootView, m_Model, s);
+            return (BaseModelPropertyField)Activator.CreateInstance(fieldType, RootView, m_Models, s);
         }
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
             // This is fine until we reach things like Keywords that need to show something complicated like
             // reorderable lists. In that case, check for the type and draw the right fields manually.
-            return graphDataModel.GetSettings().Select(MakeSettingField);
+            return graphDataModel.First().GetSettings().Select(MakeSettingField);
         }
 
         public override bool IsEmpty() => !GetFields().Any();

@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class TestGraphView : ShaderGraphView
+    class TestGraphView : ShaderGraphView
     {
         List<GraphElement> m_GraphElements = new();
 

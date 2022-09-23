@@ -1,15 +1,15 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class FloatPart : SingleFieldPart<FloatField, float>
+    class FloatPart : SingleFieldPart<FloatField, float>
     {
         protected override string UXMLTemplateName => "StaticPortParts/FloatPart";
         protected override string FieldName => "sg-float-field";
 
-        public FloatPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
+        public FloatPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<float> change)

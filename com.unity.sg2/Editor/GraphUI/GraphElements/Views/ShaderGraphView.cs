@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using UnityEngine.UIElements;
+using Unity.CommandStateObserver;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphView : GraphView
+    class ShaderGraphView : GraphView
     {
         GraphModelStateObserver m_GraphModelStateObserver;
         ShaderGraphLoadedObserver m_ShaderGraphLoadedObserver;
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
         }
 
-        public void HandlePreviewUpdates(IEnumerable<IGraphElementModel> changedModels)
+        public void HandlePreviewUpdates(IEnumerable<SerializableGUID> changedModels)
         {
             if (!changedModels.Any())
                 return;

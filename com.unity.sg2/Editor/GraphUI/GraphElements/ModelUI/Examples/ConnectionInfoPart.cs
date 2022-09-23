@@ -1,28 +1,27 @@
 ﻿using System.Text;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.GraphToolsFoundation;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ConnectionInfoPart : BaseModelViewPart
+    class ConnectionInfoPart : BaseModelViewPart
     {
-        public ConnectionInfoPart(string name, IGraphElementModel model, IModelView ownerElement,
+        public ConnectionInfoPart(string name, GraphElementModel model, ModelView ownerElement,
             string parentClassName)
             : base(name, model, ownerElement, parentClassName) { }
 
         public override VisualElement Root => label;
         private TextElement label;
 
-        private string DescribeConnection(IPortModel port, bool isInput)
+        private string DescribeConnection(PortModel port, bool isInput)
         {
             var desc = new StringBuilder();
 
             desc.AppendLine($"<b>{port.UniqueName}</b>");
 
             var edgeNumber = 0;
-            foreach (var edge in port.GetConnectedEdges())
+            foreach (var edge in port.GetConnectedWires())
             {
                 desc.AppendLine($" Edge #{edgeNumber++}");
                 desc.AppendLine($"  Edge type: {edge.GetType().FriendlyName()}");

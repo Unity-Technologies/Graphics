@@ -1,25 +1,25 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class NodeModelExtensions
+    static class NodeModelExtensions
     {
-        public static IEnumerable<IEdgeModel> GetIncomingEdges(this IPortNodeModel nodeModel)
+        public static IEnumerable<WireModel> GetIncomingEdges(this PortNodeModel nodeModel)
         {
             return nodeModel
                 .Ports
                 .Where(port => port.Direction == PortDirection.Input)
-                .SelectMany(port => port.GetConnectedEdges());
+                .SelectMany(port => port.GetConnectedWires());
         }
 
-        public static IEnumerable<IEdgeModel> GetOutgoingEdges(this IPortNodeModel nodeModel)
+        public static IEnumerable<WireModel> GetOutgoingEdges(this PortNodeModel nodeModel)
         {
             return nodeModel
                 .Ports
                 .Where(port => port.Direction == PortDirection.Output)
-                .SelectMany(port => port.GetConnectedEdges());
+                .SelectMany(port => port.GetConnectedWires());
         }
     }
 }

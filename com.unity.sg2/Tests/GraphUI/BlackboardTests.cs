@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
 
     // TODO (Sai): Add test coverage for adding all types of blackboard items
-    public class BlackboardTests : BaseGraphWindowTest
+    class BlackboardTests : BaseGraphWindowTest
     {
         protected override bool hideOverlayWindows => false;
         BlackboardView m_BlackboardView;

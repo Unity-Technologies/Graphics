@@ -1,11 +1,10 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class SGBlackboardGraphModel : BlackboardGraphModel
+    class SGBlackboardGraphModel : BlackboardGraphModel
     {
-        public SGBlackboardGraphModel(IGraphModel graphModel) // : base(graphModel)
+        public SGBlackboardGraphModel(GraphModel graphModel) // : base(graphModel)
         {
             this.GraphModel = graphModel;
         }

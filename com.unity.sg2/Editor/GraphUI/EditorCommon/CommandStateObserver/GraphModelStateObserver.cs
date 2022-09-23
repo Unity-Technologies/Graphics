@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -13,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// Watches the graph model for changes and notifies the preview manager when changes occur
     /// Also handles notifying the graph model for post-copy edge
     /// </summary>
-    public class GraphModelStateObserver : StateObserver
+    class GraphModelStateObserver : StateObserver
     {
         GraphModelStateComponent m_GraphModelStateComponent;
         ShaderGraphModel graphModel => m_GraphModelStateComponent.GraphModel as ShaderGraphModel;
@@ -50,8 +49,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     HandleRemovedModels(removedModels);
 
                     HandleChangedModels(changedModels);
-
-                    graphModel.HandlePostDuplicationEdgeFixup();
                 }
             }
         }
@@ -60,17 +57,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Handling for any new models added to the graph
         /// </summary>
         /// <param name="addedModels"> List of any graph element models (nodes, edges etc.) that were just added to the graph </param>
-        void HandleNewModels(IEnumerable<IGraphElementModel> addedModels)
+        void HandleNewModels(IEnumerable<SerializableGUID> addedModels)
         {
             if (!addedModels.Any())
                 return;
 
-            var nodes = addedModels.Where(model => model is NodeModel);
-            var edges = addedModels.Where(model => model is EdgeModel);
-
-            foreach (var node in nodes)
+            var nodes = addedModels.Select(guid =>
             {
-                if (node is GraphDataNodeModel { HasPreview: true } graphDataNodeModel)
+                graphModel.TryGetModelFromGuid<GraphDataNodeModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
+
+            var edges = addedModels.Select(guid =>
+            {
+                graphModel.TryGetModelFromGuid<GraphDataEdgeModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
+
+            foreach (var graphDataNodeModel in nodes)
+            {
+                if (graphDataNodeModel.HasPreview)
                 {
                     // Register new node with the state component
                     using (var previewStateUpdater = m_PreviewStateComponent.UpdateScope)
@@ -86,14 +92,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-
-            foreach (var edge in edges)
+            foreach (var graphDataEdgeModel in edges)
             {
-                if (edge is GraphDataEdgeModel graphDataEdgeModel)
-                {
-                    var nodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
-                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(nodeModel.graphDataName);
-                }
+                var nodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                m_PreviewUpdateDispatcher.OnListenerConnectionChanged(nodeModel.graphDataName);
             }
         }
 
@@ -101,14 +103,30 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Handling for any models removed from the graph
         /// </summary>
         /// <param name="removedModels"> List of any graph element models (nodes, edges etc.) that were just removed from the graph </param>
-        void HandleRemovedModels(IEnumerable<IGraphElementModel> removedModels)
+        void HandleRemovedModels(IEnumerable<SerializableGUID> removedModels)
         {
             if (!removedModels.Any())
                 return;
 
-            var nodes = removedModels.Where(model => model is NodeModel);
-            var edges = removedModels.Where(model => model is EdgeModel);
-            var variables = removedModels.Where(model => model is VariableDeclarationModel);
+            // TODO GTF UPGRADE: this will not work since models have been deleted.
+
+            var nodes = removedModels.Select(guid =>
+            {
+                graphModel.TryGetModelFromGuid<NodeModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
+
+            var edges = removedModels.Select(guid =>
+            {
+                graphModel.TryGetModelFromGuid<GraphDataEdgeModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
+
+            var variables = removedModels.Select(guid =>
+            {
+                graphModel.TryGetModelFromGuid<GraphDataVariableDeclarationModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
 
             // Node handling
             foreach (var node in nodes)
@@ -142,34 +160,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
 
             // Edge handling
-            foreach (var edge in edges)
+            foreach (var graphDataEdgeModel in edges)
             {
-                if (edge is GraphDataEdgeModel graphDataEdgeModel)
-                {
-                    var toNodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
-                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(toNodeModel.graphDataName);
+                var toNodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                m_PreviewUpdateDispatcher.OnListenerConnectionChanged(toNodeModel.graphDataName);
 
-                    // NOTE: Calling GraphHandler.RemoveEdge() is unnecessary because
-                    // all invalid edges from deleted nodes are already pruned in GraphHandler.RemoveNode()
-                }
+                // NOTE: Calling GraphHandler.RemoveEdge() is unnecessary because
+                // all invalid edges from deleted nodes are already pruned in GraphHandler.RemoveNode()
             }
 
             // Variable handling
-            foreach (var variable in variables)
+            foreach (var variableDeclarationModel in variables)
             {
-                if (variable is GraphDataVariableDeclarationModel variableDeclarationModel)
+                // Gather all variable nodes linked to this blackboard item
+                var linkedVariableNodes = graphModel.GetLinkedVariableNodes(variableDeclarationModel.graphDataName);
+                foreach (var linkedVariableNode in linkedVariableNodes)
                 {
-                    // Gather all variable nodes linked to this blackboard item
-                    var linkedVariableNodes = graphModel.GetLinkedVariableNodes(variableDeclarationModel.graphDataName);
-                    foreach (var linkedVariableNode in linkedVariableNodes)
-                    {
-                        var graphDataVariableNode = linkedVariableNode as GraphDataVariableNodeModel;
-                        // Notify downstream nodes to update previews
-                        m_PreviewUpdateDispatcher.OnListenerConnectionChanged(graphDataVariableNode.graphDataName, true);
-                    }
-
-                    graphModel.GraphHandler.RemoveReferableEntry(variableDeclarationModel.contextNodeName, variableDeclarationModel.graphDataName);
+                    var graphDataVariableNode = linkedVariableNode as GraphDataVariableNodeModel;
+                    // Notify downstream nodes to update previews
+                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(graphDataVariableNode.graphDataName, true);
                 }
+
+                graphModel.GraphHandler.RemoveReferableEntry(variableDeclarationModel.contextNodeName, variableDeclarationModel.graphDataName);
             }
         }
 
@@ -178,17 +190,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Handling for any models changed on the graph
         /// </summary>
         /// <param name="changedModels"> List of any graph element models (nodes, edges etc.) that were just changed on the graph </param>
-        void HandleChangedModels(IEnumerable<IGraphElementModel> changedModels)
+        void HandleChangedModels(IEnumerable<SerializableGUID> changedModels)
         {
             if (!changedModels.Any())
                 return;
 
-            var ports = changedModels.Where(model => model is PortModel);
-            var variables = changedModels.Where(model => model is VariableDeclarationModel);
-
-            foreach (var port in ports)
+            var ports = changedModels.Select(guid =>
             {
-                if (port is GraphDataPortModel { owner: GraphDataNodeModel graphDataNodeModel } graphDataPortModel)
+                graphModel.TryGetModelFromGuid<GraphDataPortModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
+
+            var variables = changedModels.Select(guid =>
+            {
+                graphModel.TryGetModelFromGuid<GraphDataVariableDeclarationModel>(guid, out var model);
+                return model;
+            }).Where(m => m != null);
+
+            foreach (var graphDataPortModel in ports)
+            {
+                if (graphDataPortModel.owner is GraphDataNodeModel graphDataNodeModel)
                 {
                     if(graphDataPortModel.EmbeddedValue is not BaseShaderGraphConstant cldsConstant)
                         continue;
@@ -197,14 +218,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            foreach (var variable in variables)
+            foreach (var variableDeclarationModel in variables)
             {
-                if (variable is GraphDataVariableDeclarationModel variableDeclarationModel)
-                {
-                    var cldsConstant = variableDeclarationModel.InitializationModel as BaseShaderGraphConstant;
-                    if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
-                        m_PreviewUpdateDispatcher.OnGlobalPropertyChanged(cldsConstant.PortName, cldsConstant.ObjectValue);
-                }
+                var cldsConstant = variableDeclarationModel.InitializationModel as BaseShaderGraphConstant;
+                if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
+                    m_PreviewUpdateDispatcher.OnGlobalPropertyChanged(cldsConstant.PortName, cldsConstant.ObjectValue);
             }
         }
     }

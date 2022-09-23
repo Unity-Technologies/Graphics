@@ -1,11 +1,12 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using System.Collections.Generic;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public abstract class SGFieldsInspector : FieldsInspector
+    abstract class SGFieldsInspector : FieldsInspector
     {
-        protected SGFieldsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName) { }
+        protected SGFieldsInspector(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
+            : base(name, models, rootView, parentClassName) { }
 
         /// <summary>
         /// Meant to be overriden by any fields inspector implementations to determine what constitutes an empty parts list for display

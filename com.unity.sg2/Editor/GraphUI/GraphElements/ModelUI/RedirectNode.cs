@@ -1,8 +1,8 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class RedirectNode : Node
+    class RedirectNode : Node
     {
         protected override void BuildPartList()
         {

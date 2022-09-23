@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -18,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// It can be used for a node on the graph (with an assigned graph data name)
     /// or a searcher preview (with only an assigned registry key).
     /// </summary>
-    public class GraphDataNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
+    class GraphDataNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
     {
         [SerializeField]
         string m_GraphDataName;
@@ -268,7 +266,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
                 var nodeId = nodeReader.ID;
-                void initCallback(IConstant e)
+                void initCallback(Constant e)
                 {
                     var constant = e as BaseShaderGraphConstant;
                     if (e == null)
@@ -304,22 +302,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             HasPreview = nodeHasPreview;
         }
 
-        protected override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
+        protected override PortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
-            return new GraphDataPortModel
-            {
-                Direction = direction,
-                Orientation = orientation,
-                PortType = portType,
-                DataTypeHandle = dataType,
-                Title = portName ?? "",
-                UniqueName = portId,
-                Options = options,
-                NodeModel = this,
-                GraphModel = GraphModel
-            };
+            return new GraphDataPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
         }
 
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)

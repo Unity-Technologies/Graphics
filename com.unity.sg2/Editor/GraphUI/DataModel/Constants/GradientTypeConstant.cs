@@ -1,11 +1,11 @@
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GradientTypeConstant : BaseShaderGraphConstant
+    class GradientTypeConstant : BaseShaderGraphConstant
     {
         // TODO: (Sai) When Gradients have support for assigning values from the Gradient Editor,
         // revisit their duplication to ensure values are copied over

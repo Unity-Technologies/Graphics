@@ -1,7 +1,7 @@
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SamplerStateType.Aniso aniso;
     }
 
-    public class SamplerStateTypeConstant : BaseShaderGraphConstant
+    class SamplerStateTypeConstant : BaseShaderGraphConstant
     {
         protected override void StoreValueForCopy()
         {

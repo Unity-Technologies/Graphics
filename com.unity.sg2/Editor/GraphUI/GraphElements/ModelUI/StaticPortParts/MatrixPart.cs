@@ -1,5 +1,5 @@
 using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,14 +9,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// MatrixPart is a node part that displays a static matrix input.
     /// </summary>
-    public class MatrixPart : AbstractStaticPortPart
+    class MatrixPart : AbstractStaticPortPart
     {
         MatrixField m_MatrixField;
         readonly int m_Size;
 
         public override VisualElement Root => m_MatrixField;
 
-        public MatrixPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, int size)
+        public MatrixPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, int size)
             : base(name, model, ownerElement, parentClassName, portName)
         {
             m_Size = size;

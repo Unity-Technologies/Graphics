@@ -1,45 +1,46 @@
 ﻿using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using System.Collections.Generic;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.CommandStateObserver;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class SGModelPropertyField<TValue> : ModelPropertyField<TValue>
+    class SGModelPropertyField<TValue> : ModelPropertyField<TValue>
     {
         protected SGModelPropertyField(
             ICommandTarget commandTarget,
-            IModel model,
+            IEnumerable<Model> models,
             string propertyName,
             string label,
             string fieldTooltip)
-            : base(commandTarget, model, propertyName, label, fieldTooltip)
+            : base(commandTarget, models, propertyName, label, fieldTooltip)
         {
 
         }
 
         public SGModelPropertyField(
             ICommandTarget commandTarget,
-            IModel model,
+            IEnumerable<Model> models,
             string propertyName,
             string label,
             string fieldTooltip,
             Action<TValue, ModelPropertyField<TValue>> onValueChanged = null,
-            Func<IModel, TValue> valueGetter = null)
-            : base(commandTarget, model, propertyName, label, fieldTooltip, onValueChanged, valueGetter)
+            Func<Model, TValue> valueGetter = null)
+            : base(commandTarget, models, propertyName, label, fieldTooltip, onValueChanged, valueGetter)
         {
 
         }
 
         public SGModelPropertyField(
             ICommandTarget commandTarget,
-            IModel model,
+            IEnumerable<Model> models,
             string propertyName,
             string label,
             string fieldTooltip,
             Type commandType,
-            Func<IModel, TValue> valueGetter = null)
-            : base(commandTarget, model, propertyName, label, fieldTooltip, commandType, valueGetter)
+            Func<Model, TValue> valueGetter = null)
+            : base(commandTarget, models, propertyName, label, fieldTooltip, commandType, valueGetter)
         {
 
         }

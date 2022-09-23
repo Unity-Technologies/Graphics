@@ -1,5 +1,6 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -8,35 +9,40 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [GraphElementsExtensionMethodsCache(typeof(RootView))]
-    public static class ConstantEditorFactoryExtensions
+    static class ConstantEditorFactoryExtensions
     {
-        public static VisualElement BuildGradientTypeConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
+        public static VisualElement BuildGradientTypeConstantEditor(this ConstantEditorBuilder builder, IEnumerable<GradientTypeConstant> constants)
         {
             var editor = new GradientField();
             editor.AddToClassList("sg-gradient-constant-field");
             editor.AddStylesheet("ConstantEditors.uss");
             editor.RegisterValueChangedCallback(change =>
             {
-                builder.CommandTarget.Dispatch(new UpdateConstantValueCommand(constant, change.newValue, builder.ConstantOwner));
+                builder.CommandTarget.Dispatch(new UpdateConstantsValueCommand(constants, change.newValue, builder.ConstantOwners));
             });
 
             return editor;
         }
 
-        public static BaseModelPropertyField BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        public static BaseModelPropertyField BuildGraphTypeConstantEditor(this ConstantEditorBuilder builder, IEnumerable<GraphTypeConstant> constants)
         {
+            // TODO GTF UPGRADE: support edition of multiple models.
+
+            var constant = constants.First();
+            var owner = builder.ConstantOwners.First();
+
             var height = constant.GetHeight();
             if (height > GraphType.Height.One)
             {
-                if (builder.ConstantOwner is PortModel)
+                if (builder.ConstantOwners.First() is PortModel)
                 {
-                    return builder.BuildDefaultConstantEditor(constant);
+                    return builder.BuildDefaultConstantEditor(constants);
                 }
 
-                return new MatrixConstantPropertyField(constant, builder.ConstantOwner, builder.CommandTarget, (int)height, builder.Label);
+                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, builder.Label);
             }
 
-            switch (builder.ConstantOwner)
+            switch (owner)
             {
                 case GraphDataPortModel graphDataPort:
                 {
@@ -49,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
                     {
-                        return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip, parameterUIDescriptor.IsHdr);
+                        return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip);
                     }
 
                     break;
@@ -57,21 +63,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphDataVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
                 {
                     var isHdr = VariableSettings.colorMode.GetTyped(declarationModel) is VariableSettings.ColorMode.HDR;
-                    return BuildColorConstantEditor(builder, constant, "", builder.Label, "", isHdr);
+                    return BuildColorConstantEditor(builder, constants, "", builder.Label, "", isHdr);
                 }
             }
 
             // Try/Catch maybe.
-            return builder.BuildDefaultConstantEditor(constant);
+            return builder.BuildDefaultConstantEditor(constants);
         }
 
-        static BaseModelPropertyField BuildColorConstantEditor(IConstantEditorBuilder builder, GraphTypeConstant constant, string propertyName, string label, string tooltip, bool hdr = false)
+        static BaseModelPropertyField BuildColorConstantEditor(ConstantEditorBuilder builder, IEnumerable<GraphTypeConstant> constants, string propertyName, string label, string tooltip, bool hdr = false)
         {
+            // TODO GTF UPGRADE: support edition of multiple models.
+
+            var constant = constants.First();
+            var owner = builder.ConstantOwners.First();
+
             var length = constant.GetLength();
 
             var constantEditor = new SGModelPropertyField<Color>(
                 builder.CommandTarget,
-                builder.ConstantOwner,
+                builder.ConstantOwners,
                 propertyName,
                 label,
                 tooltip,
@@ -88,7 +99,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         newValueVector = (Vector4)newValueColor;
                     }
 
-                    field.CommandTarget.Dispatch(new UpdateConstantValueCommand(constant, newValueVector, builder.ConstantOwner));
+                    field.CommandTarget.Dispatch(new UpdateConstantsValueCommand(constants, newValueVector, builder.ConstantOwners));
                 },
                 valueGetter: _ =>
                 {

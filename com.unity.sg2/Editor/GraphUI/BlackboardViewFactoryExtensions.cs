@@ -1,13 +1,13 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [GraphElementsExtensionMethodsCache(typeof(BlackboardView))]
-    public static class BlackboardViewFactoryExtensions
+    static class BlackboardViewFactoryExtensions
     {
-        public static IModelView CreateGraphDataVariableDeclarationModelView(this ElementBuilder elementBuilder, GraphDataVariableDeclarationModel model)
+        public static ModelView CreateGraphDataVariableDeclarationModelView(this ElementBuilder elementBuilder, GraphDataVariableDeclarationModel model)
         {
-            IModelView ui;
+            ModelView ui;
 
             if (elementBuilder.Context == BlackboardCreationContext.VariablePropertyCreationContext)
             {
