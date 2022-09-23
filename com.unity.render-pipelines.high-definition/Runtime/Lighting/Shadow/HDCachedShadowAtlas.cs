@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordsPendingPlacement = new NativeHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
 
             m_TransformCaches = new NativeHashMap<int, CachedTransform>(s_InitialCapacity / 2, Allocator.Persistent);
+            m_IsACacheForShadows = true;
         }
 
         public override void InitAtlas(HDShadowAtlasInitParameters atlasInitParams)

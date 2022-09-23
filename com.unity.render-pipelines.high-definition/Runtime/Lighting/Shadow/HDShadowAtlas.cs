@@ -178,21 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void AddShadowRequest(HDShadowRequestHandle shadowRequest)
-        {
-            m_ShadowRequests.Add(shadowRequest);
-        }
-
-        internal static void AddShadowRequest(ref HDDynamicShadowAtlasUnmanaged shadowAtlas, HDShadowRequestHandle shadowRequest)
-        {
-            shadowAtlas.shadowRequests.Add(shadowRequest);
-        }
-
-        internal static void AddShadowRequest(ref HDCachedShadowAtlasUnmanaged shadowAtlas, HDShadowRequestHandle shadowRequest)
-        {
-            shadowAtlas.shadowRequests.Add(shadowRequest);
-        }
-
         public void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
         {
             m_LightingDebugSettings = lightingDebugSettings;

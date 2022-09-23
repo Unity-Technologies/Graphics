@@ -602,7 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightDataUpdateInfo updateInfo = additionalLightDataUpdateInfos[additionalLightDataIndex];
 
                 shadowRequest.shouldUseCachedShadowData = false;
-
+                shadowRequest.shouldRenderCachedComponent = false;
                 shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Write per light type matrices, splitDatas and culling parameters
@@ -712,7 +712,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightDataUpdateInfo updateInfo = additionalLightDataUpdateInfos[additionalLightDataIndex];
 
                 shadowRequest.shouldUseCachedShadowData = false;
-
+                shadowRequest.shouldRenderCachedComponent = false;
                 shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Write per light type matrices, splitDatas and culling parameters
@@ -849,7 +849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightDataUpdateInfo updateInfo = additionalLightDataUpdateInfos[additionalLightDataIndex];
 
                 shadowRequest.shouldUseCachedShadowData = false;
-
+                shadowRequest.shouldRenderCachedComponent = false;
                 shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                 /// Write per light type matrices, splitDatas and culling parameters
