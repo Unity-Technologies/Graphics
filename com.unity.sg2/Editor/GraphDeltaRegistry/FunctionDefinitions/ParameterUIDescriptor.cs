@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public string DisplayName { get; }
         public string Tooltip { get; }
         public bool UseColor { get; }
+        public bool IsHdr { get; }
         public bool UseSlider { get; }
         public bool InspectorOnly { get; }
         public readonly List<(string, object)> Options { get; }
@@ -21,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             string displayName = null,
             string tooltip = "",
             bool useColor = false,
+            bool isHdr = false,
             bool useSlider = false,
             bool inspectorOnly = false,
             List<(string, object)> options = null
@@ -30,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
             DisplayName = displayName ?? name;
             Tooltip = tooltip;
             UseColor = useColor;
+            IsHdr = isHdr;
             UseSlider = useSlider;
             InspectorOnly = inspectorOnly;
             Options = options;

@@ -246,7 +246,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             this,
                             ussClassName,
                             portHandler.LocalID,
-                            includeAlpha: false);
+                            includeAlpha: false,
+                            isHdr: parameterUIDescriptor.IsHdr);
                     }
                     else
                     {
@@ -266,7 +267,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             this,
                             ussClassName,
                             portHandler.LocalID,
-                            includeAlpha: true);
+                            includeAlpha: true,
+                            isHdr: parameterUIDescriptor.IsHdr);
                     }
                     else
                     {
