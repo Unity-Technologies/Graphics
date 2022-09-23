@@ -12,20 +12,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string FieldName => "sg-color-field";
 
         bool m_IncludeAlpha;
+        bool m_IsHdr;
 
         int length =>
             m_IncludeAlpha ? 4 : 3;
 
-        public ColorPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, bool includeAlpha)
+        public ColorPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, bool includeAlpha, bool isHdr = false)
             : base(name, model, ownerElement, parentClassName, portName)
         {
             m_IncludeAlpha = includeAlpha;
+            m_IsHdr = isHdr;
         }
 
         protected override void BuildPartUI(VisualElement parent)
         {
             base.BuildPartUI(parent);
             m_Field.showAlpha = m_IncludeAlpha;
+            m_Field.hdr = m_IsHdr;
             m_Field.AddStylesheet("StaticPortParts/ColorPart.uss");
         }
 
