@@ -71,7 +71,17 @@ namespace UnityEngine.Rendering.Universal
             m_RenderGraphCameraDepthHandle?.Release();
         }
 
-        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear,
+        /// <summary>
+        /// Utility method to convert RenderTextureDescriptor to TextureHandle and create a RenderGraph texture
+        /// </summary>
+        /// <param name="renderGraph"></param>
+        /// <param name="desc"></param>
+        /// <param name="name"></param>
+        /// <param name="clear"></param>
+        /// <param name="filterMode"></param>
+        /// <param name="wrapMode"></param>
+        /// <returns></returns>
+        public static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear,
             FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
         {
             TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
@@ -409,6 +419,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
+
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
                 m_CopyDepthPass.Render(renderGraph, ref frameResources.cameraDepthTexture, in m_ActiveRenderGraphDepth, ref renderingData);
 
@@ -467,16 +479,34 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.BeforeRenderingPostProcessing);
 
+            bool cameraTargetResolved = false;
             bool applyPostProcessing = renderingData.cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            bool applyFinalPostProcessing = renderingData.cameraData.resolveFinalTarget &&
+                                            ((renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
+                                             ((renderingData.cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (renderingData.cameraData.upscalingFilter != ImageUpscalingFilter.Linear)));
+            bool hasCaptureActions = renderingData.cameraData.captureActions != null && renderingData.cameraData.resolveFinalTarget;
+
             if (applyPostProcessing)
             {
-                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_ActiveRenderGraphColor, in frameResources.internalColorLut, in frameResources.afterPostProcessColor, ref renderingData, true);
-                postProcessPass.RenderFinalPassRenderGraph(renderGraph, in frameResources.afterPostProcessColor, ref renderingData);
+
+                bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+
+                var target = (renderingData.cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing) ? frameResources.backBufferColor : frameResources.cameraColor;
+                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in m_ActiveRenderGraphColor, in frameResources.internalColorLut, in target, ref renderingData, applyFinalPostProcessing);
+
+                if (applyFinalPostProcessing)
+                    postProcessPass.RenderFinalPassRenderGraph(renderGraph, in frameResources.cameraColor, ref renderingData);
+
+                cameraTargetResolved =
+                    // final PP always blit to camera target
+                    applyFinalPostProcessing ||
+                    // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
+                    (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions);
             }
             // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
             RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingPostProcessing, RenderPassEvent.AfterRendering);
 
-            if (!m_TargetIsBackbuffer && renderingData.cameraData.resolveFinalTarget && !applyPostProcessing)
+            if (!m_TargetIsBackbuffer && renderingData.cameraData.resolveFinalTarget && !cameraTargetResolved)
             {
                 m_FinalBlitPass.Render(renderGraph, ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
                 m_ActiveRenderGraphColor = frameResources.backBufferColor;

@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
                 rl = context.CreateSkyboxRendererList(camera);
             }
 
-            var cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
@@ -73,9 +73,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 cmd.SetSinglePassStereo(SinglePassStereoMode.None);
 #endif
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         private class PassData

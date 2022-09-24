@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -95,7 +96,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
     class FullScreenRenderPass : ScriptableRenderPass
     {
-        private Material m_PassMaterial;
+        private static Material s_PassMaterial;
         private int m_PassIndex;
         private bool m_RequiresColor;
         private bool m_IsBeforeTransparents;
@@ -105,7 +106,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         public void Setup(Material mat, int index, bool requiresColor, bool isBeforeTransparents, string featureName, in RenderingData renderingData)
         {
-            m_PassMaterial = mat;
+            s_PassMaterial = mat;
             m_PassIndex = index;
             m_RequiresColor = requiresColor;
             m_IsBeforeTransparents = isBeforeTransparents;
@@ -126,57 +127,74 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_PassData.effectMaterial = m_PassMaterial;
-            m_PassData.passIndex = m_PassIndex;
-            m_PassData.requiresColor = m_RequiresColor;
-            m_PassData.isBeforeTransparents = m_IsBeforeTransparents;
-            m_PassData.profilingSampler = m_ProfilingSampler;
-            m_PassData.copiedColor = m_CopiedColor;
-
-            ExecutePass(m_PassData, ref renderingData, ref context);
-        }
-
-        // RG friendly method
-        private static void ExecutePass(PassData passData, ref RenderingData renderingData, ref ScriptableRenderContext context)
-        {
-            var passMaterial = passData.effectMaterial;
-            var passIndex = passData.passIndex;
-            var requiresColor = passData.requiresColor;
-            var isBeforeTransparents = passData.isBeforeTransparents;
-            var copiedColor = passData.copiedColor;
-            var profilingSampler = passData.profilingSampler;
-
-            if (passMaterial == null)
+            var cameraData = renderingData.cameraData;
+            var cmd = renderingData.commandBuffer;
+            // ExecutePass(m_PassData, renderingData.cameraData, renderingData.commandBuffer);
+            if (s_PassMaterial == null)
             {
                 // should not happen as we check it in feature
                 return;
             }
 
-            if (renderingData.cameraData.isPreviewCamera)
+            if (cameraData.isPreviewCamera)
             {
                 return;
             }
 
-            CommandBuffer cmd = renderingData.commandBuffer;
-            var cameraData = renderingData.cameraData;
-
             using (new ProfilingScope(cmd, profilingSampler))
             {
-                if (requiresColor)
+                if (m_RequiresColor)
                 {
                     // For some reason BlitCameraTexture(cmd, dest, dest) scenario (as with before transparents effects) blitter fails to correctly blit the data
                     // Sometimes it copies only one effect out of two, sometimes second, sometimes data is invalid (as if sampling failed?).
                     // Adding RTHandle in between solves this issue.
-                    var source = isBeforeTransparents ? cameraData.renderer.GetCameraColorBackBuffer(cmd) : cameraData.renderer.cameraColorTargetHandle;
+                    var source = m_IsBeforeTransparents ? cameraData.renderer.GetCameraColorBackBuffer(cmd) : cameraData.renderer.cameraColorTargetHandle;
 
-                    Blitter.BlitCameraTexture(cmd, source, copiedColor);
-                    passMaterial.SetTexture(Shader.PropertyToID("_BlitTexture"), copiedColor);
+                    Blitter.BlitCameraTexture(cmd, source, m_CopiedColor);
+                    s_PassMaterial.SetTexture(Shader.PropertyToID("_BlitTexture"), m_CopiedColor);
                 }
 
                 CoreUtils.SetRenderTarget(cmd, cameraData.renderer.GetCameraColorBackBuffer(cmd));
-                CoreUtils.DrawFullScreen(cmd, passMaterial);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                CoreUtils.DrawFullScreen(cmd, s_PassMaterial);
+            }
+
+        }
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            var colorCopyDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            colorCopyDescriptor.depthBufferBits = (int) DepthBits.None;
+            TextureHandle copiedColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorCopyDescriptor, "_FullscreenPassColorCopy", false);
+
+            if (m_RequiresColor)
+            {
+                using (var builder = renderGraph.AddRenderPass<PassData>("CustomPostPro_ColorPass", out var passData, m_ProfilingSampler))
+                {
+                     passData.source = builder.ReadTexture(UniversalRenderer.m_ActiveRenderGraphColor);
+                     passData.copiedColor = builder.UseColorBuffer(copiedColor, 0);
+                     builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                     {
+                            Blitter.BlitTexture(rgContext.cmd, data.source, new Vector4(1, 1, 0, 0), 0.0f, false);
+                     });
+                }
+            }
+
+            using (var builder = renderGraph.AddRenderPass<PassData>("CustomPostPro_FullScreenPass", out var passData, m_ProfilingSampler))
+            {
+                passData.passIndex = m_PassIndex;
+
+                if (m_RequiresColor)
+                    passData.copiedColor = builder.ReadTexture(copiedColor);
+
+                passData.source = builder.UseColorBuffer(UniversalRenderer.m_ActiveRenderGraphColor, 0);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                {
+                    if (data.copiedColor.IsValid())
+                        s_PassMaterial.SetTexture(Shader.PropertyToID("_BlitTexture"), data.copiedColor);
+
+                    CoreUtils.DrawFullScreen(rgContext.cmd, s_PassMaterial, null, data.passIndex);
+                });
             }
         }
 
@@ -184,10 +202,8 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
         {
             internal Material effectMaterial;
             internal int passIndex;
-            internal bool requiresColor;
-            internal bool isBeforeTransparents;
-            public ProfilingSampler profilingSampler;
-            public RTHandle copiedColor;
+            internal TextureHandle source;
+            public TextureHandle copiedColor;
         }
     }
 
