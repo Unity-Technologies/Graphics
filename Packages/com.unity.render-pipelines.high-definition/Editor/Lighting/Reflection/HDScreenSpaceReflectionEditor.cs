@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
+using RayTracingMode = UnityEngine.Rendering.HighDefinition.RayTracingMode;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
