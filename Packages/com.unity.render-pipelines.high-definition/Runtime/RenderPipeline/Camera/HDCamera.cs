@@ -1231,12 +1231,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
             {
-                cmd.SetViewProjectionMatrices(m_XRViewConstants[0].viewMatrix, m_XRViewConstants[0].projMatrix);
+                cmd.SetViewProjectionMatrices(xr.GetViewMatrix(), xr.GetProjMatrix());
                 if (xr.singlePassEnabled)
                 {
                     for (int viewId = 0; viewId < viewCount; viewId++)
                     {
-                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(m_XRViewConstants[viewId].viewMatrix, m_XRViewConstants[viewId].projMatrix, true, viewId);
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(xr.GetViewMatrix(viewId), xr.GetProjMatrix(viewId), true, viewId);
                     }
                     XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                 }
