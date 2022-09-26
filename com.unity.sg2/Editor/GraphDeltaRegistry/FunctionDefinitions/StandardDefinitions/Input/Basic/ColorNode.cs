@@ -14,20 +14,24 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     "Default",
                     //regular color picker assumes SRGB space
-                    @"    Out = IsGammaSpace() ? Color : float4(SRGBToLinear(Color.rgb), Color.a);",
+@"    LinearColor.rgb = SRGBToLinear(Color.rgb); LinearColor.a = Color.a;
+    Out = IsGammaSpace() ? Color : LinearColor;",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("Color", TYPE.Vec4, Usage.Static),
+                        new ParameterDescriptor("LinearColor", TYPE.Vec4, Usage.Local),
                         new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
                     }
                 ),
                 new(
                     "HDR",
                     //HDR color picker assumes Linear space
-                    @"    Out = IsGammaSpace() ? float4(LinearToSRGB(ColorHDR.rgb), Color.a) : ColorHDR;",
+@"    SRGBColor.rgb = LinearToSRGB(ColorHDR.rgb); SRGBColor.a = ColorHDR.a;
+    Out = IsGammaSpace() ? SRGBColor : ColorHDR;",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("ColorHDR", TYPE.Vec4, Usage.Static),
+                        new ParameterDescriptor("SRGBColor", TYPE.Vec4, Usage.Local),
                         new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
                     }
                 )
@@ -51,12 +55,15 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Color",
                     displayName: " ",
+                    tooltip: "Default color picker",
                     useColor: true
                 ),
                 new ParameterUIDescriptor(
                     name: "ColorHDR",
                     displayName: " ",
-                    useColor: true
+                    tooltip: "HDR color picker",
+                    useColor: true,
+                    isHdr: true
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
