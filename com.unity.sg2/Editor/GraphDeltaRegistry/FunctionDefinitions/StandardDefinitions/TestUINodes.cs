@@ -682,6 +682,62 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
+    internal class TestColorHDRNode : IStandardNode
+    {
+        public static string Name => "TestUIColorHDR";
+        public static int Version => 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            "TestUIColorHDR", // Name
+            "Out = InHDR;",
+            new ParameterDescriptor[]
+            {
+                new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
+                new ParameterDescriptor("InHDR", TYPE.Vec4, GraphType.Usage.In),
+                new ParameterDescriptor("Static", TYPE.Vec4, GraphType.Usage.Static),
+                new ParameterDescriptor("StaticHDR", TYPE.Vec4, GraphType.Usage.Static),
+                new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+            }
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            category: "Test",
+            synonyms: Array.Empty<string>(),
+            hasPreview: true,
+            parameters: new ParameterUIDescriptor[] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    displayName: "In",
+                    tooltip: "Default color picker",
+                    useColor: true
+                ),
+                new ParameterUIDescriptor(
+                    name: "InHDR",
+                    displayName: "InHDR",
+                    tooltip: "HDR color picker",
+                    useColor: true,
+                    isHdr: true
+                ),
+                new ParameterUIDescriptor(
+                    name: "Static",
+                    displayName: "Static",
+                    tooltip: "Default color picker",
+                    useColor: true
+                ),
+                new ParameterUIDescriptor(
+                    name: "StaticHDR",
+                    displayName: "StaticHDR",
+                    tooltip: "HDR color picker",
+                    useColor: true,
+                    isHdr: true
+                ),
+            }
+        );
+    }
+
     internal class TestUISliderNode : IStandardNode
     {
         public static string Name => "TestUISlider";

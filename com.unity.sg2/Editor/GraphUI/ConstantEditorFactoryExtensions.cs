@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
                     {
-                        return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip);
+                        return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip, parameterUIDescriptor.IsHdr);
                     }
 
                     break;
