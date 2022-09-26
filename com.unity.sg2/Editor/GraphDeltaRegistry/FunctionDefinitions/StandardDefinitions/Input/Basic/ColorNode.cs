@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class ColorNodeV1 : IStandardNode
     {
         public static string Name => "Color";
-        public static int Version => 1;
+        public static int Version => 0;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Defs
     internal class ColorNodeV2 : IStandardNode
     {
         public static string Name => "Color";
-        public static int Version => 2;
+        public static int Version => 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
