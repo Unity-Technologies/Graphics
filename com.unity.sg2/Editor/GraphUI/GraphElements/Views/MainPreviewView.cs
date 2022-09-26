@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnScroll(float scrollValue)
         {
-            float rescaleAmount = scrollValue * .03f;
+            float rescaleAmount = -scrollValue * .03f;
             var changePreviewZoomCommand = new ChangePreviewZoomCommand(rescaleAmount);
             m_CommandDispatcher.Dispatch(changePreviewZoomCommand);
         }
