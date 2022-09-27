@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // TODO: SGModel should know what it's entry point is for creating a shader.
                 var node = graphHandler.GetNode(kMainEntryContextName);
-                var shaderCode = Interpreter.GetShaderForNode(node, graphHandler, graphHandler.registry, out var defaultTextures, sgModel.ActiveTarget);
+                var shaderCode = Interpreter.GetShaderForNode(node, graphHandler, graphHandler.registry, out var defaultTextures, sgModel.ActiveTarget, sgModel.ShaderName);
 
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
                 Material mat = new(shader);

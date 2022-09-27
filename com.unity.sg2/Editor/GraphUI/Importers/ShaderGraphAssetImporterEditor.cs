@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = graph.GetNode(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget, asset.ShaderGraphModel.ShaderName);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
                 if (FileHelpers.WriteToFile(path, shaderCode))
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = graph.GetNode(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget, asset.ShaderGraphModel.ShaderName);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 File.WriteAllText($"Assets/{assetName}-GeneratedShader.shader", shaderCode);
                 AssetDatabase.Refresh();

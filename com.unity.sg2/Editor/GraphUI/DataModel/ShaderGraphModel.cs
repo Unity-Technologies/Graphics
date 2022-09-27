@@ -153,6 +153,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool isCutOperation;
         #endregion CopyPasteData
 
+        // TODO: This should be customizable through the UI: https://jira.unity3d.com/browse/GSG-777
+        // TODO: Also, the default should eventually be "Shader Graphs"
+        string m_ShaderCategory = "Shader Graphs (SG2)";
+        public string ShaderName => string.IsNullOrEmpty(m_ShaderCategory) ? Name : m_ShaderCategory + "/" + Name;
+
         internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
             graphHandlerBox.Init(graph);
