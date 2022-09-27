@@ -24,8 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphModelStateComponent graphModelStateComponent,
             PreviewStateComponent previewStateComponent,
             PreviewUpdateDispatcher previewUpdateDispatcher)
-            : base(new [] {graphModelStateComponent},
-                new IStateComponent [] { graphModelStateComponent, previewStateComponent})
+            : base(new[] { graphModelStateComponent },
+                new[] { previewStateComponent })
         {
             m_GraphModelStateComponent = graphModelStateComponent;
             m_PreviewStateComponent = previewStateComponent;
