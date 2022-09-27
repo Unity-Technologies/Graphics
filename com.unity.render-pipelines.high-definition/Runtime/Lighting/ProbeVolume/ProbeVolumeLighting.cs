@@ -1458,6 +1458,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         DisplayProbeVolumeAtlas(cmd, debugParameters.probeVolumeOverlayParameters, debugParameters.debugOverlay);
                     }
+                    else if (m_SupportDynamicGI && lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeDirtyProbes)
+                    {
+                        DebugDrawDirtyProbes(cmd);
+                    }
                 }
             }
         }
@@ -1580,6 +1584,13 @@ namespace UnityEngine.Rendering.HighDefinition
             debugOverlay.SetViewport(cmd);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.material, parameters.material.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
             debugOverlay.Next();
+        }
+
+        static void DebugDrawDirtyProbes(CommandBuffer cmd)
+        {
+            var volumes = ProbeVolumeManager.manager.GetVolumesToRender();
+            foreach (var volume in volumes)
+                ProbeVolumeDynamicGI.instance.DebugDrawDirtyProbes(cmd, volume);
         }
 
 #if UNITY_EDITOR

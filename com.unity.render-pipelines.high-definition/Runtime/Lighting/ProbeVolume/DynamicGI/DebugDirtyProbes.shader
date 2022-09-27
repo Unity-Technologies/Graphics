@@ -74,7 +74,7 @@ Shader "Hidden/Debug/DebugDirtyProbes"
                     : float2(saturate(probeVertexIndex), saturate((float)probeVertexIndex - 1.0));
                 o.uv = vertexPositionOS;
                 vertexPositionOS = vertexPositionOS * 2.0 - 1.0;
-                vertexPositionOS *= _ProbeVolumeProbeDisplayRadiusWS * (dirty ? 1.0 : 0.25);
+                vertexPositionOS *= _ProbeVolumeProbeDisplayRadiusWS;
 
                 float3 probeIndex3D = ComputeWriteIndexFromReadIndex(probeIndex1D, _ProbeVolumeResolution);
                 float3 probeOriginWS = mul(_ProbeIndex3DToPositionWSMatrix, float4(probeIndex3D, 1.0)).xyz;

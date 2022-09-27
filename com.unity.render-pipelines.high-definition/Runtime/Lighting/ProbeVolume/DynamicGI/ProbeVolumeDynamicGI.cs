@@ -104,6 +104,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private int _probeVolumeSimulationRequestCount = 0;
         private int _probeVolumeSimulationFrameTick = 0;
 
+        private Material _DebugDirtyProbesMaterial = null;
+        private Shader _DebugDirtyProbesShader = null;
+        private MaterialPropertyBlock _DebugDirtyProbesMaterialPropertyBlock = null;
+
         public enum PropagationQuality
         {
             Low,
@@ -632,9 +636,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups.Length);
 
+            _DebugDirtyProbesShader = resources.shaders.probeVolumeDebugDirtyProbes;
+
 #if UNITY_EDITOR
             _ProbeVolumeDebugNeighbors = resources.shaders.probeVolumeDebugNeighbors;
-            _ProbeVolumeDebugDirtyProbes = resources.shaders.probeVolumeDebugDirtyProbes;
             dummyColor = RTHandles.Alloc(kDummyRTWidth, kDummyRTHeight, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Dummy color");
 #endif
         }
@@ -1319,7 +1324,62 @@ namespace UnityEngine.Rendering.HighDefinition
             int dispatchX = (numProbes + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
-        
+
+        Material GetDebugDirtyProbeMaterial()
+        {
+            if (_DebugDirtyProbesMaterial == null && _DebugDirtyProbesShader != null)
+            {
+                _DebugDirtyProbesMaterial = new Material(_DebugDirtyProbesShader);
+            }
+
+            return _DebugDirtyProbesMaterial;
+        }
+
+        MaterialPropertyBlock GetDebugDirtyProbeMaterialPropertyBlock()
+        {
+            if (_DebugDirtyProbesMaterialPropertyBlock == null)
+            {
+                _DebugDirtyProbesMaterialPropertyBlock = new MaterialPropertyBlock();
+            }
+
+            return _DebugDirtyProbesMaterialPropertyBlock;
+        }
+
+        internal void DebugDrawDirtyProbes(CommandBuffer cmd, ProbeVolumeHandle probeVolume)
+        {
+            var dirtyProbes = probeVolume.GetPropagationPipelineData().GetDirtyProbes();
+            if (dirtyProbes == null || !dirtyProbes.IsValid())
+                return;
+
+            var material = GetDebugDirtyProbeMaterial();
+            if (material == null)
+                return;
+                
+            var materialPropertyBlock = GetDebugDirtyProbeMaterialPropertyBlock();
+
+            var parameters = probeVolume.parameters;
+
+            var probeIndex3DToPositionWSMatrix = VolumeUtils.ComputeProbeIndex3DToPositionWSMatrix(
+                probeVolume.position,
+                probeVolume.rotation,
+                parameters.size,
+                parameters.resolutionX,
+                parameters.resolutionY,
+                parameters.resolutionZ);
+
+            var resolution = new Vector3(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
+            var probeRadiusWS = (parameters.size.x / resolution.x + parameters.size.y / resolution.y + parameters.size.z / resolution.z) * (1f / 3f * 1f / 32f);
+
+            materialPropertyBlock.SetVector("_ProbeVolumeResolution", resolution);
+            materialPropertyBlock.SetMatrix("_ProbeIndex3DToPositionWSMatrix", probeIndex3DToPositionWSMatrix);
+            materialPropertyBlock.SetFloat("_ProbeVolumeProbeDisplayRadiusWS", probeRadiusWS);
+            materialPropertyBlock.SetBuffer("_ProbeVolumeDirtyProbes", dirtyProbes);
+
+            var probeCount = VolumeUtils.ComputeProbeCount(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
+
+            cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3 * 2 * probeCount, 1, materialPropertyBlock);
+        }
+
         internal static bool CleanupPropagation(ProbeVolumeHandle probeVolume)
         {
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();

@@ -23,26 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return _DebugNeighborMaterial;
         }
 
-        private Material GetDebugDirtyProbeMaterial()
-        {
-            if (_DebugDirtyProbesMaterial == null && _ProbeVolumeDebugDirtyProbes != null)
-            {
-                _DebugDirtyProbesMaterial = new Material(_ProbeVolumeDebugDirtyProbes);
-            }
-
-            return _DebugDirtyProbesMaterial;
-        }
-        
-        private MaterialPropertyBlock GetDebugDirtyProbeMaterialPropertyBlock()
-        {
-            if (_DebugDirtyProbesMaterialPropertyBlock == null)
-            {
-                _DebugDirtyProbesMaterialPropertyBlock = new MaterialPropertyBlock();
-            }
-
-            return _DebugDirtyProbesMaterialPropertyBlock;
-        }
-        
         [GenerateHLSL(needAccessors = false)]
         internal struct ExtraDataRequests
         {
@@ -94,10 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debugging code
         private Material _DebugNeighborMaterial = null;
         private Shader _ProbeVolumeDebugNeighbors = null;
-
-        private Material _DebugDirtyProbesMaterial = null;
-        private Shader _ProbeVolumeDebugDirtyProbes = null;
-        private MaterialPropertyBlock _DebugDirtyProbesMaterialPropertyBlock = null;
 
         private const int kDummyRTHeight = 64;
         private const int kDummyRTWidth = 4096;
@@ -195,26 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-        }
-
-        internal void DebugDrawDirtyProbes(ProbeVolume probeVolume, Camera camera)
-        {
-            var dirtyProbes = probeVolume.propagationPipelineData.GetDirtyProbes();
-            if (dirtyProbes == null || !dirtyProbes.IsValid())
-                return;
-
-            var material = GetDebugDirtyProbeMaterial();
-            if (material == null)
-                return;
-                
-            var materialPropertyBlock = GetDebugDirtyProbeMaterialPropertyBlock();
-
-            materialPropertyBlock.SetVector("_ProbeVolumeResolution", new Vector3(probeVolume.parameters.resolutionX, probeVolume.parameters.resolutionY, probeVolume.parameters.resolutionZ));
-            materialPropertyBlock.SetMatrix("_ProbeIndex3DToPositionWSMatrix", ProbeVolume.ComputeProbeIndex3DToPositionWSMatrix(probeVolume));
-            materialPropertyBlock.SetFloat("_ProbeVolumeProbeDisplayRadiusWS", Gizmos.probeSize);
-            materialPropertyBlock.SetBuffer("_ProbeVolumeDirtyProbes", dirtyProbes);
-
-            Graphics.DrawProcedural(material, ProbeVolume.ComputeBoundsWS(probeVolume), MeshTopology.Triangles, 3 * 2 * ProbeVolume.ComputeProbeCount(probeVolume), 1, camera, materialPropertyBlock, ShadowCastingMode.Off, receiveShadows: false, layer: 0);
         }
         
         private void ResolveExtraDataRequest(ref ProbeBakeNeighborData neighborData)
