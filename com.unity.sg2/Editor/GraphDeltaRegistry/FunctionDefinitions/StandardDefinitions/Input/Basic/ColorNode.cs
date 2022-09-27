@@ -50,6 +50,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "HDR", "HDR" }
             },
             functionSelectorLabel: "Mode",
+            hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Color",
