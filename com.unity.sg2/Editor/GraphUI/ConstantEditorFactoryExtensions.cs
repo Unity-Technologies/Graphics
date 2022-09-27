@@ -24,11 +24,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return editor;
         }
 
-        public static BaseModelPropertyField BuildGraphTypeConstantEditor(this ConstantEditorBuilder builder, IEnumerable<GraphTypeConstant> constants)
+        public static BaseModelPropertyField BuildGraphTypeConstantEditor(this ConstantEditorBuilder builder, IEnumerable<Constant> constants)
         {
             // TODO GTF UPGRADE: support edition of multiple models.
 
-            var constant = constants.First();
+            var graphTypeConstants = constants.OfType<GraphTypeConstant>();
+            if (!graphTypeConstants.Any())
+            {
+                return builder.BuildDefaultConstantEditor(constants);
+            }
+
+            var constant = graphTypeConstants.First();
             var owner = builder.ConstantOwners.First();
 
             var height = constant.GetHeight();
@@ -55,7 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
                     {
-                        return BuildColorConstantEditor(builder, constant, "", builder.Label, parameterUIDescriptor.Tooltip);
+                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, parameterUIDescriptor.Tooltip);
                     }
 
                     break;
@@ -63,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphDataVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
                 {
                     var isHdr = VariableSettings.colorMode.GetTyped(declarationModel) is VariableSettings.ColorMode.HDR;
-                    return BuildColorConstantEditor(builder, constants, "", builder.Label, "", isHdr);
+                    return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, "", isHdr);
                 }
             }
 
