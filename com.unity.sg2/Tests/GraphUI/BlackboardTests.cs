@@ -20,6 +20,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected override bool hideOverlayWindows => false;
         BlackboardView m_BlackboardView;
 
+        /// <inheritdoc />
+        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.Disk;
+
         public override void SetUp()
         {
             base.SetUp();

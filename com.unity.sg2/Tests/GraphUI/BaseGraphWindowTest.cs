@@ -29,6 +29,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
         protected const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
 
+        internal enum GraphInstantiation
+        {
+            None,
+            MemoryBlank,
+            Memory,
+            MemorySubGraph,
+            Disk,
+            DiskSubGraph
+        }
+
+        protected virtual GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
+
         [SetUp]
         public virtual void SetUp()
         {
@@ -36,11 +48,48 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             m_GraphView = m_Window.GraphView as TestGraphView;
 
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
-            newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(testAssetPath);
-            m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
-            m_Window.GraphTool.Update();
+            GraphAsset graphAsset = null;
+            switch (GraphToInstantiate)
+            {
+                case GraphInstantiation.MemoryBlank:
+                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(false, true);
+                    break;
+
+                case GraphInstantiation.Memory:
+                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(false, false);
+                    break;
+
+                case GraphInstantiation.MemorySubGraph:
+                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(true, false);
+                    break;
+
+                case GraphInstantiation.Disk:
+                {
+                    var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+                    newGraphAction.Action(0, testAssetPath, "");
+                    graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(testAssetPath);
+                    break;
+                }
+
+                case GraphInstantiation.DiskSubGraph:
+                {
+                    var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+                    newGraphAction.isSubGraph = true;
+                    newGraphAction.Action(0, testAssetPath, "");
+                    graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
+                    break;
+                }
+
+                case GraphInstantiation.None:
+                default:
+                    break;
+            }
+
+            if (graphAsset != null)
+            {
+                m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
+                m_Window.GraphTool.Update();
+            }
 
             if (hideOverlayWindows)
             {

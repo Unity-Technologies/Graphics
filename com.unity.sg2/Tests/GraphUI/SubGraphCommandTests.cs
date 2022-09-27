@@ -14,21 +14,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         GraphDataContextNodeModel m_OutputContextNodeModel;
 
+        /// <inheritdoc />
+        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemorySubGraph;
+
         public override void SetUp()
         {
-            CreateWindow();
-
-            m_GraphView = m_Window.GraphView as TestGraphView;
-
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
-            newGraphAction.isSubGraph = true;
-            newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
-
-            m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
-            m_Window.GraphTool.Update();
-
-            m_Window.Focus();
+            base.SetUp();
 
             m_OutputContextNodeModel = m_Window.GetNodeModelFromGraphByName(k_OutputNodeName) as GraphDataContextNodeModel;
             Assert.IsNotNull(m_OutputContextNodeModel, "Subgraph output node must be present on graph");

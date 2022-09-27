@@ -16,6 +16,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     [TestFixture]
     class GraphNodeTests : BaseGraphWindowTest
     {
+        /// <inheritdoc />
+        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
+
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
@@ -61,42 +64,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
                 Assert.IsTrue(graphDataNodeModel.IsPreviewExpanded);
             }
-        }
-
-        [UnityTest]
-        public IEnumerator NodeCollapseStateSerializationTest()
-        {
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-
-            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
-            Assert.IsNotNull(nodeModel);
-
-            if (nodeModel is GraphDataNodeModel graphDataNodeModel)
-            {
-                var nodeGraphElement = m_GraphView.GetGraphElement(graphDataNodeModel);
-                Assert.IsNotNull(nodeGraphElement);
-
-                // Test the collapse button
-                var collapseButton = nodeGraphElement.Q("collapse");
-                Assert.IsNotNull(collapseButton);
-
-                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, collapseButton, true);
-                m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
-                yield return null;
-                yield return null;
-                yield return null;
-                yield return null;
-
-                Assert.IsFalse(graphDataNodeModel.IsPreviewExpanded);
-            }
-
-            yield return SaveAndReopenGraph();
-
-            nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
-            Assert.IsNotNull(nodeModel);
-
-            if (nodeModel is GraphDataNodeModel graphDataNodeModelReloaded)
-                Assert.IsFalse(graphDataNodeModelReloaded.IsPreviewExpanded);
         }
 
         [UnityTest]
