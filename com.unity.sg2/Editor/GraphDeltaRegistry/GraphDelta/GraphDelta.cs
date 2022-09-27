@@ -145,6 +145,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private void HookupToContextList(NodeHandler newContextNode)
         {
+            if(contextNodes == null)
+            {
+                contextNodes = new List<string>();
+            }
+
             if(contextNodes.Count == 0)
             {
                 contextNodes.Add(newContextNode.ID.FullPath);

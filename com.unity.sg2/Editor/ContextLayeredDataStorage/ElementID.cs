@@ -23,71 +23,255 @@ namespace UnityEditor.ContextLayeredDataStorage
     }
 
     [Serializable]
-    public struct ElementID
+    public class ElementID : ISerializationCallbackReceiver
     {
         [SerializeField]
         private string[] m_path;
-        [field: SerializeField]
-        public string FullPath { get; private set; }
-        public string LocalPath => m_path.Length >= 1 ? m_path[m_path.Length - 1] : "";
+        private string m_fullPath;
+        private int m_hash;
+        private int[] m_pathHash;
+
+
+        public string FullPath
+        {
+            get
+            {
+                if (m_fullPath == null)
+                {
+                    m_fullPath = string.Join(".", m_path);
+                }
+                return m_fullPath;
+            }
+        }
+
+        private string[] Path
+        {
+            get
+            {
+                if(m_path == null)
+                {
+                    int pathCount = 1;
+                    foreach(char c in m_fullPath)
+                    {
+                        if (c == '.')
+                        {
+                            pathCount++;
+                        }
+                    }
+                    m_path = new string[pathCount];
+                    int index = 0;
+                    foreach(char c in m_fullPath)
+                    {
+                        if (c == '.')
+                        {
+                            index++;
+                        }
+                        else
+                        {
+                            m_path[index] += c;
+                        }
+                    }
+                }
+                return m_path;
+            }
+        }
+
+        private int PathHash(int index)
+        {
+            if(m_pathHash == null)
+            {
+                if (m_path != null)
+                {
+                    m_pathHash = new int[m_path.Length];
+                }
+                else
+                {
+                    int pathCount = 1;
+                    foreach (char c in m_fullPath)
+                    {
+                        if (c == '.')
+                        {
+                            pathCount++;
+                        }
+                    }
+                    m_pathHash = new int[pathCount];
+                }
+            }
+            if(m_pathHash[index] == 0)
+            {
+                if(m_path != null)
+                {
+                    m_pathHash[index] = GetDeterministicStringHash(m_path[index]);
+                }
+                else
+                {
+                    int i = 0;
+                    int startIndex = 0;
+                    int length = 0;
+                    for (int j = 0; j < m_fullPath.Length; j++)
+                    {
+                        char c = m_fullPath[j];
+                        if (c == '.')
+                        {
+                            i++;
+                            if(i == index)
+                            {
+                                startIndex = j;
+                            }
+                            if(i == index+1)
+                            {
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if(i == index)
+                            {
+                                length++;
+                            }
+                        }
+                        
+                    }
+                    m_pathHash[index] = GetDeterministicStringHash(m_fullPath, startIndex, length);
+                }
+            }
+            return m_pathHash[index];
+        }
+
+        private int PathLength
+        {
+            get
+            {
+                if (m_path != null)
+                {
+                    return m_path.Length;
+                }
+                else
+                {
+                    int pathCount = 1;
+                    foreach (char c in m_fullPath)
+                    {
+                        if (c == '.')
+                        {
+                            pathCount++;
+                        }
+                    }
+                    return pathCount;
+                }
+            }
+        }
+
+        private bool IsRoot
+        {
+            get
+            {
+                if(m_path != null)
+                {
+                    return string.IsNullOrEmpty(m_path[0]);
+                }
+                else
+                {
+                    return string.IsNullOrEmpty(m_fullPath);
+                }
+            }
+        }
+
+        public string LocalPath => Path.Length >= 1 ? Path[^1] : "";
         public string ParentPath => FullPath.Substring(0, Mathf.Max(FullPath.LastIndexOf('.'),0));
 
         public override int GetHashCode()
         {
-            return FullPath.GetHashCode(StringComparison.Ordinal);
+            if(m_hash == 0)
+            {
+                m_hash = GetDeterministicStringHash(FullPath);
+            }
+            return m_hash;
         }
+
+        private static int GetDeterministicStringHash(string str)
+        {
+            unchecked
+            {
+                int hash1 = (5381 << 16) + 5381;
+                int hash2 = hash1;
+
+                for (int i = 0; i < str.Length; i += 2)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ str[i];
+                    if (i == str.Length - 1)
+                        break;
+                    hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+                }
+
+                return hash1 + (hash2 * 1566083941);
+
+            }
+        }
+
+        private static int GetDeterministicStringHash(string str, int startIndex, int length)
+        {
+            unchecked
+            {
+                int hash1 = (5381 << 16) + 5381;
+                int hash2 = hash1;
+
+                for (int i = startIndex; i < length; i += 2)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ str[i];
+                    if (i == length - 1)
+                        break;
+                    hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+                }
+
+                return hash1 + (hash2 * 1566083941);
+
+            }
+        }
+
 
         public ElementID(string id)
         {
-            m_path = new string[] { id };
-            FullPath = id;
+            m_fullPath = id;
+            m_path = null;
+            m_hash = 0;
+            m_pathHash = null;
         }
 
         public ElementID(IEnumerable<string> path)
         {
             m_path = new string[path.Count()];
-            FullPath = "";
             int i = 0;
             foreach (string p in path)
             {
                 m_path[i] = p;
-
-                if (i == 0)
-                {
-                    FullPath = p;
-                }
-                else
-                {
-                    FullPath += "." + p;
-                }
                 ++i;
             }
+            m_fullPath = null;
+            m_hash = 0;
+            m_pathHash = null;
         }
 
         public ElementID(ElementID parent, IEnumerable<string> localPath)
         {
-            m_path = new string[parent.m_path.Length + localPath.Count()];
+            m_path = new string[parent.Path.Length + localPath.Count()];
             int i;
-            for(i = 0; i < parent.m_path.Length; ++i)
+            for(i = 0; i < parent.Path.Length; ++i)
             {
-                m_path[i] = parent.m_path[i];
+                m_path[i] = parent.Path[i];
             }
-            FullPath = parent.FullPath;
+            m_fullPath = parent.FullPath;
             foreach (string p in localPath)
             {
                 m_path[i] = p;
                 i++;
-                FullPath += "." + p;
+                m_fullPath += "." + p;
             }
+            m_hash = 0;
+            m_pathHash = null;
         }
 
         public bool Equals(ElementID other)
         {
-            if (m_path.Length != other.m_path.Length)
-            {
-                return false;
-            }
-
             return other.GetHashCode() == GetHashCode();
         }
 
@@ -101,19 +285,19 @@ namespace UnityEditor.ContextLayeredDataStorage
         public bool IsSubpathOf(ElementID other)
         {
             //special case for root, empty string is always a subpath
-            if(m_path.Length == 1 && m_path[0].Length == 0)
+            if(IsRoot)
             {
                 return true;
             }
 
-            if (m_path.Length >= other.m_path.Length)
+            if (PathLength >= other.PathLength)
             {
                 return false;
             }
 
-            for (int i = 0; i < m_path.Length; ++i)
+            for (int i = 0; i < PathLength; ++i)
             {
-                if (string.CompareOrdinal(m_path[i],other.m_path[i]) != 0)
+                if (PathHash(i) != other.PathHash(i))
                 {
                     return false;
                 }
@@ -124,9 +308,9 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public bool IsImmediateSubpathOf(ElementID other)
         {
-            if(m_path.Length == 1 && m_path[0].Length == 0)
+            if(IsRoot)
             {
-                if (other.m_path.Length > 1)
+                if (other.PathLength > 1)
                 {
                     return false;
                 }
@@ -135,12 +319,12 @@ namespace UnityEditor.ContextLayeredDataStorage
                     return true;
                 }
             }
-            return (m_path.Length + 1 == other.m_path.Length) && IsSubpathOf(other);
+            return (PathLength + 1 == other.PathLength) && IsSubpathOf(other);
         }
 
         public static ElementID FromString(string path)
         {
-            return new ElementID(path.Split('.'));
+            return new ElementID(path);
         }
 
         public static ElementID CreateUniqueLocalID(ElementID parentID, IEnumerable<string> existingLocalChildIDs, string desiredLocalID)
@@ -197,19 +381,51 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID Rename(string toRename, string newName)
         {
-            string[] newPath = new string[m_path.Length];
+            string[] newPath = new string[Path.Length];
             for (int i = 0; i < m_path.Length; i++)
             {
-                if (m_path[i].Equals(toRename))
+                if (Path[i].Equals(toRename))
                 {
                     newPath[i] = newName;
                 }
                 else
                 {
-                    newPath[i] = m_path[i];
+                    newPath[i] = Path[i];
                 }
             }
             return newPath;
+        }
+
+        public void OnBeforeSerialize()
+        {
+            if (m_path == null)
+            {
+                int pathCount = 1;
+                foreach (char c in m_fullPath)
+                {
+                    if (c == '.')
+                    {
+                        pathCount++;
+                    }
+                }
+                m_path = new string[pathCount];
+                int index = 0;
+                foreach (char c in m_fullPath)
+                {
+                    if (c == '.')
+                    {
+                        index++;
+                    }
+                    else
+                    {
+                        m_path[index] += c;
+                    }
+                }
+            }
+        }
+
+        public void OnAfterDeserialize()
+        {
         }
 
         public static implicit operator ElementID(List<string> path) => new ElementID(path);

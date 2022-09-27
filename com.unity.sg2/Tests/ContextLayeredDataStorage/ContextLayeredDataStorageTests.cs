@@ -13,13 +13,13 @@ namespace UnityEditor.ContextLayeredDataStorage
         public void EmptyID()
         {
             ElementID test = new ElementID("");
-            Assert.AreEqual(test.FullPath, "");
-            Assert.AreEqual(test.LocalPath, "");
+            Assert.That(string.IsNullOrEmpty(test.FullPath));
+            Assert.That(string.IsNullOrEmpty(test.LocalPath));
         }
 
         [Test]
         [TestCase("foo")]
-        [TestCase("$.^")]
+        [TestCase("$,^")]
         public void SimpleID(string path)
         {
             ElementID test = new ElementID(path);
