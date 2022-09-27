@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Is Nan",
+            displayName: "Is NaN",
             tooltip: "Checks if the input is not a number (NaN).",
             category: "Utility/Logic",
             synonyms: new string[0],
