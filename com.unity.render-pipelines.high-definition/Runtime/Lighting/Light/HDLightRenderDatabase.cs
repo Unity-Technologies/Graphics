@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte GetTypeData(byte typeIndex)
         {
-            return (byte)(typeData & (0b11 << (typeIndex * 2)));
+            return (byte)((typeData >> (typeIndex * 2)) & 0b11);
         }
 
         public SpotLightShape spotLightShape
@@ -125,8 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDAdditionalLightData.PointLightHDType pointLightHDType
         {
-            get => (HDAdditionalLightData.PointLightHDType)((typeData >> 6) & 0b11);
-            set => typeData = (byte)((typeData & 0b00111111) | (((int)value) << 6));
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (HDAdditionalLightData.PointLightHDType)GetTypeData(3);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(3, (byte)value);
         }
 
         public bool useCustomSpotLightShadowCone
