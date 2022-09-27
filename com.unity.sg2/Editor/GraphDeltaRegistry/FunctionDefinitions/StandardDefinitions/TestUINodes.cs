@@ -826,9 +826,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
-            Name + "(V2)",
+            Name,
             tooltip: string.Empty,
-            category: "Test/Upgradeable/V2",
+            category: "Test/Upgradeable",
             synonyms: Array.Empty<string>()
         );
     }
@@ -851,9 +851,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
-            Name + "(V3)",
+            Name,
             tooltip: string.Empty,
-            category: "Test/Upgradeable/V3",
+            category: "Test/Upgradeable",
             synonyms: Array.Empty<string>()
         );
     }

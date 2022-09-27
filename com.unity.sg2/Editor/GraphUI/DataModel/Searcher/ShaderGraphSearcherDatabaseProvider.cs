@@ -50,6 +50,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // in the SearcherDatabase initialization.
                 HashSet<string> namesAddedToSearcher = new();
                 var registry = shaderGraphModel.RegistryInstance;
+
+                var versionCounts = new Dictionary<string, int>();
+                foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
+                {
+                    versionCounts[registryKey.Name] = versionCounts.GetValueOrDefault(registryKey.Name, 0) + 1;
+                }
+
                 foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
                 {
                     if (shaderGraphModel.ShouldBeInSearcher(registryKey))
@@ -58,6 +65,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // a valid topology and nodeUIInfo for it will also exist.
                         var uiInfo = registry.GetNodeUIDescriptor(registryKey);
                         string searcherItemName = uiInfo.DisplayName;
+
+                        // If a registry key has more than 1 available version, show version numbers explicitly in the
+                        // searcher to prevent conflicts.
+                        // TODO: This isn't the final design for presenting nodes with multiple versions.
+                        if (versionCounts[registryKey.Name] > 1)
+                        {
+                            searcherItemName += $" (v{uiInfo.Version})";
+                        }
+
                         // If there is already a SearcherItem with the current name,
                         // warn and skip.
                         if (namesAddedToSearcher.Contains(searcherItemName))
@@ -70,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             null,
                             creationData => graphModel.CreateGraphDataNode(
                                 registryKey,
-                                searcherItemName,
+                                uiInfo.DisplayName,
                                 creationData.Position,
                                 creationData.Guid,
                                 creationData.SpawnFlags
