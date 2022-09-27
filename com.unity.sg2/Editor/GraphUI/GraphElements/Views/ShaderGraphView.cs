@@ -74,6 +74,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent,
                 selectionStateComponent,
                 previewUpdateDispatcher);
+
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PasteSerializedDataCommand>(
+                ShaderGraphCommandOverrides.HandlePasteSerializedData,
+                undoStateComponent,
+                graphModelStateComponent,
+                selectionStateComponent);
         }
 
         protected override void RegisterObservers()
