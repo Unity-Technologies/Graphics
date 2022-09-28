@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
@@ -27,9 +28,13 @@ namespace UnityEditor.ContextLayeredDataStorage
     {
         [SerializeField]
         private string[] m_path;
-        private string m_fullPath;
+        [SerializeField]
+        private char[][] m_charPath;
+        [SerializeField]
+        private char[] m_fullPath;
         private int m_hash;
         private int[] m_pathHash;
+        private List<string> m_pathList;
 
 
         public string FullPath
@@ -38,53 +43,29 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if (m_fullPath == null)
                 {
-                    m_fullPath = string.Join(".", m_path);
+                    string temp = "";
+                    for(int i = 0; i < m_charPath.Length; ++i)
+                    {
+                        for(int j = 0; j < m_charPath[i].Length; ++j)
+                        {
+                            temp += m_charPath[i][j];
+                        }
+                        if (i + 1 < m_charPath.Length)
+                        {
+                            temp += '.';
+                        }
+                    }
+                    m_fullPath = temp.ToCharArray();
                 }
-                return m_fullPath;
+                return new string(m_fullPath);
             }
         }
 
-        private string[] Path
+        private List<string> Path
         {
             get
             {
-                if(m_path == null)
-                {
-                    int pathCount = 1;
-                    foreach(char c in m_fullPath)
-                    {
-                        if (c == '.')
-                        {
-                            pathCount++;
-                        }
-                    }
-                    m_path = new string[pathCount];
-                    int index = 0;
-                    foreach(char c in m_fullPath)
-                    {
-                        if (c == '.')
-                        {
-                            index++;
-                        }
-                        else
-                        {
-                            m_path[index] += c;
-                        }
-                    }
-                }
-                return m_path;
-            }
-        }
-
-        private int PathHash(int index)
-        {
-            if(m_pathHash == null)
-            {
-                if (m_path != null)
-                {
-                    m_pathHash = new int[m_path.Length];
-                }
-                else
+                if (m_charPath == null)
                 {
                     int pathCount = 1;
                     foreach (char c in m_fullPath)
@@ -94,17 +75,63 @@ namespace UnityEditor.ContextLayeredDataStorage
                             pathCount++;
                         }
                     }
+                    m_charPath = new char[pathCount][];
+                    int index = 0;
+                    string temp = "";
+                    foreach (char c in m_fullPath)
+                    {
+                        if (c == '.')
+                        {
+                            m_charPath[index] = temp.ToCharArray();
+                            index++;
+                            temp = "";
+                        }
+                        else
+                        {
+                            temp += c;
+                        }
+                    }
+
+                    m_pathList = new List<string>(m_charPath.Length);
+                    foreach (char[] subPath in m_charPath)
+                    {
+                        m_pathList.Add(new string(subPath));
+                    }
+                }
+                return m_pathList;
+            }
+        }
+
+        private int PathHash(int index)
+        {
+            if(m_pathHash == null)
+            {
+                if (m_charPath != null)
+                {
+                    m_pathHash = new int[m_charPath.Length];
+                }
+                else
+                {
+                    int pathCount = 1;
+                    for (int i = 0; i < m_fullPath.Length; i++)
+                    {
+                        if (m_fullPath[i] == '.')
+                        {
+                            pathCount++;
+                        }
+                    }
                     m_pathHash = new int[pathCount];
                 }
             }
             if(m_pathHash[index] == 0)
             {
-                if(m_path != null)
+                if(m_charPath != null)
                 {
-                    m_pathHash[index] = GetDeterministicStringHash(m_path[index]);
+                    m_pathHash[index] = GetDeterministicStringHash(m_charPath[index], 0, m_charPath[index].Length);
                 }
                 else
                 {
+                    Profiler.BeginSample("fullPath case");
                     int i = 0;
                     int startIndex = 0;
                     int length = 0;
@@ -135,6 +162,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                     m_pathHash[index] = GetDeterministicStringHash(m_fullPath, startIndex, length);
                 }
             }
+            Profiler.EndSample();
             return m_pathHash[index];
         }
 
@@ -142,9 +170,9 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             get
             {
-                if (m_path != null)
+                if (m_charPath != null)
                 {
-                    return m_path.Length;
+                    return m_charPath.Length;
                 }
                 else
                 {
@@ -165,18 +193,18 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             get
             {
-                if(m_path != null)
+                if(m_charPath != null)
                 {
-                    return string.IsNullOrEmpty(m_path[0]);
+                    return m_charPath.Length == 1 && m_charPath[0].Length == 0;
                 }
                 else
                 {
-                    return string.IsNullOrEmpty(m_fullPath);
+                    return m_fullPath == null || m_fullPath.Length == 0;
                 }
             }
         }
 
-        public string LocalPath => Path.Length >= 1 ? Path[^1] : "";
+        public string LocalPath => FullPath.Substring(FullPath.LastIndexOf('.') + 1);
         public string ParentPath => FullPath.Substring(0, Mathf.Max(FullPath.LastIndexOf('.'),0));
 
         public override int GetHashCode()
@@ -208,7 +236,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        private static int GetDeterministicStringHash(string str, int startIndex, int length)
+        private static int GetDeterministicStringHash(char[] str, int startIndex, int length)
         {
             unchecked
             {
@@ -231,19 +259,19 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID(string id)
         {
-            m_fullPath = id;
-            m_path = null;
+            m_fullPath = id.ToCharArray();
+            m_charPath = null;
             m_hash = 0;
             m_pathHash = null;
         }
 
         public ElementID(IEnumerable<string> path)
         {
-            m_path = new string[path.Count()];
+            m_charPath = new char[path.Count()][];
             int i = 0;
             foreach (string p in path)
             {
-                m_path[i] = p;
+                m_charPath[i] = p.ToCharArray();
                 ++i;
             }
             m_fullPath = null;
@@ -253,19 +281,21 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID(ElementID parent, IEnumerable<string> localPath)
         {
-            m_path = new string[parent.Path.Length + localPath.Count()];
+            m_charPath = new char[parent.Path.Count + localPath.Count()][];
             int i;
-            for(i = 0; i < parent.Path.Length; ++i)
+            for(i = 0; i < parent.m_charPath.Length; ++i)
             {
-                m_path[i] = parent.Path[i];
+                m_charPath[i] = new char[parent.m_charPath[i].Length];
+                parent.m_charPath[i].CopyTo(m_charPath[i], 0);
             }
-            m_fullPath = parent.FullPath;
+            var temp = parent.FullPath;
             foreach (string p in localPath)
             {
-                m_path[i] = p;
+                m_charPath[i] = p.ToCharArray();
                 i++;
-                m_fullPath += "." + p;
+                temp += "." + p;
             }
+            m_fullPath = temp.ToCharArray();
             m_hash = 0;
             m_pathHash = null;
         }
@@ -381,8 +411,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public ElementID Rename(string toRename, string newName)
         {
-            string[] newPath = new string[Path.Length];
-            for (int i = 0; i < m_path.Length; i++)
+            string[] newPath = new string[PathLength];
+            for (int i = 0; i < m_charPath.Length; i++)
             {
                 if (Path[i].Equals(toRename))
                 {
@@ -398,34 +428,34 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public void OnBeforeSerialize()
         {
-            if (m_path == null)
+            if (m_fullPath == null)
             {
-                int pathCount = 1;
-                foreach (char c in m_fullPath)
+                string temp = "";
+                for (int i = 0; i < m_charPath.Length; ++i)
                 {
-                    if (c == '.')
+                    for (int j = 0; j < m_charPath[i].Length; ++j)
                     {
-                        pathCount++;
+                        temp += m_charPath[i][j];
+                    }
+                    if (i + 1 < m_charPath.Length)
+                    {
+                        temp += '.';
                     }
                 }
-                m_path = new string[pathCount];
-                int index = 0;
-                foreach (char c in m_fullPath)
-                {
-                    if (c == '.')
-                    {
-                        index++;
-                    }
-                    else
-                    {
-                        m_path[index] += c;
-                    }
-                }
+                m_fullPath = temp.ToCharArray();
             }
         }
 
         public void OnAfterDeserialize()
         {
+            if(m_path != null)
+            {
+                m_charPath = new char[m_path.Length][];
+                for (int i = 0; i < m_path.Length; i++)
+                {
+                    m_charPath[i] = m_path[i].ToCharArray();
+                }
+            }
         }
 
         public static implicit operator ElementID(List<string> path) => new ElementID(path);
