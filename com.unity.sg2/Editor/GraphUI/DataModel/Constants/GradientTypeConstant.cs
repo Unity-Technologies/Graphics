@@ -9,6 +9,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         // TODO: (Sai) When Gradients have support for assigning values from the Gradient Editor,
         // revisit their duplication to ensure values are copied over
+        protected override void CloneTypeFields(FieldHandler target)
+        {
+        }
+
         protected override void StoreValueForCopy()
         {
             var currentGradientValue = GetValue();

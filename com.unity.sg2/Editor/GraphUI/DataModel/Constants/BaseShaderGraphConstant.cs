@@ -63,6 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // TODO: Do this in CLDS instead
+        abstract protected void CloneTypeFields(FieldHandler target);
         abstract protected void StoreValueForCopy();
         abstract public object GetStoredValueForCopy();
 
@@ -78,7 +79,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var copy = (BaseShaderGraphConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);
-            copy.ObjectValue = GetStoredValueForCopy();
+            var storedValue = GetStoredValueForCopy();
+            if(storedValue.GetType() != Type)
+                CloneTypeFields(copy.GetField());
+            copy.ObjectValue = storedValue;
             return copy;
         }
 

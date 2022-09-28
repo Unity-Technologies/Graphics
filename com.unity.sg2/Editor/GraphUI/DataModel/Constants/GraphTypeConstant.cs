@@ -12,6 +12,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         private GraphType.Primitive GetPrimitive() => IsInitialized ? GraphTypeHelpers.GetPrimitive(GetField()) : GraphType.Primitive.Float;
 
+        protected override void CloneTypeFields(FieldHandler target)
+        {
+            GraphTypeHelpers.InitGraphType(
+                target,
+                length: m_StoredLength,
+                height: m_StoredHeight,
+                // TODO: Support precision when it comes in
+                precision: GraphType.Precision.Single,
+                primitive: m_StoredPrimitive,
+                lengthDynamic: m_LengthDynamic,
+                heightDynamic: m_HeightDynamic,
+                primitiveDynamic: m_PrimitiveDynamic,
+                precisionDynamic: m_PrecisionDynamic);
+        }
+
         // TODO: Not this
         protected override void StoreValueForCopy()
         {
@@ -21,6 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_StoredLength = GetLength();
             m_StoredHeight = GetHeight();
             m_StoredPrimitive = GetPrimitive();
+            GraphTypeHelpers.GetDynamic(GetField(), out m_LengthDynamic, out m_HeightDynamic, out m_PrecisionDynamic, out m_PrimitiveDynamic);
 
             switch (GetHeight())
             {
@@ -112,6 +128,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [SerializeField]
         GraphType.Primitive m_StoredPrimitive;
+
+        [SerializeField]
+        bool m_LengthDynamic;
+
+        [SerializeField]
+        bool m_HeightDynamic;
+
+        [SerializeField]
+        bool m_PrimitiveDynamic;
+
+        [SerializeField]
+        bool m_PrecisionDynamic;
+
 
         protected override object GetValue()
         {
