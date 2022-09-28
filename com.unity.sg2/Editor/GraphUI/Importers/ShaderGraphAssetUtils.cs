@@ -99,6 +99,8 @@ namespace UnityEditor.ShaderGraph
             string json = File.ReadAllText(path, Encoding.UTF8);
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
+            // Although name gets set during asset's OnEnable, it can get clobbered during deserialize
+            asset.Name = Path.GetFileNameWithoutExtension(path);
             var sgModel = asset.ShaderGraphModel;
             sgModel.OnEnable();
             var graphHandler = sgModel.GraphHandler;

@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         #endregion CopyPasteData
 
         // TODO: This should be customizable through the UI: https://jira.unity3d.com/browse/GSG-777
-        // TODO: Also, the default should eventually be "Shader Graphs"
+        // TODO: Default should be changed back to "Shader Graphs" before release: https://jira.unity3d.com/browse/GSG-1431
         string m_ShaderCategory = "Shader Graphs (SG2)";
         public string ShaderName => string.IsNullOrEmpty(m_ShaderCategory) ? Name : m_ShaderCategory + "/" + Name;
 
