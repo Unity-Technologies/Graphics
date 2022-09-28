@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeAtlas,
         VisualizeDebugColors,
         VisualizeValidity,
-        VisualizeDirtyProbes
+        VisualizeDynamicGIDirtyFlags
     }
 
 	/// <summary>

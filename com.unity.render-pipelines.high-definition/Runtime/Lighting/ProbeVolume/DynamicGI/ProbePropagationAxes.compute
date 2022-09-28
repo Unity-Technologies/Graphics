@@ -10,7 +10,7 @@
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 #pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
 #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
-#pragma multi_compile _ DIRTY_PROBES_ENABLED
+#pragma multi_compile _ DIRTY_FLAGS_DISABLED
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -44,9 +44,9 @@ StructuredBuffer<NeighborAxisLookup> _SortedNeighborAxisLookups;
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
 
-#ifdef DIRTY_PROBES_ENABLED
-StructuredBuffer<int> _DirtyProbes;
-RWStructuredBuffer<int> _NextDirtyProbes;
+#ifndef DIRTY_FLAGS_DISABLED
+StructuredBuffer<int> _ProbeVolumeDirtyFlags;
+RWStructuredBuffer<int> _ProbeVolumeNextDirtyFlags;
 #endif
 
 StructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
@@ -317,8 +317,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
 
-#ifdef DIRTY_PROBES_ENABLED
-        if (!IsProbeDirty(_DirtyProbes, probeIndex))
+#ifndef DIRTY_FLAGS_DISABLED
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex))
         {
             _RadianceCacheAxis[index] = GetPreviousAxisRadiance(index);
             return;
@@ -426,7 +426,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         const float3 radiance = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
         _RadianceCacheAxis[index] = EncodeRadiance(radiance);
 
-#ifdef DIRTY_PROBES_ENABLED
+#ifndef DIRTY_FLAGS_DISABLED
         float3 previousRadiance = DecodeRadiance(GetPreviousAxisRadiance(index));
         if (any(abs(radiance - previousRadiance) > 1.0 / 255.0))
         {
@@ -445,7 +445,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                    neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
                 {
                     uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
-                    SetProbeDirty(_NextDirtyProbes, neighborProbeIndex);
+                    SetProbeDirty(_ProbeVolumeNextDirtyFlags, neighborProbeIndex);
                 }
             }
         }

@@ -1,4 +1,4 @@
-Shader "Hidden/Debug/DebugDirtyProbes"
+Shader "Hidden/Debug/DebugDirtyFlags"
 {
     Properties
     {
@@ -45,7 +45,7 @@ Shader "Hidden/Debug/DebugDirtyProbes"
             float3 _ProbeVolumeResolution;
             float4x4 _ProbeIndex3DToPositionWSMatrix;
             float _ProbeVolumeProbeDisplayRadiusWS;
-            StructuredBuffer<int> _ProbeVolumeDirtyProbes;
+            StructuredBuffer<int> _ProbeVolumeDirtyFlags;
 
             uint3 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution)
             {
@@ -67,7 +67,7 @@ Shader "Hidden/Debug/DebugDirtyProbes"
                 uint probeTriangleIndex = (v.vertexID / 3u) & 1u;
                 uint probeVertexIndex = v.vertexID - probeIndex1D * 6u - probeTriangleIndex * 3u;
 
-                bool dirty = IsProbeDirty(_ProbeVolumeDirtyProbes, probeIndex1D);
+                bool dirty = IsProbeDirty(_ProbeVolumeDirtyFlags, probeIndex1D);
 
                 float2 vertexPositionOS = (probeTriangleIndex == 1u)
                     ? float2((probeVertexIndex & 1u), saturate(probeVertexIndex))

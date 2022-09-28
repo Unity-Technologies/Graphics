@@ -2987,7 +2987,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ProbeVolumeDynamicGICommonData commonData = PrepareProbeVolumeDynamicGIData(hdCamera);
                     if (commonData.mode != ProbeVolumeDynamicGIMode.None)
                     {
-                        ExecuteProbeVolumeDynamicGI(cmd, commonData, m_ProbeVolumeAtlasSHRTHandle);
+                        ExecuteProbeVolumeDynamicGI(cmd, in commonData, m_ProbeVolumeAtlasSHRTHandle);
                     }
 
                     hdCamera.xr.StartSinglePass(cmd);
