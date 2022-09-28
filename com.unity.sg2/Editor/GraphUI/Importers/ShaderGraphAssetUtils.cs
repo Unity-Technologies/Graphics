@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph
                 var shaderCode = Interpreter.GetShaderForNode(node, graphHandler, graphHandler.registry, out var defaultTextures, sgModel.ActiveTarget, sgModel.ShaderName);
 
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
-                Material mat = new(shader);
+                Material mat = new(shader) {name = "Material/" + asset.Name};
                 foreach (var def in defaultTextures)
                 {
                     mat.SetTexture(def.Item1, def.Item2);
