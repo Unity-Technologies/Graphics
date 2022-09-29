@@ -39,11 +39,11 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public Element GetLayerRoot(string name)
         {
-            foreach (var (id, elem) in Values)
+            foreach (var (_, tup) in this)
             {
-                if (name.CompareTo(id.layerName) == 0)
+                if (string.CompareOrdinal(name, tup.descriptor.layerName) == 0)
                 {
-                    return elem;
+                    return tup.element;
                 }
             }
             return null;

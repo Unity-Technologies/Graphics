@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
@@ -309,7 +307,6 @@ namespace UnityEditor.ContextLayeredDataStorage
                 AddChild(elem.Parent, child);
             }
             RemoveChild(elem.Parent, elem);
-
         }
 
         protected void RemoveDataBranch(Element root)
@@ -366,7 +363,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         protected Element SearchRelative(Element elem, ElementID lookup)
         {
-            Stack<Element> workingSet = new Stack<Element>();
+            const int stackSize = 128;
+            Stack<Element> workingSet = new Stack<Element>(stackSize);
             workingSet.Push(elem);
             while (workingSet.Count > 0)
             {
@@ -432,9 +430,9 @@ namespace UnityEditor.ContextLayeredDataStorage
             elements = new List<Element>();
             foreach(var child in root.Children)
             {
-                elements.Add(child);
                 GatherAll(child, out var accumulatedElements);
                 elements.AddRange(accumulatedElements);
+                elements.Add(child);
             }
         }
 
