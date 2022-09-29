@@ -144,6 +144,9 @@ void Frag(  PackedVaryingsToPS packedInput
     decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
     #endif
     EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
+
+    // make sure we don't overwrite light layers
+    outDecalBuffer.w = (GetMeshRenderingLightLayer() & 0x000000FF) / 255.0;
 #endif
 
 #ifdef _DEPTHOFFSET_ON
