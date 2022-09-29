@@ -97,7 +97,8 @@ Build_URP_Template_Win_DX11_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/Template_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests --timeout=1200
+                rm -rf players
+                utr --artifacts_path=TestProjects/Template_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Template_Tests --timeout=1200  --clean-library
     artifacts:
         logs:
             paths:
