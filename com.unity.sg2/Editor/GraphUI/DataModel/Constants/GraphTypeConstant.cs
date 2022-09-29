@@ -12,21 +12,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         private GraphType.Primitive GetPrimitive() => IsInitialized ? GraphTypeHelpers.GetPrimitive(GetField()) : GraphType.Primitive.Float;
 
-        protected override void CloneTypeFields(FieldHandler target)
-        {
-            GraphTypeHelpers.InitGraphType(
-                target,
-                length: m_StoredLength,
-                height: m_StoredHeight,
-                // TODO: Support precision when it comes in
-                precision: GraphType.Precision.Single,
-                primitive: m_StoredPrimitive,
-                lengthDynamic: m_LengthDynamic,
-                heightDynamic: m_HeightDynamic,
-                primitiveDynamic: m_PrimitiveDynamic,
-                precisionDynamic: m_PrecisionDynamic);
-        }
-
         // TODO: Not this
         protected override void StoreValueForCopy()
         {

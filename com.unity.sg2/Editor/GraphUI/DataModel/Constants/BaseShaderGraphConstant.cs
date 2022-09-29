@@ -1,5 +1,6 @@
 
 using System;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -49,6 +50,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 this.nodeName = nodeName;
                 this.portName = portName;
             }
+
+            // If when initializing this port we find that the value type has changed, refresh stored value
+            if(GetStoredValueForCopy().GetType() != ObjectValue.GetType())
+                StoreValueForCopy();
         }
 
         public object ObjectValue
@@ -63,7 +68,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // TODO: Do this in CLDS instead
-        abstract protected void CloneTypeFields(FieldHandler target);
         abstract protected void StoreValueForCopy();
         abstract public object GetStoredValueForCopy();
 
@@ -80,8 +84,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var copy = (BaseShaderGraphConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);
             var storedValue = GetStoredValueForCopy();
-            if(storedValue.GetType() != Type)
-                CloneTypeFields(copy.GetField());
             copy.ObjectValue = storedValue;
             return copy;
         }

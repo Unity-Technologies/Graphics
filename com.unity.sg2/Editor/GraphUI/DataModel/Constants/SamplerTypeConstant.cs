@@ -15,11 +15,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class SamplerStateTypeConstant : BaseShaderGraphConstant
     {
-        protected override void CloneTypeFields(FieldHandler target)
-        {
-
-        }
-
         protected override void StoreValueForCopy()
         {
             storedValue = (SamplerStateData)GetValue();

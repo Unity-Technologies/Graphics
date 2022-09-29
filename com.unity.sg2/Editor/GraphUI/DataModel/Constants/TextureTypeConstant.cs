@@ -8,11 +8,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class TextureTypeConstant : BaseShaderGraphConstant
     {
-        protected override void CloneTypeFields(FieldHandler target)
-        {
-
-        }
-
         protected override void StoreValueForCopy()
         {
             var currentTexture = GetValue();
