@@ -185,7 +185,6 @@ namespace UnityEditor.VFX
         static void CheckCompilationVersion()
         {
             EditorApplication.update -= CheckCompilationVersion;
-            string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
 
             UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
             SerializedObject serializedVFXManager = new SerializedObject(vfxmanager);
@@ -194,6 +193,7 @@ namespace UnityEditor.VFX
 
             if (compiledVersionProperty.intValue != VFXGraphCompiledData.compiledVersion || runtimeVersionProperty.intValue != VisualEffectAsset.currentRuntimeDataVersion)
             {
+                string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
                 compiledVersionProperty.intValue = (int)VFXGraphCompiledData.compiledVersion;
                 runtimeVersionProperty.intValue = (int)VisualEffectAsset.currentRuntimeDataVersion;
                 serializedVFXManager.ApplyModifiedProperties();
