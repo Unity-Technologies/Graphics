@@ -14,26 +14,6 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "Tangent",
-@"  worldDerivativeX = ddx(PositionWS);
-    crossY = cross(ddy(PositionWS), NormalWS);
-    d = dot(worldDerivativeX, crossY);
-    surfGrad = ((d < 0.0 ? (-1.0f) : 1.0f) / max(0.000000000000001192093f, abs(d))) * (ddx(In)*crossY + ddy(In)*(cross(NormalWS, worldDerivativeX)));
-    Out = SafeNormalize(NormalWS - (Strength * surfGrad));",
-                    new ParameterDescriptor[]
-                    {
-                        new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
-                        new ParameterDescriptor("Strength", TYPE.Float, GraphType.Usage.In, new float[] { 0.01f }),
-                        new ParameterDescriptor("worldDerivativeX", TYPE.Vec3, GraphType.Usage.Local),
-                        new ParameterDescriptor("crossY", TYPE.Vec3, GraphType.Usage.Local),
-                        new ParameterDescriptor("d", TYPE.Float, GraphType.Usage.Local),
-                        new ParameterDescriptor("surfGrad", TYPE.Vec3, GraphType.Usage.Local),
-                        new ParameterDescriptor("PositionWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Position),
-                        new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Normal),
-                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
-                    }
-                ),
-                new(
-                    "World",
 @"  TangentMatrix[0] = TangentWS;
     TangentMatrix[1] = BitangentWS;
     TangentMatrix[2] = NormalWS;
@@ -56,6 +36,26 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Normal),
                         new ParameterDescriptor("TangentWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Tangent),
                         new ParameterDescriptor("BitangentWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Bitangent),
+                        new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
+                ),
+                new(
+                    "World",
+@"  worldDerivativeX = ddx(PositionWS);
+    crossY = cross(ddy(PositionWS), NormalWS);
+    d = dot(worldDerivativeX, crossY);
+    surfGrad = ((d < 0.0 ? (-1.0f) : 1.0f) / max(0.000000000000001192093f, abs(d))) * (ddx(In)*crossY + ddy(In)*(cross(NormalWS, worldDerivativeX)));
+    Out = SafeNormalize(NormalWS - (Strength * surfGrad));",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
+                        new ParameterDescriptor("Strength", TYPE.Float, GraphType.Usage.In, new float[] { 0.01f }),
+                        new ParameterDescriptor("worldDerivativeX", TYPE.Vec3, GraphType.Usage.Local),
+                        new ParameterDescriptor("crossY", TYPE.Vec3, GraphType.Usage.Local),
+                        new ParameterDescriptor("d", TYPE.Float, GraphType.Usage.Local),
+                        new ParameterDescriptor("surfGrad", TYPE.Vec3, GraphType.Usage.Local),
+                        new ParameterDescriptor("PositionWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Position),
+                        new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Normal),
                         new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                     }
                 )
