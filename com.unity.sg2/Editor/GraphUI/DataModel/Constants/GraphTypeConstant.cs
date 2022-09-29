@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_StoredLength = GetLength();
             m_StoredHeight = GetHeight();
             m_StoredPrimitive = GetPrimitive();
-            GraphTypeHelpers.GetDynamic(GetField(), out m_LengthDynamic, out m_HeightDynamic, out m_PrecisionDynamic, out m_PrimitiveDynamic);
 
             switch (GetHeight())
             {
@@ -113,19 +112,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [SerializeField]
         GraphType.Primitive m_StoredPrimitive;
-
-        [SerializeField]
-        bool m_LengthDynamic;
-
-        [SerializeField]
-        bool m_HeightDynamic;
-
-        [SerializeField]
-        bool m_PrimitiveDynamic;
-
-        [SerializeField]
-        bool m_PrecisionDynamic;
-
 
         protected override object GetValue()
         {
