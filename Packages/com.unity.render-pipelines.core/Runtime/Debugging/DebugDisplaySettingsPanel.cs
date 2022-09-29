@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace UnityEngine.Rendering
 {
@@ -9,10 +11,17 @@ namespace UnityEngine.Rendering
     {
         private readonly List<DebugUI.Widget> m_Widgets = new List<DebugUI.Widget>();
 
+        private readonly DisplayInfoAttribute m_DisplayInfo;
+
         /// <summary>
         /// The Panel name
         /// </summary>
-        public abstract string PanelName { get; }
+        public virtual string PanelName => m_DisplayInfo?.name ?? string.Empty;
+
+        /// <summary>
+        /// The order where this panel should be shown
+        /// </summary>
+        public virtual int Order => m_DisplayInfo?.order ?? 0;
 
         /// <summary>
         /// The collection of widgets that are in this panel
@@ -30,6 +39,9 @@ namespace UnityEngine.Rendering
         /// <param name="widget">The <see cref="DebugUI.Widget"/> to be added.</param>
         protected void AddWidget(DebugUI.Widget widget)
         {
+            if (widget == null)
+                throw new ArgumentNullException(nameof(widget));
+
             m_Widgets.Add(widget);
         }
 
@@ -47,6 +59,45 @@ namespace UnityEngine.Rendering
         public void Dispose()
         {
             Clear();
+        }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        protected DebugDisplaySettingsPanel()
+        {
+            m_DisplayInfo = GetType().GetCustomAttribute<DisplayInfoAttribute>();
+            if (m_DisplayInfo == null)
+                Debug.Log($"Type {GetType()} should specify the attribute {nameof(DisplayInfoAttribute)}");
+        }
+    }
+
+    /// <summary>
+    /// Class to help declare rendering debugger panels
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class DebugDisplaySettingsPanel<T> : DebugDisplaySettingsPanel
+        where T : IDebugDisplaySettingsData
+    {
+        internal T m_Data;
+
+        /// <summary>
+        /// Access to the data stored
+        /// </summary>
+        public T data
+        {
+            get => m_Data;
+            internal set => m_Data = value;
+        }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="data">The data that the panel holds</param>
+        protected DebugDisplaySettingsPanel(T data)
+            : base()
+        {
+            m_Data = data;
         }
     }
 }

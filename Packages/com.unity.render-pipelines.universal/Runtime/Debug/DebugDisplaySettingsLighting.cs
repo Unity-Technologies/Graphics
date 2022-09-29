@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
@@ -18,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugLightingFeatureFlags lightingFeatureFlags { get; set; }
 
-        static class Strings
+        static internal class Strings
         {
             public static readonly NameAndTooltip LightingDebugMode = new() { name = "Lighting Debug Mode", tooltip = "Use the drop-down to select which lighting and shadow debug information to overlay on the screen." };
             public static readonly NameAndTooltip LightingFeatures = new() { name = "Lighting Features", tooltip = "Filter and debug selected lighting features in the system." };
@@ -26,42 +27,43 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateLightingDebugMode(DebugDisplaySettingsLighting data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateLightingDebugMode(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.LightingDebugMode,
                 autoEnum = typeof(DebugLightingMode),
-                getter = () => (int)data.lightingDebugMode,
-                setter = (value) => data.lightingDebugMode = (DebugLightingMode)value,
-                getIndex = () => (int)data.lightingDebugMode,
-                setIndex = (value) => data.lightingDebugMode = (DebugLightingMode)value
+                getter = () => (int)panel.data.lightingDebugMode,
+                setter = (value) => panel.data.lightingDebugMode = (DebugLightingMode)value,
+                getIndex = () => (int)panel.data.lightingDebugMode,
+                setIndex = (value) => panel.data.lightingDebugMode = (DebugLightingMode)value
             };
 
-            internal static DebugUI.Widget CreateLightingFeatures(DebugDisplaySettingsLighting data) => new DebugUI.BitField
+            internal static DebugUI.Widget CreateLightingFeatures(SettingsPanel panel) => new DebugUI.BitField
             {
                 nameAndTooltip = Strings.LightingFeatures,
-                getter = () => data.lightingFeatureFlags,
-                setter = (value) => data.lightingFeatureFlags = (DebugLightingFeatureFlags)value,
+                getter = () => panel.data.lightingFeatureFlags,
+                setter = (value) => panel.data.lightingFeatureFlags = (DebugLightingFeatureFlags)value,
                 enumType = typeof(DebugLightingFeatureFlags),
             };
         }
 
-        private class SettingsPanel : DebugDisplaySettingsPanel
+        [DisplayInfo(name = "Lighting", order = 3)]
+        internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsLighting>
         {
-            public override string PanelName => "Lighting";
-
             public SettingsPanel(DebugDisplaySettingsLighting data)
+                : base(data)
             {
                 AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
 
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Lighting Debug Modes",
+                    flags = DebugUI.Flags.FrequentlyUsed,
                     isHeader = true,
                     opened = true,
                     children =
                     {
-                        WidgetFactory.CreateLightingDebugMode(data),
-                        WidgetFactory.CreateLightingFeatures(data)
+                        WidgetFactory.CreateLightingDebugMode(this),
+                        WidgetFactory.CreateLightingFeatures(this)
                     }
                 });
             }

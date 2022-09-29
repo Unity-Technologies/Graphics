@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public class UniversalRenderPipelineDebugDisplaySettings : DebugDisplaySettings<UniversalRenderPipelineDebugDisplaySettings>
     {
-        DebugDisplaySettingsCommon CommonSettings { get; set; }
+        DebugDisplaySettingsCommon commonSettings { get; set; }
 
         /// <summary>
         /// Material-related Rendering Debugger settings.
@@ -29,7 +29,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Display stats.
         /// </summary>
-        internal DebugDisplayStats DisplayStats { get; private set; }
+        internal DebugDisplayStats displayStats { get; private set; }
+
 
         #region IDebugDisplaySettingsQuery
 
@@ -83,20 +84,20 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Reset()
         {
-            m_Settings.Clear();
+            base.Reset();
 
-            DisplayStats = Add(new DebugDisplayStats());
-            CommonSettings = Add(new DebugDisplaySettingsCommon());
+            displayStats = Add(new DebugDisplayStats());
             materialSettings = Add(new DebugDisplaySettingsMaterial());
             lightingSettings = Add(new DebugDisplaySettingsLighting());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
             volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
+            commonSettings = Add(new DebugDisplaySettingsCommon());
         }
 
         internal void UpdateFrameTiming()
         {
-            if (DisplayStats != null)
-                DisplayStats.UpdateFrameTiming();
+            if (displayStats != null)
+                displayStats.UpdateFrameTiming();
         }
     }
 }

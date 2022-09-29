@@ -1065,7 +1065,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_DebugDisplayStatsItems = list.ToArray();
-            var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
+            var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true, groupIndex: int.MinValue);
             panel.flags = DebugUI.Flags.RuntimeOnly;
             panel.children.Add(m_DebugDisplayStatsItems);
         }

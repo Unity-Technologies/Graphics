@@ -30,7 +30,12 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// This widget will force the Debug Editor Window refresh.
             /// </summary>
-            EditorForceUpdate = 1 << 3
+            EditorForceUpdate = 1 << 3,
+            /// <summary>
+            /// This widget will appear in the section "Frequently Used"
+            /// </summary>
+            FrequentlyUsed = 1 << 4
+
         }
 
         /// <summary>
