@@ -49,8 +49,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 this.portName = portName;
             }
 
+            var storedValue = GetStoredValueForCopy();
             // If when initializing this port we find that the value type has changed, refresh stored value
-            if(GetStoredValueForCopy().GetType() != ObjectValue.GetType())
+            if(storedValue?.GetType() != ObjectValue?.GetType())
                 StoreValueForCopy();
         }
 
