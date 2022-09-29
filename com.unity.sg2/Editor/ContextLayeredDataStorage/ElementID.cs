@@ -68,38 +68,42 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             get
             {
-                if (m_charPath == null)
+                if (m_pathList == null)
                 {
-                    int pathCount = 1;
-                    foreach (char c in m_fullPath)
+                    if (m_charPath == null || (m_charPath.Length == 0 && m_fullPath != null))
                     {
-                        if (c == '.')
+                        int pathCount = 1;
+                        foreach (char c in m_fullPath)
                         {
-                            pathCount++;
+                            if (c == '.')
+                            {
+                                pathCount++;
+                            }
                         }
+                        m_charPath = new char[pathCount][];
+                        int index = 0;
+                        string temp = "";
+                        foreach (char c in m_fullPath)
+                        {
+                            if (c == '.')
+                            {
+                                m_charPath[index] = temp.ToCharArray();
+                                index++;
+                                temp = "";
+                            }
+                            else
+                            {
+                                temp += c;
+                            }
+                        }
+                        m_charPath[index] = temp.ToCharArray();
                     }
-                    m_charPath = new char[pathCount][];
-                    int index = 0;
-                    string temp = "";
-                    foreach (char c in m_fullPath)
-                    {
-                        if (c == '.')
-                        {
-                            m_charPath[index] = temp.ToCharArray();
-                            index++;
-                            temp = "";
-                        }
-                        else
-                        {
-                            temp += c;
-                        }
-                    }
-                    m_charPath[index] = temp.ToCharArray();
-                    m_pathList = new List<string>(index + 1);
+                    m_pathList = new List<string>(PathLength);
                     foreach (char[] subPath in m_charPath)
                     {
                         m_pathList.Add(new string(subPath));
                     }
+                    
                 }
                 return m_pathList;
             }
@@ -109,11 +113,11 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             if(m_pathHash == null)
             {
-                if (m_charPath != null)
+                if (m_charPath != null && m_charPath.Length > 0)
                 {
                     m_pathHash = new int[m_charPath.Length];
                 }
-                else
+                else if(m_fullPath != null)
                 {
                     int pathCount = 1;
                     for (int i = 0; i < m_fullPath.Length; i++)
@@ -125,14 +129,18 @@ namespace UnityEditor.ContextLayeredDataStorage
                     }
                     m_pathHash = new int[pathCount];
                 }
+                else
+                {
+                    m_pathHash = new int[1];
+                }
             }
             if(m_pathHash[index] == 0)
             {
-                if(m_charPath != null)
+                if(m_charPath != null && m_charPath.Length > 0)
                 {
                     m_pathHash[index] = GetDeterministicStringHash(m_charPath[index], 0, m_charPath[index].Length);
                 }
-                else
+                else if (m_fullPath != null)
                 {
                     int i = 0;
                     int startIndex = 0;
@@ -173,11 +181,11 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if (m_pathLength == 0)
                 {
-                    if (m_charPath != null)
+                    if (m_charPath != null && m_charPath.Length > 0)
                     {
                         m_pathLength = m_charPath.Length;
                     }
-                    else
+                    else if (m_fullPath != null)
                     {
                         int pathCount = 1;
                         for (int i = 0; i < m_fullPath.Length; i++)
@@ -398,9 +406,9 @@ namespace UnityEditor.ContextLayeredDataStorage
         public ElementID Rename(string toRename, string newName)
         {
             string[] newPath = new string[PathLength];
-            for (int i = 0; i < m_charPath.Length; i++)
+            for (int i = 0; i < PathLength; i++)
             {
-                if (Path[i].Equals(toRename))
+                if (string.CompareOrdinal(Path[i],toRename) == 0)
                 {
                     newPath[i] = newName;
                 }
