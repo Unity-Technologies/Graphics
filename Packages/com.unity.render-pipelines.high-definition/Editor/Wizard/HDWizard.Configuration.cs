@@ -180,8 +180,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
 
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
@@ -517,6 +517,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!IsEditorResourcesCorrect())
                 FixEditorResources(fromAsyncUnused: false);
+
+            if (!IsDefaultVolumeProfileCorrect())
+                FixDefaultVolumeProfile(fromAsyncUnused: false);
 
             var defaultAssetList = HDRenderPipelineGlobalSettings.instance.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
             HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
