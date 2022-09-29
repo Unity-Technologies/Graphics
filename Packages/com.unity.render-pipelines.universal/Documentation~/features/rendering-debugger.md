@@ -44,11 +44,13 @@ Use one of the following options to open the **Rendering Debugger** window.
 
 * On a mobile device, use a three-finger double tap.
 
-You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
+You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
 ## <a name="ui-sections"></a>Rendering Debugger window sections
 
 The **Rendering Debugger** window contains the following sections:
+
+* [Display Stats](#display-stats)
 
 * [Frequently Used](#frequently-used)
 
@@ -61,6 +63,79 @@ The **Rendering Debugger** window contains the following sections:
 The following illustration shows the Rendering Debugger window in the Scene view.
 
 ![Rendering Debugger window.](../Images/rendering-debugger/rendering-debugger-ui-sections.png)
+
+### Display Stats
+
+The **Display Stats** panel is only visible in play mode. You can use it to debug performance issues in your project.
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="1"><strong>Debug&#160;Option</strong></th>
+      <th colspan="2"><strong>Description</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="1"><strong>Frame Rate</strong></td>
+      <td colspan="2">Displays the frame rate in frames per second for the current camera view.</td>
+    </tr>
+    <tr>
+      <td rowspan="1"><strong>Frame Time</strong></td>
+      <td colspan="2">Displays the total frame time for the current camera view.</td>
+    </tr>
+    <tr>
+      <td rowspan="1"><strong>RT Mode</strong></td>
+      <td colspan="2">If you enable ray tracing, it displays the ray tracing Tier used during rendering.</td>
+    </tr>
+    <tr>
+      <td rowspan="11"><strong>Count Rays</strong></td>
+      <td colspan="2">If you enable ray tracing, enable the checkbox to count the number of traced rays per effect (in MRays / frame).</td>
+    </tr>
+    <tr>
+      <td><strong>Ambient Occlusion</strong></td>
+      <td>The number of rays that were traced for Ambient Occlusion (AO) computations, when you enable RT AO.</td>
+    </tr>
+    <tr>
+      <td><strong>Shadows Directional</strong></td>
+      <td>The number of rays that were traced for directional lights, when you enable RT shadows.</td>
+    </tr>
+    <tr>
+      <td><strong>Shadows Area</strong></td>
+      <td>The number of rays that were traced towards area lights, when you enable RT shadows.</td>
+    <tr>
+      <td><strong>Shadows Point/Spot</strong></td>
+      <td>The number of rays that were traced towards punctual (point/spot) lights, when you enable RT shadows.</td>
+    </tr>
+    <tr>
+      <td><strong>Reflection Forward</strong></td>
+      <td>The number of rays that were traced for reflection computations using forward shading.</td>
+    </tr>
+    <tr>
+      <td><strong>Reflection Deferred</strong></td>
+      <td>TThe number of rays that were traced for reflection computations using deferred shading.</td>
+    <tr>
+      <td><strong>Diffuse GI Forward</strong></td>
+      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations using forward shading.</td>
+    </tr>
+    <tr>
+      <td><strong>Diffuse GI Deferred</strong></td>
+      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations using deferred shading.</td>
+    </tr>
+    <tr>
+      <td><strong>Recursive</strong></td>
+      <td>The number of rays that were traced for diffuse Global Illumination (GI) computations when you enable recursive RT.</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td>The total number of rays that were traced.</td>
+    </tr>
+        <tr>
+      <td rowspan="1"><strong>Debug&#160;XR&#160;Layout</strong></td>
+      <td colspan="2">Enable to display XR passes debug informations.<br/><br/>This mode is only available in the editor and development builds.</td>
+    </tr>
+  </tbody>
+</table>
 
 ### Frequently Used
 
@@ -97,8 +172,8 @@ The properties in this section let you visualize different settings and elements
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| **Lighting Debug Mode** | Specifies which lighting and shadow information to overlay on-screen to debug. The options are: <br/> &#8226; **None**: Renders the scene normally without a debug overlay. <br/> &#8226; **Shadow Cascades**: Overlays shadow cascade information so you can see which shadow cascade each pixel uses. Use this to debug shadow cascade distances. For information on which color represents which shadow cascade, see the [Shadows section of the URP Asset](../universalrp-asset.md#shadows). <br/> &#8226; **Lighting Without Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and disables normal maps. This and the **Lighting With Normal Maps** mode are useful for debugging lighting issues caused by normal maps. <br/> &#8226; **Lighting With Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and allows normal maps. <br/> &#8226; **Reflections**: Renders the scene to visualize reflections. This mode applies perfectly smooth, reflective materials to every Mesh Renderer. <br/> &#8226; **Reflections With Smoothness**: Renders the scene to visualize reflections. This mode applies reflective materials without an overridden smoothness to every GameObject. |
-| **Lighting Features**   | Specifies flags for which lighting features contribute to the final lighting result. Use this to view and debug specific lighting features in your scene. The options are: <br/> &#8226; **Nothing**: Shortcut to disable all flags. <br/> &#8226; **Everything**: Shortcut to enable all flags. <br/> &#8226; **Global Illumination**: Indicates whether to render [global illumination](https://docs.unity3d.com/Manual/realtime-gi-using-enlighten.html). <br/> &#8226; **Main Light**: Indicates whether the main directional [Light](../light-component.md) contributes to lighting. <br/> &#8226; **Additional Lights**: Indicates whether lights other than the main directional light contribute to lighting. <br/> &#8226; **Vertex Lighting**: Indicates whether additional lights that use per-vertex lighting contribute to lighting. <br/> &#8226; **Emission**: Indicates whether [emissive](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterEmission.html) materials contribute to lighting. <br/> &#8226; **Ambient Occlusion**: Indicates whether [ambient occlusion](../post-processing-ssao.md) contributes to lighting. |
+| **Lighting Debug Mode** | Specifies which lighting and shadow information to overlay on-screen to debug. The options are:<ul><li>**None**: Renders the scene normally without a debug overlay.</li><li>**Shadow Cascades**: Overlays shadow cascade information so you can see which shadow cascade each pixel uses. Use this to debug shadow cascade distances. For information on which color represents which shadow cascade, see the [Shadows section of the URP Asset](../universalrp-asset.md#shadows).</li><li>**Lighting Without Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and disables normal maps. This and the **Lighting With Normal Maps** mode are useful for debugging lighting issues caused by normal maps.</li><li>**Lighting With Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and allows normal maps.</li><li>**Reflections**: Renders the scene to visualize reflections. This mode applies perfectly smooth, reflective materials to every Mesh Renderer.</li><li>**Reflections With Smoothness**: Renders the scene to visualize reflections. This mode applies reflective materials without an overridden smoothness to every GameObject.</li></ul> |
+| **Lighting Features**   | Specifies flags for which lighting features contribute to the final lighting result. Use this to view and debug specific lighting features in your scene. The options are:<ul><li>**Nothing**: Shortcut to disable all flags.</li><li>**Everything**: Shortcut to enable all flags.</li><li>**Global Illumination**: Indicates whether to render [global illumination](https://docs.unity3d.com/Manual/realtime-gi-using-enlighten.html).</li><li>**Main Light**: Indicates whether the main directional [Light](../light-component.md) contributes to lighting.</li><li>**Additional Lights**: Indicates whether lights other than the main directional light contribute to lighting.</li><li>**Vertex Lighting**: Indicates whether additional lights that use per-vertex lighting contribute to lighting.</li><li>**Emission**: Indicates whether [emissive](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterEmission.html) materials contribute to lighting.</li><li>**Ambient Occlusion**: Indicates whether [ambient occlusion](../post-processing-ssao.md) contributes to lighting.</li></ul> |
 
 ### Rendering
 
@@ -110,12 +185,12 @@ The properties in this section let you visualize different rendering features.
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Map Overlays**               | Specifies which render pipeline texture to overlay on the screen. The options are: <br/> &#8226; **None**: Renders the scene normally without a texture overlay. <br/> &#8226; **Depth**: Overlays the camera's depth texture on the screen. <br/> &#8226; **Additional Lights Shadow Map**: Overlays the [shadow map](https://docs.unity3d.com/Manual/shadow-mapping.html) that contains shadows cast by lights other than the main directional light. <br/> &#8226; **Main Light Shadow Map**: Overlays the shadow map that contains shadows cast by the main directional light. |
+| **Map Overlays**               | Specifies which render pipeline texture to overlay on the screen. The options are:<ul><li>**None**: Renders the scene normally without a texture overlay.</li><li>**Depth**: Overlays the camera's depth texture on the screen.</li><li>**Additional Lights Shadow Map**: Overlays the [shadow map](https://docs.unity3d.com/Manual/shadow-mapping.html) that contains shadows cast by lights other than the main directional light.</li><li>**Main Light Shadow Map**: Overlays the shadow map that contains shadows cast by the main directional light.</li></ul> |
 | **&nbsp;&nbsp;Map Size**       | The width and height of the overlay texture as a percentage of the view window URP displays it in. For example, a value of **50** fills up a quarter of the screen (50% of the width and 50% of the height). |
 | **HDR**                        | Indicates whether to use [high dynamic range (HDR)](https://docs.unity3d.com/Manual/HDR.html) to render the scene. Enabling this property only has an effect if you enable **HDR** in your URP Asset. |
-| **MSAA**                       | Indicates whether to use multi-sample anti-aliasing (MSAA) to render the scene. Enabling this property only has an effect if:<br/> &#8226; You set **Anti Aliasing (MSAA)** to a value other than **Disabled** in your URP Asset.  <br/> &#8226; You use the Game View. MSAA has no effect in the Scene View. |
-| **Post-processing**            | Specifies how URP applies post-processing. The options are: <br/> &#8226; **Disabled**: Disables post-processing. <br/> &#8226; **Auto**: Unity enables or disables post-processing depending on the currently active debug modes. If color changes from post-processing would change the meaning of a debug mode's pixel, Unity disables post-processing. If no debug modes are active, or if color changes from post-processing don't change the meaning of the active debug modes' pixels, Unity enables post-processing. <br/> &#8226; **Enabled**: Applies post-processing to the image that the camera captures. |
-| **Additional Wireframe Modes** | Specifies whether and how to render wireframes for meshes in your scene. The options are: <br/> &#8226; **None**: Doesn't render wireframes. <br/> &#8226; **Wireframe**: Exclusively renders edges for meshes in your scene. In this mode, you can see the wireframe for meshes through the wireframe for closer meshes. <br/> &#8226; **Solid Wireframe**: Exclusively renders edges and faces for meshes in your scene. In this mode, the faces of each wireframe mesh hide edges behind them. <br/> &#8226; **Shaded Wireframe**: Renders edges for meshes as an overlay. In this mode, Unity renders the scene in color and overlays the wireframe over the top. |
+| **MSAA**                       | Indicates whether to use multi-sample anti-aliasing (MSAA) to render the scene. Enabling this property only has an effect if:<ul><li>You set **Anti Aliasing (MSAA)** to a value other than **Disabled** in your URP Asset.</li><li>You use the Game View. MSAA has no effect in the Scene View.</li></ul> |
+| **Post-processing**            | Specifies how URP applies post-processing. The options are:<ul><li>**Disabled**: Disables post-processing.</li><li>**Auto**: Unity enables or disables post-processing depending on the currently active debug modes. If color changes from post-processing would change the meaning of a debug mode's pixel, Unity disables post-processing. If no debug modes are active, or if color changes from post-processing don't change the meaning of the active debug modes' pixels, Unity enables post-processing.</li><li>**Enabled**: Applies post-processing to the image that the camera captures.</li></ul> |
+| **Additional Wireframe Modes** | Specifies whether and how to render wireframes for meshes in your scene. The options are:<ul><li>**None**: Doesn't render wireframes.</li><li>**Wireframe**: Exclusively renders edges for meshes in your scene. In this mode, you can see the wireframe for meshes through the wireframe for closer meshes.</li><li>**Solid Wireframe**: Exclusively renders edges and faces for meshes in your scene. In this mode, the faces of each wireframe mesh hide edges behind them.</li><li>**Shaded Wireframe**: Renders edges for meshes as an overlay. In this mode, Unity renders the scene in color and overlays the wireframe over the top.</li></ul> |
 | **Overdraw**                   | Indicates whether to render the overdraw debug view. This is useful to see where Unity draws pixels over one other. |
 
 #### Pixel Validation
@@ -124,8 +199,8 @@ The properties in this section let you visualize different rendering features.
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Pixel Validation Mode**        | Specifies which mode Unity uses to validate pixel color values. The options are: <br/> &#8226; **None**: Renders the scene normally and doesn't validate any pixels. <br/> &#8226; **Highlight NaN, Inf and Negative Values**: Highlights pixels that have color values that are NaN, Inf, or negative. <br/> &#8226; **Highlight Values Outside Range**: Highlights pixels that have color values outside a particular range. Use **Value Range Min** and **Value Range Max**. |
-| **&nbsp;&nbsp;Channels**         | Specifies which value to use for the pixel value range validation. The options are: <br/> &#8226; **RGB**: Validates the pixel using the luminance value calculated from the red, green, and blue color channels. <br/> &#8226; **R**: Validates the pixel using the value from the red color channel. <br/> &#8226; **G**: Validates the pixel using the value from the green color channel. <br/> &#8226; **B**: Validates the pixel using the value from the blue color channel. <br/> &#8226; **A**: Validates the pixel using the value from the alpha channel.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
+| **Pixel Validation Mode**        | Specifies which mode Unity uses to validate pixel color values. The options are:<ul><li>**None**: Renders the scene normally and doesn't validate any pixels.</li><li>**Highlight NaN, Inf and Negative Values**: Highlights pixels that have color values that are NaN, Inf, or negative.</li><li>**Highlight Values Outside Range**: Highlights pixels that have color values outside a particular range. Use **Value Range Min** and **Value Range Max**.</li></ul> |
+| **&nbsp;&nbsp;Channels**         | Specifies which value to use for the pixel value range validation. The options are:<ul><li>**RGB**: Validates the pixel using the luminance value calculated from the red, green, and blue color channels.</li><li>**R**: Validates the pixel using the value from the red color channel.</li><li>**G**: Validates the pixel using the value from the green color channel.</li><li>**B**: Validates the pixel using the value from the blue color channel.</li><li>**A**: Validates the pixel using the value from the alpha channel.</li></ul>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 | **&nbsp;&nbsp; Value Range Min** | The minimum valid color value. Unity highlights color values that are less than this value.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 | **&nbsp;&nbsp; Value Range Max** | The maximum valid color value. Unity highlights color values that are greater than this value.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 

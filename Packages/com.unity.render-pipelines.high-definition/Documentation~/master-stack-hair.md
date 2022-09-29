@@ -17,7 +17,6 @@ To create a Hair material in Shader Graph, you can either:
     1. Go to **Assets > Create >Shader Graph > HDRP** and click **Hair Shader Graph**.
 
 <a name="hair-approximate-physical"></a>
-
 ## Hair Material Types
 
 HDRP’s Hair Master Stack has the following **Material Type** options:
@@ -97,7 +96,6 @@ The Scattering Mode options appear when you select the **Physical** material typ
 ![](Images/hair-multiple-scattering.png)
 
 <a name="hair-geometry"></a>
-
 ## Geometry Type
 
 You need to select a geometry type in your shader that reflects the geometry you use to represent hair. This allows HDRP to make correct assumptions when it computes the shading model. You can use multiple types of geometry to render hair, but the Hair Master Stack is only compatible with the following geometry types:
@@ -114,13 +112,8 @@ The hair card method is a simple and efficient way to render hair for games, and
 To select the geometry type that your shader uses:
 
 1. Open your Hair shader
-2. In the Graph inspector, open the **Advanced Options** dropdown
-
-Select a
-
-Geometry Type
-
- option.
+2. In the Graph inspector, open the **Advanced Options** dropdown 
+3. Select a **Geometry Type** Option
 
 ## Contexts
 

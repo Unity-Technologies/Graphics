@@ -1,15 +1,15 @@
 # Camera component reference
 
-In the Universal Render Pipeline (URP), Unity exposes different properties of the Camera component in the Inspector depending on the Camera type. To change the type of the Camera, change the property **Render Mode**.
+In the Universal Render Pipeline (URP), Unity exposes different properties of the Camera component in the Inspector depending on the Camera type. To change the type of the Camera, change the property **Render Type**.
 
-* Base Render Mode
+* Base Render Type
     * [Projection](#Projection)
     * [Physical Camera](#PhysicalCamera)
     * [Rendering](#Rendering)
     * [Stack](#Stack)
     * [Environment](#Environment)
     * [Output](#Output)
-* Overlay Render Mode
+* Overlay Render Type
     * [Projection](#Projection)
     * [Physical Camera](#PhysicalCamera)
     * [Rendering](#Rendering)
@@ -23,15 +23,14 @@ In the Universal Render Pipeline (URP), Unity exposes different properties of th
 ||*Perspective* |Camera will render objects with perspective intact. |
 ||*Orthographic* |Camera will render objects uniformly, with no sense of perspective. |
 |**Size**||The viewport size of the Camera when set to Orthographic. |
-|__Field of view__ ||Field of view axis. |
+|__FOV Axis__ ||Field of view axis. |
 |__Field of view__||The width of the Camera's view angle, measured in degrees along the selected axis. |
 |__Physical Camera__ ||Tick this box to enable the Physical Camera properties for this camera. <br/><br/> When the Physical Camera properties are enabled, Unity calculates the **Field of View** using the properties that simulate real-world camera attributes: **Focal Length**, **Sensor Size**, and **Lens Shift**. <br/><br/>Physical Camera properties are not visible in the Inspector until you tick this box.|
 |__Clipping Planes__ ||Distances from the camera to start and stop rendering. |
 ||_Near_ |The closest point relative to the Camera that drawing will occur. |
 ||_Far_ |The furthest point relative to the Camera that drawing will occur. |
 
-<a name="PhysicalCamera"></a>
-### Physical Camera
+### <a name="PhysicalCamera"></a>Physical Camera
 
 |    **Property** ||**Description**|
 | ------------------------ | - | :-------------------------------------------------------------------- |
@@ -55,7 +54,7 @@ In the Universal Render Pipeline (URP), Unity exposes different properties of th
 | -------------------------- | ------------------------------------------------------------ |
 |__Renderer__ |Controls which renderer this Camera uses. |
 |__Post Processing__ |Enables post-processing effects. |
-|__Anti-aliasing__          | Use the drop-down to select the method that this Camera uses for post-process anti-aliasing. A Camera can still use [multisample anti-aliasing](#base-output) (MSAA), which is a hardware feature, at the same time as post-process anti-aliasing.<br />&#8226; **None**: This Camera can process MSAA but does not process any post-process anti-aliasing.<br />&#8226; **Fast Approximate Anti-aliasing (FXAA)**: Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in URP.<br />&#8226; **Subpixel Morphological Anti-aliasing (SMAA)**: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern. |
+|__Anti-aliasing__          | Use the drop-down to select the method that this Camera uses for post-process anti-aliasing. A Camera can still use multisample anti-aliasing (MSAA), which is a hardware feature, at the same time as post-process anti-aliasing.<br />&#8226; **None**: This Camera can process MSAA but does not process any post-process anti-aliasing.<br />&#8226; **Fast Approximate Anti-aliasing (FXAA)**: Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in URP.<br />&#8226; **Subpixel Morphological Anti-aliasing (SMAA)**: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern. |
 | &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Quality_| Use the drop-down to select the quality of SMAA. The difference in resource intensity is fairly small between **Low** and **High**.<br />&#8226; **Low**: The lowest SMAA quality. This is the least resource-intensive option.<br />&#8226; **Medium**: A good balance between SMAA quality and resource intensity.<br />&#8226; **High**: The highest SMAA quality. This is the most resource-intensive option.<br /><br />This property only appears when you select **Subpixel Morphological Anti-aliasing (SMAA)** from the **Anti-aliasing** drop-down.|
 |__Stop NaNs__| Enable the checkbox to make this Camera replace values that are Not a Number (NaN) with a black pixel. This stops certain effects from breaking, but is a resource-intensive process. Only enable this feature if you experience NaN issues that you can not fix. |
 |__Dithering__ |Enable the checkbox to apply 8-bit dithering to the final render. This can help reduce banding on wide gradients and low light areas. |
@@ -72,17 +71,15 @@ In the Universal Render Pipeline (URP), Unity exposes different properties of th
 |__Culling Mask__ |Which Layers the Camera renders to. |
 |__Occlusion Culling__ |Enables Occlusion Culling. |
 
-<a name="Stack"></a>
-## Stack
+## <a name="Stack"></a>Stack
 
-> **_Warning:_** Stack can only be edited if **Render Mode** is set to **Base**
+> **Note:** This section is only available if **Render Type** is set to **Base**
 
 A camera stack allows to composite results of several cameras together. The camera stack consists of a Base camera and any number of additional Overlay cameras.
 
 You can use the stack property add Overlay cameras to the stack and they will render in the order as defined in the stack. For more information on configuring and using Camera Stacks, see [Camera Stacking](camera-stacking.md).
 
-<a name="Environment"></a>
-## Environment
+## <a name="Environment"></a>Environment
 
 | __Property__               | __Description__                                              |
 | -------------------------- | ------------------------------------------------------------ |
@@ -95,12 +92,11 @@ You can use the stack property add Overlay cameras to the stack and they will re
 | &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Volume&#160;Mask_ | Use the drop-down to set the Layer Mask that defines which Volumes affect this Camera.|
 | &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Volume&#160;Trigger_ | Assign a Transform that the [Volume](Volumes.md) system uses to handle the position of this Camera. For example, if your application uses a third person view of a character, set this property to the character's Transform. The Camera then uses the post-processing and Scene settings for Volumes that the character enters. If you do not assign a Transform, the Camera uses its own Transform instead.|
 
-<a name="Output"></a>
-## Output
+## <a name="Output"></a>Output
 
-> **_Warning:_** Output can only be edited if **Render Mode** is set to **Base**
+> **Note:** This section is only available if **Render Type** is set to **Base**
 
-> **_Note:_** When a Camera's *Render Mode* is set to *Base* and its *Render Target* is set to *Texture*, Unity does not expose the following properties in the Inspector for the Camera:
+> **Note:** When a Camera's **Render Type** is set to **Base** and its **Render Target** is set to **Texture**, Unity does not show the following properties in the Inspector for the Camera:
 > * HDR
 > * MSAA
 > * Allow Dynamic Resolution

@@ -4,6 +4,7 @@
   * [10 / Unity 2020.2](whats-new-10.md)
   * [11 / Unity 2021.1](whats-new-11.md)
   * [12 / Unity 2021.2](whats-new-12.md)
+  * [13 / Unity 2022.1](whats-new-13.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
@@ -70,7 +71,7 @@
       * [Set](Block-SetAttribute.md)
     * Collision
       * [Collide with AABox](Block-CollideWithAABox.md)
-      * [Collide with Cylinder](Block-CollideWithCylinder.md)
+      * [Collide with Cone](Block-CollideWithCone.md)
       * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
       * [Collide with Plane](Block-CollideWithPlane.md)
       * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)

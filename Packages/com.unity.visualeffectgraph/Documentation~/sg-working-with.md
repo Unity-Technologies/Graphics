@@ -1,54 +1,82 @@
 # Working with Shader Graph in the Visual Effect Graph
 
-Visual Effect Graphs can use compatible Shader Graphs to render particles. This enables you to visually build custom shaders for use in visual effects. This document explains:
+Visual Effect Graphs (VFX Graphs) can use compatible Shader Graphs to render particles. This enables you to build custom shaders to use in visual effects. This document explains:
 
-1. How to make a Shader Graph compatible with Visual Effect Graphs.
-2. How to set up a Visual Effect Graph to use a Shader Graph to render particles.
+- [How to make a Shader Graph compatible with Visual Effect Graphs](#make-shader-graph-compatible)
+- [How to set up a Visual Effect Graph to use a Shader Graph to render particles](#use-shader-graph-in-vfx)
+- [How to upgrade an existing project](#upgrade-your-project)
+- [Known limitations of the Visual Effect Graph](#known-limitations)
 
-## Setting up your Shader Graph
+## <a name="make-shader-graph-compatible"></a>Make a Shader Graph compatible with a Visual Effect Graph
 
-To set up a Shader Graph so that it is compatible with the Visual Effect Graph, first, go to **Edit** > **Preferences** > **Visual Effects** and enable **Improved Shader Graph Generation**. Then, there are two methods you can use:
+To make a Shader Graph compatible with the Visual Effect Graph:
 
-- Use the **Visual Effect** [Target](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Graph-Target.html). You can use this Target to make simple lit and unlit Shader Graphs.
-- Use the **HDRP** Target and enable **Support VFX Graph** in the Shader Graph's [Graph Settings](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Graph-Settings-Menu.html) menu. You can use this Target to create Shader Graphs that support more complex, render pipeline-specific features.
+1. Open a shader in the [Shader Graph window](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/index.html).
+2. In the [Graph Settings tab](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Graph-Settings-Tab.html), specify the render pipeline [Target](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Graph-Target.html) (**HDRP** or **Universal**).
+3. Enable **Support VFX Graph**.
 
-### Using the Visual Effect Target
+![Graph Settings UI showing Target selection and VFX Graph Support](./Images/shader-graph-target-and-support-vfx-graph.png)
 
-The Visual Effect Target is a Shader Graph [Target](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Graph-Target.html) specifically for visual effects. If a Shader Graph includes Visual Effect as an active Target, it is compatible with visual effects. To make a Shader Graph use the Visual Effect Target:
+A Shader Graph shader that is compatible with the Visual Effect Graph can also work as a regular shader. Most HDRP and URP Shader Graph shaders support the Visual Effect Graph. For exceptions, see [Known Limitations](#known-limitations).
 
-- If you already have a Shader Graph and want to make it use Visual Effect as an active Target:
+**Note**: VFX Graph support does not impact runtime performance but Shader Graphs which use **Support VFX Graph** take longer to compile.
 
-- 1. Open your Shader Graph in the [Shader Graph window](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Shader-Graph-Window.html).
-  2. In the [Graph Settings menu](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Graph-Settings-Menu.html), go to the **Active Targets** list.
-  3. If the list does not include **Visual Effect**, click the **Add** button then select **Visual Effect**.
+## Upgrade your project
 
-- If you want to create a new Shader Graph that uses the Visual Effect Target:
+Unity versions **2021.2**, and earlier use the deprecated **Visual Effect** Target to integrate Shader Graphs with Visual Effect Graphs.
 
-- 1. Create a new VFX Shader Graph (menu: **Assets** > **Create** > **Shader Graph** > **VFX Shader Graph**). This Shader Graph automatically includes Visual Effect as an active Target.
+The **Visual Effect** Target  limits functionality and requires you to use the following:
 
-The Shader Graph is now compatible with the Visual Effect Graph. Also, the Graph Settings menu now contains a **Visual Effect** section which you can use to modify properties specific to rendering particles in a visual effect.
+- Dedicated VFX shaders
+- The [Metallic](https://docs.unity3d.com/Manual/StandardShaderMetallicVsSpecular.html) workflow
 
-### Using the HDRP Target
+To upgrade a project to use the new render pipeline Target:
 
-The HDRP Target can be compatible with visual effects which enables you to render more complex-looking particles. For example, you can use the HDRP [Lit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html), [Eye](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-eye.html), and [Hair](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-hair.html) Shader Graphs to render particles. Note that HDRP's [Decal Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-decal.html) does not support the Visual Effect Graph. To make a Shader Graph use the HDRP Target and be compatible with visual effects:
+1. Go to **Edit** > **Preferences** > **Visual Effects**.
+2. Enable **Improved Shader Graph Generation**.
+3. In the [Graph Settings tab](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Graph-Settings-Tab.html) of the shader add a **HDRP** or **Universal** Target.
+4. Enable **Support VFX Graph**.
+5. Remove the **Visual Effect** Target.
 
-1. Open your Shader Graph in the [Shader Graph window](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Shader-Graph-Window.html). If you do not have a Shader Graph, create a new one (menu: **Assets** > **Create** > **Shader Graph** > **HDRP** then select the type of HDRP Shader Graph you want).
-2. In the [Graph Settings menu](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Graph-Settings-Menu.html), go to the **Active Targets** list.
-3. If the list does not include **HDRP**, click the **Add** button then select **HDRP**.
-4. In the HDRP section of the Graph Settings menu, enable **Support VFX Graph**. The Shader Graph is now compatible with the Visual Effect Graph.
+## <a name="use-shader-graph-in-vfx"></a>Use a Shader Graph in a Visual Effect Graph
 
-## Using a Shader Graph in a visual effect
+To make a visual effect with Shader Graph:
 
-After you set up a Shader Graph to be compatible with visual effects, Unity can use it to render particles. To make a visual effect use the Shader Graph:
+1. Go to **Edit** > **Preferences** > **Visual Effects**.
+2. Enable **Experimental Operators/Blocks**. This reveals a Shader Graph slot in the output.
+3. Open your Visual Effect Graph in the Visual Effect Graph window. If you do not have a Visual Effect Graph, go to **Create** > **Visual Effects** > **Visual Effect Graph** to create a new one.
+4. In the interface for output contexts, assign your compatible Shader Graph to the **Shader Graph** property. To do this, either search for the Shader Graph directly in the Asset Picker, or drag the Shader Graph sub-asset to the **Shader Graph** slot:
+![Drag Shader the Graph sub-asset to VFX Shader Graph slot](./Images/vfx-graph-shader-graph-output.gif) 
+5. Click on the output context to view it in the Inspector.
 
-1. Go to **Edit** > **Preferences** > **Visual Effects** and enable **Experimental Operators/Blocks**.
+You can make changes to the Shader Graph's Surface Options in the output context.
 
-2. Open your Visual Effect Graph in the Visual Effect Graph window. If you do not have a Visual Effect Graph, create a new one (menu: **Assets** > **Create** > **Visual Effects** > **Visual Effect Graph**).
+**Note**: Any edits you make to a Shader Graph in the VFX Graph are local to the VFX Graph and do not affect the Shader Graph asset.
 
-3. In the interface for output contexts, assign your compatible Shader Graph to the **Shader Graph** property. The following output contexts support Shader Graphs:
+### Visual Effect Graph output compatibility
 
-4. - [Particle Mesh](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest?subfolder=/manual/Context-OutputParticleMesh.html) (including Particle Lit Mesh)
-   - [Particle Primitive](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest?subfolder=/manual/Context-OutputPrimitive.html) (including Particle Quad, Particle Triangle, Particle Octagon, Particle Lit Quad, Particle Lit Triangle, and Particle Lit Octagon)
-   - Particle Strip Quad (including Particle Strip Lit Quad)
+The following output contexts support Shader Graphs:
 
-5. After you assign the Shader Graph, click on the output context and view it in the Inspector. Here, you can see all the Shader Graph's Surface Options. For the list of properties this contains, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html). **Note**: Any edits you make here are local to the Visual Effect Graph and do not affect the Shader Graph asset itself.
+- [Particle Mesh](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@14.0/manual/Context-OutputParticleMesh.html) (including Particle Lit Mesh)
+- [Particle Primitive](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@14.0/manual/Context-OutputPrimitive.html) (including Particle Quad, Particle Triangle, Particle Octagon, Particle Lit Quad, Particle Lit Triangle, and Particle Lit Octagon)
+- Particle Strip Quad (including Particle Lit Strip Quad)
+
+## <a name="known-limitations"></a>Known limitations
+
+Visual Effect Graph does not support the following [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Blackboard.html) features:
+
+- [Diffusion Profile](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Diffusion-Profile-Node.html)
+- [Virtual Texture](https://docs.unity3d.com/Manual/svt-use-in-shader-graph.html)
+- [Gradient](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Gradient-Node.html)
+- [Keyword](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Keywords.html)
+
+Shader Graph does not support some features in specific Targets.
+
+- The HDRP Target does not support the following:
+  - [Decal Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@14.0/manual/master-stack-decal.html).
+  - [Motion vectors](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@14.0/manual/Motion-Vectors.html) for vertex animation.
+- The URP target does not support the following:
+  - [Sprite Shader Graphs](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/manual/ShaderGraph.html) and [Decal Shader Graphs](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/manual/decal-shader.html).
+- The Visual Effect Target (deprecated) does not support:
+  - HDRP or Universal material types.
+  - Access to the shader's Vertex stage.

@@ -2,30 +2,18 @@
 
 A Renderer Feature is an asset that lets you add extra Render passes to a URP Renderer and configure their behavior.
 
-URP contains the pre-built Renderer Feature called [Render Objects](#render-objects-renderer-feature).
+For examples of how to use Renderer Features, see the [Renderer Features samples in URP Package Samples](package-sample-urp-package-samples.md#renderer-features).
+
+## How to add a Renderer Feature
 
 For information on how to add a Renderer Feature to a Renderer, see the page [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
 
-## Render Objects Renderer Feature<a name="render-objects-renderer-feature"></a>
+## Available Renderer Features
 
-The Render Objects Renderer Feature contains the following properties.
+The following Renderer Features are available in URP:
 
-![Render Objects Renderer Feature Inspector view](Images/urp-assets/urp-renderer-feature-render-objects.png)
-
-See also: [How to use the Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md).
-
-| Property | Description |
-|:-|:-|
-| **Name** | Use this field to edit the name of the feature. |
-| **Event** | The event in the URP queue when Unity executes this Renderer Feature. |
-| **Filters** | Settings that let you configure which objects this Renderer Feature renders. |
-| Queue | Select whether the feature renders opaque or transparent objects. |
-| Layer Mask | The Renderer Feature renders objects from layers you select in this property. |
-| **Pass Names** | If a Pass in a shader has the `LightMode` Pass Tag, this Renderer Feature processes only the shaders where the value of the `LightMode` Pass Tag equals one of the values in the Pass Names property. |
-| **Overrides** | Settings in this section let you configure overrides for certain properties when rendering with this Renderer Feature. |
-| Override Mode | Specify the material override mode.
-| Material | (Override Mode is set to Material) When rendering an object, Unity replaces the Material assigned to it with this Material. This will override all material properties with this material |
-| Shader | (Override Mode is set to Shader) When rendering an object, Unity replaces the material assigned to it with this shader. This maintains all material properties and allows the override shader to access these properties. This is currently not SRPBatcher compatible and less performant.
-| Depth | Selecting this option lets you specify how this Renderer Feature affects or uses the Depth buffer. This option contains the following items:<br/>Write Depth: this option defines whether the Renderer Feature updates the Depth buffer when rendering objects.<br/>Depth Test: the condition which determines when this Renderer Feature renders pixels of a given object. |
-| Stencil | With this check box selected, the Renderer processes the Stencil buffer values.<br/>For more information on how Unity works with the Stencil buffer, see [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html). |
-| Camera | Selecting this option lets you override the following Camera properties:<br/>Field of View: when rendering objects, the Renderer Feature uses this Field of View instead of the value specified on the Camera.<br/>Position Offset: when rendering objects, the Renderer Feature moves them by this offset.<br/>Restore: with this option selected, the Renderer Feature restores the original Camera matrices after executing the render passes in this Renderer Feature. |
+- [Render Objects](./renderer-features/renderer-feature-render-objects.md)
+- [Screen Space Ambient Occlusion](post-processing-ssao.md)
+- [Decal](renderer-feature-decal.md)
+- [Screen Space Shadows](renderer-feature-screen-space-shadows.md)
+- [Full Screen Pass](post-processing/custom-post-processing.md)
