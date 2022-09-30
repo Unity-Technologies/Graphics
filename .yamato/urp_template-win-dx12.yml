@@ -90,7 +90,7 @@ Build_URP_Template_Win_DX12_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -192,7 +192,7 @@ Build_URP_Template_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
