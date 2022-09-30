@@ -3,7 +3,6 @@ using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -49,6 +48,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 this.nodeName = nodeName;
                 this.portName = portName;
             }
+
+            var storedValue = GetStoredValueForCopy();
+            // If when initializing this port we find that the value type has changed, refresh stored value
+            if(storedValue?.GetType() != ObjectValue?.GetType())
+                StoreValueForCopy();
         }
 
         public object ObjectValue
@@ -78,7 +82,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var copy = (BaseShaderGraphConstant)Activator.CreateInstance(GetType());
             copy.Initialize(graphModel, nodeName, portName);
-            copy.ObjectValue = GetStoredValueForCopy();
+            var storedValue = GetStoredValueForCopy();
+            copy.ObjectValue = storedValue;
             return copy;
         }
 
