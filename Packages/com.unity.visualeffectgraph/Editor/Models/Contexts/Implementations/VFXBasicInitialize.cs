@@ -82,7 +82,10 @@ namespace UnityEditor.VFX
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             VFXSetting capacitySetting = GetSetting("capacity");
-            if ((uint)capacitySetting.value > 1000000)
+
+            if ((uint)capacitySetting.value > UnityEngine.VFX.VFXManager.maxCapacity)
+                manager.RegisterError("CapacityOverMaximum", VFXErrorType.Error, "Systems capacity is greater than maximum capacity. This system will be skipped during rendering.\nYou can modify this limit in ProjectSettings/VFX.");
+            else if ((uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
             var data = GetData() as VFXDataParticle;
             if (data != null && CanBeCompiled())
