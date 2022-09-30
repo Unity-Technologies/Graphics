@@ -99,6 +99,8 @@ namespace UnityEditor.ShaderGraph
             string json = File.ReadAllText(path, Encoding.UTF8);
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
+            // Although name gets set during asset's OnEnable, it can get clobbered during deserialize
+            asset.Name = Path.GetFileNameWithoutExtension(path);
             var sgModel = asset.ShaderGraphModel;
             sgModel.OnEnable();
             var graphHandler = sgModel.GraphHandler;
@@ -109,10 +111,10 @@ namespace UnityEditor.ShaderGraph
             {
                 // TODO: SGModel should know what it's entry point is for creating a shader.
                 var node = graphHandler.GetNode(kMainEntryContextName);
-                var shaderCode = Interpreter.GetShaderForNode(node, graphHandler, graphHandler.registry, out var defaultTextures, sgModel.ActiveTarget);
+                var shaderCode = Interpreter.GetShaderForNode(node, graphHandler, graphHandler.registry, out var defaultTextures, sgModel.ActiveTarget, sgModel.ShaderName);
 
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
-                Material mat = new(shader);
+                Material mat = new(shader) {name = "Material/" + asset.Name};
                 foreach (var def in defaultTextures)
                 {
                     mat.SetTexture(def.Item1, def.Item2);

@@ -156,12 +156,12 @@ namespace UnityEditor.ShaderGraph.Generation
 
         // TODO: Passing in the target directly is not what we want to do here, but having it be live gives us a clearer basis
         // to refactor from when we introduce targets/templates and explore whether we should abstract all of this from either one.
-        internal static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures, Target target = null)
+        internal static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures, Target target = null, string shaderName = null)
         {
             List<(string, UnityEngine.Texture)> defaults = new();
             void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
                 => GetBlocks(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
-            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), target ?? SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
+            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), target ?? SimpleSampleBuilder.GetTarget(), shaderName ?? node.ID.LocalPath, lambda, String.Empty);
 
             defaultTextures = new();
             defaultTextures.AddRange(defaults);
