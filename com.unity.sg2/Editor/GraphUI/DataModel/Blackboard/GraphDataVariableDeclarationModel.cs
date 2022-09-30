@@ -49,6 +49,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel?.Stencil)?.IsExposable(DataType) ?? false;
 
+        public bool IsValid => shaderGraphModel.GraphHandler
+            .GetNode(contextNodeName).GetPort(graphDataName) != null;
+
         public override bool IsExposed
         {
             get

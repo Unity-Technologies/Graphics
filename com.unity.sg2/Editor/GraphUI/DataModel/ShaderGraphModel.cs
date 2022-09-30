@@ -455,7 +455,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
                 case GraphDataVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
                 {
-                    newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
+                    // if the blackboard property/keyword this variable node is referencing
+                    // doesn't exist in the graph, it has probably been copied from another graph
+                    if (!VariableDeclarations.Contains(declarationModel))
+                    {
+                        // Search for the equivalent property/keyword that GTF code
+                        // will have created to replace the missing reference
+                        newCopiedVariableNode.DeclarationModel = VariableDeclarations.FirstOrDefault(model => model.Guid == declarationModel.Guid);
+                        // Restore the Guid from its graph data name (as currently we need to align the Guids and graph data names)
+                        newCopiedVariableNode.Guid = new SerializableGUID(newCopiedVariableNode.graphDataName.Replace("_", String.Empty));
+                        // Make sure this reference is up to date
+                        declarationModel = (GraphDataVariableDeclarationModel)newCopiedVariableNode.DeclarationModel;
+                    }
+                    else
+                        newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
 
                     // Every time a variable node is duplicated, add a reference node pointing back
                     // to the property/keyword that is wrapped by the VariableDeclarationModel, on the CLDS level
