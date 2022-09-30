@@ -12,7 +12,7 @@ URP_Template_Win_DX11_playmode_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -46,7 +46,7 @@ URP_Template_Win_DX11_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -78,7 +78,7 @@ Build_URP_Template_Win_DX11_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -114,7 +114,7 @@ URP_Template_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -148,7 +148,7 @@ URP_Template_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -180,7 +180,7 @@ Build_URP_Template_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
