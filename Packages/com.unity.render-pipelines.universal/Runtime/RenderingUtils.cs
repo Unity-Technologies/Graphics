@@ -220,7 +220,16 @@ namespace UnityEngine.Rendering.Universal
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
 
-            if (source.rt == null)
+            if (cameraData.isSceneViewCamera)
+            {
+                cmd.SetGlobalTexture("_BlitTexture", source);
+                // This set render target is necessary so we change the LOAD state to DontCare.
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    loadAction, storeAction, // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                cmd.Blit(source.nameID, destination.nameID);
+            }
+            else if (source.rt == null)
                 Blitter.BlitTexture(cmd, source.nameID, scaleBias, material, passIndex);  // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier
             else
                 Blitter.BlitTexture(cmd, source, scaleBias, material, passIndex);
