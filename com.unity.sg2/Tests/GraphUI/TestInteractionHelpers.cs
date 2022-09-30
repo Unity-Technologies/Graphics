@@ -40,13 +40,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return AddNodeFromSearcherAndValidate(fromNodeName);
             yield return AddNodeFromSearcherAndValidate(toNodeName);
 
-            var addNode = m_Window.GetNodeModelFromGraphByName(fromNodeName);
-            var addOut = ShaderGraphModel.FindOutputPortByName(addNode, fromPortName);
+            var fromNode = m_Window.GetNodeModelFromGraphByName(fromNodeName);
+            var outPort = ShaderGraphModel.FindOutputPortByName(fromNode, fromPortName);
+            Assert.IsNotNull(outPort, "Could not find output port: " + fromPortName + "on node: " + fromNodeName);
 
-            var previewNode = m_Window.GetNodeModelFromGraphByName(toNodeName);
-            var previewIn =  ShaderGraphModel.FindInputPortByName(previewNode, toPortName);
+            var toNode = m_Window.GetNodeModelFromGraphByName(toNodeName);
+            var inPort =  ShaderGraphModel.FindInputPortByName(toNode, toPortName);
+            Assert.IsNotNull(inPort, "Could not find input port: " + toPortName + "on node: " + toNodeName);
 
-            m_Window.GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
+            m_Window.GraphView.Dispatch(new CreateEdgeCommand(inPort, outPort));
         }
 
         public void ConnectNodes(string fromNodeName, string toNodeName, string fromPortName = "Out", string toPortName = "In")

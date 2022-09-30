@@ -270,6 +270,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [UnityTest]
+        public IEnumerator TestNodeCanBeCopiedWithDynamicPortsConnected()
+        {
+            yield return m_TestInteractionHelper.CreateNodesAndConnect("View Direction", "Add", "Out", "A");
+
+            var viewDirectionNode = m_Window.GetNodeModelFromGraphByName("View Direction");
+            Assert.IsNotNull(viewDirectionNode);
+
+            var addNode = m_Window.GetNodeModelFromGraphByName("Add");
+            Assert.IsNotNull(addNode);
+
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<INodeModel>() { viewDirectionNode, addNode });
+
+            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 2);
+            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("View Direction").Count == 2);
+        }
+
+        [UnityTest]
         public IEnumerator TestMultipleNodesCanBeCopied()
         {
             // Create two Add nodes
