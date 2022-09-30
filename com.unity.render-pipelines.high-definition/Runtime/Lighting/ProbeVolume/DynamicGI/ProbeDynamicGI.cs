@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Advanced control to clear all dynamic GI buffers in the event lighting blows up when tuning")]
         public BoolParameter clear = new BoolParameter(false);
 
-
         [Serializable]
         public sealed class ProbeVolumeDynamicGIBasisParameter : VolumeParameter<ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasis>
         {
