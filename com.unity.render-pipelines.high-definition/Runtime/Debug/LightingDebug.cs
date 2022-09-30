@@ -201,7 +201,8 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         VisualizeAtlas,
         VisualizeDebugColors,
-        VisualizeValidity
+        VisualizeValidity,
+        VisualizeDynamicGIDirtyFlags
     }
 
 	/// <summary>

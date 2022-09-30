@@ -325,6 +325,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDynamicGIMixedLightMode = 54,
         [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Radiance Encoding", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(ProbeVolumeDynamicGIRadianceEncoding))]
         ProbeVolumeDynamicGIRadianceEncoding = 55,
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Disable Dirty Flags", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI })]
+        ProbeVolumeDynamicGIDirtyFlagsDisabled = 58,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]

@@ -349,6 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGI, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
             area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIDirtyFlagsDisabled, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
             area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIPropagationQuality,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.probeVolumeDynamicGIPropagationQuality.intValue, // 3 levels
                 customSetter: v  => serialized.probeVolumeDynamicGIPropagationQuality.intValue = Math.Max(0, Math.Min((int)v, 2)),    // Levels 0-2

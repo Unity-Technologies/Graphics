@@ -6,6 +6,7 @@
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 #pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
 #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+#pragma multi_compile _ DIRTY_FLAGS_DISABLED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -33,6 +34,10 @@ float3 _ProbeVolumeAtlasSHRotateForward;
 
 float3 _ProbeVolumeDGIBoundsRight;
 float3 _ProbeVolumeDGIBoundsUp;
+
+#ifndef DIRTY_FLAGS_DISABLED
+RWStructuredBuffer<int> _ProbeVolumeDirtyFlags;
+#endif
 
 StructuredBuffer<RADIANCE> _RadianceCacheAxis;
 int _RadianceCacheAxisCount;
@@ -320,6 +325,11 @@ void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
     const uint readIndex = id.x;
     if (readIndex < _ProbeVolumeAtlasReadBufferCount)
     {
+#ifndef DIRTY_FLAGS_DISABLED
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, readIndex))
+            return;
+#endif
+
         uint3 writeIndex = ComputeWriteIndexFromReadIndex(readIndex, _ProbeVolumeResolution);
         const float validity = ReadValidity(readIndex);
 

@@ -213,12 +213,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static Material GetDebugSHPreviewMaterial()
         {
-            return (s_DebugSHPreviewMaterial != null) ? s_DebugSHPreviewMaterial : new Material(Shader.Find("Hidden/Debug/ProbeVolumeSHPreview"));
+            if (s_DebugSHPreviewMaterial == null)
+                s_DebugSHPreviewMaterial = new Material(Shader.Find("Hidden/Debug/ProbeVolumeSHPreview"));
+
+            return s_DebugSHPreviewMaterial;
         }
 
         private static MaterialPropertyBlock GetDebugSHPreviewMaterialPropertyBlock()
         {
-            return (s_DebugSHPreviewMaterialPropertyBlock != null) ? s_DebugSHPreviewMaterialPropertyBlock : new MaterialPropertyBlock();
+            if (s_DebugSHPreviewMaterialPropertyBlock == null)
+                s_DebugSHPreviewMaterialPropertyBlock = new MaterialPropertyBlock();
+
+            return s_DebugSHPreviewMaterialPropertyBlock;
         }
 #endif
 
@@ -1087,15 +1093,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ProbeVolumeDynamicGIMode mode;
             public List<ProbeVolumeHandle> volumes;
-            public ProbeDynamicGI giSettings;
-            public ShaderVariablesGlobal globalCB;
-            public SphericalHarmonicsL2 ambientProbe;
-            public bool infiniteBounces;
-            public int propagationQuality;
+            public ProbeVolumeDynamicGIDispatchData dispatchData;
             public int maxSimulationsPerFrameOverride;
-            public ProbeVolumeDynamicGIMixedLightMode mixedLightMode;
-            public ProbeVolumeDynamicGIRadianceEncoding radianceEncoding;
-            public ProbeVolumesEncodingModes encodingMode;
         }
 
         class ProbeVolumeDynamicGIPassData
@@ -1121,18 +1120,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return data;
 
             data.volumes = ProbeVolumeManager.manager.GetVolumesToRender();
-            data.giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
-            data.globalCB = m_ShaderVariablesGlobalCB;
-            data.ambientProbe = m_SkyManager.GetAmbientProbe(hdCamera);
+            data.dispatchData.giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+            data.dispatchData.globalCB = m_ShaderVariablesGlobalCB;
+            data.dispatchData.ambientProbe = m_SkyManager.GetAmbientProbe(hdCamera);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && SupportDynamicGI)
             {
-                data.infiniteBounces = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces);
-                data.propagationQuality = hdCamera.frameSettings.probeVolumeDynamicGIPropagationQuality;
+                data.dispatchData.infiniteBounces = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces);
+                data.dispatchData.dirtyFlagsDisabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIDirtyFlagsDisabled);
+                data.dispatchData.propagationQuality = hdCamera.frameSettings.probeVolumeDynamicGIPropagationQuality;
                 data.maxSimulationsPerFrameOverride = hdCamera.frameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
-                data.mixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
-                data.radianceEncoding = hdCamera.frameSettings.probeVolumeDynamicGIRadianceEncoding;
-                data.encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeEncoding;
+                data.dispatchData.mixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
+                data.dispatchData.radianceEncoding = hdCamera.frameSettings.probeVolumeDynamicGIRadianceEncoding;
+                data.dispatchData.encodingMode = (ProbeVolumesEncodingModes)hdCamera.frameSettings.probeVolumeEncoding;
 
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
@@ -1146,14 +1146,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return data;
         }
 
-        static void ExecuteProbeVolumeDynamicGI(CommandBuffer cmd, ProbeVolumeDynamicGICommonData data, RenderTargetIdentifier probeVolumeAtlas)
+        static void ExecuteProbeVolumeDynamicGI(CommandBuffer cmd, in ProbeVolumeDynamicGICommonData data, RenderTargetIdentifier probeVolumeAtlas)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGI)))
             {
                 if (data.mode == ProbeVolumeDynamicGIMode.Dispatch)
                 {
                     // Update Probe Volume Data via Dynamic GI Propagation
-                    float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
+                    float maxRange = Mathf.Max(data.dispatchData.giSettings.rangeBehindCamera.value, data.dispatchData.giSettings.rangeInFrontOfCamera.value);
                     int maxSimulationsPerFrame = data.maxSimulationsPerFrameOverride;
 
 #if UNITY_EDITOR
@@ -1195,10 +1195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var simulationRequest = sortedRequests[i];
                         ProbeVolumeHandle volume = data.volumes[simulationRequest.probeVolumeIndex];
-                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings,
-                            in data.globalCB, probeVolumeAtlas, data.infiniteBounces,
-                            (ProbeVolumeDynamicGI.PropagationQuality)data.propagationQuality, data.ambientProbe,
-                            data.mixedLightMode, data.radianceEncoding, data.encodingMode);
+                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, probeVolumeAtlas, in data.dispatchData);
                     }
                 }
                 else if (data.mode == ProbeVolumeDynamicGIMode.Clear)
@@ -1452,6 +1449,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         DisplayProbeVolumeAtlas(cmd, debugParameters.probeVolumeOverlayParameters, debugParameters.debugOverlay);
                     }
+                    else if (m_SupportDynamicGI && lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeDynamicGIDirtyFlags)
+                    {
+                        DebugDrawProbeVolumeDirtyFlags(cmd);
+                    }
                 }
             }
         }
@@ -1574,6 +1575,13 @@ namespace UnityEngine.Rendering.HighDefinition
             debugOverlay.SetViewport(cmd);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.material, parameters.material.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
             debugOverlay.Next();
+        }
+
+        static void DebugDrawProbeVolumeDirtyFlags(CommandBuffer cmd)
+        {
+            var volumes = ProbeVolumeManager.manager.GetVolumesToRender();
+            foreach (var volume in volumes)
+                ProbeVolumeDynamicGI.instance.DebugDrawDirtyFlags(cmd, volume);
         }
 
 #if UNITY_EDITOR
