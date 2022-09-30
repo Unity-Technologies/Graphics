@@ -37,7 +37,7 @@ platforms:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
-        model: rtx2080
+        model: gtx1080
       editmode:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.8-1149381
@@ -46,7 +46,7 @@ platforms:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
-        model: rtx2080
+        model: gtx1080
       standalone_build:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268

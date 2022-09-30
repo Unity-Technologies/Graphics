@@ -13,7 +13,7 @@ URP_Template_Win_DX12_playmode_mono_Linear_trunk:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
-        model: rtx2080
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -47,7 +47,7 @@ URP_Template_Win_DX12_Standalone_mono_Linear_trunk:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
-        model: rtx2080
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -115,7 +115,7 @@ URP_Template_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
-        model: rtx2080
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
@@ -149,7 +149,7 @@ URP_Template_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
-        model: rtx2080
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
