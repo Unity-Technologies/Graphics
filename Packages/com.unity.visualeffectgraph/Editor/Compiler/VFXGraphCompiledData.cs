@@ -776,10 +776,12 @@ namespace UnityEditor.VFX
                                 content = generatedContent
                             });
                         }
+                        else
+                        {
+                            throw new InvalidOperationException($"Code generation failure from context {context.name}");
+                        }
                     }
                 }
-
-                var resource = m_Graph.GetResource();
             }
             finally
             {
