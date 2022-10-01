@@ -236,9 +236,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         lighting += UnpackEmission(neighborData.mixedLighting) * _MixedLightingMultiplier;
 
 #ifndef DIRTY_FLAGS_DISABLED
-        float3 oldLighting = DecodeRadiance(_HitRadianceCacheAxis[hitAxisIndex]);
-
-        if (any(abs(lighting - oldLighting) > 1.0 / 255.0))
+        if (!IsSimilarEqual(_HitRadianceCacheAxis[hitAxisIndex], lighting))
             SetProbeDirty(_ProbeVolumeDirtyFlags, probeIndex);
 #endif
 

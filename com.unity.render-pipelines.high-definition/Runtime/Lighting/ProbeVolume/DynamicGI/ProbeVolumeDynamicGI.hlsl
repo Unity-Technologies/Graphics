@@ -341,5 +341,22 @@ float3 DecodeRadiance(RADIANCE packedValue)
 #endif
 }
 
+bool IsSimilarEqual(RADIANCE packedA, float3 b)
+{
+#if defined(RADIANCE_ENCODING_LOGLUV)
+    uint packedB = EncodeRadiance(b);
+    // A manually tuned bitmask: compare only top 9 bits of 16-bit luma and only 5 top bits of each of 8-bit chroma.
+    return (packedA & 0xff80f8f8u) == (packedB & 0xff80f8f8u);
+
+#else
+    // TODO: Find a better comparison for HalfLuv and R11G11B10 if they are needed. They'll be giving a lot of false negatives now.
+
+    const float3 a = DecodeRadiance(packedA);
+
+    // Comparison with NaN always gives false. But if max is 0 then min is also 0.
+    // So we accept NaN from the division as true by flipping the condition twice.
+    return !any(min(a, b) / max(a, b) < 0.99);
+#endif
+}
 
 #endif // endof PROBE_VOLUME_DYNAMIC_GI
