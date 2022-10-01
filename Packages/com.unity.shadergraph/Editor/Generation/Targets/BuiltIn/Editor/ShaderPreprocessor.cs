@@ -435,6 +435,9 @@ namespace UnityEditor.Rendering.BuiltIn
             // Built-in doesn't throw this switch, but the shader library has it, so set it here
             shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
 
+            // Until there's a global flag to disable terrain holes, this should always be on.
+            shaderFeatures |= ShaderFeatures.TerrainHoles;
+
             return shaderFeatures;
         }
     }
