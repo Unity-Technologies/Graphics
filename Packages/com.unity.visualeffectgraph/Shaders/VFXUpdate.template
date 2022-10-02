@@ -161,7 +161,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         #else
             float4x4 worldToLocal = (float4x4)0;
         #endif
-		InitReduction(attributes, size3, tid, instanceIndex, worldToLocal);
+		InitReduction(attributes, size3, tid, worldToLocal);
     #endif
     }
     #if VFX_COMPUTE_AABBS
