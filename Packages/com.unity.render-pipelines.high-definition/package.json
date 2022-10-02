@@ -50,9 +50,9 @@
       "path": "Samples~/LensFlareSamples"
     },
     {
-      "displayName": "Local Volumetric 3D Texture Samples",
-      "description": "Adds a set of 3D mask textures to your project. These texture can be used for the Density Mask Texture input of the Local Volumetric Fog.",
-      "path": "Samples~/LocalVolumetricFogMasks"
+      "displayName": "Volumetric Samples",
+      "description": "Adds a set of 3D texture, procedural noises and Fog Volume Shadergraph to your project. A collection of prefabs shows how to use them with the Local Volumetric Fog.",
+      "path": "Samples~/VolumetricSamples"
     },
     {
       "displayName": "Fullscreen Samples",
