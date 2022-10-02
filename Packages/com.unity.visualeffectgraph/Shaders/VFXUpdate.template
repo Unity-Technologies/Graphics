@@ -9,7 +9,7 @@ ${VFXGlobalDeclaration}
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
-#ifdef VFX_RT_DECIMATION_FACTOR
+#ifdef VFX_IS_RAYTRACED
 #pragma multi_compile _ VFX_COMPUTE_AABBS
 #endif
 

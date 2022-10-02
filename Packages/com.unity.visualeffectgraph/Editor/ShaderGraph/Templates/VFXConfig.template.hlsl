@@ -119,7 +119,11 @@ float3 GetElementSize(InternalAttributesElement attributes)
     return size3;
 }
 
-float3 GetElementSizeRT(InternalAttributesElement attributes, GraphValues graphValues)
+float3 GetElementSizeRT(InternalAttributesElement attributes
+#if VFX_USE_GRAPH_VALUES 
+    , GraphValues graphValues
+#endif
+)
 {
     float3 size3 = GetElementSize(attributes);
 

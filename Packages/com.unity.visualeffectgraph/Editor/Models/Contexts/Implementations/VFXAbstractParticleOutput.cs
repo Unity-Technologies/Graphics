@@ -467,6 +467,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                yield return "VFX_IS_RAYTRACED";
                 yield return "VFX_RT_DECIMATION_FACTOR " + decimationFactor;
 
                 var particleData = GetData() as VFXDataParticle;

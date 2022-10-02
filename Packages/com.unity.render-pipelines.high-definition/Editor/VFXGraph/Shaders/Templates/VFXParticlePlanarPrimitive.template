@@ -14,17 +14,6 @@
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 
-	SubShader
-	{
-	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
+	${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/DXRPasses.template"),VFX_IS_RAYTRACED}
 
-
-		// Requires passes by ray tracing
-
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassVisibilityDXR.template")}
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassIndirectDXR.template")}
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassGBufferDXR.template")}
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassForwardDXR.template")}
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/PassRayTracingDebug.template")}
-	}
 }

@@ -195,7 +195,12 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         ZERO_INITIALIZE(InternalAttributesElement, attributes);
         $splice(VFXLoadAttribute)
         $splice(VFXProcessBlocks)
-        float3 size3 = GetElementSizeRT(attributes, graphValues);
+
+        float3 size3 = GetElementSizeRT(attributes
+#if VFX_USE_GRAPH_VALUES
+            , graphValues
+#endif
+        );
 
         float3 rayDirection = WorldRayDirection();
         output.positionSS = float4(0.0, 0.0, 0.0, 0.0);

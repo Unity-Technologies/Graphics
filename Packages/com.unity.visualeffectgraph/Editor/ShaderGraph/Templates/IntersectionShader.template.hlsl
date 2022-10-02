@@ -25,7 +25,11 @@ void IntersectionShader()
     // Load the VFX attributes that we need for this
     $splice(VFXLoadAttribute)
     $splice(VFXProcessBlocks)
-    float3 size3 = GetElementSizeRT(attributes, graphValues);
+    float3 size3 = GetElementSizeRT(attributes
+#if VFX_USE_GRAPH_VALUES
+        , graphValues
+#endif
+    );
 
     // Build the ray tracing procedural data
     RayTracingProceduralData rtProceduralData = BuildRayTracingProceduralData(attributes, size3);
