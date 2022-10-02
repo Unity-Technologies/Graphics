@@ -99,8 +99,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 context.AddSubShader(subShader);
             }
-
-            context.AddSubShader(SubShaders.DecalGl);
         }
 
         private void CollectPassRenderState(ref PassDescriptor pass)
@@ -329,26 +327,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
                 },
             };
-
-            public static SubShaderDescriptor DecalGl = new SubShaderDescriptor()
-            {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = "\"PreviewType\"=\"Plane\"",
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { DecalPasses.ScreenSpaceProjectorGl, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.ScreenSpaceMeshGl, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.ScenePickingGl, new FieldCondition(DecalDefault, true) },
-                },
-            };
         }
         #endregion
 
         #region Passes
         static class DecalPasses
         {
-            public static PassDescriptor ScenePickingGl = GetScenePicking(DecalPragmas.InstancedGl);
             public static PassDescriptor ScenePicking = GetScenePicking(DecalPragmas.Instanced);
             public static PassDescriptor GetScenePicking(PragmaCollection pragma)
             {
@@ -426,8 +410,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
             };
-
-            public static PassDescriptor ScreenSpaceProjectorGl = GetScreenSpaceProjector(DecalPragmas.ScreenSpaceGl, DecalKeywords.ScreenSpaceProjectorGl);
 
             public static PassDescriptor ScreenSpaceProjector = GetScreenSpaceProjector(DecalPragmas.ScreenSpace, DecalKeywords.ScreenSpaceProjector);
 
@@ -543,8 +525,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 keywords = DecalKeywords.ForwardEmissiveProjector,
                 includes = DecalIncludes.DBuffer,
             };
-
-            public static PassDescriptor ScreenSpaceMeshGl = GetScreenSpaceMesh(DecalPragmas.ScreenSpaceGl, DecalKeywords.ScreenSpaceMeshGl);
 
             public static PassDescriptor ScreenSpaceMesh = GetScreenSpaceMesh(DecalPragmas.ScreenSpace, DecalKeywords.ScreenSpaceMesh);
 
@@ -808,21 +788,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pragmas
         static class DecalPragmas
         {
-            public static PragmaCollection ScreenSpaceGl = new PragmaCollection
-            {
-                { Pragma.Target(ShaderModel.Target20) },
-                { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
-                { Pragma.Vertex("Vert") },
-                { Pragma.Fragment("Frag") },
-                { Pragma.MultiCompileInstancing },
-                { Pragma.MultiCompileFog },
-                { Pragma.EditorSyncCompilation },
-            };
-
             public static PragmaCollection ScreenSpace = new PragmaCollection
             {
-                { Pragma.Target(ShaderModel.Target25) }, // Derivatives
-                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.Target(ShaderModel.Target25) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
@@ -832,7 +800,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static PragmaCollection GBuffer = new PragmaCollection
             {
-                { Pragma.Target(ShaderModel.Target35) }, // MRT4
+                { Pragma.Target(ShaderModel.Target45) }, // MRT4
                 { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
@@ -843,28 +811,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static PragmaCollection MultipleRenderTargets = new PragmaCollection
             {
-                { Pragma.Target(ShaderModel.Target35) }, // MRT4
+                { Pragma.Target(ShaderModel.Target45) }, // MRT4
                 { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.EditorSyncCompilation },
-            };
-
-            public static readonly PragmaCollection InstancedGl = new PragmaCollection
-            {
-                { Pragma.Target(ShaderModel.Target35) },
-                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-                { Pragma.MultiCompileInstancing },
-                { Pragma.EditorSyncCompilation },
-                { Pragma.Vertex("Vert") },
-                { Pragma.Fragment("Frag") },
             };
 
             public static readonly PragmaCollection Instanced = new PragmaCollection
             {
                 { Pragma.Target(ShaderModel.Target20) },
-                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.EditorSyncCompilation },
                 { Pragma.Vertex("Vert") },
@@ -1045,7 +1002,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             };
 
-            public static readonly KeywordCollection ScreenSpaceProjectorGl = new KeywordCollection
+            public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
@@ -1053,11 +1010,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ForwardPlus },
                 { Descriptors.DecalsNormalBlend },
-            };
-
-            public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
-            {
-                { ScreenSpaceProjectorGl },
                 { Descriptors.DecalLayers },
             };
 
