@@ -879,265 +879,265 @@ namespace UnityEngine.Rendering.Universal
     public static class ShaderKeywordStrings
     {
         /// <summary> Keyword used for shadows without cascades. </summary>
-        public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
+        public const string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
 
         /// <summary> Keyword used for shadows with cascades. </summary>
-        public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
+        public const string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
 
         /// <summary> Keyword used for screen space shadows. </summary>
-        public static readonly string MainLightShadowScreen = "_MAIN_LIGHT_SHADOWS_SCREEN";
+        public const string MainLightShadowScreen = "_MAIN_LIGHT_SHADOWS_SCREEN";
 
         /// <summary> Keyword used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias. </summary>
-        public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW";
+        public const string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW";
 
         /// <summary> Keyword used for per vertex additional lights. </summary>
-        public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
+        public const string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
 
         /// <summary> Keyword used for per pixel additional lights. </summary>
-        public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
+        public const string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
 
         /// <summary> Keyword used for Forward+. </summary>
-        internal static readonly string ForwardPlus = "_FORWARD_PLUS";
+        internal const string ForwardPlus = "_FORWARD_PLUS";
 
         /// <summary> Keyword used for shadows on additional lights. </summary>
-        public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
+        public const string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
 
         /// <summary> Keyword used for Box Projection with Reflection Probes. </summary>
-        public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+        public const string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
 
         /// <summary> Keyword used for Reflection probe blending. </summary>
-        public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
+        public const string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
 
         /// <summary> Keyword used for soft shadows. </summary>
-        public static readonly string SoftShadows = "_SHADOWS_SOFT";
+        public const string SoftShadows = "_SHADOWS_SOFT";
 
         /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
-        public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
+        public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
 
         /// <summary> Keyword used for mixing lightmap shadows. </summary>
-        public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
+        public const string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
 
         /// <summary> Keyword used for Shadowmask. </summary>
-        public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+        public const string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
 
         /// <summary> Keyword used for Light Layers. </summary>
-        public static readonly string LightLayers = "_LIGHT_LAYERS";
+        public const string LightLayers = "_LIGHT_LAYERS";
 
         /// <summary> Keyword used for RenderPass. </summary>
-        public static readonly string RenderPassEnabled = "_RENDER_PASS_ENABLED";
+        public const string RenderPassEnabled = "_RENDER_PASS_ENABLED";
 
         /// <summary> Keyword used for Billboard cameras. </summary>
-        public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
+        public const string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
 
         /// <summary> Keyword used for Light Cookies. </summary>
-        public static readonly string LightCookies = "_LIGHT_COOKIES";
+        public const string LightCookies = "_LIGHT_COOKIES";
 
         /// <summary> Keyword used for no Multi Sampling Anti-Aliasing (MSAA). </summary>
-        public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
+        public const string DepthNoMsaa = "_DEPTH_NO_MSAA";
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
-        public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
+        public const string DepthMsaa2 = "_DEPTH_MSAA_2";
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 4 per pixel sample count. </summary>
-        public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
+        public const string DepthMsaa4 = "_DEPTH_MSAA_4";
 
         /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 8 per pixel sample count. </summary>
-        public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
+        public const string DepthMsaa8 = "_DEPTH_MSAA_8";
 
         /// <summary> Keyword used for Linear to SRGB conversions. </summary>
-        public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        public const string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
 
         /// <summary> Keyword used for less expensive Linear to SRGB conversions. </summary>
-        internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
+        internal const string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
         /// <summary> Keyword used for first target in the DBuffer. </summary>
-        public static readonly string DBufferMRT1 = "_DBUFFER_MRT1";
+        public const string DBufferMRT1 = "_DBUFFER_MRT1";
 
         /// <summary> Keyword used for second target in the DBuffer. </summary>
-        public static readonly string DBufferMRT2 = "_DBUFFER_MRT2";
+        public const string DBufferMRT2 = "_DBUFFER_MRT2";
 
         /// <summary> Keyword used for third target in the DBuffer. </summary>
-        public static readonly string DBufferMRT3 = "_DBUFFER_MRT3";
+        public const string DBufferMRT3 = "_DBUFFER_MRT3";
 
         /// <summary> Keyword used for low quality normal reconstruction in Decals. </summary>
-        public static readonly string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
+        public const string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
 
         /// <summary> Keyword used for medium quality normal reconstruction in Decals. </summary>
-        public static readonly string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
+        public const string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
 
         /// <summary> Keyword used for high quality normal reconstruction in Decals. </summary>
-        public static readonly string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
+        public const string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
 
         /// <summary> Keyword used for Decal Layers. </summary>
-        public static readonly string DecalLayers = "_DECAL_LAYERS";
+        public const string DecalLayers = "_DECAL_LAYERS";
 
         /// <summary> Keyword used for writing Rendering Layers. </summary>
-        public static readonly string WriteRenderingLayers = "_WRITE_RENDERING_LAYERS";
+        public const string WriteRenderingLayers = "_WRITE_RENDERING_LAYERS";
 
         /// <summary> Keyword used for low quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
-        public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
+        public const string SmaaLow = "_SMAA_PRESET_LOW";
 
         /// <summary> Keyword used for medium quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
-        public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
+        public const string SmaaMedium = "_SMAA_PRESET_MEDIUM";
 
         /// <summary> Keyword used for high quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
-        public static readonly string SmaaHigh = "_SMAA_PRESET_HIGH";
+        public const string SmaaHigh = "_SMAA_PRESET_HIGH";
 
         /// <summary> Keyword used for generic Panini Projection. </summary>
-        public static readonly string PaniniGeneric = "_GENERIC";
+        public const string PaniniGeneric = "_GENERIC";
 
         /// <summary> Keyword used for unit distance Panini Projection. </summary>
-        public static readonly string PaniniUnitDistance = "_UNIT_DISTANCE";
+        public const string PaniniUnitDistance = "_UNIT_DISTANCE";
 
         /// <summary> Keyword used for low quality Bloom. </summary>
-        public static readonly string BloomLQ = "_BLOOM_LQ";
+        public const string BloomLQ = "_BLOOM_LQ";
 
         /// <summary> Keyword used for high quality Bloom. </summary>
-        public static readonly string BloomHQ = "_BLOOM_HQ";
+        public const string BloomHQ = "_BLOOM_HQ";
 
         /// <summary> Keyword used for low quality Bloom dirt. </summary>
-        public static readonly string BloomLQDirt = "_BLOOM_LQ_DIRT";
+        public const string BloomLQDirt = "_BLOOM_LQ_DIRT";
 
         /// <summary> Keyword used for high quality Bloom dirt. </summary>
-        public static readonly string BloomHQDirt = "_BLOOM_HQ_DIRT";
+        public const string BloomHQDirt = "_BLOOM_HQ_DIRT";
 
         /// <summary> Keyword used for RGBM format for Bloom. </summary>
-        public static readonly string UseRGBM = "_USE_RGBM";
+        public const string UseRGBM = "_USE_RGBM";
 
         /// <summary> Keyword used for Distortion. </summary>
-        public static readonly string Distortion = "_DISTORTION";
+        public const string Distortion = "_DISTORTION";
 
         /// <summary> Keyword used for Chromatic Aberration. </summary>
-        public static readonly string ChromaticAberration = "_CHROMATIC_ABERRATION";
+        public const string ChromaticAberration = "_CHROMATIC_ABERRATION";
 
         /// <summary> Keyword used for HDR Color Grading. </summary>
-        public static readonly string HDRGrading = "_HDR_GRADING";
+        public const string HDRGrading = "_HDR_GRADING";
 
         /// <summary> Keyword used for ACES Tonemapping. </summary>
-        public static readonly string TonemapACES = "_TONEMAP_ACES";
+        public const string TonemapACES = "_TONEMAP_ACES";
 
         /// <summary> Keyword used for Neutral Tonemapping. </summary>
-        public static readonly string TonemapNeutral = "_TONEMAP_NEUTRAL";
+        public const string TonemapNeutral = "_TONEMAP_NEUTRAL";
 
         /// <summary> Keyword used for Film Grain. </summary>
-        public static readonly string FilmGrain = "_FILM_GRAIN";
+        public const string FilmGrain = "_FILM_GRAIN";
 
         /// <summary> Keyword used for Fast Approximate Anti-aliasing (FXAA). </summary>
-        public static readonly string Fxaa = "_FXAA";
+        public const string Fxaa = "_FXAA";
 
         /// <summary> Keyword used for Dithering. </summary>
-        public static readonly string Dithering = "_DITHERING";
+        public const string Dithering = "_DITHERING";
 
         /// <summary> Keyword used for Screen Space Occlusion, such as Screen Space Ambient Occlusion (SSAO). </summary>
-        public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+        public const string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
 
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
-        public static readonly string PointSampling = "_POINT_SAMPLING";
+        public const string PointSampling = "_POINT_SAMPLING";
 
         /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
-        public static readonly string Rcas = "_RCAS";
+        public const string Rcas = "_RCAS";
 
         /// <summary> Keyword used for Gamma 2.0. </summary>
-        public static readonly string Gamma20 = "_GAMMA_20";
+        public const string Gamma20 = "_GAMMA_20";
 
         /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
-        public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
+        public const string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
         /// <summary> Keyword used for Spot lights. </summary>
-        public static readonly string _SPOT = "_SPOT";
+        public const string _SPOT = "_SPOT";
 
         /// <summary> Keyword used for Directional lights. </summary>
-        public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
+        public const string _DIRECTIONAL = "_DIRECTIONAL";
 
         /// <summary> Keyword used for Point lights. </summary>
-        public static readonly string _POINT = "_POINT";
+        public const string _POINT = "_POINT";
 
         /// <summary> Keyword used for stencils when rendering with the Deferred rendering path. </summary>
-        public static readonly string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
+        public const string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
 
         /// <summary> Keyword used for the first light when rendering with the Deferred rendering path. </summary>
-        public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
+        public const string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
 
         /// <summary> Keyword used for the main light when rendering with the Deferred rendering path. </summary>
-        public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
+        public const string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
 
         /// <summary> Keyword used for Accurate G-buffer normals when rendering with the Deferred rendering path. </summary>
-        public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public const string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 
         /// <summary> Keyword used for Mixed Lighting when rendering with the Deferred rendering path. </summary>
-        public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+        public const string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
 
         /// <summary> Keyword used for Lightmaps. </summary>
-        public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+        public const string LIGHTMAP_ON = "LIGHTMAP_ON";
 
         /// <summary> Keyword used for dynamic Lightmaps. </summary>
-        public static readonly string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
+        public const string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
 
         /// <summary> Keyword used for Alpha testing. </summary>
-        public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
+        public const string _ALPHATEST_ON = "_ALPHATEST_ON";
 
         /// <summary> Keyword used for combined directional Lightmaps. </summary>
-        public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+        public const string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
 
         /// <summary> Keyword used for 2x detail mapping. </summary>
-        public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
+        public const string _DETAIL_MULX2 = "_DETAIL_MULX2";
 
         /// <summary> Keyword used for scaled detail mapping. </summary>
-        public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
+        public const string _DETAIL_SCALED = "_DETAIL_SCALED";
 
         /// <summary> Keyword used for Clear Coat. </summary>
-        public static readonly string _CLEARCOAT = "_CLEARCOAT";
+        public const string _CLEARCOAT = "_CLEARCOAT";
 
         /// <summary> Keyword used for Clear Coat maps. </summary>
-        public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
+        public const string _CLEARCOATMAP = "_CLEARCOATMAP";
 
         /// <summary> Keyword used for Debug Display. </summary>
-        public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
+        public const string DEBUG_DISPLAY = "DEBUG_DISPLAY";
 
         /// <summary> Keyword used for LOD Crossfade. </summary>
-        public static readonly string LOD_FADE_CROSSFADE = "LOD_FADE_CROSSFADE";
+        public const string LOD_FADE_CROSSFADE = "LOD_FADE_CROSSFADE";
 
         /// <summary> Keyword used for LOD Crossfade with ShaderGraph shaders. </summary>
-        public static readonly string USE_UNITY_CROSSFADE = "USE_UNITY_CROSSFADE";
+        public const string USE_UNITY_CROSSFADE = "USE_UNITY_CROSSFADE";
 
         /// <summary> Keyword used for Emission. </summary>
-        public static readonly string _EMISSION = "_EMISSION";
+        public const string _EMISSION = "_EMISSION";
 
         /// <summary> Keyword used for receiving shadows. </summary>
-        public static readonly string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
+        public const string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
 
         /// <summary> Keyword used for opaque or transparent surface types. </summary>
-        public static readonly string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
+        public const string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
 
         /// <summary> Keyword used for Alpha premultiply. </summary>
-        public static readonly string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
+        public const string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
 
         /// <summary> Keyword used for Alpha modulate. </summary>
-        public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
+        public const string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
 
         /// <summary> Keyword used for Normal maps. </summary>
-        public static readonly string _NORMALMAP = "_NORMALMAP";
+        public const string _NORMALMAP = "_NORMALMAP";
 
         /// <summary> Keyword used for editor visualization. </summary>
-        public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
+        public const string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
 
         /// <summary> Keyword used for foveated rendering. </summary>
-        public static readonly string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
+        public const string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
 
         /// <summary> Keyword used for applying scale and bias. </summary>
-        public static readonly string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
+        public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 
         /// <summary> Keyword used for half size downsampling. </summary>
-        public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
+        public const string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
 
         /// <summary> Keyword used for quarter size downsampling. </summary>
-        public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
+        public const string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
 
         /// <summary> Keyword used for eighth size downsampling. </summary>
-        public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
+        public const string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
 
         /// <summary> Keyword used for sixteenth size downsampling. </summary>
-        public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+        public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
     }
 
     public sealed partial class UniversalRenderPipeline

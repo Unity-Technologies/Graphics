@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+// TODO @ SHADERS: Enable as many of the rules (currently commented out) as make sense
+//                 once the setting asset aggregation behavior is finalized.  More fine tuning
+//                 of these rules is also desirable (current rules have been interpreted from
+//                 the variant stripping logic)
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -236,10 +243,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public DepthBits directionalShadowsDepthBits;
 
         /// <summary>Shadow filtering quality.</summary>
+#if UNITY_EDITOR // multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+        // [ShaderKeywordFilter.SelectIf(HDShadowFilteringQuality.Low, keywordNames: "SHADOW_LOW")]
+        // [ShaderKeywordFilter.SelectIf(HDShadowFilteringQuality.Medium, keywordNames: "SHADOW_MEDIUM")]
+        // [ShaderKeywordFilter.SelectIf(HDShadowFilteringQuality.High, keywordNames: "SHADOW_HIGH")]
+#endif
         [FormerlySerializedAs("shadowQuality")]
         public HDShadowFilteringQuality shadowFilteringQuality;
 
         /// <summary>Area Shadow filtering quality.</summary>
+#if UNITY_EDITOR // multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+        // [ShaderKeywordFilter.SelectIf(HDAreaShadowFilteringQuality.Medium, keywordNames: "AREA_SHADOW_MEDIUM")]
+        // [ShaderKeywordFilter.SelectIf(HDAreaShadowFilteringQuality.High, keywordNames: "AREA_SHADOW_HIGH")]
+#endif
         public HDAreaShadowFilteringQuality areaShadowFilteringQuality;
 
         /// <summary>Initialization parameters for punctual shadows atlas.</summary>
@@ -272,6 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxAreaShadowMapResolution;
 
         /// <summary>Enable support for screen space shadows.</summary>
+#if UNITY_EDITOR // multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "SCREEN_SPACE_SHADOWS_OFF")]
+        // [ShaderKeywordFilter.RemoveIf(false, keywordNames: "SCREEN_SPACE_SHADOWS_ON")]
+#endif
         public bool supportScreenSpaceShadows;
         /// <summary>Maximum number of screen space shadows.</summary>
         public int maxScreenSpaceShadowSlots;

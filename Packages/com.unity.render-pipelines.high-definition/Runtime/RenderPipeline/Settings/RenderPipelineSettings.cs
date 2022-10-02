@@ -1,6 +1,13 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+// TODO @ SHADERS: Enable as many of the rules (currently commented out) as make sense
+//                 once the setting asset aggregation behavior is finalized.  More fine tuning
+//                 of these rules is also desirable (current rules have been interpreted from
+//                 the variant stripping logic)
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -216,6 +223,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support screen space global illumination.</summary>
         public bool supportSSGI;
         /// <summary>Support subsurface scattering.</summary>
+#if UNITY_EDITOR // multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING
+        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "OUTPUT_SPLIT_LIGHTING")]
+#endif
         public bool supportSubsurfaceScattering;
         /// <summary>Sample budget for the Subsurface Scattering algorithm.</summary>
         public IntScalableSetting sssSampleBudget;
@@ -257,6 +267,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Custom passes buffer format.</summary>
         public CustomBufferFormat customBufferFormat;
         /// <summary>Supported Lit shader modes.</summary>
+#if UNITY_EDITOR // multi_compile_fragment _ WRITE_MSAA_DEPTH
+        // [ShaderKeywordFilter.RemoveIf(SupportedLitShaderMode.DeferredOnly, keywordNames: "WRITE_MSAA_DEPTH")]
+#endif
         public SupportedLitShaderMode supportedLitShaderMode;
         /// <summary></summary>
         public PlanarReflectionAtlasResolutionScalableSetting planarReflectionResolution;
@@ -264,10 +277,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public ReflectionProbeResolutionScalableSetting cubeReflectionResolution;
         // Engine
         /// <summary>Support decals.</summary>
+#if UNITY_EDITOR // multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+        // If decals are not supported, remove the multiple render target variants
+        // [ShaderKeywordFilter.RemoveIf(false, keywordNames: new string[] {"DECALS_3RT", "DECALS_4RT"})]
+        // Similar but separate rule due to the separate multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+        // [ShaderKeywordFilter.RemoveIf(false, keywordNames: "DECAL_SURFACE_GRADIENT")]
+        // If decals are supported, remove the no decal variant
+        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "DECALS_OFF")]
+        // If decals are not supported, remove WRITE_DECAL_BUFFER
+        // [ShaderKeywordFilter.RemoveIf(false, keywordNames: "WRITE_DECAL_BUFFER")]
+#endif
         public bool supportDecals;
         /// <summary>Support decal Layers.</summary>
+#if UNITY_EDITOR // multi_compile _ WRITE_DECAL_BUFFER
+        // [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: "WRITE_DECAL_BUFFER")]
+#endif
         public bool supportDecalLayers;
         /// <summary>Support surface gradient for decal normal blending.</summary>
+#if UNITY_EDITOR // multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+        // Remove if surface gradient is not supported
+        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "DECAL_SURFACE_GRADIENT")]
+#endif
         public bool supportSurfaceGradient;
         /// <summary>High precision normal buffer.</summary>
         public bool decalNormalBufferHP;
@@ -299,10 +329,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
+#if UNITY_EDITOR // multi_compile _ LOD_FADE_CROSSFADE
+        // Remove if dithering cross-fade is not supported
+        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "LOD_FADE_CROSSFADE")]
+#endif
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Determines what system to use.</summary>
+#if UNITY_EDITOR // multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        // [ShaderKeywordFilter.RemoveIf(LightProbeSystem.ProbeVolumes, keywordNames: "PROBE_VOLUMES_OFF")]
+        // [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: new string[] {"PROBE_VOLUMES_L1", "PROBE_VOLUMES_L2"})]
+#endif
         public LightProbeSystem lightProbeSystem;
         /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
@@ -311,6 +349,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
+#if UNITY_EDITOR // multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        // [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: "PROBE_VOLUMES_L2")]
+        // [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: "PROBE_VOLUMES_L1")]
+#endif
         public ProbeVolumeSHBands probeVolumeSHBands;
 
         /// <summary>Support ray tracing.</summary>
