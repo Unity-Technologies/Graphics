@@ -37,29 +37,29 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog parameters
       Text:
-        m_Untranslated: "Let's have a look at the Fog properties.\n\n1) In the <i>Hierarchy,</i>
-          under <b>Lighting</b> > <b>Volumes,</b>  select <b>Volumes Global.</b>\n\n2)
+        m_Untranslated: "Let's have a look at the Fog properties.\n\n1. In the <i>Hierarchy,</i>
+          under <b>Lighting</b> > <b>Volumes,</b>  select <b>Volumes Global.</b>\n\n2.
           In its <i>Inspector,</i> locate the <b>Volume</b> component and expand
           the <b>Fog</b> override.\n\nThe following properties are some of the most
-          important ones to set up the <b>Fog</b> correctly.\n\r\n<b>Fog Attenuation
+          important ones to set up the <b>Fog</b> correctly.\n\n<b>Fog Attenuation
           Distance:</b> Determines how far you can see through the Fog in meters.
-          Lower values will produce denser levels of Fog. \r\n\r\n<b>Ambient Light
-          Probe Dimmer:</b> Reduces the influence of the global ambient probe on
-          the Fog. It is useful for darker indoor Scenes whose Fog should not be
-          affected by the sky.\r\n\r\n<b>Volumetric Fog Distance:</b> Determines
-          how far from the camera the volumetric fog will be rendered. \n\r\n<b>Denoising
-          Mode:</b>\n\u2022 <b>Gaussian</b> applies a fast blur to smooth out the
-          Fog, but this may lead to a loss of sharper details.\n\u2022 <b>Reprojection</b>
-          uses previous frames to increase the quality and precision of the Fog,
-          but it may increase ghosting when the camera moves at higher speed.\r\n\u2022
-          <b>Both</b> can produce very smooth Fog using both techniques above. As
-          a result, it is the most expensive method, while producing the best results.\r\n\r\n<b>Slice
+          Lower values will produce denser levels of Fog. \n\n<b>Ambient Light Probe
+          Dimmer:</b> Reduces the influence of the global ambient probe on the Fog.
+          It is useful for darker indoor Scenes whose Fog should not be affected
+          by the sky.\n\n<b>Volumetric Fog Distance:</b> Determines how far from
+          the camera the volumetric fog will be rendered. \n\n<b>Denoising Mode:</b>\n\u2022
+          <b>Gaussian</b> applies a fast blur to smooth out the Fog, but this may
+          lead to a loss of sharper details.\n\u2022 <b>Reprojection</b> uses previous
+          frames to increase the quality and precision of the Fog, but it may increase
+          ghosting when the camera moves at higher speed.\n\u2022 <b>Both</b> can
+          produce very smooth Fog using both techniques above. As a result, it is
+          the most expensive method, while producing the best results.\n\n<b>Slice
           Distribution Uniformity:</b> The lower the value, the more precise the
           nearby Fog is, at the expense of the distant Fog. A value of 1 gives an
-          equal distribution of quality between the nearby and distant Fog.\r\n\r\n<b>Directional
+          equal distribution of quality between the nearby and distant Fog.\n\n<b>Directional
           Lights Only:</b> Improves performance by discarding local lights. Use this
           option if you only require volumetric effects from the main directional
-          light.\r"
+          light."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

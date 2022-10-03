@@ -40,14 +40,21 @@ MonoBehaviour:
         m_Untranslated: "The <b>Sunlight</b> in Unity is simulated via a directional
           light. In HDRP, we provide physically based units for its intensity and
           color. The unit of intensity for the sunlight is set in Lux, whereas the
-          one for its color temperature is set in Kelvin.\r\n\r\nLet\u2019s see how
-          the sun is set up in this scene.\r\n\r\n1. In the <i>Hierarchy,</i> select
-          <b>Lighting</b> > <b>Directional Light Sun.</b>\r\n\r\n2. Notice in the
-          <i>Inspector,</i> under <b>Emission</b>, that the <b>Intensity</b> is set
-          to <b>100 000 lux</b>. It is a typical intensity for direct Sunlight on
-          a clear day.\r\n\r\n3. Take a look at the <b>Temperature,</b> it is <b>5500
-          Kelvin.</b>\r\n\r\nThese two examples illustrate the Sun values commonly
-          used for a realistic clear sky setup."
+          one for its color temperature is set in Kelvin.\n\nLet\u2019s see how the
+          sun is set up in this scene.\n\n1. In the <i>Hierarchy,</i> select <b>Lighting</b>
+          > <b>Directional Light Sun.</b>\n\n2. Notice in the <i>Inspector,</i> under
+          <b>Emission</b>, that the <b>Intensity</b> is set to <b>100 000 lux.</b>
+          It is a typical intensity for direct Sunlight on a clear day.\n\n3. Take
+          a look at the <b>Temperature,</b> it is <b>5500 Kelvin.</b>\n\nThese two
+          examples illustrate the Sun values commonly used for a realistic clear
+          sky setup.\n\n\n<b>Expert Tips</b>\n\nSetting up the directional light's
+          intensity is very important to ensure a correct lighting ratio in the scene,
+          that is the difference of intensity between the lit and shaded areas of
+          the scene.\n\nWhen using the Physically Based Sky, an intensity of <b>130
+          000 lux</b> and a color temperature of <b>6500 kelvin</b> should be used
+          at all time, as this type of sky will automatically dim and tint the sun
+          light according to its position in the sky, defined by the rotation of
+          the directional light."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

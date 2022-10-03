@@ -38,12 +38,13 @@ MonoBehaviour:
         m_Untranslated: What are Light Probes?
       Text:
         m_Untranslated: "<b>Light Probes</b> are another component of baked lighting.
-          They are used to apply indirect lighting to dynamic objects in the Scene.\n\n1.
-          Add a cube in the Scene and set its coordinates to x=30, y=2, z=6. \n\nYou
-          can see that the cube is appropriately lit by the <b>Light Probes</b> and
-          receives green indirect lighting from the wall nearby.\n\n2. Move the cube
-          closer to the tree cage. \n\nNotice how the indirect lighting affecting
-          the cube becomes brighter, as the cube approaches the strong pool of light."
+          They are used to apply per-object indirect lighting to dynamic objects
+          which are not meant to receive lighting from Lightmaps.\n\n1. Add a cube
+          in the Scene and set its coordinates to x=30, y=2, z=6. \n\nYou can see
+          that the cube is appropriately lit by the <b>Light Probes</b> and receives
+          green indirect lighting from the wall nearby.\n\n2. Move the cube closer
+          to the tree cage. \n\nNotice how the indirect lighting affecting the cube
+          becomes brighter, as the cube approaches the strong pool of light."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

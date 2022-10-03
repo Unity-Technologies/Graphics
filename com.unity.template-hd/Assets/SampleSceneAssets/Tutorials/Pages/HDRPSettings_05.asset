@@ -41,19 +41,19 @@ MonoBehaviour:
           and reflection probes can render, such as Rendering features, Post-Processing,
           Lighting, LODs, etc.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b>
           > <b>Graphics</b> > <b>HDRP Global Settings.</b>\n\n2. Scroll down to the
-          <b>Frame Settings</b> section.\n\n3. Under  <b>Camera</b> > <b>Rendering,</b>
-          disable the <b>Decals.</b>\n\nNote that the water puddles and other dirt
-          decals have disappears, now that the feature has been disabled for all
-          cameras, by default.\n\n4. Re-enable the <b>Decals.</b>\n\n\n<b>Expert
+          <b>Frame Settings (Default Values)</b> section.\n\n3. Under  <b>Camera</b>
+          > <b>Rendering,</b> disable the <b>Decals.</b>\n\nNote that the water puddles
+          and other dirt decals have disappears, now that the feature has been disabled
+          for all cameras, by default.\n\n4. Re-enable the <b>Decals.</b>\n\n\n<b>Expert
           Tips</b>\n\nEach Camera and Reflection Probe component will let you override
-          these default settings, via the <b>Custom Frame Settings</b> checkbox.\n\nFor
+          these default settings, via their <b>Custom Frame Settings</b> checkbox.\n\nFor
           instance, if a specific Reflection Probe in a Scene doesn't need to render
           Shadows Maps, Decals, or Volumetric Clouds, make sure you disable these
           features to maximize performance. \n\nYou may also tune the <b>Maximum
           LOD Level</b> to prevent Realtime Reflections from rendering unnecessarily
           complex objects, and recoup precious rendering time.\n\nMastering <b>Frame
           Settings</b> and per-object <b>Custom Frame Settings</b> is crucial to
-          reach an optimal framerate. "
+          reach an optimal framerate."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -15,6 +15,7 @@ MonoBehaviour:
   components:
   - {fileID: 8896021737368581315}
   - {fileID: 3621318029959498200}
+  - {fileID: 4454977760490615299}
 --- !u!114 &3621318029959498200
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -166,6 +167,43 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
+--- !u!114 &4454977760490615299
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d877a03bef431a847adca8ab343db3e1, type: 3}
+  m_Name: RayTracingSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  rayBias:
+    m_OverrideState: 0
+    m_Value: 0.001
+  extendShadowCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  extendCameraCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+  directionalShadowFallbackIntensity:
+    m_OverrideState: 1
+    m_Value: 1
+  buildMode:
+    m_OverrideState: 0
+    m_Value: 0
+  cullingMode:
+    m_OverrideState: 0
+    m_Value: 0
+  cullingDistance:
+    m_OverrideState: 0
+    m_Value: 1000
 --- !u!114 &8896021737368581315
 MonoBehaviour:
   m_ObjectHideFlags: 3
