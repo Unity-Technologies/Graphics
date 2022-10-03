@@ -344,12 +344,18 @@ float3 DecodeRadiance(RADIANCE packedValue)
 bool IsSimilarEqual(RADIANCE packedA, float3 b)
 {
 #if defined(RADIANCE_ENCODING_LOGLUV)
-    uint packedB = EncodeRadiance(b);
-    // A manually tuned bitmask: compare only top 9 bits of 16-bit luma and only 5 top bits of each of 8-bit chroma.
-    return (packedA & 0xff80f8f8u) == (packedB & 0xff80f8f8u);
+    const int3 componentsA = int3(packedA & 255, packedA >> 8 & 255, packedA >> 16);
+
+    const float3 logLuvB = LogluvFromRgb(b);
+    const int3 componentsB = int3(
+        min(255, (uint)round(logLuvB.x * 255)),
+        min(255, (uint)round(logLuvB.y * 255)),
+        min(65535, (uint)round(logLuvB.z * 65535)));
+
+    return all(abs(componentsA - componentsB) < int3(2, 2, 32));
 
 #else
-    // TODO: Find a better comparison for HalfLuv and R11G11B10 if they are needed. They'll be giving a lot of false negatives now.
+    // TODO: Add a better comparison for HalfLuv and R11G11B10 if they are needed. They'll be giving a lot of false negatives now.
 
     const float3 a = DecodeRadiance(packedA);
 
