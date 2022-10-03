@@ -401,6 +401,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DestroyProbeVolumeBuffers();
 
+            if (SupportDynamicGI)
+            {
+                var volumes = ProbeVolumeManager.manager.GetVolumesToRender();
+                foreach (var volume in volumes)
+                    ProbeVolumeDynamicGI.instance.ClearProbePropagation(volume);
+            }
+
         #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
         #endif
@@ -1449,7 +1456,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         DisplayProbeVolumeAtlas(cmd, debugParameters.probeVolumeOverlayParameters, debugParameters.debugOverlay);
                     }
-                    else if (m_SupportDynamicGI && lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeDynamicGIDirtyFlags)
+                    else if (SupportDynamicGI && lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeDynamicGIDirtyFlags)
                     {
                         DebugDrawProbeVolumeDirtyFlags(cmd);
                     }

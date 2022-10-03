@@ -427,8 +427,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         _RadianceCacheAxis[index] = EncodeRadiance(radiance);
 
 #ifndef DIRTY_FLAGS_DISABLED
-        float3 previousRadiance = DecodeRadiance(GetPreviousAxisRadiance(index));
-        if (any(abs(radiance - previousRadiance) > 1.0 / 255.0))
+        if (!IsSimilarEqual(GetPreviousAxisRadiance(index), radiance))
         {
             for (int l = 0; l < PROPAGATION_AXIS_AMOUNT; ++l)
             {
