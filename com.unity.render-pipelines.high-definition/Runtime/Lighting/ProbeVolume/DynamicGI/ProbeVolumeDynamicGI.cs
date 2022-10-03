@@ -1279,6 +1279,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1", false);
             CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2", true);
+            CoreUtils.SetKeyword(shader, "DIRTY_FLAGS_DISABLED", true);
 
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, (Vector3)size);
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
