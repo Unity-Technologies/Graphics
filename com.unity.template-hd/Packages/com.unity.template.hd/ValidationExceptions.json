@@ -2,7 +2,7 @@
   "ErrorExceptions": [
     {
       "ValidationTest": "Primed Library Validation",
-      "PackageVersion": "15.0.0"
+      "PackageVersion": "15.1.0"
     }
   ],
   "WarningExceptions": []
