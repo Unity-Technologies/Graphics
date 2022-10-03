@@ -4,6 +4,24 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [15.1.0] - 2022-07-06
+
+### Added
+- Added new HDRP assets "Very High" and "Ultra" and corresponding quality levels have been created for raytracing
+- Added new 3rd person character control 
+- Added "Additional properties" page for the IET
+- Added missing prefab edition scene
+
+### Fixed
+- Fixed issue with new hdrp cubemap atlas system
+- Fixed wrong position for the collision proxy of the lounge chair
+
+### Changed
+- Switch to DX12 by default undre windows
+- IET has been updated
+- Updated Images showing the Unity material ball
+- The default low/medium/high values for SSR and RTAO have been retuned to offer better results out of the box
+
 ## [15.0.0] - 2022-07-06
 
 ### Fixed
