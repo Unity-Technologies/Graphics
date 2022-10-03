@@ -1,6 +1,17 @@
 project:
   name: URP_Template
   folder: Template_Tests
+reuse_blocks:
+  unity_downloader_cli:
+    - [all]: <shared.platform.commands.setup_utr>
+    - [Win_DX11, Win_DX12, Win_Vulkan]:
+      - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+        retries: 2
+      - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor --wait --published-only
+        retries: 2
+    - [all, \!Win_DX11, \!Win_DX12, \!Win_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+    - [all]: <shared.platform.commands.call_utr>
+
 test_platforms:
   - type: playmode
     allow_cache: False
@@ -8,6 +19,8 @@ test_platforms:
     allow_cache: False
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+    commands_build:
+      - <reuse_blocks.unity_downloader_cli>
 
 platforms:
   - name: Win
@@ -23,21 +36,21 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
-        model: rtx2080
+        flavor: b1.large
+        model: gtx1080
       editmode:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
+        flavor: b1.large
       standalone:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
-        model: rtx2080
+        flavor: b1.large
+        model: gtx1080
       standalone_build:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
+        flavor: b1.large
   - name: OSX
     apis:
       - name: Metal

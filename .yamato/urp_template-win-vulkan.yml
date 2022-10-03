@@ -12,8 +12,8 @@ URP_Template_Win_Vulkan_playmode_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
-        model: rtx2080
+        flavor: b1.large
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -46,8 +46,8 @@ URP_Template_Win_Vulkan_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
-        model: rtx2080
+        flavor: b1.large
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -78,7 +78,7 @@ Build_URP_Template_Win_Vulkan_Standalone_mono_Linear_trunk:
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -90,7 +90,7 @@ Build_URP_Template_Win_Vulkan_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -114,8 +114,8 @@ URP_Template_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
-        model: rtx2080
+        flavor: b1.large
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
@@ -148,8 +148,8 @@ URP_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:v0.0.8-1149381
-        flavor: b1.xlarge
-        model: rtx2080
+        flavor: b1.large
+        model: gtx1080
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
@@ -180,7 +180,7 @@ Build_URP_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM
         image: automation-tooling/win-10:v0.0.1-971268
-        flavor: b1.xlarge
+        flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
@@ -192,7 +192,7 @@ Build_URP_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

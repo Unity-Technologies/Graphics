@@ -300,7 +300,7 @@ platforms:
         unity_downloader_cli:
           - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
             retries: 2
-          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> <COMPONENTS>  --wait --published-only
             retries: 2
         log_parser:
           - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
