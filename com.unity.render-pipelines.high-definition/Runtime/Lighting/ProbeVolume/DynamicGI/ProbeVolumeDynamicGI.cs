@@ -1568,7 +1568,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hitWeightsGoal = 0f;
                 var propagationWeights = 0f;
                 var propagationWeightsGoal = 0f;
-                for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
+                for (int sortedAxisIndex = 0; sortedAxisIndex < s_NeighborAxis.Length; sortedAxisIndex++)
                 {
                     if (sortedAxisIndex < axisAmount)
                     {
@@ -1578,14 +1578,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     hitWeightsGoal += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
                     propagationWeightsGoal += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
-                    
                 }
                 float hitWeightsNormalization = hitWeightsGoal / hitWeights;
                 float propagationWeightsNormalization = propagationWeightsGoal / propagationWeights;
                 for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
                 {
                     _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight *= hitWeightsNormalization;
-                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeightsNormalization;
+                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight *= propagationWeightsNormalization;
                 }
             }
         }
