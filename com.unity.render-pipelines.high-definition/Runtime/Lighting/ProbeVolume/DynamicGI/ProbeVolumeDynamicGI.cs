@@ -1279,6 +1279,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1", false);
             CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2", true);
+            CoreUtils.SetKeyword(shader, "DIRTY_FLAGS_DISABLED", true);
 
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, (Vector3)size);
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
@@ -1568,7 +1569,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hitWeightsGoal = 0f;
                 var propagationWeights = 0f;
                 var propagationWeightsGoal = 0f;
-                for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
+                for (int sortedAxisIndex = 0; sortedAxisIndex < s_NeighborAxis.Length; sortedAxisIndex++)
                 {
                     if (sortedAxisIndex < axisAmount)
                     {
@@ -1578,14 +1579,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     hitWeightsGoal += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight;
                     propagationWeightsGoal += _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight;
-                    
                 }
                 float hitWeightsNormalization = hitWeightsGoal / hitWeights;
                 float propagationWeightsNormalization = propagationWeightsGoal / propagationWeights;
                 for (int sortedAxisIndex = 0; sortedAxisIndex < axisAmount; sortedAxisIndex++)
                 {
                     _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].hitWeight *= hitWeightsNormalization;
-                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight /= propagationWeightsNormalization;
+                    _sortedNeighborAxisLookups[sortedAxisStart + sortedAxisIndex].propagationWeight *= propagationWeightsNormalization;
                 }
             }
         }
