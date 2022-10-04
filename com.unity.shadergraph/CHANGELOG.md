@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+-Fixed the output of the Sphere Mask node from a dynamic vector to a float [SGB-4](https://jira.unity3d.com/browse/SGB-4)
+
 ## [10.10.0] - 2022-06-28
 
 Version Updated
