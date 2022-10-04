@@ -403,6 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (SupportDynamicGI)
             {
+                ProbeVolumeManager.manager.UpdateVolumesToRender();
                 var volumes = ProbeVolumeManager.manager.GetVolumesToRender();
                 foreach (var volume in volumes)
                     ProbeVolumeDynamicGI.instance.ClearProbePropagation(volume);
