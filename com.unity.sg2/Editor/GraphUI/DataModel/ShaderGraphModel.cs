@@ -250,6 +250,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<VariableDeclarationModel> variableModels, bool deleteUsages = true)
         {
+            var changedNodes = new Dictionary<GraphElementModel, IReadOnlyList<ChangeHint>>();
+
             // Remove any ports that correspond to this property on the property context
             // as it causes issues with future port compability tests if the junk isnt cleared
             foreach (var nodeModel in NodeModels)
@@ -259,13 +261,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     GraphHandler.ReconcretizeNode(contextNodeModel.graphDataName);
                     contextNodeModel.DefineNode();
+
+                    changedNodes.Add(contextNodeModel, new[] { ChangeHint.Unspecified });
                 }
             }
 
             // The referable entry this variable was backed by is removed in ShaderGraphCommandOverrides.HandleDeleteBlackboardItems()
             // In future we want to bring it here
 
-            return base.DeleteVariableDeclarations(variableModels, deleteUsages);
+            var changeDescription = base.DeleteVariableDeclarations(variableModels, deleteUsages);
+            changeDescription.Union(null, changedNodes, null);
+            return changeDescription;
         }
 
         PortModel HandleRedirectNodesCreation(PortModel toPort, PortModel fromPort, out List<PortModel> resolvedDestinations)
