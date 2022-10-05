@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public override void SetUp()
         {
             base.SetUp();
-            FindBlackboardView();
+            m_BlackboardView = FindBlackboardView(m_Window);
         }
 
         // TODO: This will probably be useful elsewhere, consider abstracting it out
@@ -51,17 +51,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return secondGraphPath;
         }
 
-        private void FindBlackboardView()
+        static BlackboardView FindBlackboardView(TestEditorWindow window)
         {
             const string viewFieldName = "m_BlackboardView";
 
-            var found = m_Window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
+            var found = window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
             Assert.IsTrue(found, "Blackboard overlay was not found");
 
-            m_BlackboardView = (BlackboardView)blackboardOverlay.GetType()
+            var blackboardView = (BlackboardView)blackboardOverlay.GetType()
                 .GetField(viewFieldName, BindingFlags.NonPublic | BindingFlags.Instance)?
                 .GetValue(blackboardOverlay);
-            Assert.IsNotNull(m_BlackboardView, "Blackboard view was not found");
+            Assert.IsNotNull(blackboardView, "Blackboard view was not found");
+            return blackboardView;
         }
 
         T GetFirstBlackboardElementOfType<T>() where T : VisualElement
@@ -142,7 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return SaveAndReopenGraph();
 
             {
-                FindBlackboardView();
+                m_BlackboardView = FindBlackboardView(m_Window);
                 ValidateCreatedField();
             }
         }
@@ -402,8 +403,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 secondEditorWindow.Focus();
                 yield return null;
 
-                secondWindowTestHelper.SendMouseDownEvent(secondEditorWindow.blackboardView);
-                secondWindowTestHelper.SendMouseUpEvent(secondEditorWindow.blackboardView);
+                var secondBlackboardView = FindBlackboardView(secondEditorWindow);
+                secondWindowTestHelper.SendMouseDownEvent(secondBlackboardView);
+                secondWindowTestHelper.SendMouseUpEvent(secondBlackboardView);
 
                 // Paste in second graph
                 Assert.IsTrue(secondWindowTestHelper.SendPasteCommand());
