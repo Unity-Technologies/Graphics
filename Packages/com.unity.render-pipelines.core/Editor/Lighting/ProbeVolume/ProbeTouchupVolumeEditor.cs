@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering
             {
                 ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
 
-                var bakeSettings = ProbeReferenceVolume.instance.sceneData.GetBakeSettingsForScene(ptv.gameObject.scene);
+                var bakeSettings = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene).settings;
 
                 EditorGUILayout.PropertyField(serialized.mode);
 

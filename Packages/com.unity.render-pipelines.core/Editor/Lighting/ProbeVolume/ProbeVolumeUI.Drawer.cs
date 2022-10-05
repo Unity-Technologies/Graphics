@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering
                 float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
                 if (ProbeReferenceVolume.instance.sceneData != null)
                 {
-                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(pv.gameObject.scene);
                     if (profile != null)
                         minBrickSize = profile.minBrickSize;
                 }
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering
                     serialized.lowestSubdivisionLevelOverride.intValue = Mathf.RoundToInt(lowest);
                 }
 
-                ProbeReferenceVolumeProfileEditor.DrawSimplificationLevelsMarkers(rect, minDistance, 0, maxSubdiv, (int)highest, (int)lowest);
+                ProbeVolumeLightingTab.DrawSimplificationLevelsMarkers(rect, minDistance, 0, maxSubdiv, (int)highest, (int)lowest);
             }
 
             EditorGUI.EndProperty();
@@ -101,7 +101,8 @@ namespace UnityEditor.Rendering
         {
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
 
-            bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
+            var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(pv.gameObject.scene);
+            bool hasProfile = profile != null;
 
             if (pv.mightNeedRebaking)
             {
@@ -109,7 +110,10 @@ namespace UnityEditor.Rendering
                 EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
             }
 
-            EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);
+            EditorGUI.BeginChangeCheck();
+            var isGlobal = EditorGUILayout.Popup(Styles.s_Mode, serialized.globalVolume.boolValue ? 0 : 1, Styles.k_ModeOptions);
+            if (EditorGUI.EndChangeCheck())
+                serialized.globalVolume.boolValue = isGlobal == 0;
             if (!serialized.globalVolume.boolValue)
             {
                 EditorGUI.BeginChangeCheck();
@@ -124,16 +128,16 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.HelpBox("No profile information is set for the scene that owns this probe volume so no subdivision information can be retrieved.", MessageType.Warning);
             }
 
-            bool isFreezingPlacement = ProbeGIBaking.isFreezingPlacement;
+            bool isFreezingPlacement = hasProfile && profile.freezePlacement && ProbeGIBaking.CanFreezePlacement();
 
             EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginDisabledGroup(!hasProfile);
 
             if (isFreezingPlacement)
             {
-                CoreEditorUtils.DrawFixMeBox("The placement is frozen in the baking settings. To change these values uncheck the Freeze Placement in the Probe Volume Settings Window.", MessageType.None, "Open", () =>
+                CoreEditorUtils.DrawFixMeBox("The placement is frozen in the baking settings. To change these values uncheck the Freeze Placement in the Probe Volume tab of the Lighting Window.", MessageType.None, "Open", () =>
                 {
-                    var window = (ProbeVolumeBakingWindow)UnityEditor.EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow), utility: false, title: null, focus: true);
+                    ProbeVolumeLightingTab.OpenBakingSet(profile);
                 });
             }
 
@@ -142,14 +146,10 @@ namespace UnityEditor.Rendering
                 // Get settings from scene profile if available
                 int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
                 float minDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-                if (ProbeReferenceVolume.instance.sceneData != null)
+                if (ProbeReferenceVolume.instance.sceneData != null && hasProfile)
                 {
-                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
-                    if (profile != null)
-                    {
-                        maxSubdiv = profile.maxSubdivision - 1;
-                        minDistance = profile.minDistanceBetweenProbes;
-                    }
+                    maxSubdiv = profile.maxSubdivision - 1;
+                    minDistance = profile.minDistanceBetweenProbes;
                 }
                 maxSubdiv = Mathf.Max(0, maxSubdiv);
 

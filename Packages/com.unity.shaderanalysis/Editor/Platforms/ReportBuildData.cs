@@ -199,8 +199,11 @@ namespace UnityEditor.ShaderAnalysis
                             if (!unit.compiledFile.Exists)
                             {
                                 if (throwOnError)
+                                {
+                                    progress.Fail();
                                     throw new Exception(
                                         $"Failed to compile {unit.sourceCodeFile}, relaunching compile job, reason: {job.Key.errors}");
+                                }
 
                                 if (unit.sourceCodeFile != null && job.Key.errors != null)
                                     Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);

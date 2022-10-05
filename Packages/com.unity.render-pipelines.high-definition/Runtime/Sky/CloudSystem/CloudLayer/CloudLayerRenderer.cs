@@ -22,6 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_BakeCloudTextureKernel, s_BakeCloudShadowsKernel;
         static readonly Vector4[] s_VectorArray = new Vector4[2];
 
+        public RTHandle cloudTexture { get { return m_PrecomputedData.cloudTextureRT; } }
+        public RTHandle fullscreenOpacity;
+
+        public RenderTargetIdentifier[] mrtToRenderCloudOcclusion = new RenderTargetIdentifier[2];
 
         public CloudLayerRenderer()
         {
@@ -158,10 +162,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                CoreUtils.SetKeyword(m_CloudLayerMaterial, "CLOUD_RENDER_OPACITY_MRT", builtinParams.cloudOpacity != null);
+
                 if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
-                    CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer);
+                {
+                    if (builtinParams.cloudOpacity == null)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer);
+                    }
+                    else
+                    {
+                        RenderTargetIdentifier[] rts = { builtinParams.colorBuffer, builtinParams.cloudOpacity };
+                        CoreUtils.SetRenderTarget(cmd, rts, null);
+                    }
+                }
                 else
-                    CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                {
+                    if (builtinParams.cloudOpacity == null)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                    }
+                    else
+                    {
+                        mrtToRenderCloudOcclusion[0] = builtinParams.colorBuffer;
+                        mrtToRenderCloudOcclusion[1] = builtinParams.cloudOpacity;
+                        CoreUtils.SetRenderTarget(cmd, mrtToRenderCloudOcclusion, builtinParams.depthBuffer);
+                    }
+                }
                 CoreUtils.DrawFullScreen(cmd, m_CloudLayerMaterial, m_PropertyBlock, 1);
             }
         }

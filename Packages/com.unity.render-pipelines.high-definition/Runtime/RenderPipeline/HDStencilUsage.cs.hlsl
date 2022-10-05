@@ -8,6 +8,7 @@
 // UnityEngine.Rendering.HighDefinition.StencilUsage:  static fields
 //
 #define STENCILUSAGE_CLEAR (0)
+#define STENCILUSAGE_IS_UNLIT (1)
 #define STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING (2)
 #define STENCILUSAGE_SUBSURFACE_SCATTERING (4)
 #define STENCILUSAGE_TRACE_REFLECTION_RAY (8)

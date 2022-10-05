@@ -39,6 +39,7 @@ struct PathPayload
     //
     float3  value;           // Main value (radiance, or normal for random walk)
     float   alpha;           // Opacity value (computed from transmittance)
+    float3  rayOrigin;       // Continuation ray origin
     float3  rayDirection;    // Continuation ray direction, null means no continuation
     float   rayTHit;         // Ray parameter, used either for current or next hit
 
@@ -54,30 +55,16 @@ struct PathPayload
     float3  aovNormal;       // Shading normal
 };
 
-void SetContinuationRayOrigin(float3 origin, out PathPayload payload)
-{
-    // Alias inputs we don't need at that stage
-    payload.pixelCoord = asuint(origin.xy);
-    payload.segmentID = asuint(origin.z);
-}
-
-float3 GetContinuationRayOrigin(PathPayload payload)
-{
-    // Alias inputs we don't need at that stage
-    return float3(asfloat(payload.pixelCoord),
-                  asfloat(payload.segmentID));
-}
-
 void SetContinuationRay(float3 origin, float3 direction, float tHit, out PathPayload payload)
 {
-    SetContinuationRayOrigin(origin, payload);
+    payload.rayOrigin = origin;
     payload.rayDirection = direction;
     payload.rayTHit = tHit;
 }
 
 void GetContinuationRay(PathPayload payload, out RayDesc ray)
 {
-    ray.Origin = GetContinuationRayOrigin(payload);
+    ray.Origin = payload.rayOrigin;
     ray.Direction = payload.rayDirection;
     ray.TMin = max(payload.rayTHit - _RaytracingRayBias, 0.0);
     ray.TMax = payload.rayTHit + _RaytracingRayBias;

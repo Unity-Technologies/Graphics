@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering
             var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {
-                m_BakingProfile = prv.sceneData.GetProfileForScene(touchup.gameObject.scene); // We need to grab a profile. The last one will have to do.
+                m_BakingProfile = prv.sceneData.GetBakingSetForScene(touchup.gameObject.scene); // We need to grab a profile. The last one will have to do.
                 if (touchup.isActiveAndEnabled)
                 {
                     touchup.GetOBBandAABB(out var obb, out var aabb);

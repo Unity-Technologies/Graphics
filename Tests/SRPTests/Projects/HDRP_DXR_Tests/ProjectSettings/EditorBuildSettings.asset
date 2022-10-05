@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/10_BackBufferCapture.unity
+    guid: f4d24603c59eee84e8ef51ecbd727f4f
+  - enabled: 1
     path: Assets/Scenes/100_NoRayTracingEffects.unity
     guid: 4951b574dff43c34d93926b58d153f35
   - enabled: 1
@@ -164,6 +167,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackSky.unity
     guid: 827c090b62971674ba95418bc420df4f
+  - enabled: 1
+    path: Assets/Scenes/320_AmbientProbeDimmer_0.unity
+    guid: 6cecfe028a2a4af45bca3169587aa0d2
+  - enabled: 1
+    path: Assets/Scenes/320_AmbientProbeDimmer_1.unity
+    guid: 4eda7c234292a7f4b80c74f0e5c714f2
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe

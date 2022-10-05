@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering
 
             public Vector3[] brickPositions;
 
-            public GPUSubdivisionContext(int probeVolumeCount, ProbeReferenceVolumeProfile profile)
+            public GPUSubdivisionContext(int probeVolumeCount, ProbeVolumeBakingSet profile)
             {
                 // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
                 maxSubdivisionLevel = profile.maxSubdivision - 1; // remove 1 because the last subdiv level is the cell size
@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public static GPUSubdivisionContext AllocateGPUResources(int probeVolumeCount, ProbeReferenceVolumeProfile profile) => new GPUSubdivisionContext(probeVolumeCount, profile);
+        public static GPUSubdivisionContext AllocateGPUResources(int probeVolumeCount, ProbeVolumeBakingSet profile) => new GPUSubdivisionContext(probeVolumeCount, profile);
 
         static IEnumerable<(Bounds bounds, Vector3 parentPosition)> SubdivideVolumeIntoSubVolume(GPUSubdivisionContext ctx, Bounds bounds)
         {

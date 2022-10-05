@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using NUnit;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,6 +20,8 @@ public class HDRP_GraphicTestRunner
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         HDRP_TestSettings settings = null;
+        Camera[] cameras = null;
+        HDCamera[] hdCameras = null;
         Camera camera = null;
 
 #if UNITY_EDITOR
@@ -81,13 +84,42 @@ public class HDRP_GraphicTestRunner
 
         // Need to retrieve objects again after scene reload.
         settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
-
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
+		
+		// Grab the HDCamera
+        HDCamera hdCamera = HDCamera.GetOrCreate(camera);
+        
+        //We need to get all the cameras to set accumulation in all of them for tests that uses multiple cameras
+        cameras = GameObject.FindObjectsOfType<Camera>();
+        
+        //Grab the HDCameras
+        hdCameras = new HDCamera[cameras.Length];
+        for(int i = 0; i < cameras.Length; ++i)
+        {
+            hdCameras[i] = HDCamera.GetOrCreate(cameras[i]);
+        }
+		
+		
+        bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
+
+// #if UNITY_EDITOR
+        if (useBackBuffer)
+        {
+            //When using back buffer, we have to set accumulation to true to make sure effects accumulates.
+            SetRayTracingAccumulationOnCameras(hdCameras, true);
+        }
+        else
+        {
+            //To no break our current tests, we have to disable accumulation if we capture using render texture.
+            SetRayTracingAccumulationOnCameras(hdCameras, false);
+        }
+// #endif
+
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -116,9 +148,32 @@ public class HDRP_GraphicTestRunner
             // Wait again one frame, to be sure.
             yield return new WaitForEndOfFrame();
         }
+		
+        // Reset temporal effects on hdCameras
+        foreach(HDCamera hdCam in hdCameras)
+            hdCam.Reset();
 
-        // Reset temporal effects on hdCamera
-        HDCamera.GetOrCreate(camera).Reset();
+        if (settings.waitForFrameCountMultiple)
+        {
+            // When we capture from the back buffer, there is no requirement of compensation frames
+            // Else, given that we will render two frames, we need to compensate for them in the waiting
+            var frameCountOffset = useBackBuffer ? 0 : 2;
+            while (((hdCamera.cameraFrameCount + frameCountOffset) % (uint)settings.frameCountMultiple) != 0)
+                yield return new WaitForEndOfFrame();
+        }
+
+        // Force clear all the history buffers
+        if (useBackBuffer)
+        {
+            foreach(HDCamera hdCam in hdCameras)
+            {
+                hdCamera.RequestClearHistoryBuffers();
+            }
+        }
+
+        // Reset temporal effects on hdCameras
+        foreach(HDCamera hdCam in hdCameras)
+            hdCam.Reset();
 
         for (int i = 0; i < waitFrames; ++i)
             yield return new WaitForEndOfFrame();
@@ -200,13 +255,28 @@ public class HDRP_GraphicTestRunner
             else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
-
+		
 #if UNITY_EDITOR
         UnityEditor.ShaderUtil.allowAsyncCompilation = oldValueShaderUtil;
         UnityEditor.EditorSettings.asyncShaderCompilation = oldValueEditorSettings;
 #endif
-    }
 
+        //When using back buffer, we have to set accumulation back to true at the end of the test
+        if (useBackBuffer)
+        {
+            SetRayTracingAccumulationOnCameras(hdCameras, true);	
+        }
+
+    }
+    
+    public void SetRayTracingAccumulationOnCameras(HDCamera[] hdCameras, bool b)
+    {
+        foreach(HDCamera hdCamera in hdCameras)
+        {
+            hdCamera.SetRayTracingAccumulation(b);	
+        }
+    }
+    
 #if UNITY_EDITOR
 
     [TearDown]

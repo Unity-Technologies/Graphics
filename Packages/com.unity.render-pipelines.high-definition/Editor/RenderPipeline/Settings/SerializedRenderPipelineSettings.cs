@@ -59,6 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentDepthPostpass;
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
+        internal SerializedProperty supportProbeVolumeScenarios;
+        internal SerializedProperty supportProbeVolumeScenarioBlending;
         internal SerializedProperty probeVolumeBlendingTextureSize;
         internal SerializedProperty supportProbeVolumeStreaming;
         internal SerializedProperty probeVolumeSHBands;
@@ -126,6 +128,8 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
             lightProbeSystem = root.Find((RenderPipelineSettings s) => s.lightProbeSystem);
             probeVolumeTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeMemoryBudget);
+            supportProbeVolumeScenarios = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeScenarios);
+            supportProbeVolumeScenarioBlending = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeScenarioBlending);
             probeVolumeBlendingTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeBlendingMemoryBudget);
             supportProbeVolumeStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeStreaming);
             probeVolumeSHBands = root.Find((RenderPipelineSettings s) => s.probeVolumeSHBands);

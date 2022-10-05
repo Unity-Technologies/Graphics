@@ -48,12 +48,32 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
         return result;
     }
 
-    float4 FragRender(Varyings input) : SV_Target
+    #ifdef CLOUD_RENDER_OPACITY_MRT
+    struct RenderOutput
+    {
+        float4 colorBuffer : SV_Target0;
+        float4 opacityBuffer : SV_Target1;
+    };
+    #else
+    struct RenderOutput
+    {
+        float4 colorBuffer : SV_Target;
+    };
+    #endif
+
+    RenderOutput FragRender(Varyings input)
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float4 color = RenderClouds(input.positionCS.xy);
         color.rgb *= GetCurrentExposureMultiplier();
-        return color;
+        RenderOutput output;
+        output.colorBuffer = color;
+
+        #ifdef CLOUD_RENDER_OPACITY_MRT
+        output.opacityBuffer = 1.0f - color.a;
+        #endif
+
+        return output;
     }
 
     ENDHLSL
@@ -71,7 +91,6 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
             HLSLPROGRAM
                 #pragma fragment FragBaking
             ENDHLSL
-
         }
 
         Pass
@@ -82,6 +101,7 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
             Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile _ CLOUD_RENDER_OPACITY_MRT
                 #pragma fragment FragRender
             ENDHLSL
         }

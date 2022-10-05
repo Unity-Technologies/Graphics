@@ -89,9 +89,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)
+        static public void SetupStencil(Material material, bool receivesLighting, bool receivesSSR, bool useSplitLighting)
         {
-            ComputeStencilProperties(receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
+            ComputeStencilProperties(receivesLighting, receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void ComputeStencilProperties(bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
+        static public void ComputeStencilProperties(bool receivesLighting, bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
             out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
             out int stencilRefMV, out int stencilWriteMaskMV)
         {
@@ -168,6 +168,17 @@ namespace UnityEngine.Rendering.HighDefinition
             stencilWriteMaskDepth |= (int)StencilUsage.TraceReflectionRay;
             stencilWriteMaskGBuffer |= (int)StencilUsage.TraceReflectionRay;
             stencilWriteMaskMV |= (int)StencilUsage.TraceReflectionRay;
+
+            if (!receivesLighting)
+            {
+                stencilRefDepth |= (int)StencilUsage.IsUnlit;
+                stencilWriteMaskDepth |= (int)StencilUsage.IsUnlit;
+                stencilRefMV |= (int)StencilUsage.IsUnlit;
+            }
+
+            stencilWriteMaskDepth |= (int)StencilUsage.IsUnlit;
+            stencilWriteMaskGBuffer |= (int)StencilUsage.IsUnlit;
+            stencilWriteMaskMV |= (int)StencilUsage.IsUnlit;
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

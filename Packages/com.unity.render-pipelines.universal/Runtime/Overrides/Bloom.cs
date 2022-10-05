@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => intensity.value > 0f;
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => false;
     }
 

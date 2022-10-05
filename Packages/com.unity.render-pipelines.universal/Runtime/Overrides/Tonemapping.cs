@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => mode.value != TonemappingMode.None;
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }
 

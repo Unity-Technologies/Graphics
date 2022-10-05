@@ -57,7 +57,6 @@ MonoBehaviour:
     volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a, type: 3}
     volumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97, type: 3}
     volumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46, type: 3}
-    volumetricMaterialCS: {fileID: 7200000, guid: 26f18c9cb0bccbf4481f8c84579affb1, type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
@@ -105,6 +104,8 @@ MonoBehaviour:
     preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba, type: 3}
     preIntegratedFGD_MarschnerPS: {fileID: 4800000, guid: 31f36caf0a5e7f848a1b5328b6ad3eb8, type: 3}
     preIntegratedFiberScatteringCS: {fileID: 7200000, guid: 4a087c9d074552c48aeb85184d56312e, type: 3}
+    volumetricMaterialCS: {fileID: 7200000, guid: 26f18c9cb0bccbf4481f8c84579affb1, type: 3}
+    eyeMaterialCS: {fileID: 7200000, guid: 76f78ba05cea1ed449c1ef613ab90597, type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163, type: 3}

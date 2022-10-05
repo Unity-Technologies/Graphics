@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => intensity.value > 0f && (type.value != FilmGrainLookup.Custom || texture.value != null);
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }
 

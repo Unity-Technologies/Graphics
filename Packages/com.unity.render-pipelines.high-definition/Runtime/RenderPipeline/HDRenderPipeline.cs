@@ -460,6 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
+                bool supportBlending = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarioBlending;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
@@ -469,11 +470,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
                     offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
-                    scenarioBlendingShader = defaultResources.shaders.probeVolumeBlendStatesCS,
+                    scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
-                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
+                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming,
+                    supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
                 SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";

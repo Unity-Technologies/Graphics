@@ -65,6 +65,8 @@ namespace UnityEngine.Rendering
         public bool supportsRuntimeDebug;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
+        /// <summary>True if APV should support lighting scenarios.</summary>
+        public bool supportScenarios;
     }
 
     /// <summary>
@@ -139,8 +141,6 @@ namespace UnityEngine.Rendering
     [Serializable]
     public enum ProbeVolumeBlendingTextureMemoryBudget
     {
-        /// <summary>Disable Scenario Blending</summary>
-        None = 0,
         /// <summary>Low Budget</summary>
         MemoryBudgetLow = 128,
         /// <summary>Medium Budget</summary>
@@ -465,6 +465,7 @@ namespace UnityEngine.Rendering
 
         bool m_IsInitialized = false;
         bool m_SupportStreaming = false;
+        bool m_SupportScenarios = false;
         RefVolTransform m_Transform;
         int m_MaxSubdivision;
         ProbeBrickPool m_Pool;
@@ -519,7 +520,8 @@ namespace UnityEngine.Rendering
 
         internal bool hasUnloadedCells => m_ToBeLoadedCells.size != 0;
 
-        internal bool enableScenarioBlending => m_BlendingMemoryBudget != 0 && ProbeBrickBlendingPool.isSupported;
+        internal bool supportLightingScenarios => m_SupportScenarios;
+        internal bool enableScenarioBlending => m_SupportScenarios && m_BlendingMemoryBudget != 0 && ProbeBrickBlendingPool.isSupported;
 
         struct InitInfo
         {
@@ -645,6 +647,7 @@ namespace UnityEngine.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             m_BlendingMemoryBudget = parameters.blendingMemoryBudget;
+            m_SupportScenarios = parameters.supportScenarios;
             m_SHBands = parameters.shBands;
             m_ProbeVolumesWeight = 1f;
             m_SupportStreaming = parameters.supportStreaming;

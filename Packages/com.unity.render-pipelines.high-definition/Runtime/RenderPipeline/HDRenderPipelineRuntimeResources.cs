@@ -221,6 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader preIntegratedFiberScatteringCS;
             [Reload("Runtime/Material/VolumetricMaterial/VolumetricMaterial.compute")]
             public ComputeShader volumetricMaterialCS;
+            [Reload("Runtime/Material/Eye/EyeCausticLUTGen.compute")]
+            public ComputeShader eyeMaterialCS;
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
             public ComputeShader encodeBC6HCS;

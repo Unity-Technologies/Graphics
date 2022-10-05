@@ -144,6 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Set the data for the ray generation
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.depthBuffer, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                         // Inject the ray-tracing sampling data

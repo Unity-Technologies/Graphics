@@ -125,6 +125,11 @@ namespace UnityEngine.Rendering
                 return Vector3.zero;
             return (transform.rotation * Quaternion.Euler(virtualOffsetRotation) * Vector3.forward) * virtualOffsetDistance;
         }
+
+        void OnDrawGizmos()
+        {
+            Gizmos.DrawIcon(transform.position, ProbeVolume.s_gizmosLocationPath + "ProbeTouchupVolume.png", true);
+        }
 #endif
 
 

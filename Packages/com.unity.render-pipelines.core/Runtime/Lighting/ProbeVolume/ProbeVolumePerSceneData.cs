@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering
         }
 
         [SerializeField] internal ProbeVolumeAsset asset;
+        [SerializeField] internal string sceneGUID = "";
         [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
         [SerializeField] List<SerializablePerScenarioDataItem> serializedScenarios = new();
@@ -169,7 +170,10 @@ namespace UnityEngine.Rendering
             assetLoaded = true;
 #if UNITY_EDITOR
             if (refVol.sceneData != null)
-                refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
+            {
+                var set = refVol.sceneData.GetBakingSetForScene(gameObject.scene);
+                if (set) refVol.bakingProcessSettings = set.settings;
+            }
 #endif
         }
 
@@ -268,6 +272,17 @@ namespace UnityEngine.Rendering
         public void StripSupportData()
         {
             cellSupportDataAsset = null;
+        }
+
+        internal void ClearBakedDataReferences()
+        {
+            QueueAssetRemoval();
+
+            asset = null;
+            cellSharedDataAsset = null;
+            cellSupportDataAsset = null;
+            serializedScenarios.Clear();
+            scenarios.Clear();
         }
 #endif
     }

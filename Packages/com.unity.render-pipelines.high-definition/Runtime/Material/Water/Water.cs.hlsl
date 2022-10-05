@@ -5,12 +5,6 @@
 #ifndef WATER_CS_HLSL
 #define WATER_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Water+MaterialFeatureFlags:  static fields
-//
-#define MATERIALFEATUREFLAGS_WATER_STANDARD (1)
-#define MATERIALFEATUREFLAGS_WATER_CINEMATIC (2)
-
-//
 // UnityEngine.Rendering.HighDefinition.Water+SurfaceData:  static fields
 //
 #define DEBUGVIEW_WATER_SURFACEDATA_BASE_COLOR (1600)
@@ -38,6 +32,12 @@
 #define DEBUGVIEW_WATER_BSDFDATA_FOAM (1659)
 #define DEBUGVIEW_WATER_BSDFDATA_TIP_THICKNESS (1660)
 #define DEBUGVIEW_WATER_BSDFDATA_SURFACE_INDEX (1661)
+
+//
+// UnityEngine.Rendering.HighDefinition.Water+MaterialFeatureFlags:  static fields
+//
+#define MATERIALFEATUREFLAGS_WATER_STANDARD (1)
+#define MATERIALFEATUREFLAGS_WATER_CINEMATIC (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Water+SurfaceData
 // PackingRules = Exact

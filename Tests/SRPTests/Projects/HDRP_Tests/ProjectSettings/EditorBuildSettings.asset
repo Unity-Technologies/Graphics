@@ -615,6 +615,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4097_DRS-TAAU-Software.unity
     guid: a50807faa70f2a441aba00a405914c6b
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4098_LensFlare_Component_DataDriven_CloudLayerOcclusion_Curve.unity
+    guid: 312371ae127c1d049b65fa8b67480b5b
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4101_FP16Alpha.unity
     guid: 5f05ae64777a2d9458961c7ac5f1977f
   - enabled: 1

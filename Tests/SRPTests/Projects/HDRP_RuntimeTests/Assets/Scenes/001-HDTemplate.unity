@@ -106,7 +106,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -119,7 +119,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -520,8 +520,7 @@ MonoScript:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  serializedVersion: 6
-  m_Script: 
+  serializedVersion: 7
   m_DefaultReferences: {}
   m_Icon: {fileID: 0}
   m_Type: 0
@@ -557,7 +556,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 168218571}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.019999983, y: 1.196, z: 1.8100362}
+  m_LocalPosition: {x: 0.019999983, y: 1.196, z: 1.8100367}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -618,6 +617,7 @@ MonoBehaviour:
     type: 0
     mode: 0
     realtimeMode: 0
+    timeSlicing: 0
     lighting:
       multiplier: 1
       weight: 1
@@ -652,7 +652,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -2438,7 +2438,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1037846703}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.019999983, y: 1.196, z: -0.68700814}
+  m_LocalPosition: {x: 0.019999983, y: 1.196, z: -0.68700826}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2499,6 +2499,7 @@ MonoBehaviour:
     type: 0
     mode: 0
     realtimeMode: 0
+    timeSlicing: 0
     lighting:
       multiplier: 1
       weight: 1
@@ -2533,7 +2534,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -3767,6 +3768,7 @@ MonoBehaviour:
   checkMemoryAllocation: 0
   renderPipelineAsset: {fileID: 11400000, guid: a2b3940bdd38ca54880a3ae1fe6be80f,
     type: 2}
+  forceCameraRenderDuringSetup: 0
 --- !u!114 &1297650282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3786,12 +3788,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   volumeAnchorOverride: {fileID: 0}
-  antialiasing: 0
+  antialiasing: 2
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
   taaSharpenStrength: 0.6
-  TAAQuality: 1
+  TAAQuality: 2
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -3809,7 +3811,7 @@ MonoBehaviour:
   flipYMode: 0
   xrRendering: 1
   fullscreenPassthrough: 0
-  allowDynamicResolution: 0
+  allowDynamicResolution: 1
   customRenderingSettings: 0
   invertFaceCulling: 0
   probeLayerMask:
@@ -3846,7 +3848,7 @@ MonoBehaviour:
       data1: 17
       data2: 0
   defaultFrameSettings: 0
-  m_Version: 8
+  m_Version: 9
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -3907,9 +3909,17 @@ Camera:
   m_projectionMatrixMode: 2
   m_GateFitMode: 1
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.05
+  m_Aperture: 32
+  m_FocusDistance: 10
+  m_FocalLength: 45
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 70, y: 51}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 45
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -3931,7 +3941,7 @@ Camera:
   m_TargetEye: 3
   m_HDR: 0
   m_AllowMSAA: 0
-  m_AllowDynamicResolution: 0
+  m_AllowDynamicResolution: 1
   m_ForceIntoRT: 1
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
@@ -4191,8 +4201,7 @@ MonoScript:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  serializedVersion: 6
-  m_Script: 
+  serializedVersion: 7
   m_DefaultReferences: {}
   m_Icon: {fileID: 0}
   m_Type: 2
@@ -4405,6 +4414,7 @@ MonoBehaviour:
     type: 1
     mode: 1
     realtimeMode: 0
+    timeSlicing: 0
     lighting:
       multiplier: 1
       weight: 1
@@ -4439,7 +4449,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -5609,6 +5619,7 @@ MonoBehaviour:
     type: 1
     mode: 1
     realtimeMode: 0
+    timeSlicing: 0
     lighting:
       multiplier: 1
       weight: 1
@@ -5643,7 +5654,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -6605,7 +6616,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2059789766}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.510034, y: 1.196, z: 1.1760172}
+  m_LocalPosition: {x: 2.5100346, y: 1.196, z: 1.1760174}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6666,6 +6677,7 @@ MonoBehaviour:
     type: 0
     mode: 0
     realtimeMode: 0
+    timeSlicing: 0
     lighting:
       multiplier: 1
       weight: 1
@@ -6700,7 +6712,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:

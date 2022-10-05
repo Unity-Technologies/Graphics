@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering
 
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
-        static ProbeReferenceVolumeProfile m_BakingProfile = null;
+        static ProbeVolumeBakingSet m_BakingProfile = null;
         static ProbeVolumeBakingProcessSettings m_BakingSettings;
 
         static int m_BakingBatchIndex = 0;
@@ -227,8 +227,8 @@ namespace UnityEngine.Rendering
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
 
-        internal static List<string> partialBakeSceneList = new List<string>();
-        internal static bool isBakingSceneSubset => partialBakeSceneList.Count > 0;
+        internal static List<string> partialBakeSceneList = null;
+        internal static bool isBakingSceneSubset => partialBakeSceneList != null;
         internal static bool isFreezingPlacement = false;
 
         // This is needed only for isBakingOnlyActiveScene when we have some cells extracted from assets into m_BakedCells
@@ -308,8 +308,14 @@ namespace UnityEngine.Rendering
 
         public static bool CanFreezePlacement()
         {
+            if (!ProbeReferenceVolume.instance.supportLightingScenarios)
+                return false;
+
             // Check if all the scene datas in the scene have an asset, if  not then we cannot enable this option.
             var sceneDataList = GetPerSceneDataList();
+            if (sceneDataList.Count == 0)
+                return false;
+
             foreach (var sceneData in sceneDataList)
             {
                 if (sceneData.asset == null)
@@ -321,10 +327,9 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        public static void FindWorldBounds(out bool hasFoundInvalidSetup)
+        public static void FindWorldBounds()
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
-            hasFoundInvalidSetup = false;
 
             var sceneData = ProbeReferenceVolume.instance.sceneData;
             HashSet<string> scenesToConsider = new HashSet<string>();
@@ -354,15 +359,9 @@ namespace UnityEngine.Rendering
                         }
                     }
                 }
-                else // we need to open the scene to test.
-                {
-                    Debug.Log("The probe volume system couldn't find data for all the scenes in the baking set. Consider opening the scenes in the set and save them. Alternatively, bake the full set.");
-                    hasFoundInvalidSetup = true;
-                }
             }
 
-            if (!hasFoundInvalidSetup)
-                ProbeReferenceVolume.instance.globalBounds = globalBounds;
+            ProbeReferenceVolume.instance.globalBounds = globalBounds;
         }
 
         static void SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
@@ -370,19 +369,26 @@ namespace UnityEngine.Rendering
             // We need to make sure all scenes we are baking have the same profile. The same should be done for the baking settings, but we check only profile.
             // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
 
-            // To check what are  the scenes that have probe volume enabled we checks the ProbeVolumePerSceneData. We are guaranteed to have only one per scene.
+            // To check what are the scenes that have probe volume enabled we checks the ProbeVolumePerSceneData. We are guaranteed to have only one per scene.
             for (int i = 0; i < perSceneData.Count; ++i)
             {
                 var data = perSceneData[i];
                 var scene = data.gameObject.scene;
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
                 Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
+
+                // In case a scene is duplicated, we need to clear references to original asset
+                if (data.sceneGUID != data.gameObject.scene.GetGUID())
+                {
+                    if (!string.IsNullOrEmpty(data.sceneGUID))
+                        data.ClearBakedDataReferences();
+                    data.sceneGUID = data.gameObject.scene.GetGUID();
+                }
 
                 if (i == 0)
                 {
                     m_BakingProfile = profile;
-                    Debug.Assert(ProbeReferenceVolume.instance.sceneData.BakeSettingsDefinedForScene(scene));
-                    m_BakingSettings = ProbeReferenceVolume.instance.sceneData.GetBakeSettingsForScene(scene);
+                    m_BakingSettings = profile.settings;
                 }
                 else
                 {
@@ -456,10 +462,7 @@ namespace UnityEngine.Rendering
             else
             {
                 using (new BakingSetupProfiling(BakingSetupProfiling.Stages.FindWorldBounds))
-                {
-                    FindWorldBounds(out bool hasFoundInvalidSetup);
-                    if (hasFoundInvalidSetup) return;
-                }
+                    FindWorldBounds();
             }
 
             // Get min/max
@@ -708,7 +711,6 @@ namespace UnityEngine.Rendering
 
         static void OnAdditionalProbesBakeCompleted()
         {
-
             if (currentBakingState != BakingStage.PlacementDone)
             {
                 // This can happen if a baking job is canceled and a phantom call to OnAdditionalProbesBakeCompleted cannot be dequeued.
@@ -1007,7 +1009,7 @@ namespace UnityEngine.Rendering
                 //       availability is already supported by runtime.
 
                 var asset = data.asset;
-                var profile = probeRefVolume.sceneData.GetProfileForScene(data.gameObject.scene);
+                var profile = probeRefVolume.sceneData.GetBakingSetForScene(data.gameObject.scene);
                 asset.StoreProfileData(profile);
                 asset.minCellPosition = minCellPosition;
                 asset.maxCellPosition = maxCellPosition;
@@ -1044,15 +1046,10 @@ namespace UnityEngine.Rendering
                 PerformDilation();
 
             // Mark old bakes as out of date if needed
-            if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
-            {
-                // We don't want to force focus on the window if it did already have it.
-                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow), utility: false, title: null, focus: false);
-                window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
-            }
+            ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
 
             // We are done with baking so we reset the partial bake scene list.
-            partialBakeSceneList.Clear();
+            partialBakeSceneList = null;
 
             currentBakingState = BakingStage.OnBakeCompletedFinished;
 
@@ -1771,7 +1768,7 @@ namespace UnityEngine.Rendering
         {
             if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
-                if (m_BakingBatch.uniqueProbeCount == 0)
+                if (m_BakingBatch != null && m_BakingBatch.uniqueProbeCount == 0)
                     OnAdditionalProbesBakeCompleted();
                 else
                 {
@@ -1924,7 +1921,7 @@ namespace UnityEngine.Rendering
             return result;
         }
 
-        public static bool ModifyProfileFromLoadedData(ProbeReferenceVolumeProfile profile)
+        public static bool ModifyProfileFromLoadedData(ProbeVolumeBakingSet profile)
         {
             var dataList = GetPerSceneDataList();
             if (dataList.Count > 0)

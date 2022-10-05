@@ -186,19 +186,27 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.ProbeVolumes)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeScenarios, Styles.supportProbeVolumeScenarios);
+                if (serialized.renderPipelineSettings.supportProbeVolumeScenarios.boolValue)
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeScenarioBlending, Styles.supportProbeVolumeScenarioBlending);
+                        if (serialized.renderPipelineSettings.supportProbeVolumeScenarioBlending.boolValue)
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
+                        }
+                    }
+                }
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
+                string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(estimatedVMemCost));
                 if (estimatedVMemCost == 0)
-                {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost: 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost: {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
-                }
+                    message += "\nProbe reference volume is not used in the scene and resources haven't been allocated yet.";
+                EditorGUILayout.HelpBox(message, MessageType.Info);
             }
         }
 
@@ -837,13 +845,14 @@ namespace UnityEditor.Rendering.HighDefinition
             //Note: do not use SerializedProperty.enumValueIndex here as this enum not start at 0 as it is used as flags.
             bool msaaAllowed = true;
             bool hasRayTracing = false;
+            bool hasWater = false;
             for (int index = 0; index < serialized.serializedObject.targetObjects.Length && msaaAllowed; ++index)
             {
                 var settings = (serialized.serializedObject.targetObjects[index] as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings;
                 var litShaderMode = settings.supportedLitShaderMode;
-                bool rayTracedSupported = settings.supportRayTracing;
-                hasRayTracing |= rayTracedSupported;
-                msaaAllowed &= (litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both) && !rayTracedSupported;
+                hasRayTracing |= settings.supportRayTracing;
+                hasWater |= settings.supportWater;
+                msaaAllowed &= (litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both) && !settings.supportRayTracing && !settings.supportWater;
             }
 
             using (new EditorGUI.DisabledScope(!msaaAllowed))
@@ -852,9 +861,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.MSAASampleCount, Styles.MSAASampleCountContent);
                 --EditorGUI.indentLevel;
             }
+
             if (hasRayTracing && serialized.renderPipelineSettings.MSAASampleCount.intValue != (int)MSAASamples.None)
             {
                 EditorGUILayout.HelpBox(Styles.rayTracingMSAAUnsupported.text, MessageType.Info, wide: true);
+            }
+
+            if (hasWater && serialized.renderPipelineSettings.MSAASampleCount.intValue != (int)MSAASamples.None)
+            {
+                EditorGUILayout.HelpBox(Styles.waterMSAAUnsupported.text, MessageType.Info, wide: true);
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);

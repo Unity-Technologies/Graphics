@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => distance.value > 0f;
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => false;
     }
 }

@@ -1,11 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
-#if UNITY_EDITOR
-using UnityEditor;
-using ProbeVolumeWithBounds = System.Collections.Generic.List<(UnityEngine.Rendering.ProbeVolume component, UnityEngine.Rendering.ProbeReferenceVolume.Volume volume)>;
-#endif
-
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -115,7 +110,7 @@ namespace UnityEngine.Rendering
             float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             if (ProbeReferenceVolume.instance.sceneData != null)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
                 if (profile != null)
                     minBrickSize = profile.minBrickSize;
             }
@@ -152,7 +147,7 @@ namespace UnityEngine.Rendering
                 if (overrideRendererFilters)
                 {
                     hash = hash * 23 + minRendererVolumeSize.GetHashCode();
-                    hash = hash * 23 + objectLayerMask.GetHashCode();
+                    hash = hash * 23 + objectLayerMask.value.GetHashCode();
                 }
             }
 
@@ -176,7 +171,7 @@ namespace UnityEngine.Rendering
         // other non-hidden component related to APV.
         #region APVGizmo
 
-        static List<ProbeVolume> sProbeVolumeInstances = new();
+        internal static List<ProbeVolume> instances = new();
 
         MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
@@ -191,17 +186,17 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
-            sProbeVolumeInstances.Add(this);
+            instances.Add(this);
         }
 
         void OnDisable()
         {
-            sProbeVolumeInstances.Remove(this);
+            instances.Remove(this);
             DisposeGizmos();
         }
 
         // Only the first PV of the available ones will draw gizmos.
-        bool IsResponsibleToDrawGizmo() => sProbeVolumeInstances.Count > 0 && sProbeVolumeInstances[0] == this;
+        bool IsResponsibleToDrawGizmo() => instances.Count > 0 && instances[0] == this;
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
@@ -209,7 +204,7 @@ namespace UnityEngine.Rendering
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
                 if (profile == null)
                     return true;
                 cellSizeInMeters = profile.cellSizeInMeters;
@@ -238,9 +233,14 @@ namespace UnityEngine.Rendering
             public Color    color;
         }
 
+        // Path to the gizmos location
+        internal readonly static string s_gizmosLocationPath = "Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos/";
+
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
         void OnDrawGizmos()
         {
+            Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "ProbeVolume.png", true);
+
             if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo() || ProbeReferenceVolume.instance.sceneData == null)
                 return;
 
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             if (debugDisplay.realtimeSubdivision)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
                 if (profile == null)
                     return;
                 cellSizeInMeters = profile.cellSizeInMeters;

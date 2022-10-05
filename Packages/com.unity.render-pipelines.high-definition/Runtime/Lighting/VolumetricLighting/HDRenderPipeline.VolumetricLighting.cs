@@ -895,17 +895,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     // It's typically much shorter (along the Z axis) than the camera's frustum.
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
                     {
-                        // TODO: cache these?
-                        m_VisibleVolumeBounds.Add(obb);
-                        m_VisibleVolumeData.Add(volume.parameters.ConvertToEngineData());
-
-                        m_VisibleLocalVolumetricFogVolumes.Add(volume);
-
                         if (m_VisibleLocalVolumetricFogVolumes.Count >= maxLocalVolumetricFogOnScreen)
                         {
                             Debug.LogError($"The number of local volumetric fog in the view is above the limit: {m_VisibleLocalVolumetricFogVolumes.Count} instead of {maxLocalVolumetricFogOnScreen}. To fix this, please increase the maximum number of local volumetric fog in the view in the HDRP asset.");
                             break;
                         }
+
+                        // TODO: cache these?
+                        m_VisibleVolumeBounds.Add(obb);
+                        m_VisibleVolumeData.Add(volume.parameters.ConvertToEngineData());
+
+                        m_VisibleLocalVolumetricFogVolumes.Add(volume);
                     }
                 }
 

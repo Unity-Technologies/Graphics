@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }
 }

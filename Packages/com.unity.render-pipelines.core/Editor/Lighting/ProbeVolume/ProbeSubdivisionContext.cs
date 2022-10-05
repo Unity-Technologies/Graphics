@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering
                     if (probeVolume == null || !probeVolume.isActiveAndEnabled || ProbeReferenceVolume.instance.sceneData == null)
                         return;
 
-                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(probeVolume.gameObject.scene);
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(probeVolume.gameObject.scene);
                     if (profile == null)
                         return;
 
@@ -132,9 +132,9 @@ namespace UnityEngine.Rendering
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes = new ();
         public List<(Vector3Int position, Bounds bounds)> cells = new ();
         public GIContributors contributors;
-        public ProbeReferenceVolumeProfile profile;
+        public ProbeVolumeBakingSet profile;
 
-        public void Initialize(ProbeReferenceVolumeProfile profile, Vector3 refVolOrigin)
+        public void Initialize(ProbeVolumeBakingSet profile, Vector3 refVolOrigin)
         {
             Profiling.Profiler.BeginSample("ProbeSubdivisionContext.Initialize");
 

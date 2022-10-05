@@ -156,6 +156,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeStreaming = false,
+                supportProbeVolumeScenarios = false,
+                supportProbeVolumeScenarioBlending = true,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -344,8 +346,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightProbeSystem lightProbeSystem;
         /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
-        /// <summary>Probe Volume Memory Budget for scenario blending.</summary>
-        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget;
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
@@ -354,6 +354,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: "PROBE_VOLUMES_L1")]
 #endif
         public ProbeVolumeSHBands probeVolumeSHBands;
+        /// <summary>Support Scenarios for Probe Volumes.</summary>
+        public bool supportProbeVolumeScenarios;
+        /// <summary>Support Scenarios for Probe Volumes.</summary>
+        public bool supportProbeVolumeScenarioBlending;
+        /// <summary>Probe Volume Memory Budget for scenario blending.</summary>
+        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget;
 
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;

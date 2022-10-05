@@ -20,8 +20,6 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent virtualOffsetMaxHitsPerRay = EditorGUIUtility.TrTextContent("Max Ray Hits", "How many collisions to allow per ray before determining the Virtual Offset probe position.");
             public static readonly GUIContent virtualOffsetCollisionMask = EditorGUIUtility.TrTextContent("Layer Mask", "Layers to include in collision calculations for Virtual Offset.");
 
-            public static readonly GUIContent advanced = EditorGUIUtility.TrTextContent("Advanced");
-
             public static readonly GUIContent dilationSettingsTitle = EditorGUIUtility.TrTextContent("Probe Dilation Settings");
             public static readonly GUIContent virtualOffsetSettingsTitle = EditorGUIUtility.TrTextContent("Virtual Offset Settings");
 
@@ -42,83 +40,76 @@ namespace UnityEngine.Rendering
             // prefab override logic works on the entire property.
             EditorGUI.BeginProperty(position, label, property);
 
-            property.serializedObject.Update();
+            using (new EditorGUI.IndentLevelScope())
+                if (ProbeVolumeLightingTab.Foldout(Styles.dilationSettingsTitle, ProbeVolumeLightingTab.Expandable.SettingsDilation, false))
+                    DrawDilationSettings(dilationSettings);
 
-            EditorGUI.FloatField(position, 100f);
+            using (new EditorGUI.IndentLevelScope())
+                if (ProbeVolumeLightingTab.Foldout(Styles.virtualOffsetSettingsTitle, ProbeVolumeLightingTab.Expandable.SettingsVirtualOffset, false))
+                    DrawVirtualOffsetSettings(virtualOffsetSettings);
 
-            if (ProbeVolumeBakingWindow.Foldout(Styles.dilationSettingsTitle, ProbeVolumeBakingWindow.Expandable.Dilation))
-                DrawDilationSettings(dilationSettings);
-            EditorGUILayout.Space();
-            if (ProbeVolumeBakingWindow.Foldout(Styles.virtualOffsetSettingsTitle, ProbeVolumeBakingWindow.Expandable.VirtualOffset))
-                DrawVirtualOffsetSettings(virtualOffsetSettings);
             EditorGUI.EndProperty();
-
-            property.serializedObject.ApplyModifiedProperties();
         }
 
         void DrawDilationSettings(SerializedProperty dilationSettings)
         {
             var enableDilation = dilationSettings.FindPropertyRelative("enableDilation");
-            var maxDilationSampleDistance = dilationSettings.FindPropertyRelative("dilationDistance");
-            var dilationValidityThreshold = dilationSettings.FindPropertyRelative("dilationValidityThreshold");
-            float dilationValidityThresholdInverted = 1f - dilationValidityThreshold.floatValue;
-            var dilationIterations = dilationSettings.FindPropertyRelative("dilationIterations");
-            var dilationInvSquaredWeight = dilationSettings.FindPropertyRelative("squaredDistWeighting");
+            EditorGUILayout.PropertyField(enableDilation, Styles.enableDilation);
 
-            EditorGUI.indentLevel++;
-            enableDilation.boolValue = EditorGUILayout.Toggle(Styles.enableDilation, enableDilation.boolValue);
-            EditorGUI.BeginDisabledGroup(!enableDilation.boolValue);
-            maxDilationSampleDistance.floatValue = Mathf.Max(EditorGUILayout.FloatField(Styles.dilationDistance, maxDilationSampleDistance.floatValue), 0);
-            dilationValidityThresholdInverted = EditorGUILayout.Slider(Styles.dilationValidity, dilationValidityThresholdInverted, 0f, 0.95f);
-            dilationValidityThreshold.floatValue = Mathf.Max(0.05f, 1.0f - dilationValidityThresholdInverted);
-            dilationIterations.intValue = EditorGUILayout.IntSlider(Styles.dilationIterationCount, dilationIterations.intValue, 1, 5);
-            dilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle(Styles.dilationSquaredDistanceWeighting, dilationInvSquaredWeight.boolValue);
-            EditorGUI.EndDisabledGroup();
-            EditorGUI.indentLevel--;
-
-            if (Unsupported.IsDeveloperMode())
+            using (new EditorGUI.DisabledScope(!enableDilation.boolValue))
             {
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
+                var maxDilationSampleDistance = dilationSettings.FindPropertyRelative("dilationDistance");
+                var dilationValidityThreshold = dilationSettings.FindPropertyRelative("dilationValidityThreshold");
+                float dilationValidityThresholdInverted = 1f - dilationValidityThreshold.floatValue;
+                var dilationIterations = dilationSettings.FindPropertyRelative("dilationIterations");
+                var dilationInvSquaredWeight = dilationSettings.FindPropertyRelative("squaredDistWeighting");
+
+                maxDilationSampleDistance.floatValue = Mathf.Max(EditorGUILayout.FloatField(Styles.dilationDistance, maxDilationSampleDistance.floatValue), 0);
+                dilationValidityThresholdInverted = EditorGUILayout.Slider(Styles.dilationValidity, dilationValidityThresholdInverted, 0f, 0.95f);
+                dilationValidityThreshold.floatValue = Mathf.Max(0.05f, 1.0f - dilationValidityThresholdInverted);
+                dilationIterations.intValue = EditorGUILayout.IntSlider(Styles.dilationIterationCount, dilationIterations.intValue, 1, 5);
+                dilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle(Styles.dilationSquaredDistanceWeighting, dilationInvSquaredWeight.boolValue);
+
+                if (Unsupported.IsDeveloperMode())
                 {
-                    ProbeGIBaking.RevertDilation();
-                    ProbeGIBaking.PerformDilation();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.Space(15 * EditorGUI.indentLevel, false);
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh Dilation"), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RevertDilation();
+                        ProbeGIBaking.PerformDilation();
+                    }
+                    GUILayout.EndHorizontal();
                 }
             }
         }
 
         void DrawVirtualOffsetSettings(SerializedProperty virtualOffsetSettings)
         {
-            using (new EditorGUI.IndentLevelScope())
+            var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
+            EditorGUILayout.PropertyField(enableVirtualOffset, Styles.useVirtualOffset);
+
+            using (new EditorGUI.DisabledScope(!enableVirtualOffset.boolValue))
             {
-                var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
-                EditorGUILayout.PropertyField(enableVirtualOffset, Styles.useVirtualOffset);
+                var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
+                var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
+                var virtualOffsetRayOriginBias = virtualOffsetSettings.FindPropertyRelative("rayOriginBias");
+                var virtualOffsetMaxHitsPerRay = virtualOffsetSettings.FindPropertyRelative("maxHitsPerRay");
+                var virtualOffsetCollisionMask = virtualOffsetSettings.FindPropertyRelative("collisionMask");
 
-                using (new EditorGUI.DisabledScope(!enableVirtualOffset.boolValue))
+                EditorGUILayout.PropertyField(virtualOffsetGeometrySearchMultiplier, Styles.virtualOffsetSearchMultiplier);
+                EditorGUILayout.PropertyField(virtualOffsetBiasOutOfGeometry, Styles.virtualOffsetBiasOutGeometry);
+                EditorGUILayout.PropertyField(virtualOffsetRayOriginBias, Styles.virtualOffsetRayOriginBias);
+                EditorGUILayout.PropertyField(virtualOffsetMaxHitsPerRay, Styles.virtualOffsetMaxHitsPerRay);
+                EditorGUILayout.PropertyField(virtualOffsetCollisionMask, Styles.virtualOffsetCollisionMask);
+
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.Space(15 * EditorGUI.indentLevel, false);
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh Virtual Offset Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data."), Styles.voButtonStyle))
                 {
-                    EditorGUILayout.LabelField(Styles.advanced);
-                    {
-                        using (new EditorGUI.IndentLevelScope())
-                        {
-                            var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
-                            var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
-                            var virtualOffsetRayOriginBias = virtualOffsetSettings.FindPropertyRelative("rayOriginBias");
-                            var virtualOffsetMaxHitsPerRay = virtualOffsetSettings.FindPropertyRelative("maxHitsPerRay");
-                            var virtualOffsetCollisionMask = virtualOffsetSettings.FindPropertyRelative("collisionMask");
-
-                            EditorGUILayout.PropertyField(virtualOffsetGeometrySearchMultiplier, Styles.virtualOffsetSearchMultiplier);
-                            EditorGUILayout.PropertyField(virtualOffsetBiasOutOfGeometry, Styles.virtualOffsetBiasOutGeometry);
-                            EditorGUILayout.PropertyField(virtualOffsetRayOriginBias, Styles.virtualOffsetRayOriginBias);
-                            EditorGUILayout.PropertyField(virtualOffsetMaxHitsPerRay, Styles.virtualOffsetMaxHitsPerRay);
-                            EditorGUILayout.PropertyField(virtualOffsetCollisionMask, Styles.virtualOffsetCollisionMask);
-                        }
-                    }
-
-                    Styles.voButtonStyle.margin.left = 16 * (EditorGUI.indentLevel + 1);
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Regenerate virtual offset for Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data."), Styles.voButtonStyle))
-                    {
-                        ProbeGIBaking.RecomputeVOForDebugOnly();
-                    }
+                    ProbeGIBaking.RecomputeVOForDebugOnly();
                 }
+                GUILayout.EndHorizontal();
             }
         }
     }

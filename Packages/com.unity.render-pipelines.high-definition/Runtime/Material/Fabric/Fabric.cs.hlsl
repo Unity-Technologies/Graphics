@@ -5,13 +5,6 @@
 #ifndef FABRIC_CS_HLSL
 #define FABRIC_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Fabric+MaterialFeatureFlags:  static fields
-//
-#define MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL (1)
-#define MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING (2)
-#define MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION (4)
-
-//
 // UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData:  static fields
 //
 #define DEBUGVIEW_FABRIC_SURFACEDATA_MATERIAL_FEATURES (1300)
@@ -30,6 +23,13 @@
 #define DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS (1313)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT (1314)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY (1315)
+
+//
+// UnityEngine.Rendering.HighDefinition.Fabric+MaterialFeatureFlags:  static fields
+//
+#define MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL (1)
+#define MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING (2)
+#define MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.Fabric+BSDFData:  static fields

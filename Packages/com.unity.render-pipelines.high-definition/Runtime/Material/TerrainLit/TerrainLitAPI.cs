@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 receiveSSR = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;
             else
                 receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetFloat(kReceivesSSR) != 0 : false;
-            BaseLitAPI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             // TODO: planar/triplannar support
             //SetupLayersMappingKeywords(material);

@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => shadows != Color.grey || highlights != Color.grey;
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }
 }

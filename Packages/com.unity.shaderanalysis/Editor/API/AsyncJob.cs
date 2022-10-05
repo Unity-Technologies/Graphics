@@ -97,5 +97,10 @@ namespace UnityEditor.ShaderAnalysis
             Internal_Cancel();
             return true;
         }
+
+        internal void Fail()
+        {
+            Progress.Finish(m_TaskId, Progress.Status.Failed);
+        }
     }
 }

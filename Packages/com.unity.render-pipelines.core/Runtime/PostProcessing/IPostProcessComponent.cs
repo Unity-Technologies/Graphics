@@ -1,4 +1,6 @@
-namespace UnityEngine.Rendering.HighDefinition
+using System;
+
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Implement this interface on every post process volumes
@@ -9,13 +11,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Tells if the post process needs to be rendered or not.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
-        bool IsActive() => true;
+        bool IsActive();
 
         /// <summary>
-        /// Tells if the post process needs to be rendered or not.
+        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
         /// </summary>
-        /// <param name="hdCamera">The current camera that renders your post processing effect.</param>
-        /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
-        bool IsActive(HDCamera hdCamera) => IsActive();
+        /// <returns>True if it can run on-tile, otherwise false.</returns>
+        [Obsolete("Unused #from(2023.1)", false)]
+        bool IsTileCompatible() => false;
     }
 }

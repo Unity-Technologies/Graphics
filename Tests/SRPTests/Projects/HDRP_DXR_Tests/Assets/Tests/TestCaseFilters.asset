@@ -102,3 +102,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: issue with alpha?
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9f38d7cbc64ad534485db5107427e269, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Fail on Yamato

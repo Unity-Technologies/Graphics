@@ -1,28 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-
-namespace UnityEngine.Rendering.Universal
-{
-    /// <summary>
-    ///  Implement this interface on every post process volumes
-    /// </summary>
-    public interface IPostProcessComponent
-    {
-        /// <summary>
-        /// Tells if the post process needs to be rendered or not.
-        /// </summary>
-        /// <returns>True if the component is active, otherwise false.</returns>
-        bool IsActive();
-
-        /// <summary>
-        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
-        /// </summary>
-        /// <returns>True if it can run on-tile, otherwise false.</returns>
-        bool IsTileCompatible();
-    }
-}
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -897,12 +877,14 @@ namespace UnityEngine.Rendering.Universal
                 true,
                 camera.transform.position,
                 gpuVP,
-                cmd, source,
+                cmd,
+                false, false, null, null,
+                source,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
                 ShaderConstants._FlareOcclusionRemapTex, ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
-                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
-                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
-                false, false);
+                0, 0,
+                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
+                false);
         }
 
         #endregion

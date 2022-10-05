@@ -4,25 +4,29 @@
 
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
-// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
 // PackingRules = Exact
-struct WaterSurfaceProfile
-{
-    float3 waterAmbientProbe;
-    float tipScatteringHeight;
-    float bodyScatteringHeight;
-    float maxRefractionDistance;
-    uint renderingLayers;
-    int cameraUnderWater;
-    float3 transparencyColor;
-    float outScatteringCoefficient;
-    float3 scatteringColor;
-    float envPerceptualRoughness;
-    float smoothnessFadeStart;
-    float smoothnessFadeDistance;
-    float roughnessEndValue;
-    float padding;
-};
+CBUFFER_START(ShaderVariablesWaterRendering)
+    float2 _GridSize;
+    float2 _WaterRotation;
+    float4 _PatchOffset;
+    uint _WaterLODCount;
+    uint _NumWaterPatches;
+    float _FoamIntensity;
+    float _CausticsIntensity;
+    float2 _WaterMaskScale;
+    float2 _WaterMaskOffset;
+    float2 _FoamMaskScale;
+    float2 _FoamMaskOffset;
+    float _CausticsPlaneBlendDistance;
+    int _WaterCausticsEnabled;
+    uint _WaterRenderingLayer;
+    int _InfiniteSurface;
+    float _WaterMaxTessellationFactor;
+    float _WaterTessellationFadeStart;
+    float _WaterTessellationFadeRange;
+    int _CameraInUnderwaterRegion;
+CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
 // PackingRules = Exact
@@ -74,29 +78,25 @@ CBUFFER_START(ShaderVariablesWater)
     int _CausticsBandIndex;
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
+// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
 // PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterRendering)
-    float2 _GridSize;
-    float2 _WaterRotation;
-    float4 _PatchOffset;
-    uint _WaterLODCount;
-    uint _NumWaterPatches;
-    float _FoamIntensity;
-    float _CausticsIntensity;
-    float2 _WaterMaskScale;
-    float2 _WaterMaskOffset;
-    float2 _FoamMaskScale;
-    float2 _FoamMaskOffset;
-    float _CausticsPlaneBlendDistance;
-    int _WaterCausticsEnabled;
-    uint _WaterRenderingLayer;
-    int _InfiniteSurface;
-    float _WaterMaxTessellationFactor;
-    float _WaterTessellationFadeStart;
-    float _WaterTessellationFadeRange;
-    int _CameraInUnderwaterRegion;
-CBUFFER_END
+struct WaterSurfaceProfile
+{
+    float3 waterAmbientProbe;
+    float tipScatteringHeight;
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    uint renderingLayers;
+    int cameraUnderWater;
+    float3 transparencyColor;
+    float outScatteringCoefficient;
+    float3 scatteringColor;
+    float envPerceptualRoughness;
+    float smoothnessFadeStart;
+    float smoothnessFadeDistance;
+    float roughnessEndValue;
+    float padding;
+};
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesUnderWater
 // PackingRules = Exact
