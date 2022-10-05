@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
         private static VFXCoordinateSpace[] available_Space = { VFXCoordinateSpace.Local, VFXCoordinateSpace.World };
 #pragma warning restore 0414
 
-        [UnityTest]
+        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14714")]
         public IEnumerator CreateAssetAndComponent_Space_Bounds([ValueSource("available_Space")] object systemSpace, [ValueSource("available_Space")] object boundSpace)
         {
             var objectPosition = new Vector3(0.123f, 0.0f, 0.0f);

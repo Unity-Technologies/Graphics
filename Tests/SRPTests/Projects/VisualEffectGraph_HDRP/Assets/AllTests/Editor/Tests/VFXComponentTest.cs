@@ -1392,7 +1392,7 @@ namespace UnityEditor.VFX.Test
         private static VFXNullableTest[] nullableTestCase = s_supportedValueType.Where(o => IsTypeNullable(VFXValue.TypeToType(o))).Select(o => new VFXNullableTest() { type = o }).ToArray();
 #pragma warning restore 0414
 
-        [UnityTest]
+        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14622")]
         public IEnumerator Check_SetNullable_Throw_An_Exception_While_Using_Null([ValueSource("nullableTestCase")] VFXNullableTest valueType)
         {
 
