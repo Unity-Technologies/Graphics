@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
                 else if (m_VariableNodeRemovalInfo.TryGetValue(guid, out var variableNodeRemovalInfo))
                 {
-                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(nodeRemovalInfo.graphDataName, true);
+                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(variableNodeRemovalInfo.graphDataName, true);
 
                     graphModel.GraphHandler.RemoveReferenceNode(variableNodeRemovalInfo.graphDataName,
                         variableNodeRemovalInfo.declarationContextNodeName,
