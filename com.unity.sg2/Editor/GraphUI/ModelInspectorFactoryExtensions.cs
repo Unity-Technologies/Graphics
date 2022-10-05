@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    [GraphElementsExtensionMethodsCache(typeof(ModelInspectorView))]
+    [ModelInspectorCreateSectionMethodsCache(typeof(ModelInspectorView))]
     static class ModelInspectorViewFactoryExtensions
     {
         public static MultipleModelsView CreateVariableDeclarationInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataVariableDeclarationModel> models)
