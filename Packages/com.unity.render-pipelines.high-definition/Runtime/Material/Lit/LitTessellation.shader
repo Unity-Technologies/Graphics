@@ -1289,6 +1289,11 @@ Shader "HDRP/LitTessellation"
             #undef TESSELLATION_ON
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+
+            #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+                #define SENSORSDK_ENABLE_LIDAR
+            #endif
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
