@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                 while (true)
                 {
                     var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery);
+                    var index = targetCopy.IndexOf(targetQuery, StringComparison.Ordinal);
                     if (index == -1)
                     {
                         break;
@@ -296,7 +296,7 @@ namespace UnityEditor.VFX
 
             int currentPos = -1;
             int builderOffset = 0;
-            while ((currentPos = source.IndexOf("${")) != -1)
+            while ((currentPos = source.IndexOf("${", StringComparison.Ordinal)) != -1)
             {
                 int endPos = source.IndexOf('}', currentPos);
                 if (endPos == -1)
