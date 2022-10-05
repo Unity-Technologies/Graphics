@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         Shader.SetGlobalFloat("_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
                         Shader.SetGlobalVector("_ProbeVolumeResolution", PackProbeVolumeResolution(data.resolution));
-                        Shader.SetGlobalVector("_ProbeVolumeBlockParams", PackProbeVolumeBlockParams(data.resolution));
+                        Shader.SetGlobalVector("_ProbeVolumeBlockResolution", PackProbeVolumeBlockResolution(data.resolution));
                         Shader.SetGlobalVector("_ProbeVolumeDGIResolutionInverse", data.resolutionInverse);
                         Shader.SetGlobalVector( "_ProbeVolumeDGIBoundsRight", obb.right);
                         Shader.SetGlobalVector( "_ProbeVolumeDGIBoundsUp", obb.up);

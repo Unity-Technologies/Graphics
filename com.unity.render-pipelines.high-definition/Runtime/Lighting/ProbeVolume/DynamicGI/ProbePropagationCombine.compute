@@ -317,13 +317,16 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
-void CombinePropagationAxis(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
+void CombinePropagationAxis(
+    uint3 groupId : SV_GroupID,
+    uint3 threadId : SV_GroupThreadID,
+    uint threadIndex : SV_GroupIndex)
 {
     const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
 
     if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
     {
-        const int paddedProbeIndex = GroupAndThreadToPaddedProbeIndex(groupId, threadId);
+        const int paddedProbeIndex = GroupAndIndexToPaddedProbeIndex(groupId, threadIndex);
 
 #ifndef DIRTY_FLAGS_DISABLED
         if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))

@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
 float4 _ProbeVolumeResolution;
-float4 _ProbeVolumeBlockParams;
+float4 _ProbeVolumeBlockResolution;
 
 #define BLOCK_SIZE 4
 
@@ -83,9 +83,9 @@ bool IsBoundaryProbe(uint3 probeCoordinate)
 
 uint3 ProbeIndexToProbeCoordinates(uint probeIndex)
 {
-    const uint4 resolution = (uint4)_ProbeVolumeResolution;
-    uint probeZ = probeIndex / resolution.w;
-    probeIndex -= probeZ * resolution.w;
+    const uint2 resolution = (uint2)_ProbeVolumeResolution.xy;
+    uint probeZ = probeIndex / (resolution.x * resolution.y);
+    probeIndex -= probeZ * (resolution.x * resolution.y);
 
     uint probeY = probeIndex / resolution.x;
     uint probeX = probeIndex % resolution.x;
@@ -93,16 +93,23 @@ uint3 ProbeIndexToProbeCoordinates(uint probeIndex)
     return uint3(probeX, probeY, probeZ);
 }
 
-uint CoordinateToIndex(uint3 coordinate, uint lengthX, uint lengthXY)
+uint CoordinateToIndex(uint3 coordinate, uint2 resolution)
 {
-    return coordinate.z * lengthXY + coordinate.y * lengthX + coordinate.x;
+    return coordinate.z * (resolution.x * resolution.y) + coordinate.y * resolution.x + coordinate.x;
 }
 
 uint GroupAndThreadToPaddedProbeIndex(uint3 group, uint3 thread)
 {
-    const uint blockIndex = CoordinateToIndex(group, (uint)_ProbeVolumeBlockParams.x, (uint)_ProbeVolumeBlockParams.y);
+    const uint blockIndex = CoordinateToIndex(group, (uint2)_ProbeVolumeBlockResolution.xy);
 
-    return blockIndex * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE) + CoordinateToIndex(thread, BLOCK_SIZE, BLOCK_SIZE * BLOCK_SIZE);
+    return blockIndex * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE) + CoordinateToIndex(thread, BLOCK_SIZE);
+}
+
+uint GroupAndIndexToPaddedProbeIndex(uint3 group, uint threadIndex)
+{
+    const uint blockIndex = CoordinateToIndex(group, (uint2)_ProbeVolumeBlockResolution.xy);
+
+    return blockIndex * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE) + threadIndex;
 }
 
 uint ProbeCoordinateToPaddedProbeIndex(uint3 probeCoordinate)
@@ -115,17 +122,17 @@ uint ProbeCoordinateToPaddedProbeIndex(uint3 probeCoordinate)
 
 uint ProbeCoordinateToProbeIndex(uint3 probeCoordinate)
 {
-    return CoordinateToIndex(probeCoordinate, (uint)_ProbeVolumeResolution.x, (uint)_ProbeVolumeResolution.w);
+    return CoordinateToIndex(probeCoordinate, (uint2)_ProbeVolumeResolution.xy);
 }
 
 uint PaddedProbeCount()
 {
-    return (uint)_ProbeVolumeBlockParams.z;
+    return (uint)_ProbeVolumeBlockResolution.w * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE);
 }
 
 uint ProbeCount()
 {
-    return (uint)_ProbeVolumeBlockParams.w;
+    return (uint)_ProbeVolumeResolution.w;
 }
 
 #endif // endof PROBE_PROPAGATION_GLOBALS

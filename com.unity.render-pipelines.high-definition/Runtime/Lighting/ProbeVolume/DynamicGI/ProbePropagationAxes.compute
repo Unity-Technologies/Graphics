@@ -275,21 +275,42 @@ RADIANCE GetPreviousAxisRadiance(int index)
 // Our ZH Fit produces results that are closer to the monte carlo naive projection ground turth than the sample peaks approach does. Both approaches are reasonable however.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_ZH_FIT
 
+#ifndef DIRTY_FLAGS_DISABLED
+groupshared int2 dirtyFlags;
+#endif
+
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
-void PropagateLight(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
+void PropagateLight(
+    uint3 groupId : SV_GroupID,
+    uint3 threadId : SV_GroupThreadID,
+    uint threadIndex : SV_GroupIndex)
 {
     const uint4 resolution = (uint4)_ProbeVolumeResolution;
-    const uint blockCountZ = (resolution.z + (BLOCK_SIZE + 1)) / BLOCK_SIZE;
-    const uint axisIndex = groupId.z / blockCountZ;
-    const uint3 probeGroup = groupId - uint3(0, 0, axisIndex * blockCountZ);
-    const uint3 probeCoordinate = probeGroup * BLOCK_SIZE + threadId;
-
-    if (all(probeCoordinate < (uint3)resolution))
-    {
-        const uint paddedProbeIndex = GroupAndThreadToPaddedProbeIndex(probeGroup, threadId);
-        const uint paddedIndex = paddedProbeIndex + axisIndex * PaddedProbeCount();
+    const uint4 blockResolution = (uint4)_ProbeVolumeBlockResolution;
+    const uint axisIndex = groupId.z / blockResolution.z;
+    const uint3 probeGroupId = groupId - uint3(0, 0, axisIndex * blockResolution.z);
+    const uint3 probeCoordinate = probeGroupId * BLOCK_SIZE + threadId;
+    const uint probeGroupIndex = CoordinateToIndex(probeGroupId, blockResolution.xy);
+    const uint paddedIndex = GroupAndIndexToPaddedProbeIndex(groupId, threadIndex);
 
 #ifndef DIRTY_FLAGS_DISABLED
+    if (threadIndex < 2)
+        dirtyFlags[threadIndex] = _ProbeVolumeDirtyFlags[probeGroupIndex * 2 + threadIndex];
+    GroupMemoryBarrierWithGroupSync();
+
+    if (all(dirtyFlags == 0))
+    {
+        if (all(probeCoordinate < resolution.xyz))
+            _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
+
+        return;
+    }
+#endif
+
+    if (all(probeCoordinate < resolution.xyz))
+    {
+#ifndef DIRTY_FLAGS_DISABLED
+        const uint paddedProbeIndex = paddedIndex - axisIndex * PaddedProbeCount();
         if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))
         {
             _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
