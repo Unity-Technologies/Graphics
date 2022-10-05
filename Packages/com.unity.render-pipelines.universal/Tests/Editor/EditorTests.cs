@@ -183,4 +183,20 @@ class EditorTests
         ScriptableObject.DestroyImmediate(asset);
         ScriptableObject.DestroyImmediate(data);
     }
+
+    // When working with SpeedTree v7 assets, UniversalSpeedTree8Upgrader should not throw exception
+    [Test]
+    public void UniversalSpeedTree8Upgrader_ShouldntThrowExceptionWhenImportingSpeedTree7Assets()
+    {
+        const string STv7AssetName = "EuropeanBeech_Desktop.spm";
+        const string STv7AssetPath = "Assets/CommonAssets/SpeedTree/SpeedTreeV7/EU_Beech/" + STv7AssetName;
+
+        // Ensure this is not thrown:
+        // NullReferenceException: Object reference not set to an instance of an object
+        //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.GetWindQuality
+        //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.UpgradeWindQuality
+        //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer
+        //  UnityEditor.Rendering.Universal.UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer 
+        Assert.DoesNotThrow(() => AssetDatabase.ImportAsset(STv7AssetPath));
+    }
 }
