@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
@@ -184,6 +183,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnGeometryChangedEvent(GeometryChangedEvent evt)
         {
+            // When the overlay containing this view is hidden, our size becomes 0. No need to resize in this case,
+            // because the preview won't be shown and can't have a size of 0 regardless.
+            if (evt.newRect == Rect.zero) return;
+
             var targetWidth = new Length(evt.newRect.width, LengthUnit.Pixel);
             var targetHeight = new Length(evt.newRect.height, LengthUnit.Pixel);
 

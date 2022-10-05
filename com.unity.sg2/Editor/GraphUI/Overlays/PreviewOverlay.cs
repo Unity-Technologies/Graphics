@@ -21,6 +21,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (window == null || window.GraphTool == null)
                 return emptyPlaceholder;
 
+            // Panel content gets rebuilt on show/hide and dock/undock. By reusing our existing preview view, we
+            // avoid an issue where the preview, until asked to update, goes blank.
+            if (m_MainPreviewView != null)
+                return m_MainPreviewView;
+
             m_MainPreviewView = new MainPreviewView(window.GraphTool.Dispatcher);
             m_MainPreviewView.AddToClassList("MainPreviewView");
             m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
