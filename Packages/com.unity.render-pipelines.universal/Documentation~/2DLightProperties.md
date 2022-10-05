@@ -31,7 +31,7 @@ The following are the common properties used by the different Light types.
 | __[Intensity](#intensity)__                                  | Enter the desired brightness value of the Light. The default value is 1. |
 | __[Overlap Operation](#overlap-operation)__        | Select the overlap operation used by this light The operations available are __Additive__, and __Alpha Blend__. |
 | __Target Sorting Layers__                                    | Select the sorting layers that this Light targets and affects. |
-| __[Blend Style](LightBlendStyles.md)__                       | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererConfig). |
+| __[Blend Style](LightBlendStyles.md)__                       | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererData_overview.md). |
 | __[Light Order](#light-order)__ (unavailable for __Global Lights__) | Enter a value here to specify the rendering order of this Light relative to other Lights on the same sorting layer(s). Lights with lower values are rendered first, and negative values are valid. |
 | __Shadow Strength__                                         | Use the slider to control the amount of light that __Shadow Caster 2Ds__ block when they obscure this Light. The value scales from 0 (no light is blocked) to 1 (all light is blocked). |
 | __Volumtric Intensity__                                           | Use the slider to select the opacity of the volumetric lighting. The value scales from 0 (transparent) to 1 (opaque). |

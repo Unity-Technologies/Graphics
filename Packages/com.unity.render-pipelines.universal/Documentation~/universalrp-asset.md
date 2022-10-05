@@ -24,7 +24,7 @@ In the URP, you can configure settings for:
 
 Unity does not show certain advanced properties in the URP Asset by default. To see all available properties:
 
-* In the [URP Asset](../universalrp-asset.md), in any section, click the vertical ellipsis icon (&vellip;) and select **Show Additional Properties**
+* In the URP Asset, in any section, click the vertical ellipsis icon (&vellip;) and select **Show Additional Properties**
 
     ![Show Additional Properties](Images/settings-general/show-additional-properties.png)
 
@@ -71,7 +71,7 @@ These settings control the quality level of the URP. This is where you can make 
 
 These settings affect the lights in your Scene.
 
-If you disable some of these settings, the relevant [keywords](shader-stripping.md) are [stripped from the Shader variables](shading-model.md#shaderStripping). If there are settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
+If you disable some of these settings, the relevant [keywords](https://docs.unity3d.com/Manual/shader-keywords) are [stripped from the Shader variables](shader-stripping.md). If there are settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
