@@ -218,11 +218,14 @@ namespace UnityEditor.ShaderGraph
 
         public void OnAfterDeserialize() { }
 
-        public void OnEnable()
+        public void OnEnable(bool reconcretize = true)
         {
             var reg = ShaderGraphRegistry.Instance.Registry;
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
-            m_graph.ReconcretizeAll();
+            if (reconcretize)
+            {
+                m_graph.ReconcretizeAll();
+            }
         }
     }
 
