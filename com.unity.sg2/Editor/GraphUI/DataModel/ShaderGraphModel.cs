@@ -174,15 +174,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void OnEnable()
         {
-            graphHandlerBox.OnEnable();
+            graphHandlerBox.OnEnable(false);
+
             targetSettingsBox.OnEnable();
-            base.OnEnable();
             foreach (var target in Targets)
             {
                 // at most there is only one target right now, so this solution is not robust.
                 InitializeContextFromTarget(target.value);
             }
             GraphHandler.ReconcretizeAll();
+            base.OnEnable();
             mainPreviewData = new(Guid.ToString());
             m_DefaultContextNode = GetMainContextNode();
         }
