@@ -46,7 +46,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             m_layerList = new LayerList(this);
             m_flatStructureLookup = new Dictionary<ElementID, Element>(new ElementIDComparer());
             m_flatStructure = new Element<int>("", -1, this);
-            m_metadata = new MetadataCollection();
+            m_metadata = new MetadataCollection(this);
             AddDefaultLayers();
         }
 
@@ -553,7 +553,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         public virtual (string layer, string metadata) CopyElementCollection(IEnumerable<DataReader> readers)
         {
             var serializedLayer = new SerializedLayerData("CopyLayer", new List<SerializedElementData>());
-            var meta = new MetadataCollection();
+            var meta = new MetadataCollection(this);
             foreach (var reader in readers)
             {
                 var elem = reader.Element;
@@ -573,7 +573,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             var pasteLayer = new SerializedLayerData();
             EditorJsonUtility.FromJsonOverwrite(serializedLayer, pasteLayer);
 
-            var meta = new MetadataCollection();
+            var meta = new MetadataCollection(this);
             EditorJsonUtility.FromJsonOverwrite(serializedMetadata, meta);
 
             var root = m_layerList.GetLayerRoot(layerToPasteTo);
@@ -759,7 +759,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        private int GetHierarchyValue(Element element)
+        internal int GetHierarchyValue(Element element)
         {
             if(element.owner != this)
             {
