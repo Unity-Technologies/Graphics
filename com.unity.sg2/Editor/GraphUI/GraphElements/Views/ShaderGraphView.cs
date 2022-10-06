@@ -103,6 +103,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
         }
 
+        /// <inheritdoc />
+        protected override void UnregisterObservers()
+        {
+            base.UnregisterObservers();
+
+            if (GraphTool?.ObserverManager == null)
+                return;
+
+            if (m_ShaderGraphLoadedObserver != null)
+            {
+                GraphTool?.ObserverManager?.UnregisterObserver(m_ShaderGraphLoadedObserver);
+                m_ShaderGraphLoadedObserver = null;
+            }
+
+            if (m_GraphModelStateObserver != null)
+            {
+                GraphTool?.ObserverManager?.UnregisterObserver(m_GraphModelStateObserver);
+                m_GraphModelStateObserver = null;
+            }
+
+            if (m_PreviewStateObserver != null)
+            {
+                GraphTool?.ObserverManager?.UnregisterObserver(m_PreviewStateObserver);
+                m_PreviewStateObserver = null;
+            }
+        }
+
         public void HandlePreviewUpdates(IEnumerable<SerializableGUID> changedModels)
         {
             if (!changedModels.Any())
