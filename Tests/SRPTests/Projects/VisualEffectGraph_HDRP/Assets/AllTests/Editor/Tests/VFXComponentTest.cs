@@ -1395,7 +1395,6 @@ namespace UnityEditor.VFX.Test
         [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14622")]
         public IEnumerator Check_SetNullable_Throw_An_Exception_While_Using_Null([ValueSource("nullableTestCase")] VFXNullableTest valueType)
         {
-
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             var vfx = m_mainObject.AddComponent<VisualEffect>();

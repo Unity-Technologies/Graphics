@@ -523,6 +523,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        [Ignore("Disabling instability https://jira.unity3d.com/browse/UUM-16189")]
         public IEnumerator Check_VFXNodeProvider_Listing_SkinnedMeshSampling_From_SkinnedMeshRenderer()
         {
             var vfxController = StartEditTestAsset();
