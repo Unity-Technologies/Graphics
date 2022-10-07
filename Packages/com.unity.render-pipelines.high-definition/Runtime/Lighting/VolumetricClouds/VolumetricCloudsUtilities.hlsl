@@ -27,8 +27,6 @@
 #define MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
 // Maximal size of a light step
 #define LIGHT_STEP_MAXIMAL_SIZE 1000.0f
-// Threshold at which the clouds are considered inexistant (Found experimentally)
-#define TRANSMITTANCE_DISCARD_THRESHOLD 0.992
 
 // Just define a flag when the other is not defined as it is easier for the logic
 #if !defined(LOCAL_VOLUMETRIC_CLOUDS)
