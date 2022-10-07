@@ -600,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return true;
 
             // When sky is not set, ambient probe is always valid  (black probe)
-            if (visualEnv.skyType == 0) // None
+            if (visualEnv.skyType.value == 0) // None
                 return true;
 
             if (hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic && hdCamera.lightingSky != null &&

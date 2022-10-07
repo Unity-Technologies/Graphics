@@ -57,7 +57,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the cubemap face bit is set, false otherwise.</returns>
         public static bool HasCubeFace(this ProbeRenderSteps steps, CubemapFace face)
         {
-            return steps.HasFlag(ProbeRenderStepsExt.FromCubeFace(face));
+            var flags = FromCubeFace(face);
+            return flags == 0 || (steps & flags) == flags; // Don't use Enum.HasFlag because it generates GCAlloc.
         }
 
         /// <summary>

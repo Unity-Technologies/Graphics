@@ -51,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(ProbeCameraCache<K>));
 
+            if (m_Cache.Count == 0)
+                return;
+
             // In case cameraKeysCache length does not matches the current cache length, we resize it:
             if (m_TempCameraKeysCache.Length != m_Cache.Count)
                 m_TempCameraKeysCache = new K[m_Cache.Count];

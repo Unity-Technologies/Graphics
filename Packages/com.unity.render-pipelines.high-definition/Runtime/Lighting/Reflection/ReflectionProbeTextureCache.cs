@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
             convolvedTextureTemp.useMipMap = true;
             convolvedTextureTemp.autoGenerateMips = false;
             convolvedTextureTemp.anisoLevel = 0;
-            convolvedTextureTemp.name = CoreUtils.GetRenderTargetAutoName(texture.width, texture.height, 0, m_AtlasFormat, "ConvolvedReflectionProbeTemp", mips: true);
+            convolvedTextureTemp.name = "ConvolvedReflectionProbeTemp";
             convolvedTextureTemp.Create();
 
             filter.FilterCubemap(cmd, texture, convolvedTextureTemp);

@@ -262,6 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
+        ObjectPool<HDCullingResults> m_CullingResultsPool = new ObjectPool<HDCullingResults>((cullResult) => cullResult.Reset(), null, false);
 
         // RENDER GRAPH
         RenderGraph m_RenderGraph = new RenderGraph("HDRP");
@@ -1154,12 +1155,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        struct HDCullingResults
+        class HDCullingResults
         {
             public CullingResults cullingResults;
             public CullingResults uiCullingResults;
             public CullingResults? customPassCullingResults;
-            public HDProbeCullingResults hdProbeCullingResults;
+            public HDProbeCullingResults hdProbeCullingResults = new HDProbeCullingResults();
             public DecalSystem.CullResult decalCullResults;
             // TODO: DecalCullResults
 
@@ -1189,8 +1190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 out var hdCamera,
                 out var cullingParameters);
 
-            var cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
-            cullingResults.Reset();
+            var cullingResults = m_CullingResultsPool.Get();
 
             // Note: In case of a custom render, we have false here and 'TryCull' is not executed
             bool cullingResultIsShared = false;
@@ -1213,7 +1213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         if (camera == req.hdCamera.camera && req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
                         {
-                            UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
+                            m_CullingResultsPool.Release(cullingResults);
                             cullingResults = req.cullingResults;
                             cullingResultIsShared = true;
                             needCulling = false;
@@ -1249,7 +1249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Submit render context and free pooled resources for this request
                 renderContext.Submit();
-                UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
+                m_CullingResultsPool.Release(cullingResults);
                 UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                 return false;
             }
@@ -1449,7 +1449,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
                 additionalCameraData.clearDepth = true;
 
-                var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
+                var _cullingResults = m_CullingResultsPool.Get();
                 _cullingResults.Reset();
 
                 if (!(TryCalculateFrameParameters(
@@ -1466,7 +1466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ))
                 {
                     // Skip request and free resources
-                    UnsafeGenericPool<HDCullingResults>.Release(_cullingResults);
+                    m_CullingResultsPool.Release(_cullingResults);
                     skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
                     continue;
                 }
@@ -1608,6 +1608,8 @@ namespace UnityEngine.Rendering.HighDefinition
             visibleProbe.RepeatRenderSteps(skippedRenderSteps);
         }
 
+        static List<(int index, float weight)> s_TempGenerateProbeRenderRequestsList = new List<(int index, float weight)>();
+
         void GenerateProbeRenderRequests(
             Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible,
             List<RenderRequest> renderRequests,
@@ -1646,10 +1648,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var renderDatas = ListPool<HDProbe.RenderData>.Get();
 
+                        s_TempGenerateProbeRenderRequestsList.Clear();
+                        s_TempGenerateProbeRenderRequestsList.Add(visibility);
+
                         AddHDProbeRenderRequests(
                             visibleProbe,
                             viewerTransform,
-                            new List<(int index, float weight)> { visibility },
+                            s_TempGenerateProbeRenderRequestsList,
                             HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                             hdParentCamera,
                             visibleInRenderRequest.hdCamera.camera.fieldOfView,
@@ -1721,7 +1726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!renderRequest.cullingResultIsShared)
             {
                 renderRequest.cullingResults.decalCullResults?.Clear();
-                UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+                m_CullingResultsPool.Release(renderRequest.cullingResults);
             }
         }
 
@@ -2553,8 +2558,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe) && hdProbeCullState.cullingGroup != null)
                     HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
-                else
-                    cullingResults.hdProbeCullingResults = default;
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
