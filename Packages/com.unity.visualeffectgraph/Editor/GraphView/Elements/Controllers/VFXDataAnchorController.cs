@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
         Direction direction { get; }
     }
 
-    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable, IGizmoError
     {
         private VFXNodeController m_SourceNode;
         private int m_expressionHashCode;
