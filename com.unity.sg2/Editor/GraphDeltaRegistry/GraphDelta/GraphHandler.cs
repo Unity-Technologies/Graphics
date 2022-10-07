@@ -152,8 +152,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void ReconcretizeAll()
         {
-            Debug.Log(Environment.StackTrace);
-
             foreach(var name in GraphHandlerUtils.GetNodesTopologically(this))
             {
                 var node = GetNode(name);
