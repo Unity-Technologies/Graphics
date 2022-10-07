@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
-            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing);
+            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             var ppParams = PostProcessParams.Create();
