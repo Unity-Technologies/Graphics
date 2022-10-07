@@ -1265,7 +1265,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.lightingDebugSettings.showTonemapCurveAlongHistogramView;
 
                             bool centerAroundMiddleGrey = data.lightingDebugSettings.centerHistogramAroundMiddleGrey;
-                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, centerAroundMiddleGrey ? 1 : 0, 0));
+                            bool displayOverlay = data.lightingDebugSettings.displayOnSceneOverlay;
+                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, centerAroundMiddleGrey ? 1 : 0, displayOverlay ? 1 : 0));
                             if (drawTonemapCurve)
                             {
                                 if (tonemappingMode == TonemappingMode.Custom)

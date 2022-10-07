@@ -342,6 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool displayFinalImageHistogramAsRGB = false;
         /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
         public bool displayMaskOnly = false;
+        /// <summary>Whether to show the on scene overlay displaying pixels excluded by the exposure computation via histogram.</summary>
+        public bool displayOnSceneOverlay = true;
 
         /// <summary>HDR debug mode.</summary>
         public HDRDebugMode hdrDebugMode = HDRDebugMode.None;

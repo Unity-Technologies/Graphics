@@ -39,6 +39,7 @@ Shader "Hidden/HDRP/DebugExposure"
     #define _CenterAroundTargetExposure     _ExposureDebugParams.z
     #define _FinalImageHistogramRGB         _ExposureDebugParams.w
 
+    #define _HistoSceneOverlay              _ExposureDebugParams.w
 
     struct Attributes
     {
@@ -597,13 +598,16 @@ Shader "Hidden/HDRP/DebugExposure"
         float maxPercentileBin = 0;
         float percentile = ComputePercentile(uv, sum, minPercentileBin, maxPercentileBin);
 
-        if (percentile < _HistogramMinPercentile)
+        if (_HistoSceneOverlay)
         {
-            outputColor = (input.positionCS.x + input.positionCS.y) % 2 == 0 ? float3(0.0f, 0.0f, 1.0) : color*0.33;
-        }
-        if (percentile > _HistogramMaxPercentile)
-        {
-            outputColor = (input.positionCS.x + input.positionCS.y) % 2 == 0 ? float3(1.0, 0.0f, 0.0f) : color * 0.33;
+            if (percentile < _HistogramMinPercentile)
+            {
+                outputColor = (input.positionCS.x + input.positionCS.y) % 2 == 0 ? float3(0.0f, 0.0f, 1.0) : color * 0.33;
+            }
+            if (percentile > _HistogramMaxPercentile)
+            {
+                outputColor = (input.positionCS.x + input.positionCS.y) % 2 == 0 ? float3(1.0, 0.0f, 0.0f) : color * 0.33;
+            }
         }
 
         float histFrameHeight = 0.2 * _RTHandleScale.y;
