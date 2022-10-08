@@ -62,11 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            if (m_DeferredLights.GbufferAttachments != null)
-            {
-                foreach (var attachment in m_DeferredLights.GbufferAttachments)
-                    attachment?.Release();
-            }
+            m_DeferredLights.ReleaseGbufferResources();
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
