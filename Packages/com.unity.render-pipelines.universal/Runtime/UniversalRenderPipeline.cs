@@ -172,6 +172,16 @@ namespace UnityEngine.Rendering.Universal
         internal static RenderGraph s_RenderGraph;
         private static bool useRenderGraph;
 
+        // Reference to the asset associated with the pipeline.
+        // When a pipeline asset is switched in `GraphicsSettings`, the `UniversalRenderPipelineCore.asset` member
+        // becomes unreliable for the purpose of pipeline and renderer clean-up in the `Dispose` call from
+        // `RenderPipelineManager.CleanupRenderPipeline`.
+        // This field provides the correct reference for the purpose of cleaning up the renderers on this pipeline
+        // asset.
+        private readonly UniversalRenderPipelineAsset pipelineAsset;
+
+        public override string ToString() => pipelineAsset?.ToString();
+
         /// <summary>
         /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
@@ -179,6 +189,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="RenderPassEvent"/>
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
+            pipelineAsset = asset;
 #if UNITY_EDITOR
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
 #else
@@ -235,6 +246,8 @@ namespace UnityEngine.Rendering.Universal
             Blitter.Cleanup();
 
             base.Dispose(disposing);
+
+            pipelineAsset.DestroyRenderers();
 
             Shader.globalRenderPipeline = string.Empty;
 
