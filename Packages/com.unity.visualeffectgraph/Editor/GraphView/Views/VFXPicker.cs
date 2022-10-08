@@ -15,6 +15,14 @@ static class VFXPicker
 {
     internal static void Pick(VisualEffectAsset vfxAsset, Action<VisualEffect> selectHandler)
     {
+        #if UNITY_2022_2_OR_NEWER
+        var viewState = new SearchViewState(
+            SearchService.CreateContext(CreateSceneRefProvider(vfxAsset)),
+            (item, canceled) => SelectItem(item, canceled, selectHandler));
+        viewState.title = "Visual Effect";
+        viewState.flags |= SearchViewFlags.DisableInspectorPreview | SearchViewFlags.CompactView;
+        SearchService.ShowPicker(viewState);
+        #else
         var view = SearchService.ShowPicker(
             SearchService.CreateContext(CreateSceneRefProvider(vfxAsset)),
             (item, canceled) => SelectItem(item, canceled, selectHandler),
@@ -34,6 +42,7 @@ static class VFXPicker
             var flagsInfo = state.GetType().GetField("flags", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             flagsInfo?.SetValue(state, SearchViewFlags.DisableInspectorPreview);
         }
+        #endif
     }
 
     static void SelectItem(SearchItem item, bool canceled, Action<VisualEffect> selectHandler)
