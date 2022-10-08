@@ -78,19 +78,22 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         return;
     }
 
-    // Real the normal data for this pixel
-    NormalData normalData;
-    DecodeFromNormalBuffer(geometryCoords, normalData);
+    // Fetch the position of the current pixel
+    PositionInputs posInputs = GetPositionInput(geometryCoords, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Read the depth and velocity vectors
     float2 velocity;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, geometryCoords), velocity);
 
+    // Real the normal data for this pixel
+    NormalData normalData;
+    DecodeFromNormalBuffer(geometryCoords, normalData);
+
     // Compute the current and history UV coordinates
     float2 currentUV = (mainCoord + 0.5f) * _ScreenSize.zw;
 
     // Fetch the current and history values and apply the exposition to it.
-    float3 color = Fetch(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord) * GetCurrentExposureMultiplier();
     if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
@@ -98,8 +101,18 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         return;
     }
 
-    float2 historyUVUnscaled = currentUV - velocity;
-    float4 historyRaw = Fetch4(_HistoryBuffer, historyUVUnscaled, 0.0, _HistorySizeAndScale.zw);
+    // Compute the pixel coordinate for the history tapping
+    float2 historyUVUnscaled = posInputs.positionNDC - velocity;
+
+    #ifdef HALF_RESOLUTION
+    float2 historyTapCoord = (float2)((historyUVUnscaled * _HistorySizeAndScale.xy + 0.5) * 0.5);
+    float2 historyUV = historyTapCoord / _HistorySizeAndScale.xy * _HistorySizeAndScale.zw;
+    #else
+    float2 historyTapCoord = (float2)(historyUVUnscaled * _HistorySizeAndScale.xy);
+    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
+    #endif
+    
+    float4 historyRaw = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, 0);
     float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
 
     // Depending on the roughness of the surface run one or the other temporal reprojection
@@ -108,12 +121,11 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     {
         bool canBeReprojected = true;
 
-        float2 historyCoordinate = historyUVUnscaled * _HistorySizeAndScale.xy;
         float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
 
         // If the pixel was outside of the screen during the previous frame, invalidate the history
-        if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0
-            || historyCoordinate.y >= _CurrentEffectResolution.y || historyCoordinate.y < 0)
+        if (historyTapCoord.x >= _CurrentEffectResolution.x || historyTapCoord.x < 0
+            || historyTapCoord.y >= _CurrentEffectResolution.y || historyTapCoord.y < 0)
             canBeReprojected = false;
 
     #ifdef HALF_RESOLUTION
@@ -152,11 +164,17 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
             result = color;
             sampleCount = 1.0;
         }
+
+        // Update the sample count
+        historyRaw.w = sampleCount;
     }
     else
     {
-        float3 topLeft = Fetch(_DenoiseInputTexture, currentUV, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-        float3 bottomRight = Fetch(_DenoiseInputTexture, currentUV, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+        float exposureMultiplier = GetCurrentExposureMultiplier();
+        float3 topLeft = LOAD_TEXTURE2D_X(_DenoiseInputTexture, clamp(mainCoord - int2(1, 1), int2(0, 0), _CurrentEffectResolution.xy)).xyz;
+        float3 bottomRight = LOAD_TEXTURE2D_X(_DenoiseInputTexture, clamp(mainCoord + int2(1, 1), int2(0, 0), _CurrentEffectResolution.xy)).xyz;
+        topLeft *= exposureMultiplier;
+        bottomRight *= exposureMultiplier;
 
         float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
@@ -192,6 +210,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
         color = FastTonemapInvert(lerp(color, history, feedback));
         result = clamp(color, 0.0, CLAMP_MAX);
+        historyRaw.w = 0.0;
     }
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(result * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
@@ -267,7 +286,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
         {
             // Make sure the pixel coord we are trying to use is in the screen (not out of bounds)
-            if (tapCoord.x >= _ScreenSize.x || tapCoord.x < 0 || tapCoord.y >= _ScreenSize.y || tapCoord.y < 0)
+            if (tapCoord.x >= _CurrentEffectResolution.x || tapCoord.x < 0 || tapCoord.y >= _CurrentEffectResolution.y || tapCoord.y < 0)
                 continue;
 
             #if HALF_RESOLUTION

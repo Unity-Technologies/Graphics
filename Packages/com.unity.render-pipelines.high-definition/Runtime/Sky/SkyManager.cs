@@ -692,7 +692,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
         }
 
-        internal TextureHandle RenderSkyToCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext, HDCamera hdCamera, bool includeSunInBaking, bool renderCloudLayers, TextureHandle outputCubemap)
+        internal TextureHandle RenderSkyToCubemap(RenderGraph renderGraph, SkyUpdateContext skyContext, HDCamera hdCamera, Matrix4x4[] facePixelCoordToViewDirMatrices, bool renderCloudLayers, TextureHandle outputCubemap)
         {
             using (var builder = renderGraph.AddRenderPass<RenderSkyToCubemapPassData>("RenderSkyToCubemap", out var passData, ProfilingSampler.Get(HDProfileId.RenderSkyToCubemap)))
             {
@@ -701,7 +701,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.skyRenderer = skyContext.skyRenderer;
                 passData.cloudRenderer = renderCloudLayers ? skyContext.cloudRenderer : null;
                 passData.cameraViewMatrices = m_CameraRelativeViewMatrices;
-                passData.facePixelCoordToViewDirMatrices = m_facePixelCoordToViewDirMatrices;
+                passData.facePixelCoordToViewDirMatrices = facePixelCoordToViewDirMatrices;
                 passData.includeSunInBaking = skyContext.skySettings.includeSunInBaking.value;
                 passData.output = builder.WriteTexture(outputCubemap);
 
@@ -790,7 +790,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: Currently imported and not temporary only because of enlighten and the baking back-end requiring this texture instead of a more direct API.
             var outputCubemap = renderGraph.ImportTexture(renderingContext.skyboxCubemapRT);
-            outputCubemap = RenderSkyToCubemap(renderGraph, skyContext, hdCamera, includeSunInBaking: skyContext.skySettings.includeSunInBaking.value, renderCloudLayers: true, outputCubemap);
+            outputCubemap = RenderSkyToCubemap(renderGraph, skyContext, hdCamera, m_facePixelCoordToViewDirMatrices, renderCloudLayers: true, outputCubemap);
 
             // Render the volumetric clouds into the cubemap
             if (skyContext.volumetricClouds != null)

@@ -503,6 +503,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Action<ExtraDataActionInput> retrieveExtraDataAction;
 
+        /// <summary>
+        ///  An action that is used by the SRP to perform checks every frame during baking.
+        /// </summary>
+        public Action checksDuringBakeAction = null;
+
         // Information of the probe volume asset that is being loaded (if one is pending)
         Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information on probes we need to remove.
@@ -1206,6 +1211,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
+#if UNITY_EDITOR
+            checksDuringBakeAction?.Invoke();
+#endif
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();

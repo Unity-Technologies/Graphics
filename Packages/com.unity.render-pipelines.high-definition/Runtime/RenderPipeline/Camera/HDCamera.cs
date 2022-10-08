@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType != CameraType.Reflection)
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView)
                     return HDAdditionalCameraData.ClearColorMode.Color;
 
                 if (m_AdditionalCameraData != null)

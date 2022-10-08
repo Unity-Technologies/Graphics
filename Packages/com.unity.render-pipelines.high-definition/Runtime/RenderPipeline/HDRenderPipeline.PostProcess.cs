@@ -4779,7 +4779,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
                 // we can't use 0 as the default neutral value which would be confusing to users
                 float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-                passData.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
+                passData.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, (m_ColorGradingFS || m_TonemappingFS) ? 1 : 0);
 
                 // Setup the rest of the effects
                 PrepareLensDistortionParameters(passData, featureFlags);

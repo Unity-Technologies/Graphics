@@ -82,7 +82,7 @@ void RayGenAreaShadowSingle()
 
     // Read the previous value of the buffer
     float2 previousValue = _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-    float2 currentSample = LOAD_TEXTURE2D_X(_RaytracedAreaShadowSample, currentPixelCoord);
+    float2 currentSample = LOAD_TEXTURE2D_X(_RaytracedAreaShadowSample, currentPixelCoord).xy;
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
