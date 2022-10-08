@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
 #endif
+        Camera.GateFitMode m_PreviousDefaultGateFitMode;
         ShadowmaskMode m_PreviousShadowMaskMode;
 
         bool m_FrameSettingsHistoryEnabled = false;
@@ -599,6 +600,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = (uint)m_GlobalSettings.defaultRenderingLayerMask;
 #endif
+            m_PreviousDefaultGateFitMode = GraphicsSettings.defaultGateFitMode;
+            GraphicsSettings.defaultGateFitMode = Camera.GateFitMode.Vertical;
 
             // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
             m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
@@ -724,6 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
             GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
 #endif
+            GraphicsSettings.defaultGateFitMode = m_PreviousDefaultGateFitMode;
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
