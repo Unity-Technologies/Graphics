@@ -522,8 +522,7 @@ namespace UnityEditor.VFX.Test
             Assert.True(window.graphView.HasFocus());
         }
 
-        [UnityTest]
-        [Ignore("Disabling instability https://jira.unity3d.com/browse/UUM-16189")]
+        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-16190")]
         public IEnumerator Check_VFXNodeProvider_Listing_SkinnedMeshSampling_From_SkinnedMeshRenderer()
         {
             var vfxController = StartEditTestAsset();
