@@ -373,24 +373,6 @@ namespace UnityEngine.Rendering
         /// Checks whether ANY of the debug settings are currently active.
         /// </summary>
         public bool AreAnySettingsActive => false; // Volume Debug Panel doesn't need to modify the renderer data, therefore this property returns false
-        /// <summary>
-        /// Checks whether the current state of these settings allows post-processing.
-        /// </summary>
-        public bool IsPostProcessingAllowed => true;
-        /// <summary>
-        /// Checks whether lighting is active for these settings.
-        /// </summary>
-        public bool IsLightingActive => true;
-
-        /// <summary>
-        /// Attempts to get the color used to clear the screen for this debug setting.
-        /// </summary>
-        /// <param name="color">A reference to the screen clear color to use.</param>
-        /// <returns>"true" if we updated the color, "false" if we didn't change anything.</returns>
-        public bool TryGetScreenClearColor(ref Color color)
-        {
-            return false;
-        }
 
         /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()

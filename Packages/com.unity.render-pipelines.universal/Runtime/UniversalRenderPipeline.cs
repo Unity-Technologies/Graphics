@@ -233,7 +233,10 @@ namespace UnityEngine.Rendering.Universal
             useRenderGraph = false;
 
             DebugManager.instance.RefreshEditor();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
+#endif
 
             QualitySettings.enableLODCrossFade = asset.enableLODCrossFade;
         }
@@ -241,7 +244,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.UnregisterDebug();
+#endif
 
             Blitter.Cleanup();
 
@@ -337,7 +342,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
-                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();
 #endif
 
             SortCameras(cameras);

@@ -851,11 +851,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, DebugDisplaySettings debugDisplaySettings)
+        internal void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
             {
-                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights, debugDisplaySettings);
+                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights);
                 m_ValidRayTracingCluster = true;
 
                 UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);

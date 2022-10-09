@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Disposes the panel
         /// </summary>
-        public void Dispose()
+        public virtual void Dispose()
         {
             Clear();
         }

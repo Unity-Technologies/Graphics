@@ -479,7 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If no lights, exit
             if (rayTracingLights.lightCount == 0)
@@ -810,10 +810,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // Build the light data
-            BuildLightData(cmd, hdCamera, rayTracingLights, debugDisplaySettings);
+            BuildLightData(cmd, hdCamera, rayTracingLights);
 
             // Build the light data
             BuildEnvLightData(cmd, hdCamera, rayTracingLights);

@@ -2,6 +2,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // HDRP Profile Id
+    // - You can use [HideInDebugUI] attribute to hide a given id from the Detailed Stats section of Rendering Debugger.
     internal enum HDProfileId
     {
         CopyDepthBuffer,

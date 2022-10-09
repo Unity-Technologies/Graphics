@@ -499,8 +499,11 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
+#endif
+
 #if UNITY_EDITOR
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             // All scene view will share the same FrameSettings for now as sometimes Dispose is called after
@@ -833,8 +836,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ReleaseRayTracingManager();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.UnregisterDebug();
             m_DebugDisplaySettings.UnregisterDebug();
+#endif
 
             CleanupLightLoop();
 
@@ -1887,9 +1893,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
-                m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
+            {
+                HDDebugDisplaySettings.Instance.UpdateDisplayStats();
+            }
 #endif
-
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
@@ -2240,9 +2247,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
-                if (DebugManager.instance.isAnyDebugUIActive)
-                    m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
-
                 SetupCameraProperties(hdCamera, renderContext, cmd);
 
                 // TODO: Find a correct place to bind these material textures
@@ -2269,8 +2273,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do the same for ray tracing if allowed
                 if (m_RayTracingSupported)
                 {
-                    m_RayCountManager.SetRayCountEnabled(m_CurrentDebugDisplaySettings.data.countRays);
-                    BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
+                    m_RayCountManager.SetRayCountEnabled((HDDebugDisplaySettings.Instance.displayStats.debugDisplayStats as HDDebugDisplayStats)?.countRays ?? false);
+                    BuildRayTracingLightData(cmd, hdCamera);
                 }
 
                 // Configure all the keywords

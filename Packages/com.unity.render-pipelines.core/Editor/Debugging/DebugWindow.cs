@@ -47,9 +47,6 @@ namespace UnityEditor.Rendering
         [SerializeField]
         DebugWindowSettings m_Settings;
 
-        [SerializeField]
-        int m_DebugTreeState;
-
         bool m_IsDirty;
 
         Vector2 m_PanelScroll;
@@ -166,7 +163,6 @@ namespace UnityEditor.Rendering
             DebugManager.instance.onSetDirty += MarkDirty;
 
             // First init
-            m_DebugTreeState = DebugManager.instance.GetState();
             UpdateWidgetStates();
 
             EditorApplication.update -= Repaint;
@@ -209,7 +205,7 @@ namespace UnityEditor.Rendering
             if (m_WidgetStates == null)
                 return;
 
-            // Clear all the states from memory
+            // Clear states from memory that don't have a corresponding widget
             foreach (var state in m_WidgetStates)
             {
                 var widget = DebugManager.instance.GetItem(state.Key);
@@ -355,13 +351,10 @@ namespace UnityEditor.Rendering
                 m_Settings.selectedPanel = requestedPanelIndex.Value;
             }
 
-            int treeState = DebugManager.instance.GetState();
-
-            if (m_DebugTreeState != treeState || m_IsDirty)
+            if (m_IsDirty)
             {
                 UpdateWidgetStates();
                 ApplyStates();
-                m_DebugTreeState = treeState;
                 m_IsDirty = false;
             }
         }
@@ -576,6 +569,8 @@ namespace UnityEditor.Rendering
                 margin = new RectOffset(0, 0, 0, 0)
             };
 
+            public static GUIStyle labelWithZeroValueStyle { get; } = new GUIStyle(EditorStyles.label);
+
             public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
             public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");
             public readonly GUIStyle selected = "OL SelectedRow";
@@ -605,6 +600,8 @@ namespace UnityEditor.Rendering
                 sectionHeader.margin.left += 1;
                 sectionHeader.normal.textColor = EditorGUIUtility.isProSkin ? textColorDarkSkin : textColorLightSkin;
                 skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
+
+                labelWithZeroValueStyle.normal.textColor = Color.gray;
             }
         }
 

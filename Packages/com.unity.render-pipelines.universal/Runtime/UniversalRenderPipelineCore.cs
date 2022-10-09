@@ -1570,6 +1570,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    // URP Profile Id
+    // - Scopes using this enum are automatically picked up by the performance testing framework.
+    // - You can use [HideInDebugUI] attribute to hide a given id from the Detailed Stats section of Rendering Debugger.
     internal enum URPProfileId
     {
         // CPU
@@ -1613,33 +1616,33 @@ namespace UnityEngine.Rendering.Universal
         DrawFullscreen,
 
         // PostProcessPass RenderGraph
-        RG_SetupPostFX,
-        RG_StopNaNs,
-        RG_SMAAMaterialSetup,
-        RG_SMAAEdgeDetection,
-        RG_SMAABlendWeight,
-        RG_SMAANeighborhoodBlend,
-        RG_SetupDoF,
-        RG_DOFComputeCOC,
-        RG_DOFDownscalePrefilter,
-        RG_DOFBlurH,
-        RG_DOFBlurV,
-        RG_DOFBlurBokeh,
-        RG_DOFPostFilter,
-        RG_DOFComposite,
-        RG_TAA,
-        RG_TAACopyHistory,
-        RG_MotionBlur,
-        RG_BloomSetupPass,
-        RG_BloomPrefilter,
-        RG_BloomFirstPass,
-        RG_BloomSecondPass,
-        RG_BloomUpsample,
-        RG_UberPostSetupBloomPass,
-        RG_UberPost,
-        RG_FinalSetup,
-        RG_FinalFSRScale,
-        RG_FinalBlit,
+        [HideInDebugUI] RG_SetupPostFX,
+        [HideInDebugUI] RG_StopNaNs,
+        [HideInDebugUI] RG_SMAAMaterialSetup,
+        [HideInDebugUI] RG_SMAAEdgeDetection,
+        [HideInDebugUI] RG_SMAABlendWeight,
+        [HideInDebugUI] RG_SMAANeighborhoodBlend,
+        [HideInDebugUI] RG_SetupDoF,
+        [HideInDebugUI] RG_DOFComputeCOC,
+        [HideInDebugUI] RG_DOFDownscalePrefilter,
+        [HideInDebugUI] RG_DOFBlurH,
+        [HideInDebugUI] RG_DOFBlurV,
+        [HideInDebugUI] RG_DOFBlurBokeh,
+        [HideInDebugUI] RG_DOFPostFilter,
+        [HideInDebugUI] RG_DOFComposite,
+        [HideInDebugUI] RG_TAA,
+        [HideInDebugUI] RG_TAACopyHistory,
+        [HideInDebugUI] RG_MotionBlur,
+        [HideInDebugUI] RG_BloomSetupPass,
+        [HideInDebugUI] RG_BloomPrefilter,
+        [HideInDebugUI] RG_BloomFirstPass,
+        [HideInDebugUI] RG_BloomSecondPass,
+        [HideInDebugUI] RG_BloomUpsample,
+        [HideInDebugUI] RG_UberPostSetupBloomPass,
+        [HideInDebugUI] RG_UberPost,
+        [HideInDebugUI] RG_FinalSetup,
+        [HideInDebugUI] RG_FinalFSRScale,
+        [HideInDebugUI] RG_FinalBlit,
 
         FinalBlit
     }

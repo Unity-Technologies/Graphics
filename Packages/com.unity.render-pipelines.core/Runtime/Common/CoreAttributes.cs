@@ -21,4 +21,12 @@ namespace UnityEngine.Rendering
     public class AdditionalPropertyAttribute : Attribute
     {
     }
+
+    /// <summary>
+    /// Attribute used to hide enum values from Rendering Debugger UI
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public class HideInDebugUIAttribute : Attribute
+    {
+    }
 }

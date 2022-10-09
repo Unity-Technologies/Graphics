@@ -460,12 +460,6 @@ namespace UnityEngine.Rendering.Universal
         public bool IsLightingActive => !AreAnySettingsActive;
 
         /// <inheritdoc/>
-        public bool TryGetScreenClearColor(ref Color color)
-        {
-            return false;
-        }
-
-        /// <inheritdoc/>
         IDebugDisplaySettingsPanelDisposable IDebugDisplaySettingsData.CreatePanel()
         {
             return new SettingsPanel(this);

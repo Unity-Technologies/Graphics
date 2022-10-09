@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip mipLevel = new() { name = "Mip Level", tooltip = "Use the slider to select the mip level for the decal atlas." };
         }
 
+        [DisplayInfo(name = "Decals", order = 5)]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Decals";

@@ -299,9 +299,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 createIfNull: true,
 #if UNITY_EDITOR
                 frameSettingsContainer == sceneViewFrameSettingsContainer
-                ? 1 : // Scene Camera
+                ? 100 : // Scene Camera
 #endif
-                2,    // Other Cameras (from Camera component)
+                101,    // Other Cameras (from Camera component)
                 overrideIfExist: true);
             panel.children.Add(widgets.ToArray());
         }

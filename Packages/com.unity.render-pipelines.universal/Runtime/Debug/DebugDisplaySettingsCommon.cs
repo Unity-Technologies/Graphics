@@ -66,15 +66,6 @@ namespace UnityEngine.Rendering.Universal
         public bool AreAnySettingsActive => false;
 
         /// <inheritdoc/>
-        public bool IsPostProcessingAllowed => true;
-
-        /// <inheritdoc/>
-        public bool IsLightingActive => true;
-
-        /// <inheritdoc/>
-        public bool TryGetScreenClearColor(ref Color _) => false;
-
-        /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel();
