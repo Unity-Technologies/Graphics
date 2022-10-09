@@ -122,7 +122,7 @@ Available converters:
 
 # Run conversion using API or CLI
 
-The Render Pipeline Converter implements the [Converters](../../api/UnityEditor.Rendering.Universal.Converters.html) class with [RunInBatchMode](../../api/UnityEditor.Rendering.Universal.Converters.html#UnityEditor_Rendering_Universal_Converters_RunInBatchMode_UnityEditor_Rendering_Universal_ConverterContainerId_System_Collections_Generic_List_UnityEditor_Rendering_Universal_ConverterId__UnityEditor_Rendering_Universal_ConverterFilter_) methods that let you run the conversion process from a command line.
+The Render Pipeline Converter implements the [Converters](xref:UnityEditor.Rendering.Universal.Converters) class with [RunInBatchMode](xref:UnityEditor.Rendering.Universal.Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)) methods that let you run the conversion process from a command line.
 
 For example, the following script initializes and executes the converters **Material Upgrade**, and **Read-only Material Converter**.
 

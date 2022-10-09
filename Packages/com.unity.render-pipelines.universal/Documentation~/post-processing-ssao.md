@@ -2,7 +2,7 @@
 
 The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other in real-time. In the real world, such areas tend to block out or occlude ambient light, so they appear darker.
 
-URP implements the Screen Space Ambient Occlusion (SSAO) effect as a [Renderer Feature](urp-renderer-feature). It works with every shader that the Universal Render Pipeline (URP) provides as well as any custom opaque Shader Graphs you create.
+URP implements the Screen Space Ambient Occlusion (SSAO) effect as a [Renderer Feature](urp-renderer-feature.md). It works with every shader that the Universal Render Pipeline (URP) provides as well as any custom opaque Shader Graphs you create.
 
 > **Note**: The SSAO effect is a Renderer Feature and works independently from the post-processing effects in URP. This effect does not depend on or interact with Volumes.
 
@@ -21,7 +21,7 @@ The following images show a scene with the Ambient Occlusion effect turned off, 
 
 URP implements the Ambient Occlusion effect as a Renderer Feature.
 
-To use the SSAO effect in your project follow the instructions on [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add) and add the Screen Space Ambient Occlusion Renderer Feature.
+To use the SSAO effect in your project follow the instructions on [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md) and add the Screen Space Ambient Occlusion Renderer Feature.
 
 This causes any Cameras that use the Renderer with the SSAO Renderer Feature to have the SSAO effect.
 

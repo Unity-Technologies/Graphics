@@ -85,7 +85,7 @@
 
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
-  * [Material Variants](materialvariant-URP)
+  * [Material Variants](materialvariant-URP.md)
   * [Complex Lit](shader-complex-lit.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
