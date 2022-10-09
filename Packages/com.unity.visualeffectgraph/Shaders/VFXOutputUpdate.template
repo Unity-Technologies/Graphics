@@ -95,11 +95,16 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	{
         ${VFXLoadGraphValues}
 
+#if VFX_LOCAL_SPACE
         ${VFXLoadParameter:{localToWorld}}
         vfxLocalToWorld = localToWorld;
 
         ${VFXLoadParameter:{worldToLocal}}
         vfxWorldToLocal = worldToLocal;
+#else
+        vfxWorldToLocal = k_identity4x4;
+        vfxLocalToWorld = k_identity4x4;
+#endif
 
 		VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
