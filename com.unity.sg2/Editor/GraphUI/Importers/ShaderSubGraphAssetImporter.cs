@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         public const string Extension = ShaderGraphStencil.SubGraphExtension;
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            if (string.CompareOrdinal(Path.GetExtension(assetPath), Extension) == 0)
+            if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
             {
                 return ShaderGraphAssetUtils.GatherDependenciesForShaderGraphAsset(assetPath);
             }

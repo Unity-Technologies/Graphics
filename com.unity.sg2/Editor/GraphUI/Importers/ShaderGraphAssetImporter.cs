@@ -59,7 +59,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            if (string.CompareOrdinal(Path.GetExtension(assetPath), Extension) == 0)
+            if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
             {
                 return ShaderGraphAssetUtils.GatherDependenciesForShaderGraphAsset(assetPath);
             }
