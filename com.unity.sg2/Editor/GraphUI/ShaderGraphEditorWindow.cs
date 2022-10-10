@@ -18,9 +18,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         MainPreviewView m_MainPreviewView;
         public MainPreviewView MainPreviewView => m_MainPreviewView;
 
-        protected PreviewManager m_PreviewManager = new();
-
         protected PreviewUpdateDispatcher m_PreviewUpdateDispatcher = new();
+
+        // Made internal for tests
+        internal PreviewUpdateDispatcher previewUpdateDispatcher => m_PreviewUpdateDispatcher;
 
         // We store the preview size that the overlays load in with here to pass to the preview systems
         Vector2 m_PreviewSize;

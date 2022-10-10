@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void HandlePreviewUpdates()
         {
-            mainPreviewTexture = m_PreviewUpdateListener.PreviewTexture;
+            mainPreviewTexture = m_PreviewUpdateListener?.PreviewTexture;
         }
 
         void OnAttachToPanel(AttachToPanelEvent evt)

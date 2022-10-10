@@ -83,8 +83,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 foreach (var graphElementModel in command.Models)
                 {
-                    if(graphElementModel is GraphDataNodeModel graphDataNodeModel)
+                    if (graphElementModel is GraphDataNodeModel graphDataNodeModel)
+                    {
                         graphDataNodeModel.IsPreviewExpanded = command.m_IsPreviewExpanded;
+                        if(command.m_IsPreviewExpanded)
+                            previewUpdateDispatcher.NotifyNodePreviewExpanded(graphDataNodeModel.graphDataName);
+                    }
                     graphUpdater.MarkChanged(command.Models, ChangeHint.Layout);
                 }
             }

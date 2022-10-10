@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
 using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.PreviewService.PreviewRenderMode;
@@ -25,6 +26,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         int PreviewWidth => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.x);
         int PreviewHeight => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.y);
+
+        // Stores the info. of all nodes that need to be updated when the preview is next visibile
+        HashSet<string> m_DirtyNodes = new();
 
         /// <summary>
         /// Provides this preview update dispatcher with necessary resources for initialization
@@ -79,7 +83,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_MainPreviewData.rotation,
                     forceRender);
             else
-                m_PreviewHandlerInstance.RequestNodePreviewUpdate(nodeName, previewRenderMode, forceRender);
+            {
+                if (m_GraphModel.TryGetModelFromGuid(new SerializableGUID(nodeName), out var nodeModel)
+                    && nodeModel is GraphDataNodeModel { IsPreviewExpanded: true })
+                {
+                    m_PreviewHandlerInstance.RequestNodePreviewUpdate(nodeName, previewRenderMode, forceRender);
+                }
+                else
+                    m_DirtyNodes.Add(nodeName);
+            }
         }
 
         public void OnListenerAdded(string listenerID, PreviewRenderMode previewRenderMode, bool isListenerTimeDependent)
@@ -194,6 +206,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void Cleanup()
         {
             m_PreviewHandlerInstance.Cleanup();
+        }
+
+        public void NotifyNodePreviewExpanded(string nodeName)
+        {
+            if (m_DirtyNodes.Contains(nodeName)
+                &&  m_GraphModel.TryGetModelFromGuid(new SerializableGUID(nodeName), out var nodeModel)
+                    && nodeModel is GraphDataNodeModel graphDataNodeModel)
+            {
+                RequestPreviewUpdate(nodeName, graphDataNodeModel.NodePreviewMode);
+                m_DirtyNodes.Remove(nodeName);
+            }
         }
     }
 }
