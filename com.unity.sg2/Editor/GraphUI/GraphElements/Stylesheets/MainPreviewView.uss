@@ -4,17 +4,11 @@
     align-content: center;
     display: flex;
 
-    position-type: absolute;
-    position-left: 0;
-    position-top: 0;
-    position-right: 0;
-    position-bottom: 0;
+    min-width: 130px;
+    min-height: 130px;
 
-    min-width: 130;
-    min-height: 130;
-
-    width: 130;
-    height: 130;
+    width: 130px;
+    height: 130px;
 }
 
 OverlayResizerGroup
@@ -22,8 +16,8 @@ OverlayResizerGroup
     min-width: 100px;
     min-height: 100px;
 
-    max-width: 1000;
-    max-height: 1000;
+    max-width: 1000px;
+    max-height: 1000px;
 
     width: 130px;
     height: 130px;
@@ -33,7 +27,7 @@ OverlayResizerGroup
 
 .MainPreviewView
 {
-    padding: 2;
+    padding: 2px;
     min-width: 100px;
     min-height: 100px;
 

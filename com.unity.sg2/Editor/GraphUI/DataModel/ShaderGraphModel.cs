@@ -181,13 +181,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             graphHandlerBox.OnEnable();
             targetSettingsBox.OnEnable();
-            base.OnEnable();
             foreach (var target in Targets)
             {
                 // at most there is only one target right now, so this solution is not robust.
                 InitializeContextFromTarget(target.value);
             }
             GraphHandler.ReconcretizeAll();
+            base.OnEnable();
             mainPreviewData = new(Guid.ToString());
             m_DefaultContextNode = GetMainContextNode();
         }
