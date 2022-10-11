@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         public BlackboardView blackboardView => m_BlackboardView;
 
-        public PreviewManager previewManager => m_PreviewManager;
         protected override GraphView CreateGraphView()
         {
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
