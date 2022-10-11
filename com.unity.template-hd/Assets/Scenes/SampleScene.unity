@@ -363,8 +363,16 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -480,12 +488,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.8
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &85206421
 GameObject:
   m_ObjectHideFlags: 3
@@ -762,12 +770,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &109120890
 GameObject:
   m_ObjectHideFlags: 0
@@ -890,6 +898,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -1455,12 +1464,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &173520781
 GameObject:
   m_ObjectHideFlags: 0
@@ -1513,12 +1522,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &176709586
 GameObject:
   m_ObjectHideFlags: 3
@@ -1649,12 +1658,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 5, z: 3}
   m_FadeFactor: 0.298
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &194713138
 GameObject:
   m_ObjectHideFlags: 0
@@ -1803,12 +1812,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.986844}
   m_Size: {x: 7.3573437, y: 8.222879, z: 5.973688}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &217717995
 GameObject:
   m_ObjectHideFlags: 0
@@ -1861,12 +1870,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.7423954}
   m_Size: {x: 8, y: 5, z: 5}
   m_FadeFactor: 0.298
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &221669471
 GameObject:
   m_ObjectHideFlags: 0
@@ -1919,12 +1928,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &222006312
 GameObject:
   m_ObjectHideFlags: 0
@@ -2082,12 +2091,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 5, z: 3}
   m_FadeFactor: 0.298
-  m_Version: 2
+  m_Version: 3
 --- !u!4 &249584750
 Transform:
   m_ObjectHideFlags: 0
@@ -2295,7 +2304,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &254956837
 Animator:
-  serializedVersion: 4
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2309,10 +2318,11 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!136 &254956838
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2559,12 +2569,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &279271505
 GameObject:
   m_ObjectHideFlags: 0
@@ -2656,12 +2666,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &286860035
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2844,12 +2854,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
   m_Size: {x: 13, y: 13, z: 5}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &291363433
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3098,6 +3108,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -3619,6 +3630,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -4163,6 +4175,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -4615,12 +4628,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &393079714
 GameObject:
   m_ObjectHideFlags: 0
@@ -4673,12 +4686,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &398789243
 GameObject:
   m_ObjectHideFlags: 0
@@ -4943,6 +4956,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.x
       value: 0
       objectReference: {fileID: 0}
@@ -4973,6 +4990,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_FadeFactor
       value: 0.665
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -5410,12 +5431,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &459287710
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5628,6 +5649,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -6175,6 +6197,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -6225,6 +6249,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -6486,12 +6511,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.5}
   m_Size: {x: 5, y: 5, z: 5}
   m_FadeFactor: 0.2
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &484785972
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6646,12 +6671,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
   m_FadeFactor: 0.7
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &496687628
 GameObject:
   m_ObjectHideFlags: 0
@@ -6800,12 +6825,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.986844}
   m_Size: {x: 7.3573437, y: 8.222879, z: 4}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &513659343
 GameObject:
   m_ObjectHideFlags: 0
@@ -6858,12 +6883,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 7.3573437, y: 8.222879, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &531975315
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7142,12 +7167,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &553408022
 GameObject:
   m_ObjectHideFlags: 0
@@ -7200,12 +7225,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
   m_FadeFactor: 0.6
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &553938282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7398,12 +7423,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 4, y: 4, z: 0.5}
   m_FadeFactor: 0.85
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &571131995
 GameObject:
   m_ObjectHideFlags: 0
@@ -7456,12 +7481,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &581053291
 GameObject:
   m_ObjectHideFlags: 3
@@ -7841,6 +7866,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.x
       value: 0
       objectReference: {fileID: 0}
@@ -7871,6 +7900,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_FadeFactor
       value: 0.665
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -8144,12 +8177,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.986844}
   m_Size: {x: 7.3573437, y: 8.222879, z: 3}
   m_FadeFactor: 0.231
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &657911451
 GameObject:
   m_ObjectHideFlags: 0
@@ -8202,12 +8235,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
   m_FadeFactor: 0.8
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &659887662
 GameObject:
   m_ObjectHideFlags: 0
@@ -8260,12 +8293,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 3, y: 3, z: 0.5}
   m_FadeFactor: 0.8
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &668396958
 GameObject:
   m_ObjectHideFlags: 0
@@ -8318,12 +8351,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 10.566376, y: 13.005772, z: 0.5}
   m_FadeFactor: 0.559
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &676259641
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8585,6 +8618,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.x
       value: 0
       objectReference: {fileID: 0}
@@ -8615,6 +8652,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_FadeFactor
       value: 0.665
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -8737,6 +8778,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -8787,6 +8830,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -9205,12 +9249,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 4}
   m_Size: {x: 5, y: 5, z: 8}
   m_FadeFactor: 0.225
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &714672049
 GameObject:
   m_ObjectHideFlags: 0
@@ -9509,6 +9553,8 @@ MonoBehaviour:
   stopNaNs: 2
   taaSharpenStrength: -7.1275546e+28
   TAAQuality: 548
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: -1.6780613e+12
   taaAntiFlicker: 7.7e-43
   taaMotionVectorRejection: -1.4603392e+12
@@ -9559,6 +9605,7 @@ MonoBehaviour:
     sssQualityMode: -738046912
     sssQualityLevel: 549
     sssCustomSampleBudget: -743085184
+    sssCustomDownsampleSteps: 0
     msaaMode: 549
     materialQuality: 549
   renderingPathCustomFrameSettingsOverrideMask:
@@ -11010,12 +11057,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &866032113
 GameObject:
   m_ObjectHideFlags: 3
@@ -11758,12 +11805,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 5, z: 0.5}
   m_FadeFactor: 0.298
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &906649023
 GameObject:
   m_ObjectHideFlags: 0
@@ -11851,12 +11898,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &918517614
 GameObject:
   m_ObjectHideFlags: 0
@@ -11909,12 +11956,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &926256710
 GameObject:
   m_ObjectHideFlags: 3
@@ -12090,6 +12137,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 2100000, guid: b1441bdf13e2e4c43a6f92783fe4adef, type: 2}
@@ -12116,6 +12167,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_UVScale.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -12295,15 +12350,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683269, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.20000018
+      value: 0.19999999
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683269, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.44500017
+      value: 0.73500013
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683269, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.0000002
+      value: -2.6000006
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683269, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -12327,15 +12382,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4925331831405600874, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.20000018
+      value: 0.19999999
       objectReference: {fileID: 0}
     - target: {fileID: 4925331831405600874, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.44500017
+      value: 0.73500013
       objectReference: {fileID: 0}
     - target: {fileID: 4925331831405600874, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.0000002
+      value: -2.6000006
       objectReference: {fileID: 0}
     - target: {fileID: 4925331831405600875, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_Enabled
@@ -12817,6 +12872,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -13584,6 +13640,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -14061,112 +14118,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
   m_PrefabInstance: {fileID: 1065267216}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1069194732
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1069194736}
-  - component: {fileID: 1069194735}
-  - component: {fileID: 1069194734}
-  - component: {fileID: 1069194733}
-  m_Layer: 4
-  m_Name: Plane
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!64 &1069194733
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069194732}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &1069194734
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069194732}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 257
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1069194735
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069194732}
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1069194736
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069194732}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.95, y: 5.51, z: -0.46}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1084459391
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14294,7 +14245,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &1086288952
 Animator:
-  serializedVersion: 4
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -14308,10 +14259,11 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!320 &1086288953
 PlayableDirector:
   m_ObjectHideFlags: 0
@@ -15065,12 +15017,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 8, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1143592343
 GameObject:
   m_ObjectHideFlags: 3
@@ -15167,12 +15119,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 3, y: 3, z: 1}
   m_FadeFactor: 0.345
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1154036676
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16103,12 +16055,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.6
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1159510704
 GameObject:
   m_ObjectHideFlags: 0
@@ -16206,12 +16158,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1177610898
 GameObject:
   m_ObjectHideFlags: 0
@@ -16315,12 +16267,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 8, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1202700835
 GameObject:
   m_ObjectHideFlags: 0
@@ -16476,6 +16428,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -16526,6 +16480,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -16691,12 +16646,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 7, y: 7, z: 0.5}
   m_FadeFactor: 0.374
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1225079265
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17074,12 +17029,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
   m_Size: {x: 13, y: 13, z: 7.477332}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1279039861
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17097,8 +17052,16 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -17310,12 +17273,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1320921158
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17335,6 +17298,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Size.z
       value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.x
@@ -17367,6 +17334,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_FadeFactor
       value: 0.665
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -17478,12 +17449,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1332612040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17662,12 +17633,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
   m_Size: {x: 13, y: 13, z: 7.477332}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1336631800
 GameObject:
   m_ObjectHideFlags: 0
@@ -17720,12 +17691,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1338245900
 GameObject:
   m_ObjectHideFlags: 0
@@ -17778,12 +17749,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 6, y: 6, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1340223831
 GameObject:
   m_ObjectHideFlags: 0
@@ -18089,12 +18060,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 3, y: 3, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1370110031
 GameObject:
   m_ObjectHideFlags: 0
@@ -18147,12 +18118,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 7.3573437, y: 8.222879, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1371038206
 GameObject:
   m_ObjectHideFlags: 0
@@ -18844,12 +18815,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
   m_Size: {x: 8, y: 8, z: 7.477332}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1462492497
 GameObject:
   m_ObjectHideFlags: 0
@@ -19124,12 +19095,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 13, y: 13, z: 5}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1472715357
 GameObject:
   m_ObjectHideFlags: 0
@@ -19182,12 +19153,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 8, y: 8, z: 1}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1479013761
 GameObject:
   m_ObjectHideFlags: 0
@@ -19247,6 +19218,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -19297,6 +19270,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -19553,6 +19527,8 @@ MonoBehaviour:
   parameters:
     albedo: {r: 0.9686873, g: 1, b: 0.83647794, a: 1}
     meanFreePath: 150
+    blendingMode: 1
+    priority: 0
     anisotropy: 0
     volumeMask: {fileID: 11700000, guid: 836429d92e1b49443b7743362fdeb1fe, type: 3}
     textureScrollingSpeed: {x: 0, y: 0.05, z: 0}
@@ -19567,8 +19543,10 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -35.42996, z: -0}
+    textureOffset: {x: -0, y: -12.569596, z: -0}
     falloffMode: 0
+    maskMode: 0
+    materialMask: {fileID: 0}
   m_Version: 2
 --- !u!1001 &1504255721
 PrefabInstance:
@@ -19855,6 +19833,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -19905,6 +19885,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -20200,12 +20181,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1545728795
 GameObject:
   m_ObjectHideFlags: 3
@@ -20346,12 +20327,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1587207273
 GameObject:
   m_ObjectHideFlags: 0
@@ -20474,6 +20455,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -20919,7 +20901,7 @@ SphereCollider:
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!95 &1594496561
 Animator:
-  serializedVersion: 4
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -20933,10 +20915,11 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &1594496562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20962,6 +20945,8 @@ MonoBehaviour:
   stopNaNs: 1
   taaSharpenStrength: 0.2
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.7
   taaMotionVectorRejection: 0
@@ -21012,6 +20997,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -21696,6 +21682,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -22169,6 +22156,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -22702,12 +22690,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1656474237
 GameObject:
   m_ObjectHideFlags: 0
@@ -22760,12 +22748,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 5, y: 5, z: 1}
   m_FadeFactor: 0.102
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1661917178
 GameObject:
   m_ObjectHideFlags: 0
@@ -22818,12 +22806,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 5, y: 5, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1663721605
 GameObject:
   m_ObjectHideFlags: 0
@@ -22984,6 +22972,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -23522,12 +23511,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.2
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1696653815
 GameObject:
   m_ObjectHideFlags: 0
@@ -23650,6 +23639,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -24149,12 +24139,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1740774659
 GameObject:
   m_ObjectHideFlags: 0
@@ -24207,12 +24197,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 3, y: 5, z: 2}
   m_FadeFactor: 0.2
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1744226586
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24551,12 +24541,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 7.3573437, y: 8.222879, z: 3}
   m_FadeFactor: 0.231
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1766869842
 GameObject:
   m_ObjectHideFlags: 0
@@ -24647,12 +24637,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 7.3573437, y: 8.222879, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1770674349
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24998,6 +24988,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -25048,6 +25040,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -25213,12 +25206,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 13, y: 13, z: 5}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1800593185
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25398,6 +25391,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 2100000, guid: b1441bdf13e2e4c43a6f92783fe4adef, type: 2}
@@ -25424,6 +25421,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_UVScale.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -25535,12 +25536,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
   m_Size: {x: 13, y: 13, z: 4}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1812347015
 GameObject:
   m_ObjectHideFlags: 0
@@ -25593,12 +25594,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
   m_FadeFactor: 0.269
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1821451199
 GameObject:
   m_ObjectHideFlags: 0
@@ -25684,12 +25685,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1827581732
 GameObject:
   m_ObjectHideFlags: 0
@@ -25797,6 +25798,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -26657,7 +26659,7 @@ CapsuleCollider:
   m_Center: {x: 0, y: 0.65647864, z: -0}
 --- !u!95 &1866426471
 Animator:
-  serializedVersion: 4
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -26671,10 +26673,11 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!1001 &1869016134
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26858,6 +26861,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.x
       value: 0
       objectReference: {fileID: 0}
@@ -26888,6 +26895,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_FadeFactor
       value: 0.665
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -27243,12 +27254,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
   m_Size: {x: 13, y: 13, z: 7.477332}
   m_FadeFactor: 0.3
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1895543025
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27445,12 +27456,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &1909621619
 GameObject:
   m_ObjectHideFlags: 0
@@ -27573,6 +27584,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -27983,6 +27995,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -28033,6 +28047,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -28205,6 +28220,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -28255,6 +28272,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -28447,7 +28465,7 @@ SphereCollider:
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!95 &1922889290
 Animator:
-  serializedVersion: 4
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -28461,10 +28479,11 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &1922889291
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28490,6 +28509,8 @@ MonoBehaviour:
   stopNaNs: 1
   taaSharpenStrength: 0.2
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.7
   taaMotionVectorRejection: 0
@@ -28540,6 +28561,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -29090,12 +29112,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 5, y: 5, z: 3}
   m_FadeFactor: 0.225
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1950019448
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29629,6 +29651,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
@@ -29679,6 +29703,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -29899,6 +29924,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -30361,12 +30387,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 7.3573437, y: 8.222879, z: 3}
   m_FadeFactor: 0.231
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2012224129
 GameObject:
   m_ObjectHideFlags: 0
@@ -30419,12 +30445,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 5, y: 5, z: 1}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2019943081
 GameObject:
   m_ObjectHideFlags: 0
@@ -30678,12 +30704,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 4, y: 4, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2033612207
 GameObject:
   m_ObjectHideFlags: 0
@@ -30736,12 +30762,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2035111233
 GameObject:
   m_ObjectHideFlags: 0
@@ -31050,6 +31076,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   useOcclusion: 1
+  useBackgroundCloudOcclusion: 0
   occlusionRadius: 0.1
   sampleCount: 32
   occlusionOffset: 0.05
@@ -31198,12 +31225,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2076744743
 GameObject:
   m_ObjectHideFlags: 0
@@ -31812,12 +31839,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2129332201
 GameObject:
   m_ObjectHideFlags: 0
@@ -31870,12 +31897,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 7.3573437, y: 8.222879, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2131837522
 GameObject:
   m_ObjectHideFlags: 0
@@ -31928,12 +31955,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2133258577
 GameObject:
   m_ObjectHideFlags: 0
@@ -31986,12 +32013,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1 &2137405421
 GameObject:
   m_ObjectHideFlags: 0
@@ -32044,12 +32071,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
   m_FadeFactor: 0.92
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &2138815349
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32184,12 +32211,12 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
-  m_DecalLayerMask: 1
+  m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &2146498803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32363,6 +32390,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -32814,8 +32842,16 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Offset.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -32896,6 +32932,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 2100000, guid: b1441bdf13e2e4c43a6f92783fe4adef, type: 2}
@@ -32922,6 +32962,10 @@ PrefabInstance:
     - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_UVScale.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771304615123796393, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
+      propertyPath: m_DecalLayerMask
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 1771304615123796394, guid: 4751770e0dc8c1149aa554360ae6087b, type: 3}
       propertyPath: m_RootOrder
@@ -33217,6 +33261,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -33624,6 +33669,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
