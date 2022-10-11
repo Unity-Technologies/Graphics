@@ -193,6 +193,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
+#if !ENABLE_SENSOR_SDK
+            // If the SensorSDK package is not present, make sure that all code related to it is stripped away
+            if (inputData.shaderKeywordSet.IsEnabled(m_SensorEnableLidar) || inputData.shaderKeywordSet.IsEnabled(m_SensorOverrideReflectance))
+                return true;
+#endif
+
             return false;
         }
     }
