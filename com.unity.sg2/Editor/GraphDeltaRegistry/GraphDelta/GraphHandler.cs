@@ -213,7 +213,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string cpName,
             bool input)
         {
-
             var context = GetNode(contextNode);
             if(context == null)
             {

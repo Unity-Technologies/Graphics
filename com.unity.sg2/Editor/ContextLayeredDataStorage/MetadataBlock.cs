@@ -90,9 +90,11 @@ namespace UnityEditor.ContextLayeredDataStorage
         [SerializeField]
         private List<SerializedBlock> serializedBlocks;
 
-        public MetadataCollection() : base(new ElementIDComparer())
-        {
+        private ContextLayeredDataStorage owner;
 
+        public MetadataCollection(ContextLayeredDataStorage owner) : base(new ElementIDComparer())
+        {
+            this.owner = owner;
         }
         public void OnAfterDeserialize()
         {
@@ -106,13 +108,17 @@ namespace UnityEditor.ContextLayeredDataStorage
         public void OnBeforeSerialize()
         {
             serializedBlocks = new List<SerializedBlock>();
-            foreach(var (key, value) in this)
+            foreach (var (key, value) in this)
             {
-                serializedBlocks.Add(new SerializedBlock()
+                if (owner.GetHierarchyValue(owner.Search(key).Element) > 0)
                 {
-                    key = key.FullPath,
-                    block = value
-                });
+                    serializedBlocks.Add(new SerializedBlock()
+                    {
+                        key = key.FullPath,
+                        block = value
+                    });
+                }
+            
             }
         }
     }

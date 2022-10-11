@@ -179,7 +179,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void OnEnable()
         {
-            graphHandlerBox.OnEnable();
+            graphHandlerBox.OnEnable(false);
+
             targetSettingsBox.OnEnable();
             foreach (var target in Targets)
             {

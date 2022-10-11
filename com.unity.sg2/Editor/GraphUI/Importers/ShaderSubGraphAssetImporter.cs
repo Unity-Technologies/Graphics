@@ -15,12 +15,19 @@ namespace UnityEditor.ShaderGraph
         public const string Extension = ShaderGraphStencil.SubGraphExtension;
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            return ShaderGraphAssetUtils.GatherDependenciesForShaderGraphAsset(assetPath);
+            if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
+            {
+                return ShaderGraphAssetUtils.GatherDependenciesForShaderGraphAsset(assetPath);
+            }
+            return new string[0];
         }
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            ShaderGraphAssetUtils.HandleImport(ctx);
+            if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
+            {
+                ShaderGraphAssetUtils.HandleImport(ctx);
+            }
         }
     }
 }
