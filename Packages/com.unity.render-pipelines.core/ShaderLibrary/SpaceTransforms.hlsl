@@ -200,7 +200,7 @@ real3x3 CreateTangentToWorld(real3 normal, real3 tangent, real flipSign)
     return real3x3(tangent, bitangent, normal);
 }
 
-real3 TransformTangentToWorld(real3 dirTS, real3x3 tangentToWorld)
+real3 TransformTangentToWorld(float3 dirTS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
     return mul(dirTS, tangentToWorld);
