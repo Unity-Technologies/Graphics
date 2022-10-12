@@ -1,13 +1,13 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     /// Class for adding commands that are unique to Shader Graph user interactions
     /// </summary>
-    public static class ShaderGraphCommands
+    static class ShaderGraphCommands
     {
         public static void RegisterCommandHandlers(BaseGraphTool graphTool, PreviewUpdateDispatcher previewUpdateDispatcher)
         {

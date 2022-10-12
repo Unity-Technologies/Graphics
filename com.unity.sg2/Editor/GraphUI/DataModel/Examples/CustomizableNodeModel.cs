@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-   //[SearcherItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Customizable Node")]
+   //[ItemLibraryItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Customizable Node")]
     [Serializable]
-    public class CustomizableNodeModel : NodeModel
+    class CustomizableNodeModel : NodeModel
     {
         [Serializable]
         public class PortDescription
@@ -36,7 +35,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            base.OnDefineNode();
             foreach (var portDescription in m_Inputs)
             {
                 this.AddDataInputPort(portDescription.Name, portDescription.Type, portDescription.Id);

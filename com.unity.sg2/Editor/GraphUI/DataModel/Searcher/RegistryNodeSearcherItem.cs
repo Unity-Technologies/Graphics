@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Searcher;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.ItemLibrary.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// A RegistryNodeSearcherItem is a GraphNodeModelSearcherItem associated with a registry key. The key is exposed
     /// to make filtering easier.
     /// </summary>
-    public class RegistryNodeSearcherItem : GraphNodeModelSearcherItem
+    class RegistryNodeSearcherItem : GraphNodeModelLibraryItem
     {
         public readonly RegistryKey registryKey;
 
@@ -18,21 +18,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
 
         public RegistryNodeSearcherItem(
-            IGraphModel graphModel,
+            GraphModel graphModel,
             RegistryKey registryKey,
             string name,
-            ISearcherItemData data = null,
-            List<SearcherItem> children = null,
+            IItemLibraryData data = null,
+            List<ItemLibraryItem> children = null,
             Func<string> getName = null,
             string help = null
         ) : base(
-            graphModel,
-            data,
-            creationData => graphModel.CreateGraphDataNode(registryKey, name, creationData.Position, creationData.Guid, creationData.SpawnFlags),
             name,
-            children,
-            getName,
-            help)
+            data,
+            creationData => graphModel.CreateGraphDataNode(registryKey, name, creationData.Position, creationData.Guid, creationData.SpawnFlags))
         {
             this.registryKey = registryKey;
         }

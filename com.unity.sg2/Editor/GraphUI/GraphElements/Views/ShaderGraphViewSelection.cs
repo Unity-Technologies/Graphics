@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphDelta;
+﻿using System.Linq;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
-using Edge = UnityEditor.GraphToolsFoundation.Overdrive.Edge;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphViewSelection : GraphViewSelection
+    class ShaderGraphViewSelection : GraphViewSelection
     {
         /// <summary>
         /// This class overrides the graph views selection and context menu operation handler
@@ -29,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (evt.menu.MenuItems().Count > 0)
                 evt.menu.AppendSeparator();
 
-            if (GetSelection().Any(model => model is INodeModel) || GetSelection().Count == 0)
+            if (GetSelection().Any(model => model is AbstractNodeModel) || GetSelection().Count == 0)
                 HandleNodeContextMenus(evt);
             else
                 HandleEdgeContextMenu(evt);
@@ -87,9 +83,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 for(var index = 0; index < selection.Count; index++)
                 {
                     var element = selection[index];
-                    if (element is INodeModel nodeModel)
+                    if (element is AbstractNodeModel nodeModel)
                     {
-                        var edges = nodeModel.GetConnectedEdges().ToList();
+                        var edges = nodeModel.GetConnectedWires().ToList();
                         foreach(var edge in edges)
                         {
                             // Skip output edges

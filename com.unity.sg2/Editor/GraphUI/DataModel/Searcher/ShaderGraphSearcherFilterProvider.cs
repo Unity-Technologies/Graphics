@@ -1,25 +1,26 @@
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Searcher;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.ItemLibrary.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphSearcherFilterProvider : ISearcherFilterProvider
+    class ShaderGraphSearcherFilterProvider : ILibraryFilterProvider
     {
-        static readonly SearcherFilter k_NoOpFilter = new SearcherFuncFilter(_ => true);
+        // FIXME: GTF Internal usage.
+        static readonly ItemLibraryFilter k_NoOpFilter = new ItemLibraryFuncFilter_Internal(_ => true);
 
-        public SearcherFilter GetGraphSearcherFilter() => k_NoOpFilter;
+        public ItemLibraryFilter GetGraphFilter() => k_NoOpFilter;
 
-        public SearcherFilter GetOutputToGraphSearcherFilter(IEnumerable<IPortModel> portModels) => k_NoOpFilter;
+        public ItemLibraryFilter GetOutputToGraphFilter(IEnumerable<PortModel> portModels) => k_NoOpFilter;
 
-        public SearcherFilter GetOutputToGraphSearcherFilter(IPortModel portModel) => k_NoOpFilter;
+        public ItemLibraryFilter GetOutputToGraphFilter(PortModel portModel) => k_NoOpFilter;
 
-        public SearcherFilter GetInputToGraphSearcherFilter(IEnumerable<IPortModel> portModels) => k_NoOpFilter;
+        public ItemLibraryFilter GetInputToGraphFilter(IEnumerable<PortModel> portModels) => k_NoOpFilter;
 
-        public SearcherFilter GetInputToGraphSearcherFilter(IPortModel portModel) => k_NoOpFilter;
+        public ItemLibraryFilter GetInputToGraphFilter(PortModel portModel) => k_NoOpFilter;
 
-        public SearcherFilter GetEdgeSearcherFilter(IEdgeModel edgeModel) => k_NoOpFilter;
+        public ItemLibraryFilter GetWireFilter(WireModel edgeModel) => k_NoOpFilter;
 
-        public SearcherFilter GetContextSearcherFilter(IContextNodeModel contextNodeModel) => k_NoOpFilter;
+        public ItemLibraryFilter GetContextFilter(ContextNodeModel contextNodeModel) => k_NoOpFilter;
     }
 }

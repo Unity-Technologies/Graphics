@@ -1,11 +1,11 @@
 
 
 
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataEdgeModel : EdgeModel
+    class GraphDataEdgeModel : WireModel
     {
         public GraphDataEdgeModel()
         {

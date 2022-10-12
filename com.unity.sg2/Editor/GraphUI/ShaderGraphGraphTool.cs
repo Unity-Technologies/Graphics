@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Toolbars;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -22,17 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             State.AddStateComponent(m_PreviewStateComponent);
         }
 
-        /// <summary>
-        /// Gets the toolbar provider for the main toolbar.
-        /// </summary>
-        /// <remarks>Use this method to get the provider for the <see cref="ShaderGraphMainToolbar"/>.</remarks>
-        /// <returns>The toolbar provider for the main toolbar.</returns>
-        public override IToolbarProvider GetToolbarProvider()
-        {
-            return new ShaderGraphMainToolbarProvider();
-        }
-
-        protected override IOverlayToolbarProvider CreateToolbarProvider(string toolbarId)
+        protected override OverlayToolbarProvider CreateToolbarProvider(string toolbarId)
         {
             switch (toolbarId)
             {

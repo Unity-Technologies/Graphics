@@ -1,11 +1,11 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class RegistryKeyPart : BaseModelViewPart
+    class RegistryKeyPart : BaseModelViewPart
     {
-        public RegistryKeyPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName) :
+        public RegistryKeyPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName) :
             base(name, model, ownerElement, parentClassName)
         {
         }

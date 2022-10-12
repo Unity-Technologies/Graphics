@@ -1,16 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using UnityEditor;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.UIElements.StyleSheets;
-using UnityEditor.ShaderGraph.GraphUI;
 using UIECursor = UnityEngine.UIElements.Cursor;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests

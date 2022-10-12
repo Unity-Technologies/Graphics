@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Searcher;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.ItemLibrary.Editor;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     /// <summary>
     /// Meant to hold any higher level graph UI interactions that will be commonly used in tests
     /// </summary>
-    public class TestInteractionHelpers
+    class TestInteractionHelpers
     {
         TestEditorWindow m_Window;
 
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_TestEventHelper = testEventHelper;
         }
 
-        public IEnumerator SelectAndCopyNodes(List<INodeModel> nodeModels)
+        public IEnumerator SelectAndCopyNodes(List<AbstractNodeModel> nodeModels)
         {
             // Select both the nodes
             m_Window.GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeModels));
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var inPort =  ShaderGraphModel.FindInputPortByName(toNode, toPortName);
             Assert.IsNotNull(inPort, "Could not find input port: " + toPortName + "on node: " + toNodeName);
 
-            m_Window.GraphView.Dispatch(new CreateEdgeCommand(inPort, outPort));
+            m_Window.GraphView.Dispatch(new CreateWireCommand(inPort, outPort));
         }
 
         public void ConnectNodes(string fromNodeName, string toNodeName, string fromPortName = "Out", string toPortName = "In")
@@ -59,18 +59,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var toNode = m_Window.GetNodeModelFromGraphByName(toNodeName);
             var toPortModel =  ShaderGraphModel.FindInputPortByName(toNode, toPortName);
 
-            m_Window.GraphView.Dispatch(new CreateEdgeCommand(toPortModel, fromPortModel));
+            m_Window.GraphView.Dispatch(new CreateWireCommand(toPortModel, fromPortModel));
         }
 
-        SearcherWindow SummonSearcher()
+        ItemLibraryWindow SummonSearcher()
         {
-            m_Window.GraphView.DisplaySmartSearch(new Vector2());
+            m_Window.GraphView.ShowItemLibrary(new Vector2());
 
             // TODO: (Sai) This throws an exception on some occasions in DisplaySmartSearch, ask Vlad for help figuring out why?
             //TestEventHelpers.SendKeyDownEvent(m_Window, KeyCode.Space);
             //TestEventHelpers.SendKeyUpEvent(m_Window, KeyCode.Space);
 
-            var searcherWindow = (SearcherWindow)EditorWindow.GetWindow(typeof(SearcherWindow));
+            var searcherWindow = (ItemLibraryWindow)EditorWindow.GetWindow(typeof(ItemLibraryWindow));
             return searcherWindow;
         }
 

@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
@@ -10,15 +10,15 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class DropdownPart : SingleFieldPart<DropdownField, string>
+    class DropdownPart : SingleFieldPart<DropdownField, string>
     {
         protected override string UXMLTemplateName => "StaticPortParts/DropdownPart";
         protected override string FieldName => "sg-dropdown";
 
         public DropdownPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName)

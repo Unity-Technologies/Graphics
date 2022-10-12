@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Searcher;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.ItemLibrary.Editor;
+using Unity.GraphToolsFoundation;
 using System.Linq;
-using UnityEditor.ShaderGraph.Defs;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
-    /// Provides the data required by the searcher (SearcherDatabase with SearcherItems).
+    /// Provides the data required by the searcher (ItemLibraryDatabase with SearcherItems).
     /// Makes all nodes returned from stencil.GetRegistry() availabe in the searcher.
     /// </summary>
-    public class ShaderGraphSearcherDatabaseProvider : DefaultSearcherDatabaseProvider
+    class ShaderGraphSearcherDatabaseProvider : DefaultDatabaseProvider
     {
         public ShaderGraphSearcherDatabaseProvider(ShaderGraphStencil stencil)
             : base(stencil)
@@ -21,33 +20,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
+        public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementsDatabases(GraphModel graphModel)
         {
-            var databases = base.GetGraphElementsSearcherDatabases(graphModel).ToList();
-            List<SearcherItem> searcherItems = GetNodeSearcherItems(graphModel);
-            SearcherDatabase db = new(searcherItems);
+            var databases = base.GetGraphElementsDatabases(graphModel).ToList();
+            List<ItemLibraryItem> searcherItems = GetNodeSearcherItems(graphModel);
+            ItemLibraryDatabase db = new(searcherItems);
             databases.Add(db);
             return databases;
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<SearcherDatabaseBase> GetVariableTypesSearcherDatabases()
+        public override IReadOnlyList<ItemLibraryDatabaseBase> GetVariableTypesDatabases()
         {
-            var databases = base.GetVariableTypesSearcherDatabases().ToList();
-            List<SearcherItem> searcherItems = GetTypeSearcherItems();
-            SearcherDatabase db = new(searcherItems);
+            var databases = base.GetVariableTypesDatabases().ToList();
+            List<ItemLibraryItem> searcherItems = GetTypeSearcherItems();
+            ItemLibraryDatabase db = new(searcherItems);
             databases.Add(db);
             return databases;
         }
 
-        internal static List<SearcherItem> GetNodeSearcherItems(IGraphModel graphModel)
+        internal static List<ItemLibraryItem> GetNodeSearcherItems(GraphModel graphModel)
         {
-            var searcherItems = new List<SearcherItem>();
+            var searcherItems = new List<ItemLibraryItem>();
             if (graphModel is ShaderGraphModel shaderGraphModel)
             {
-                // Keep track of all the names that have been added to the SearcherItem list.
-                // Having conflicting names in the SearcherItem list causes errors
-                // in the SearcherDatabase initialization.
+                // Keep track of all the names that have been added to the ItemLibraryItem list.
+                // Having conflicting names in the ItemLibraryItem list causes errors
+                // in the ItemLibraryDatabase initialization.
                 HashSet<string> namesAddedToSearcher = new();
                 var registry = shaderGraphModel.RegistryInstance;
 
@@ -65,7 +64,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // a valid topology and nodeUIInfo for it will also exist.
                         var uiInfo = registry.GetNodeUIDescriptor(registryKey);
                         string searcherItemName = uiInfo.DisplayName;
-
                         // If a registry key has more than 1 available version, show version numbers explicitly in the
                         // searcher to prevent conflicts.
                         // TODO: This isn't the final design for presenting nodes with multiple versions.
@@ -73,15 +71,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             searcherItemName += $" (v{uiInfo.Version})";
                         }
-
-                        // If there is already a SearcherItem with the current name,
+                        // If there is already a ItemLibraryItem with the current name,
                         // warn and skip.
                         if (namesAddedToSearcher.Contains(searcherItemName))
                         {
                             Debug.LogWarning($"Not adding \"{searcherItemName}\" to the searcher. A searcher item with this name already exists.");
                             continue;
                         }
-                        SearcherItem searcherItem = new GraphNodeModelSearcherItem(
+                        ItemLibraryItem searcherItem = new GraphNodeModelLibraryItem(
                             name: searcherItemName,
                             null,
                             creationData => graphModel.CreateGraphDataNode(
@@ -104,12 +101,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return searcherItems;
         }
 
-        internal static List<SearcherItem> GetTypeSearcherItems()
+        internal static List<ItemLibraryItem> GetTypeSearcherItems()
         {
             // TODO: Retrieve types from registry, map to type handles.
-            return  new List<SearcherItem>
+            return  new List<ItemLibraryItem>
             {
-                new TypeSearcherItem("TODO", TypeHandle.Float)
+                new TypeLibraryItem("TODO", TypeHandle.Float)
             };
         }
     }

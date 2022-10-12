@@ -1,18 +1,17 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class RedirectableEdge : Edge
+    class RedirectableEdge : Wire
     {
         public RedirectableEdge()
         {
             RegisterCallback<MouseDownEvent>(evt =>
             {
                 if (evt.clickCount != 2 || evt.button != 0) return;
-                if (Model is not EdgeModel edgeModel) return;
+                if (Model is not WireModel edgeModel) return;
 
                 RootView.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(evt.mousePosition)));
             });
@@ -26,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             evt.menu.AppendAction("Add Redirect Node", action =>
             {
-                if (Model is not EdgeModel edgeModel) return;
+                if (Model is not WireModel edgeModel) return;
                 RootView.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(action.eventInfo.mousePosition)));
             });
         }

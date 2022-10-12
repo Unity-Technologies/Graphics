@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     //public class RemovePortCommand : ModelCommand<CustomizableNodeModel>
@@ -24,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     //        RemovePortCommand command
     //    )
     //    {
-    //        undoState.UpdateScope.SaveSingleState(graphViewState, command);
+    //        undoState.UpdateScope.SaveState(graphViewState, command);
     //        using var graphUpdater = graphViewState.UpdateScope;
 
     //        foreach (var nodeModel in command.Models)
@@ -35,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     //            if (removedPort == null) continue;
 
-    //            var edgesToDelete = removedPort.GetConnectedEdges().ToList();
+    //            var edgesToDelete = removedPort.GetConnectedWires().ToList();
     //            foreach (var connectedEdge in edgesToDelete)
     //            {
     //                graphUpdater.MarkDeleted(connectedEdge);

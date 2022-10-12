@@ -1,18 +1,18 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class MatrixConstantPropertyField : CustomizableModelPropertyField
+    class MatrixConstantPropertyField : CustomizableModelPropertyField
     {
-        readonly IConstant m_ConstantModel;
+        readonly Constant m_ConstantModel;
         readonly MatrixField m_Field;
 
         public MatrixConstantPropertyField(
-            IConstant constantModel,
-            IGraphElementModel owner,
+            Constant constantModel,
+            GraphElementModel owner,
             ICommandTarget commandTarget,
             int size,
             string label = null)

@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
@@ -9,15 +9,15 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class TextFieldPart : SingleFieldPart<TextField, string>
+    class TextFieldPart : SingleFieldPart<TextField, string>
     {
         protected override string UXMLTemplateName => "StaticPortParts/TextFieldPart";
         protected override string FieldName => "sg-textfield";
 
         public TextFieldPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName)

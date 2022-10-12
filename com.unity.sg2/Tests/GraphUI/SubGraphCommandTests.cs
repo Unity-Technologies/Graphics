@@ -1,34 +1,25 @@
 using System.Collections;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 using UnityEngine.TestTools;
 using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class SubGraphCommandTests : BaseGraphWindowTest
+    class SubGraphCommandTests : BaseGraphWindowTest
     {
         const string k_OutputNodeName = "DefaultContextDescriptor";
 
         GraphDataContextNodeModel m_OutputContextNodeModel;
 
+        /// <inheritdoc />
+        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemorySubGraph;
+
         public override void SetUp()
         {
-            CreateWindow();
-
-            m_GraphView = m_Window.GraphView as TestGraphView;
-
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
-            newGraphAction.isSubGraph = true;
-            newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
-
-            m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
-            m_Window.GraphTool.Update();
-
-            m_Window.Focus();
+            base.SetUp();
 
             m_OutputContextNodeModel = m_Window.GetNodeModelFromGraphByName(k_OutputNodeName) as GraphDataContextNodeModel;
             Assert.IsNotNull(m_OutputContextNodeModel, "Subgraph output node must be present on graph");
@@ -67,14 +58,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector3");
             var vector3Node = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector3");
-            m_GraphView.Dispatch(new CreateEdgeCommand(m_OutputContextNodeModel.GetInputPortForEntry("Port1"), vector3Node.OutputsById["Out"]));
+            m_GraphView.Dispatch(new CreateWireCommand(m_OutputContextNodeModel.GetInputPortForEntry("Port1"), vector3Node.OutputsById["Out"]));
             yield return null;
 
             m_GraphView.Dispatch(new RemoveContextEntryCommand(m_OutputContextNodeModel, "Port1"));
             yield return null;
 
-            Assert.AreEqual(0, vector3Node.GetConnectedEdges().Count(), "Removing a subgraph output should also remove connected edges");
-            Assert.AreEqual(0, m_OutputContextNodeModel.GetConnectedEdges().Count(), "Removing a subgraph output should also remove connected edges");
+            Assert.AreEqual(0, vector3Node.GetConnectedWires().Count(), "Removing a subgraph output should also remove connected edges");
+            Assert.AreEqual(0, m_OutputContextNodeModel.GetConnectedWires().Count(), "Removing a subgraph output should also remove connected edges");
         }
 
         [UnityTest]
@@ -103,13 +94,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector3");
             var vector3Node = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector3");
-            m_GraphView.Dispatch(new CreateEdgeCommand(m_OutputContextNodeModel.GetInputPortForEntry("OriginalPort"), vector3Node.OutputsById["Out"]));
+            m_GraphView.Dispatch(new CreateWireCommand(m_OutputContextNodeModel.GetInputPortForEntry("OriginalPort"), vector3Node.OutputsById["Out"]));
             yield return null;
 
             m_GraphView.Dispatch(new RenameContextEntryCommand(m_OutputContextNodeModel, "OriginalPort", "RenamedPort"));
             yield return null;
 
-            Assert.AreEqual(1, m_OutputContextNodeModel.GetConnectedEdges().Count(), "After renaming an output, connected edge should be preserved");
+            Assert.AreEqual(1, m_OutputContextNodeModel.GetConnectedWires().Count(), "After renaming an output, connected edge should be preserved");
         }
 
         [UnityTest]

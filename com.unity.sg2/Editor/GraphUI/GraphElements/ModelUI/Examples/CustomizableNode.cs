@@ -1,7 +1,3 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.Overdrive;
-using UnityEngine.UIElements;
-
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     //public class CustomizableNode : CollapsibleInOutNode

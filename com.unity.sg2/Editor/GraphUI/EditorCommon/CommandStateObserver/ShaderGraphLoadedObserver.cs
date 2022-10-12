@@ -1,9 +1,9 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+﻿using Unity.GraphToolsFoundation.Editor;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphLoadedObserver : StateObserver
+    class ShaderGraphLoadedObserver : StateObserver
     {
         ToolStateComponent m_ToolStateComponent;
         GraphModelStateComponent m_GraphModelStateComponent;

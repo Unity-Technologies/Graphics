@@ -1,10 +1,10 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class NodePreviewPart : BaseModelViewPart
+    class NodePreviewPart : BaseModelViewPart
     {
         VisualElement m_Root;
         VisualElement m_CollapseButton;
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override VisualElement Root => m_Root;
 
-        public NodePreviewPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName)
+        public NodePreviewPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
             m_GraphDataNodeModel = model as GraphDataNodeModel;

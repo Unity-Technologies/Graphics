@@ -1,18 +1,16 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.VersionControl;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class TestEditorWindow : ShaderGraphEditorWindow
+    class TestEditorWindow : ShaderGraphEditorWindow
     {
         public BlackboardView blackboardView => m_BlackboardView;
 
         protected override GraphView CreateGraphView()
         {
-            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
+            GraphTool.Preferences.SetInitialItemLibrarySize(ItemLibraryService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
             var testGraphView = new TestGraphView(this, GraphTool, GraphTool.Name, m_PreviewUpdateDispatcher);
             return testGraphView;
@@ -20,11 +18,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         /// <summary>
         /// Returns first instance of node with this name
-        /// Uses INodeModel.Title as the name to compare against
+        /// Uses AbstractNodeModel.Title as the name to compare against
         /// </summary>
         /// <param name="nodeName"></param>
         /// <returns></returns>
-        public INodeModel GetNodeModelFromGraphByName(string nodeName)
+        internal AbstractNodeModel GetNodeModelFromGraphByName(string nodeName)
         {
             var nodeModels = GraphView.GraphModel.NodeModels;
             foreach (var nodeModel in nodeModels)
@@ -39,13 +37,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         /// <summary>
         /// Returns all instances of node with this name
-        /// Uses INodeModel.Title as the name to compare against
+        /// Uses AbstractNodeModel.Title as the name to compare against
         /// </summary>
         /// <param name="nodeName"></param>
         /// <returns></returns>
-        public List<INodeModel> GetNodeModelsFromGraphByName(string nodeName)
+        internal List<AbstractNodeModel> GetNodeModelsFromGraphByName(string nodeName)
         {
-            var outNodeModels = new List<INodeModel>();
+            var outNodeModels = new List<AbstractNodeModel>();
             var nodeModels = GraphView.GraphModel.NodeModels;
             foreach (var nodeModel in nodeModels)
             {
@@ -56,9 +54,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return outNodeModels;
         }
 
-        public IEdgeModel GetEdgeModelFromGraphByName(string sourceNodeName, string destinationNodeName)
+        internal WireModel GetEdgeModelFromGraphByName(string sourceNodeName, string destinationNodeName)
         {
-            var edgeModels = GraphView.GraphModel.EdgeModels;
+            var edgeModels = GraphView.GraphModel.WireModels;
             foreach (var edgeModel in edgeModels)
             {
                 var fromPortNodeModel = (NodeModel)edgeModel.FromPort.NodeModel;
@@ -74,10 +72,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return null;
         }
 
-        public List<IEdgeModel> GetEdgeModelsFromGraphByName(string sourceNodeName, string destinationNodeName)
+        internal List<WireModel> GetEdgeModelsFromGraphByName(string sourceNodeName, string destinationNodeName)
         {
-            var outEdgeModels = new List<IEdgeModel>();
-            var edgeModels = GraphView.GraphModel.EdgeModels;
+            var outEdgeModels = new List<WireModel>();
+            var edgeModels = GraphView.GraphModel.WireModels;
             foreach (var edgeModel in edgeModels)
             {
                 var fromPortNodeModel = (NodeModel)edgeModel.FromPort.NodeModel;

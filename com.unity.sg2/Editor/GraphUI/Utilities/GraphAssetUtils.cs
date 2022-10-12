@@ -1,5 +1,5 @@
 using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Does nothing if there is no open graph.
         /// </summary>
         /// <param name="graphTool">Graph tool with an open Shader Graph asset.</param>
-        public static void SaveOpenGraphAsset(BaseGraphTool graphTool)
+        internal static void SaveOpenGraphAsset(BaseGraphTool graphTool)
         {
             if (graphTool.ToolState.CurrentGraph.GetGraphAsset() is not ShaderGraphAsset graphAsset)
             {
@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Does nothing and returns an empty string if there is no open graph.
         /// </summary>
         /// <param name="graphTool">Graph tool with an open Shader Graph asset.</param>
-        public static string SaveOpenGraphAssetAs(BaseGraphTool graphTool)
+        internal static string SaveOpenGraphAssetAs(BaseGraphTool graphTool)
         {
             if (graphTool.ToolState.CurrentGraph.GetGraphAsset() is not ShaderGraphAsset graphAsset)
             {

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -9,27 +9,18 @@ using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class SubGraphTests : BaseGraphWindowTest
+    class SubGraphTests : BaseGraphWindowTest
     {
         protected override string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultSubGraphAssetName}.{ShaderGraphStencil.SubGraphExtension}";
         ModelInspectorView m_InspectorView;
 
+        /// <inheritdoc />
+        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemorySubGraph;
+
         [SetUp]
         public override void SetUp()
         {
-            CreateWindow();
-
-            m_GraphView = m_Window.GraphView as TestGraphView;
-
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
-            newGraphAction.isSubGraph = true;
-            newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
-            m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
-            m_Window.GraphTool.Update();
-
-            m_Window.Focus();
-
+            base.SetUp();
             FindInspectorView();
         }
 
@@ -57,19 +48,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestCanAddNodeToSubGraph()
         {
             return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-        }
-
-        [UnityTest]
-        public IEnumerator TestSaveSubGraph()
-        {
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-            yield return SaveAndReopenGraph();
-
-            // Wait till the graph model is loaded back up
-            while (m_Window.GraphView.GraphModel == null)
-                yield return null;
-
-            Assert.IsNotNull(m_Window.GetNodeModelFromGraphByName("Add"));
         }
 
         [UnityTest]

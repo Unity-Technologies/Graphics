@@ -1,12 +1,12 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+﻿using Unity.GraphToolsFoundation.Editor;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ConversionEdgeModel : EdgeModel
+    class ConversionEdgeModel : WireModel
     {
         // EdgeLabel is used by EdgeBubblePart (and subclass ConversionEdgePart) to determine what to display.
-        public override string EdgeLabel
+        public override string WireLabel
         {
             get => $"{FromPort.PortDataType.FriendlyName()} -> {ToPort.PortDataType.FriendlyName()}";
             set { }

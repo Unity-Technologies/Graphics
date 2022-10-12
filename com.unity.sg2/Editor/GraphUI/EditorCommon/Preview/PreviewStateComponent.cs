@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     /// State component that holds the preview output data
     /// </summary>
-    public class PreviewStateComponent
+    class PreviewStateComponent
         :   PersistedStateComponent<PreviewStateComponent.StateUpdater>,
             IPreviewUpdateReceiver
     {

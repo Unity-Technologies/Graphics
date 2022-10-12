@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     /// <typeparam name="F">Field UI element type.</typeparam>
     /// <typeparam name="T">Type of the value in the field.</typeparam>
-    public abstract class SingleFieldPart<F, T> : AbstractStaticPortPart where F : VisualElement, INotifyValueChanged<T>
+    abstract class SingleFieldPart<F, T> : AbstractStaticPortPart where F : VisualElement, INotifyValueChanged<T>
     {
         /// <summary>
         /// Template path, relative to Editor/GraphUI/Templates, to instantiate as the root of this element.
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="change">Change event dispatched from field.</param>
         protected abstract void OnFieldValueChanged(ChangeEvent<T> change);
 
-        public SingleFieldPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
+        protected SingleFieldPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected F m_Field;

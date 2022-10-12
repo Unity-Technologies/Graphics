@@ -1,9 +1,9 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class DynamicPartHolder : BaseModelViewPart
+    class DynamicPartHolder : BaseModelViewPart
     {
         public override VisualElement Root => m_rootVisualElement;
         private VisualElement m_rootVisualElement;
@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public DynamicPartHolder(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName) : base(name, model, ownerElement, parentClassName)
         {
             m_graphDataNodeModel = model as GraphDataNodeModel;

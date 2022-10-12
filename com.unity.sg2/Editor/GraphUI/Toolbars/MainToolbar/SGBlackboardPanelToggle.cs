@@ -1,8 +1,7 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.Toolbars;
 using UnityEngine;
 
-#if UNITY_2022_2_OR_NEWER
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
@@ -27,4 +26,3 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 }
-#endif

@@ -1,15 +1,15 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ConversionEdge : Edge
+    class ConversionEdge : Wire
     {
         protected override void BuildPartList()
         {
             // Not calling base.BuildPartList() because we want to use our ConversionEdgePart instead of the default
             // bubble.
-            PartList.AppendPart(EdgeControlPart.Create(edgeControlPartName, Model, this, ussClassName));
-            PartList.AppendPart(new ConversionEdgePart(edgeBubblePartName, Model as IGraphElementModel, this, ussClassName));
+            PartList.AppendPart(WireControlPart.Create(wireControlPartName, Model, this, ussClassName));
+            PartList.AppendPart(new ConversionEdgePart(wireBubblePartName, Model as GraphElementModel, this, ussClassName));
         }
     }
 }

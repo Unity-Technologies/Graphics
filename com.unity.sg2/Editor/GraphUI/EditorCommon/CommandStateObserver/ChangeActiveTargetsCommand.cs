@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using System.Linq;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -19,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState , command);
+                undoStateUpdater.SaveState(graphModelState);
             }
 
             Debug.Log("ChangeActiveTargetsCommand: Target Settings Change is unimplemented");

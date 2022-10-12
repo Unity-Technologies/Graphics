@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.GraphToolsFoundation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
-using UnityEngine.UIElements;
-
 using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.PreviewService.PreviewRenderMode;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -12,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Is responsible for taking in change lists and sending requests for updates to the preview service
     /// </summary>
-    public class PreviewUpdateDispatcher
+    class PreviewUpdateDispatcher
     {
         PreviewService m_PreviewHandlerInstance;
         MainPreviewData m_MainPreviewData;

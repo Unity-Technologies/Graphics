@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     // TODO/NOTE: Don't rely on this inheriting from GraphDataNodeModel, it will eventually become a context w/ blocks.
-    public class GraphDataContextNodeModel : GraphDataNodeModel
+    class GraphDataContextNodeModel : GraphDataNodeModel
     {
         public GraphDataContextNodeModel()
         {
-            m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.Deletable);
-            m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.Copiable);
+            m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Deletable);
+            m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
         }
 
         public override bool HasPreview => false;
@@ -24,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return graphDataName == shaderGraphModel.DefaultContextName;
         }
 
-        public IPortModel GetInputPortForEntry(string name) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == name);
+        public PortModel GetInputPortForEntry(string name) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == name);
 
         public void CreateEntry(string entryName, TypeHandle typeHandle)
         {

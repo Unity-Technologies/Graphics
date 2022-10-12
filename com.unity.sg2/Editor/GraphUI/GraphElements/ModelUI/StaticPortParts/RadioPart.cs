@@ -1,18 +1,18 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class RadioPart : SingleFieldPart<RadioButtonGroup, int>
+    class RadioPart : SingleFieldPart<RadioButtonGroup, int>
     {
         protected override string UXMLTemplateName => "StaticPortParts/RadioPart";
         protected override string FieldName => "sg-radio";
 
         public RadioPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName)

@@ -1,14 +1,14 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class GraphModelExtensions
+    static class GraphModelExtensions
     {
         public static GraphDataNodeModel CreateGraphDataNode(
-            this IGraphModel graphModel,
+            this GraphModel graphModel,
             RegistryKey registryKey,
             string displayName = "",
             Vector2 position = default,

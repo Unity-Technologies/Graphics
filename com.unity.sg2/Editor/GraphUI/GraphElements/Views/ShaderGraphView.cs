@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using UnityEngine.UIElements;
+using Unity.CommandStateObserver;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphView : GraphView
+    class ShaderGraphView : GraphView
     {
         GraphModelStateObserver m_GraphModelStateObserver;
         ShaderGraphLoadedObserver m_ShaderGraphLoadedObserver;
@@ -74,6 +74,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent,
                 selectionStateComponent,
                 previewUpdateDispatcher);
+
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PasteSerializedDataCommand>(
+                ShaderGraphCommandOverrides.HandlePasteSerializedData,
+                undoStateComponent,
+                graphModelStateComponent,
+                selectionStateComponent);
         }
 
         protected override void RegisterObservers()
@@ -97,7 +103,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
         }
 
-        public void HandlePreviewUpdates(IEnumerable<IGraphElementModel> changedModels)
+        /// <inheritdoc />
+        protected override void UnregisterObservers()
+        {
+            base.UnregisterObservers();
+
+            if (GraphTool?.ObserverManager == null)
+                return;
+
+            if (m_ShaderGraphLoadedObserver != null)
+            {
+                GraphTool?.ObserverManager?.UnregisterObserver(m_ShaderGraphLoadedObserver);
+                m_ShaderGraphLoadedObserver = null;
+            }
+
+            if (m_GraphModelStateObserver != null)
+            {
+                GraphTool?.ObserverManager?.UnregisterObserver(m_GraphModelStateObserver);
+                m_GraphModelStateObserver = null;
+            }
+
+            if (m_PreviewStateObserver != null)
+            {
+                GraphTool?.ObserverManager?.UnregisterObserver(m_PreviewStateObserver);
+                m_PreviewStateObserver = null;
+            }
+        }
+
+        public void HandlePreviewUpdates(IEnumerable<SerializableGUID> changedModels)
         {
             if (!changedModels.Any())
                 return;

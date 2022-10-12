@@ -2,16 +2,15 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-using UnityEngine.GraphToolsFoundation.Overdrive;
-using UnityEngine.UIElements;
+using Unity.CommandStateObserver;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphEditorWindow : GraphViewEditorWindow
+    class ShaderGraphEditorWindow : GraphViewEditorWindow
     {
         ShaderGraphGraphTool m_GraphTool;
 
@@ -38,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 SetDefaultMainPreviewUpdateListener(shaderGraphModel);
         }
 
-        internal IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
+        internal GraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
@@ -202,7 +201,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override GraphView CreateGraphView()
         {
-            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
+            GraphTool.Preferences.SetInitialItemLibrarySize(ItemLibraryService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
             var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewUpdateDispatcher);
             return shaderGraphView;
@@ -226,12 +225,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (GraphView != null)
             {
-                // TODO: (Sai) GTF should allow for a neater way to substitute a selection handler of our own
-                m_BlackboardView = new BlackboardView(this, GraphView);
-                m_BlackboardView.ViewSelection.DetachFromView();
-                var viewSelection = new SGBlackboardViewSelection(m_BlackboardView, m_BlackboardView.BlackboardViewModel);
-                viewSelection.AttachToView();
-                m_BlackboardView.ViewSelection = viewSelection;
+                m_BlackboardView = new BlackboardView(this, GraphView,
+                    (view, model) => new SGBlackboardViewSelection(view, model));
 
                 // Register blackboard commands
                 RegisterBlackboardOverrideCommandHandlers(m_BlackboardView, m_GraphTool.State);
@@ -246,7 +241,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new BlankPage(GraphTool?.Dispatcher, onboardingProviders);
         }
 
-        protected override bool CanHandleAssetType(IGraphAsset asset)
+        protected override bool CanHandleAssetType(GraphAsset asset)
         {
             return asset is ShaderGraphAsset;
         }

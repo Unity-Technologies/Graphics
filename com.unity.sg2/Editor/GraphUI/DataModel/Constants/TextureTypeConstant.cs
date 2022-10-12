@@ -2,11 +2,11 @@
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class TextureTypeConstant : BaseShaderGraphConstant
+    class TextureTypeConstant : BaseShaderGraphConstant
     {
         protected override void StoreValueForCopy()
         {

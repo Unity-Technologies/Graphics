@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class FunctionSelectorPart : BaseModelViewPart
+    class FunctionSelectorPart : BaseModelViewPart
     {
         private static readonly string ROOT_CLASS_NAME = "sg-function-selector-part";
         public override VisualElement Root => m_rootVisualElement;
@@ -20,8 +20,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public FunctionSelectorPart(
             string name,
-            IGraphElementModel model,
-            IModelView ownerElement,
+            GraphElementModel model,
+            ModelView ownerElement,
             string parentClassName,
             string selectedFunctionName,
             IReadOnlyDictionary<string, string> options,

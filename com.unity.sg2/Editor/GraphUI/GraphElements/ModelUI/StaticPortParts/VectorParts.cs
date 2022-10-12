@@ -1,4 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,12 +8,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
     // These parts could be done dynamically akin to MatrixParts. But UIElements offers existing controls for them,
     // so we will opt for those first.
 
-    public class Vector2Part : SingleFieldPart<Vector2Field, Vector2>
+    class Vector2Part : SingleFieldPart<Vector2Field, Vector2>
     {
         protected override string UXMLTemplateName => "StaticPortParts/Vector2Part";
         protected override string FieldName => "sg-vector2-field";
 
-        public Vector2Part(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
+        public Vector2Part(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<Vector2> change)
@@ -36,12 +36,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class Vector3Part : SingleFieldPart<Vector3Field, Vector3>
+    class Vector3Part : SingleFieldPart<Vector3Field, Vector3>
     {
         protected override string UXMLTemplateName => "StaticPortParts/Vector3Part";
         protected override string FieldName => "sg-vector3-field";
 
-        public Vector3Part(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
+        public Vector3Part(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<Vector3> change)
@@ -65,12 +65,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public class Vector4Part : SingleFieldPart<Vector4Field, Vector4>
+    class Vector4Part : SingleFieldPart<Vector4Field, Vector4>
     {
         protected override string UXMLTemplateName => "StaticPortParts/Vector4Part";
         protected override string FieldName => "sg-vector4-field";
 
-        public Vector4Part(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
+        public Vector4Part(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<Vector4> change)

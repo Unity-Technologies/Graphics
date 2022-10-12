@@ -1,13 +1,12 @@
 ﻿using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.Toolbars;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [EditorToolbarElement(id, typeof(GraphViewEditorWindow))]
-    public sealed class ShaderGraphSaveAsButton : MainToolbarButton
+    sealed class ShaderGraphSaveAsButton : MainToolbarButton
     {
         public const string id = "ShaderGraph/Main/SaveAs";
 

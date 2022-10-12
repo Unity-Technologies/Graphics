@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphStencil : Stencil
+    class ShaderGraphStencil : Stencil
     {
         public const string Name = "ShaderGraph";
         public const string DefaultGraphAssetName = "NewShaderGraph";
@@ -29,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
         }
 
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel) =>
+        public override BlackboardGraphModel CreateBlackboardGraphModel(GraphModel graphModel) =>
             new SGBlackboardGraphModel(graphModel);
 
         // See ShaderGraphExampleTypes.GetGraphType for more details
@@ -68,12 +67,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return typeof(AnyConstant);
         }
 
-        public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()
+        public override IItemDatabaseProvider GetItemDatabaseProvider()
         {
             return new ShaderGraphSearcherDatabaseProvider(this);
         }
 
-        public override ISearcherFilterProvider GetSearcherFilterProvider()
+        public override ILibraryFilterProvider GetLibraryFilterProvider()
         {
             return new ShaderGraphSearcherFilterProvider();
         }
@@ -90,8 +89,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void CreateGraphProcessors()
         {
-            if (!AllowMultipleDataOutputInstances)
-                GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
+            GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
         /// <summary>
@@ -114,8 +112,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override void PopulateBlackboardCreateMenu(
             string sectionName,
             List<MenuItem> menu,
-            IRootView view,
-            IGroupModel selectedGroup = null)
+            RootView view,
+            GroupModel selectedGroup = null)
         {
             // Only populate the Properties section for now. Will change in the future.
             if (sectionName != sections[0]) return;
@@ -135,20 +133,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
+        public override bool CanPasteNode(AbstractNodeModel originalModel, GraphModel graph)
         {
             return originalModel is not GraphDataContextNodeModel;
         }
 
-        public override bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph)
+        public override bool CanPasteVariable(VariableDeclarationModel originalModel, GraphModel graph)
         {
             // TODO: (Sai) When we have built-in keywords, those do not allow for duplication
             return true;
-        }
-
-        public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
-        {
-            return new InspectorModel(inspectedModel);
         }
     }
 }

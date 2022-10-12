@@ -1,20 +1,26 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using System.Linq;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class StaticPortsInspector : SGFieldsInspector
+    class StaticPortsInspector : SGFieldsInspector
     {
-        public StaticPortsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName)
+        // TODO GTF UPGRADE: support edition of multiple models.
+
+        public StaticPortsInspector(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
+            : base(name, models, rootView, parentClassName)
         {
         }
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
-            if (m_Model is not GraphDataNodeModel nodeModel) yield break;
+            var models = m_Models.OfType<GraphDataNodeModel>();
+            if (!models.Any()) yield break;
+
+            var nodeModel = models.First();
             if (!nodeModel.TryGetNodeHandler(out var nodeReader)) yield break;
 
             var graphModel = (ShaderGraphModel)nodeModel.GraphModel;
@@ -39,7 +45,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
 
                 // TODO: Last argument is label text, should come from UI strings
-                yield return InlineValueEditor.CreateEditorForConstant(m_OwnerElement?.RootView, nodeModel, constant, false, portName);
+                yield return InlineValueEditor.CreateEditorForConstants(RootView, models, new [] { constant }, false, portName);
             }
         }
 

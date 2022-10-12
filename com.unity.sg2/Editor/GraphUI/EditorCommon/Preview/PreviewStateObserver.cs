@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+﻿using System.Linq;
+using Unity.GraphToolsFoundation.Editor;
+using Unity.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     ///  Observes PreviewStateComponent for changes in preview data, and notifies listeners to update themselves if so
     /// </summary>
-    public class PreviewStateObserver : StateObserver
+    class PreviewStateObserver : StateObserver
     {
         PreviewStateComponent m_PreviewStateComponent;
         ShaderGraphView m_ShaderGraphView;
@@ -37,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         listener.HandlePreviewTextureUpdated(newTexture);
                     }
 
-                    m_ShaderGraphView.HandlePreviewUpdates(changedListeners.Cast<IGraphElementModel>());
+                    m_ShaderGraphView.HandlePreviewUpdates(changedListeners.OfType<GraphElementModel>().Select(m => m.Guid));
 
                     if(m_ShaderGraphView.Window is ShaderGraphEditorWindow shaderGraphEditorWindow)
                         shaderGraphEditorWindow.MainPreviewView.HandlePreviewUpdates();

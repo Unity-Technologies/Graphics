@@ -1,11 +1,6 @@
 using System;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine.UIElements;
 using UnityEngine;
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI;
 using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests

@@ -1,5 +1,4 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// PreviewNodeModel is backed by a registry key, but not graph data. It's only used for previews, and shouldn't
     /// exist on the graph.
     /// </summary>
-    public class SearcherPreviewNodeModel : NodeModel
+    class SearcherPreviewNodeModel : NodeModel
     {
         [SerializeField]
         RegistryKey m_RegistryKey;
@@ -22,8 +21,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            base.OnDefineNode();
-
             var stencil = (ShaderGraphStencil) GraphModel.Stencil;
             var registry = stencil.GetRegistry();
             var reader = registry.GetDefaultTopology(registryKey);

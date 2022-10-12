@@ -1,9 +1,9 @@
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GraphDataBlackboardVariablePropertyView : BlackboardVariablePropertyView
+    class GraphDataBlackboardVariablePropertyView : BlackboardVariablePropertyView
     {
         protected override void BuildRows()
         {
