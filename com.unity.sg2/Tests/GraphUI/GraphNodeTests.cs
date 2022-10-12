@@ -247,7 +247,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var addNode = m_Window.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(addNode);
 
-            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<INodeModel>() { viewDirectionNode, addNode });
+            yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<AbstractNodeModel>() { viewDirectionNode, addNode });
 
             Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 2);
             Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("View Direction").Count == 2);

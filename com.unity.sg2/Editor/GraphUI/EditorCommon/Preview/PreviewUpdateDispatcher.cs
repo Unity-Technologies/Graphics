@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.GraphToolsFoundation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using PreviewRenderMode = UnityEditor.ShaderGraph.GraphDelta.PreviewService.PreviewRenderMode;

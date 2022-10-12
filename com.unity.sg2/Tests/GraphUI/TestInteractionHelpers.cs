@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var inPort =  ShaderGraphModel.FindInputPortByName(toNode, toPortName);
             Assert.IsNotNull(inPort, "Could not find input port: " + toPortName + "on node: " + toNodeName);
 
-            m_Window.GraphView.Dispatch(new CreateWireCommand(inPort, outOut));
+            m_Window.GraphView.Dispatch(new CreateWireCommand(inPort, outPort));
         }
 
         public void ConnectNodes(string fromNodeName, string toNodeName, string fromPortName = "Out", string toPortName = "In")

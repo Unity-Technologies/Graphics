@@ -453,7 +453,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // will have created to replace the missing reference
                         newCopiedVariableNode.DeclarationModel = VariableDeclarations.FirstOrDefault(model => model.Guid == declarationModel.Guid);
                         // Restore the Guid from its graph data name (as currently we need to align the Guids and graph data names)
-                        newCopiedVariableNode.Guid = new SerializableGUID(newCopiedVariableNode.graphDataName.Replace("_", String.Empty));
+                        newCopiedVariableNode.graphDataName = new SerializableGUID(newCopiedVariableNode.graphDataName.Replace("_", String.Empty)).ToString();
                         // Make sure this reference is up to date
                         declarationModel = (GraphDataVariableDeclarationModel)newCopiedVariableNode.DeclarationModel;
                     }
