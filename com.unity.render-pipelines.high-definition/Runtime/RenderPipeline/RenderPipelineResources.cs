@@ -102,6 +102,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugDisplayProbeVolumePS;
             [Reload("Runtime/Material/MaskVolume/MaskVolumeAtlasBlit.compute")]
             public ComputeShader maskVolumeAtlasBlitCS;
+            [Reload("Runtime/Material/MaskVolume/DebugDisplayMaskVolume.shader")]
+            public Shader debugDisplayMaskVolumePS;
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS

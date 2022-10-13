@@ -166,7 +166,7 @@ float3 SampleMaskVolume(float3 positionRWS, float3 normalWS)
 
     float maskVolumeHierarchyWeight = 0.0f;
 
-    MaskVolumeEvaluateSphericalHarmonics(
+    MaskVolumeEvaluate(
         posInputs,
         normalWS,
         renderingLayers,

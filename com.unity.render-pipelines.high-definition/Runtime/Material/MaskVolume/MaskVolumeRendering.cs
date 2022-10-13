@@ -1,9 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public struct MaskVolumeAtlasStats
+    {
+        public int allocationCount;
+        public float allocationRatio;
+        public float largestFreeBlockRatio;
+        public Vector3Int largestFreeBlockPixels;
+    }
+
     // Optimized version of 'MaskVolumeArtistParameters'.
     // Currently 128-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
@@ -19,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 scale;
         public int payloadIndex;
         public Vector3 bias;
-        public int blendMode;
+        public int padding;
         public Vector3 resolution;
         public uint lightLayers;
         public Vector3 resolutionInverse;
@@ -38,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.scale = Vector3.zero;
             data.payloadIndex  = -1;
             data.bias = Vector3.zero;
-            data.blendMode = 0;
+            data.padding = 0;
             data.resolution = Vector3.zero;
             data.lightLayers = 0;
             data.resolutionInverse = Vector3.zero;
@@ -76,18 +85,29 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_MaskVolumeAtlasBlitKernel = -1;
         static ComputeBuffer s_MaskVolumeAtlasBlitDataSHL0Buffer = null;
         static int s_MaskVolumeAtlasResolution;
-        // TODO: Use SNorm for L1 and L2 encoding when they are supported again.
         internal const Experimental.Rendering.GraphicsFormat k_MaskVolumeAtlasFormat = Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm;
 
         static int s_MaxMaskVolumeMaskCount;
         RTHandle m_MaskVolumeAtlasSHRTHandle;
 
-        Texture3DAtlasDynamic<int> maskVolumeAtlas = null;
+        Texture3DAtlasDynamic<MaskVolume.MaskVolumeAtlasKey> maskVolumeAtlas = null;
 
         bool isClearMaskVolumeAtlasRequested = false;
 
-        // Preallocated scratch memory for storing ambient mask packed SH coefficients, which are used as a fallback when mask volume weight < 1.0.
-        static Vector4[] s_AmbientMaskFallbackPackedCoeffs = new Vector4[7];
+#if UNITY_EDITOR
+        private static Material s_DebugSamplePreviewMaterial = null;
+        private static MaterialPropertyBlock s_DebugSamplePreviewMaterialPropertyBlock = null;
+
+        private static Material GetDebugSamplePreviewMaterial()
+        {
+            return (s_DebugSamplePreviewMaterial != null) ? s_DebugSamplePreviewMaterial : new Material(Shader.Find("Hidden/Debug/MaskVolumeSamplePreview"));
+        }
+
+        private static MaterialPropertyBlock GetDebugSamplePreviewMaterialPropertyBlock()
+        {
+            return (s_DebugSamplePreviewMaterialPropertyBlock != null) ? s_DebugSamplePreviewMaterialPropertyBlock : new MaterialPropertyBlock();
+        }
+#endif
 
         void InitializeMaskVolumes()
         {
@@ -155,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name:              "MaskVolumeAtlasSH"
             );
 
-            maskVolumeAtlas = new Texture3DAtlasDynamic<int>(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, k_MaxVisibleMaskVolumeCount, m_MaskVolumeAtlasSHRTHandle);
+            maskVolumeAtlas = new Texture3DAtlasDynamic<MaskVolume.MaskVolumeAtlasKey>(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, k_MaxVisibleMaskVolumeCount, m_MaskVolumeAtlasSHRTHandle);
         }
 
         internal void DestroyMaskVolumeBuffers()
@@ -234,18 +254,37 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportMaskVolume)
                 return;
 
-            int key = volume.GetAtlasID();
+            MaskVolume.MaskVolumeAtlasKey key = volume.ComputeMaskVolumeAtlasKey();
+            MaskVolume.MaskVolumeAtlasKey keyPrevious = volume.GetMaskVolumeAtlasKeyPrevious();
 
-            maskVolumeAtlas.ReleaseTextureSlot(key);
+            if (maskVolumeAtlas.IsTextureSlotAllocated(key)) { maskVolumeAtlas.ReleaseTextureSlot(key); }
+            if (maskVolumeAtlas.IsTextureSlotAllocated(keyPrevious)) { maskVolumeAtlas.ReleaseTextureSlot(keyPrevious); }
+        }
+
+        internal void EnsureStaleDataIsFlushedFromAtlases(MaskVolumeHandle volume)
+        {
+            MaskVolume.MaskVolumeAtlasKey key = volume.ComputeMaskVolumeAtlasKey();
+            MaskVolume.MaskVolumeAtlasKey keyPrevious = volume.GetMaskVolumeAtlasKeyPrevious();
+            if (!key.Equals(keyPrevious))
+            {
+                if (maskVolumeAtlas.IsTextureSlotAllocated(keyPrevious))
+                {
+                    maskVolumeAtlas.ReleaseTextureSlot(keyPrevious);
+                }
+
+                volume.SetMaskVolumeAtlasKeyPrevious(key);
+            }
         }
 
         internal bool EnsureMaskVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, MaskVolumeHandle volume)
         {
-            int key = volume.GetAtlasID();
+            VolumeGlobalUniqueID id = volume.GetAtlasID();
             var resolution = volume.GetResolution();
 
             int size = resolution.x * resolution.y * resolution.z;
             Debug.Assert(size > 0, "MaskVolume: Encountered mask volume with resolution set to zero on all three axes.");
+
+            MaskVolume.MaskVolumeAtlasKey key = volume.ComputeMaskVolumeAtlasKey();
 
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
             // If resolution has changed since upload, need to free previous allocation from atlas,
@@ -315,7 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture (key: {0}, width: {1}, height: {2}, depth: {3})", key, resolution.x, resolution.y, resolution.z);
+                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture (id: {0}, width: {1}, height: {2}, depth: {3})", id, resolution.x, resolution.y, resolution.z);
             }
 
             return false;
@@ -335,6 +374,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             MaskVolumeList maskVolumes = new MaskVolumeList();
 
+            if (!m_SupportMaskVolume)
+                return maskVolumes;
+
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
             {
                 PushMaskVolumesGlobalParamsDefault(hdCamera, cmd);
@@ -350,6 +392,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareVisibleMaskVolumeListBuffers(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd, ref MaskVolumeList maskVolumes)
         {
+            var settings = hdCamera.volumeStack.GetComponent<MaskVolumeController>();
+
+            float globalDistanceFadeStart = settings.distanceFadeStart.value;
+            float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareMaskVolumeList)))
             {
                 ClearMaskVolumeAtlasIfRequested(cmd);
@@ -378,37 +425,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
-                    if (!volume.IsDataAssigned())
-                        continue;
-
-                    /*
-                    if (ShaderConfig.s_MaskVolumesAdditiveBlending == 0 && volume.parameters.volumeBlendMode != VolumeBlendMode.Normal)
-                    {
-                        // Non-normal blend mode volumes are not supported. Skip.
-                        continue;
-                    }
-                    */
-
                     float maskVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.position - camPosition);
-                    if (maskVolumeDepthFromCameraWS >= volume.parameters.distanceFadeEnd)
+                    bool isVisible = maskVolumeDepthFromCameraWS < Mathf.Min(globalDistanceFadeEnd, volume.parameters.distanceFadeEnd);
+                    isVisible &= volume.parameters.weight >= 1e-5f;
+
+                    bool isNeeded = false;
+                    if (volume.IsDataAssigned() && isVisible)
                     {
-                        // Mask volume is completely faded out from distance fade optimization.
-                        // Do not bother adding it to the list, it would evaluate to zero weight.
-                        continue;
+                        // TODO: cache these?
+                        var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
+
+                        // Handle camera-relative rendering.
+                        obb.center -= camOffset;
+
+                        // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                        if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
+                        {
+                            var logVolume = CalculateMaskVolumeLogVolume(volume.parameters.size);
+
+                            m_MaskVolumeSortKeys[sortCount++] = PackMaskVolumeSortKey(logVolume, maskVolumesIndex);
+
+                            isNeeded = true;
+                        }
                     }
 
-                    // TODO: cache these?
-                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
-
-                    // Handle camera-relative rendering.
-                    obb.center -= camOffset;
-
-                    // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, hdCamera.frustum.planes.Length, hdCamera.frustum.corners.Length))
+                    if (!isNeeded)
                     {
-                        var logVolume = CalculateMaskVolumeLogVolume(volume.parameters.size);
-
-                        m_MaskVolumeSortKeys[sortCount++] = PackMaskVolumeSortKey(volume.parameters.blendMode, logVolume, maskVolumesIndex);
+                        ReleaseMaskVolumeFromAtlas(volume);
                     }
                 }
 
@@ -431,7 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // TODO: cache these?
                     var resolution = volume.GetResolution();
-                    var data = ConvertToEngineData(volume.parameters, resolution);
+                    var data = ConvertToEngineData(volume.parameters, resolution, globalDistanceFadeStart, globalDistanceFadeEnd);
 
                     m_VisibleMaskVolumeBounds.Add(obb);
                     m_VisibleMaskVolumeData.Add(data);
@@ -448,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This is done:
                 // 1) To timeslice upload cost across N frames for N volumes.
                 // 2) To avoid creating a sync point between compute buffer upload and each volume upload.
-                const int volumeUploadedToAtlasSHCapacity = 1;
+                const int volumeUploadedToAtlasCapacity = 1;
                 int volumeUploadedToAtlasSHCount = 0;
 
                 for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
@@ -459,14 +502,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
-                    if (volumeUploadedToAtlasSHCount < volumeUploadedToAtlasSHCapacity)
+                    EnsureStaleDataIsFlushedFromAtlases(volume);
+
+                    if (volumeUploadedToAtlasSHCount < volumeUploadedToAtlasCapacity)
                     {
                         bool volumeWasUploaded = EnsureMaskVolumeInAtlas(renderContext, cmd, volume);
                         if (volumeWasUploaded)
                             ++volumeUploadedToAtlasSHCount;
                     }
 
-                    if (volumeUploadedToAtlasSHCount == volumeUploadedToAtlasSHCapacity)
+                    if (volumeUploadedToAtlasSHCount == volumeUploadedToAtlasCapacity)
                     {
                         // Met our capacity this frame. Early out.
                         break;
@@ -477,7 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         
-        MaskVolumeEngineData ConvertToEngineData(MaskVolumeArtistParameters parameters, Vector3Int resolution)
+        MaskVolumeEngineData ConvertToEngineData(MaskVolumeArtistParameters parameters, Vector3Int resolution, float globalDistanceFadeStart, float globalDistanceFadeEnd)
         {
             MaskVolumeEngineData data = new MaskVolumeEngineData();
 
@@ -500,11 +545,12 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
             data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
-            data.blendMode = (int)parameters.blendMode;
+            float distanceFadeStart = Mathf.Min(globalDistanceFadeStart, parameters.distanceFadeStart);
+            float distanceFadeEnd = Mathf.Min(globalDistanceFadeEnd, parameters.distanceFadeEnd);
 
-            float distFadeLen = Mathf.Max(parameters.distanceFadeEnd - parameters.distanceFadeStart, 0.00001526f);
+            float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
             data.rcpDistFadeLen = 1.0f / distFadeLen;
-            data.endTimesRcpDistFadeLen = parameters.distanceFadeEnd * data.rcpDistFadeLen;
+            data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
 
             data.scale = parameters.scale;
             data.bias = parameters.bias;
@@ -534,30 +580,27 @@ namespace UnityEngine.Rendering.HighDefinition
             maskIndex = (int)(sortKey & MASK_VOLUME_MASK);
         }
 
-        internal static uint PackMaskVolumeSortKey(MaskVolumeBlendMode maskVolumeBlendMode, float logVolume, int maskVolumeIndex)
+        internal static uint PackMaskVolumeSortKey(float logVolume, int maskVolumeIndex)
         {
-            // 1 bit blendMode, 20 bit volume, 11 bit index
+            // 20 bit volume, 12 bit index
             Debug.Assert(logVolume >= 0.0f && (uint)logVolume < (1 << 20));
-            Debug.Assert(maskVolumeIndex >= 0 && (uint)maskVolumeIndex < (1 << 11));
+            Debug.Assert(maskVolumeIndex >= 0 && (uint)maskVolumeIndex < (1 << 12));
             const uint VOLUME_MASK = (1 << 20) - 1;
-            const uint INDEX_MASK = (1 << 11) - 1;
+            const uint INDEX_MASK = (1 << 12) - 1;
 
             // Sort mask volumes primarily by blend mode, and secondarily by size.
             // In the lightloop, this means we will evaluate all Additive and Subtractive blending volumes first,
             // and finally our Normal (over) blending volumes.
             // This allows us to early out during the Normal blend volumes if opacity has reached 1.0 across all threads.
-            uint blendModeBits = ((maskVolumeBlendMode != MaskVolumeBlendMode.Normal) ? 0u : 1u) << 31;
             uint logVolumeBits = ((uint)logVolume & VOLUME_MASK) << 11;
             uint indexBits = (uint)maskVolumeIndex & INDEX_MASK;
 
-            return blendModeBits | logVolumeBits | indexBits;
+            return logVolumeBits | indexBits;
         }
 
-        // TODO: Debug views
-        /*
         void RenderMaskVolumeDebugOverlay(in DebugParameters debugParameters, CommandBuffer cmd)
         {
-            if (!m_SupportMaskVolume)
+            if (!m_SupportProbeVolume)
                 return;
 
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
@@ -575,31 +618,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct MaskVolumeDebugOverlayParameters
         {
+            public bool supportMaskVolume;
             public Material material;
-            public Vector4 validRange;
             public Vector4 textureViewScale;
             public Vector4 textureViewBias;
             public Vector3 textureViewResolution;
             public Vector4 atlasResolutionAndSliceCount;
             public Vector4 atlasResolutionAndSliceCountInverse;
-            public Vector4 atlasTextureOctahedralDepthScaleBias;
-            public int sliceMode;
             public RTHandle maskVolumeAtlas;
-            public RTHandle maskVolumeAtlasOctahedralDepth;
         }
 
         MaskVolumeDebugOverlayParameters PrepareMaskVolumeOverlayParameters(LightingDebugSettings lightingDebug)
         {
             MaskVolumeDebugOverlayParameters parameters = new MaskVolumeDebugOverlayParameters();
 
-            parameters.material = m_DebugDisplayMaskVolumeMaterial;
+            parameters.supportMaskVolume = m_SupportMaskVolume;
 
-            parameters.sliceMode = (int)lightingDebug.maskVolumeAtlasSliceMode;
-            parameters.validRange = new Vector4(lightingDebug.maskVolumeMinValue, 1.0f / (lightingDebug.maskVolumeMaxValue - lightingDebug.maskVolumeMinValue));
+            parameters.material = m_DebugDisplayMaskVolumeMaterial;
             parameters.textureViewScale = new Vector3(1.0f, 1.0f, 1.0f);
             parameters.textureViewBias = new Vector3(0.0f, 0.0f, 0.0f);
             parameters.textureViewResolution = new Vector3(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution);
-            parameters.atlasTextureOctahedralDepthScaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
 
 #if UNITY_EDITOR
             if (UnityEditor.Selection.activeGameObject != null)
@@ -607,9 +645,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var selectedMaskVolume = UnityEditor.Selection.activeGameObject.GetComponent<MaskVolume>();
                 if (selectedMaskVolume != null)
                 {
-                    // User currently has a mask volume selected.
-                    // Compute a scaleBias term so that atlas view automatically zooms into selected mask volume.
-                    int selectedMaskVolumeKey = selectedMaskVolume.GetID();
+                    // User currently has a probe volume selected.
+                    // Compute a scaleBias term so that atlas view automatically zooms into selected probe volume.
+                    MaskVolume.MaskVolumeAtlasKey selectedMaskVolumeKey = selectedMaskVolume.ComputeMaskVolumeAtlasKey();
                     if (maskVolumeAtlas.TryGetScaleBias(out Vector3 selectedMaskVolumeScale, out Vector3 selectedMaskVolumeBias, selectedMaskVolumeKey))
                     {
                         parameters.textureViewScale = selectedMaskVolumeScale;
@@ -620,50 +658,72 @@ namespace UnityEngine.Rendering.HighDefinition
                             selectedMaskVolume.parameters.resolutionZ
                         );
                     }
-
-                    if (ShaderConfig.s_MaskVolumesBilateralFilteringMode == MaskVolumesBilateralFilteringModes.OctahedralDepth)
-                    {
-                        if (maskVolumeAtlasOctahedralDepth.TryGetScaleBias(out Vector4 selectedMaskVolumeOctahedralDepthScaleBias, selectedMaskVolumeKey))
-                        {
-                            parameters.atlasTextureOctahedralDepthScaleBias = selectedMaskVolumeOctahedralDepthScaleBias;
-                        }
-                    }
                 }
             }
 #endif
-
-            // Note: The system is not aware of slice packing in Z.
-            // Need to modify scale and bias terms just before uploading to GPU.
-            // TODO: Should we make it aware earlier up the chain?
-            parameters.textureViewScale.z = parameters.textureViewScale.z / m_MaskVolumeAtlasSHRTDepthSliceCount;
-            parameters.textureViewBias.z = parameters.textureViewBias.z / m_MaskVolumeAtlasSHRTDepthSliceCount;
-
-            parameters.atlasResolutionAndSliceCount = new Vector4(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, m_MaskVolumeAtlasSHRTDepthSliceCount);
-            parameters.atlasResolutionAndSliceCountInverse = new Vector4(1.0f / s_MaskVolumeAtlasResolution, 1.0f / s_MaskVolumeAtlasResolution, 1.0f / s_MaskVolumeAtlasResolution, 1.0f / m_MaskVolumeAtlasSHRTDepthSliceCount);
+            parameters.atlasResolutionAndSliceCount = new Vector4(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, 1.0f);
+            parameters.atlasResolutionAndSliceCountInverse = new Vector4(1.0f / s_MaskVolumeAtlasResolution, 1.0f / s_MaskVolumeAtlasResolution, 1.0f / s_MaskVolumeAtlasResolution, 1.0f / 1.0f);
 
             parameters.maskVolumeAtlas = m_MaskVolumeAtlasSHRTHandle;
-            parameters.maskVolumeAtlasOctahedralDepth = m_MaskVolumeAtlasOctahedralDepthRTHandle;
 
             return parameters;
         }
 
         static void DisplayMaskVolumeAtlas(CommandBuffer cmd, in MaskVolumeDebugOverlayParameters parameters, DebugOverlay debugOverlay)
         {
+            if (!parameters.supportMaskVolume) { return; }
+
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-            propertyBlock.SetTexture(HDShaderIDs._AtlasTextureSH, parameters.maskVolumeAtlas);
             propertyBlock.SetVector(HDShaderIDs._TextureViewScale, parameters.textureViewScale);
             propertyBlock.SetVector(HDShaderIDs._TextureViewBias, parameters.textureViewBias);
             propertyBlock.SetVector(HDShaderIDs._TextureViewResolution, parameters.textureViewResolution);
             cmd.SetGlobalVector(HDShaderIDs._MaskVolumeAtlasResolutionAndSliceCount, parameters.atlasResolutionAndSliceCount);
             cmd.SetGlobalVector(HDShaderIDs._MaskVolumeAtlasResolutionAndSliceCountInverse, parameters.atlasResolutionAndSliceCountInverse);
 
-            propertyBlock.SetVector(HDShaderIDs._ValidRange, parameters.validRange);
-            propertyBlock.SetInt(HDShaderIDs._MaskVolumeAtlasSliceMode, parameters.sliceMode);
-
             debugOverlay.SetViewport(cmd);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.material, parameters.material.FindPass("MaskVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
             debugOverlay.Next();
         }
-        */
+
+#if UNITY_EDITOR
+        internal void DrawMaskVolumeDebugSamplePreview(MaskVolume maskVolume, Camera camera)
+        {
+            if (!m_SupportMaskVolume) { return; }
+
+            Material debugMaterial = GetDebugSamplePreviewMaterial();
+            if (debugMaterial == null) { return; }
+
+            MaterialPropertyBlock debugMaterialPropertyBlock = GetDebugSamplePreviewMaterialPropertyBlock();
+            debugMaterialPropertyBlock.SetVector("_MaskVolumeResolution", new Vector3(maskVolume.parameters.resolutionX, maskVolume.parameters.resolutionY, maskVolume.parameters.resolutionZ));
+            debugMaterialPropertyBlock.SetMatrix("_ProbeIndex3DToPositionWSMatrix", MaskVolume.ComputeProbeIndex3DToPositionWSMatrix(maskVolume));
+            debugMaterialPropertyBlock.SetFloat("_MaskVolumeProbeDisplayRadiusWS", Gizmos.probeSize);
+
+            bool maskVolumeIsResidentInAtlas = maskVolumeAtlas.TryGetScaleBias(out Vector3 maskVolumeScaleUnused, out Vector3 maskVolumeBias, maskVolume.ComputeMaskVolumeAtlasKey());
+            if (!maskVolumeIsResidentInAtlas)
+            {
+                maskVolumeBias = Vector3.zero;
+            }
+            Vector3 maskVolumeBiasTexels = new Vector3(Mathf.Round(maskVolumeBias.x * s_MaskVolumeAtlasResolution), Mathf.Round(maskVolumeBias.y * s_MaskVolumeAtlasResolution), Mathf.Round(maskVolumeBias.z * s_MaskVolumeAtlasResolution));
+
+            debugMaterialPropertyBlock.SetVector("_MaskVolumeAtlasBiasTexels", maskVolumeBiasTexels);
+            debugMaterialPropertyBlock.SetInt("_MaskVolumeIsResidentInAtlas", maskVolumeIsResidentInAtlas ? 1 : 0);
+            debugMaterialPropertyBlock.SetFloat("_MaskVolumeDrawWeightThresholdSquared", maskVolume.parameters.drawWeightThreshold * maskVolume.parameters.drawWeightThreshold);
+            debugMaterial.SetPass(0);
+            Graphics.DrawProcedural(debugMaterial, MaskVolume.ComputeBoundsWS(maskVolume), MeshTopology.Triangles, 3 * 2 * MaskVolume.ComputeProbeCount(maskVolume), 1, camera, debugMaterialPropertyBlock, ShadowCastingMode.Off, receiveShadows: false, layer: 0);
+        }
+#endif
+
+        public MaskVolumeAtlasStats GetMaskVolumeAtlasStats()
+        {
+            if (!m_SupportMaskVolume) { return new MaskVolumeAtlasStats(); }
+
+            return new MaskVolumeAtlasStats
+            {
+                allocationCount = (maskVolumeAtlas != null && m_SupportMaskVolume) ? maskVolumeAtlas.GetAllocationCount() : 0,
+                allocationRatio = (maskVolumeAtlas != null && m_SupportMaskVolume) ? maskVolumeAtlas.GetAllocationRatio() : 0,
+                largestFreeBlockRatio = (maskVolumeAtlas != null && m_SupportMaskVolume) ? maskVolumeAtlas.FindLargestFreeBlockRatio() : 0.0f,
+                largestFreeBlockPixels = (maskVolumeAtlas != null && m_SupportMaskVolume) ? maskVolumeAtlas.FindLargestFreeBlockPixels() : Vector3Int.zero
+            };
+        }
     } // class MaskVolumeRendering
 } // namespace UnityEngine.Experimental.Rendering.HDPipeline

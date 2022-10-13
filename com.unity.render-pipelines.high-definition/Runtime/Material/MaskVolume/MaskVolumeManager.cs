@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -91,7 +92,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3 IMaskVolumeList.GetPosition(int i) => m_Volumes[i].transform.position;
         Quaternion IMaskVolumeList.GetRotation(int i) => m_Volumes[i].transform.rotation;
         ref MaskVolumeArtistParameters IMaskVolumeList.GetParameters(int i) => ref m_Volumes[i].parameters;
-        int IMaskVolumeList.GetAtlasID(int i) => m_Volumes[i].GetAtlasID();
+        VolumeGlobalUniqueID IMaskVolumeList.GetAtlasID(int i) => m_Volumes[i].GetAtlasID();
+        MaskVolume.MaskVolumeAtlasKey IMaskVolumeList.ComputeMaskVolumeAtlasKey(int i) => m_Volumes[i].ComputeMaskVolumeAtlasKey();
+        MaskVolume.MaskVolumeAtlasKey IMaskVolumeList.GetMaskVolumeAtlasKeyPrevious(int i) => m_Volumes[i].GetMaskVolumeAtlasKeyPrevious();
+        void IMaskVolumeList.SetMaskVolumeAtlasKeyPrevious(int i, MaskVolume.MaskVolumeAtlasKey key) => m_Volumes[i].SetMaskVolumeAtlasKeyPrevious(key);
 
         int IMaskVolumeList.GetDataSHL0Length(int i) => m_Volumes[i].GetPayload().dataSHL0.Length;
         void IMaskVolumeList.SetDataSHL0(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataSHL0);

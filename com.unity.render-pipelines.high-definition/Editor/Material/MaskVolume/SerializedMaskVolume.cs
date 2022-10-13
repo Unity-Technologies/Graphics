@@ -6,6 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty maskVolumeAsset;
         internal SerializedProperty debugColor;
         internal SerializedProperty drawGizmos;
+        internal SerializedProperty drawWeightThreshold;
 
         internal SerializedProperty maskSpacingMode;
 
@@ -17,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty densityY;
         internal SerializedProperty densityZ;
 
-        internal SerializedProperty blendMode;
         internal SerializedProperty weight;
         internal SerializedProperty normalBiasWS;
 
@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             debugColor = maskVolumeParams.FindPropertyRelative("debugColor");
             drawGizmos = maskVolumeParams.FindPropertyRelative("drawGizmos");
+            drawWeightThreshold = maskVolumeParams.FindPropertyRelative("drawWeightThreshold");
 
             maskSpacingMode = maskVolumeParams.FindPropertyRelative("maskSpacingMode");
 
@@ -58,7 +59,6 @@ namespace UnityEditor.Rendering.HighDefinition
             densityY = maskVolumeParams.FindPropertyRelative("densityY");
             densityZ = maskVolumeParams.FindPropertyRelative("densityZ");
 
-            blendMode = maskVolumeParams.FindPropertyRelative("blendMode");
             weight = maskVolumeParams.FindPropertyRelative("weight");
             normalBiasWS = maskVolumeParams.FindPropertyRelative("normalBiasWS");
 

@@ -1,3 +1,5 @@
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     interface IMaskVolumeList
@@ -14,7 +16,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ref MaskVolumeArtistParameters GetParameters(int i);
 
-        int GetAtlasID(int i);
+        VolumeGlobalUniqueID GetAtlasID(int i);
+        MaskVolume.MaskVolumeAtlasKey ComputeMaskVolumeAtlasKey(int i);
+        MaskVolume.MaskVolumeAtlasKey GetMaskVolumeAtlasKeyPrevious(int i);
+        void SetMaskVolumeAtlasKeyPrevious(int i, MaskVolume.MaskVolumeAtlasKey key);
 
         int GetDataSHL0Length(int i);
         void SetDataSHL0(int i, ComputeBuffer buffer);

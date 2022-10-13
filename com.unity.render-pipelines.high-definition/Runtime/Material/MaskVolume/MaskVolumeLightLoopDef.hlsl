@@ -154,18 +154,14 @@ uint MaskVolumeScalarizeElementIndex(uint v_elementIdx, bool fastPath)
     return s_elementIdx;
 }
 
-bool MaskVolumeIsAllWavesComplete(float weightHierarchy, int volumeBlendMode)
+bool MaskVolumeIsAllWavesComplete(float weightHierarchy)
 {
     // Mask volumes are sorted primarily by blend mode, and secondarily by size.
     // This means we will evaluate all Additive and Subtractive blending volumes first, and finally our Normal (over) blending volumes.
     // This allows us to early out if our weightHierarchy reaches 1.0, since we know we will only ever process more VOLUMEBLENDMODE_NORMAL volumes,
     // whos weight will always evaluate to zero.
 #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
-    if (WaveActiveMin(weightHierarchy) >= 1.0
-#if SHADEROPTIONS_MASK_VOLUMES_ADDITIVE_BLENDING
-        && WaveActiveAllTrue(volumeBlendMode == VOLUMEBLENDMODE_NORMAL)
-#endif
-    )
+    if (WaveActiveMin(weightHierarchy) >= 1.0)
     {
         return true;
     }
