@@ -341,6 +341,12 @@ namespace UnityEditor.Rendering.HighDefinition
             // Probe Volumes
             area.AmmendInfo(FrameSettingsField.ProbeVolume, overrideable: () => hdrpSettings.supportProbeVolume);
             area.AmmendInfo(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume, overrideable: () => hdrpSettings.supportProbeVolume);
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeEncoding,
+                customGetter: () => (ProbeVolumesEncodingSetting)serialized.probeVolumeEncoding.intValue,       // Levels 1-2
+                customSetter: v  => serialized.probeVolumeEncoding.intValue = Math.Max(1, Math.Min((int)v, 2)), // Levels 1-2
+                hasMixedValues: serialized.probeVolumeEncoding.hasMultipleDifferentValues,
+                overrideable: () => hdrpSettings.supportProbeVolume
+            );
             area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGI, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
             area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces, overrideable: () => hdrpSettings.supportProbeVolume && hdrpSettings.supportProbeVolumeDynamicGI);
             area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGIPropagationQuality,

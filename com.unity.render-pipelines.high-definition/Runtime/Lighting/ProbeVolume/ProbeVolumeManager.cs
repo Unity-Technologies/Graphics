@@ -78,6 +78,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Volumes.RemoveAt(index);
         }
 
+        internal bool TryGetVolumeHandle(ProbeVolume volume, out ProbeVolumeHandle handle)
+        {
+            var index = m_Volumes.IndexOf(volume);
+            if (index != -1)
+            {
+                handle = new ProbeVolumeHandle(this, index);
+                return true;
+            }
+            else
+            {
+                handle = default;
+                return false;
+            }
+        }
+
         public void AddProbeList(IProbeVolumeList list)
         {
             m_AdditionalProbeLists.Add(list);
@@ -216,9 +231,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolume.ProbeVolumeAtlasKey IProbeVolumeList.ComputeProbeVolumeAtlasKey(int i) => m_Volumes[i].ComputeProbeVolumeAtlasKey();
         int IProbeVolumeList.GetDataSHL01Length(int i) => m_Volumes[i].GetPayload().dataSHL01.Length;
         int IProbeVolumeList.GetDataSHL2Length(int i) => m_Volumes[i].GetPayload().dataSHL2.Length;
+        int IProbeVolumeList.GetDataValidityLength(int i) => m_Volumes[i].GetPayload().dataValidity.Length;
         int IProbeVolumeList.GetDataOctahedralDepthLength(int i) => m_Volumes[i].GetPayload().dataOctahedralDepth.Length;
+        void IProbeVolumeList.SetDataSHL01(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataSHL01);
+        void IProbeVolumeList.SetDataSHL2(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataSHL2);
+        void IProbeVolumeList.SetDataValidity(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataValidity);
         void IProbeVolumeList.SetDataOctahedralDepth(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataOctahedralDepth);
-        void IProbeVolumeList.EnsureVolumeBuffers(int i) => m_Volumes[i].EnsureVolumeBuffers();
         ref ProbeVolumePipelineData IProbeVolumeList.GetPipelineData(int i) => ref m_Volumes[i].pipelineData;
 
         // Dynamic GI

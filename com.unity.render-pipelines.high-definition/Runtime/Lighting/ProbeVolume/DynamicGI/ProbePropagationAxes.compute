@@ -9,6 +9,7 @@
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 #pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+#pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -163,31 +164,30 @@ SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, ui
     SHIncomingIrradiance shIncomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradiance);
     float weightHierarchy = 0.0;
+    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked;
+    ZERO_INITIALIZE(SHOutgoingRadiosityWithProjectedConstantsPacked, outgoingRadiosityProjectedConstantsPacked);
 
 #if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-    // #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0"
-    // TODO:
-    // ProbeVolumeSphericalHarmonicsL0 coefficients;
-    // ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, normalWS, renderingLayers, coefficients, weightHierarchy);
-    // bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+    ProbeVolumeSphericalHarmonicsL0 coefficients;
+    ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL0(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    outgoingRadiosityProjectedConstantsPacked.data[0] = coefficients.data[0];
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    // #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1"
-    // TODO:
-    // ProbeVolumeSphericalHarmonicsL1 coefficients;
-    // ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    ProbeVolumeSphericalHarmonicsL1 coefficients;
+    ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    [unroll] for (int i = 0; i < 3; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i]; }
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
     ProbeVolumeSphericalHarmonicsL2 coefficients;
     ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL2(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
+    [unroll] for (int i = 0; i < 7; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i]; }
+#endif
 
     float skyWeight = 1 - weightHierarchy;
-    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked;
-    [unroll] for (int i = 0; i < SH_PACKED_COEFFICIENT_COUNT; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i] + _AmbientProbe[i] * skyWeight; }
+    [unroll] for (int j = 0; j < SH_PACKED_COEFFICIENT_COUNT; ++j) { outgoingRadiosityProjectedConstantsPacked.data[j] += _AmbientProbe[j] * skyWeight; }
     SHOutgoingRadiosityWithProjectedConstants outgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(outgoingRadiosityProjectedConstantsPacked);
     SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(outgoingRadiosityProjectedConstants);
     shIncomingIrradiance = SHIncomingIrradianceCompute(bakedOutgoingRadiosity);
-#endif
 
     return shIncomingIrradiance;
 }

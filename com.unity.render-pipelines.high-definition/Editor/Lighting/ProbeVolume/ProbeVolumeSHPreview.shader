@@ -29,6 +29,8 @@ Shader "Hidden/Debug/ProbeVolumeSHPreview"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -125,14 +127,21 @@ Shader "Hidden/Debug/ProbeVolumeSHPreview"
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
 
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+                ProbeVolumeSphericalHarmonicsL0 coefficients;
+                ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL0, coefficients);
+                ProbeVolumeLoadAccumulateSphericalHarmonicsL0(probeIndexAtlas3D, 1.0f, coefficients);
+                ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL0(coefficients);
+                outgoingRadiance = coefficients.data[0].xyz;
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
                 ProbeVolumeSphericalHarmonicsL1 coefficients;
                 ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL1, coefficients);
                 ProbeVolumeLoadAccumulateSphericalHarmonicsL1(probeIndexAtlas3D, 1.0f, coefficients);
                 ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL1(coefficients);
                 outgoingRadiance = SHEvalLinearL0L1(normalWS, coefficients.data[0], coefficients.data[1], coefficients.data[2]);
 
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
                 ProbeVolumeSphericalHarmonicsL2 coefficients;
                 ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL2, coefficients);
                 ProbeVolumeLoadAccumulateSphericalHarmonicsL2(probeIndexAtlas3D, 1.0f, coefficients);
