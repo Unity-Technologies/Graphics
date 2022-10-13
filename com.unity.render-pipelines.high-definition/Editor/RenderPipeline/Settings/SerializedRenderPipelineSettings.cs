@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentDepthPostpass;
         internal SerializedProperty supportProbeVolume;
         internal SerializedProperty supportProbeVolumeDynamicGI;
+        internal SerializedProperty supportMaskVolume;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -80,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLightingQualitySettings lightingQualitySettings;
         internal SerializedGlobalProbeVolumeSettings probeVolumeSettings;
         internal SerializedDensityVolumeSettings densityVolumeSettings;
+        internal SerializedGlobalMaskVolumeSettings maskVolumeSettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -139,6 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
             supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
             supportProbeVolumeDynamicGI     = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeDynamicGI);
+            supportMaskVolume              = root.Find((RenderPipelineSettings s) => s.supportMaskVolume);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
@@ -152,6 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
             xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
             probeVolumeSettings = new SerializedGlobalProbeVolumeSettings(root.Find((RenderPipelineSettings s) => s.probeVolumeSettings));
+            maskVolumeSettings = new SerializedGlobalMaskVolumeSettings(root.Find((RenderPipelineSettings s) => s.maskVolumeSettings));
 
             densityVolumeSettings = new SerializedDensityVolumeSettings(root.Find((RenderPipelineSettings s) => s.densityVolumeSettings));
 

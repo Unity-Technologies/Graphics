@@ -159,8 +159,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _HybridDeformedVertexStreamIndex;
     uint _EnableDynamicBranchLighting;
     uint _BlueNoiseRGBTextureResolutionMinusOne;
-    float _Pad10;
-    float _Pad11;
+    uint _EnableMaskVolumes;
+    uint _MaskVolumeCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCountInverse;
 CBUFFER_END
 
 

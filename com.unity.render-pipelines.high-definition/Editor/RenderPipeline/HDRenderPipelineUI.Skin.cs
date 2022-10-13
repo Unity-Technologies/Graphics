@@ -143,6 +143,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent probeVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Atlas Resolution", "Resolution of the 3D texture atlas containing visible ProbeVolumes.");
             internal static readonly GUIContent probeVolumeAtlasOctahedralDepthResolution = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Resolution", "Resolution of the 2D texture atlas containing visible ProbeVolumes octahedral depth data.");
             internal static readonly GUIContent densityVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Density Atlas Resolution", "Resolution of the 3D texture atlas containing fog density.");
+            internal static readonly GUIContent supportMaskVolumeContent = EditorGUIUtility.TrTextContent("Mask Volume", "When enabled, HDRP allocates Shader variants and memory for mask volumes.");
+            internal static readonly GUIContent maskVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Atlas Resolution", "Resolution of the 3D texture atlas containing visible MaskVolumes.");
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
@@ -265,9 +267,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportTransparentDepthPrepass     , shaderVariantDrawback },
                 { supportTransparentDepthPostpass    , shaderVariantDrawback },
                 { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) },
-                { supportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) }
                 { supportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) },
                 { supportProbeVolumeDynamicGI        , "" },
+                { supportMaskVolumeContent           , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) }
             };
 
             public static Dictionary<SupportedLitShaderMode, string> supportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>
