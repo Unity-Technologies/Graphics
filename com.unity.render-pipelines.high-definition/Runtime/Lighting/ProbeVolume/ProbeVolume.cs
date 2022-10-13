@@ -962,13 +962,10 @@ namespace UnityEngine.Rendering.HighDefinition
             pipelineData.BuffersDataVersion = probeVolumeAsset.dataVersion;
         }
 
-        internal void CleanupBuffers()
+        public static void CleanupBuffers(ProbeVolumeHandle probeVolume)
         {
-            CleanupBuffers(pipelineData);
-        }
-
-        public static void CleanupBuffers(ProbeVolumePipelineData pipelineData)
-        {
+            ref var pipelineData = ref probeVolume.GetPipelineData();
+        
             CleanupBuffer(pipelineData.SHL01Buffer);
             CleanupBuffer(pipelineData.SHL2Buffer);
             CleanupBuffer(pipelineData.ValidityBuffer);
@@ -1011,6 +1008,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 buffer.SetData(data);
             }
+        }
+
+        public static void ReleaseVolumeFromAtlas(ProbeVolumeHandle probeVolume)
+        {
+            if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
+                hdrp.ReleaseProbeVolumeFromAtlas(probeVolume);
         }
 
 #if UNITY_EDITOR

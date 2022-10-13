@@ -612,21 +612,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportProbeVolume)
                 return;
 
-            ref ProbeVolume.ProbeVolumeAtlasKey usedKey = ref volume.GetPipelineData().UsedAtlasKey;
+            ref var pipelineData = ref volume.GetPipelineData();
 
             // TODO: Currently, this means that if there are multiple probe volumes that point to the same payload,
             // if any of them are disabled, that payload will be evicted from the atlas.
             // If will get added back to the atlas the next frame any of the remaining enabled probe volumes are seen,
             // so functionally, this is fine. It does however put additional pressure on the atlas allocator + blitting.
             // Could add reference counting to atlas keys, or could track key use timestamps and evict based on least recently used as needed.
-            if (probeVolumeAtlas.IsTextureSlotAllocated(usedKey)) { probeVolumeAtlas.ReleaseTextureSlot(usedKey); }
+            if (probeVolumeAtlas.IsTextureSlotAllocated(pipelineData.UsedAtlasKey)) { probeVolumeAtlas.ReleaseTextureSlot(pipelineData.UsedAtlasKey); }
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
-                if (probeVolumeAtlasOctahedralDepth.IsTextureSlotAllocated(usedKey)) { probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(usedKey); }
+                if (probeVolumeAtlasOctahedralDepth.IsTextureSlotAllocated(pipelineData.UsedAtlasKey)) { probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(pipelineData.UsedAtlasKey); }
             }
 
-            usedKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
+            pipelineData.UsedAtlasKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
+            pipelineData.EngineDataIndex = -1;
         }
 
         internal void EnsureStaleDataIsFlushedFromAtlases(ProbeVolumeHandle volume, bool isOctahedralDepthAtlasEnabled)
