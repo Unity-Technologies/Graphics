@@ -1,3 +1,12 @@
+#pragma kernel CombinePropagationAxis
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
+#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
+#pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -5,15 +14,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
-
-#pragma kernel CombinePropagationAxis
-
-#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
-#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
-
-#define GROUP_SIZE 64
-//#pragma enable_d3d11_debug_symbols
-
 
 StructuredBuffer<float> _ProbeVolumeAtlasReadSHL01Buffer;
 StructuredBuffer<float> _ProbeVolumeAtlasReadSHL2Buffer;
@@ -31,7 +31,7 @@ float3 _ProbeVolumeAtlasSHRotateForward;
 float3 _ProbeVolumeDGIBoundsRight;
 float3 _ProbeVolumeDGIBoundsUp;
 
-StructuredBuffer<float3> _RadianceCacheAxis;
+StructuredBuffer<RADIANCE> _RadianceCacheAxis;
 int _RadianceCacheAxisCount;
 float _BakedLightingContribution;
 float _DynamicPropagationContribution;
@@ -134,7 +134,7 @@ SHIncomingIrradiance SHIncomingIrradianceComputeFromBasisAxisHit(BasisAxisHit ba
     return irradiance;
 }
 
-SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSamplePeaks(uint probeIndex)
 {
     SHIncomingIrradiance incomingIrradiance;
     ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
@@ -142,7 +142,31 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
     uint localIndex = probeIndex;
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
-        float3 radiance = _RadianceCacheAxis[localIndex].xyz;
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+        float3 directionOS = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+        SHIncomingIrradianceAccumulate(incomingIrradiance, basisAxisHit.mean, radiance);
+
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
+    }
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    uint localIndex = probeIndex;
+    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+    {
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
         float3 directionOS = _RayAxis[axis].xyz;
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
         float3 directionWS = mul(directionOS, probeVolumeLtw);
@@ -156,6 +180,79 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
 
         localIndex += _ProbeVolumeAtlasReadBufferCount;
     }
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonteCarlo(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    const int SAMPLE_COUNT = 8192;
+    const float SAMPLE_COUNT_INVERSE = 1.0 / float(SAMPLE_COUNT);
+    float GOLDEN_ANGLE = PI * (3.0 - sqrt(5.0));
+    float GOLDEN_ANGLE_HALF = GOLDEN_ANGLE * 0.5;
+    const float SOLID_ANGLE_SPHERE = 4.0 * PI;
+
+    for (int sampleIndex = 0; sampleIndex < SAMPLE_COUNT; ++sampleIndex)
+    {
+        float3 sampleDirectionWS;
+        {
+            float offset = (float)sampleIndex + 0.5;
+            float theta = offset * GOLDEN_ANGLE + GOLDEN_ANGLE_HALF;
+            float z = -(offset * SAMPLE_COUNT_INVERSE * 2.0 - 1.0);
+            float r = sqrt(1.0 - z * z);
+
+            sampleDirectionWS = float3(
+                r * cos(theta),
+                r * sin(theta),
+                z
+            );
+        }
+
+        float differentialArea = SOLID_ANGLE_SPHERE * SAMPLE_COUNT_INVERSE;
+        
+        float3 sampleIncomingRadiance = 0.0;
+
+        uint localIndex = probeIndex;
+        for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+        {
+            float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+            float3 directionOS = _RayAxis[axis].xyz;
+            const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+            float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+            BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+            basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+            sampleIncomingRadiance += radiance * (ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS) / basisAxisHit.amplitude);
+
+            localIndex += _ProbeVolumeAtlasReadBufferCount;
+        }
+
+        SHIncomingIrradianceAccumulate(incomingIrradiance, sampleDirectionWS, sampleIncomingRadiance * differentialArea);
+    }
+    return incomingIrradiance;
+}
+
+#define SH_FROM_RBF_MODE_MONTE_CARLO (0)
+#define SH_FROM_RBF_MODE_SAMPLE_PEAKS (1)
+#define SH_FROM_RBF_MODE_ZH_FIT (2)
+
+// When projecting from our radial basis function into L2 spherical harmonics, because our RBF is higher frequency than an L2 SH, converting each lobe to a zonal harmonic first, rotating, and accumulated gives the closest results to our ground truth monte carlo.
+// Simply accumulating the RBF lobe peaks as directional light sources gives less accurate, overly contrasty / overly sharp results when compared to our monte carlo ground truth. 
+#define SH_FROM_RBF_MODE SH_FROM_RBF_MODE_ZH_FIT
+
+SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
+{
+#if SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_MONTE_CARLO
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonteCarlo(probeIndex);
+#elif SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_SAMPLE_PEAKS
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSamplePeaks(probeIndex);
+#elif SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_ZH_FIT
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit(probeIndex);
+#endif
 
     return incomingIrradiance;
 }

@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public DynamicGINeighboringVolumePropagationModeParameter neighborVolumePropagationMode = new DynamicGINeighboringVolumePropagationModeParameter(DynamicGINeighboringVolumePropagationMode.SampleNeighborsDirectionOnly);
 
         [Tooltip("Debug Contribution control for mixing in baked indirect lighting")]
-        public ClampedFloatParameter bakeAmount = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter fallbackAmount = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Debug Contribution control for mixing in dynamic indirect lighting")]
         public ClampedFloatParameter dynamicAmount = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 

@@ -62,6 +62,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Use realtime indirect light from both mixed and realtime sources.</summary>
         ForceRealtime,
     }
+    
+    /// <summary>
+    /// Defines how HDR radiance is encoded in the dynamic propagation data.
+    /// </summary>
+    public enum ProbeVolumeDynamicGIRadianceEncoding
+    {
+        /// <summary>Use 3 full floats to represent radiance.</summary>
+        RGBFloat,
+        /// <summary>Use 32 bit LogLuv encoding.</summary>
+        LogLuv,
+        /// <summary>Use 32 bit HalfLuv encoding where luminance is stored in a manually packed 16-bit half float.</summary>
+        HalfLuv,
+        /// <summary>Use 32 bit RGB encoding with 11-bits for R, 11-bits for G, and 10-bits for B. Manually packed.</summary>
+        R11G11B10,
+    }
 
     /* ////// HOW TO ADD FRAME SETTINGS //////
      *
@@ -308,6 +323,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Mixed Light Mode", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(ProbeVolumeDynamicGIMixedLightMode),
         tooltip: "Configures which lights are used for propagation and how baked mixed light data is used.")]
         ProbeVolumeDynamicGIMixedLightMode = 54,
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Radiance Encoding", positiveDependencies: new[] { ProbeVolume, ProbeVolumeDynamicGI }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(ProbeVolumeDynamicGIRadianceEncoding))]
+        ProbeVolumeDynamicGIRadianceEncoding = 55,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]
@@ -491,6 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeDynamicGIPropagationQuality = 2,
             probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
             probeVolumeDynamicGIMixedLightMode = ProbeVolumeDynamicGIMixedLightMode.Mixed,
+            probeVolumeDynamicGIRadianceEncoding = ProbeVolumeDynamicGIRadianceEncoding.RGBFloat,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
@@ -553,6 +571,7 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeDynamicGIPropagationQuality = 2,
             probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
             probeVolumeDynamicGIMixedLightMode = ProbeVolumeDynamicGIMixedLightMode.Mixed,
+            probeVolumeDynamicGIRadianceEncoding = ProbeVolumeDynamicGIRadianceEncoding.RGBFloat,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
@@ -612,6 +631,7 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeDynamicGIMaxSimulationsPerFrame = -1,
             // TODO: Discuss if we want to have MixedOnly for baked reflection probes. Add a migration if this is changed.
             probeVolumeDynamicGIMixedLightMode = ProbeVolumeDynamicGIMixedLightMode.Mixed,
+            probeVolumeDynamicGIRadianceEncoding = ProbeVolumeDynamicGIRadianceEncoding.RGBFloat,
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -668,6 +688,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Stores ProbeVolumeDynamicGIMixedLightMode on disk.</summary>
         [SerializeField]
         public ProbeVolumeDynamicGIMixedLightMode probeVolumeDynamicGIMixedLightMode;
+        /// <summary>Stores ProbeVolumeDynamicGIRadianceEncoding on disk.</summary>
+        [SerializeField]
+        public ProbeVolumeDynamicGIRadianceEncoding probeVolumeDynamicGIRadianceEncoding;
 
         /// <summary>
         /// The material quality level this rendering component uses.
@@ -786,6 +809,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame = overridingFrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeDynamicGIMixedLightMode])
                 overriddenFrameSettings.probeVolumeDynamicGIMixedLightMode = overridingFrameSettings.probeVolumeDynamicGIMixedLightMode;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.ProbeVolumeDynamicGIRadianceEncoding])
+                overriddenFrameSettings.probeVolumeDynamicGIRadianceEncoding = overridingFrameSettings.probeVolumeDynamicGIRadianceEncoding;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaterialQualityLevel])
                 overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
         }
@@ -955,6 +980,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && a.probeVolumeDynamicGIPropagationQuality     == b.probeVolumeDynamicGIPropagationQuality
             && a.probeVolumeDynamicGIMaxSimulationsPerFrame == b.probeVolumeDynamicGIMaxSimulationsPerFrame
             && a.probeVolumeDynamicGIMixedLightMode         == b.probeVolumeDynamicGIMixedLightMode
+            && a.probeVolumeDynamicGIRadianceEncoding       == b.probeVolumeDynamicGIRadianceEncoding
             && a.materialQuality                            == b.materialQuality;
 
         /// <summary>
@@ -985,6 +1011,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && probeVolumeDynamicGIPropagationQuality.Equals(((FrameSettings)obj).probeVolumeDynamicGIPropagationQuality)
             && probeVolumeDynamicGIMaxSimulationsPerFrame.Equals(((FrameSettings)obj).probeVolumeDynamicGIMaxSimulationsPerFrame)
             && probeVolumeDynamicGIMixedLightMode.Equals(((FrameSettings)obj).probeVolumeDynamicGIMixedLightMode)
+            && probeVolumeDynamicGIRadianceEncoding.Equals(((FrameSettings)obj).probeVolumeDynamicGIRadianceEncoding)
             && materialQuality.Equals(((FrameSettings)obj).materialQuality);
 
         /// <summary>
@@ -1008,6 +1035,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + probeVolumeDynamicGIPropagationQuality.GetHashCode();
             hashCode = hashCode * -1521134295 + probeVolumeDynamicGIMaxSimulationsPerFrame.GetHashCode();
             hashCode = hashCode * -1521134295 + probeVolumeDynamicGIMixedLightMode.GetHashCode();
+            hashCode = hashCode * -1521134295 + probeVolumeDynamicGIRadianceEncoding.GetHashCode();
             hashCode = hashCode * -1521134295 + materialQuality.GetHashCode();
 
             return hashCode;
@@ -1096,6 +1124,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebuggerEntry("probeVolumeDynamicGIPropagationQuality", m_FrameSettings.probeVolumeDynamicGIPropagationQuality),
                         new DebuggerEntry("probeVolumeDynamicGIMaxSimulationsPerFrame", m_FrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame),
                         new DebuggerEntry("probeVolumeDynamicGIMixedLightMode", m_FrameSettings.probeVolumeDynamicGIMixedLightMode),
+                        new DebuggerEntry("probeVolumeDynamicGIRadianceEncoding", m_FrameSettings.probeVolumeDynamicGIRadianceEncoding),
                         new DebuggerEntry("materialQuality", m_FrameSettings.materialQuality),
                     }));
 

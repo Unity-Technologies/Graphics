@@ -1,14 +1,14 @@
-#pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
-#pragma multi_compile _ PROPAGATION_AXIS_MOST PROPAGATION_AXIS_LEAST
-#pragma multi_compile _ PREVIOUS_RADIANCE_CACHE_INVALID
-
 #pragma kernel PropagateLight
 #define GROUP_SIZE 64
 // #pragma enable_d3d11_debug_symbols
 
+#pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
+#pragma multi_compile _ PROPAGATION_AXIS_MOST PROPAGATION_AXIS_LEAST
+#pragma multi_compile _ PREVIOUS_RADIANCE_CACHE_INVALID
+
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
-
+#pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -42,7 +42,7 @@ StructuredBuffer<NeighborAxisLookup> _SortedNeighborAxisLookups;
 StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
 int _ProbeVolumeNeighborsCount;
 
-StructuredBuffer<float3> _HitRadianceCacheAxis;
+StructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
 
 float _PropagationContribution;
@@ -87,7 +87,7 @@ int ProbeCoordinateToIndex(uint3 probeCoordinate)
 
 float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVolumeLtw)
 {
-    float3 localPosition = ((probeCoordinates * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
+    float3 localPosition = (((probeCoordinates + 0.5) * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
     return mul(localPosition, probeVolumeLtw) + GetAbsolutePositionWS(_ProbeVolumeDGIBoundsCenter);
 }
 
@@ -221,6 +221,77 @@ float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int a
     return probeWorldPosition + neighborDirectionWS * neighborAxisLength * _ProbeVolumeDGIMaxNeighborDistance;
 }
 
+float3 PropagateLightFromNeighborSHWithSamplePeaks(SHIncomingIrradiance shIncomingIrradiance, NeighborAxisLookup neighborAxisLookup, float3x3 probeVolumeLtw, float hitWeight)
+{
+    float3 basisAxisHitDirectionWS = mul(neighborAxisLookup.neighborDirection, probeVolumeLtw);
+    return ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * hitWeight;
+}
+
+float3 PropagateLightFromNeighborSHWithZHFit(SHIncomingIrradiance shIncomingIrradiance, NeighborAxisLookup neighborAxisLookup, float3x3 probeVolumeLtw, float hitWeight, BasisAxisHit basisAxisNeighborHit)
+{
+    float3 basisAxisHitDirectionWS = mul(neighborAxisLookup.neighborDirection, probeVolumeLtw);
+    ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisNeighborHit);
+    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+    return ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * hitWeight;
+}
+
+float3 PropagateLightFromNeighborSHWithMonteCarloNaiveProjection(SHIncomingIrradiance shIncomingIrradiance, NeighborAxisLookup neighborAxisLookup, float3x3 probeVolumeLtw, float hitWeight, BasisAxisHit basisAxisHit, BasisAxisHit basisAxisNeighborHit)
+{
+    BasisAxisHit basisAxisNeighborHitWS = basisAxisNeighborHit;
+    basisAxisNeighborHitWS.mean = mul(basisAxisNeighborHitWS.mean, probeVolumeLtw);
+
+    const float SOLID_ANGLE_SPHERE = 4.0 * PI;
+    const float GOLDEN_ANGLE = PI * (3.0 - sqrt(5.0));
+    const float GOLDEN_ANGLE_HALF = GOLDEN_ANGLE * 0.5;
+    const int SAMPLE_COUNT = 512;
+    const float SAMPLE_COUNT_INVERSE = 1.0 / (float)SAMPLE_COUNT;
+    
+    float3 incomingHitRadiance = 0.0;
+    for (int sampleIndex = 0; sampleIndex < SAMPLE_COUNT; ++sampleIndex)
+    {
+        float3 sampleDirectionWS;
+        {
+            float offset = (float)sampleIndex + 0.5;
+            float theta = offset * GOLDEN_ANGLE + GOLDEN_ANGLE_HALF;
+            float z = -(offset * SAMPLE_COUNT_INVERSE * 2.0 - 1.0);
+            float r = sqrt(1.0 - z * z);
+
+            float3 sampleDirectionBasisOS = float3(
+                r * cos(theta),
+                r * sin(theta),
+                z
+            );               
+
+            sampleDirectionWS = sampleDirectionBasisOS; // No rotation necessary, we are sampling the whole sphere.
+        }
+
+        const float DIFFERENTIAL_AREA = SOLID_ANGLE_SPHERE * SAMPLE_COUNT_INVERSE;
+        
+        float3 sampleIncomingRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, sampleDirectionWS);
+
+        float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+        float3 basisAxisHitDirectionOS = basisAxisHit.mean;
+        basisAxisHit.mean = basisAxisHitDirectionWS;
+
+        incomingHitRadiance += sampleIncomingRadiance
+            * DIFFERENTIAL_AREA
+            * ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS)
+            * ComputeBasisAxisHitEvaluateFromDirection(basisAxisNeighborHitWS, sampleDirectionWS);
+
+        basisAxisHit.mean = basisAxisHitDirectionOS; 
+    }
+
+    return incomingHitRadiance;
+}
+
+#define BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION (0)
+#define BASIS_FROM_SH_MODE_SAMPLE_PEAKS (1)
+#define BASIS_FROM_SH_MODE_ZH_FIT (2)
+
+// See note in ProbePropagationInitialize.compute.
+// Sample Peaks turns out to be better than ZH Fit in practice for our combination of basis and SH order.
+#define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+
 [numthreads(GROUP_SIZE, 1, 1)]
 void PropagateLight(uint3 id : SV_DispatchThreadID)
 {
@@ -239,7 +310,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
             #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-            _RadianceCacheAxis[index] = 0;
+            _RadianceCacheAxis[index] = ZeroRadiance();
             #else
             _RadianceCacheAxis[index] = _PreviousRadianceCacheAxis[index];
             #endif
@@ -286,8 +357,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             if(hitIndex < (uint)_HitRadianceCacheAxisCount)
             {
                 // Hit
-                float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
-                incomingHitRadiance += _HitRadianceCacheAxis[hitIndex] * weight;
+                float hitWeight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
+                incomingHitRadiance += DecodeRadiance(_HitRadianceCacheAxis[hitIndex]) * hitWeight;
             }
             else
             {
@@ -304,8 +375,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
                         float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
-                        float weight = neighborAxisLookup.propagationWeight;
-                        incomingMissRadiance += prevAxisRadiance * weight * InvalidScale(probeAxisValidity);
+                        incomingMissRadiance += prevAxisRadiance * neighborAxisLookup.propagationWeight * InvalidScale(probeAxisValidity);
                     #endif
                 }
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
@@ -320,22 +390,22 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         SHIncomingIrradiance shIncomingIrradiance = shIncomingIrradianceProbeCurrent;
                     #endif
 
-                    float weight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
+                    float hitWeight = neighborAxisLookup.hitWeight * basisAxisNeighborHitIntegral;
 
-                    // Because convolution in SH space is cheap (zonal harmonic window component-wise multiplication), we are able to
-                    // more accurately capture the integral of incoming irradiance over the hit basis solid angle + weight.
-                    // It's important to note that this is an approximation - because our hit axis lobe is not a zonal harmonic - it is an SG or AmbientDice lobe,
-                    // but it can be approximately represented as an ZH.
-                    // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indistinguishable.
-                    float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
-                    ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
-                    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
-                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;
+#if BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_MONTE_CARLO_NAIVE_PROJECTION
+                    incomingHitRadiance += PropagateLightFromNeighborSHWithMonteCarloNaiveProjection(shIncomingIrradiance, neighborAxisLookup, probeVolumeLtw, hitWeight, basisAxisHit, basisAxisNeighborHit);
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_ZH_FIT
+                    incomingHitRadiance += PropagateLightFromNeighborSHWithZHFit(shIncomingIrradiance, neighborAxisLookup, probeVolumeLtw, hitWeight, basisAxisNeighborHit);
+
+#elif BASIS_FROM_SH_MODE == BASIS_FROM_SH_MODE_SAMPLE_PEAKS
+                    incomingHitRadiance += PropagateLightFromNeighborSHWithSamplePeaks(shIncomingIrradiance, neighborAxisLookup, probeVolumeLtw, hitWeight);
+#endif
                 }
 #endif
             }
         }
 
-        _RadianceCacheAxis[index] = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
+        _RadianceCacheAxis[index] = EncodeRadiance((incomingHitRadiance + incomingMissRadiance) * _PropagationContribution);
     }
 }

@@ -348,6 +348,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader extractProbeExtraDataCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationClearRadianceCache.compute")]
             public ComputeShader probePropagationClearRadianceCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationInitialize.compute")]
+            public ComputeShader probePropagationInitializeCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationHits.compute")]
             public ComputeShader probePropagationHitsCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationAxes.compute")]

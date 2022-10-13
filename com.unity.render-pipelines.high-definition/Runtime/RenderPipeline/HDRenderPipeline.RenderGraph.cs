@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
                 ProbeVolumeDynamicGICommonData commonData = PrepareProbeVolumeDynamicGIData(hdCamera);
+                ProbeVolumeDynamicGI.instance.ResetSimulationRequests();
                 if (commonData.mode != ProbeVolumeDynamicGIMode.None)
                 {
                     using (var builder = m_RenderGraph.AddRenderPass<ProbeVolumeDynamicGIPassData>("ProbeVolumeDynamicGI", out var passData))

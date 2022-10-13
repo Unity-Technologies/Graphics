@@ -155,7 +155,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Is the feature globally disabled?
         bool m_SupportProbeVolume = false;
         bool m_SupportDynamicGI = false;
+        bool m_ForceDisableDynamicGI = false;
         private bool m_WasProbeVolumeDynamicGIEnabled;
+
+        public bool SupportDynamicGI
+        {
+            get { return m_SupportDynamicGI && !m_ForceDisableDynamicGI; }
+            set { m_ForceDisableDynamicGI = !value; }
+        }
 
         // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
         uint[] m_ProbeVolumeSortKeys = new uint[k_MaxVisibleProbeVolumeCount];
@@ -264,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VisibleProbeVolumeDataBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
         }
 
-        static internal int GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes encodingMode)
+        internal static int GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes encodingMode)
         {
             switch (encodingMode)
             {
@@ -690,6 +697,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (size > s_MaxProbeVolumeProbeCount)
                     {
                         Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
+                        ReleaseProbeVolumeFromAtlas(volume);
                         return false;
                     }
 
@@ -1049,6 +1057,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int propagationQuality;
             public int maxSimulationsPerFrameOverride;
             public ProbeVolumeDynamicGIMixedLightMode mixedLightMode;
+            public ProbeVolumeDynamicGIRadianceEncoding radianceEncoding;
         }
 
         class ProbeVolumeDynamicGIPassData
@@ -1078,12 +1087,13 @@ namespace UnityEngine.Rendering.HighDefinition
             data.globalCB = m_ShaderVariablesGlobalCB;
             data.ambientProbe = m_SkyManager.GetAmbientProbe(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && SupportDynamicGI)
             {
                 data.infiniteBounces = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces);
                 data.propagationQuality = hdCamera.frameSettings.probeVolumeDynamicGIPropagationQuality;
                 data.maxSimulationsPerFrameOverride = hdCamera.frameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
                 data.mixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
+                data.radianceEncoding = hdCamera.frameSettings.probeVolumeDynamicGIRadianceEncoding;
 
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
@@ -1104,7 +1114,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.mode == ProbeVolumeDynamicGIMode.Dispatch)
                 {
                     // Update Probe Volume Data via Dynamic GI Propagation
-                    ProbeVolumeDynamicGI.instance.ResetSimulationRequests();
                     float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
                     int maxSimulationsPerFrame = data.maxSimulationsPerFrameOverride;
 
@@ -1120,17 +1129,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
 
-                        // basic distance check
-                        var obb = volume.GetPipelineData().BoundingBox;
-                        float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+                        bool requiresSimulation;
 #if UNITY_EDITOR
-                        if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake || obb.center.magnitude < (maxRange + maxExtent))
-#else
-                        if (obb.center.magnitude < (maxRange + maxExtent))
+                        if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake)
+                        {
+                            // Force simulation at any distance when preparing for baking.
+                            requiresSimulation = true;
+                        }
+                        else
 #endif
                         {
-                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
+                            // basic distance check
+                            var obb = volume.GetPipelineData().BoundingBox;
+                            float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+                            // TODO: obb.center can be a world space position if rendering is not camera relative.
+                            requiresSimulation = obb.center.magnitude < (maxRange + maxExtent);
                         }
+
+                        if (requiresSimulation)
+                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
                     }
 
                     // dispatch max number of simulation requests this frame
@@ -1142,7 +1159,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings,
                             in data.globalCB, probeVolumeAtlas, data.infiniteBounces,
                             (ProbeVolumeDynamicGI.PropagationQuality)data.propagationQuality, data.ambientProbe,
-                            data.mixedLightMode);
+                            data.mixedLightMode, data.radianceEncoding);
                     }
                 }
                 else if (data.mode == ProbeVolumeDynamicGIMode.Clear)
@@ -1167,7 +1184,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
 
             float offscreenUploadDistance = 0.0f;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && SupportDynamicGI)
             {
                 var dynamicGISettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
                 offscreenUploadDistance = (dynamicGISettings.neighborVolumePropagationMode.value == ProbeDynamicGI.DynamicGINeighboringVolumePropagationMode.Disabled)
