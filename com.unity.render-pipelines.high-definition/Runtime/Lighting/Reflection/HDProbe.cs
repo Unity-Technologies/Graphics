@@ -4,6 +4,10 @@ using UnityEngine.Serialization;
 using UnityEditor;
 #endif
 
+// custom-begin:
+using System.Collections.Generic;
+// custom-end
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -545,6 +549,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // custom-begin:
+        [System.NonSerialized] private static List<HDProbe> s_Instances = new List<HDProbe>();
+
+        private void InstanceAdd()
+        {
+            Debug.Assert(s_Instances.IndexOf(this) == -1);
+            s_Instances.Add(this);
+        }
+
+        private void InstanceRemove()
+        {
+            int index = s_Instances.IndexOf(this);
+            if (index != -1)
+            {
+                s_Instances.RemoveAt(index);
+            }
+        }
+
+        public static List<HDProbe> GetInstances()
+        {
+            return s_Instances;
+        }
+        // custom-end
+
         void OnEnable()
         {
             wasRenderedAfterOnEnable = false;
@@ -556,9 +584,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
 #endif
+            // custom-begin:
+            InstanceAdd();
+            // custom-end
         }
         void OnDisable()
         {
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
             HDProbeSystem.UnregisterProbe(this);
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
