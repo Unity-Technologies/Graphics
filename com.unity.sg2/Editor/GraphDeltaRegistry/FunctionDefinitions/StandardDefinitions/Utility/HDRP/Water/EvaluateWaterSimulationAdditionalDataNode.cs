@@ -31,7 +31,7 @@ DeepFoam = waterAdditionalData.deepFoam;
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Simulation Caustics",
+            displayName: "Evaluate Water Simulation Additional Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: new string[0],
