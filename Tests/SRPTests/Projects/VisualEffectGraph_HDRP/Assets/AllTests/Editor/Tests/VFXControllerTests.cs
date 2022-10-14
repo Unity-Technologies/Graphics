@@ -932,8 +932,8 @@ namespace UnityEditor.VFX.Test
 
             var systemNames = view.controller.graph.systemNames;
             var names = new List<string>();
-            foreach (var system in spawners)
-                names.Add(systemNames.GetUniqueSystemName(system));
+            foreach (var spawner in spawners)
+                names.Add(systemNames.GetUniqueSystemName(spawner.GetData()));
 
             Assert.IsTrue(names.Where(name => !string.IsNullOrEmpty(name)).Distinct().Count() == count, "Some spawners have the same name or are null or empty.");
 

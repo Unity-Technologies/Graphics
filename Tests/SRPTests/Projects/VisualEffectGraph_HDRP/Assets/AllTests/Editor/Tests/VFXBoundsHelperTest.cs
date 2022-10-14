@@ -4,6 +4,8 @@ using UnityEngine.VFX;
 using UnityEngine.TestTools;
 using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
@@ -52,12 +54,11 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < maxFrameTimeout; i++)
             {
                 m_BoundsRecorder.UpdateBounds();
-                if (m_BoundsRecorder.bounds.Count > 0)
+                if (GetBoundsByReflection(m_BoundsRecorder).Count > 0)
                     break;
                 yield return null; //skip a frame.
             }
-
-            var bounds = m_BoundsRecorder.bounds.FirstOrDefault().Value;
+            var bounds = GetBoundsByReflection(m_BoundsRecorder).FirstOrDefault().Value;
 
             Vector3 expectedCenter = Vector3.zero;
             Vector3 expectedExtent = new Vector3(2.0f,2.0f,2.0f);
@@ -83,7 +84,13 @@ namespace UnityEditor.VFX.Test
         {
             m_BoundsRecorder.CleanUp();
         }
-    }
 
+        private Dictionary<string, Bounds> GetBoundsByReflection(VFXBoundsRecorder boundsRecorder)
+        {
+            var boundsProperty = boundsRecorder.GetType().GetField("m_Bounds", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(boundsProperty);
+            return (Dictionary<string, Bounds>)boundsProperty.GetValue(boundsRecorder);
+        }
+    }
 
 }

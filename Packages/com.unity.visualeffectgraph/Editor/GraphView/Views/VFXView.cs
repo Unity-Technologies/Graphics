@@ -701,6 +701,8 @@ namespace UnityEditor.VFX.UI
                 m_VFXSettings.Load(true);
                 TryAttachTo(m_VFXSettings.AttachedVisualEffect, false);
             }
+
+            m_ComponentBoard.SetDebugMode(VFXUIDebug.Modes.None);
         }
 
         void OnOpenAttachMenu()
@@ -1231,8 +1233,12 @@ namespace UnityEditor.VFX.UI
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
 
-            rectToFit = controller.graph.UIInfos.uiBounds;
+            if (controller.graph == null)
+            {
+                return;
+            }
 
+            rectToFit =  controller.graph.UIInfos.uiBounds;
             if (rectToFit.width <= 50 || rectToFit.height <= 50)
             {
                 return;

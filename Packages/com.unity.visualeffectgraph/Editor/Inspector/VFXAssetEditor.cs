@@ -736,7 +736,11 @@ class VisualEffectAssetEditor : Editor
         //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
 
         bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
-            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+            .OfType<VFXBasicInitialize>()
+            .Select(x => x.GetData())
+            .OfType<VFXDataParticle>()
+            .Any(x => x.boundsMode == BoundsSettingMode.Automatic);
+
         using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
             EditorGUILayout.BeginHorizontal();
