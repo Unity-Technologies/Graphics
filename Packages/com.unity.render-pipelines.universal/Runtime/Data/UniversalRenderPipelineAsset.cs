@@ -687,7 +687,7 @@ namespace UnityEngine.Rendering.Universal
             return pipeline;
         }
 
-        void DestroyRenderers()
+        internal void DestroyRenderers()
         {
             if (m_Renderers == null)
                 return;
