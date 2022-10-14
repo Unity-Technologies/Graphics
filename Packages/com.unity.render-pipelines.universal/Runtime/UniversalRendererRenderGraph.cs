@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
                 createColorTexture |= createDepthTexture;
 #endif
-            bool depthPriming = IsDepthPrimingEnabled();
+            bool depthPriming = IsDepthPrimingEnabled(ref renderingData.cameraData);
             depthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth);
 
             if (useRenderPassEnabled || depthPriming)
