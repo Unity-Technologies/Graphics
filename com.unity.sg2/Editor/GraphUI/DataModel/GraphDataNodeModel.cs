@@ -190,6 +190,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             DefineNode();
         }
 
+        public void
+
         /// <summary>
         /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.
         /// </summary>

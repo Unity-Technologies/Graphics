@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.CommandStateObserver;
 using Unity.GraphToolsFoundation;
-
+using UnityEditor.ShaderGraph.GraphUI.UIData;
 using SerializedMesh = UnityEditor.ShaderGraph.Utils.SerializableMesh;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -182,6 +182,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             mainPreviewData = new(Guid.ToString());
             m_DefaultContextNode = GetMainContextNode();
+        }
+
+        public void CreateUIData()
+        {
+            if (Stencil is ShaderGraphStencil stencil)
+            {
+                foreach (var registryKey in RegistryInstance.Registry.BrowseRegistryKeys())
+                {
+                    var nodeUIInfo = stencil.GetUIHints(registryKey);
+                    var nodeUIData = new SGNodeUIData(
+                                            nodeUIInfo.Version,
+                                            nodeUIInfo.Name,
+                                            nodeUIInfo.Tooltip,
+                                            nodeUIInfo.Category,
+                                            nodeUIInfo.Synonyms.ToArray(),
+                                            nodeUIInfo.DisplayName,
+                                            nodeUIInfo.HasPreview,
+                                            nodeUIInfo.SelectableFunctions.ToDictionary(), // TODO: Fix
+                                            nodeUIInfo.Parameters.ToArray(), // TODO: Need to convert from ParameterUIDescriptor to SGPortUIData
+                                            nodeUIInfo.FunctionSelectorLabel);
+                }
+            }
         }
 
         internal void InitializeContextFromTarget(Target target)
