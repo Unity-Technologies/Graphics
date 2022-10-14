@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var shouldShowPreview =
                 graphDataNodeModel.existsInGraphData &&
                 nodeHasPreview &&
-                graphDataNodeModel is not GraphDataContextNodeModel;
+                !isNonPreviewableType;
 
             if (shouldShowPreview)
                 m_NodePreviewPart = new NodePreviewPart(

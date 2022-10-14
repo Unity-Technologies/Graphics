@@ -752,7 +752,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // TODO: Replace with a Preview Service side solution
-        bool IsConnectedToTimeNode(GraphDataNodeModel nodeModel)
+        bool IsConnectedToTimeNode(PortNodeModel nodeModel)
         {
             foreach (var inputEdge in nodeModel.GetIncomingEdges())
             {
@@ -778,7 +778,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
         }
 
-        public bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
+        public bool DoesNodeRequireTime(PortNodeModel graphDataNodeModel)
         {
             return IsConnectedToTimeNode(graphDataNodeModel);
         }

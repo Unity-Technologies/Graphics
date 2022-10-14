@@ -52,7 +52,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 case GraphDataPortModel graphDataPort:
                 {
-                    ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
+                    NodeHandler nodeReader;
+
+                    switch (graphDataPort.NodeModel)
+                    {
+                        case GraphDataNodeModel graphDataNode:
+                            graphDataNode.TryGetNodeHandler(out nodeReader);
+                            break;
+                        // TODO: temporary...
+                        case GraphDataBlockNodeModel { ContextNodeModel: GraphDataContextNodeModel ctx }:
+                            ctx.TryGetNodeHandler(out nodeReader);
+                            break;
+                        default:
+                            return new MissingFieldEditor(builder.CommandTarget, builder.Label);
+                    }
 
                     var length = constant.GetLength();
                     var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;

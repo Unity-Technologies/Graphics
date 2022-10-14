@@ -270,13 +270,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var graphDataPortModel in changedModels.OfType<GraphDataPortModel>())
             {
-                if (graphDataPortModel.owner is GraphDataNodeModel graphDataNodeModel)
-                {
-                    if(graphDataPortModel.EmbeddedValue is not BaseShaderGraphConstant cldsConstant)
-                        continue;
-                    // Update preview for node that owns changed port
-                    m_PreviewUpdateDispatcher.OnLocalPropertyChanged(graphDataNodeModel.graphDataName,  cldsConstant.PortName, cldsConstant.ObjectValue);
-                }
+                if (graphDataPortModel.EmbeddedValue is not BaseShaderGraphConstant cldsConstant)
+                    continue;
+                // Update preview for node that owns changed port
+                m_PreviewUpdateDispatcher.OnLocalPropertyChanged(graphDataPortModel.owner.graphDataName,  cldsConstant.PortName, cldsConstant.ObjectValue);
             }
 
             foreach (var variableDeclarationModel in changedModels.OfType<GraphDataVariableDeclarationModel>())
