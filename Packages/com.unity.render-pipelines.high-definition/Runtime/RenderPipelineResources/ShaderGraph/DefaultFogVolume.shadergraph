@@ -823,7 +823,8 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false
+    "m_SupportVFX": false,
+    "m_SupportComputeForVertexSetup": false
 }
 
 {
@@ -2350,7 +2351,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Scroll Speed",
     "m_DefaultReferenceName": "_Scroll_Speed",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "_ScrollSpeed",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
