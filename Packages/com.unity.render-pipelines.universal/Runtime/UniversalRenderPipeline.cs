@@ -141,8 +141,20 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
+        // Reference to the asset associated with the pipeline.
+        // When a pipeline asset is switched in `GraphicsSettings`, the `UniversalRenderPipelineCore.asset` member
+        // becomes unreliable for the purpose of pipeline and renderer clean-up in the `Dispose` call from
+        // `RenderPipelineManager.CleanupRenderPipeline`.
+        // This field provides the correct reference for the purpose of cleaning up the renderers on this pipeline
+        // asset.
+        private readonly UniversalRenderPipelineAsset pipelineAsset;
+
+        /// <inheritdoc/>
+        public override string ToString() => pipelineAsset?.ToString();
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
+            pipelineAsset = asset;
 #if UNITY_EDITOR
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
 #else
@@ -186,7 +198,10 @@ namespace UnityEngine.Rendering.Universal
 
             base.Dispose(disposing);
 
+            pipelineAsset.DestroyRenderers();
+
             Shader.globalRenderPipeline = "";
+
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
             DeferredShaderData.instance.Dispose();
