@@ -316,12 +316,26 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
     return ProjectPropagationAxisFromFit(probeIndex);
 }
 
+#ifndef DIRTY_FLAGS_DISABLED
+groupshared int2 dirtyFlags;
+#endif
+
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
 void CombinePropagationAxis(
     uint3 groupId : SV_GroupID,
     uint3 threadId : SV_GroupThreadID,
     uint threadIndex : SV_GroupIndex)
 {
+#ifndef DIRTY_FLAGS_DISABLED
+    const uint groupIndex = CoordinateToIndex(groupId, (uint2)_ProbeVolumeBlockResolution.xy);
+    if (threadIndex < 2)
+        dirtyFlags[threadIndex] = _ProbeVolumeDirtyFlags[groupIndex * 2 + threadIndex];
+    GroupMemoryBarrierWithGroupSync();
+
+    if (all(dirtyFlags == 0))
+        return;
+#endif
+
     const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
 
     if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
@@ -329,7 +343,9 @@ void CombinePropagationAxis(
         const int paddedProbeIndex = GroupAndIndexToPaddedProbeIndex(groupId, threadIndex);
 
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))
+        const uint dirtyFlagsIndex = threadIndex / 32;
+        const uint dirtyFlagsBitIndex = threadIndex - dirtyFlagsIndex * 32;
+        if ((dirtyFlags[dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
             return;
 #endif
 

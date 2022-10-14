@@ -281,7 +281,7 @@ RADIANCE GetPreviousAxisRadiance(int index)
 #define PREFETCH_BLOCK_SIZE (BLOCK_SIZE + 2)
 #define PREFETCH_PROBE_COUNT (PREFETCH_BLOCK_SIZE * PREFETCH_BLOCK_SIZE * PREFETCH_BLOCK_SIZE)
 #define PREFETCH_PROBE_COUNT_PER_THREAD ((PREFETCH_PROBE_COUNT + BLOCK_PROBE_COUNT - 1) / BLOCK_PROBE_COUNT)
-groupshared float3 prefetchedPreviousRadiance[PREFETCH_PROBE_COUNT];
+groupshared RADIANCE prefetchedPreviousRadiance[PREFETCH_PROBE_COUNT];
 #endif
 
 #ifndef DIRTY_FLAGS_DISABLED
@@ -298,6 +298,27 @@ void PropagateLight(
     const uint4 blockResolution = (uint4)_ProbeVolumeBlockResolution;
     const uint axisIndex = groupId.z / blockResolution.z;
     const uint3 probeGroupId = groupId - uint3(0, 0, axisIndex * blockResolution.z);
+
+#ifdef PREFETCH
+    for (uint i = 0; i < PREFETCH_PROBE_COUNT_PER_THREAD; i++)
+    {
+        const uint prefetchIndex = threadIndex * PREFETCH_PROBE_COUNT_PER_THREAD + i;
+        if (prefetchIndex < PREFETCH_PROBE_COUNT)
+        {
+            const int3 prefetchProbeCoords = (int3)probeGroupId * BLOCK_SIZE + (int3)IndexToCoordinate(prefetchIndex, PREFETCH_BLOCK_SIZE) - 1;
+            if (all(prefetchProbeCoords >= 0) && all(prefetchProbeCoords < (int3)resolution.xyz))
+            {
+                const uint prefetchPaddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(prefetchProbeCoords);
+                prefetchedPreviousRadiance[prefetchIndex] = _PreviousRadianceCacheAxis[prefetchPaddedProbeIndex + axisIndex * PaddedProbeCount()];
+            }
+            else
+            {
+                prefetchedPreviousRadiance[prefetchIndex] = ZeroRadiance();
+            }
+        }
+    }
+#endif
+
     const uint3 probeCoordinate = probeGroupId * BLOCK_SIZE + threadId;
     const uint probeGroupIndex = CoordinateToIndex(probeGroupId, blockResolution.xy);
     const uint paddedIndex = GroupAndIndexToPaddedProbeIndex(groupId, threadIndex);
@@ -310,40 +331,30 @@ void PropagateLight(
     if (all(dirtyFlags == 0))
     {
         if (all(probeCoordinate < resolution.xyz))
+#ifdef PREFETCH
+            _RadianceCacheAxis[paddedIndex] = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+#else
             _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
-
+#endif
         return;
     }
-#endif
 
-#ifdef PREFETCH
-    for (uint i = 0; i < PREFETCH_PROBE_COUNT_PER_THREAD; i++)
-    {
-        const uint prefetchIndex = threadIndex * PREFETCH_PROBE_COUNT_PER_THREAD + i;
-        if (prefetchIndex < PREFETCH_PROBE_COUNT)
-        {
-            const int3 prefetchProbeCoords = (int3)probeGroupId * BLOCK_SIZE + (int3)IndexToCoordinate(prefetchIndex, PREFETCH_BLOCK_SIZE) - 1;
-            if (all(prefetchProbeCoords >= 0) && all(prefetchProbeCoords < (int3)resolution.xyz))
-            {
-                const uint prefetchPaddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(prefetchProbeCoords);
-                prefetchedPreviousRadiance[prefetchIndex] = ReadPreviousPropagationAxis(prefetchPaddedProbeIndex, axisIndex);
-            }
-            else
-            {
-                prefetchedPreviousRadiance[prefetchIndex] = 0;
-            }
-        }
-    }
+#elif defined(PREFETCH)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
     if (all(probeCoordinate < resolution.xyz))
     {
 #ifndef DIRTY_FLAGS_DISABLED
-        const uint paddedProbeIndex = paddedIndex - axisIndex * PaddedProbeCount();
-        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, paddedProbeIndex))
+        const uint dirtyFlagsIndex = threadIndex / 32;
+        const uint dirtyFlagsBitIndex = threadIndex - dirtyFlagsIndex * 32;
+        if ((dirtyFlags[dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
         {
+#ifdef PREFETCH
+            _RadianceCacheAxis[paddedIndex] = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+#else
             _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
+#endif
             return;
         }
 #endif
@@ -354,7 +365,11 @@ void PropagateLight(
         // Early out at far distances
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
+#ifdef PREFETCH
+            _RadianceCacheAxis[paddedIndex] = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+#else
             _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
+#endif
             return;
         }
 
@@ -414,7 +429,7 @@ void PropagateLight(
 #ifdef PREFETCH
                     uint3 neighborPrefetchCoordinate = threadId + 1 + offset;
                     uint neighborPrefetchIndex = CoordinateToIndex(neighborPrefetchCoordinate, PREFETCH_BLOCK_SIZE);
-                    float3 prevAxisRadiance = prefetchedPreviousRadiance[neighborPrefetchIndex];
+                    float3 prevAxisRadiance = DecodeRadiance(prefetchedPreviousRadiance[neighborPrefetchIndex]);
 #else
                     uint neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
                     float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborPaddedIndex, axisIndex);
@@ -455,7 +470,12 @@ void PropagateLight(
         _RadianceCacheAxis[paddedIndex] = EncodeRadiance(radiance);
 
 #ifndef DIRTY_FLAGS_DISABLED
-        if (!IsSimilarEqual(GetPreviousAxisRadiance(paddedIndex), radiance))
+#ifdef PREFETCH
+        RADIANCE previousRadiance = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+#else
+        RADIANCE previousRadiance = GetPreviousAxisRadiance(paddedIndex);
+#endif
+        if (!IsSimilarEqual(previousRadiance, radiance))
         {
             for (int l = 0; l < PROPAGATION_AXIS_AMOUNT; ++l)
             {
