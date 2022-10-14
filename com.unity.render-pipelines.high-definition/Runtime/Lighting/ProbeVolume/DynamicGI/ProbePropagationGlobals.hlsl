@@ -7,6 +7,7 @@ float4 _ProbeVolumeResolution;
 float4 _ProbeVolumeBlockResolution;
 
 #define BLOCK_SIZE 4
+#define BLOCK_PROBE_COUNT (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE)
 
 // TODO: Generate from C#
 #define NEIGHBOR_AXIS_COUNT     26
@@ -81,16 +82,21 @@ bool IsBoundaryProbe(uint3 probeCoordinate)
     return any(probeCoordinate == 0) || any(probeCoordinate + 1 == (uint3)_ProbeVolumeResolution);
 }
 
-uint3 ProbeIndexToProbeCoordinates(uint probeIndex)
+uint3 IndexToCoordinate(uint index, uint2 resolution)
 {
-    const uint2 resolution = (uint2)_ProbeVolumeResolution.xy;
-    uint probeZ = probeIndex / (resolution.x * resolution.y);
-    probeIndex -= probeZ * (resolution.x * resolution.y);
+    const uint resolutionXY = resolution.x * resolution.y;
+    uint probeZ = index / resolutionXY;
+    index -= probeZ * resolutionXY;
 
-    uint probeY = probeIndex / resolution.x;
-    uint probeX = probeIndex % resolution.x;
+    uint probeY = index / resolution.x;
+    uint probeX = index % resolution.x;
 
     return uint3(probeX, probeY, probeZ);
+}
+
+uint3 ProbeIndexToProbeCoordinates(uint probeIndex)
+{
+    return IndexToCoordinate(probeIndex, (uint2)_ProbeVolumeResolution.xy);
 }
 
 uint CoordinateToIndex(uint3 coordinate, uint2 resolution)
@@ -102,14 +108,14 @@ uint GroupAndThreadToPaddedProbeIndex(uint3 group, uint3 thread)
 {
     const uint blockIndex = CoordinateToIndex(group, (uint2)_ProbeVolumeBlockResolution.xy);
 
-    return blockIndex * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE) + CoordinateToIndex(thread, BLOCK_SIZE);
+    return blockIndex * BLOCK_PROBE_COUNT + CoordinateToIndex(thread, BLOCK_SIZE);
 }
 
 uint GroupAndIndexToPaddedProbeIndex(uint3 group, uint threadIndex)
 {
     const uint blockIndex = CoordinateToIndex(group, (uint2)_ProbeVolumeBlockResolution.xy);
 
-    return blockIndex * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE) + threadIndex;
+    return blockIndex * BLOCK_PROBE_COUNT + threadIndex;
 }
 
 uint ProbeCoordinateToPaddedProbeIndex(uint3 probeCoordinate)
@@ -127,7 +133,7 @@ uint ProbeCoordinateToProbeIndex(uint3 probeCoordinate)
 
 uint PaddedProbeCount()
 {
-    return (uint)_ProbeVolumeBlockResolution.w * (BLOCK_SIZE * BLOCK_SIZE * BLOCK_SIZE);
+    return (uint)_ProbeVolumeBlockResolution.w * BLOCK_PROBE_COUNT;
 }
 
 uint ProbeCount()

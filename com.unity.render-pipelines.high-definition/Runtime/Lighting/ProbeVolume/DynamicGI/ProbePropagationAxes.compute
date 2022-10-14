@@ -275,6 +275,15 @@ RADIANCE GetPreviousAxisRadiance(int index)
 // Our ZH Fit produces results that are closer to the monte carlo naive projection ground turth than the sample peaks approach does. Both approaches are reasonable however.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_ZH_FIT
 
+#define PREFETCH
+
+#ifdef PREFETCH
+#define PREFETCH_BLOCK_SIZE (BLOCK_SIZE + 2)
+#define PREFETCH_PROBE_COUNT (PREFETCH_BLOCK_SIZE * PREFETCH_BLOCK_SIZE * PREFETCH_BLOCK_SIZE)
+#define PREFETCH_PROBE_COUNT_PER_THREAD ((PREFETCH_PROBE_COUNT + BLOCK_PROBE_COUNT - 1) / BLOCK_PROBE_COUNT)
+groupshared float3 prefetchedPreviousRadiance[PREFETCH_PROBE_COUNT];
+#endif
+
 #ifndef DIRTY_FLAGS_DISABLED
 groupshared int2 dirtyFlags;
 #endif
@@ -305,6 +314,27 @@ void PropagateLight(
 
         return;
     }
+#endif
+
+#ifdef PREFETCH
+    for (uint i = 0; i < PREFETCH_PROBE_COUNT_PER_THREAD; i++)
+    {
+        const uint prefetchIndex = threadIndex * PREFETCH_PROBE_COUNT_PER_THREAD + i;
+        if (prefetchIndex < PREFETCH_PROBE_COUNT)
+        {
+            const int3 prefetchProbeCoords = (int3)probeGroupId * BLOCK_SIZE + (int3)IndexToCoordinate(prefetchIndex, PREFETCH_BLOCK_SIZE) - 1;
+            if (all(prefetchProbeCoords >= 0) && all(prefetchProbeCoords < (int3)resolution.xyz))
+            {
+                const uint prefetchPaddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(prefetchProbeCoords);
+                prefetchedPreviousRadiance[prefetchIndex] = ReadPreviousPropagationAxis(prefetchPaddedProbeIndex, axisIndex);
+            }
+            else
+            {
+                prefetchedPreviousRadiance[prefetchIndex] = 0;
+            }
+        }
+    }
+    GroupMemoryBarrierWithGroupSync();
 #endif
 
     if (all(probeCoordinate < resolution.xyz))
@@ -380,13 +410,18 @@ void PropagateLight(
 
                 if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (int3)_ProbeVolumeResolution))
                 {
-                    #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-                    #else
-                        uint neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
-                        float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborPaddedIndex, axisIndex);
+#if !defined(PREVIOUS_RADIANCE_CACHE_INVALID)
+#ifdef PREFETCH
+                    uint3 neighborPrefetchCoordinate = threadId + 1 + offset;
+                    uint neighborPrefetchIndex = CoordinateToIndex(neighborPrefetchCoordinate, PREFETCH_BLOCK_SIZE);
+                    float3 prevAxisRadiance = prefetchedPreviousRadiance[neighborPrefetchIndex];
+#else
+                    uint neighborPaddedIndex = ProbeCoordinateToPaddedProbeIndex(neighborProbeCoordinate);
+                    float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborPaddedIndex, axisIndex);
+#endif
 
-                        incomingMissRadiance += prevAxisRadiance * neighborAxisLookup.propagationWeight * InvalidScale(probeAxisValidity);
-                    #endif
+                    incomingMissRadiance += prevAxisRadiance * neighborAxisLookup.propagationWeight * InvalidScale(probeAxisValidity);
+#endif
                 }
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                 else
