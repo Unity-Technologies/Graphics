@@ -230,7 +230,12 @@ namespace UnityEditor.VFX.HDRP
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      HDStructFields.FragInputs.worldToElement),
 
             new FieldDependency(Fields.WorldToObject, HDStructFields.FragInputs.worldToElement),
-            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld)
+            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld),
+
+            // Normal in object space requires worldToElement (see GetNormalWS_SrcOS calling TransformObjectToWorldNormal which uses world inverse transpose)
+            new FieldDependency(HDBlockFields.SurfaceDescription.IrisNormalOS, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(HDBlockFields.SurfaceDescription.CoatNormalOS, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(BlockFields.SurfaceDescription.NormalOS, HDStructFields.FragInputs.worldToElement),
         };
 
 
