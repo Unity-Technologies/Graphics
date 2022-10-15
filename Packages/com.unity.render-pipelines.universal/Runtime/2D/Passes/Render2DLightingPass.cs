@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
                 colorAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 depthAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 ClearFlag.None, Color.clear);
-            cmd.SetGlobalTexture(m_Renderer2DData.cameraSortingLayerRenderTargetId, m_Renderer2DData.cameraSortingLayerRenderTarget.nameID);
+            cmd.SetGlobalTexture(m_Renderer2DData.cameraSortingLayerRenderTarget.name, m_Renderer2DData.cameraSortingLayerRenderTarget.nameID);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
+                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle : null;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, layerBatch.lightStats);
                     }
 
@@ -394,7 +394,6 @@ namespace UnityEngine.Rendering.Universal
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
                 this.DisableAllKeywords(cmd);
-                this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -457,6 +456,14 @@ namespace UnityEngine.Rendering.Universal
         Renderer2DData IRenderPass2D.rendererData
         {
             get { return m_Renderer2DData; }
+        }
+
+        public void Dispose()
+        {
+            m_Renderer2DData.normalsRenderTarget?.Release();
+            m_Renderer2DData.normalsRenderTarget = null;
+            m_Renderer2DData.cameraSortingLayerRenderTarget?.Release();
+            m_Renderer2DData.cameraSortingLayerRenderTarget = null;
         }
     }
 }

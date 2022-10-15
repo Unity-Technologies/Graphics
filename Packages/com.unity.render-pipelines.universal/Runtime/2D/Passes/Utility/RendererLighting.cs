@@ -82,27 +82,19 @@ namespace UnityEngine.Rendering.Universal
 
         public static void CreateNormalMapRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, float renderScale)
         {
-            if (renderScale != pass.rendererData.normalsRenderTargetScale)
-            {
-                if (pass.rendererData.isNormalsRenderTargetValid)
-                    cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
+            var descriptor = new RenderTextureDescriptor(
+                (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderScale),
+                (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderScale));
 
-                pass.rendererData.isNormalsRenderTargetValid = true;
-                pass.rendererData.normalsRenderTargetScale = renderScale;
+            descriptor.graphicsFormat = GetRenderTextureFormat();
+            descriptor.useMipMap = false;
+            descriptor.autoGenerateMips = false;
+            descriptor.depthBufferBits = 0;
+            descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+            descriptor.dimension = TextureDimension.Tex2D;
 
-                var descriptor = new RenderTextureDescriptor(
-                    (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderScale),
-                    (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderScale));
-
-                descriptor.graphicsFormat = GetRenderTextureFormat();
-                descriptor.useMipMap = false;
-                descriptor.autoGenerateMips = false;
-                descriptor.depthBufferBits = pass.rendererData.useDepthStencilBuffer ? Renderer2D.k_DepthBufferBits : 0;
-                descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
-                descriptor.dimension = TextureDimension.Tex2D;
-
-                cmd.GetTemporaryRT(pass.rendererData.normalsRenderTargetId, descriptor, FilterMode.Bilinear);
-            }
+            RenderingUtils.ReAllocateIfNeeded(ref pass.rendererData.normalsRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_NormalMap");
+            cmd.SetGlobalTexture(pass.rendererData.normalsRenderTarget.name, pass.rendererData.normalsRenderTarget.nameID);
         }
 
         public static RenderTextureDescriptor GetBlendStyleRenderTextureDesc(this IRenderPass2D pass, RenderingData renderingData)
@@ -141,7 +133,8 @@ namespace UnityEngine.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmd.GetTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId, descriptor, FilterMode.Bilinear);
+            RenderingUtils.ReAllocateIfNeeded(ref pass.rendererData.cameraSortingLayerRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraSortingLayerTexture");
+            cmd.SetGlobalTexture(pass.rendererData.cameraSortingLayerRenderTarget.name, pass.rendererData.cameraSortingLayerRenderTarget.nameID);
         }
 
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -160,15 +153,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.DisableShaderKeyword(keyword);
             }
-        }
-
-        public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
-        {
-            pass.rendererData.isNormalsRenderTargetValid = false;
-            pass.rendererData.normalsRenderTargetScale = 0.0f;
-            cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
-            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTargetId);
-            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
@@ -508,7 +492,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, LightStats lightStats)
+        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget, LightStats lightStats)
         {
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
@@ -516,7 +500,7 @@ namespace UnityEngine.Rendering.Universal
                 // figure out the scale
                 var normalRTScale = 0.0f;
 
-                if (depthTarget != BuiltinRenderTextureType.None)
+                if (depthTarget != null)
                     normalRTScale = 1.0f;
                 else
                     normalRTScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
@@ -527,7 +511,7 @@ namespace UnityEngine.Rendering.Universal
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 var clearFlag = pass.rendererData.useDepthStencilBuffer ? ClearFlag.All : ClearFlag.Color;
-                if (depthTarget != BuiltinRenderTextureType.None)
+                if (depthTarget != null)
                 {
                     CoreUtils.SetRenderTarget(cmd,
                         pass.rendererData.normalsRenderTarget, RenderBufferLoadAction.DontCare, storeAction,

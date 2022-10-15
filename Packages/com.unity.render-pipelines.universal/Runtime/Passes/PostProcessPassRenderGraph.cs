@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
 
         private class DoFGaussianSetupPassData
         {
-            internal RenderTextureDescriptor sourceDescriptor;
+            internal TextureHandle source;
             internal int downSample;
             internal RenderingData renderingData;
             internal Vector3 cocParams;
@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.Universal
                 float maxRadius = m_DepthOfField.gaussianMaxRadius.value * (wh / 1080f);
                 maxRadius = Mathf.Min(maxRadius, 2f);
 
-                passData.sourceDescriptor = m_Descriptor;
+                passData.source = source;
                 passData.downSample = downSample;
                 passData.cocParams = new Vector3(farStart, farEnd, maxRadius);
                 passData.highQualitySamplingValue = m_DepthOfField.highQualitySampling.value;
@@ -541,7 +541,7 @@ namespace UnityEngine.Rendering.Universal
 
                     dofmaterial.SetVector(ShaderConstants._CoCParams, data.cocParams);
                     CoreUtils.SetKeyword(dofmaterial, ShaderKeywordStrings.HighQualitySampling, data.highQualitySamplingValue);
-                    PostProcessUtils.SetSourceSize(cmd, data.sourceDescriptor);
+                    PostProcessUtils.SetSourceSize(cmd, data.source);
                     cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample, data.downSample));
                 });
             }
@@ -672,7 +672,7 @@ namespace UnityEngine.Rendering.Universal
         private class DoFBokehSetupPassData
         {
             internal Vector4[] bokehKernel;
-            internal RenderTextureDescriptor sourceDescriptor;
+            internal TextureHandle source;
             internal int downSample;
             internal float uvMargin;
             internal Vector4 cocParams;
@@ -718,7 +718,7 @@ namespace UnityEngine.Rendering.Universal
                 float uvMargin = (1.0f / m_Descriptor.height) * downSample;
 
                 passData.bokehKernel = m_BokehKernel;
-                passData.sourceDescriptor = m_Descriptor;
+                passData.source = source;
                 passData.downSample = downSample;
                 passData.uvMargin = uvMargin;
                 passData.cocParams = new Vector4(P, maxCoC, maxRadius, rcpAspect);
@@ -738,7 +738,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, data.bokehKernel);
                     cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample, data.downSample));
                     cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(data.uvMargin, data.uvMargin * 2.0f));
-                    PostProcessUtils.SetSourceSize(cmd, data.sourceDescriptor);
+                    PostProcessUtils.SetSourceSize(cmd, data.source);
                 });
             }
 
@@ -942,7 +942,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle sourceTexture;
             internal Material material;
             internal int passIndex;
-            internal RenderTextureDescriptor sourceDescriptor;
             internal Camera camera;
             internal XRPass xr;
             internal float intensity;
@@ -967,7 +966,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.ReadTexture(source);
                 passData.material = material;
                 passData.passIndex = (int)m_MotionBlur.quality.value;
-                passData.sourceDescriptor = m_Descriptor;
                 passData.camera = cameraData.camera;
                 passData.xr = cameraData.xr;
                 passData.intensity = m_MotionBlur.intensity.value;
@@ -975,7 +973,6 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc((MotionBlurPassData data, RenderGraphContext context) =>
                 {
                     var cmd = context.cmd;
-                    var sourceDesc = data.sourceDescriptor;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
                     UpdateMotionBlurMatrices(ref data.material, data.camera, data.xr);
@@ -983,7 +980,7 @@ namespace UnityEngine.Rendering.Universal
                     data.material.SetFloat("_Intensity", data.intensity);
                     data.material.SetFloat("_Clamp", data.clamp);
 
-                    PostProcessUtils.SetSourceSize(cmd, sourceDesc);
+                    PostProcessUtils.SetSourceSize(cmd, passData.sourceTexture);
                     Blitter.BlitCameraTexture(cmd, data.sourceTexture, data.destinationTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, data.passIndex);
                 });
 
@@ -1087,7 +1084,7 @@ namespace UnityEngine.Rendering.Universal
                     var material = data.material;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
-                    PostProcessUtils.SetSourceSize(cmd, data.cameraData.cameraTargetDescriptor);
+                    PostProcessUtils.SetSourceSize(cmd, sourceTextureHdl);
 
                     material.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
@@ -1180,10 +1177,7 @@ namespace UnityEngine.Rendering.Universal
                     RTHandle sourceTextureHdl = data.sourceTexture;
                     RTHandle destinationTextureHdl = data.destinationTexture;
 
-                    var finalRtDesc = cameraData.cameraTargetDescriptor;
-                    finalRtDesc.width = cameraData.pixelWidth;
-                    finalRtDesc.height = cameraData.pixelHeight;
-                    PostProcessUtils.SetSourceSize(cmd, finalRtDesc);
+                    PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
 
                     if (isFxaaEnabled)
                         material.EnableKeyword(ShaderKeywordStrings.Fxaa);

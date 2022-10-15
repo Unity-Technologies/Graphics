@@ -158,13 +158,6 @@ namespace UnityEngine.Rendering.Universal
                 m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(m_LightBlendStyles[i].renderTargetHandleId, $"_ShapeLightTexture{i}");
             }
 
-            normalsRenderTargetId = Shader.PropertyToID("_NormalMap");
-            normalsRenderTarget = RTHandles.Alloc(normalsRenderTargetId, "_NormalMap");
-            shadowsRenderTargetId = Shader.PropertyToID("_ShadowTex");
-            shadowsRenderTarget = RTHandles.Alloc(shadowsRenderTargetId, "_ShadowTex");
-            cameraSortingLayerRenderTargetId = Shader.PropertyToID("_CameraSortingLayerTexture");
-            cameraSortingLayerRenderTarget = RTHandles.Alloc(cameraSortingLayerRenderTargetId, "_CameraSortingLayerTexture");
-
             spriteSelfShadowMaterial = null;
             spriteUnshadowMaterial = null;
             projectedShadowMaterial = null;
@@ -180,14 +173,8 @@ namespace UnityEngine.Rendering.Universal
         internal Material[] projectedShadowMaterial { get; set; }
         internal Material[] stencilOnlyShadowMaterial { get; set; }
 
-        internal bool isNormalsRenderTargetValid { get; set; }
-        internal float normalsRenderTargetScale { get; set; }
         internal RTHandle normalsRenderTarget;
-        internal int normalsRenderTargetId;
-        internal RTHandle shadowsRenderTarget;
-        internal int shadowsRenderTargetId;
         internal RTHandle cameraSortingLayerRenderTarget;
-        internal int cameraSortingLayerRenderTargetId;
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }

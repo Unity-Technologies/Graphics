@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
             aoTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture0", false, FilterMode.Bilinear);
             blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture1", false, FilterMode.Bilinear);
             finalTexture = m_CurrentSettings.AfterOpaque ? renderer.frameResources.cameraColor : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
-            PostProcessUtils.SetSourceSize(renderingData.commandBuffer, finalTextureDescriptor);
+            PostProcessUtils.SetSourceSize(renderingData.commandBuffer, finalTexture);
         }
 
         private void ExecuteOcclusionPass(RenderGraph renderGraph, ref UniversalRenderer renderer, in TextureHandle aoTexture)
@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Allocate texture for the final SSAO results
             RenderingUtils.ReAllocateIfNeeded(ref m_PassData.ssaoTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
-            PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
+            PostProcessUtils.SetSourceSize(cmd, m_PassData.ssaoTextures[3]);
 
             // Configure targets and clear color
             ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTextures[3]);
