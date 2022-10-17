@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.Static),
                 new ParameterDescriptor("Range", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
