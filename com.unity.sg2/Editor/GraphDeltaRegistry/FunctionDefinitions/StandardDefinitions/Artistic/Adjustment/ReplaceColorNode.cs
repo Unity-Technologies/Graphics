@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph.Defs
 @"  Out = lerp(To, In, saturate((distance(From, In) - Range) / max(Fuzziness, 1e-5f)));",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("In", TYPE.Vec3, Usage.Static),
-                new ParameterDescriptor("From", TYPE.Vec3, Usage.Static),
+                new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("From", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("To", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("Range", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),

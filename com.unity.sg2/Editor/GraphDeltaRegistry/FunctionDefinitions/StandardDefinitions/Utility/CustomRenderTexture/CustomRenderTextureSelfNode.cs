@@ -13,7 +13,7 @@ SelfTexture2D = SelfTexture2DRef;
 SelfTextureCube = SelfTextureCubeRef;
 SelfTexture3D = SelfTexture3DRef;
 ",//TODO: need to specify that this node is a fragmant only node
-            new ParameterDescriptor[]
+            parameters: new ParameterDescriptor[]
             {
                 new ParameterDescriptor("SelfTexture2DRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
                 new ParameterDescriptor("SelfTextureCubeRef", TYPE.Vec4, GraphType.Usage.Local),//TODO: need to be a ref texture type
@@ -28,7 +28,7 @@ SelfTexture3D = SelfTexture3DRef;
             Version,
             Name,
             tooltip: "Return a custom render texture.",
-            category: "Utility",
+            category: "Utility/Custom Render Texture",
             synonyms: new string[0] { },
             displayName: "Custom Render Texture Self",
             hasPreview: false,
