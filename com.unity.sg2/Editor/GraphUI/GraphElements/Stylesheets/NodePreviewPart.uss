@@ -18,8 +18,8 @@
     flex-direction: column;
     flex-grow: 1;
     padding: 5px;
-    height: 250px;
-    width: 250px;
+    height: 180px;
+    width: 180px;
     -unity-font-style: bold;
     border-bottom-color: #1a1a1a;
     border-bottom-width: 1px;
