@@ -39,6 +39,43 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return databases;
         }
 
+        public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementContainerDatabases(GraphModel graphModel, IGraphElementContainer container)
+        {
+            if (container is not GraphDataContextNodeModel contextNode || graphModel is not ShaderGraphModel sgModel)
+            {
+                return base.GetGraphElementContainerDatabases(graphModel, container);
+            }
+
+            var availableBlocks = new List<ItemLibraryItem>();
+            var handler = sgModel.GraphHandler.GetNode(contextNode.graphDataName);
+
+            foreach (var portHandler in handler.GetPorts())
+            {
+                if (!portHandler.IsInput || !portHandler.IsHorizontal) continue;
+
+                availableBlocks.Add(new GraphNodeModelLibraryItem(
+                    name: portHandler.LocalID,
+                    null,
+                    creationData =>
+                    {
+                        if ((creationData.SpawnFlags & SpawnFlags.Orphan) != 0)
+                        {
+                            return new GraphDataBlockNodeModel() { Title = "Preview TODO" };
+                        }
+
+                        return contextNode.CreateAndInsertBlock<GraphDataBlockNodeModel>(initializationCallback: node =>
+                        {
+                            if (node is not GraphDataBlockNodeModel blockNode) return;
+
+                            blockNode.Title = portHandler.LocalID;
+                            blockNode.ContextEntryName = portHandler.LocalID;
+                        });
+                    }));
+            }
+
+            return new List<ItemLibraryDatabaseBase> {new ItemLibraryDatabase(availableBlocks)};
+        }
+
         internal static List<ItemLibraryItem> GetNodeSearcherItems(GraphModel graphModel)
         {
             var searcherItems = new List<ItemLibraryItem>();

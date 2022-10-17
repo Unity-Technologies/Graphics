@@ -10,8 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class GraphDataContextNodeModel : ContextNodeModel, IPreviewUpdateListener, IGraphDataOwner
     {
-        #region Copied from GraphDataNodeModel // TODO: Factor out
-
         [SerializeField]
         string m_GraphDataName;
 
@@ -21,56 +19,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
-        RegistryKey m_PreviewRegistryKey;
-
-        public bool existsInGraphData =>
-            m_GraphDataName != null && TryGetNodeHandler(out _);
-
-        public bool TryGetNodeHandler(out NodeHandler reader)
-        {
-            try
-            {
-                if (graphDataName == null)
-                {
-                    reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
-                    return true;
-                }
-
-                reader = graphHandler.GetNode(graphDataName);
-                return reader != null;
-            }
-            catch (Exception exception)
-            {
-                AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
-                reader = null;
-                return false;
-            }
-        }
-
-        protected GraphHandler graphHandler =>
-            ((ShaderGraphModel)GraphModel).GraphHandler;
-
-        ShaderGraphRegistry registry =>
-            ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
-
-        internal ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+        public bool existsInGraphData => m_GraphDataName != null && TryGetNodeHandler(out _);
+        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
+        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
 
         public RegistryKey registryKey
         {
             get
             {
-                if (!existsInGraphData)
-                    return m_PreviewRegistryKey;
-
                 Assert.IsTrue(TryGetNodeHandler(out var reader));
-
-                // Store the registry key to use for node duplication
-                // duplicationRegistryKey = reader.GetRegistryKey();
                 return reader.GetRegistryKey();
             }
         }
-
-        #endregion
 
         public Texture PreviewTexture { get; private set; }
         public int CurrentVersion { get; private set; }
@@ -80,6 +40,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Deletable);
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
+        }
+
+        public bool TryGetNodeHandler(out NodeHandler reader)
+        {
+            try
+            {
+                reader = graphHandler.GetNode(graphDataName);
+                return reader != null;
+            }
+            catch (Exception exception)
+            {
+                AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
+                reader = null;
+                return false;
+            }
         }
 
         protected override void OnDefineNode()
@@ -115,6 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
         {
             PreviewTexture = newPreviewTexture;
+            CurrentVersion++;
         }
 
         public void HandlePreviewShaderErrors(ShaderMessage[] shaderMessages)
