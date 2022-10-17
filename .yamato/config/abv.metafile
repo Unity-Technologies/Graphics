@@ -19,8 +19,6 @@ jobs:
         recurring:
           -  branch: 2022.2/staging
              frequency: 1 * * ?
-        allow_on:
-          - 2022.2/staging
 
   - name: Nightly
     job_id: all_project_ci_nightly
