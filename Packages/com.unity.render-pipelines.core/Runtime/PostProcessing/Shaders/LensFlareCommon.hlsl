@@ -140,11 +140,7 @@ float GetOcclusion(float ratio)
         if (all(pos >= 0) && all(pos <= 1))
         {
             float depth0 = GetLinearDepthValue(pos);
-#if defined(UNITY_REVERSED_Z)
             if (depth0 > _ScreenPosZ)
-#else
-            if (depth0 < _ScreenPosZ)
-#endif
             {
                 float occlusionValue = 1.0f;
 #if defined(FLARE_CLOUD_OPACITY)
