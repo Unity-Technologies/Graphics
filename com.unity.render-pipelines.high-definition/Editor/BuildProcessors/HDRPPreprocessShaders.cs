@@ -169,6 +169,29 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
+            // custom-begin
+            // Alway strip these variants, which we assert should never be used in the project:
+            if (inputData.shaderKeywordSet.IsEnabled(m_LightmapOn))
+            {
+                return true;
+            }
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_DirLightmapCombined))
+            {
+                return true;
+            }
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_DynamicLightmapOn))
+            {
+                return true;
+            }
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ShadowsShadowMask))
+            {
+                return true;
+            }
+            // custom-end
+
             return false;
         }
     }
