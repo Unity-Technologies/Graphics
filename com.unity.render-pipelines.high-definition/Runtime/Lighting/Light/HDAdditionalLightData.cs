@@ -1850,12 +1850,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy()
         {
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
             if(lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
                 HDShadowManager.cachedShadowManager.EvictLight(this);
         }
 
         void OnDisable()
         {
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
             if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
             {
@@ -3420,6 +3428,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
+            // custom-begin:
+            InstanceAdd();
+            // custom-end
+
             if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
             {
                 HDShadowManager.cachedShadowManager.RegisterLight(this);
@@ -3465,5 +3477,26 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isDirectUsingBakedOcclusion = baking.mixedLightingMode == MixedLightingMode.Shadowmask || baking.mixedLightingMode == MixedLightingMode.Subtractive;
             return isDirectUsingBakedOcclusion && !isOcclusionSeparatelyBaked;
         }
+
+        // custom-begin:
+        [System.NonSerialized] public static List<HDAdditionalLightData> s_InstancesHDAdditionalLightData = new List<HDAdditionalLightData>();
+        [System.NonSerialized] public static List<Light> s_InstancesLight = new List<Light>();
+
+        private void InstanceAdd()
+        {
+            s_InstancesHDAdditionalLightData.Add(this);
+            s_InstancesLight.Add(this.GetComponent<Light>());
+        }
+
+        private void InstanceRemove()
+        {
+            int index = s_InstancesHDAdditionalLightData.IndexOf(this);
+            if (index != -1)
+            {
+                s_InstancesHDAdditionalLightData.RemoveAt(index);
+                s_InstancesLight.RemoveAt(index);
+            }
+        }
+        // custom-end
     }
 }
