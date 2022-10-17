@@ -8,10 +8,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
     abstract class RenderGraphPass
     {
-        public RenderFunc<PassData> GetExecuteDelegate<PassData>()
-            where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
-
-        public abstract void Execute(RenderGraphContext renderGraphContext);
+        public abstract void Execute(InternalRenderGraphContext renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
@@ -20,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ProfilingSampler customSampler { get; protected set; }
         public bool enableAsyncCompute { get; protected set; }
         public bool allowPassCulling { get; protected set; }
+        public bool allowGlobalState { get; protected set; }
 
         public TextureHandle depthBuffer { get; protected set; }
         public TextureHandle[] colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
@@ -64,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             enableAsyncCompute = false;
             allowPassCulling = true;
             allowRendererListCulling = true;
+            allowGlobalState = false;
             generateDebugData = true;
             refCount = 0;
 
@@ -75,6 +74,71 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 colorBuffers[i] = TextureHandle.nullHandle;
             }
         }
+
+
+        // Checks if the resource is involved in this pass
+        public bool IsTransient(in ResourceHandle res)
+        {
+            return transientResourceList[res.iType].Contains(res);
+        }
+
+        public bool IsWritten(in ResourceHandle res)
+        {
+            // You can only ever write to the latest version so we ignore it when looking in the list
+            for (int i = 0; i < resourceWriteLists[res.iType].Count; i++)
+            {
+                if (resourceWriteLists[res.iType][i].index == res.index)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsRead(in ResourceHandle res)
+        {
+            if (res.IsVersioned)
+            {
+                return resourceReadLists[res.iType].Contains(res);
+            }
+            else
+            {
+                // Just look if we are readying any version of this texture.
+                // Note that in theory this pass could read from several versions of the same texture
+                // e.g. ColorBuffer,v3 and ColorBuffer,v5 so this check is always conservative
+                for (int i = 0; i < resourceReadLists[res.iType].Count; i++)
+                {
+                    if (resourceReadLists[res.iType][i].index == res.index)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public bool IsAttachment(in TextureHandle res)
+        {
+            if (res.handle.IsVersioned)
+            {
+                if (depthBuffer.handle == res.handle) return true;
+                for (int i = 0; i < colorBuffers.Length; i++)
+                {
+                    if (colorBuffers[i].handle == res.handle) return true;
+                }
+            }
+            else
+            {
+                if (depthBuffer.handle.index == res.handle.index) return true;
+                for (int i = 0; i < colorBuffers.Length; i++)
+                {
+                    if (colorBuffers[i].handle.index == res.handle.index) return true;
+                }
+            }
+
+            return false;
+        }
+
 
         public void AddResourceWrite(in ResourceHandle res)
         {
@@ -116,6 +180,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             allowRendererListCulling = value;
         }
 
+        public void AllowGlobalState(bool value)
+        {
+            allowGlobalState = value;
+        }
+
         public void GenerateDebugData(bool value)
         {
             generateDebugData = value;
@@ -129,6 +198,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             AddResourceWrite(resource.handle);
         }
 
+        // Sets up the color buffer for this pass but not any resource Read/Writes for it
+        public void SetColorBufferRaw(TextureHandle resource, int index)
+        {
+            Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
+            if (colorBuffers[index].handle == resource.handle || colorBuffers[index].handle == TextureHandle.nullHandle.handle)
+            {
+                colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
+                colorBuffers[index] = resource;
+            }
+            else
+            {
+                throw new InvalidOperationException("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
+            }
+        }
+
         public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
         {
             depthBuffer = resource;
@@ -137,19 +221,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if ((flags & DepthAccess.Write) != 0)
                 AddResourceWrite(resource.handle);
         }
+
+        // Sets up the depth buffer for this pass but not any resource Read/Writes for it
+        public void SetDepthBufferRaw(TextureHandle resource)
+        {
+            // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
+            if (depthBuffer.handle == resource.handle || depthBuffer.handle == TextureHandle.nullHandle.handle)
+            {
+                depthBuffer = resource;
+            }
+            else
+            {
+                throw new InvalidOperationException("You can only set a single depth texture per pass.");
+            }
+        }
     }
 
+    // This used to have an extra generic argument 'RenderGraphContext' abstracting the context and avoiding
+    // the RenderGraphPass/ComputeRenderGraphPass/RasterRenderGraphPass/LowLevelRenderGraphPass classes below
+    // but this confuses IL2CPP and causes garbage when boxing the context created (even though they are structs)
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class RenderGraphPass<PassData> : RenderGraphPass
+    internal abstract class BaseRenderGraphPass<PassData> : RenderGraphPass
         where PassData : class, new()
     {
         internal PassData data;
-        internal RenderFunc<PassData> renderFunc;
-
-        public override void Execute(RenderGraphContext renderGraphContext)
-        {
-            GetExecuteDelegate<PassData>()(data, renderGraphContext);
-        }
 
         public void Initialize(int passIndex, PassData passData, string passName, ProfilingSampler sampler)
         {
@@ -158,6 +253,80 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             data = passData;
             name = passName;
             customSampler = sampler;
+        }
+    }
+
+    [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
+    internal sealed class RenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+        where PassData : class, new()
+    {
+        internal BaseRenderFunc<PassData, RenderGraphContext> renderFunc;
+
+        public override void Execute(InternalRenderGraphContext renderGraphContext)
+        {
+            var c = new RenderGraphContext(); //This new prevents context from being a generic argument, it confuses IL2CPP when generic, it doesn't know it will be a struct and always box the object. Mono seems to not have this problem.
+            c.FromInternalContext(renderGraphContext);
+            renderFunc(data, c);
+        }
+
+        public override void Release(RenderGraphObjectPool pool)
+        {
+            Clear();
+            pool.Release(data);
+            data = null;
+            renderFunc = null;
+
+            // We need to do the release from here because we need the final type.
+            pool.Release(this);
+        }
+
+        public override bool HasRenderFunc()
+        {
+            return renderFunc != null;
+        }
+    }
+
+    [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
+    internal sealed class ComputeRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    where PassData : class, new()
+    {
+        internal BaseRenderFunc<PassData, ComputeGraphContext> renderFunc;
+
+        public override void Execute(InternalRenderGraphContext renderGraphContext)
+        {
+            var c = new ComputeGraphContext(); //This new prevents context from being a generic argument, it confuses IL2CPP when generic, it doesn't know it will be a struct and always box the object. Mono seems to not have this problem.
+            c.FromInternalContext(renderGraphContext);
+            renderFunc(data, c);
+        }
+
+        public override void Release(RenderGraphObjectPool pool)
+        {
+            Clear();
+            pool.Release(data);
+            data = null;
+            renderFunc = null;
+
+            // We need to do the release from here because we need the final type.
+            pool.Release(this);
+        }
+
+        public override bool HasRenderFunc()
+        {
+            return renderFunc != null;
+        }
+    }
+
+    [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
+    internal sealed class RasterRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    where PassData : class, new()
+    {
+        internal BaseRenderFunc<PassData, RasterGraphContext> renderFunc;
+
+        public override void Execute(InternalRenderGraphContext renderGraphContext)
+        {
+            var c = new RasterGraphContext(); //This new prevents context from being a generic argument, it confuses IL2CPP when generic, it doesn't know it will be a struct and always box the object. Mono seems to not have this problem.
+            c.FromInternalContext(renderGraphContext);
+           renderFunc(data, c);
         }
 
         public override void Release(RenderGraphObjectPool pool)

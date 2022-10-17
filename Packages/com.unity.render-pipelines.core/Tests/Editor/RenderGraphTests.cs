@@ -478,5 +478,167 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(2, compiledPasses.size);
             Assert.AreEqual(0, compiledPasses[1].syncToPassIndex);
         }
+
+        [Test]
+        public void GlobalStateIsGuarded()
+        {
+            TextureHandle texture0;
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+
+            RenderGraphParameters pars;
+            pars.executionName = "test";
+            pars.currentFrameIndex = 0;
+            pars.rendererListCulling = false;
+            pars.scriptableRenderContext = new ScriptableRenderContext();
+            pars.commandBuffer = new CommandBuffer();
+            pars.invalidContextForTesting = true;
+
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (m_RenderGraph.RecordAndExecute(in pars))
+                {
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+                    {
+                        builder.AllowGlobalStateModification(false);
+                        builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) =>
+                        {
+                            context.cmd.SetGlobalTexture("test", texture0);
+                        });
+                    }
+                }
+            });
+        }
+
+        [Test]
+        public void UseTextureFragmentValidation()
+        {
+            TextureHandle texture0;
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            TextureHandle texture1;
+            texture1 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            // Using two different textures on the same slot not allowed
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+                {
+                    builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.UseTextureFragment(texture1, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                }
+            });
+
+            // Using the same texture on two slots, not allowed
+            // TODO: Would this be allowed if read-only? Likely an edge case possibly hardware dependent... let's not bother with it.
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+                {
+                    builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.UseTextureFragment(texture0, 1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                }
+            });
+
+            // Using a texture both as a texture and as a fragment, not allowed
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+                {
+                    builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                }
+            });
+
+            // Using a texture both as a texture and as a fragment, not allowed (reversed)
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+                {
+                    builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.UseTextureFragment(texture0, 0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                }
+            });
+        }
+
+        [Test]
+        public void UseTextureValidation()
+        {
+            TextureHandle texture0;
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            TextureHandle texture1;
+            texture1 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            // Writing the same texture twice is not allowed
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+                {
+                    builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                }
+            });
+
+            // Reading the same texture twice is allowed
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+            {
+                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.Read);
+                builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.Read);
+            }
+        }
+
+        [Test]
+        public void VersionManagement()
+        {
+
+            TextureHandle texture0;
+            TextureHandle texture0v1;
+            TextureHandle texture0v2;
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            TextureHandle texture1;
+            texture1 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            // Handles are unversioned by default. Unversioned handles use an implicit version "the latest version" depending on their
+            // usage context.
+            Assert.AreEqual(false, texture0.handle.IsVersioned);
+
+            // Writing bumps the version
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
+            {
+                texture0v1 = builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                Assert.AreEqual(true, texture0v1.handle.IsVersioned);
+                Assert.AreEqual(1, texture0v1.handle.version);
+            }
+
+            // Writing again bumps again
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass1", out var passData))
+            {
+                texture0v2 = builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                Assert.AreEqual(true, texture0v2.handle.IsVersioned);
+                Assert.AreEqual(2, texture0v2.handle.version);
+            }
+
+            // Reading leaves the version alone
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass2", out var passData))
+            {
+                var versioned = builder.UseTexture(texture0, IBaseRenderGraphBuilder.AccessFlags.Read);
+                Assert.AreEqual(true, versioned.handle.IsVersioned);
+                Assert.AreEqual(2, versioned.handle.version);
+            }
+
+            // Writing to an old version is not supported it would lead to a divergent version timeline for the resource
+            // If you want do achieve this and avoid copying the move should be used
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("Async_TestPass2", out var passData))
+                {
+                    var versioned = builder.UseTexture(texture0v1, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
+                    Assert.AreEqual(versioned.handle.IsVersioned, true);
+                    Assert.AreEqual(versioned.handle.version, 2);
+                }
+            });
+        }
     }
 }

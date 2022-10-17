@@ -62,7 +62,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
         TextureHandle tempTex = renderGraph.CreateTexture(desc);
 
-        using (var builder = renderGraph.AddRenderPass<PassData>("Blit to TempTex", out var passData, null))
+        using (var builder = renderGraph.AddRenderPass<PassData>("Blit to TempTex", out var passData))
         {
             var target = UniversalRenderer.m_ActiveRenderGraphColor;
             passData.tempTex = builder.UseColorBuffer(tempTex, 0);
@@ -73,7 +73,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
                 Blitter.BlitTexture(rgContext.cmd, data.targetTex, new Vector4(1, 1, 0, 0), m_Material, 0);
             });
         }
-        using (var builder = renderGraph.AddRenderPass<PassData>("Blit to TargetTex", out var passData, null))
+        using (var builder = renderGraph.AddRenderPass<PassData>("Blit to TargetTex", out var passData))
         {
             var target = UniversalRenderer.m_ActiveRenderGraphColor;
             passData.targetTex = builder.UseColorBuffer(target, 0);

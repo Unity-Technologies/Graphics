@@ -1063,7 +1063,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     if (!data.emptyShadowmap)
-                        data.pass.RenderAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
+                    {
+                        var renderContext = context.renderContext;
+                        data.pass.RenderAdditionalShadowmapAtlas(ref renderContext, ref data.renderingData);
+                    }
                 });
 
                 shadowTexture = passData.shadowmapTexture;
@@ -1084,7 +1087,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (data.emptyShadowmap)
                     {
-                        data.pass.SetEmptyAdditionalShadowmapAtlas(ref context.renderContext, ref data.renderingData);
+                        var renderContext = context.renderContext;
+                        data.pass.SetEmptyAdditionalShadowmapAtlas(ref renderContext, ref data.renderingData);
                         data.shadowmapTexture = context.defaultResources.defaultShadowTexture;
                     }
 

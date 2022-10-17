@@ -200,7 +200,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
         /// <param name="renderFunc">Render function for the pass.</param>
-        public void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new()
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, RenderGraphContext> renderFunc)
+            where PassData : class, new()
         {
             ((RenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;
         }

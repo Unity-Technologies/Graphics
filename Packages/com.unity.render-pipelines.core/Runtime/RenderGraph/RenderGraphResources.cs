@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         const uint kIndexMask = 0xFFFF;
 
         uint m_Value;
+        int m_Version; // A freshly created resource always starts at version 0 the first write should bring it to v1
 
         static uint s_CurrentValidBit = 1 << 16;
         static uint s_SharedResourceValidBit = 0x7FFF << 16;
@@ -31,12 +32,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
+        public int version { get { return m_Version; } }
 
         internal ResourceHandle(int value, RenderGraphResourceType type, bool shared)
         {
             Debug.Assert(value <= 0xFFFF);
             m_Value = ((uint)value & kIndexMask) | (shared ? s_SharedResourceValidBit : s_CurrentValidBit);
             this.type = type;
+            this.m_Version = -1;
+        }
+
+        internal ResourceHandle(ResourceHandle h, int version)
+        {
+            Debug.Assert(h.m_Version == -1);
+            this.m_Value = h.m_Value;
+            this.type = h.type;
+            this.m_Version = version;
         }
 
         public static implicit operator int(ResourceHandle handle) => handle.index;
@@ -65,6 +76,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 s_CurrentValidBit = (value << 16);
             }
         }
+
+        public bool IsVersioned
+        {
+            get
+            {
+                return m_Version >= 0;
+            }
+        }
     }
 
     class IRenderGraphResource
@@ -77,6 +96,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int cachedHash;
         public int transientPassIndex;
         public int sharedResourceLastFrameUsed;
+        public int version;
 
         protected IRenderGraphResourcePool m_Pool;
 
@@ -90,6 +110,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             sharedResourceLastFrameUsed = -1;
             requestFallBack = false;
             writeCount = 0;
+            version = 0;
 
             m_Pool = pool;
         }
@@ -107,6 +128,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public virtual void IncrementWriteCount()
         {
             writeCount++;
+        }
+
+        public virtual int NewVersion()
+        {
+            version++;
+            return version;
         }
 
         public virtual bool NeedsFallBack()
