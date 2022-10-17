@@ -32,6 +32,11 @@ graphics_repo_nightly_2022.2:
         CUSTOM_REVISION: '{{2022_2.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
+    triggers:
+        recurring:
+          -  branch: 2022.2/staging
+             frequency: 1 * * ?
+
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_2022.2
          rerun: on_new_revision
