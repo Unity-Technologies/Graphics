@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 new ParameterDescriptor("PositionOS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("EyeColor", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In),
+                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In, new float[] { 0.02f }),
                 new ParameterDescriptor("PupilRadius", TYPE.Float, Usage.In),
                 new ParameterDescriptor("IsActive", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("SurfaceColor", TYPE.Vec3, Usage.Out),
@@ -35,32 +35,32 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
-                    tooltip: ""
+                    tooltip: "Position of the current fragment to shade in object space "
                 ),
                 new ParameterUIDescriptor(
                     name: "EyeColor",
                     displayName: "Eye Color",
-                    tooltip: ""
+                    tooltip: "Final diffuse color of the eye"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisRadius",
                     displayName: "Iris Radius",
-                    tooltip: ""
+                    tooltip: "The radius of the Iris in the used model"
                 ),
                 new ParameterUIDescriptor(
                     name: "PupilRadius",
                     displayName: "Pupil Radius",
-                    tooltip: ""
+                    tooltip: "Radius of the pupil in the iris texture as a percentage"
                 ),
                 new ParameterUIDescriptor(
                     name: "IsActive",
                     displayName: "Is Active",
-                    tooltip: ""
+                    tooltip: "Flag that defines if the node should be active"
                 ),
                 new ParameterUIDescriptor(
                     name: "SurfaceColor",
                     displayName: "Surface Color",
-                    tooltip: ""
+                    tooltip: "Final diffuse color of the eye"
                 )
             }
         );

@@ -30,17 +30,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "IrisUV",
                     displayName: "Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates to sample a texture"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisOffset",
                     displayName: "Iris Offset",
-                    tooltip: ""
+                    tooltip: "Normalized value that defines on each axis the intensity of the offset of the Center of the pupil"
                 ),
                 new ParameterUIDescriptor(
                     name: "DisplacedIrisUV",
                     displayName: "Displaced Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates to sample an iris texture"
                 )
             }
         );

@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("PositionOS", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In),
+                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In, new float[] { 0.225f }),
                 new ParameterDescriptor("IrisUV", TYPE.Vec2, Usage.Out),
                 new ParameterDescriptor("irisUVCentered", TYPE.Vec2, Usage.Local)
             }
@@ -32,17 +32,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
-                    tooltip: ""
+                    tooltip: "Position on the iris Plane in object space"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisRadius",
                     displayName: "Iris Radius",
-                    tooltip: ""
+                    tooltip: "The radius of the Iris in the used model"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisUV",
                     displayName: "Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates that can be used to sample an iris texture"
                 )
             }
         );

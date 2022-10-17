@@ -31,21 +31,21 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "IrisUV",
                     displayName: "Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates to sample an iris texture"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisColor",
                     displayName: "Iris Color",
-                    tooltip: ""
+                    tooltip: "Previously sampled or generated color of the Iris"
                 ),
                 new ParameterUIDescriptor(
                     name: "ClampColor",
                     displayName: "Clamp Color",
-                    tooltip: ""
+                    tooltip: "The color to clamp the Iris to"
                 ),
                 new ParameterUIDescriptor(
                     name: "Color",
-                    tooltip: ""
+                    tooltip: "Resulting Iris color for the rest of the pipeline"
                 )
             }
         );
