@@ -444,6 +444,15 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+#if defined(SHADERPASS)
+#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING) || (SHADERPASS == SHADERPASS_FORWARD)
+    if (light.hierarchicalVarianceScreenSpaceShadowsIndex >= 0 && light.hierarchicalVarianceScreenSpaceShadowsIndex < 4)
+    {
+        shadow = GetHierarchicalVarianceScreenSpaceShadow(posInput, light.hierarchicalVarianceScreenSpaceShadowsIndex);
+    }
+    else
+#endif
+#endif
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {

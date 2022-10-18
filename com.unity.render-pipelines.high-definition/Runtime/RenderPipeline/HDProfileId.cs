@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         PushGlobalParameters,
         CopyDepthBuffer,
+        CopyDepthBufferToMomentsPyramid,
         CopyDepthInTargetTexture,
         CoarseStencilGeneration,
         HTileForSSS,
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         CameraMotionVectors,
         ColorPyramid,
         DepthPyramid,
+        DepthMomentsPyramid,
         PostProcessing,
         AfterPostProcessing,
         RenderFullScreenDebug,
@@ -253,6 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         BlitStaticDensityVolumeMasks,
         DispatchDynamicDensityVolumeShaders,
-        GenerateDensityVolumeAtlasMipmaps
+        GenerateDensityVolumeAtlasMipmaps,
+        ComputeHierarchicalVarianceScreenSpaceShadows
     }
 }

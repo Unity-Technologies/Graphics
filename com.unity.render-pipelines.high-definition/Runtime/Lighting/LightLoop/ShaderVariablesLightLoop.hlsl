@@ -30,3 +30,5 @@ TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);
 
 // Indirect Diffuse Texture
 TEXTURE2D_X(_IndirectDiffuseTexture);
+
+TEXTURE2D_X(_HierarchicalVarianceScreenSpaceShadowsTexture);
