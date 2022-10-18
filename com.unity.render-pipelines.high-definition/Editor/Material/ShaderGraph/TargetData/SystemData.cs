@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -117,6 +117,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_DOTSInstancing;
             set => m_DOTSInstancing = value;
         }
+		
+		// custom-begin:
+        [SerializeField]
+        bool m_DissolveOnOcclusion;
+        public bool dissolveOnOcclusion
+        {
+            get => m_DissolveOnOcclusion;
+            set => m_DissolveOnOcclusion = value;
+        }
+
+        [SerializeField]
+        float m_DissolveOnOcclusionOpacity;
+        public float dissolveOnOcclusionOpacity
+        {
+            get => m_DissolveOnOcclusionOpacity;
+            set => m_DissolveOnOcclusionOpacity = value;
+        }
+        // custom-end
 
         [SerializeField]
         ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();

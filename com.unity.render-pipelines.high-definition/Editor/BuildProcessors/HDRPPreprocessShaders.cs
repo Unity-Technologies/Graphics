@@ -170,6 +170,27 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // custom-begin
+            if (inputData.shaderKeywordSet.IsEnabled(m_HighDefinitionExtensionsEnabled) != hdrpAsset.highDefinitionExtensionsEnabled)
+            {
+                bool isHidden = shader.name.Contains("Hidden");
+                bool isHDRP = shader.name.Contains("HDRP");
+                bool isShaderGraph = shader.name.Contains("Shader Graph");
+                var customGraphTag = shader.FindPassTagValue(0, m_CustomGraphShaderTag);
+                bool isPostProcessingGraph = customGraphTag.name == "PostProcessGraph";
+                bool isRenderTextureGraph = customGraphTag.name == "RenderTextureGraph";
+
+                if (!isHidden && (isHDRP || isShaderGraph) && !isPostProcessingGraph && !isRenderTextureGraph)
+                {
+                    // Only HDRP and ShaderGraph shaders have been instrumented with this HIGH_DEFINITION_EXTENSIONS_ENABLED multi_compile.
+                    // Ideally, rather than relying on the assumption that all HDRP and ShaderGraph shaders have been instrumented, we would
+                    // simply detect whether or not this multi_compile is defined, and only strip shaders that have it defined.
+                    // The API required to do this does exist in 2021.2
+                    // https://docs.unity3d.com/2021.2/Documentation/ScriptReference/Shader-keywordSpace.html
+                    // But we need to support 2020.3, so need to rely on this assumption.
+                    return true;
+                }
+            }
+
             // Alway strip these variants, which we assert should never be used in the project:
             if (inputData.shaderKeywordSet.IsEnabled(m_LightmapOn))
             {

@@ -1389,6 +1389,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // custom-begin:
             UpdateShaderVariablesGlobalBlueNoise(ref m_ShaderVariablesGlobalCB, cmd);
+            UpdateShaderVariablesGlobalDissolveOccluders(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
             // custom-end
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -1407,7 +1408,24 @@ namespace UnityEngine.Rendering.HighDefinition
         #else
             cb._EnableDynamicBranchLighting = 1u;
         #endif
-             
+        }
+        // custom-end
+
+        // custom-begin:
+        void UpdateShaderVariablesGlobalDissolveOccluders(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
+        {
+            // Initialize dissolve occluders to zero count and allow callbacks to override.
+            cmd.SetGlobalInt(HDShaderIDs._DissolveOccludersCylindersCount, 0);
+            cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, computeBufferFallback);
+            {
+                Vector2 dissolveOccludersAspectScale = (hdCamera.actualWidth > hdCamera.actualHeight)
+                    ? new Vector2((float)hdCamera.actualWidth / (float)hdCamera.actualHeight, 1.0f)
+                    : new Vector2(1.0f, (float)hdCamera.actualHeight / (float)hdCamera.actualWidth);
+                cmd.SetGlobalVector(HDShaderIDs._DissolveOccludersAspectScale, dissolveOccludersAspectScale);
+            }
+            cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, computeBufferFallback);
+            cmd.SetGlobalFloat(HDShaderIDs._DissolveOccludersFadeHeight, 4.0f);
+
         }
         // custom-end
 
@@ -1575,6 +1593,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+
+            CoreUtils.SetKeyword(cmd, "HIGH_DEFINITION_EXTENSIONS_ENABLED", m_Asset.highDefinitionExtensionsEnabled);
         }
 
         struct RenderRequest

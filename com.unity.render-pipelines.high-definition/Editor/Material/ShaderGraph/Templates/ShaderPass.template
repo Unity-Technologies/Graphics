@@ -173,6 +173,14 @@ Pass
     // --------------------------------------------------
     // Get Surface And BuiltinData
 
+    // custom-begin:
+    // TODO: The current shadergraph API only supports IncludeLocation.Pregraph and IncludeLocation.Postgraph.
+    // We need dissolve occluders to be included after the material properties CBUFFER is defined (because it depends on those properties)
+    // but also included before GetSurfaceAndBuiltinData() is declared (because it invokes ClipFromDissolveOccluders()).
+    // For now, simple do the manual thing of handwriting the include here in the Litpass.template file.
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl"
+    // custom-end
+
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
     {
         // Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
@@ -181,6 +189,12 @@ Pass
         LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
         #endif
         #endif
+
+        // custom-begin:
+        #if _EVALUATE_DISSOLVE_ON_OCCLUSION
+            ClipFromDissolveOccluders(posInput, _ScreenSize);
+        #endif
+        // custom-end
 
         #ifndef SHADER_UNLIT
         #ifdef _DOUBLESIDED_ON

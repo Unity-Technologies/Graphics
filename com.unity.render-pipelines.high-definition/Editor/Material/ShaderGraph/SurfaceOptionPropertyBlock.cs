@@ -116,6 +116,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(enableGeometricSpecularAAText, () => lightingData.specularAA, (newValue) => lightingData.specularAA = newValue);
             }
             AddProperty(depthOffsetEnableText, () => builtinData.depthOffset, (newValue) => builtinData.depthOffset = newValue);
+        
+            // custom-begin:
+            AddProperty(enableDissolveOnOcclusionText, () => systemData.dissolveOnOcclusion, (newValue) => systemData.dissolveOnOcclusion = newValue);
+            // custom-end
         }
     }
 }

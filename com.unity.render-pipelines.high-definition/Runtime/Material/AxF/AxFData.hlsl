@@ -24,6 +24,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 
+// custom-begin
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl"
+// custom-end
+
 //-----------------------------------------------------------------------------
 // Texture Mapping
 //-----------------------------------------------------------------------------
@@ -491,6 +495,12 @@ float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+// custom-begin:
+#if _EVALUATE_DISSOLVE_ON_OCCLUSION
+    ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+// custom-end
+
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else

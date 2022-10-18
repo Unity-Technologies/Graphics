@@ -938,6 +938,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _EnableDynamicBranchLighting = Shader.PropertyToID("_EnableDynamicBranchLighting");
         public static readonly int _BlueNoiseRGBTexture = Shader.PropertyToID("_BlueNoiseRGBTexture");
         public static readonly int _BlueNoiseRGBTextureResolutionMinusOne = Shader.PropertyToID("_BlueNoiseRGBTextureResolutionMinusOne");
+        
+        // Dissolve Occluders:
+        public static readonly int _DissolveOccludersCylinders = Shader.PropertyToID("_DissolveOccludersCylinders");
+        public static readonly int _DissolveOccludersCylindersCount = Shader.PropertyToID("_DissolveOccludersCylindersCount");
+        public static readonly int _DissolveOccludersAspectScale = Shader.PropertyToID("_DissolveOccludersAspectScale");
+        public static readonly int _DissolveOccludersFadeHeight = Shader.PropertyToID("_DissolveOccludersFadeHeight");
         // custom-end
     }
 

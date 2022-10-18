@@ -136,6 +136,7 @@ Shader "HDRP/Decal"
 
 			HLSLPROGRAM
 
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile DECALS_3RT DECALS_4RT
 			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -170,6 +171,7 @@ Shader "HDRP/Decal"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #define _MATERIAL_AFFECTS_EMISSION
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -213,6 +215,7 @@ Shader "HDRP/Decal"
 
             #pragma multi_compile DECALS_3RT DECALS_4RT
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -248,6 +251,7 @@ Shader "HDRP/Decal"
 
             HLSLPROGRAM
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -277,6 +281,7 @@ Shader "HDRP/Decal"
             //enable GPU instancing support
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
