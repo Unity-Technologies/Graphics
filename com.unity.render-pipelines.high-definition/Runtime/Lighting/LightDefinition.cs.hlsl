@@ -124,6 +124,7 @@ struct LightData
     float2 padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;
+    int hierarchicalVarianceScreenSpaceShadowsIndex;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
