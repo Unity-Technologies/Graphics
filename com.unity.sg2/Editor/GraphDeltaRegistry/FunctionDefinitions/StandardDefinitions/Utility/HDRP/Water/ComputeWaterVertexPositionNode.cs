@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"Out = GetWaterVertexPosition(positionWS);",
+@"Out = GetWaterVertexPosition(PositionWS);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 Name,
     @"FoamData foamData;
 ZERO_INITIALIZE(FoamData, foamData);
-EvaluateFoamData(SurfaceGradientInput, LowFrequencySurfaceGradient, SimulationFoam, customFoam, UV0.xyz, foamData);
+EvaluateFoamData(SurfaceGradientInput, LowFrequencySurfaceGradient, SimulationFoam, CustomFoam, UV0.xyz, foamData);
 Smoothness = foamData.smoothness;
 Foam = foamData.foamValue;
 SurfaceGradient = foamData.surfaceGradient;

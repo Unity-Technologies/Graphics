@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"WaterAdditionalData waterAdditionalData;
 ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);
-EvaluateWaterAdditionalData(UV0.xyz, BandsMutliplier, waterAdditionalData);
+EvaluateWaterAdditionalData(UV0.xyz, BandsMultiplier, waterAdditionalData);
 SurfaceGradient = waterAdditionalData.surfaceGradient;
 LowFrequencySurfaceGradient = waterAdditionalData.lowFrequencySurfaceGradient;
 SurfaceFoam = waterAdditionalData.surfaceFoam;
