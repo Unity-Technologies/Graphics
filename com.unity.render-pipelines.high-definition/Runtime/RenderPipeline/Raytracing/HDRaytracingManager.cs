@@ -45,10 +45,10 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRayTracingLights
     {
         // The list of non-directional lights in the sub-scene
-        public List<HDAdditionalLightData> hdPointLightArray = new List<HDAdditionalLightData>();
-        public List<HDAdditionalLightData> hdLineLightArray = new List<HDAdditionalLightData>();
-        public List<HDAdditionalLightData> hdRectLightArray = new List<HDAdditionalLightData>();
-        public List<HDAdditionalLightData> hdLightArray = new List<HDAdditionalLightData>();
+        public List<HDLightRenderEntity> hdPointLightArray = new List<HDLightRenderEntity>();
+        public List<HDLightRenderEntity> hdLineLightArray = new List<HDLightRenderEntity>();
+        public List<HDLightRenderEntity> hdRectLightArray = new List<HDLightRenderEntity>();
+        public List<HDLightRenderEntity> hdLightEntityArray = new List<HDLightRenderEntity>();
 
         // The list of directional lights in the sub-scene
         public List<HDAdditionalLightData> hdDirectionalLightArray = new List<HDAdditionalLightData>();
@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdPointLightArray.Clear();
             m_RayTracingLights.hdLineLightArray.Clear();
             m_RayTracingLights.hdRectLightArray.Clear();
-            m_RayTracingLights.hdLightArray.Clear();
+            m_RayTracingLights.hdLightEntityArray.Clear();
             m_RayTracingLights.reflectionProbeArray.Clear();
             m_RayTracingLights.lightCount = 0;
             m_CurrentRAS.Dispose();
@@ -406,12 +406,12 @@ namespace UnityEngine.Rendering.HighDefinition
             bool screenSpaceShadowsSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
 
             // fetch all the lights in the scene
-            HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
-
-            for (int lightIdx = 0; lightIdx < hdLightArray.Length; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            for (int lightIdx = 0; lightIdx < lightEntities.lightCount; ++lightIdx)
             {
-                HDAdditionalLightData hdLight = hdLightArray[lightIdx];
-                if (hdLight.enabled)
+                HDLightRenderEntity lightRenderEntity = lightEntities.lightEntities[lightIdx];
+                HDAdditionalLightData hdLight = lightEntities.hdAdditionalLightData[lightIdx];
+                if (hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
                 {
                     // Check if there is a ray traced shadow in the scene
                     m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
@@ -428,16 +428,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case HDLightType.Point:
                         case HDLightType.Spot:
-                            m_RayTracingLights.hdPointLightArray.Add(hdLight);
+                            m_RayTracingLights.hdPointLightArray.Add(lightRenderEntity);
                             break;
                         case HDLightType.Area:
                             switch (hdLight.areaLightShape)
                             {
                                 case AreaLightShape.Rectangle:
-                                    m_RayTracingLights.hdRectLightArray.Add(hdLight);
+                                    m_RayTracingLights.hdRectLightArray.Add(lightRenderEntity);
                                     break;
                                 case AreaLightShape.Tube:
-                                    m_RayTracingLights.hdLineLightArray.Add(hdLight);
+                                    m_RayTracingLights.hdLineLightArray.Add(lightRenderEntity);
                                     break;
                                 //TODO: case AreaLightShape.Disc:
                             }
@@ -449,9 +449,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Aggregate the shadow requirement
             bool rayTracedShadows = m_RayTracedShadowsRequired || m_RayTracedContactShadowsRequired;
 
-            m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdPointLightArray);
-            m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdLineLightArray);
-            m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdRectLightArray);
+            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdPointLightArray);
+            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdLineLightArray);
+            m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdRectLightArray);
 
             HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalReflectionData>();
             for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
@@ -491,7 +491,8 @@ namespace UnityEngine.Rendering.HighDefinition
             for (var i = 0; i < m_RayTracingLights.hdRectLightArray.Count; i++)
             {
                 // Fetch the current renderer of the rectangular area light (if any)
-                MeshRenderer currentRenderer = m_RayTracingLights.hdRectLightArray[i].emissiveMeshRenderer;
+                int dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(m_RayTracingLights.hdRectLightArray[i]);
+                MeshRenderer currentRenderer = HDLightRenderDatabase.instance.hdAdditionalLightData[dataIndex].emissiveMeshRenderer;
 
                 // If there is none it means that there is no emissive mesh for this light
                 if (currentRenderer == null) continue;

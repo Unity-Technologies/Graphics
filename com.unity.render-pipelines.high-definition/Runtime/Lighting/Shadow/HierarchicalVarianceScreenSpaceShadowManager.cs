@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int width;
             public int height;
             public int screenSpaceShadowCount;
-            public Vector4[] lightPositionsWS = new Vector4[4];
+            public Vector4[] lightPositionsRWS = new Vector4[4];
             public float[] lightRanges = new float[4];
             public float depthMin;
             public float depthMax;
@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
                 passData.screenSpaceShadowCount = m_HierarchicalVarianceScreenSpaceShadowsData.count;
-                for (int i = 0; i < 4; ++i) { passData.lightPositionsWS[i] = m_HierarchicalVarianceScreenSpaceShadowsData.positionsWS[i]; }
+                for (int i = 0; i < 4; ++i) { passData.lightPositionsRWS[i] = m_HierarchicalVarianceScreenSpaceShadowsData.positionsRWS[i]; }
                 for (int i = 0; i < 4; ++i) { passData.lightRanges[i] = m_HierarchicalVarianceScreenSpaceShadowsData.ranges[i]; }
                 passData.depthMin = m_HierarchicalVarianceScreenSpaceShadowsData.depthMin;
                 passData.depthMax = m_HierarchicalVarianceScreenSpaceShadowsData.depthMax;
@@ -566,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._LODCurrentAndNextAndMax, new Vector4(lod, lod, data.lodMax, channel));
                         context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSRaymarchLODBiasMinMax, new Vector4(data.lodRaymarchBias, data.lodRaymarchMin, data.lodMax, 0.0f));
-                        context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSLightPositionWS, new Vector4(data.lightPositionsWS[channel].x, data.lightPositionsWS[channel].y, data.lightPositionsWS[channel].z, data.lightRanges[channel]));
+                        context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSLightPositionRWS, new Vector4(data.lightPositionsRWS[channel].x, data.lightPositionsRWS[channel].y, data.lightPositionsRWS[channel].z, data.lightRanges[channel]));
                         context.cmd.DispatchCompute(data.computeShader, data.raymarchScreenSpaceShadowsKernel, HDUtils.DivRoundUp(raymarchDstSize.x, 8), HDUtils.DivRoundUp(raymarchDstSize.y, 8), ((RenderTexture)hvsssBufferSource).volumeDepth);
                     }
                 }

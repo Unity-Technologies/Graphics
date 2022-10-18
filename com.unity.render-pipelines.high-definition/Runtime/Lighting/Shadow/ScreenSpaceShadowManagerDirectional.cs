@@ -282,14 +282,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera)
         {
             // Should we be executing anything really?
-            bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow();
+            bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && (m_CurrentSunShadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderScreenSpaceShadow) != 0;
 
             // Render directional screen space shadow if required
             if (screenSpaceShadowRequired)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow)))
                 {
-                    bool rayTracedDirectionalRequired = m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow();
+                    bool rayTracedDirectionalRequired = (m_CurrentSunShadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderRayTracedShadow) != 0;
                     // If the shadow is flagged as ray traced, we need to evaluate it completely
                     if (rayTracedDirectionalRequired)
                         RenderRayTracedDirectionalScreenSpaceShadow(cmd, hdCamera);
