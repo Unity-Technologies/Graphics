@@ -20,8 +20,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
-                        //I don't see the sampler param getting used anywhere.  Is it needed?
-                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                     },
                     new string[]
@@ -39,8 +37,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
-                        //I don't see the sampler param getting used anywhere.  Is it needed?
-                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     },
                     new string[]
@@ -59,8 +55,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
-                        //I don't see the sampler param getting used anywhere.  Is it needed?
-                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
                     },
                     new string[]
@@ -75,8 +69,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
-                        //I don't see the sampler param getting used anywhere.  Is it needed?
-                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     },
                     new string[]
@@ -96,7 +88,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
-                        new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
                     },
                     new string[]
@@ -124,15 +115,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "PostProcessInput", "Post Process Input" }
             },
             functionSelectorLabel: "Source Buffer",
-            parameters: new ParameterUIDescriptor[3] {
+            parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "The screen coordinates to use for the sample",
                     options: REF.OptionList.ScreenPositions
-                ),
-                new ParameterUIDescriptor(
-                    name: "Sampler",
-                    tooltip: "The sampler to use for the sample"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
