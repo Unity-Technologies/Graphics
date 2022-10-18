@@ -118,6 +118,9 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     // This is a tradeoff to avoid storing the precomputed (from data) AO in the GBuffer.
     // (This is also why GetScreenSpaceAmbientOcclusion*() is effectively called with AOFromData = 1.0 in Lit:PostEvaluateBSDF() in the
     // deferred case since DecodeFromGBuffer will init bsdfData.ambientOcclusion to 1.0 and we will only have SSAO in the aoFactor here)
+    //
+    // In the context of Probe Volumes, the above constraints are not true. Ambient Occlusion is packed in the unused bakeDiffuseLighting
+    // buffer, so material ambient occlusion is available in the light loop, and is correctly applied without double darkening.
     builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
     lighting.direct.diffuse *= aoFactor.directAmbientOcclusion;

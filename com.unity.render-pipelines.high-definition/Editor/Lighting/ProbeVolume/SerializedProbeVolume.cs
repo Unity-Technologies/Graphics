@@ -6,6 +6,10 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty probeVolumeAsset;
         internal SerializedProperty debugColor;
         internal SerializedProperty drawProbes;
+        internal SerializedProperty drawOctahedralDepthRays;
+        internal SerializedProperty drawOctahedralDepthRayIndexX;
+        internal SerializedProperty drawOctahedralDepthRayIndexY;
+        internal SerializedProperty drawOctahedralDepthRayIndexZ;
 
         internal SerializedProperty probeSpacingMode;
 
@@ -20,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty volumeBlendMode;
         internal SerializedProperty weight;
         internal SerializedProperty normalBiasWS;
+        internal SerializedProperty viewBiasWS;
 
         internal SerializedProperty size;
 
@@ -48,6 +53,11 @@ namespace UnityEditor.Rendering.HighDefinition
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
             drawProbes = probeVolumeParams.FindPropertyRelative("drawProbes");
 
+            drawOctahedralDepthRays = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRays");
+            drawOctahedralDepthRayIndexX = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexX");
+            drawOctahedralDepthRayIndexY = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexY");
+            drawOctahedralDepthRayIndexZ = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexZ");
+
             probeSpacingMode = probeVolumeParams.FindPropertyRelative("probeSpacingMode");
 
             resolutionX = probeVolumeParams.FindPropertyRelative("resolutionX");
@@ -61,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
             volumeBlendMode = probeVolumeParams.FindPropertyRelative("volumeBlendMode");
             weight = probeVolumeParams.FindPropertyRelative("weight");
             normalBiasWS = probeVolumeParams.FindPropertyRelative("normalBiasWS");
+            viewBiasWS = probeVolumeParams.FindPropertyRelative("viewBiasWS");
 
             size = probeVolumeParams.FindPropertyRelative("size");
 

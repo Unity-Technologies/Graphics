@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // In an evenly split binary tree, the nodeCount == leafNodeCount * 2
             int capacityNodes = capacityAllocations * 2;
-            Debug.Assert(capacityNodes < (1 << 16), "Error: AtlasAllocatorDynamic: Attempted to allocate a capacity of " + capacityNodes + ", which is greater than our 16-bit indices can support. Please request a capacity <=" + (1 << 16));
+            Debug.AssertFormat(capacityNodes < (1 << 16), "Error: AtlasAllocatorDynamic: Attempted to allocate a capacity of {0}, which is greater than our 16-bit indices can support. Please request a capacity <= {1}", capacityNodes, (1 << 16));
             m_Pool = new AtlasNodePool((Int16)capacityNodes);
 
             m_NodeFromID = new Dictionary<int, Int16>(capacityAllocations);

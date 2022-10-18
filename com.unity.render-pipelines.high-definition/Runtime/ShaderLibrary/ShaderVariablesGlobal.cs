@@ -259,6 +259,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _ProbeVolumeBilateralFilterWeight;
         public uint     _EnableDecalLayers;
 
+        public Vector2  _ProbeVolumeBilateralFilterOctahedralDepthParameters;
+        public float    _Pad8;
+        public float    _Pad9;
+
+        public Vector4  _ProbeVolumeReflectionProbeNormalizationParameters;
+
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 
@@ -273,10 +279,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public int      _HybridDeformedVertexStreamIndex;
 
         // custom-begin
-		public uint _EnableDynamicBranchLighting;
+        public uint _EnableDynamicBranchLighting;
         public uint _BlueNoiseRGBTextureResolutionMinusOne;
-		public float   _Pad8;
-		public float   _Pad9;
         // custom-end
+
+        public float _Pad10;
+        public float _Pad11;       
     }
 }

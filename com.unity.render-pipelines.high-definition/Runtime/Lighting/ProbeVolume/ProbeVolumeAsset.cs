@@ -2,8 +2,13 @@ using System;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -11,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             First,
             AddProbeVolumesAtlasEncodingModes,
+            AddOctahedralDepthVarianceFromLightmapper,
+            AddRotation,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -26,7 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal float[] dataValidity = null;
         [SerializeField] internal float[] dataOctahedralDepth = null;
 
-
         [SerializeField] internal ProbeVolumePayload payload = ProbeVolumePayload.zero;
 
         [SerializeField] internal int resolutionX;
@@ -35,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal float backfaceTolerance;
         [SerializeField] internal int dilationIterations;
+
+        [SerializeField] internal Quaternion rotation;
 
         internal bool IsDataAssigned()
         {
@@ -267,6 +275,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             this.backfaceTolerance = backfaceTolerance;
             this.dilationIterations = dilationIterations;
+        }
+
+        [ContextMenu("Reserialize All")]
+        void ReserializeAll()
+        {
+            const string k_ProgressBarTitle = "Reserializing all Probe Volume assets";
+            EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Searching assets", 1f / 6f);
+            var assetGuids = AssetDatabase.FindAssets("t:" + nameof(ProbeVolumeAsset));
+            EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Loading assets", 3f / 6f);
+            for (int i = 0; i < assetGuids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(assetGuids[i]);
+                var asset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(path);
+                EditorUtility.SetDirty(asset);
+            }
+            EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Saving assets", 5f / 6f);
+            AssetDatabase.SaveAssets();
+            EditorUtility.ClearProgressBar();
         }
 #endif
     }

@@ -127,19 +127,28 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
     {
         uint offset = 0;
 
+        uint densityVolumeStart = 0;
+        uint densityVolumeCount = 0;
         for (; offset < volumeCount; offset++)
         {
             uint objectIndex = FetchIndex(volumeStart, offset);
 
+            if (objectIndex >= _ProbeVolumeIndexShift)
+            {
+                // Probe Volumes are stored after density volumes. We have exceeded our density volume range and are done.
+                // TODO: We should look at storing _XVolumeIndexRange.xy instead of _XVolumeIndexShift to make this code robust to additional volume additions.
+                break;
+            }
             if (objectIndex >= _DensityVolumeIndexShift)
             {
-                // We have found the first density volume.
-                break;
+                // We have a density volume.
+                densityVolumeStart = (densityVolumeStart == 0) ? (volumeStart + offset) : densityVolumeStart;
+                ++densityVolumeCount;
             }
         }
 
-        volumeStart += offset;
-        volumeCount -= offset;
+        volumeStart = densityVolumeStart;
+        volumeCount = densityVolumeCount;
     }
 
 #else  // USE_BIG_TILE_LIGHTLIST

@@ -19,6 +19,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         float3  _TextureViewResolution;
         float2  _ValidRange;
         int _ProbeVolumeAtlasSliceMode;
+        float4 _AtlasTextureOctahedralDepthScaleBias;
         // float   _RcpGlobalScaleFactor;
         SamplerState ltc_linear_clamp_sampler;
 
@@ -105,8 +106,9 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
                 float valueValidity = saturate((ProbeVolumeSampleValidity(uvw) - _ValidRange.x) * _ValidRange.y);
                 
-            #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
-                float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord * _AtlasTextureOctahedralDepthScaleBias.xy + _AtlasTextureOctahedralDepthScaleBias.zw, 0).xy - _ValidRange.x) * _ValidRange.y);
+            #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
+                float4 scaleBias = _AtlasTextureOctahedralDepthScaleBias;
+                float2 valueOctahedralDepthMeanAndMeanSquared = saturate((SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord * scaleBias.xy + scaleBias.zw, 0).xy - _ValidRange.x) * _ValidRange.y);
             #endif
 
                 switch (_ProbeVolumeAtlasSliceMode)
@@ -164,11 +166,13 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
                     case PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH:
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
-                        // Tonemap variance with sqrt() to bring it into a more similar scale to mean to make it more readable.
+                    #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
+                        float mean = valueOctahedralDepthMeanAndMeanSquared.x;
+                        float meanSquared = valueOctahedralDepthMeanAndMeanSquared.y;
+                        float variance = meanSquared - mean * mean;
                         return float4(
-                            valueOctahedralDepthMeanAndVariance.x,
-                            (valueOctahedralDepthMeanAndVariance.y > 0.0f) ? sqrt(valueOctahedralDepthMeanAndVariance.y) : 0.0f,
+                            mean,
+                            variance,
                             0.0f,
                             1.0f
                         );

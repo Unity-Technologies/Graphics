@@ -23,7 +23,7 @@ struct ProbeVolumeEngineData
     float3 rcpNegFaceFade;
     float endTimesRcpDistFadeLen;
     float3 scale;
-    int payloadIndex;
+    float padding0;
     float3 bias;
     int volumeBlendMode;
     float4 octahedralDepthScaleBias;
@@ -31,6 +31,8 @@ struct ProbeVolumeEngineData
     uint lightLayers;
     float3 resolutionInverse;
     float normalBiasWS;
+    float viewBiasWS;
+    float3 padding1;
 };
 
 //
@@ -64,9 +66,9 @@ float3 GetScale(ProbeVolumeEngineData value)
 {
     return value.scale;
 }
-int GetPayloadIndex(ProbeVolumeEngineData value)
+int GetPadding0(ProbeVolumeEngineData value)
 {
-    return value.payloadIndex;
+    return value.padding0;
 }
 float3 GetBias(ProbeVolumeEngineData value)
 {
@@ -95,6 +97,14 @@ float3 GetResolutionInverse(ProbeVolumeEngineData value)
 float GetNormalBiasWS(ProbeVolumeEngineData value)
 {
     return value.normalBiasWS;
+}
+float GetViewBiasWS(ProbeVolumeEngineData value)
+{
+    return value.viewBiasWS;
+}
+float3 GetPadding1(ProbeVolumeEngineData value)
+{
+    return value.padding1;
 }
 
 #endif

@@ -1450,6 +1450,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             envLightData.envIndex = envIndex;
 
+            envLightData.normalizeWithProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume) ? 1 : 0;
+            if (envLightData.normalizeWithProbeVolumes > 0)
+            {
+                if (!probe.GetLuminanceSHL2ForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
+                {
+                    // We don't have valid data, hence we disable the feature.
+                    envLightData.normalizeWithProbeVolumes = 0;
+                }
+            }
+
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;
             envLightData.proxyExtents = probe.proxyExtents;
@@ -1894,6 +1904,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (processedProbe.hdProbe.texture == null)
                 return true;
 
+            // custom-begin:
+#if UNITY_EDITOR
+                // Skip reflection probes that are hidden by the scene visibility toggle.
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(processedProbe.hdProbe.gameObject))
+                return true;
+#endif
+            // custom-end
+
             return false;
         }
 
@@ -2160,7 +2178,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasEnabled = !(settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
+                    probeVolumeNormalBiasEnabled = !(settings == null || 
+                        (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias
+                        && settings.leakMitigationMode.value != LeakMitigationMode.ProbeValidityFilter
+                        && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
                 }
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -2186,8 +2207,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Probe volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        float probeVolumeNormalBiasWS = probeVolumeNormalBiasEnabled ? probeVolumes.data[i].normalBiasWS : 0.0f;
-                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        float probeVolumeMaxBiasWS = probeVolumeNormalBiasEnabled ? (probeVolumes.data[i].normalBiasWS + probeVolumes.data[i].viewBiasWS) : 0.0f;
+                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeMaxBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                         {
                             // Only probe volume evaluation in the material pass use these custom probe volume specific lists.

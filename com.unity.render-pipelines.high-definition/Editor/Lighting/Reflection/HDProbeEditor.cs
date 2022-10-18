@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         HDProbe GetTarget(Object editorTarget);
 
         bool showChromeGizmo { get; set; }
+        bool showLuminanceSH { get; set; }
     }
 
     abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor, IDefaultFrameSettingsType
@@ -53,12 +54,27 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        const string k_ShowLuminanceSHKey = "HDRP:ReflectionProbe:LuminanceSH";
+        static bool m_ShowLuminanceSH = true;
+        public bool showLuminanceSH
+        {
+            get => m_ShowLuminanceSH;
+            set
+            {
+                m_ShowLuminanceSH = value;
+                EditorPrefs.SetBool(k_ShowLuminanceSHKey, value);
+            }
+        }
+
         protected virtual void OnEnable()
         {
             m_SerializedHDProbe = NewSerializedObject(serializedObject);
 
             if (EditorPrefs.HasKey(k_ShowChromeGizmoKey))
                 m_ShowChromeGizmo = EditorPrefs.GetBool(k_ShowChromeGizmoKey);
+
+            if (EditorPrefs.HasKey(k_ShowLuminanceSHKey))
+                m_ShowLuminanceSH = EditorPrefs.GetBool(k_ShowLuminanceSHKey);
 
             m_SerializedHDProbePerTarget = new Dictionary<Object, TSerialized>(targets.Length);
             m_TypedTargets = new HDProbe[targets.Length];

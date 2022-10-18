@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class Atlas3DAllocatorDynamic
+    class Atlas3DAllocatorDynamic<T> where T : unmanaged
     {
         private class Atlas3DNodePool
         {
@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public UInt16 m_Flags;
             public Vector3 m_RectSize;
             public Vector3 m_RectOffset;
+            public int m_Timestamp;
 
             public Atlas3DNode(Int16 self, Int16 parent)
             {
@@ -83,6 +84,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FreelistNext = -1;
                 m_RectSize = Vector3.zero;
                 m_RectOffset = Vector3.zero;
+                m_Timestamp = 0;
+            }
+
+            public void SetTimestamp(int timestamp)
+            {
+                m_Timestamp = timestamp;
             }
 
             public bool IsOccupied()
@@ -287,16 +294,16 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_Depth;
         private Atlas3DNodePool m_Pool;
         private Int16 m_Root;
-        private Dictionary<int, Int16> m_NodeFromID;
+        private Dictionary<T, Int16> m_NodeFromID;
 
         public Atlas3DAllocatorDynamic(int width, int height, int depth, int capacityAllocations)
         {
             // In an evenly split binary tree, the nodeCount == leafNodeCount * 2
             int capacityNodes = capacityAllocations * 2;
-            Debug.Assert(capacityNodes < (1 << 16), "Error: Atlas3DAllocatorDynamic: Attempted to allocate a capacity of " + capacityNodes + ", which is greater than our 16-bit indices can support. Please request a capacity <=" + (1 << 16));
+            Debug.AssertFormat(capacityNodes < (1 << 16), "Error: Atlas3DAllocatorDynamic: Attempted to allocate a capacity of {0}, which is greater than our 16-bit indices can support. Please request a capacity <= {1}", capacityNodes, (1 << 16));
             m_Pool = new Atlas3DNodePool((Int16)capacityNodes);
 
-            m_NodeFromID = new Dictionary<int, Int16>(capacityAllocations);
+            m_NodeFromID = new Dictionary<T, Int16>(capacityAllocations);
 
             Int16 rootParent = -1;
             m_Root = m_Pool.Atlas3DNodeCreate(rootParent);
@@ -311,7 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Debug.Log("Allocating atlas = " + debug);
         }
 
-        public bool Allocate(out Vector3 resultSize, out Vector3 resultOffset, int key, int width, int height, int depth)
+        public bool Allocate(out Vector3 resultSize, out Vector3 resultOffset, T key, int width, int height, int depth)
         {
             Int16 node = m_Pool.m_Nodes[m_Root].Allocate(m_Pool, width, height, depth);
             if (node >= 0)
@@ -329,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Release(int key)
+        public void Release(T key)
         {
             if (m_NodeFromID.TryGetValue(key, out Int16 node))
             {
@@ -337,6 +344,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Pool.m_Nodes[node].ReleaseAndMerge(m_Pool);
                 m_NodeFromID.Remove(key);
                 return;
+            }
+        }
+
+        public void SetTimestamp(T key, int timestamp)
+        {
+            if (m_NodeFromID.TryGetValue(key, out Int16 node))
+            {
+                Int16 nodeCurrent = node;
+                while (nodeCurrent != -1)
+                {
+                    Debug.Assert(nodeCurrent >= 0 && nodeCurrent < m_Pool.m_Nodes.Length);
+                    m_Pool.m_Nodes[nodeCurrent].SetTimestamp(timestamp);
+                    nodeCurrent = m_Pool.m_Nodes[nodeCurrent].m_Parent;
+                }
             }
         }
 
@@ -375,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    class Texture3DAtlasDynamic
+    class Texture3DAtlasDynamic<T> where T : unmanaged
     {
         private RTHandle m_AtlasTexture = null;
         private bool isAtlasTextureOwner = false;
@@ -383,9 +404,12 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_Height;
         private int m_Depth;
         private GraphicsFormat m_Format;
-        private Atlas3DAllocatorDynamic m_AtlasAllocator = null;
-        private Dictionary<int, Texture3DAtlasScaleBias> m_AllocationCache;
-
+        private Atlas3DAllocatorDynamic<T> m_AtlasAllocator = null;
+        private Dictionary<T, Texture3DAtlasScaleBias> m_AllocationCache;
+        private int m_AllocationCount = 0;
+        private float m_AllocationRatio = 0.0f;
+        private int m_Timestamp;
+        
         private struct Texture3DAtlasScaleBias
         {
             public Vector3 scale;
@@ -427,8 +451,11 @@ namespace UnityEngine.Rendering.HighDefinition
             );
             isAtlasTextureOwner = true;
 
-            m_AtlasAllocator = new Atlas3DAllocatorDynamic(width, height, depth, capacity);
-            m_AllocationCache = new Dictionary<int, Texture3DAtlasScaleBias>(capacity);
+            m_AtlasAllocator = new Atlas3DAllocatorDynamic<T>(width, height, depth, capacity);
+            m_AllocationCache = new Dictionary<T, Texture3DAtlasScaleBias>(capacity);
+            m_AllocationCount = 0;
+            m_AllocationRatio = 0.0f;
+            m_Timestamp = 0;
         }
 
         public Texture3DAtlasDynamic(int width, int height, int depth, int capacity, RTHandle atlasTexture)
@@ -440,8 +467,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AtlasTexture = atlasTexture;
             isAtlasTextureOwner = false;
 
-            m_AtlasAllocator = new Atlas3DAllocatorDynamic(width, height, depth, capacity);
-            m_AllocationCache = new Dictionary<int, Texture3DAtlasScaleBias>(capacity);
+            m_AtlasAllocator = new Atlas3DAllocatorDynamic<T>(width, height, depth, capacity);
+            m_AllocationCache = new Dictionary<T, Texture3DAtlasScaleBias>(capacity);
+            m_AllocationCount = 0;
+            m_AllocationRatio = 0.0f;
+            m_Timestamp = 0;
         }
 
         public void Release()
@@ -454,9 +484,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_AtlasAllocator.Release();
             m_AllocationCache.Clear();
+            m_Timestamp = 0;
         }
 
-        public bool TryGetScaleBias(out Vector3 scale, out Vector3 bias, int key)
+        public void UpdateTimestamp()
+        {
+            ++m_Timestamp;
+        }
+
+        public bool TryGetScaleBias(out Vector3 scale, out Vector3 bias, T key)
         {
             if (m_AllocationCache.TryGetValue(key, out Texture3DAtlasScaleBias scaleBias))
             {
@@ -470,11 +506,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector3 scale, out Vector3 bias, int key, int width, int height, int depth)
+        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector3 scale, out Vector3 bias, T key, int width, int height, int depth)
         {
             isUploadNeeded = false;
             if (m_AllocationCache.TryGetValue(key, out Texture3DAtlasScaleBias scaleBias))
             {
+                m_AtlasAllocator.SetTimestamp(key, m_Timestamp);
+
                 scale = scaleBias.scale;
                 bias = scaleBias.bias;
                 return true;
@@ -484,22 +522,63 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_AtlasAllocator.Allocate(out scale, out bias, key, width, height, depth)) { return false; }
             // Debug.Log("EnsureTextureSlot After = " + m_AtlasAllocator.DebugStringFromRoot());
 
+            // TODO: Actually implement an eviction scheme based on these timestamps. Currently we just store them.
+            m_AtlasAllocator.SetTimestamp(key, m_Timestamp);
+
             isUploadNeeded = true;
             scale.Scale(new Vector3(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Depth));
             bias.Scale(new Vector3(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Depth));
-            m_AllocationCache.Add(key, new Texture3DAtlasScaleBias { scale = scale, bias = bias});
+            var scaleBiasNext = new Texture3DAtlasScaleBias { scale = scale, bias = bias };
+            m_AllocationCache.Add(key, scaleBiasNext);
+            ComputeAllocationStatsAdd(scaleBiasNext);
             return true;
         }
 
-        public void ReleaseTextureSlot(int key)
+        public void ReleaseTextureSlot(T key)
         {
-            m_AtlasAllocator.Release(key);
-            m_AllocationCache.Remove(key);
+            if (m_AllocationCache.TryGetValue(key, out Texture3DAtlasScaleBias scaleBias))
+            {
+                ComputeAllocationStatsRemove(scaleBias);
+                m_AtlasAllocator.Release(key);
+                m_AllocationCache.Remove(key);
+            }
+        }
+
+        public bool IsTextureSlotAllocated(T key)
+        {
+            return m_AllocationCache.ContainsKey(key);
+        }
+
+        private void ComputeAllocationStatsAdd(Texture3DAtlasScaleBias scaleBias)
+        {
+            ++m_AllocationCount;
+            m_AllocationRatio = Mathf.Clamp01(m_AllocationRatio + ComputeAllocationAreaNormalized(scaleBias));
+        }
+
+        private void ComputeAllocationStatsRemove(Texture3DAtlasScaleBias scaleBias)
+        {
+            --m_AllocationCount;
+            m_AllocationRatio = Mathf.Clamp01(m_AllocationRatio - ComputeAllocationAreaNormalized(scaleBias));
+        }
+
+        private static float ComputeAllocationAreaNormalized(Texture3DAtlasScaleBias scaleBias)
+        {
+            return scaleBias.scale.x * scaleBias.scale.y * scaleBias.scale.z;
         }
 
         public string DebugStringFromRoot(int depthMax = -1)
         {
             return m_AtlasAllocator.DebugStringFromRoot(depthMax);
+        }
+
+        public int GetAllocationCount()
+        {
+            return m_AllocationCount;
+        }
+
+        public float GetAllocationRatio()
+        {
+            return m_AllocationRatio;
         }
     }
 }

@@ -83,7 +83,7 @@ void PROBE_VOLUME_ATLAS_OCTAHEDRAL_DEPTH_CONVOLVE_KERNEL(uint2 groupThreadId : S
         float3 sampleCurrentDirectionWS = mul(sampleCurrentDirectionOS, basis);
         float sampleCurrentWeight = SphericalGaussianEvaluateFromDirection(filterCenterWS, _FilterSharpness, sampleCurrentDirectionWS);
 
-        float2 sampleCurrentOctahedralDepthUV = PackNormalOctRectEncode(sampleCurrentDirectionWS) * 0.5f + 0.5f;
+        float2 sampleCurrentOctahedralDepthUV = PackNormalOctQuadEncode(sampleCurrentDirectionWS) * 0.5f + 0.5f;
         uint2 sampleCurrentOctahedralDepthTexel = (uint2)(sampleCurrentOctahedralDepthUV * (float)PROBE_VOLUME_OCTAHEDRAL_DEPTH_RESOLUTION);
 
         uint2 sampleCurrentReadIndex2D = sampleCurrentOctahedralDepthTexel + writeIndexSW;
@@ -97,10 +97,9 @@ void PROBE_VOLUME_ATLAS_OCTAHEDRAL_DEPTH_CONVOLVE_KERNEL(uint2 groupThreadId : S
     float filterNormalization = rcp(weightTotal);
     mean *= filterNormalization;
     mean2 *= filterNormalization;
-    float variance = max(0.0f, mean2 - mean * mean); // avoid small negative values due to precision.
 
     // Sync group before writing to ensure we dont create race conditions for neighboring pixels that might still be resolving.
     GroupMemoryBarrierWithGroupSync();
 
-    _ProbeVolumeAtlasOctahedralDepthRWTexture[writeIndex] = float2(mean, variance);
+    _ProbeVolumeAtlasOctahedralDepthRWTexture[writeIndex] = float2(mean, mean2);
 }

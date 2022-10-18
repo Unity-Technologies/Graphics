@@ -41,7 +41,6 @@ TEXTURE2D_X(_GBufferTexture4); // VTFeedbakc or Light layer or shadow mask
 TEXTURE2D_X(_GBufferTexture5); // Light layer or shadow mask
 TEXTURE2D_X(_GBufferTexture6); // shadow mask
 
-
 TEXTURE2D_X(_LightLayersTexture);
 #ifdef SHADOWS_SHADOWMASK
 TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to know which gbuffer is used for shadow mask
@@ -63,11 +62,11 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer5
 #endif
 
-#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
-#define OUT_GBUFFER_LIGHT_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
+#if (defined(LIGHT_LAYERS) || (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP)) && defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_LIGHT_LAYERS_AND_AO_AND_UNITIALIZED_GI OUT_GBUFFER_OPTIONAL_SLOT_1
 #define OUT_GBUFFER_SHADOWMASK OUT_GBUFFER_OPTIONAL_SLOT_2
-#elif defined(LIGHT_LAYERS)
-#define OUT_GBUFFER_LIGHT_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
+#elif (defined(LIGHT_LAYERS) || (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP))
+#define OUT_GBUFFER_LIGHT_LAYERS_AND_AO_AND_UNITIALIZED_GI OUT_GBUFFER_OPTIONAL_SLOT_1
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_SHADOWMASK OUT_GBUFFER_OPTIONAL_SLOT_1
 #endif
@@ -194,7 +193,7 @@ float3 GetNormalForShadowBias(BSDFData bsdfData)
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     float sourceAO;
-#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
+#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING) && !defined(OUT_GBUFFER_LIGHT_LAYERS_AND_AO_AND_UNITIALIZED_GI)
     // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion so we use specularOcclusion instead
     sourceAO = bsdfData.specularOcclusion;
 #else
@@ -462,6 +461,28 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     return bsdfData;
 }
 
+// Store a 7-bit unorm payload, with a 1-bit isUninitializedGI flag.
+float EncodeIsUninitializedGIAndAO(bool isUninitializedGI, float ao)
+{
+    // TODO: Could add dither while discretizing to 7-bit to break up any potential banding.
+    float encoded = floor(saturate(ao) * 127.0 + 0.5);
+    encoded += isUninitializedGI ? 128.0 : 0.0;
+    encoded *= (1.0 / 255.0);
+
+    return encoded;
+}
+
+bool DecodeIsUninitializedGIAndAO(float encoded, out float ao)
+{
+    ao = encoded * 255.0;
+    bool isUninitializedGI = ao > 127.5;
+    ao -= isUninitializedGI ? 128.0 : 0.0;
+    ao *= (1.0 / 127.0);
+    ao = saturate(ao); // For precision.
+
+    return isUninitializedGI;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for deferred
 //-----------------------------------------------------------------------------
@@ -666,7 +687,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
         {
     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-            if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
+            if (!IsUninitializedGI(builtinData))
     #endif
             {
                 builtinData.bakeDiffuseLighting = real3(0.0, 0.0, 0.0);
@@ -679,33 +700,34 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     }
 #endif
 
-    // RT3 - 11f:11f:10f
-    // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
-    // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
+    outGBuffer3 = float4(builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
+
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-
-    if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
-    {
-        // builtinData.bakeDiffuseLighting contain uninitializedGI sentinel value.
-
-        // This means probe volumes will not get applied to this pixel, only emissiveColor will.
-        // When length(emissiveColor) is much greater than length(probeVolumeOutgoingRadiance), this will visually look reasonable.
-        // Unfortunately this will break down when emissiveColor is faded out (result will pop).
-        // TODO: If evaluating probe volumes in lightloop, only write out sentinel value here, and re-render emissive surfaces.
-        // Pre-expose lighting buffer
-        outGBuffer3 = float4(all(builtinData.emissiveColor == 0.0) ? builtinData.bakeDiffuseLighting : builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
-    }
-    else
+    bool isUninitializedGI = IsUninitializedGI(builtinData);
+#else
+    bool isUninitializedGI = false;
 #endif
+    if (!isUninitializedGI)
     {
-        outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
-        // Pre-expose lighting buffer
-        outGBuffer3.rgb *= GetCurrentExposureMultiplier();
+        // RT3 - 11f:11f:10f
+        // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
+        // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
+        outGBuffer3.rgb += builtinData.bakeDiffuseLighting * (surfaceData.ambientOcclusion * GetCurrentExposureMultiplier());
     }
 
-#ifdef LIGHT_LAYERS
+#if defined(LIGHT_LAYERS) || (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP)
+    float4 lightLayersAndAOAndUnitializedGI = 0.0;
+
+#if defined(LIGHT_LAYERS)
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
+    lightLayersAndAOAndUnitializedGI.w = (builtinData.renderingLayers & 0x000000FF) / 255.0;
+#endif
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+    lightLayersAndAOAndUnitializedGI.x = EncodeIsUninitializedGIAndAO(isUninitializedGI, surfaceData.ambientOcclusion);
+#endif
+
+    OUT_GBUFFER_LIGHT_LAYERS_AND_AO_AND_UNITIALIZED_GI = lightLayersAndAOAndUnitializedGI;
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -739,31 +761,44 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     GBufferType1 inGBuffer1 = LOAD_TEXTURE2D_X(_GBufferTexture1, positionSS);
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D_X(_GBufferTexture2, positionSS);
 
-    // BuiltinData
-    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
-
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
-#endif
-    {
-        // Inverse pre-exposure
-        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier(); // zero-div guard
-    }
-
     // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
     // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred
     bsdfData.ambientOcclusion = 1.0;
 
+    // BuiltinData
+    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;
+
+    float4 inGBufferLightLayersAndAOAndUnitializedGI = 0.0;
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     // Avoid to introduce a new variant for light layer as it is already long to compile
     if (_EnableLightLayers)
+#else
     {
-        float4 inGBuffer4 = LOAD_TEXTURE2D_X(_LightLayersTexture, positionSS);
-        builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
+        inGBufferLightLayersAndAOAndUnitializedGI = LOAD_TEXTURE2D_X(_LightLayersTexture, positionSS);
     }
+#endif
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+    if (DecodeIsUninitializedGIAndAO(inGBufferLightLayersAndAOAndUnitializedGI.x, bsdfData.ambientOcclusion))
+    {
+        // In this context the bakeDiffuseLighting RT stores only emissiveColor.
+        // Inverse pre-exposure
+        builtinData.emissiveColor = builtinData.bakeDiffuseLighting * GetInverseCurrentExposureMultiplier(); // zero-div guard
+        builtinData.bakeDiffuseLighting = UNINITIALIZED_GI;
+    } 
     else
     {
-        builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+#else
+        // In this context, the bakeDiffuseLighting RT stores emissive + lightmapBakedLighting * ao.
+        // Inverse pre-exposure
+        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier(); // zero-div guard
+#endif
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     }
+#endif
+
+    builtinData.renderingLayers = _EnableLightLayers ? uint(inGBufferLightLayersAndAOAndUnitializedGI.w * 255.5) : DEFAULT_LIGHT_LAYERS;
 
     // We know the GBufferType no need to use abstraction
 #ifdef SHADOWS_SHADOWMASK
@@ -1884,6 +1919,17 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 #endif
 
     return lighting;
+}
+
+float3 ComputeReflectionProbeNormalizationDirection(BSDFData bsdfData, PreLightData preLightData, float3 V)
+{
+    float3 N = bsdfData.normalWS;
+    float3 R = reflect(-V, bsdfData.normalWS);
+    R = GetSpecularDominantDir(N, R, preLightData.iblPerceptualRoughness, ClampNdotV(preLightData.NdotV));
+
+    // Output of GetSpecularDominantDir() is not normalized, as it is designed for cubemap texture fetches, which don't require normalized directions.
+    // For our use (evaluating SH) we need a normalized direction.
+    return normalize(R);
 }
 
 //-----------------------------------------------------------------------------

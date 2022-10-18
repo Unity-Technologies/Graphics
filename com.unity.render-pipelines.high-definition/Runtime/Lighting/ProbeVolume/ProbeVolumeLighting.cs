@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Optimized version of 'ProbeVolumeArtistParameters'.
-    // Currently 128-bytes.
+    // Currently 144-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
     internal struct ProbeVolumeEngineData
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 rcpNegFaceFade;
         public float endTimesRcpDistFadeLen;
         public Vector3 scale;
-        public int payloadIndex;
+        public float padding0;
         public Vector3 bias;
         public int volumeBlendMode;
         public Vector4 octahedralDepthScaleBias;
@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightLayers;
         public Vector3 resolutionInverse;
         public float normalBiasWS;
+        public float viewBiasWS;
+        public Vector3 padding1;
 
         public static ProbeVolumeEngineData GetNeutralValues()
         {
@@ -38,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.endTimesRcpDistFadeLen = 1;
             data.scale = Vector3.zero;
-            data.payloadIndex  = -1;
+            data.padding0 = 0.0f;
             data.bias = Vector3.zero;
             data.volumeBlendMode = 0;
             data.octahedralDepthScaleBias = Vector4.zero;
@@ -46,6 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightLayers = 0;
             data.resolutionInverse = Vector3.zero;
             data.normalBiasWS = 0.0f;
+            data.viewBiasWS = 0.0f;
+            data.padding1 = Vector3.zero;
 
             return data;
         }
@@ -107,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
 
         int m_ProbeVolumeAtlasSHRTDepthSliceCount;
-        Texture3DAtlasDynamic probeVolumeAtlas = null;
+        Texture3DAtlasDynamic<ProbeVolume.ProbeVolumeAtlasKey> probeVolumeAtlas = null;
 
         RTHandle m_ProbeVolumeAtlasOctahedralDepthRTHandle;
         Texture2DAtlasDynamic probeVolumeAtlasOctahedralDepth = null;
@@ -229,8 +233,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void CreateProbeVolumeBuffers()
         {
-            m_VisibleProbeVolumeBounds = new List<OrientedBBox>();
-            m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
+            m_VisibleProbeVolumeBounds = new List<OrientedBBox>(32);
+            m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>(32);
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
             s_ProbeVolumeAtlasBlitDataSHL01Buffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount * ProbeVolumePayload.GetDataSHL01Stride(), Marshal.SizeOf(typeof(float)));
@@ -253,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name:              "ProbeVolumeAtlasSH"
             );
 
-            probeVolumeAtlas = new Texture3DAtlasDynamic(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, k_MaxVisibleProbeVolumeCount, m_ProbeVolumeAtlasSHRTHandle);
+            probeVolumeAtlas = new Texture3DAtlasDynamic<ProbeVolume.ProbeVolumeAtlasKey>(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, k_MaxVisibleProbeVolumeCount, m_ProbeVolumeAtlasSHRTHandle);
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
@@ -334,6 +338,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ProbeVolumeLeakMitigationMode = (int)LeakMitigationMode.NormalBias;
             cb._ProbeVolumeBilateralFilterWeightMin = 0.0f;
             cb._ProbeVolumeBilateralFilterWeight = 0.0f;
+            cb._ProbeVolumeBilateralFilterOctahedralDepthParameters = Vector2.zero;
+
+            bool probeVolumeReflectionProbeNormalizationEnabled = false;
+            float probeVolumeReflectionProbeNormalizationDirectionality = 0.0f;
+            float probeVolumeReflectionProbeNormalizationMin = 1.0f;
+            float probeVolumeReflectionProbeNormalizationMax = 1.0f;
+
+            cb._ProbeVolumeReflectionProbeNormalizationParameters = new Vector4(
+                probeVolumeReflectionProbeNormalizationEnabled ? 1.0f : 0.0f,
+                probeVolumeReflectionProbeNormalizationDirectionality,
+                probeVolumeReflectionProbeNormalizationMin,
+                probeVolumeReflectionProbeNormalizationMax
+            );
 
             // Need to populate ambient probe fallback even in the default case,
             // As if the feature is enabled in the ShaderConfig, but disabled in the HDRenderPipelineAsset, we need to fallback to ambient probe only.
@@ -403,6 +420,29 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ProbeVolumeLeakMitigationMode = (int)leakMitigationMode;
             cb._ProbeVolumeBilateralFilterWeightMin = 1e-5f;
             cb._ProbeVolumeBilateralFilterWeight = bilateralFilterWeight;
+            cb._ProbeVolumeBilateralFilterOctahedralDepthParameters = Vector2.zero;
+            if (leakMitigationMode == LeakMitigationMode.OctahedralDepthOcclusionFilter)
+            {
+                cb._ProbeVolumeBilateralFilterOctahedralDepthParameters = new Vector2(
+                    settings.octahedralDepthWeightMin.value,
+                    settings.octahedralDepthLightBleedReductionThreshold.value
+                );
+            }
+
+            bool probeVolumeReflectionProbeNormalizationEnabled = settings.reflectionProbeNormalizationWeight.value >= 1e-5f;
+            float probeVolumeReflectionProbeNormalizationDirectionality = settings.reflectionProbeNormalizationDirectionality.value;
+            float probeVolumeReflectionProbeNormalizationMin = probeVolumeReflectionProbeNormalizationEnabled ? 0.0f : 1.0f;
+            float probeVolumeReflectionProbeNormalizationMax = (probeVolumeReflectionProbeNormalizationEnabled && !settings.reflectionProbeNormalizationDarkenOnly.value) ? float.MaxValue : 1.0f;
+            probeVolumeReflectionProbeNormalizationEnabled = ((Mathf.Abs(probeVolumeReflectionProbeNormalizationMin - 1.0f) < 1e-5f) && (Mathf.Abs(probeVolumeReflectionProbeNormalizationMax - 1.0f) < 1e-5f))
+                ? false
+                : probeVolumeReflectionProbeNormalizationEnabled;
+
+            cb._ProbeVolumeReflectionProbeNormalizationParameters = new Vector4(
+                settings.reflectionProbeNormalizationWeight.value,
+                probeVolumeReflectionProbeNormalizationDirectionality,
+                probeVolumeReflectionProbeNormalizationMin,
+                probeVolumeReflectionProbeNormalizationMax
+            );
 
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
             SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);
@@ -441,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
+        internal void ReleaseProbeVolumeFromAtlas(ProbeVolumeHandle volume)
         {
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
@@ -449,19 +489,27 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportProbeVolume)
                 return;
 
-            int key = volume.GetID();
+            int id = volume.GetBakeID();
+            ProbeVolume.ProbeVolumeAtlasKey key = volume.ComputeProbeVolumeAtlasKey();
+            ProbeVolume.ProbeVolumeAtlasKey keyPrevious = volume.GetProbeVolumeAtlasKeyPrevious();
 
-            probeVolumeAtlas.ReleaseTextureSlot(key);
+            // TODO: Currently, this means that if there are multiple probe volumes that point to the same payload,
+            // if any of them are disabled, that payload will be evicted from the atlas.
+            // If will get added back to the atlas the next frame any of the remaining enabled probe volumes are seen,
+            // so functionally, this is fine. It does however put additional pressure on the atlas allocator + blitting.
+            // Could add reference counting to atlas keys, or could track key use timestamps and evict based on least recently used as needed.
+            if (probeVolumeAtlas.IsTextureSlotAllocated(key)) { probeVolumeAtlas.ReleaseTextureSlot(key); }
+            if (probeVolumeAtlas.IsTextureSlotAllocated(keyPrevious)) { probeVolumeAtlas.ReleaseTextureSlot(keyPrevious); }
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
-                probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(key);
+                probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(id);
             }
         }
 
-        internal bool EnsureProbeVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolume volume)
+        internal bool EnsureProbeVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolumeHandle volume)
         {
-            int key = volume.GetID();
+            int id = volume.GetAtlasID();
             int width = volume.parameters.resolutionX;
             int height = volume.parameters.resolutionY;
             int depth = volume.parameters.resolutionZ;
@@ -469,36 +517,44 @@ namespace UnityEngine.Rendering.HighDefinition
             int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ;
             Debug.Assert(size > 0, "ProbeVolume: Encountered probe volume with resolution set to zero on all three axes.");
 
-            // TODO: Store volume resolution inside the atlas's key->bias dictionary.
-            // If resolution has changed since upload, need to free previous allocation from atlas,
-            // and attempt to allocate a new chunk from the atlas for the new resolution settings.
+            ProbeVolume.ProbeVolumeAtlasKey key = volume.ComputeProbeVolumeAtlasKey();
+            ProbeVolume.ProbeVolumeAtlasKey keyPrevious = volume.GetProbeVolumeAtlasKeyPrevious();
+            if (!key.Equals(keyPrevious))
+            {
+                if (probeVolumeAtlas.IsTextureSlotAllocated(keyPrevious))
+                {
+                    probeVolumeAtlas.ReleaseTextureSlot(keyPrevious);
+                }
+                volume.SetProbeVolumeAtlasKeyPrevious(key);
+            }
+
             // Currently atlas allocator only handles splitting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
             bool isSlotAllocated = probeVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, out volume.parameters.scale, out volume.parameters.bias, key, width, height, depth);
 
             if (isSlotAllocated)
             {
-                if (isUploadNeeded || volume.dataUpdated)
+                if (isUploadNeeded || volume.IsDataUpdated())
                 {
-                    ProbeVolumePayload payload = volume.GetPayload();
-
-                    if (ProbeVolumePayload.IsNull(ref payload) || !volume.IsAssetCompatible())
+                    if (!volume.IsDataAssigned() || !volume.IsAssetCompatible())
                     {
                         ReleaseProbeVolumeFromAtlas(volume);
                         return false;
                     }
 
+                    // Debug.Log("Uploading probe volume to atlas: " + volume.gameObject.name + ", because: " + (isUploadNeeded ? "atlas slot allocated." : "data was updated."));
+
                     int sizeSHCoefficientsL01 = size * ProbeVolumePayload.GetDataSHL01Stride();
                     int sizeSHCoefficientsL2 = size * ProbeVolumePayload.GetDataSHL2Stride();
 
-                    Debug.Assert(payload.dataSHL01.Length == sizeSHCoefficientsL01, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + payload.dataSHL01.Length + ", but resolution * SH stride size is " + sizeSHCoefficientsL01 + ".");
+                    Debug.AssertFormat(volume.DataSHL01Length == sizeSHCoefficientsL01, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL01Length, sizeSHCoefficientsL01);
                     if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
                     {
-                        Debug.Assert(payload.dataSHL2.Length == sizeSHCoefficientsL2, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + payload.dataSHL2.Length + ", but resolution * SH stride size is " + sizeSHCoefficientsL2 + ".");
+                        Debug.AssertFormat(volume.DataSHL2Length == sizeSHCoefficientsL2, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL2Length, sizeSHCoefficientsL2);
                     }
 
                     if (size > s_MaxProbeVolumeProbeCount)
                     {
-                        Debug.LogWarning("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is " + size + ", but s_MaxProbeVolumeProbeCount is " + s_MaxProbeVolumeProbeCount + ". Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.");
+                        Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
                         return false;
                     }
 
@@ -531,14 +587,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)s_ProbeVolumeAtlasResolution,
                         1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
                     ));
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, key.rotation * new Vector3(1.0f, 0.0f, 0.0f));
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, key.rotation * new Vector3(0.0f, 1.0f, 0.0f));
+                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, key.rotation * new Vector3(0.0f, 0.0f, 1.0f));
 
-                    s_ProbeVolumeAtlasBlitDataSHL01Buffer.SetData(payload.dataSHL01);
-                    s_ProbeVolumeAtlasBlitDataValidityBuffer.SetData(payload.dataValidity);
+                    volume.SetDataSHL01(s_ProbeVolumeAtlasBlitDataSHL01Buffer);
+                    volume.SetDataValidity(s_ProbeVolumeAtlasBlitDataValidityBuffer);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, size);
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, s_ProbeVolumeAtlasBlitDataSHL01Buffer);
                     if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
                     {
-                        s_ProbeVolumeAtlasBlitDataSHL2Buffer.SetData(payload.dataSHL2);
+                        volume.SetDataSHL2(s_ProbeVolumeAtlasBlitDataSHL2Buffer);
                         cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, s_ProbeVolumeAtlasBlitDataSHL2Buffer);
                     }
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, s_ProbeVolumeAtlasBlitDataValidityBuffer);
@@ -556,18 +615,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarning("ProbeVolume: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height + ", depth: " + depth + "}");
+                Debug.LogWarning($"ProbeVolume: Texture Atlas failed to allocate space for texture id: {id}, width: {width}, height: {height}, depth: {depth}, rotation: {key.rotation.eulerAngles}");
             }
 
             return false;
         }
 
-        internal bool EnsureProbeVolumeInAtlasOctahedralDepth(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolume volume)
+        internal bool EnsureProbeVolumeInAtlasOctahedralDepth(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolumeHandle volume)
         {
-            int key = volume.GetID();
+            int key = volume.GetAtlasID();
             int width = volume.parameters.resolutionX * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth;
             int height = volume.parameters.resolutionY * k_ProbeOctahedralDepthHeight;
-            int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth * k_ProbeOctahedralDepthHeight;
+            int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth * k_ProbeOctahedralDepthHeight * 2; // * 2 for [mean, mean^2]
             Debug.Assert(size > 0, "ProbeVolume: Encountered probe volume with resolution set to zero on all three axes.");
 
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
@@ -578,11 +637,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (isSlotAllocated)
             {
-                if (isUploadNeeded || volume.dataUpdated)
+                // TODO: FIXME: volume.GetDataIsUpdated() will return false after the standard SH atlas calls volume.GetPayload()
+                // This means that even though the octahedral depth data was updated, it will not be updated.
+                // Need to either add a second dirty flag specifically for octahedral depth data, or we need to switch over to a timestamp.
+                if (isUploadNeeded || volume.IsDataUpdated())
                 {
-                    ProbeVolumePayload payload = volume.GetPayload();
-
-                    if (payload.dataOctahedralDepth == null || payload.dataOctahedralDepth.Length == 0 || !volume.IsAssetCompatible())
+                    if (!volume.IsDataAssigned() || !volume.IsAssetCompatible())
                     {
                         ReleaseProbeVolumeFromAtlas(volume);
                         return false;
@@ -590,11 +650,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Blit:
                     {
-                        Debug.Assert(payload.dataOctahedralDepth.Length == size, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + payload.dataOctahedralDepth.Length + ", but resolution size is " + size + ".");
+                        Debug.AssertFormat(volume.DataOctahedralDepthLength == size, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is {0}, but resolution size is {1}.", volume.DataOctahedralDepthLength, size);
 
                         if (size > s_MaxProbeVolumeProbeOctahedralDepthCount)
                         {
-                            Debug.LogWarning("ProbeVolume: probe volume octahedral depth baked data size exceeds the currently max supported blitable size. Volume data size is " + size + ", but s_MaxProbeVolumeProbeCount is " + s_MaxProbeVolumeProbeOctahedralDepthCount + ". Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.");
+                            Debug.LogWarningFormat("ProbeVolume: probe volume octahedral depth baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeOctahedralDepthCount);
                             return false;
                         }
 
@@ -631,46 +691,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
                         ));
 
-
-                        s_ProbeVolumeAtlasOctahedralDepthBuffer.SetData(payload.dataOctahedralDepth);
-                        cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthReadBufferCount, size);
+                        volume.SetDataOctahedralDepth(s_ProbeVolumeAtlasOctahedralDepthBuffer);
+                        cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthReadBufferCount, size / 2);
                         cmd.SetComputeBufferParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthReadBuffer, s_ProbeVolumeAtlasOctahedralDepthBuffer);
                         cmd.SetComputeTextureParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthWriteTexture, m_ProbeVolumeAtlasOctahedralDepthRTHandle);
 
                         // TODO: Determine optimal batch size.
                         const int kBatchSize = 256;
-                        int numThreadGroups = Mathf.CeilToInt((float)size / (float)kBatchSize);
+                        int numThreadGroups = Mathf.CeilToInt((float)(size / 2) / (float)kBatchSize); // / 2 for [mean, mean^2] (will be written to a float2 RT)
                         cmd.DispatchCompute(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, numThreadGroups, 1, 1);
-                    }
-
-                    // Convolve:
-                    {
-                        Vector4 probeVolumeAtlasOctahedralDepthScaleBiasTexels = new Vector4(
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.x * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f),
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.y * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f),
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.z * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f),
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.w * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f)
-                        );
-
-                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthScaleBiasTexels,
-                            probeVolumeAtlasOctahedralDepthScaleBiasTexels
-                        );
-
-                        cmd.SetComputeTextureParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, s_ProbeVolumeAtlasOctahedralDepthConvolveKernel, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthRWTexture, m_ProbeVolumeAtlasOctahedralDepthRTHandle);
-
-                        cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, HDShaderIDs._FilterSampleCount, 16); // TODO: Expose
-                        cmd.SetComputeFloatParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, HDShaderIDs._FilterSharpness, 6.0f); // TODO: Expose
-
-                        // Warning: This kernel numthreads must be an integer multiple of OCTAHEDRAL_DEPTH_RESOLUTION
-                        // We read + write from the same texture, so any partial work would pollute / cause feedback into neighboring chunks.
-                        int widthPixels = (int)(volume.parameters.octahedralDepthScaleBias.x * (float)s_ProbeVolumeAtlasOctahedralDepthResolution);
-                        int heightPixels = (int)(volume.parameters.octahedralDepthScaleBias.y * (float)s_ProbeVolumeAtlasOctahedralDepthResolution);
-                        int probeCountX = widthPixels / k_ProbeOctahedralDepthWidth;
-                        int probeCountY = heightPixels / k_ProbeOctahedralDepthHeight;
-                        Debug.Assert((k_ProbeOctahedralDepthWidth == k_ProbeOctahedralDepthHeight) && (k_ProbeOctahedralDepthWidth == 8));
-                        Debug.Assert((probeCountX * k_ProbeOctahedralDepthWidth) == widthPixels);
-                        Debug.Assert((probeCountY * k_ProbeOctahedralDepthHeight) == heightPixels);
-                        cmd.DispatchCompute(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, s_ProbeVolumeAtlasOctahedralDepthConvolveKernel, probeCountX, probeCountY, 1);
                     }
                     return true;
 
@@ -680,7 +709,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarning("ProbeVolume: Texture Atlas failed to allocate space for octahedral depth texture { key: " + key + " width: " + width + ", height: " + height);
+                Debug.LogWarningFormat("ProbeVolume: Texture Atlas failed to allocate space for octahedral depth texture { key: {0}, width: {1}, height: {2} }", key, width, height);
             }
 
             return false;
@@ -733,6 +762,9 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {
                 ClearProbeVolumeAtlasIfRequested(cmd);
+                probeVolumeAtlas.UpdateTimestamp();
+
+                //Debug.Log("Probe Volume Atlas: allocationCount: " + probeVolumeAtlas.GetAllocationCount() + ", allocationRatio: " + probeVolumeAtlas.GetAllocationRatio());
 
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset = Vector3.zero;// World-origin-relative
@@ -746,7 +778,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleProbeVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                List<ProbeVolume> volumes = ProbeVolumeManager.manager.volumes;
+                List<ProbeVolumeHandle> volumes = ProbeVolumeManager.manager.CollectVolumesToRender();
 
                 int probeVolumesCount = Math.Min(volumes.Count, k_MaxVisibleProbeVolumeCount);
                 int sortCount = 0;
@@ -756,14 +788,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // See LightLoop.cs::PrepareLightsForGPU() for original example of this.
                 for (int probeVolumesIndex = 0; (probeVolumesIndex < volumes.Count) && (sortCount < probeVolumesCount); probeVolumesIndex++)
                 {
-                    ProbeVolume volume = volumes[probeVolumesIndex];
+                    ProbeVolumeHandle volume = volumes[probeVolumesIndex];
 
 #if UNITY_EDITOR
                     if (!volume.IsAssetCompatible())
                         continue;
+
+                    if (volume.IsHiddesInScene())
+                        continue;
 #endif
 
-                    if (volume.probeVolumeAsset == null || !volume.probeVolumeAsset.IsDataAssigned())
+                    if (!volume.IsDataAssigned())
                         continue;
 
                     if (ShaderConfig.s_ProbeVolumesAdditiveBlending == 0 && volume.parameters.volumeBlendMode != VolumeBlendMode.Normal)
@@ -772,7 +807,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                     }
 
-                    float probeVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.transform.position - camPosition);
+                    float probeVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.position - camPosition);
                     if (probeVolumeDepthFromCameraWS >= volume.parameters.distanceFadeEnd)
                     {
                         // Probe volume is completely faded out from distance fade optimization.
@@ -781,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // TODO: cache these?
-                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
@@ -804,10 +839,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     int probeVolumesIndex;
                     UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
 
-                    ProbeVolume volume = volumes[probeVolumesIndex];
+                    ProbeVolumeHandle volume = volumes[probeVolumesIndex];
 
                     // TODO: cache these?
-                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
@@ -847,7 +882,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int probeVolumesIndex;
                     UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
 
-                    ProbeVolume volume = volumes[probeVolumesIndex];
+                    ProbeVolumeHandle volume = volumes[probeVolumesIndex];
 
                     if (volumeUploadedToAtlasSHCount < volumeUploadedToAtlasSHCapacity)
                     {
@@ -965,7 +1000,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // User currently has a probe volume selected.
                     // Compute a scaleBias term so that atlas view automatically zooms into selected probe volume.
-                    int selectedProbeVolumeKey = selectedProbeVolume.GetID();
+                    ProbeVolume.ProbeVolumeAtlasKey selectedProbeVolumeKey = selectedProbeVolume.ComputeProbeVolumeAtlasKey();
+                    int id = selectedProbeVolume.GetBakeID();
                     if (probeVolumeAtlas.TryGetScaleBias(out Vector3 selectedProbeVolumeScale, out Vector3 selectedProbeVolumeBias, selectedProbeVolumeKey))
                     {
                         parameters.textureViewScale = selectedProbeVolumeScale;
@@ -979,9 +1015,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
                     {
-                        if (probeVolumeAtlasOctahedralDepth.TryGetScaleBias(out Vector4 selectedProbeVolumeOctahedralDepthScaleBias, selectedProbeVolumeKey))
+                        if (probeVolumeAtlasOctahedralDepth.TryGetScaleBias(out Vector4 selectedProbeVolumeOctahedralDepthScaleBias, id))
                         {
                             parameters.atlasTextureOctahedralDepthScaleBias = selectedProbeVolumeOctahedralDepthScaleBias;
+
+                            if (selectedProbeVolume.parameters.drawOctahedralDepthRays)
+                            {
+                                // Zoom all the way in to the specific octahedral depth probe that is being inspected.
+                                Vector4 probeOctahedralDepthScaleBias2D = ProbeVolume.ComputeProbeOctahedralDepthScaleBias2D(
+                                    selectedProbeVolume,
+                                    selectedProbeVolume.parameters.drawOctahedralDepthRayIndexX,
+                                    selectedProbeVolume.parameters.drawOctahedralDepthRayIndexY,
+                                    selectedProbeVolume.parameters.drawOctahedralDepthRayIndexZ
+                                );
+
+                                parameters.atlasTextureOctahedralDepthScaleBias = new Vector4(
+                                   parameters.atlasTextureOctahedralDepthScaleBias.x * probeOctahedralDepthScaleBias2D.x,
+                                   parameters.atlasTextureOctahedralDepthScaleBias.y * probeOctahedralDepthScaleBias2D.y,
+                                   parameters.atlasTextureOctahedralDepthScaleBias.z + (probeOctahedralDepthScaleBias2D.z * parameters.atlasTextureOctahedralDepthScaleBias.x * probeOctahedralDepthScaleBias2D.x),
+                                   parameters.atlasTextureOctahedralDepthScaleBias.w + (probeOctahedralDepthScaleBias2D.w * parameters.atlasTextureOctahedralDepthScaleBias.y * probeOctahedralDepthScaleBias2D.y)
+                                );
+                            }
                         }
                     }
                 }
@@ -1006,7 +1060,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static void DisplayProbeVolumeAtlas(CommandBuffer cmd, in ProbeVolumeDebugOverlayParameters parameters, DebugOverlay debugOverlay)
         {
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-            propertyBlock.SetTexture(HDShaderIDs._AtlasTextureSH, parameters.probeVolumeAtlas);
             propertyBlock.SetVector(HDShaderIDs._TextureViewScale, parameters.textureViewScale);
             propertyBlock.SetVector(HDShaderIDs._TextureViewBias, parameters.textureViewBias);
             propertyBlock.SetVector(HDShaderIDs._TextureViewResolution, parameters.textureViewResolution);
@@ -1015,7 +1068,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
-                propertyBlock.SetTexture(HDShaderIDs._AtlasTextureOctahedralDepth, parameters.probeVolumeAtlasOctahedralDepth);
                 propertyBlock.SetVector(HDShaderIDs._AtlasTextureOctahedralDepthScaleBias, parameters.atlasTextureOctahedralDepthScaleBias);
             }
 

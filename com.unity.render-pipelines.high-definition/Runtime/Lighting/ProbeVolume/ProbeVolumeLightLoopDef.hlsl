@@ -98,6 +98,51 @@ uint ProbeVolumeMaterialPassFetchIndex(uint lightStart, uint lightOffset)
 
 #endif // endof SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
 
+#if defined(USE_BIG_TILE_LIGHTLIST)
+// This function is an adapted version of the start of FillVolumetricLightingBuffer() in VolumetricLighting.cs specialized for ProbeVolumes 
+void ProbeVolumeBigTileLightListFindCountAndStart(PositionInputs posInput, out uint probeVolumeStart, out uint probeVolumeCount)
+{
+    uint lightCount, lightStart;
+    uint tileIndex = posInput.tileCoord.x + _NumTileBigTileX * posInput.tileCoord.y;
+    
+    // Offset for stereo rendering
+    tileIndex += unity_StereoEyeIndex * _NumTileBigTileX * _NumTileBigTileY;
+
+    // The "big tile" list contains the number of objects contained within the tile followed by the
+    // list of object indices. Note that while objects are already sorted by type, we don't know the
+    // number of each type of objects (e.g. lights), so we should remember to break out of the loop.
+    lightCount = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex];
+    // On Metal for unknow reasons it seems we have bad value sometimes causing freeze / crash. This min here prevent it.
+    lightCount = min(lightCount, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE);
+    lightStart = MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex + 1;
+
+    // For now, iterate through all the objects to determine the correct range.
+    // TODO: precompute this, of course.
+    {
+        uint offset = 0;
+
+        probeVolumeCount = 0;
+        probeVolumeStart = 0;
+        for (; offset < lightCount; offset++)
+        {
+            uint objectIndex = FetchIndex(lightStart, offset);
+
+            // Probe Volumes are the last index shift in the list.
+            // Warning: This code is brittle: if another IndexShift category is added to LightLoop.cs, this function would need to be updated
+            // to add an upper bound range check, i.e: objectIndex < _NewCategoryIndexShift
+            if (objectIndex >= _ProbeVolumeIndexShift)
+            {
+                ++probeVolumeCount;
+
+                // Because indices start at 1 (due to lightCount stored at zero) we can use index0 as a sentinel for whether or not
+                // probeVolumeStart has been initialized yet.
+                probeVolumeStart = (probeVolumeStart == 0) ? (lightStart + offset) : probeVolumeStart;
+            }
+        }
+    }
+}
+#endif
+
 void ProbeVolumeGetCountAndStart(PositionInputs posInput, out uint probeVolumeStart, out uint probeVolumeCount)
 {
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -106,7 +151,17 @@ void ProbeVolumeGetCountAndStart(PositionInputs posInput, out uint probeVolumeSt
     ProbeVolumeMaterialPassGetCountAndStart(posInput, LIGHTCATEGORY_PROBE_VOLUME, probeVolumeStart, probeVolumeCount);
 #else // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     // Access probe volume data from standard lightloop light list data structure.
+
+#if defined(USE_BIG_TILE_LIGHTLIST)
+    // GetCountAndStart() is not defined for USE_BIG_TILE_LIGHTLIST
+    // This case is encountered when sampling probe volumes in VolumetricLighting.compute
+    // We need to manually scan here.
+    ProbeVolumeBigTileLightListFindCountAndStart(posInput, probeVolumeStart, probeVolumeCount);
+
+#else
     GetCountAndStart(posInput, LIGHTCATEGORY_PROBE_VOLUME, probeVolumeStart, probeVolumeCount);
+#endif
+
 #endif
 
 #else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER

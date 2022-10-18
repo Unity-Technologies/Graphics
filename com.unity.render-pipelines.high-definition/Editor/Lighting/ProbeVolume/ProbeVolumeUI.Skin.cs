@@ -25,6 +25,11 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
             internal static readonly GUIContent s_DebugColorLabel = new GUIContent("Debug Color", "This color is used to visualize per-pixel probe volume weights in the render pipeline debugger.");
             internal static readonly GUIContent s_DrawProbesLabel = new GUIContent("Draw Probes", "Enable or disable drawing probes.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRays = new GUIContent("Draw Octahedral Depth Rays", "Enable or disable drawing rays to visualize to the octahedral depth data.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexX = new GUIContent("Octahedral Depth Rays Probe X", "Specifies the x index of the probe to visualize octahedral depth rays for.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexY = new GUIContent("Octahedral Depth Rays Probe Y", "Specifies the y index of the probe to visualize octahedral depth rays for.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexZ = new GUIContent("Octahedral Depth Rays Probe Z", "Specifies the z index of the probe to visualize octahedral depth rays for.");
+
             internal static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the contribution fades in completely.");
             internal static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Exposes standard parameters.");
             internal static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");
@@ -42,7 +47,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal static readonly GUIContent s_VolumeBlendModeLabel = new GUIContent("Volume Blend Mode", "A blending mode for the entire volume when overlapping others.");
             internal static readonly GUIContent s_WeightLabel = new GUIContent("Weight", "Weigh the probe contribution for the entire volume.");
-            internal static readonly GUIContent s_NormalBiasWSLabel = new GUIContent("Normal Bias", "Controls the distance in world space units to bias along the surface normal to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing artifacts.\nSignificantly large values can have performance implications, as normal bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
+            internal static readonly GUIContent s_NormalBiasWSLabel = new GUIContent("Normal Bias", "Controls the distance in world space units to bias along the surface normal to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing and light leak artifacts.\nSignificantly large values can have performance implications, as normal bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
+            internal static readonly GUIContent s_ViewBiasWSLabel = new GUIContent("View Bias", "Controls the distance in world space units to bias toward the camera position to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing and light leak artifacts.\nSignificantly large values can have performance implications, as view bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
+
 
             internal static readonly GUIContent s_BackfaceToleranceLabel = new GUIContent("Backface Tolerance", "The percentage of backfaces sampled per probe is acceptable before probe will receive dilated data.");
             internal static readonly GUIContent s_DilationIterationLabel = new GUIContent("Dilation Iterations", "The number of iterations Dilation copies over data from each probe to its neighbors.");

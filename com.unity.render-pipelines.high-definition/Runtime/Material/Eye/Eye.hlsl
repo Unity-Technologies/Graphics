@@ -753,6 +753,17 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     return lighting;
 }
 
+float3 ComputeReflectionProbeNormalizationDirection(BSDFData bsdfData, PreLightData preLightData, float3 V)
+{
+    float3 N = bsdfData.normalWS;
+    float3 R = reflect(-V, bsdfData.normalWS);
+    R = GetSpecularDominantDir(N, R, preLightData.iblPerceptualRoughness, ClampNdotV(preLightData.NdotV));
+
+    // Output of GetSpecularDominantDir() is not normalized, as it is designed for cubemap texture fetches, which don't require normalized directions.
+    // For our use (evaluating SH) we need a normalized direction.
+    return normalize(R);
+}
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------

@@ -106,7 +106,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.NormalBlend | HDProbeUI.ToolBar.Blend,
             HDProbeUI.ToolBar.CapturePosition,
-            HDProbeUI.ToolBar.ShowChromeGizmo
+            HDProbeUI.ToolBar.ShowChromeGizmo,
+            HDProbeUI.ToolBar.ShowLuminanceSH
         };
         HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_ToolBars;
 

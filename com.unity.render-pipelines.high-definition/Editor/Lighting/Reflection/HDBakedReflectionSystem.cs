@@ -15,6 +15,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    // custom-begin
+    public
+    // custom-end
     unsafe class HDBakedReflectionSystem : ScriptableBakedReflectionSystem
     {
         struct HDProbeBakingState
