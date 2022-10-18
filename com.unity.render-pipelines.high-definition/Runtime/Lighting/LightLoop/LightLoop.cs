@@ -1982,6 +1982,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Propagate the distance based information to the env light data (only if we are not an infinite projection)
                     envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
 
+                    Quaternion captureRotationToWS = probe.ComputeCaptureRotationToWS();
+                    envLightData.captureRotationToWS = new Vector4(captureRotationToWS.x, captureRotationToWS.y, captureRotationToWS.z, captureRotationToWS.w);
+
                     break;
                 }
             }

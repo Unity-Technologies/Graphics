@@ -608,6 +608,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             switch (probe.settings.type)
             {
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    {
+                        probe.UpdateCaptureRotation();
+                        EditorUtility.SetDirty(probe);
+                        break;
+                    }
                 case ProbeSettings.ProbeType.PlanarProbe:
                     {
                         var planarProbe = (PlanarReflectionProbe)probe;

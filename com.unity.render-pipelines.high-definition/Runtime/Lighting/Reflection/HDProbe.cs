@@ -127,6 +127,19 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
 #endif
+        [SerializeField]
+        Quaternion m_CaptureRotation = Quaternion.identity;
+
+        internal void UpdateCaptureRotation()
+        {
+            m_CaptureRotation = transform.rotation;
+        }
+
+        internal Quaternion ComputeCaptureRotationToWS()
+        {
+            Quaternion captureRotationToWS = Quaternion.Inverse(transform.rotation) * m_CaptureRotation;
+            return captureRotationToWS;
+        }
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];

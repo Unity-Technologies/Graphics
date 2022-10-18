@@ -204,6 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Proxy properties
         public Vector3 capturePositionRWS;
 
+        public Vector4 captureRotationToWS;
+
         public EnvShapeType influenceShapeType;
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius

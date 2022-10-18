@@ -557,6 +557,12 @@ float ComputeDistanceBaseRoughness(float distIntersectionToShadedPoint, float di
     return lerp(newPerceptualRoughness, perceptualRoughness, perceptualRoughness);
 }
 
+float3 ComputeQuaternionRotate(float4 q, float3 v)
+{
+    float3 t = 2.0 * cross(q.xyz, v);
+    return v + q.w * t + cross(q.xyz, t);
+}
+
 // return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
 // return in R the unormalized corrected direction which is used to fetch cubemap but also its length represent the distance of the capture point to the intersection
 // Length R can be reuse as a parameter of ComputeDistanceBaseRoughness for distIntersectionToProbeCenter
@@ -587,6 +593,13 @@ float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLight
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in light.capturePositionRWS
         R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
 
+        // custom-begin
+        // Support rotating the resulting reflections, not just rotating the proxy / influence.
+        // This is necessary to handle reflection probes inside of prefabs, placed into scenes at arbitrary orientations,
+        // as well as to support streaming sub-scenes in an arbitrary orientations.
+        R = ComputeQuaternionRotate(light.captureRotationToWS, R);
+        // custom-end
+
         weight = InfluenceSphereWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
@@ -595,6 +608,10 @@ float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLight
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in light.capturePositionRWS
         R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
+
+        // custom-begin
+        R = ComputeQuaternionRotate(light.captureRotationToWS, R);
+        // custom-end
 
         weight = InfluenceBoxWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
