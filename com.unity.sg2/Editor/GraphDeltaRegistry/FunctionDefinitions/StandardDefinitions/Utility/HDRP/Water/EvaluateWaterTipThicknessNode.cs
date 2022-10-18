@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "LowFrequencyNormalWS",
-                    displayName: "Low Frequency NormalWS",
+                    displayName: "Low Frequency Normal WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

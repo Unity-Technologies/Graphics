@@ -39,7 +39,7 @@ SurfaceGradient = foamData.surfaceGradient;
                 hasPreview: false,
                 parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "SurfaceGradientinput",
+                    name: "SurfaceGradientInput",
                     displayName: "Surface Gradient Input",
                     tooltip: ""
                 ),

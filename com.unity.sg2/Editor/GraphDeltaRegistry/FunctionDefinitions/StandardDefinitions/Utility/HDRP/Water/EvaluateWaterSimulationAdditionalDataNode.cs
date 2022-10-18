@@ -23,7 +23,7 @@ DeepFoam = waterAdditionalData.deepFoam;
                 new ParameterDescriptor("BandsMultiplier", TYPE.Vec4, Usage.In, new float[] { 1f, 1f, 1f, 1f}),
                 new ParameterDescriptor("SurfaceGradient", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("LowFrequencySurfaceGradient", TYPE.Vec3, Usage.Out),
-                new ParameterDescriptor("SurfaceFoam", TYPE.Vec2, Usage.Out),
+                new ParameterDescriptor("SurfaceFoam", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("DeepFoam", TYPE.Float, Usage.Out)
             }
         );

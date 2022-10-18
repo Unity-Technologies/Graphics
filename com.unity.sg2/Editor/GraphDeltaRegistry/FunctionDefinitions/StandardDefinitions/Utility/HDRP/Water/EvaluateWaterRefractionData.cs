@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"ComputeWaterRefractionParams(positionWS, NormalWS, LowFrequencyNormalWS, screenPos.xy, viewWS, true, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, RefractedPositionWS, DistordedWaterNDC, refractedDistance, AbsorptionTint);",
+@"ComputeWaterRefractionParams(positionWS, NormalWS, LowFrequencyNormalWS, screenPos.xy, viewWS, true, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, RefractedPositionWS, DistortedWaterNDC, refractedDistance, AbsorptionTint);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("refractedDistance", TYPE.Float, Usage.Local),
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("LowFrequencyNormalWS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("RefractedPositionWS", TYPE.Vec3, Usage.Out),
-                new ParameterDescriptor("DistordedWaterNDC", TYPE.Vec2, Usage.Out),
+                new ParameterDescriptor("DistortedWaterNDC", TYPE.Vec2, Usage.Out),
                 new ParameterDescriptor("AbsorptionTint", TYPE.Vec3, Usage.Out)
             }
         );
@@ -49,8 +49,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "DistordedWaterNDC",
-                    displayName: "Distorded Water NDC",
+                    name: "DistortedWaterNDC",
+                    displayName: "Distorted Water NDC",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
