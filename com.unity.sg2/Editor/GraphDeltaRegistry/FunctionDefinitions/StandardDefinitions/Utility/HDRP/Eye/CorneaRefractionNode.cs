@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("PositionOS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("ViewDirectionOS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("CorneaNormalOS", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("CorneaIOR", TYPE.Float, Usage.In),
-                new ParameterDescriptor("IrisPlaneOffset", TYPE.Float, Usage.In),
+                new ParameterDescriptor("CorneaIOR", TYPE.Float, Usage.In, new float[] { 1.333f }),
+                new ParameterDescriptor("IrisPlaneOffset", TYPE.Float, Usage.In, new float[] { 0.02f }),
                 new ParameterDescriptor("RefractedPositionOS", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("refractedViewDirectionOS", TYPE.Vec3, Usage.Local),
                 new ParameterDescriptor("t", TYPE.Float, Usage.Local)
@@ -43,32 +43,32 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
-                    tooltip: ""
+                    tooltip: "Position of the fragment to shade in object space."
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDirectionOS",
                     displayName: "View Direction OS",
-                    tooltip: ""
+                    tooltip: "Direction of the incident ray in object space"
                 ),
                 new ParameterUIDescriptor(
                     name: "CorneaNormalOS",
                     displayName: "Cornea Normal OS",
-                    tooltip: ""
+                    tooltip: "The normal of the eye surface in object space."
                 ),
                 new ParameterUIDescriptor(
                     name: "CorneaIOR",
                     displayName: "Cornea IOR",
-                    tooltip: ""
+                    tooltip: "The index of refraction of the eye (1.333 by default)"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisPlaneOffset",
                     displayName: "Iris Plane Offset",
-                    tooltip: ""
+                    tooltip: "Distance between the end of the cornea and the iris plane."
                 ),
                 new ParameterUIDescriptor(
                     name: "RefractedPositionOS",
                     displayName: "Refracted Position OS",
-                    tooltip: ""
+                    tooltip: "Position of the refracted point on the iris plane in object space"
                 )
             }
         );

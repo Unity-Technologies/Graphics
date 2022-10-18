@@ -34,14 +34,14 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Provides access to the current object's position and scale.",
+            tooltip: "Provides access to the object's current position and scale.",
             category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "position", "scale" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Position",
-                    tooltip: "The Object position in world space."
+                    tooltip: "The object position in world space."
                 ),
                 new ParameterUIDescriptor(
                     name: "Scale",

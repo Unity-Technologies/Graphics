@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 new ParameterDescriptor("PositionOS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("ViewDirectionOS", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In),
+                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In, new float[] { 0.225f }),
                 new ParameterDescriptor("LimbalRingSize", TYPE.Float, Usage.In),
                 new ParameterDescriptor("LimbalRingFade", TYPE.Float, Usage.In),
                 new ParameterDescriptor("LimbalRingIntensity", TYPE.Float, Usage.In),
@@ -39,37 +39,37 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
-                    tooltip: ""
+                    tooltip: "Position of the current fragment to shade in object space "
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDirectionOS",
                     displayName: "View Direction OS",
-                    tooltip: ""
+                    tooltip: "Direction of the incident ray in object space"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisRadius",
                     displayName: "Iris Radius",
-                    tooltip: ""
+                    tooltip: "The radius of the Iris in the used model"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingSize",
                     displayName: "Limbal Ring Size",
-                    tooltip: ""
+                    tooltip: "Normalized value that defines the relative size of the limbal ring"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingFade",
                     displayName: "Limbal Ring Fade",
-                    tooltip: ""
+                    tooltip: "Normalized value that defines strength of the fade out of the limbal ring"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingIntensity",
                     displayName: "Limbal Ring Intensity",
-                    tooltip: ""
+                    tooltip: "Positive value that defines how dark the limbal ring is"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingFactor",
                     displayName: "Limbal Ring Factor",
-                    tooltip: ""
+                    tooltip: "Intensity of the limbal ring (blackscale)"
                 )
             }
         );

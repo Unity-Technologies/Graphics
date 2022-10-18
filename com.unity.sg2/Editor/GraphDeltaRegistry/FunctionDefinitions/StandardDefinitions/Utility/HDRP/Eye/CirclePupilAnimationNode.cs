@@ -51,12 +51,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "IrisUV",
                     displayName: "Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates that can be used to sample an iris texture"
                 ),
                 new ParameterUIDescriptor(
                     name: "PupilRadius",
                     displayName: "Pupil Radius",
-                    tooltip: ""
+                    tooltip: "Radius of the pupil in the iris texture as a percentage"
                 ),
                 new ParameterUIDescriptor(
                     name: "PupilAperture",
@@ -66,17 +66,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "MinPupilAperture",
                     displayName: "Minimum Pupil Aperture",
-                    tooltip: ""
+                    tooltip: "The minimum size of the pupil aperture"
                 ),
                 new ParameterUIDescriptor(
                     name: "MaxPupilAperture",
                     displayName: "Maximum Pupil Aperture",
-                    tooltip: ""
+                    tooltip: "The maximum size of the pupil aperture"
                 ),
                 new ParameterUIDescriptor(
                     name: "AnimatedIrisUV",
                     displayName: "Animated Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized iris UV coordinates with animation for pupil expansion/contraction"
                 )
             }
         );

@@ -29,12 +29,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
-                    tooltip: ""
+                    tooltip: "Position of the fragment to shade in object space"
                 ),
                 new ParameterUIDescriptor(
                     name: "ScleraUV",
                     displayName: "Sclera UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates that can be used to sample a sclera texture"
                 )
             }
         );

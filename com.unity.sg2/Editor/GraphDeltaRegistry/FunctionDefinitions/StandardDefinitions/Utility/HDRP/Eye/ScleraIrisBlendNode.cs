@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("IrisColor", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("IrisNormal", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("CorneaSmoothness", TYPE.Float, Usage.In),
-                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In),
+                new ParameterDescriptor("IrisRadius", TYPE.Float, Usage.In, new float[] { 0.225f }),
                 new ParameterDescriptor("PositionOS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("DiffusionProfileSclera", TYPE.Float, Usage.In),
                 new ParameterDescriptor("DiffusionProfileIris", TYPE.Float, Usage.In),
@@ -56,82 +56,82 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "ScleraColor",
                     displayName: "Sclera Color",
-                    tooltip: ""
+                    tooltip: "Color of the sclera at the target fragment"
                 ),
                 new ParameterUIDescriptor(
                     name: "ScleraNormal",
                     displayName: "Sclera Normal",
-                    tooltip: ""
+                    tooltip: "Normal of the sclera at the target fragment"
                 ),
                 new ParameterUIDescriptor(
                     name: "ScleraSmoothness",
                     displayName: "Sclera Smoothness",
-                    tooltip: ""
+                    tooltip: "Smoothness of the sclera at the target fragment"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisColor",
                     displayName: "Iris Color",
-                    tooltip: ""
+                    tooltip: "Color of the iris at the target fragment"
                 ),
                 new ParameterUIDescriptor(
                     name: "IrisNormal",
                     displayName: "Iris Normal",
-                    tooltip: ""
+                    tooltip: "Normal of the iris at the target fragment"
                 ),
                 new ParameterUIDescriptor(
                     name: "CorneaSmoothness",
                     displayName: "Cornea Smoothness",
-                    tooltip: ""
+                    tooltip: "Smoothness of the cornea at the target fragment"
                 ),
                new ParameterUIDescriptor(
                     name: "IrisRadius",
                     displayName: "Iris Radius",
-                    tooltip: ""
+                    tooltip: "The radius of the Iris in the model"
                 ),
                 new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
-                    tooltip: ""
+                    tooltip: "Position of the current fragment to shade in object space "
                 ),
                 new ParameterUIDescriptor(
                     name: "DiffusionProfileSclera",
                     displayName: "Diffusion Profile Sclera",
-                    tooltip: ""
+                    tooltip: "Diffusion profile used to compute the subsurface scattering of the sclera"
                 ),
                 new ParameterUIDescriptor(
                     name: "DiffusionProfileIris",
                     displayName: "Diffusion Profile Iris",
-                    tooltip: ""
+                    tooltip: "Diffusion profile used to compute the subsurface scattering of the iris"
                 ),
                 new ParameterUIDescriptor(
                     name: "EyeColor",
                     displayName: "Eye Color",
-                    tooltip: ""
+                    tooltip: "Final Diffuse color of the Eye"
                 ),
                 new ParameterUIDescriptor(
                     name: "SurfaceMask",
                     displayName: "Surface Mask",
-                    tooltip: ""
+                    tooltip: "Linear, normalized value that defines where the fragment is. On the Cornea, this is 1 and on the Sclera, this is 0."
                 ),
                 new ParameterUIDescriptor(
                     name: "DiffuseNormal",
                     displayName: "Diffuse Normal",
-                    tooltip: ""
+                    tooltip: "Normal of the diffuse lobes"
                 ),
                 new ParameterUIDescriptor(
                     name: "SpecularNormal",
                     displayName: "Specular Normal",
-                    tooltip: ""
+                    tooltip: "Normal of the specular lobes"
                 ),
                 new ParameterUIDescriptor(
                     name: "EyeSmoothness",
                     displayName: "Eye Smoothness",
-                    tooltip: ""
+                    tooltip: "Final smoothness of the Eye"
                 ),
                 new ParameterUIDescriptor(
                     name: "SurfaceDiffusionProfile",
                     displayName: "Surface Diffusion Profile",
-                    tooltip: ""
+                    tooltip: "Diffusion profile of the target fragment"
                 )
             }
         );

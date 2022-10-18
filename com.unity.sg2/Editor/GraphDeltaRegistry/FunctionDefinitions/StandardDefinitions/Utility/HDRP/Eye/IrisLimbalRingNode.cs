@@ -45,32 +45,32 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "IrisUV",
                     displayName: "Iris UV",
-                    tooltip: ""
+                    tooltip: "Normalized UV coordinates that can be used to sample a texture"
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDirectionOS",
                     displayName: "View Direction OS",
-                    tooltip: ""
+                    tooltip: "Direction of the incident ray in object space"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingSize",
                     displayName: "Limbal Ring Size",
-                    tooltip: ""
+                    tooltip: "Normalized value that defines the relative size of the limbal ring"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingFade",
                     displayName: "Limbal Ring Fade",
-                    tooltip: ""
+                    tooltip: "Normalized value that defines strength of the fade out of the limbal ring"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingIntensity",
                     displayName: "Limbal Ring Intensity",
-                    tooltip: ""
+                    tooltip: "Positive value that defines how dark the limbal ring is"
                 ),
                 new ParameterUIDescriptor(
                     name: "LimbalRingFactor",
                     displayName: "Limbal Ring Factor",
-                    tooltip: ""
+                    tooltip: "Intensity of the limbal ring"
                 )
             }
         );
