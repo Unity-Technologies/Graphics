@@ -11,14 +11,15 @@ namespace UnityEditor.ShaderGraph.Defs
                 Name,
     @"FoamData foamData;
 ZERO_INITIALIZE(FoamData, foamData);
-EvaluateFoamData(SurfaceGradient, LowFrequencySurfaceGradient, SimulationFoam, customFoam, UV0.xyz, foamData);
+EvaluateFoamData(SurfaceGradientInput, LowFrequencySurfaceGradient, SimulationFoam, customFoam, UV0.xyz, foamData);
 Smoothness = foamData.smoothness;
-
+Foam = foamData.foamValue;
+SurfaceGradient = foamData.surfaceGradient;
 ",
                 new ParameterDescriptor[]
                 {
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Local, REF.UV0),
-                new ParameterDescriptor("SurfaceGradient", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("SurfaceGradientInput", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("LowFrequencySurfaceGradient", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("SimulationFoam", TYPE.Float, Usage.In),
                 new ParameterDescriptor("CustomFoam", TYPE.Float, Usage.In),
@@ -38,8 +39,8 @@ Smoothness = foamData.smoothness;
                 hasPreview: false,
                 parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "SurfaceGradient",
-                    displayName: "Surface Gradient",
+                    name: "SurfaceGradientinput",
+                    displayName: "Surface Gradient Input",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
