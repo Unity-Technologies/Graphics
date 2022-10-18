@@ -1666,6 +1666,12 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
+            // Currently testing this theory:
+            // Always submit the hybrid renderer command buffer, even if HDRP isn't initialized or if no cameras are rendering.
+            // This seems to be needed because the sparse uploader may upload state changes on frames when a camera has not been streamed in yet.
+            // Skipping these state changes results in state / corrupt global state.
+            s_HybridRendererCommandBufferData.Submit(renderContext);
+
 #if UNITY_EDITOR
             if (!m_ResourcesInitialized)
                 return;
