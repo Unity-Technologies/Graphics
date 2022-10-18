@@ -15,13 +15,13 @@ namespace UnityEditor.ShaderGraph.Defs
                     "Linear01",
 @"    dist = Remap01(length(PositionWS), _ProjectionParams.y, _ProjectionParams.z);
 #if defined(UNITY_REVERSED_Z)
-    Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), _ZBufferParams) - dist;
+    Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams) - dist;
 #else
-    Out = dist - Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), _ZBufferParams);
+    Out = dist - Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 #endif",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                         new ParameterDescriptor("dist", TYPE.Float, Usage.Local)
@@ -31,13 +31,13 @@ namespace UnityEditor.ShaderGraph.Defs
                     "Raw",
 @"    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(PositionWS, GetWorldToHClipMatrix()).z;
 #if defined(UNITY_REVERSED_Z)
-    Out = deviceDepth - SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV);
+    Out = deviceDepth - SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);
 #else
-    Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV) - deviceDepth;
+    Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy) - deviceDepth;
 #endif",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                         new ParameterDescriptor("deviceDepth", TYPE.Float, Usage.Local)
@@ -48,22 +48,22 @@ namespace UnityEditor.ShaderGraph.Defs
 @"    if (IsPerspectiveProjection())
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = LinearEyeDepth(ComputeWorldSpacePosition(UV, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
+        Out = LinearEyeDepth(ComputeWorldSpacePosition(UV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
 #else
-        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(UV, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
+        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(UV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
 #endif
     }
     else
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), _ZBufferParams) - length(PositionWS);
+        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams) - length(PositionWS);
 #else
-        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV), _ZBufferParams);
+        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 #endif
     }",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     }

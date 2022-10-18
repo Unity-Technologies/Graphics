@@ -13,13 +13,13 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new (
                     "NormalWorldSpace",
-@"   uint2 pixelCoords = uint2(UV * _ScreenSize.xy);
+@"   uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
    NormalData normalData;
    DecodeFromNormalBuffer(pixelCoords, normalData);
    Out = normalData.normalWS;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         //I don't see the sampler param getting used anywhere.  Is it needed?
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
@@ -32,13 +32,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "Smoothness",
-@"   uint2 pixelCoords = uint2(UV * _ScreenSize.xy);
+@"   uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
    NormalData normalData;
    DecodeFromNormalBuffer(pixelCoords, normalData);
    Out = IsSky(pixelCoords) ? 1 : RoughnessToPerceptualSmoothness(PerceptualRoughnessToRoughness(normalData.perceptualRoughness));",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         //I don't see the sampler param getting used anywhere.  Is it needed?
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
@@ -51,14 +51,14 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "MotionVectors",
-@"   uint2 pixelCoords = uint2(UV * _ScreenSize.xy);
+@"   uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
    float4 motionVecBufferSample = LOAD_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, pixelCoords, 0);
    float2 motionVec;
    DecodeMotionVector(motionVecBufferSample, motionVec);
    Out = motionVec;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         //I don't see the sampler param getting used anywhere.  Is it needed?
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
@@ -71,10 +71,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "IsSky",
-@"   Out = IsSky(UV) ? 1 : 0;",
+@"   Out = IsSky(UV.xy) ? 1 : 0;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         //I don't see the sampler param getting used anywhere.  Is it needed?
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
@@ -91,11 +91,11 @@ namespace UnityEditor.ShaderGraph.Defs
 //In SG1, _CustomPostProcessInput is a dynamic variable. How do we do that?
 @"   TEXTURE2D_X(_CustomPostProcessInput);
    SAMPLER(sampler_CustomPostProcessInput);
-   uint2 pixelCoords = uint2(UV * _ScreenSize.xy);
+   uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
    Out = LOAD_TEXTURE2D_X_LOD(_CustomPostProcessInput, pixelCoords, 0);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
                     },

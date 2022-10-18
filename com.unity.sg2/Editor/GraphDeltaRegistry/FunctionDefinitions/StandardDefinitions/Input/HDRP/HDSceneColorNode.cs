@@ -14,16 +14,16 @@ namespace UnityEditor.ShaderGraph.Defs
     if (Exposure) exposureMultiplier = 1.0;
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
      && (SHADERPASS != SHADERPASS_PATH_TRACING) && (SHADERPASS != SHADERPASS_RAYTRACING_VISIBILITY) && (SHADERPASS != SHADERPASS_RAYTRACING_FORWARD)
-       Out = SampleCameraColor(UV, Lod) * exposureMultiplier;
+       Out = SampleCameraColor(UV.xy, Lod) * exposureMultiplier;
 #elif defined(REQUIRE_OPAQUE_TEXTURE) && defined(CUSTOM_PASS_SAMPLING_HLSL) && defined(SHADERPASS)
      && (SHADERPASS == SHADERPASS_DRAWPROCEDURAL || SHADERPASS == SHADERPASS_BLIT)
-       Out = CustomPassSampleCameraColor(UV, Lod) * exposureMultiplier;
+       Out = CustomPassSampleCameraColor(UV.xy, Lod) * exposureMultiplier;
 #else
        Out = float3(0.0, 0.0, 0.0);
 #endif",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                 new ParameterDescriptor("Lod", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("Exposure", TYPE.Bool, Usage.Static),

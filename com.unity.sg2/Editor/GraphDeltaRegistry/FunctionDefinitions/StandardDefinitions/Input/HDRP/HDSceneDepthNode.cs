@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     "Linear01",
 @"#if defined(REQUIRE_DEPTH_TEXTURE) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
-   int2 coord = int2(UV * _ScreenSize.xy);
+   int2 coord = int2(UV.xy * _ScreenSize.xy);
    int2 mipCoord  = coord.xy >> int(Lod);
    int2 mipOffset = _DepthPyramidMipLevelOffsets[int(Lod)];
    temp = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	Out = Linear01Depth(temp, _ZBufferParams);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Lod", TYPE.Float, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                         new ParameterDescriptor("temp", TYPE.Float, Usage.Local)
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     "Raw",
 @"#if defined(REQUIRE_DEPTH_TEXTURE) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
-   int2 coord = int2(UV * _ScreenSize.xy);
+   int2 coord = int2(UV.xy * _ScreenSize.xy);
    int2 mipCoord  = coord.xy >> int(Lod);
    int2 mipOffset = _DepthPyramidMipLevelOffsets[int(Lod)];
    Out = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Defs
 #endif",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Lod", TYPE.Float, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     }
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     "Eye",
 @"#if defined(REQUIRE_DEPTH_TEXTURE) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
-   int2 coord = int2(UV * _ScreenSize.xy);
+   int2 coord = int2(UV.xy * _ScreenSize.xy);
    int2 mipCoord  = coord.xy >> int(Lod);
    int2 mipOffset = _DepthPyramidMipLevelOffsets[int(Lod)];
    temp = LOAD_TEXTURE2D_X(_CameraDepthTexture, mipOffset + mipCoord).r;
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	Out = LinearEyeDepth(temp, _ZBufferParams);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Lod", TYPE.Float, Usage.In),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                         new ParameterDescriptor("temp", TYPE.Float, Usage.Local)

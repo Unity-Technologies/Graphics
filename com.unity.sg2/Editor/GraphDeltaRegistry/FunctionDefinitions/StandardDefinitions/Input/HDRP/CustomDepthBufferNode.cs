@@ -14,30 +14,30 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     "Linear01",
 //SampleCustomDepth() not found
-@"   Out = Linear01Depth(SampleCustomDepth(UV), _ZBufferParams);",
+@"   Out = Linear01Depth(SampleCustomDepth(UV.xy), _ZBufferParams);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     }
                 ),
                 new (
                     "Raw",
 //SampleCustomDepth() not found
-@"   Out = SampleCustomDepth(UV);",
+@"   Out = SampleCustomDepth(UV.xy);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     }
                 ),
                 new (
                     "Eye",
 //SampleCustomDepth() not found
-@"   Out = LinearEyeDepth(SampleCustomDepth(UV), _ZBufferParams)",
+@"   Out = LinearEyeDepth(SampleCustomDepth(UV.xy), _ZBufferParams)",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                        new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
                     }
                 ),
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "The screen coordinates to use for the sample",
+                    tooltip: "the screen coordinates to use for the sample",
                     options: REF.OptionList.ScreenPositions
                 ),
                 new ParameterUIDescriptor(

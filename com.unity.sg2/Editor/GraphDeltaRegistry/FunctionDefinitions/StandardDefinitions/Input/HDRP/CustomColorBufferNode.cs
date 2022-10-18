@@ -10,10 +10,10 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
 //SampleCustomColor() isn't found
-@"    Out = SampleCustomColor(UV);",
+@"    Out = SampleCustomColor(UV.xy);",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
+                new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
                 new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
             }
         );
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "The screen coordinates to use for the sample",
+                    tooltip: "the screen coordinates to use for the sample",
                     options: REF.OptionList.ScreenPositions
                 ),
                 new ParameterUIDescriptor(
