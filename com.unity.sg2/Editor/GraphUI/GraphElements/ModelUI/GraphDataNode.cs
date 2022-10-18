@@ -61,6 +61,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Only add new node parts for static ports.
                 var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
                 var portKey = portReader.GetTypeField().GetRegistryKey();
+                // TODO: Move this stuff so it gets initialized as part of NodeUIDescriptors
+                // TODO: and stored there so SGNodeUIData can access it
                 bool isStatic = staticField?.GetData() ?? false;
                 bool isGradientType = portKey.Name == Registry.ResolveKey<GradientType>().Name;
                 var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portReader.LocalID);
