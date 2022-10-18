@@ -692,6 +692,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { Pragma.HighDefinitionExtensionsEnabled },
         };
 
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
@@ -884,6 +885,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // CoreUtility
         public const string kBuiltInUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl";
         public const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
+
+        // custom-begin:
+        public const string kDissolveOnOcclusion = "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl";
+        // custom-end
 
         // Pregraph Raytracing
         public const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
@@ -1341,6 +1346,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
+
+		// custom-begin:
+        public static KeywordDescriptor DissolveOnOcclusion = new KeywordDescriptor()
+        {
+            displayName = "Enable Dissolve On Occlusion",
+            referenceName = "_ENABLE_DISSOLVE_ON_OCCLUSION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
+        // custom-end
     }
 #endregion
 }

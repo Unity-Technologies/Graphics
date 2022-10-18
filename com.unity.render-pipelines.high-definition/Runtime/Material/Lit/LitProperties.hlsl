@@ -106,12 +106,6 @@ float _AlphaCutoffShadow;
 float _AlphaCutoffPrepass;
 float _AlphaCutoffPostpass;
 float4 _DoubleSidedConstants;
-float _DistortionScale;
-float _DistortionVectorScale;
-float _DistortionVectorBias;
-float _DistortionBlurScale;
-float _DistortionBlurRemapMin;
-float _DistortionBlurRemapMax;
 float _BlendMode;
 float _EnableBlendModePreserveSpecularLighting;
 
@@ -156,7 +150,19 @@ float _SpecularAAThreshold;
 // Raytracing
 float _RayTracing;
 
+// custom-begin:
+float _EnableDissolveOnOcclusion;
+float _DissolveOnOcclusionOpacity;
+// custom-end
+
 #ifndef LAYERED_LIT_SHADER
+
+float _DistortionScale;
+float _DistortionVectorScale;
+float _DistortionVectorBias;
+float _DistortionBlurScale;
+float _DistortionBlurRemapMin;
+float _DistortionBlurRemapMax;
 
 // Set of users variables
 float4 _BaseColor;
@@ -380,6 +386,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float, _DistortionBlurScale)
     UNITY_DOTS_INSTANCED_PROP(float, _DistortionBlurRemapMin)
     UNITY_DOTS_INSTANCED_PROP(float, _DistortionBlurRemapMax)
+    UNITY_DOTS_INSTANCED_PROP(float, _DissolveOnOcclusionOpacity)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor0              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor0)
@@ -460,6 +467,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _DistortionBlurScale        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionBlurScale)
 #define _DistortionBlurRemapMin        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionBlurRemapMin)
 #define _DistortionBlurRemapMax        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionBlurRemapMax)
+#define _DissolveOnOcclusionOpacity        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DissolveOnOcclusionOpacity)
 
 #else
 
@@ -488,6 +496,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float, _DistortionBlurScale)
     UNITY_DOTS_INSTANCED_PROP(float, _DistortionBlurRemapMin)
     UNITY_DOTS_INSTANCED_PROP(float, _DistortionBlurRemapMax)
+    UNITY_DOTS_INSTANCED_PROP(float, _DissolveOnOcclusionOpacity)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor)
@@ -515,6 +524,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _DistortionBlurScale        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionBlurScale)
 #define _DistortionBlurRemapMin        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionBlurRemapMin)
 #define _DistortionBlurRemapMax        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionBlurRemapMax)
+#define _DissolveOnOcclusionOpacity         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DissolveOnOcclusionOpacity)
 
 #endif
 #endif

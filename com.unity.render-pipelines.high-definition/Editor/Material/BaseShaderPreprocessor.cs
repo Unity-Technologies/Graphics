@@ -54,6 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
 
         // custom-begin:
+        protected ShaderKeyword m_HighDefinitionExtensionsEnabled;
+        protected ShaderTagId m_CustomGraphShaderTag;
         protected ShaderKeyword m_LightmapOn;
         protected ShaderKeyword m_DirLightmapCombined;
         protected ShaderKeyword m_DynamicLightmapOn;
@@ -91,6 +93,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
 
             // custom-begin:
+            m_HighDefinitionExtensionsEnabled = new ShaderKeyword("HIGH_DEFINITION_EXTENSIONS_ENABLED");
+            m_CustomGraphShaderTag = new ShaderTagId("CustomGraphType");
+
             // It seems that lightmap variants (which we do not use in our project) are not being automatically stripped, and are blowing up the build times.
             // Store references to these ShaderKeywords so that we can force strip them out in the preprocessor.
             m_LightmapOn = new ShaderKeyword("LIGHTMAP_ON");

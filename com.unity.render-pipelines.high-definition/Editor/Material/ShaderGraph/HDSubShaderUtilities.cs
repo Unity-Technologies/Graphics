@@ -222,6 +222,14 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kTransparentDepthPostpassEnable, postpass);
         }
 
+        // custom-begin:
+        public static void AddDissolveOccludersProperties(PropertyCollector collector, bool enableDissolveOnOcclusion, float dissolveOnOcclusionOpacity)
+        {
+            collector.AddToggleProperty("_EnableDissolveOnOcclusion", enableDissolveOnOcclusion);
+            collector.AddFloatProperty("_DissolveOnOcclusionOpacity", dissolveOnOcclusionOpacity, HLSLDeclaration.HybridPerInstance);
+        }
+        // custom-end
+
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)

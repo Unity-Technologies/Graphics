@@ -37,6 +37,11 @@ float3 _EmissionColor;
 // By default, the emissive is contributing
 float _IncludeIndirectLighting;
 
+// custom-begin:
+float _EnableDissolveOnOcclusion;
+float _DissolveOnOcclusionOpacity;
+// custom-end
+
 // Following two variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;

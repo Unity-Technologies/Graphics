@@ -14,6 +14,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma multi_compile _ DOTS_INSTANCING_ON
+    #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
     // List all the attributes needed in your shader (will be passed to the vertex shader)
     // you can see the complete list of these attributes in VaryingMesh.hlsl

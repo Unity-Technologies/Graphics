@@ -150,6 +150,11 @@ Shader "HDRP/AxF"
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        [HideInInspector] _DissolveOnOcclusionOpacity("_DissolveOnOcclusionOpacity", Range(0.0, 1.0)) = 1
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -176,6 +181,10 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+
+    // custom-begin:
+    #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
@@ -227,6 +236,8 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             // Note: Require _SelectionID variable
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
@@ -255,6 +266,8 @@ Shader "HDRP/AxF"
             Cull Off
 
             HLSLPROGRAM
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -285,6 +298,8 @@ Shader "HDRP/AxF"
 
 
             HLSLPROGRAM
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -317,6 +332,8 @@ Shader "HDRP/AxF"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -354,6 +371,7 @@ Shader "HDRP/AxF"
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -392,6 +410,7 @@ Shader "HDRP/AxF"
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -443,6 +462,8 @@ Shader "HDRP/AxF"
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
             // Don't do it with debug display mode as it is possible there is no depth prepass in this case
@@ -490,6 +511,8 @@ Shader "HDRP/AxF"
             ZTest LEqual
 
             HLSLPROGRAM
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"

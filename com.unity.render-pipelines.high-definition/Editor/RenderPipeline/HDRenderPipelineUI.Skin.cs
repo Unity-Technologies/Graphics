@@ -231,6 +231,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
 
+            public static readonly GUIContent highDefinitionExtensionsEnabled = EditorGUIUtility.TrTextContent("HD Extensions Enabled", "When enabled, custom hlsl files will be included from com.unity.render-pipelines.high-definition-extensions in order to support project specific shader customizations.");
+
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";
             public const string lotShaderVariantDrawback = "Adds multiple Shader Variants";

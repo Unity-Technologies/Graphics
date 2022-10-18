@@ -94,6 +94,11 @@ Shader "HDRP/Unlit"
         // Debug constants must be exposed as properties so the shader is compatible
         // with the SRP batcher
         [HideInInspector] _UnlitColorMap_MipInfo("_UnlitColorMap_MipInfo", Vector) = (0, 0, 0, 0)
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        [HideInInspector] _DissolveOnOcclusionOpacity("_DissolveOnOcclusionOpacity", Range(0.0, 1.0)) = 1
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -116,6 +121,10 @@ Shader "HDRP/Unlit"
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
+
+    // custom-begin:
+    #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -160,6 +169,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -204,6 +214,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
@@ -250,6 +261,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
@@ -298,6 +310,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #pragma multi_compile _ DEBUG_DISPLAY
 
@@ -334,6 +347,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -372,6 +386,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -411,6 +426,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_DISTORTION
 
@@ -441,6 +457,7 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -470,6 +487,7 @@ Shader "HDRP/Unlit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -500,6 +518,7 @@ Shader "HDRP/Unlit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -527,6 +546,8 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -560,6 +581,7 @@ Shader "HDRP/Unlit"
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
@@ -589,6 +611,8 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 

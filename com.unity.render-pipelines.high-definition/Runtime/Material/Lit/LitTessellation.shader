@@ -222,6 +222,11 @@ Shader "HDRP/LitTessellation"
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        [HideInInspector] _DissolveOnOcclusionOpacity("_DissolveOnOcclusionOpacity", Range(0.0, 1.0)) = 1
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -366,6 +371,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -406,6 +413,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -455,8 +464,11 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -508,6 +520,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -551,6 +565,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -597,6 +613,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -653,6 +671,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_DECAL_BUFFER
@@ -704,6 +724,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_PREPASS
 
@@ -751,6 +773,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -828,6 +852,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -899,6 +925,8 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
 
             #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -961,6 +989,7 @@ Shader "HDRP/LitTessellation"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
