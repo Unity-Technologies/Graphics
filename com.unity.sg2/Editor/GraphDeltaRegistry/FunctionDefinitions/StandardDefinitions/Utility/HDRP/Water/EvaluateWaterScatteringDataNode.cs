@@ -43,7 +43,7 @@ TipThickness = scatteringData.tipThickness;",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "NormalWS",
-                    displayName: "NormalWS",
+                    displayName: "Normal WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
@@ -53,7 +53,7 @@ TipThickness = scatteringData.tipThickness;",
                 ),
                 new ParameterUIDescriptor(
                     name: "PositionWS",
-                    displayName: "PositionWS",
+                    displayName: "Position WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
@@ -63,7 +63,7 @@ TipThickness = scatteringData.tipThickness;",
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewWS",
-                    displayName: "ViewWS",
+                    displayName: "View WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

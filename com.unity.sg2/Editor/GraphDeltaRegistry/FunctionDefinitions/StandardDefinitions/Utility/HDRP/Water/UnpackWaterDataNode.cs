@@ -43,8 +43,8 @@ HorizontalDisplacement = UV.w;",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "SSS Mask",
-                    displayName: "SSSMask",
+                    name: "SSSMask",
+                    displayName: "SSS Mask",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

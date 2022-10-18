@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
 @"Out = GetWaterVertexPosition(positionWS);",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("positionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
+                new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
                 new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
             }
         );

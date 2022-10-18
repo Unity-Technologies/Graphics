@@ -38,31 +38,40 @@ Smoothness = foamData.smoothness;
                 hasPreview: false,
                 parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "NormalWS",
-                    displayName: "NormalWS",
+                    name: "SurfaceGradient",
+                    displayName: "Surface Gradient",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "LowFrequencyNormalWS",
-                    displayName: "Low Frequency NormalWS",
+                    name: "LowFrequencySurfaceGradient",
+                    displayName: "Low Frequency Surface Gradient",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "RefractedPositionWS",
-                    displayName: "Refracted PositionWS",
+                    name: "SimulationFoam",
+                    displayName: "Simulation Foam",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "DistordedWaterNDC",
-                    displayName: "Distorded Water NDC",
+                    name: "CustomFoam",
+                    displayName: "Custom Foam",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "AbsorptionTint",
-                    displayName: "Absorption Tint",
+                    name: "SurfaceGradient",
+                    displayName: "Surface Gradient",
                     tooltip: ""
-                )
-                }
+                ),
+                new ParameterUIDescriptor(
+                    name: "Foam",
+                    displayName: "Foam",
+                    tooltip: ""
+                ),
+                new ParameterUIDescriptor(
+                    name: "Smoothness",
+                    displayName: "Smoothness",
+                    tooltip: ""
+                )                }
             );
         }
     }

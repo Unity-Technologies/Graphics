@@ -2,9 +2,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateTipThicknessWaterNode : IStandardNode
+    internal class EvaluateWaterTipThicknessNode : IStandardNode
     {
-        public static string Name => "EvaluateTipThicknessWater";
+        public static string Name => "EvaluateWaterTipThickness";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Tip Thickness Water",
+            displayName: "Evaluate Water Tip Thickness",
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: new string[0],

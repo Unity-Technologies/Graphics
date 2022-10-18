@@ -36,7 +36,7 @@ SSSMask = displacementData.sssMask;",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "PositionWS",
-                    displayName: "PositionWS",
+                    displayName: "Position WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

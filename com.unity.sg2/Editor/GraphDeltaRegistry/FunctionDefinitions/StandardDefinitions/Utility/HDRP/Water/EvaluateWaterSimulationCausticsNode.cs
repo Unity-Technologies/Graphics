@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "RefractedPositionWS",
-                    displayName: "Refracted PositionWS",
+                    displayName: "Refracted Position WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

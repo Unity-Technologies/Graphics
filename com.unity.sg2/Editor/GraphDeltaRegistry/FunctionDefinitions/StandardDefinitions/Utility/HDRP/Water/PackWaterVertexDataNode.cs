@@ -40,7 +40,7 @@ uv1 = packedWaterData.uv1;",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "PositionWS",
-                    displayName: "PositionWS",
+                    displayName: "Position WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
@@ -54,17 +54,17 @@ uv1 = packedWaterData.uv1;",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "SSS Mask",
-                    displayName: "SSSMask",
+                    name: "SSSMask",
+                    displayName: "SSS Mask",
                     tooltip: ""
                 ),                new ParameterUIDescriptor(
                     name: "PositionOS",
-                    displayName: "PositionOS",
+                    displayName: "Position OS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
                     name: "NormalOS",
-                    displayName: "NormalOS",
+                    displayName: "Normal OS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

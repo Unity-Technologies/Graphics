@@ -35,17 +35,17 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "NormalWS",
-                    displayName: "NormalWS",
+                    displayName: "Normal WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
                     name: "LowFrequencyNormalWS",
-                    displayName: "Low Frequency NormalWS",
+                    displayName: "Low Frequency Normal WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
                     name: "RefractedPositionWS",
-                    displayName: "Refracted PositionWS",
+                    displayName: "Refracted Position WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(

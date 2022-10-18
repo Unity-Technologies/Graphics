@@ -20,10 +20,10 @@ DeepFoam = waterAdditionalData.deepFoam;
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Local, REF.UV0),
-                new ParameterDescriptor("BandsMutliplier", TYPE.Vec4, Usage.In, new float[] { 1f, 1f, 1f, 1f}),
-                new ParameterDescriptor("SurfaceGradient", TYPE.Vec3, Usage.Local),
-                new ParameterDescriptor("LowFrequencySurfaceGradient", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("SurfaceFoam", TYPE.Vec2, Usage.In),
+                new ParameterDescriptor("BandsMultiplier", TYPE.Vec4, Usage.In, new float[] { 1f, 1f, 1f, 1f}),
+                new ParameterDescriptor("SurfaceGradient", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("LowFrequencySurfaceGradient", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("SurfaceFoam", TYPE.Vec2, Usage.Out),
                 new ParameterDescriptor("DeepFoam", TYPE.Float, Usage.Out)
             }
         );
@@ -38,8 +38,8 @@ DeepFoam = waterAdditionalData.deepFoam;
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "BandsMutliplier",
-                    displayName: "Bands Mutliplier",
+                    name: "BandsMultiplier",
+                    displayName: "Bands Multiplier",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
