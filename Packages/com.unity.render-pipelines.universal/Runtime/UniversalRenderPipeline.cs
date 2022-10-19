@@ -1218,7 +1218,7 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize shared TAA target desc.
                 ref var desc = ref cameraData.cameraTargetDescriptor;
                 cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
-                cameraData.taaPersistentData.Init(desc.width, desc.height, desc.graphicsFormat, desc.vrUsage, desc.dimension);
+                cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
 
                 ref var taaSettings = ref additionalCameraData.taaSettings;
                 cameraData.taaSettings = taaSettings;
