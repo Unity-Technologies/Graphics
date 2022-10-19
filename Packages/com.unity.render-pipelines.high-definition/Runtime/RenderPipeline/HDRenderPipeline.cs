@@ -468,6 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool apvIsEnabled = IsAPVEnabled();
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
             if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
