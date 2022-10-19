@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 builder.SetRenderFunc(
-                (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
+                (DebugOverlayPassData data, RenderGraphContext ctx) =>
                 {
                     RenderProbeVolumeDebugOverlay(data.debugParameters, ctx.cmd);
                 });

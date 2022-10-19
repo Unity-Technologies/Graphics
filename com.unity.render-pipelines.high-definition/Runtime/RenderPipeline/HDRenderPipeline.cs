@@ -2591,7 +2591,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd);
 
             // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
-            ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
+            ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(hdCamera, cmd, m_RenderGraph);
             // Cache probe volume list as a member variable so it can be accessed inside of async compute tasks.
             SetProbeVolumeList(probeVolumes);
 
