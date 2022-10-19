@@ -180,6 +180,7 @@ namespace UnityEngine.Rendering.Universal
         // asset.
         private readonly UniversalRenderPipelineAsset pipelineAsset;
 
+        /// <inheritdoc/>
         public override string ToString() => pipelineAsset?.ToString();
 
         /// <summary>
