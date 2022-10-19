@@ -751,6 +751,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsPathTracingEnabled()
         {
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+                return false;
+
             var pathTracing = volumeStack.GetComponent<PathTracing>();
             return pathTracing ? pathTracing.enable.value : false;
         }
