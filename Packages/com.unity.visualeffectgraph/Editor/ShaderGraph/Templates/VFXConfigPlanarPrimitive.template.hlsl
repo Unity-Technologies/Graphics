@@ -120,8 +120,9 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         GetElementData(element);
         const InternalAttributesElement attributes = element.attributes;
 
+        $splice(VFXLoadGraphValues)
+
         // Here we have to explicitly splice in the crop factor.
-        GraphValues graphValues = graphValuesBuffer[instanceIndex];
         $splice(VFXLoadCropFactorParameter)
 
         const float correctedCropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
@@ -195,7 +196,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         uint index, instanceIndex, instanceActiveIndex;
         GetVFXInstancingIndices(index, instanceIndex, instanceActiveIndex);
         #if VFX_USE_GRAPH_VALUES
-        GraphValues graphValues = graphValuesBuffer[instanceActiveIndex];
+        $splice(VFXLoadGraphValues)
         #endif
 
         InternalAttributesElement attributes;

@@ -378,11 +378,7 @@ uint instanceIndex, instanceActiveIndex;
 index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);
 ${VFXEnd}
 
-${VFXBegin:VFXLoadGraphValues}
-#if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[instanceActiveIndex];
-#endif
-${VFXEnd}
+
 
 ${VFXBegin:VFXInstancingConstants}
 float4 instancingConstants;

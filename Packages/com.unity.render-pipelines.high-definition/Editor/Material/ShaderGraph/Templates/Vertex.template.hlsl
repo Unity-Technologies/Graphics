@@ -62,15 +62,9 @@ VertexDescription GetVertexDescription(AttributesMesh input, float3 timeParamete
 #ifdef HAVE_VFX_MODIFICATION
     GraphProperties properties;
     ZERO_INITIALIZE(GraphProperties, properties);
-#if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[element.instanceActiveIndex];
-#endif
+
     // Fetch the vertex graph properties for the particle instance.
-    GetElementVertexProperties(element, properties
-#if VFX_USE_GRAPH_VALUES
-        ,graphValues
-#endif
-    );
+    GetElementVertexProperties(element, properties);
 
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
 #else

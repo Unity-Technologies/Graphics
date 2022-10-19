@@ -133,7 +133,8 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor loadCurrentFrameIndexParameterDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesAssignDescriptor,
-            out AdditionalCommandDescriptor setInstancingIndicesDescriptor)
+            out AdditionalCommandDescriptor setInstancingIndicesDescriptor,
+            out AdditionalCommandDescriptor fillGraphValuesDescriptor)
         {
             // TODO: Clean all of this up. Currently just an adapter between VFX Code Gen + SG Code Gen and *everything* has been stuffed here.
 
@@ -177,6 +178,9 @@ namespace UnityEditor.VFX
             VFXCodeGenerator.BuildPixelPropertiesAssign(context, contextData, shaderGraphBinder.useFragInputs, out var pixelPropertiesAssign);
             pixelPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXPixelPropertiesAssign", pixelPropertiesAssign);
 
+            VFXCodeGenerator.BuildFillGraphValues(contextData, graphValuesLayout, systemUniformMapper, out var fillGraphValues);
+            fillGraphValuesDescriptor = new AdditionalCommandDescriptor("VFXLoadGraphValues", fillGraphValues);
+
             // Define coordinate space
             var defineSpaceDescriptorContent = string.Empty;
             if (context.GetData() is ISpaceable)
@@ -208,7 +212,7 @@ namespace UnityEditor.VFX
             var filteredTextureInSG = texureUsedInternallyInSG.Concat(textureExposedFromSG).ToArray();
 
             // GraphValues + Buffers + Textures
-            VFXCodeGenerator.BuildParameterBuffer(contextData, filteredTextureInSG, out var parameterBuffer, systemUniformMapper, graphValuesLayout, out var needsGraphValueStruct);
+            VFXCodeGenerator.BuildParameterBuffer(contextData, filteredTextureInSG, out var parameterBuffer, out var needsGraphValueStruct);
             parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
 
             // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
@@ -346,7 +350,8 @@ namespace UnityEditor.VFX
                 out var loadRayTracedScalingAttributesDescriptor,
                 out var vertexPropertiesGenerationDescriptor,
                 out var vertexPropertiesAssignDescriptor,
-                out var setInstancingIndicesDescriptor
+                out var setInstancingIndicesDescriptor,
+                out var fillGraphValuesDescriptor
             );
 
             // Omit MV or Shadow Pass if disabled on the context.
@@ -402,6 +407,7 @@ namespace UnityEditor.VFX
                     vertexPropertiesGenerationDescriptor,
                     vertexPropertiesAssignDescriptor,
                     setInstancingIndicesDescriptor,
+                    fillGraphValuesDescriptor,
                     GenerateFragInputs(context, data)
                 };
 

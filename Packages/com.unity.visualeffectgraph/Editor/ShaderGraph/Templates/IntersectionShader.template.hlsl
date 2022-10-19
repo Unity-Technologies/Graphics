@@ -19,7 +19,7 @@ void IntersectionShader()
     uint index, instanceIndex, instanceActiveIndex;
     GetVFXInstancingIndices(index, instanceIndex, instanceActiveIndex);
 #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[instanceActiveIndex];
+    $splice(VFXLoadGraphValues)
 #endif
 
     // Load the VFX attributes that we need for this
