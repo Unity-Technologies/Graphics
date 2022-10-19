@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
+    [CoreRPHelpURL("2DShadows", "com.unity.render-pipelines.universal")]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
