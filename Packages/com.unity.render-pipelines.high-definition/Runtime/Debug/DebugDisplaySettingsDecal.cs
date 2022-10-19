@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         return true;
 #else
                             if (HDRenderPipelineGlobalSettings.instance != null)
-                                return HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                                return !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
                             return true;
 #endif
                     }

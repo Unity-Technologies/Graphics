@@ -718,11 +718,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool supportProbeVolumes = false;
 
         /// <summary>
-        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
-        /// </summary>
-        public bool supportRuntimeDebugDisplay = false;
-
-        /// <summary>
         /// Controls whether diffusion profiles referenced by an imported material should be automatically added to the list.
         /// </summary>
         public bool autoRegisterDiffusionProfiles = true;

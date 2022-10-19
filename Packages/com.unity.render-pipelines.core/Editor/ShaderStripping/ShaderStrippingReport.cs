@@ -145,6 +145,12 @@ namespace UnityEditor.Rendering
         {
             ShaderStripping.reporter.DumpReport();
             ShaderStripping.reporter = null;
+
+            if (Debug.isDebugBuild)
+            {
+                if (RenderPipelineManager.currentPipeline != null && RenderPipelineManager.currentPipeline.defaultSettings is IShaderVariantSettings shaderVariantSettings && shaderVariantSettings.stripDebugVariants)
+                    Debug.LogWarning("Stripping Runtime Debug Shader Variants, you won't be able to use some features of the Standalone Rendering Debugger.");
+            }
         }
     }
 

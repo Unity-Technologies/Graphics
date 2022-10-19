@@ -484,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
+                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
                     supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
                 });

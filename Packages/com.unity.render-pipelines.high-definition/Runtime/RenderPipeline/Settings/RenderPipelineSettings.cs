@@ -320,10 +320,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportMotionVectors;
 
         /// <summary>Support runtime debug display.</summary>
+        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead.@from(23.1)", false)]
         public bool supportRuntimeDebugDisplay
         {
-            get => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
-            set => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = value;
+            get => !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
+            set => HDRenderPipelineGlobalSettings.instance.stripDebugVariants = !value;
         }
 
         internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);

@@ -283,50 +283,5 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #endregion
-
-        #region Misc Settings
-
-        [SerializeField] bool m_StripDebugVariants = true;
-
-        [SerializeField] bool m_StripUnusedPostProcessingVariants = false;
-
-        [SerializeField] bool m_StripUnusedVariants = true;
-
-        [SerializeField] bool m_StripUnusedLODCrossFadeVariants = true;
-
-        [SerializeField] bool m_StripScreenCoordOverrideVariants = true;
-
-        /// <summary>
-        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
-        /// </summary>
-        [Obsolete("Please use stripRuntimeDebugShaders instead.", false)]
-        public bool supportRuntimeDebugDisplay = false;
-
-        /// <summary>
-        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
-        /// </summary>
-        public bool stripDebugVariants { get => m_StripDebugVariants; set { m_StripDebugVariants = value; } }
-
-        /// <summary>
-        /// Controls whether strips automatically post processing shader variants based on <see cref="VolumeProfile"/> components.
-        /// It strips based on VolumeProfiles in project and not scenes that actually uses it.
-        /// </summary>
-        public bool stripUnusedPostProcessingVariants { get => m_StripUnusedPostProcessingVariants; set { m_StripUnusedPostProcessingVariants = value; } }
-
-        /// <summary>
-        /// Controls whether strip off variants if the feature is enabled.
-        /// </summary>
-        public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
-
-        /// If this property is true, Unity strips the LOD variants if the LOD cross-fade feature (UniversalRenderingPipelineAsset.enableLODCrossFade) is disabled.
-        /// </summary>
-        public bool stripUnusedLODCrossFadeVariants { get => m_StripUnusedLODCrossFadeVariants; set { m_StripUnusedLODCrossFadeVariants = value; } }
-
-        /// <summary>
-        /// Controls whether Screen Coordinates Override shader variants are automatically stripped.
-        /// </summary>
-        public bool stripScreenCoordOverrideVariants { get => m_StripScreenCoordOverrideVariants; set => m_StripScreenCoordOverrideVariants = value; }
-
-        #endregion
     }
 }

@@ -23,8 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
-
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
@@ -67,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If requested by the render pipeline settings, or if we are in a release build,
             // don't compile fullscreen debug display variant
             bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
-            if (isFullScreenDebugPass && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
+            if (isFullScreenDebugPass && m_StripDebugVariants)
                 return true;
 
             // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
@@ -76,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // we allow user to make explicit request for it and it bypass other request
             if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
-                if ((!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                if (m_StripDebugVariants && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                     return true;
             }
 

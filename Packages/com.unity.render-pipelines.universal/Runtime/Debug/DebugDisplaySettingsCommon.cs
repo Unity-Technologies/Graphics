@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal static DebugUI.Widget CreateMissingDebugShadersWarning() => new DebugUI.MessageBox
             {
-                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Strip Debug Variants\" option is disabled in URP Global Settings.",
+                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Strip Runtime Debug Shaders\" option is disabled in URP Global Settings.",
                 style = DebugUI.MessageBox.Style.Warning,
                 isHiddenCallback = () =>
                 {

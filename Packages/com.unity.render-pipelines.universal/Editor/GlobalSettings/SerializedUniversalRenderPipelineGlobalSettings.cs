@@ -11,13 +11,13 @@ namespace UnityEditor.Rendering.Universal
         public SerializedObject serializedObject { get; }
         public SerializedProperty shaderVariantLogLevel { get; }
         public SerializedProperty exportShaderVariants { get; }
+        public SerializedProperty stripDebugVariants { get; }
         #endregion
 
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
 
         public SerializedProperty renderingLayerNames;
 
-        public SerializedProperty stripDebugVariants;
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
         public SerializedProperty stripUnusedLODCrossFadeVariants;
@@ -40,12 +40,15 @@ namespace UnityEditor.Rendering.Universal
 
             renderingLayerNames = serializedObject.FindProperty("m_RenderingLayerNames");
 
+            // ISerializedRenderPipelineGlobalSettings
+            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
+            exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
             stripDebugVariants = serializedObject.FindProperty("m_StripDebugVariants");
+
+            // URP
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
             stripUnusedLODCrossFadeVariants = serializedObject.FindProperty("m_StripUnusedLODCrossFadeVariants");
-            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
-            exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
             stripScreenCoordOverrideVariants = serializedObject.FindProperty("m_StripScreenCoordOverrideVariants");
 
             renderingLayerNameList = new ReorderableList(serializedObject, renderingLayerNames, false, false, true, true)

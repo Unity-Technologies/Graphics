@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedObject { get; }
         public SerializedProperty shaderVariantLogLevel { get; }
         public SerializedProperty exportShaderVariants { get; }
+        public SerializedProperty stripDebugVariants { get; }
         #endregion
 
         public SerializedProperty renderPipelineResources;
@@ -32,7 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty lensAttenuation;
         public SerializedProperty colorGradingSpace;
-        public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty specularFade;
         public SerializedProperty autoRegisterDiffusionProfiles;
 
@@ -126,14 +126,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
             };
 
+            // ISerializedRenderPipelineGlobalSettings
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
             exportShaderVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.exportShaderVariants);
+            stripDebugVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.stripDebugVariants);
 
+            // HDRP
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
             colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
             rendererListCulling = serializedObject.FindProperty("rendererListCulling");
 
-            supportRuntimeDebugDisplay = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
             specularFade               = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.specularFade);
             autoRegisterDiffusionProfiles = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.autoRegisterDiffusionProfiles);
 

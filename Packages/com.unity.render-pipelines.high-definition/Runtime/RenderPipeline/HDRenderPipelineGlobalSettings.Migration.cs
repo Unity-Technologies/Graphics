@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableAutoRegistration,
             MoveDiffusionProfilesToVolume,
             GenericRenderingLayers,
+            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -47,10 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MovedSupportRuntimeDebugDisplayToGlobalSettings, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                var activePipeline = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-                if (activePipeline != null)
+                if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset activePipeline)
                 {
-                    data.supportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
+                    data.m_SupportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
                 }
 #pragma warning restore 618
             }),
@@ -104,6 +104,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_PrefixedRenderingLayerNames = null;
 
                 data.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).SetEnabled(FrameSettingsField.RenderingLayerMaskBuffer, true);
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.stripDebugVariants = !data.m_SupportRuntimeDebugDisplay; // Inversion logic
 #pragma warning restore 618
             })
         );

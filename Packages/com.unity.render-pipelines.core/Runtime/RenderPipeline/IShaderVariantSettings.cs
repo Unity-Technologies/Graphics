@@ -32,5 +32,10 @@ namespace UnityEngine.Rendering
         /// Specifies if the stripping of the shaders variants needs to be exported
         /// </summary>
         bool exportShaderVariants { get; set; }
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        bool stripDebugVariants { get => false; set {} }
     }
 }
