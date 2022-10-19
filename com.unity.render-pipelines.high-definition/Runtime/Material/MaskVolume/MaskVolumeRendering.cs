@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -45,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
             data.endTimesRcpDistFadeLen = 1;
             data.scale = Vector3.zero;
-            data.payloadIndex  = -1;
+            data.payloadIndex = -1;
             data.bias = Vector3.zero;
             data.padding = 0;
             data.resolution = Vector3.zero;
@@ -57,11 +58,42 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    struct MaskVolumesResources
+    {
+        public ComputeBufferHandle boundsBuffer;
+        public ComputeBufferHandle dataBuffer;
+        public TextureHandle maskVolumesAtlas;
+    }
+
     struct MaskVolumeList
     {
         public List<OrientedBBox> bounds;
         public List<MaskVolumeEngineData> data;
+        public MaskVolumesResources resources;
     }
+
+    class ClearMaskVolumesAtlasPassData
+    {
+        public TextureHandle maskVolumesAtlas;
+    }
+
+    struct UploadMaskVolumeParameters
+    {
+        public MaskVolumeHandle volume;
+        public int maskVolumeAtlasSize;
+    }
+    class UploadMaskVolumePassData
+    {
+        public UploadMaskVolumeParameters parameters;
+        public TextureHandle maskVolumesAtlas;
+        public ComputeBufferHandle uploadBufferSHL01;
+    }
+
+    class PushMaskVolumesGlobalParamsPassData
+    {
+        public MaskVolumesResources resources;
+    }
+
 
     public partial class HDRenderPipeline
     {
@@ -231,22 +263,67 @@ namespace UnityEngine.Rendering.HighDefinition
             );
         }
 
-        void PushMaskVolumesGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
+        void PushMaskVolumesGlobalParams(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumesResources resources)
         {
             Debug.Assert(m_SupportMaskVolume);
 
-            cmd.SetGlobalBuffer(HDShaderIDs._MaskVolumeBounds, s_VisibleMaskVolumeBoundsBuffer);
-            cmd.SetGlobalBuffer(HDShaderIDs._MaskVolumeDatas, s_VisibleMaskVolumeDataBuffer);
-            cmd.SetGlobalTexture(HDShaderIDs._MaskVolumeAtlasSH, m_MaskVolumeAtlasSHRTHandle);
+            if (m_EnableRenderGraph)
+            {
+                using (var builder = renderGraph.AddRenderPass<PushMaskVolumesGlobalParamsPassData>("Push Mask Volumes Global Params", out var passData))
+                {
+                    passData.resources.boundsBuffer = builder.ReadComputeBuffer(resources.boundsBuffer);
+                    passData.resources.dataBuffer = builder.ReadComputeBuffer(resources.dataBuffer);
+                    passData.resources.maskVolumesAtlas = builder.ReadTexture(resources.maskVolumesAtlas);
+
+                    builder.SetRenderFunc((PushMaskVolumesGlobalParamsPassData passData, RenderGraphContext context) => DoPushMaskVolumesGlobalParams(
+                        context.cmd,
+                        passData.resources.boundsBuffer,
+                        passData.resources.dataBuffer,
+                        passData.resources.maskVolumesAtlas));
+                }
+            }
+            else
+            {
+                DoPushMaskVolumesGlobalParams(immediateCmd,
+                    s_VisibleMaskVolumeBoundsBuffer,
+                    s_VisibleMaskVolumeDataBuffer,
+                    m_MaskVolumeAtlasSHRTHandle);
+            }
         }
 
-        internal void PushMaskVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd)
+        internal void PushMaskVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph)
         {
             Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume) == false);
 
-            cmd.SetGlobalBuffer(HDShaderIDs._MaskVolumeBounds, s_VisibleMaskVolumeBoundsBufferDefault);
-            cmd.SetGlobalBuffer(HDShaderIDs._MaskVolumeDatas, s_VisibleMaskVolumeDataBufferDefault);
-            cmd.SetGlobalTexture(HDShaderIDs._MaskVolumeAtlasSH, TextureXR.GetBlackTexture3D());
+            if (m_EnableRenderGraph)
+            {
+                using (var builder = renderGraph.AddRenderPass<PushMaskVolumesGlobalParamsPassData>("Push Mask Volumes Global Params", out var passData))
+                {
+                    builder.SetRenderFunc((PushMaskVolumesGlobalParamsPassData passData, RenderGraphContext context) => DoPushMaskVolumesGlobalParams(
+                        context.cmd,
+                    s_VisibleMaskVolumeBoundsBufferDefault,
+                    s_VisibleMaskVolumeDataBufferDefault,
+                    TextureXR.GetBlackTexture3D()));
+                }
+            }
+            else
+            {
+                DoPushMaskVolumesGlobalParams(immediateCmd,
+                    s_VisibleMaskVolumeBoundsBufferDefault,
+                    s_VisibleMaskVolumeDataBufferDefault,
+                    TextureXR.GetBlackTexture3D());
+            }
+        }
+
+        private static void DoPushMaskVolumesGlobalParams(
+            CommandBuffer cmd,
+            ComputeBuffer boundsBuffer,
+            ComputeBuffer dataBuffer,
+            RenderTargetIdentifier maskVolumeAtlas)
+        {
+            cmd.SetGlobalBuffer(HDShaderIDs._MaskVolumeBounds, boundsBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._MaskVolumeDatas, dataBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._MaskVolumeAtlasSH, maskVolumeAtlas);
         }
 
         internal void ReleaseMaskVolumeFromAtlas(MaskVolumeHandle volume)
@@ -276,11 +353,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal bool EnsureMaskVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, MaskVolumeHandle volume)
+        internal bool EnsureMaskVolumeInAtlas(CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumesResources resources, MaskVolumeHandle volume)
         {
             VolumeGlobalUniqueID id = volume.GetAtlasID();
             var resolution = volume.GetResolution();
-
             int size = resolution.x * resolution.y * resolution.z;
             Debug.Assert(size > 0, "MaskVolume: Encountered mask volume with resolution set to zero on all three axes.");
 
@@ -303,7 +379,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     int sizeSHCoefficientsL0 = size * MaskVolumePayload.GetDataSHL0Stride();
-
                     Debug.AssertFormat(volume.DataSHL0Length == sizeSHCoefficientsL0, "MaskVolume: The mask volume data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL0Length, sizeSHCoefficientsL0);
 
                     if (size > s_MaxMaskVolumeMaskCount)
@@ -312,40 +387,44 @@ namespace UnityEngine.Rendering.HighDefinition
                         return false;
                     }
 
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolution, (Vector3)resolution);
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolutionInverse, new Vector3(
-                        1.0f / resolution.x,
-                        1.0f / resolution.y,
-                        1.0f / resolution.z
-                    ));
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasScale,
-                        volume.parameters.scale
-                    );
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasBias,
-                        volume.parameters.bias
-                    );
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasResolutionAndSliceCount, new Vector4(
-                        s_MaskVolumeAtlasResolution,
-                        s_MaskVolumeAtlasResolution,
-                        s_MaskVolumeAtlasResolution,
-                        1.0f
-                    ));
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasResolutionAndSliceCountInverse, new Vector4(
-                        1.0f / (float)s_MaskVolumeAtlasResolution,
-                        1.0f / (float)s_MaskVolumeAtlasResolution,
-                        1.0f / (float)s_MaskVolumeAtlasResolution,
-                        1.0f
-                    ));
+                    // Ready to upload: prepare parameters and data
+                    UploadMaskVolumeParameters parameters = new UploadMaskVolumeParameters()
+                    {
+                        volume = volume,
+                        maskVolumeAtlasSize = size,
+                    };
 
                     volume.SetDataSHL0(s_MaskVolumeAtlasBlitDataSHL0Buffer);
-                    cmd.SetComputeIntParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasReadBufferCount, size);
-                    cmd.SetComputeBufferParam(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, HDShaderIDs._MaskVolumeAtlasReadSHL0Buffer, s_MaskVolumeAtlasBlitDataSHL0Buffer);
-                    cmd.SetComputeTextureParam(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, HDShaderIDs._MaskVolumeAtlasWriteTextureSH, m_MaskVolumeAtlasSHRTHandle);
 
-                    // TODO: Determine optimal batch size.
-                    const int kBatchSize = 256;
-                    int numThreadGroups = Mathf.CeilToInt((float)size / (float)kBatchSize);
-                    cmd.DispatchCompute(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, numThreadGroups, 1, 1);
+                    // Execute upload
+                    if (m_EnableRenderGraph)
+                    {
+                        using (var builder = renderGraph.AddRenderPass<UploadMaskVolumePassData>("Upload Mask Volume", out var passData))
+                        {
+                            // Parameters
+                            passData.parameters = parameters;
+
+                            // Resources
+                            passData.uploadBufferSHL01 = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(s_MaskVolumeAtlasBlitDataSHL0Buffer));
+                            passData.maskVolumesAtlas = builder.WriteTexture(resources.maskVolumesAtlas);
+
+                            // RenderFunc
+                            builder.SetRenderFunc((UploadMaskVolumePassData passData, RenderGraphContext context) => UploadMaskVolumeToAtlas(
+                                passData.parameters,
+                                context.cmd,
+                                passData.uploadBufferSHL01,
+                                passData.maskVolumesAtlas));
+                        }
+                    }
+                    else
+                    {
+                        UploadMaskVolumeToAtlas(
+                            parameters,
+                            immediateCmd,
+                            s_MaskVolumeAtlasBlitDataSHL0Buffer,
+                            m_MaskVolumeAtlasSHRTHandle);
+                    }
+
                     return true;
 
                 }
@@ -360,17 +439,83 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        internal void ClearMaskVolumeAtlasIfRequested(CommandBuffer cmd)
+        private static void UploadMaskVolumeToAtlas(
+            UploadMaskVolumeParameters parameters,
+            CommandBuffer cmd,
+            ComputeBuffer uploadBufferSHL01,
+            RenderTargetIdentifier targetAtlas)
+        {
+            MaskVolumeHandle volume = parameters.volume;
+            var resolution = volume.GetResolution();
+
+            cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolution, (Vector3)resolution);
+
+            cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolutionInverse, new Vector3(
+                1.0f / resolution.x,
+                1.0f / resolution.y,
+                1.0f / resolution.z
+            ));
+
+            cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasScale,
+                        volume.parameters.scale
+                    );
+            cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasBias,
+                volume.parameters.bias
+            );
+            cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasResolutionAndSliceCount, new Vector4(
+                s_MaskVolumeAtlasResolution,
+                s_MaskVolumeAtlasResolution,
+                s_MaskVolumeAtlasResolution,
+                1.0f
+            ));
+            cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasResolutionAndSliceCountInverse, new Vector4(
+                1.0f / (float)s_MaskVolumeAtlasResolution,
+                1.0f / (float)s_MaskVolumeAtlasResolution,
+                1.0f / (float)s_MaskVolumeAtlasResolution,
+                1.0f
+            ));
+
+            cmd.SetComputeIntParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasReadBufferCount, parameters.maskVolumeAtlasSize);
+
+            cmd.SetComputeBufferParam(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, HDShaderIDs._MaskVolumeAtlasReadSHL0Buffer, uploadBufferSHL01);
+            cmd.SetComputeTextureParam(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, HDShaderIDs._MaskVolumeAtlasWriteTextureSH, targetAtlas);
+
+            // TODO: Determine optimal batch size.
+            const int kBatchSize = 256;
+            int numThreadGroups = (parameters.maskVolumeAtlasSize + kBatchSize - 1) / kBatchSize;
+            cmd.DispatchCompute(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, numThreadGroups, 1, 1);
+        }
+
+        internal void ClearMaskVolumeAtlasIfRequested(CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumesResources resources)
         {
             if (!isClearMaskVolumeAtlasRequested) { return; }
             isClearMaskVolumeAtlasRequested = false;
 
             maskVolumeAtlas.ResetAllocator();
-            cmd.SetRenderTarget(m_MaskVolumeAtlasSHRTHandle.rt, 0, CubemapFace.Unknown, 0);
+
+            if (m_EnableRenderGraph)
+            {
+                using (var builder = renderGraph.AddRenderPass<ClearMaskVolumesAtlasPassData>("Clear Mask Volume Atlas", out var passData))
+                {
+                    passData.maskVolumesAtlas = builder.WriteTexture(resources.maskVolumesAtlas);
+
+                    builder.SetRenderFunc((ClearMaskVolumesAtlasPassData passData, RenderGraphContext context) =>
+                        DoClearMaskVolumeAtlas(context.cmd, passData.maskVolumesAtlas));
+                }
+            }
+            else
+            {
+                DoClearMaskVolumeAtlas(immediateCmd, m_MaskVolumeAtlasSHRTHandle);
+            }
+        }
+
+        private void DoClearMaskVolumeAtlas(CommandBuffer cmd, RenderTargetIdentifier atlas)
+        {
+            cmd.SetRenderTarget(atlas, 0, CubemapFace.Unknown, 0);
             cmd.ClearRenderTarget(false, true, Color.black, 0.0f);
         }
 
-        MaskVolumeList PrepareVisibleMaskVolumeList(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
+        MaskVolumeList PrepareVisibleMaskVolumeList(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph)
         {
             MaskVolumeList maskVolumes = new MaskVolumeList();
 
@@ -379,27 +524,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
             {
-                PushMaskVolumesGlobalParamsDefault(hdCamera, cmd);
+                PushMaskVolumesGlobalParamsDefault(hdCamera, immediateCmd, renderGraph);
             }
             else
             {
-                PrepareVisibleMaskVolumeListBuffers(renderContext, hdCamera, cmd, ref maskVolumes);
-                PushMaskVolumesGlobalParams(hdCamera, cmd);
+                PrepareVisibleMaskVolumeListBuffers(hdCamera, immediateCmd, renderGraph, ref maskVolumes);
+                PushMaskVolumesGlobalParams(hdCamera, immediateCmd, renderGraph, ref maskVolumes.resources);
             }
 
             return maskVolumes;
         }
 
-        void PrepareVisibleMaskVolumeListBuffers(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd, ref MaskVolumeList maskVolumes)
+        void PrepareVisibleMaskVolumeListBuffers(HDCamera hdCamera, CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumeList maskVolumes)
         {
             var settings = hdCamera.volumeStack.GetComponent<MaskVolumeController>();
 
             float globalDistanceFadeStart = settings.distanceFadeStart.value;
             float globalDistanceFadeEnd = settings.distanceFadeEnd.value;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareMaskVolumeList)))
+            using (new ProfilingScope(immediateCmd, ProfilingSampler.Get(HDProfileId.PrepareMaskVolumeList)))
             {
-                ClearMaskVolumeAtlasIfRequested(cmd);
+                if (m_EnableRenderGraph)
+                {
+                    maskVolumes.resources.boundsBuffer = renderGraph.ImportComputeBuffer(s_VisibleMaskVolumeBoundsBuffer);
+                    maskVolumes.resources.dataBuffer = renderGraph.ImportComputeBuffer(s_VisibleMaskVolumeDataBuffer);
+                    maskVolumes.resources.maskVolumesAtlas = renderGraph.ImportTexture(m_MaskVolumeAtlasSHRTHandle);
+                }
+
+                ClearMaskVolumeAtlasIfRequested(immediateCmd, renderGraph, ref maskVolumes.resources);
 
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset = Vector3.zero;// World-origin-relative
@@ -506,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (volumeUploadedToAtlasSHCount < volumeUploadedToAtlasCapacity)
                     {
-                        bool volumeWasUploaded = EnsureMaskVolumeInAtlas(renderContext, cmd, volume);
+                        bool volumeWasUploaded = EnsureMaskVolumeInAtlas(immediateCmd, renderGraph, ref maskVolumes.resources, volume);
                         if (volumeWasUploaded)
                             ++volumeUploadedToAtlasSHCount;
                     }

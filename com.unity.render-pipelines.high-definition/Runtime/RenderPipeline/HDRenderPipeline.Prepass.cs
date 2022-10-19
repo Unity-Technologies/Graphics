@@ -6,6 +6,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        class PushLightListGlobalParamsPassData
+        {
+            public LightLoopGlobalParameters parameters;
+            public ComputeBufferHandle bigTileLightList;
+            public ComputeBufferHandle perVoxelOffset;
+            public ComputeBufferHandle perVoxelLightLists;
+        }
+
         Material m_DepthResolveMaterial;
         // Need to cache to avoid alloc of arrays...
         GBufferOutput m_GBufferOutput;
@@ -224,6 +232,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
                 }
 
+                BuildGPULightListOutput maskVolumeListOutput = new BuildGPULightListOutput();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
+                {
+                    maskVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_MaskVolumeClusterData, m_MaskVolumeCount, ref m_ShaderVariablesMaskVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                }
+
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
 
                 if (!shouldRenderMotionVectorAfterGBuffer)
@@ -247,6 +261,56 @@ namespace UnityEngine.Rendering.HighDefinition
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
                 RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
+
+                // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                {
+                    using (var builder = renderGraph.AddRenderPass<PushLightListGlobalParamsPassData>("PushProbeVolumeLightListGlobalParams", out var passData))
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        passData.parameters = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
+
+                        passData.perVoxelOffset = builder.ReadComputeBuffer(probeVolumeListOutput.perVoxelOffset);
+                        passData.perVoxelLightLists = builder.ReadComputeBuffer(probeVolumeListOutput.perVoxelLightLists);
+
+                        passData.bigTileLightList = ComputeBufferHandle.nullHandle;
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                            passData.bigTileLightList = builder.ReadComputeBuffer(probeVolumeListOutput.bigTileLightList);
+
+                        builder.SetRenderFunc((PushLightListGlobalParamsPassData passData, RenderGraphContext ctx) =>
+                            DoPushProbeVolumeLightListGlobalParams(
+                                ctx.cmd,
+                                passData.perVoxelOffset,
+                                passData.perVoxelLightLists,
+                                passData.bigTileLightList));
+                    }
+
+                }
+
+                // Mask volumes always use a custom light list
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
+                {
+                    using (var builder = renderGraph.AddRenderPass<PushLightListGlobalParamsPassData>("PushMaskVolumeLightListGlobalParams", out var passData))
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        passData.parameters = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_MaskVolumeClusterData);
+
+                        passData.perVoxelOffset = builder.ReadComputeBuffer(maskVolumeListOutput.perVoxelOffset);
+                        passData.perVoxelLightLists = builder.ReadComputeBuffer(maskVolumeListOutput.perVoxelLightLists);
+
+                        passData.bigTileLightList = ComputeBufferHandle.nullHandle;
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                            passData.bigTileLightList = builder.ReadComputeBuffer(maskVolumeListOutput.bigTileLightList);
+
+                        builder.SetRenderFunc((PushLightListGlobalParamsPassData passData, RenderGraphContext ctx) =>
+                            DoPushMaskVolumeLightListGlobalParams(
+                                ctx.cmd,
+                                passData.perVoxelOffset,
+                                passData.perVoxelLightLists,
+                                passData.bigTileLightList));
+                    }
+                }
 
                 RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 

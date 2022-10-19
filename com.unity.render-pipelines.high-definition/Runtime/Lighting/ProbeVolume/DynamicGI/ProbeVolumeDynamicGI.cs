@@ -305,41 +305,41 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        internal void DispatchProbePropagation(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RTHandle probeVolumeAtlasSHRTHandle)
+        internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
         {
-            if (hdCamera.camera.cameraType == CameraType.Game || hdCamera.camera.cameraType == CameraType.SceneView)
+            if (probeVolume.parameters.supportDynamicGI
+                && probeVolume.IsDataAssigned()
+                && probeVolume.HasNeighbors()
+                && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
             {
-                if (probeVolume.parameters.supportDynamicGI
-                    && probeVolume.IsDataAssigned()
-                    && probeVolume.HasNeighbors()
-                    && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
+                InitializePropagationBuffers(probeVolume);
+
+                if (giSettings.clear.value || _clearAllActive)
                 {
-                    InitializePropagationBuffers(probeVolume);
-
-                    if (giSettings.clear.value || _clearAllActive)
-                    {
-                        ClearRadianceCache(probeVolume);
-                    }
-
-                    DispatchPropagationHits(cmd, probeVolume, in giSettings);
-                    DispatchPropagationAxes(cmd, probeVolume, in giSettings);
-                    DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
-                    probeVolume.propagationBuffers.SwapRadianceCaches();
+                    ClearRadianceCache(probeVolume);
                 }
-                else
+
+                DispatchPropagationHits(cmd, probeVolume, in giSettings);
+                DispatchPropagationAxes(cmd, probeVolume, in giSettings);
+                DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
+                probeVolume.propagationBuffers.SwapRadianceCaches();
+            }
+            else
+            {
+                if (CleanupPropagation(probeVolume))
                 {
-                    if (CleanupPropagation(probeVolume))
-                    {
-                        // trigger an update so original bake data gets set since Dynamic GI was disabled
-                        probeVolume.SetDataUpdated(true);
-                    }
+                    // trigger an update so original bake data gets set since Dynamic GI was disabled
+                    probeVolume.SetDataUpdated(true);
                 }
             }
         }
 
-        internal void ClearProbePropagation(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RTHandle probeVolumeAtlasSHRTHandle)
+        internal void ClearProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
         {
-            if (hdCamera.camera.cameraType == CameraType.Game || hdCamera.camera.cameraType == CameraType.SceneView)
+            if (probeVolume.parameters.supportDynamicGI
+                && probeVolume.IsDataAssigned()
+                && probeVolume.HasNeighbors()
+                && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
             {
                 if (probeVolume.parameters.supportDynamicGI
                     && probeVolume.IsDataAssigned()
@@ -434,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RTHandle probeVolumeAtlasSHRTHandle)
+        void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
         {
             int numProbes = probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
             ProbeVolume.ProbeVolumeAtlasKey key = probeVolume.ComputeProbeVolumeAtlasKey();

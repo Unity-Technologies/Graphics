@@ -2932,14 +2932,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Camera camera = param.hdCamera.camera;
 
-                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
-
-                // int useDepthBuffer = 0;
-                // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLayeredOffsetsBuffer, param.tileAndClusterData.perVoxelOffset);
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLightListGlobal, param.tileAndClusterData.perVoxelLightLists);
+                DoPushProbeVolumeLightListGlobalParams(
+                    cmd,
+                    param.tileAndClusterData.perVoxelOffset,
+                    param.tileAndClusterData.perVoxelLightLists,
+                    param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? param.tileAndClusterData.bigTileLightList : null);
             }
+        }
+
+        static void DoPushProbeVolumeLightListGlobalParams(CommandBuffer cmd, ComputeBuffer perVoxelOffset, ComputeBuffer perVoxelLightLists, ComputeBuffer bigTileLightList)
+        {
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLayeredOffsetsBuffer, perVoxelOffset);
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLightListGlobal, perVoxelLightLists);
+
+            if (bigTileLightList != null)
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, bigTileLightList);
         }
 
         static void PushMaskVolumeLightListGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
@@ -2951,15 +2958,23 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Camera camera = param.hdCamera.camera;
 
-                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
-
-                // int useDepthBuffer = 0;
-                // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vMaskVolumesLayeredOffsetsBuffer, param.tileAndClusterData.perVoxelOffset);
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vMaskVolumesLightListGlobal, param.tileAndClusterData.perVoxelLightLists);
+                DoPushMaskVolumeLightListGlobalParams(
+                    cmd,
+                    param.tileAndClusterData.perVoxelOffset,
+                    param.tileAndClusterData.perVoxelLightLists,
+                    param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? param.tileAndClusterData.bigTileLightList : null);
             }
         }
+
+        static void DoPushMaskVolumeLightListGlobalParams(CommandBuffer cmd, ComputeBuffer perVoxelOffset, ComputeBuffer perVoxelLightLists, ComputeBuffer bigTileLightList)
+        {
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vMaskVolumesLayeredOffsetsBuffer, perVoxelOffset);
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vMaskVolumesLightListGlobal, perVoxelLightLists);
+
+            if (bigTileLightList != null)
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, bigTileLightList);
+        }
+
         void BuildGPULightListProbeVolumesCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             // Custom probe volume only light list is only needed if we are evaluating probe volumes early, in the GBuffer phase.

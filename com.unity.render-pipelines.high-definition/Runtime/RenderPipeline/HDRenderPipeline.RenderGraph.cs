@@ -148,6 +148,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
+                ProbeVolumeDynamicGICommonData commonData = PrepareProbeVolumeDynamicGIData(hdCamera);
+                if (commonData.mode != ProbeVolumeDynamicGIMode.None)
+                {
+                    using (var builder = m_RenderGraph.AddRenderPass<ProbeVolumeDynamicGIPassData>("ProbeVolumeDynamicGI", out var passData))
+                    {
+                        passData.commonData = commonData;
+                        passData.probeVolumesAtlas = builder.WriteTexture(m_ProbeVolumeList.rgResources.probeVolumesAtlas);
+
+                        builder.SetRenderFunc((ProbeVolumeDynamicGIPassData passData, RenderGraphContext ctx) =>
+                            ExecuteProbeVolumeDynamicGI(ctx.cmd, passData.commonData, passData.probeVolumesAtlas));
+                    }
+                }
+
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
                 // Evaluate the clear coat mask texture based on the lit shader mode

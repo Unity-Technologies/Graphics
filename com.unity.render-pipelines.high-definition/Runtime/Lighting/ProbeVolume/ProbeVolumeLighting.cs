@@ -1029,46 +1029,89 @@ namespace UnityEngine.Rendering.HighDefinition
             return probeVolumes;
         }
 
-        void DispatchProbeVolumeDynamicGI(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
+        enum ProbeVolumeDynamicGIMode
         {
-            if (!m_SupportProbeVolume) { return; }
+            None,
+            Dispatch,
+            Clear
+        }
 
-            if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+        struct ProbeVolumeDynamicGICommonData
+        {
+            public ProbeVolumeDynamicGIMode mode;
+            public List<ProbeVolumeHandle> volumes;
+            public ProbeDynamicGI giSettings;
+            public ShaderVariablesGlobal globalCB;
+        }
+
+        class ProbeVolumeDynamicGIPassData
+        {
+            public ProbeVolumeDynamicGICommonData commonData;
+            public TextureHandle probeVolumesAtlas;
+        }
+
+        ProbeVolumeDynamicGICommonData PrepareProbeVolumeDynamicGIData(HDCamera hdCamera)
+        {
+            ProbeVolumeDynamicGICommonData data = new ProbeVolumeDynamicGICommonData() { mode = ProbeVolumeDynamicGIMode.None };
+
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+                return data;
+
+            if (hdCamera.camera.cameraType != CameraType.Game && hdCamera.camera.cameraType != CameraType.SceneView)
+                return data;
+
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+                return data;
+
+            if (!m_SupportProbeVolume)
+                return data;
+
+            data.volumes = ProbeVolumeManager.manager.GetVolumesToRender();
+            data.giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+            data.globalCB = m_ShaderVariablesGlobalCB;
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI))
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGI)))
+                data.mode = ProbeVolumeDynamicGIMode.Dispatch;
+                m_WasProbeVolumeDynamicGIEnabled = true;
+            }
+            else if (m_WasProbeVolumeDynamicGIEnabled)
+            {
+                data.mode = ProbeVolumeDynamicGIMode.Clear;
+                m_WasProbeVolumeDynamicGIEnabled = false;
+            }
+
+            return data;
+        }
+
+        static void ExecuteProbeVolumeDynamicGI(CommandBuffer cmd, ProbeVolumeDynamicGICommonData data, RenderTargetIdentifier probeVolumeAtlas)
+        {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGI)))
+            {
+                if (data.mode == ProbeVolumeDynamicGIMode.Dispatch)
                 {
-                    // Collect all visible finite volume data, and upload it to the GPU.
-                    List<ProbeVolumeHandle> volumes = ProbeVolumeManager.manager.GetVolumesToRender();
-                    var giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
-                    float maxRange = Mathf.Max(giSettings.rangeBehindCamera.value, giSettings.rangeInFrontOfCamera.value);
+                    float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
 
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI))
+                    // Update Probe Volume Data via Dynamic GI Propagation
+                    for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
-                        m_WasProbeVolumeDynamicGIEnabled = true;
+                        ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
 
-                        // Update Probe Volume Data via Dynamic GI Propagation
-                        for (int probeVolumeIndex = 0; probeVolumeIndex < volumes.Count; ++probeVolumeIndex)
+                        // basic distance check
+                        var obb = volume.GetProbeVolumeEngineDataBoundingBox();
+                        float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+                        if (obb.center.magnitude < (maxRange + maxExtent))
                         {
-                            ProbeVolumeHandle volume = volumes[probeVolumeIndex];
-
-                            // basic distance check
-                            var obb = volume.GetProbeVolumeEngineDataBoundingBox();
-                            float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
-                            if (obb.center.magnitude < (maxRange + maxExtent))
-                            {
-                                ProbeVolumeDynamicGI.instance.DispatchProbePropagation(renderContext, hdCamera, cmd, volume, giSettings, in m_ShaderVariablesGlobalCB, m_ProbeVolumeAtlasSHRTHandle);
-                            }
+                            ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas);
                         }
                     }
-                    else if(m_WasProbeVolumeDynamicGIEnabled)
+                }
+                else if (data.mode == ProbeVolumeDynamicGIMode.Clear)
+                {
+                    for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
-                        for (int probeVolumeIndex = 0; probeVolumeIndex < volumes.Count; ++probeVolumeIndex)
-                        {
-                            ProbeVolumeHandle volume = volumes[probeVolumeIndex];
-                            ProbeVolumeDynamicGI.instance.ClearProbePropagation(renderContext, hdCamera, cmd, volume, giSettings, in m_ShaderVariablesGlobalCB, m_ProbeVolumeAtlasSHRTHandle);
-                        }
-
-                        m_WasProbeVolumeDynamicGIEnabled = false;
+                        ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
+                        ProbeVolumeDynamicGI.instance.ClearProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas);
                     }
                 }
             }
