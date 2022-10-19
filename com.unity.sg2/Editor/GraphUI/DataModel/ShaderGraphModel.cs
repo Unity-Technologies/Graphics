@@ -156,6 +156,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
             {
+                InitializeContextFromTarget(target);
                 Targets.Add(target);
                 // all target-based graphs have a Vert
                 // TODO: https://jira.unity3d.com/browse/GSG-1290
@@ -166,6 +167,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
             var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
             outputNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
+            outputNode.AddBlocksFromGraphDelta();
         }
 
 

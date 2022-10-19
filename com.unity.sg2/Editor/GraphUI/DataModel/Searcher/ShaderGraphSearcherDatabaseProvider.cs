@@ -58,18 +58,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     null,
                     creationData =>
                     {
-                        if ((creationData.SpawnFlags & SpawnFlags.Orphan) != 0)
+                        var isPreview = (creationData.SpawnFlags & SpawnFlags.Orphan) != 0;
+
+                        if (!isPreview)
                         {
-                            return new GraphDataBlockNodeModel() { Title = "Preview TODO" };
+                            foreach (var subModel in contextNode.GraphElementModels)
+                            {
+                                if (subModel is GraphDataBlockNodeModel existingBlock && existingBlock.ContextEntryName == portHandler.LocalID)
+                                {
+                                    // Blocks are unique, so point to an existing one if it's already present.
+                                    return existingBlock;
+                                }
+                            }
                         }
 
-                        return contextNode.CreateAndInsertBlock<GraphDataBlockNodeModel>(initializationCallback: node =>
+                        var result = creationData.CreateBlock(typeof(GraphDataBlockNodeModel), initializationCallback: node =>
                         {
-                            if (node is not GraphDataBlockNodeModel blockNode) return;
+                            if (node is not GraphDataBlockNodeModel graphDataBlock) return;
 
-                            blockNode.Title = portHandler.LocalID;
-                            blockNode.ContextEntryName = portHandler.LocalID;
-                        });
+                            graphDataBlock.Title = portHandler.LocalID;
+                            graphDataBlock.ContextEntryName = portHandler.LocalID;
+                        }, typeof(GraphDataContextNodeModel));
+
+                        if (result is GraphDataContextNodeModel fakeContext)
+                        {
+                            fakeContext.graphDataName = contextNode.graphDataName;
+                            fakeContext.DefineNode();
+                            var block = (GraphDataBlockNodeModel)fakeContext.GraphElementModels.First();
+                            block.DefineNode();
+                        }
+                        else if (result is GraphDataBlockNodeModel realBlock)
+                        {
+                            realBlock.DefineNode();
+                        }
+
+                        return result;
                     }));
             }
 

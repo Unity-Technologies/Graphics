@@ -57,11 +57,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        protected override void OnDefineNode()
+        public void AddBlocksFromGraphDelta()
         {
             if (!TryGetNodeHandler(out var nodeReader)) return;
 
-            // TODO: Not the desired behavior, brute force way to prevent duplicates for now
             var currentBlocks = GraphElementModels.OfType<GraphDataBlockNodeModel>().Select(b => b.ContextEntryName).ToHashSet();
 
             foreach (var portHandler in nodeReader.GetPorts())
