@@ -13,6 +13,25 @@ namespace UnityEngine.Rendering.HighDefinition
         // Needed only because of custom pass. See comment at ResolveMSAAColor.
         TextureHandle m_NonMSAAColorBuffer;
 
+        // custom-begin
+        // Seperate out BeginRenderGraph() from ExecuteWithRenderGraph() so that RenderGraph resources can be bound before ExecuteWithRenderGraph() is called.
+        // Specifically, this is needed to allow PrepareVisibleProbeVolumeList() to build RenderGraph passes successfully.
+        // TODO: Rather than restructuring the HDRP code flow, we could restructure the Probe Volume code flow so that we do not need to build RenderGraph passes inside of PrepareVisibleProbeVolumeList().
+        // Instead, we make it two phase, and build the render graph passes from within ExecuteWithRenderGraph().
+        // Maybe this will become easier after we upgrade, and no longer need to support the non-rendergraph code paths.
+        private void BeginRenderGraph(ScriptableRenderContext renderContext, CommandBuffer commandBuffer)
+        {
+            var renderGraphParams = new RenderGraphParameters()
+            {
+                scriptableRenderContext = renderContext,
+                commandBuffer = commandBuffer,
+                currentFrameIndex = m_FrameCount
+            };
+
+            m_RenderGraph.Begin(renderGraphParams);
+        }
+        // custom-end
+
         void ExecuteWithRenderGraph(RenderRequest           renderRequest,
             AOVRequestData          aovRequest,
             List<RTHandle>          aovBuffers,
@@ -27,14 +46,17 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var target = renderRequest.target;
 
-            var renderGraphParams = new RenderGraphParameters()
-            {
-                scriptableRenderContext = renderContext,
-                commandBuffer = commandBuffer,
-                currentFrameIndex = m_FrameCount
-            };
+            // custom-begin
+            // See BeginRenderGraph() above. we perform this earlier in the renderloop, outside of ExecuteWithRenderGraph. 
+            //var renderGraphParams = new RenderGraphParameters()
+            //{
+            //    scriptableRenderContext = renderContext,
+            //    commandBuffer = commandBuffer,
+            //    currentFrameIndex = m_FrameCount
+            //};
 
-            m_RenderGraph.Begin(renderGraphParams);
+            //m_RenderGraph.Begin(renderGraphParams);
+            // custom-end
 
             // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
             // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.

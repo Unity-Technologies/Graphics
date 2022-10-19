@@ -2485,6 +2485,14 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var material in m_MaterialList)
                 material.Bind(cmd);
 
+            // custom-begin:
+            // See BeginRenderGraph() implementation for details. This was pulled out of ExecuteWithRenderGraph() for PrepareVisibleProbeVolumeList() RenderGraph support.
+            if (m_EnableRenderGraph)
+            {
+                BeginRenderGraph(renderContext, cmd);
+            }
+            // custom-end
+
             // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd);
 
