@@ -17,12 +17,8 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
 {
     float3 V = (worldPosition - _WorldSpaceCameraPos.xyz);
     float distAlongV = dot(GetViewForwardDir(), V);
-    if (!(distAlongV < rangeInFrontOfCamera && distAlongV > -rangeBehindCamera))
-    {
-        return true;
-    }
+    return !(distAlongV < rangeInFrontOfCamera && distAlongV > -rangeBehindCamera);
 
-    return false;
 }
 
 float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
