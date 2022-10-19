@@ -2,7 +2,7 @@
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 
-		// Requires passes by ray tracing
+		// Required passes by ray tracing
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassVisibilityDXR.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassIndirectDXR.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassGBufferDXR.template")}
