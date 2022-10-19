@@ -28,6 +28,8 @@ namespace UnityEditor.VFX.Test
         {
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXBoundsHelperTest.vfx";
             var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            // Set CullingFlags to Always Simulate, so the bounds are computed even if no camera is rendering the effect
+            graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
             VFXCoordinateSpace space = (VFXCoordinateSpace)systemSpace;
             graph.children.OfType<VFXBasicInitialize>().First().space = space;
 
@@ -83,6 +85,7 @@ namespace UnityEditor.VFX.Test
         public void CleanUp()
         {
             m_BoundsRecorder.CleanUp();
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         private Dictionary<string, Bounds> GetBoundsByReflection(VFXBoundsRecorder boundsRecorder)
