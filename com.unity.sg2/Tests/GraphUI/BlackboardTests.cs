@@ -196,7 +196,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var vector4Node = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
             Assert.IsNull(vector4Node, "Node should be null after delete operation");
 
-            var graphDataVariableNodeModel = variableNodeModel as GraphDataVariableNodeModel;
+            var graphDataVariableNodeModel = variableNodeModel as SGVariableNodeModel;
             var variableNodeHandler = GraphModel.GraphHandler.GetNode(graphDataVariableNodeModel.graphDataName);
             Assert.IsNull(variableNodeHandler, "Node should also be removed from CLDS after delete operation");
         }

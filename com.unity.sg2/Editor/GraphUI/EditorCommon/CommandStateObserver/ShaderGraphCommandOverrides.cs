@@ -18,10 +18,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             BypassNodesCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
 
-            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
+            var graphModel = (SGGraphModel)graphModelState.GraphModel;
 
             // Delete backing data for graph data nodes.
-            foreach (var graphData in command.Models.OfType<GraphDataNodeModel>())
+            foreach (var graphData in command.Models.OfType<SGNodeModel>())
             {
                 if (!graphData.IsDeletable()) continue;
 
@@ -52,17 +52,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoStateUpdater.SaveStates(graphModelState, selectionState);
             }
 
-            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
+            var graphModel = (SGGraphModel)graphModelState.GraphModel;
 
             // Partition out redirect nodes because they get special delete behavior.
-            var redirects = new List<RedirectNodeModel>();
+            var redirects = new List<SGRedirectNodeModel>();
             var nonRedirects = new List<GraphElementModel>();
 
             foreach (var model in modelsToDelete)
             {
                 switch (model)
                 {
-                    case RedirectNodeModel redirectModel:
+                    case SGRedirectNodeModel redirectModel:
                         redirects.Add(redirectModel);
                         break;
                     case GraphDataVariableDeclarationModel:
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     switch (model)
                     {
                         case WireModel edge:
-                            if (edge.ToPort.NodeModel is RedirectNodeModel redirect)
+                            if (edge.ToPort.NodeModel is SGRedirectNodeModel redirect)
                             {
                                 // Reset types on disconnected redirect nodes.
                                 redirect.ClearType();
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        static List<GraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
+        static List<GraphElementModel> HandleRedirectNodes(List<SGRedirectNodeModel> redirects, SGGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
         {
             foreach (var redirect in redirects)
             {
@@ -201,19 +201,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                     // and create the edge between these new duplicated nodes instead
                                     if (duplicatedIncomingNode is NodeModel duplicatedIncomingNodeModel)
                                     {
-                                        var fromPort = ShaderGraphModel.FindOutputPortByName(duplicatedIncomingNodeModel, originalNodeEdge.FromPortId);
-                                        var toPort = ShaderGraphModel.FindInputPortByName(nodeModel, originalNodeEdge.ToPortId);
+                                        var fromPort = SGGraphModel.FindOutputPortByName(duplicatedIncomingNodeModel, originalNodeEdge.FromPortId);
+                                        var toPort = SGGraphModel.FindInputPortByName(nodeModel, originalNodeEdge.ToPortId);
                                         Assert.IsNotNull(fromPort);
                                         Assert.IsNotNull(toPort);
                                         edgeModel = graphModel.CreateWire(toPort, fromPort);
                                     }
                                     else // Just copy that connection over to the new duplicated node
                                     {
-                                        var toPort = ShaderGraphModel.FindInputPortByName(nodeModel, originalNodeEdge.ToPortId);
+                                        var toPort = SGGraphModel.FindInputPortByName(nodeModel, originalNodeEdge.ToPortId);
                                         var fromNodeModel = graphModel.NodeModels.FirstOrDefault(model => model.Guid == originalNodeEdge.FromNodeGuid);
                                         if (fromNodeModel != null)
                                         {
-                                            var fromPort = ShaderGraphModel.FindOutputPortByName(fromNodeModel, originalNodeEdge.FromPortId);
+                                            var fromPort = SGGraphModel.FindOutputPortByName(fromNodeModel, originalNodeEdge.FromPortId);
                                             Assert.IsNotNull(fromPort);
                                             Assert.IsNotNull(toPort);
                                             edgeModel = graphModel.CreateWire(toPort, fromPort);

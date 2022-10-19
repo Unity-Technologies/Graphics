@@ -32,13 +32,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsTrue(edge.FromPort is
                 {
                     UniqueName: fromPortName,
-                    NodeModel: GraphDataNodeModel { Title: fromNodeName }
+                    NodeModel: SGNodeModel { Title: fromNodeName }
                 }, $"Edge should begin at port {fromPortName} on node {fromNodeName}");
 
                 Assert.IsTrue(edge.ToPort is
                 {
                     UniqueName: toPortName,
-                    NodeModel: GraphDataNodeModel { Title: toNodeName }
+                    NodeModel: SGNodeModel { Title: toNodeName }
                 }, $"Edge should end at port {toPortName} on node {toNodeName}");
             }
         }
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
-            if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+            if (nodeModel is SGNodeModel graphDataNodeModel)
             {
                 var nodeGraphElement = m_GraphView.GetGraphElement(graphDataNodeModel);
                 Assert.IsNotNull(nodeGraphElement);
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
-            if (nodeModel is GraphDataNodeModel graphDataNodeModelReloaded)
+            if (nodeModel is SGNodeModel graphDataNodeModelReloaded)
                 Assert.IsFalse(graphDataNodeModelReloaded.IsPreviewExpanded);
         }
     }

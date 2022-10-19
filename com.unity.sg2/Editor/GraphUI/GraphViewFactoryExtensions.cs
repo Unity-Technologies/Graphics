@@ -7,16 +7,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static ModelView CreateNode(
             this ElementBuilder elementBuilder,
-            GraphDataNodeModel model)
+            SGNodeModel model)
         {
-            var ui = new GraphDataNode();
+            var ui = new SGNodeView();
             ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
         public static ModelView CreateRedirectNode(
             this ElementBuilder elementBuilder,
-            RedirectNodeModel model)
+            SGRedirectNodeModel model)
         {
             var ui = new RedirectNode();
             ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);

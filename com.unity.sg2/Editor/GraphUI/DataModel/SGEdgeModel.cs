@@ -5,9 +5,9 @@ using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataEdgeModel : WireModel
+    class SGEdgeModel : WireModel
     {
-        public GraphDataEdgeModel()
+        public SGEdgeModel()
         {
         }
     }

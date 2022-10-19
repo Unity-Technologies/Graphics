@@ -7,19 +7,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class SetGraphTypeValueCommand : UndoableCommand
     {
-        readonly GraphDataNodeModel m_GraphDataNodeModel;
+        readonly SGNodeModel m_SGNodeModel;
         readonly string m_PortName;
         readonly GraphType.Length m_Length;
         readonly GraphType.Height m_Height;
         readonly float[] m_Values;
 
-        public SetGraphTypeValueCommand(GraphDataNodeModel graphDataNodeModel,
+        public SetGraphTypeValueCommand(SGNodeModel sgNodeModel,
             string portName,
             GraphType.Length length,
             GraphType.Height height,
             params float[] values)
         {
-            m_GraphDataNodeModel = graphDataNodeModel;
+            m_SGNodeModel = sgNodeModel;
             m_PortName = portName;
 
             m_Length = length;
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveState(graphViewState);
             }
 
-            if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            if (!command.m_SGNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
             var field = nodeHandler.GetPort(command.m_PortName).GetTypeField();
             GraphTypeHelpers.SetComponents(field, 0, command.m_Values);
 
@@ -63,25 +63,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 propertyBlockValue = matrixValue;
             }
 
-            previewUpdateDispatcher.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, propertyBlockValue);
+            previewUpdateDispatcher.OnLocalPropertyChanged(command.m_SGNodeModel.graphDataName, command.m_PortName, propertyBlockValue);
 
             using var graphUpdater = graphViewState.UpdateScope;
-            graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
+            graphUpdater.MarkChanged(command.m_SGNodeModel);
         }
     }
 
     class SetGradientTypeValueCommand : UndoableCommand
     {
-        readonly GraphDataNodeModel m_GraphDataNodeModel;
+        readonly SGNodeModel m_SGNodeModel;
         readonly string m_PortName;
         readonly Gradient m_Value;
 
         public SetGradientTypeValueCommand(
-            GraphDataNodeModel graphDataNodeModel,
+            SGNodeModel sgNodeModel,
             string portName,
             Gradient value)
         {
-            m_GraphDataNodeModel = graphDataNodeModel;
+            m_SGNodeModel = sgNodeModel;
             m_PortName = portName;
             m_Value = value;
         }
@@ -97,14 +97,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveState(graphViewState);
             }
 
-            if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            if (!command.m_SGNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
             var portWriter = nodeHandler.GetPort(command.m_PortName);
 
             GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
-            previewUpdateDispatcher.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);
+            previewUpdateDispatcher.OnLocalPropertyChanged(command.m_SGNodeModel.graphDataName, command.m_PortName, command.m_Value);
 
             using var graphUpdater = graphViewState.UpdateScope;
-            graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
+            graphUpdater.MarkChanged(command.m_SGNodeModel);
         }
     }
 }

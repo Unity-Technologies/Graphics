@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal static List<ItemLibraryItem> GetNodeSearcherItems(GraphModel graphModel)
         {
             var searcherItems = new List<ItemLibraryItem>();
-            if (graphModel is ShaderGraphModel shaderGraphModel)
+            if (graphModel is SGGraphModel shaderGraphModel)
             {
                 // Keep track of all the names that have been added to the ItemLibraryItem list.
                 // Having conflicting names in the ItemLibraryItem list causes errors

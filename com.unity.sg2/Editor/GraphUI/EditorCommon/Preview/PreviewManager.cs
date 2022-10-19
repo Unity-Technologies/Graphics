@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         HashSet<string> m_DirtyNodes;
 
-        ShaderGraphModel m_GraphModel;
+        SGGraphModel m_GraphModel;
 
         Dictionary<string, SerializableGUID> m_NodeLookupTable;
 
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // TODO: Could this be a list of IPreviewUpdateListeners instead?
-        internal void Initialize(ShaderGraphModel graphModel, MainPreviewView mainPreviewView, bool wasWindowCloseCancelled)
+        internal void Initialize(SGGraphModel graphModel, MainPreviewView mainPreviewView, bool wasWindowCloseCancelled)
         {
             m_GraphModel = graphModel;
             m_GraphModelStateComponent = m_GraphModel.graphModelStateComponent;
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 // TODO: Unify main preview and graph data node model update paths using IPreviewUpdateListener
-                if (nodeModel is GraphDataContextNodeModel contextNode && contextNode.IsMainContextNode())
+                if (nodeModel is SGContextNodeModel contextNode && contextNode.IsMainContextNode())
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
                         PreviewWidth,
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_MainPreviewView.mainPreviewTexture = updatedTexture;
                     HandlePreviewUpdateRequest(previewOutputState, updatedNodes, nodeName, shaderMessages, m_CycleCountChecker);
                 }
-                else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
+                else if (nodeModel is SGNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestNodePreviewTexture(nodeName, out var nodeRenderOutput, out var shaderMessages);
                     graphDataNodeModel.OnPreviewTextureUpdated(nodeRenderOutput);
@@ -260,7 +260,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var variableNodeNames = new List<string>();
             foreach(var node in linkedVariableNodes)
             {
-                var nodeModel = node as GraphDataVariableNodeModel;
+                var nodeModel = node as SGVariableNodeModel;
                 variableNodeNames.Add(nodeModel.graphDataName);
             }
 

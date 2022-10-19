@@ -11,13 +11,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     class BaseGraphWindowTest
     {
         protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
-
         protected TestEditorWindow m_MainWindow;
         protected TestGraphView m_GraphView;
-
         protected List<TestEditorWindow> m_ExtraWindows = new();
         protected List<string> m_ExtraGraphAssets = new();
-
         protected ShaderGraphModel GraphModel => m_GraphView.GraphModel as ShaderGraphModel;
 
         // Used to send events to the highest shader graph editor window

@@ -45,12 +45,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
-        public static MultipleModelsView CreateVariableNodeInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataVariableNodeModel> models)
+        public static MultipleModelsView CreateVariableNodeInspector(this ElementBuilder elementBuilder, IEnumerable<SGVariableNodeModel> models)
         {
             return elementBuilder.CreateVariableDeclarationInspector(models.Select(m => (GraphDataVariableDeclarationModel)m.VariableDeclarationModel));
         }
 
-        public static MultipleModelsView CreateContextSectionInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataContextNodeModel> models)
+        public static MultipleModelsView CreateContextSectionInspector(this ElementBuilder elementBuilder, IEnumerable<SGContextNodeModel> models)
         {
             var ui = new ShaderGraphModelInspector();
 
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
-        public static MultipleModelsView CreateSectionInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataNodeModel> models)
+        public static MultipleModelsView CreateSectionInspector(this ElementBuilder elementBuilder, IEnumerable<SGNodeModel> models)
         {
             var ui = new ShaderGraphModelInspector();
 
@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var view = elementBuilder.View as ModelInspectorView;
             ui.Setup(models, view, elementBuilder.Context);
 
-            if (model.Asset is ShaderGraphAsset graphAsset && !graphAsset.ShaderGraphModel.IsSubGraph)
+            if (model.Asset is ShaderGraphAsset graphAsset && !graphAsset.SGGraphModel.IsSubGraph)
             {
                 if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
                 {
@@ -148,7 +148,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         case SectionType.Settings:
                         {
-                            var targetSettingsField = new TargetSettingsInspector(graphAsset.ShaderGraphModel.Targets, ModelInspector.fieldsPartName, models, view, ModelInspector.ussClassName);
+                            var targetSettingsField = new TargetSettingsInspector(graphAsset.SGGraphModel.Targets, ModelInspector.fieldsPartName, models, view, ModelInspector.ussClassName);
                             ui.PartList.AppendPart(targetSettingsField);
                             break;
                         }

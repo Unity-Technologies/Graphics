@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// It can be used for a node on the graph (with an assigned graph data name)
     /// or a searcher preview (with only an assigned registry key).
     /// </summary>
-    class GraphDataNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
+    class SGNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
     {
         [SerializeField]
         string m_GraphDataName;
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_GraphDataName != null && TryGetNodeHandler(out _);
 
         protected GraphHandler graphHandler =>
-            ((ShaderGraphModel)GraphModel).GraphHandler;
+            ((SGGraphModel)GraphModel).GraphHandler;
 
         ShaderGraphRegistry registry =>
             ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_DismissedUpgradeVersion = value;
         }
 
-        internal ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+        internal SGGraphModel graphModel => GraphModel as SGGraphModel;
 
         internal int currentVersion => registryKey.Version;
 
@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var constant = e as BaseShaderGraphConstant;
                     if (e == null)
                         return;
-                    var shaderGraphModel = ((ShaderGraphModel)GraphModel);
+                    var shaderGraphModel = ((SGGraphModel)GraphModel);
                     var handler = shaderGraphModel.GraphHandler;
                     try
                     {
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((ShaderGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
@@ -312,7 +312,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
-            return new GraphDataPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
         }
 
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)

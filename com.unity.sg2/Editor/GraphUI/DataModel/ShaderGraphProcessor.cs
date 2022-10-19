@@ -16,11 +16,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (node)
                 {
-                    case RedirectNodeModel redirectNode when !redirectNode.GetIncomingEdges().Any() && redirectNode.GetConnectedWires().Any():
+                    case SGRedirectNodeModel redirectNode when !redirectNode.GetIncomingEdges().Any() && redirectNode.GetConnectedWires().Any():
                         result.AddWarning(k_RedirectMissingInputMessage, node);
                         break;
 
-                    case GraphDataNodeModel graphDataNodeModel:
+                    case SGNodeModel graphDataNodeModel:
                         if (graphDataNodeModel.currentVersion < graphDataNodeModel.latestAvailableVersion &&
                             graphDataNodeModel.dismissedUpgradeVersion < graphDataNodeModel.latestAvailableVersion)
                         {

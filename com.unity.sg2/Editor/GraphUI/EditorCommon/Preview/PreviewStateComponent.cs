@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -57,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             /// Initializes the state component based on information from the graph model
             /// </summary>
             /// <param name="graphModel">The graph model for which we want to load a state component.</param>
-            public void LoadStateForGraph(ShaderGraphModel graphModel)
+            public void LoadStateForGraph(SGGraphModel graphModel)
             {
                 // TODO: Persistence handling between domain reloads and editor sessions
                 // PersistedStateComponentHelpers.SaveAndLoadPersistedStateForGraph(m_State, this, graphModel);
@@ -70,10 +69,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     switch (nodeModel)
                     {
-                        case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
+                        case SGContextNodeModel contextNode when contextNode.IsMainContextNode():
                             RegisterNewListener(contextNode.graphDataName, contextNode);
                             break;
-                        case GraphDataNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
+                        case SGNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
                             RegisterNewListener(graphDataNodeModel.graphDataName, graphDataNodeModel);
                             break;
                     }
