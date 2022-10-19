@@ -49,7 +49,10 @@ o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif
 
 #if VFX_USE_INSTANCING
-o.instanceActiveIndex = instanceActiveIndex;
+    #ifdef UNITY_INSTANCING_ENABLED
+    o.VFX_VARYINGS_INSTANCE_CURRENT_INDEX = unity_InstanceID;
+    #endif
+o.VFX_VARYINGS_INSTANCE_ACTIVE_INDEX = instanceActiveIndex;
 #endif
 ${VFXEnd}
 

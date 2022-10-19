@@ -3,27 +3,27 @@ Pass
     Tags { "LightMode"="UniversalGBuffer" }
 
     ${VFXStencilGBuffer}
-        
+
     HLSLPROGRAM
     #pragma target 4.5
     ${VFXPassGBufferAdditionalPragma}
     ${VFXURPGBufferDefines}
 
-    ${VFXIncludeRP("VFXLitVaryings.template")}        
-        
+    ${VFXIncludeRP("VFXLitVaryings.template")}
+
     struct ps_input
     {
         float4 pos : SV_POSITION;
-        
+
         ${VFXURPLitDeclareVaryings}
-        
+
         #if USE_FLIPBOOK_INTERPOLATION
         float4 uv : TEXCOORD1;
         #else
         #if USE_FLIPBOOK_ARRAY_LAYOUT
         float3 uv : TEXCOORD1;
         #else
-        float2 uv : TEXCOORD1;    
+        float2 uv : TEXCOORD1;
         #endif
         #endif
         #if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
@@ -44,7 +44,7 @@ Pass
         #if USE_NORMAL_BENDING
         float2 bentFactors : TEXCOORD6;
         #endif
-		
+
         float3 posWS : TEXCOORD7; //Needed for GI
 
         ${VFXAdditionalInterpolantsDeclaration}
@@ -52,9 +52,9 @@ Pass
         UNITY_VERTEX_OUTPUT_STEREO
         VFX_VERTEX_OUTPUT_INSTANCE_INDEX
     };
-    
-${VFXURPLitVaryingsMacros}        
-    
+
+${VFXURPLitVaryingsMacros}
+
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
@@ -74,11 +74,11 @@ ${VFXURPLitVaryingsMacros}
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}
 ${VFXEnd}
-    
+
     ${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
     #define SHADERPASS SHADERPASS_GBUFFER
     ${VFXIncludeRP("VFXLit.template")}
-            
+
     ${SHADERGRAPH_PIXEL_CODE_GBUFFER}
     #pragma fragment frag
     void frag(ps_input i
@@ -90,6 +90,7 @@ ${VFXEnd}
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
         VFXTransformPSInputs(i);
+        VFX_FRAG_SETUP_INSTANCE_ID(i);
         ${VFXComputeNormalWS}
 
         #ifdef VFX_SHADERGRAPH

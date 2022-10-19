@@ -45,6 +45,9 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 
     #if !HAS_STRIPS
     $splice(VFXInitInstancing)
+    #ifdef UNITY_INSTANCING_ENABLED
+    input.instanceID = unity_InstanceID;
+    #endif
     #endif
 
     ContextData contextData = instancingContextData[instanceActiveIndex];

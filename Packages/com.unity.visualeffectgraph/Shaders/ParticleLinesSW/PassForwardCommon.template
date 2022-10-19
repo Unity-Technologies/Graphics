@@ -67,7 +67,7 @@ ps_output frag(ps_input i)
 	VFXTransformPSInputs(i);
 
 #if VFX_USE_GRAPH_VALUES
-    uint instanceActiveIndex = i.instanceActiveIndex;
+    uint instanceActiveIndex = i.VFX_VARYINGS_INSTANCE_ACTIVE_INDEX;
     ${VFXLoadGraphValues}
 #endif
 

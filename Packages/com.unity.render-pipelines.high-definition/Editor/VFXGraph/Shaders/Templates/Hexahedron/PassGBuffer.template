@@ -74,9 +74,10 @@ ${VFXEnd}
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
+		VFX_FRAG_SETUP_INSTANCE_ID(i);
 
     #if VFX_USE_GRAPH_VALUES
-       uint instanceActiveIndex = i.instanceActiveIndex;
+       uint instanceActiveIndex = i.VFX_VARYINGS_INSTANCE_ACTIVE_INDEX;
        ${VFXLoadGraphValues}
     #endif
 
