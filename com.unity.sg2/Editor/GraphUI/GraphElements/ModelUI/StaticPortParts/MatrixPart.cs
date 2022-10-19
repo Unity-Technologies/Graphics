@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnMatrixChanged(ChangeEvent<Matrix4x4> change)
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (m_Model is not SGNodeModel graphDataNodeModel) return;
 
             var values = new float[m_Size * m_Size];
             var write = 0;

@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         const string k_OutputNodeName = "DefaultContextDescriptor";
 
-        GraphDataContextNodeModel m_OutputContextNodeModel;
+        SGContextNodeModel m_OutputContextNodeModel;
 
         /// <inheritdoc />
         protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemorySubGraph;
@@ -21,7 +21,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             base.SetUp();
 
+<<<<<<< HEAD
             m_OutputContextNodeModel = m_MainWindow.GetNodeModelFromGraphByName(k_OutputNodeName) as GraphDataContextNodeModel;
+=======
+            m_OutputContextNodeModel = m_Window.GetNodeModelFromGraphByName(k_OutputNodeName) as SGContextNodeModel;
+>>>>>>> 13fd42d062 (Rename classes to use SG prefix.)
             Assert.IsNotNull(m_OutputContextNodeModel, "Subgraph output node must be present on graph");
         }
 
@@ -57,7 +61,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector3");
+<<<<<<< HEAD
             var vector3Node = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector3");
+=======
+            var vector3Node = (SGNodeModel)m_Window.GetNodeModelFromGraphByName("Vector3");
+>>>>>>> 13fd42d062 (Rename classes to use SG prefix.)
             m_GraphView.Dispatch(new CreateWireCommand(m_OutputContextNodeModel.GetInputPortForEntry("Port1"), vector3Node.OutputsById["Out"]));
             yield return null;
 
@@ -93,7 +101,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector3");
+<<<<<<< HEAD
             var vector3Node = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector3");
+=======
+            var vector3Node = (SGNodeModel)m_Window.GetNodeModelFromGraphByName("Vector3");
+>>>>>>> 13fd42d062 (Rename classes to use SG prefix.)
             m_GraphView.Dispatch(new CreateWireCommand(m_OutputContextNodeModel.GetInputPortForEntry("OriginalPort"), vector3Node.OutputsById["Out"]));
             yield return null;
 

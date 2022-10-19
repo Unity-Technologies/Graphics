@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool CanPasteNode(AbstractNodeModel originalModel, GraphModel graph)
         {
-            return originalModel is not GraphDataContextNodeModel;
+            return originalModel is not SGContextNodeModel;
         }
 
         public override bool CanPasteVariable(VariableDeclarationModel originalModel, GraphModel graph)

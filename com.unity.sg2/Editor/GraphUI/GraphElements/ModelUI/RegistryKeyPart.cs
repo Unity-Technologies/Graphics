@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            if (m_Model is not GraphDataNodeModel graphDataNode) return;
+            if (m_Model is not SGNodeModel graphDataNode) return;
             m_Root.text = $"Registry Key: {graphDataNode.registryKey}";
         }
 

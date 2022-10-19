@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public override VisualElement Root => m_rootVisualElement;
         private VisualElement m_rootVisualElement;
-        private readonly GraphDataNodeModel m_graphDataNodeModel;
+        private readonly SGNodeModel m_sgNodeModel;
 
         public DynamicPartHolder(
             string name,
@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ModelView ownerElement,
             string parentClassName) : base(name, model, ownerElement, parentClassName)
         {
-            m_graphDataNodeModel = model as GraphDataNodeModel;
+            m_sgNodeModel = model as SGNodeModel;
         }
 
         protected override void BuildPartUI(VisualElement parent)

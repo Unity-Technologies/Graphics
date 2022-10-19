@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataNode : CollapsibleInOutNode
+    class SGNodeView : CollapsibleInOutNode
     {
         NodePreviewPart m_NodePreviewPart;
         DynamicPartHolder m_StaticFieldParts;

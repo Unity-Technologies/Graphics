@@ -12,7 +12,7 @@ using UnityEditor.ShaderGraph.GraphUI.UIData;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ShaderGraphModel : GraphModel
+    class SGGraphModel : GraphModel
     {
         [SerializeField]
         private SerializableGraphHandler graphHandlerBox = new();
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         Dictionary<RegistryKey, SGNodeViewModel> m_NodeUIData;
 
         [NonSerialized]
-        GraphDataContextNodeModel m_DefaultContextNode;
+        SGContextNodeModel m_DefaultContextNode;
 
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
@@ -226,17 +226,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: we can assume we're using the standard SG config for now, but this is not good.
             ShaderGraphAssetUtils.RebuildContextNodes(GraphHandler, target);
 
-            foreach (var contextNode in NodeModels.OfType<GraphDataContextNodeModel>())
+            foreach (var contextNode in NodeModels.OfType<SGContextNodeModel>())
             {
                 contextNode.DefineNode();
             }
         }
 
-        GraphDataContextNodeModel GetMainContextNode()
+        SGContextNodeModel GetMainContextNode()
         {
             foreach (var node in NodeModels)
             {
-                if (node is GraphDataContextNodeModel graphDataContextNodeModel && graphDataContextNodeModel.IsMainContextNode())
+                if (node is SGContextNodeModel graphDataContextNodeModel && graphDataContextNodeModel.IsMainContextNode())
                     return graphDataContextNodeModel;
             }
 
@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetWireType(PortModel toPort, PortModel fromPort)
         {
-            return typeof(GraphDataEdgeModel);
+            return typeof(SGEdgeModel);
         }
         public override Type GetSectionModelType()
         {
@@ -260,11 +260,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             resolvedEdgeSource = HandleRedirectNodesCreation(toPort, fromPort, out resolvedEdgeDestinations);
 
             var edgeModel = base.CreateWire(toPort, fromPort, guid);
-            if (resolvedEdgeSource is not GraphDataPortModel fromDataPort)
+            if (resolvedEdgeSource is not SGPortModel fromDataPort)
                 return edgeModel;
 
             // Make the corresponding connections in CLDS data model
-            foreach (var toDataPort in resolvedEdgeDestinations.OfType<GraphDataPortModel>())
+            foreach (var toDataPort in resolvedEdgeDestinations.OfType<SGPortModel>())
             {
               // Validation should have already happened in GraphModel.IsCompatiblePort.
               Assert.IsTrue(TryConnect(fromDataPort, toDataPort));
@@ -278,7 +278,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Remove CLDS edges as well
             foreach (var edge in edgeModels)
             {
-                if (edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
+                if (edge.FromPort is SGPortModel sourcePort && edge.ToPort is SGPortModel destPort)
                     Disconnect(sourcePort, destPort);
             }
 
@@ -293,7 +293,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // as it causes issues with future port compability tests if the junk isnt cleared
             foreach (var nodeModel in NodeModels)
             {
-                if (nodeModel is GraphDataContextNodeModel contextNodeModel
+                if (nodeModel is SGContextNodeModel contextNodeModel
                     && contextNodeModel.graphDataName == BlackboardContextName)
                 {
                     GraphHandler.ReconcretizeNode(contextNodeModel.graphDataName);
@@ -316,7 +316,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var resolvedSource = fromPort;
             resolvedDestinations = new List<PortModel>();
 
-            if (toPort is { NodeModel: RedirectNodeModel toRedir })
+            if (toPort is { NodeModel: SGRedirectNodeModel toRedir })
             {
                 resolvedDestinations = toRedir.ResolveDestinations().ToList();
 
@@ -331,7 +331,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 resolvedDestinations.Add(toPort);
             }
 
-            if (fromPort.NodeModel is RedirectNodeModel fromRedir)
+            if (fromPort.NodeModel is SGRedirectNodeModel fromRedir)
             {
                 resolvedSource = fromRedir.ResolveSource();
             }
@@ -345,7 +345,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="src">Source port.</param>
         /// <param name="dst">Destination port.</param>
         /// <returns>True if the ports can be connected, false otherwise.</returns>
-        bool TestConnection(GraphDataPortModel src, GraphDataPortModel dst)
+        bool TestConnection(SGPortModel src, SGPortModel dst)
         {
             return GraphHandler.TestConnection(
                 src.owner.graphDataName, src.graphDataName,
@@ -359,7 +359,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="src">Source port.</param>
         /// <param name="dst">Destination port.</param>
         /// <returns>True if the connection was successful, false otherwise.</returns>
-        public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
+        public bool TryConnect(SGPortModel src, SGPortModel dst)
         {
             return GraphHandler.TryConnect(
                 src.owner.graphDataName, src.graphDataName,
@@ -371,7 +371,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         /// <param name="src">Source port.</param>
         /// <param name="dst">Destination port.</param>
-        public void Disconnect(GraphDataPortModel src, GraphDataPortModel dst)
+        public void Disconnect(SGPortModel src, SGPortModel dst)
         {
             GraphHandler.Disconnect(
                 src.owner.graphDataName, src.graphDataName,
@@ -407,20 +407,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (PortsFormCycle(fromPort, toPort)) return false;
 
-            if (fromPort.NodeModel is RedirectNodeModel fromRedirect)
+            if (fromPort.NodeModel is SGRedirectNodeModel fromRedirect)
             {
                 fromPort = fromRedirect.ResolveSource();
                 if (fromPort == null) return true;
             }
 
-            if (toPort.NodeModel is RedirectNodeModel toRedirect)
+            if (toPort.NodeModel is SGRedirectNodeModel toRedirect)
             {
                 // Only connect to a hanging branch if it's valid for every connection.
                 // Should not recurse more than once. ResolveDestinations returns non-redirect nodes.
                 return toRedirect.ResolveDestinations().All(testPort => IsCompatiblePort(fromPort, testPort));
             }
 
-            if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
+            if ((fromPort, toPort) is (SGPortModel fromDataPort, SGPortModel toDataPort))
             {
                 return fromDataPort.owner.existsInGraphData &&
                     toDataPort.owner.existsInGraphData &&
@@ -428,7 +428,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             // Don't support connecting GraphDelta-backed ports to UI-only ones.
-            if (fromPort is GraphDataPortModel || toPort is GraphDataPortModel)
+            if (fromPort is SGPortModel || toPort is SGPortModel)
             {
                 return false;
             }
@@ -461,9 +461,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 // We don't want to be able to duplicate context nodes,
                 // also they subclass from GraphDataNodeModel so need to handle first
-                case GraphDataContextNodeModel:
+                case SGContextNodeModel:
                     return null;
-                case GraphDataNodeModel newCopiedNode when sourceNodeModel is GraphDataNodeModel sourceGraphDataNode:
+                case SGNodeModel newCopiedNode when sourceNodeModel is SGNodeModel sourceGraphDataNode:
                 {
                     newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
 
@@ -480,7 +480,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     break;
                 }
-                case GraphDataVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
+                case SGVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
                 {
                     // if the blackboard property/keyword this variable node is referencing
                     // doesn't exist in the graph, it has probably been copied from another graph
@@ -652,17 +652,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public IEnumerable<AbstractNodeModel> GetLinkedVariableNodes(string variableName)
         {
             return NodeModels.Where(
-                node => node is GraphDataVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
+                node => node is SGVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
                     && variableDeclarationModel.graphDataName == variableName);
         }
 
         // TODO: Replace with a Preview Service side solution
-        bool IsConnectedToTimeNode(GraphDataNodeModel nodeModel)
+        bool IsConnectedToTimeNode(SGNodeModel nodeModel)
         {
             foreach (var inputEdge in nodeModel.GetIncomingEdges())
             {
                 if (TryGetModelFromGuid(inputEdge.FromNodeGuid, out var inputNode)
-                && inputNode is GraphDataNodeModel inputGraphDataNode)
+                && inputNode is SGNodeModel inputGraphDataNode)
                 {
                     // Recursively traverse through all inputs upstream and get if connected to time node
                     if (inputGraphDataNode.DisplayTitle.Contains("Time") || IsConnectedToTimeNode(inputGraphDataNode))
@@ -680,12 +680,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return IsConnectedToTimeNode(m_DefaultContextNode);
 
             return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
-                && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
+                && elementModel is SGNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
         }
 
-        public bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
+        public bool DoesNodeRequireTime(SGNodeModel sgNodeModel)
         {
-            return IsConnectedToTimeNode(graphDataNodeModel);
+            return IsConnectedToTimeNode(sgNodeModel);
         }
 
         // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290
@@ -733,7 +733,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             Action<VariableNodeModel> initCallback = variableNodeModel =>
             {
-                if (declarationModel is GraphDataVariableDeclarationModel model && variableNodeModel is GraphDataVariableNodeModel graphDataVariable)
+                if (declarationModel is GraphDataVariableDeclarationModel model && variableNodeModel is SGVariableNodeModel graphDataVariable)
                 {
                     variableNodeModel.VariableDeclarationModel = model;
 
@@ -745,7 +745,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             };
 
-            return this.CreateNode<GraphDataVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
+            return this.CreateNode<SGVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
         }
 
         protected override Type GetVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);

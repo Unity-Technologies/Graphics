@@ -5,16 +5,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class ChangeNodeFunctionCommand : UndoableCommand
     {
-        readonly GraphDataNodeModel m_GraphDataNodeModel;
+        readonly SGNodeModel m_SGNodeModel;
         readonly string m_newFunctionName;
         readonly string m_previousFunctionName;
 
         public ChangeNodeFunctionCommand(
-            GraphDataNodeModel graphDataNodeModel,
+            SGNodeModel sgNodeModel,
             string newFunctionName,
             string previousFunctionName)
         {
-            m_GraphDataNodeModel = graphDataNodeModel;
+            m_SGNodeModel = sgNodeModel;
             m_previousFunctionName = previousFunctionName;
             m_newFunctionName = newFunctionName;
         }
@@ -28,9 +28,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 undoUpdater.SaveState(graphViewState);
             }
-            command.m_GraphDataNodeModel.ChangeNodeFunction(command.m_newFunctionName);
+            command.m_SGNodeModel.ChangeNodeFunction(command.m_newFunctionName);
             using var graphUpdater = graphViewState.UpdateScope;
-            graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
+            graphUpdater.MarkChanged(command.m_SGNodeModel);
         }
     }
 

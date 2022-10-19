@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     abstract class BaseShaderGraphConstant : Constant, ISerializationCallbackReceiver
     {
         [SerializeReference]
-        protected ShaderGraphModel graphModel;
+        protected SGGraphModel graphModel;
         [SerializeField]
         protected string nodeName;
         [SerializeField]
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
         public string NodeName => nodeName;
         public string PortName => portName;
-        public void Initialize(ShaderGraphModel graphModel, string nodeName, string portName)
+        public void Initialize(SGGraphModel graphModel, string nodeName, string portName)
         {
             if (!IsInitialized)
             {
