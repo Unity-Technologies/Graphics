@@ -125,11 +125,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.filteringSettings = m_FilteringSettings;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
                 m_PassData.deferredLights = m_DeferredLights;
 
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
@@ -152,6 +147,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static void ExecutePass(ScriptableRenderContext context, PassData data, ref RenderingData renderingData, bool useRenderGraph = false)
         {
+            CoreUtils.SetKeyword(renderingData.commandBuffer, ShaderKeywordStrings.WriteRenderingLayers, data.deferredLights.UseRenderingLayers);
+
+            context.ExecuteCommandBuffer(renderingData.commandBuffer);
+            renderingData.commandBuffer.Clear();
+
             if (data.deferredLights.IsOverlay)
             {
                 data.deferredLights.ClearStencilPartial(renderingData.commandBuffer);
@@ -174,7 +174,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Input attachments will only be used when this is not needed so safe to skip in that case
             if (!data.deferredLights.UseRenderPass)
                 renderingData.commandBuffer.SetGlobalTexture(s_CameraNormalsTextureID, data.deferredLights.GbufferAttachments[data.deferredLights.GBufferNormalSmoothnessIndex]);
-
         }
 
         private class PassData
