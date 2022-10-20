@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "MotionVectors",
+//TODO:Same issue as the HD sample buffer node, not sure where to put the property
+//do we want to make _MotionVectorTexture a REF?
 @"TEXTURE2D(_MotionVectorTexture);
 uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
 Out = LOAD_TEXTURE2D_X_LOD(_MotionVectorTexture, pixelCoords, 0).xy;",
@@ -32,7 +34,10 @@ Out = LOAD_TEXTURE2D_X_LOD(_MotionVectorTexture, pixelCoords, 0).xy;",
                 ),
                 new (
                     "BlitSource",
-@"uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
+//TODO: same issue as line 25
+@"TEXTURE2D(_BlitTexture);
+SAMPLER(sampler_BlitTexture);
+uint2 pixelCoords = uint2(UV.xy * _ScreenSize.xy);
 Out = LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0);",
                     new ParameterDescriptor[]
                     {
