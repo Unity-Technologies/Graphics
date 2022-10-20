@@ -259,6 +259,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewSize = previewOverlay.size;
             }
 
+            shaderGraphModel.CreateUIData();
             shaderGraphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
 
             m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver);

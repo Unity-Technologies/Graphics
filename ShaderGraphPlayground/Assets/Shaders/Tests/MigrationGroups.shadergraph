@@ -782,9 +782,6 @@
         },
         {
             "m_Id": "09da572d375041d0bf55680f8a4533b9"
-        },
-        {
-            "m_Id": "2eb2767f11e54f0384a5e63f397fefe3"
         }
     ],
     "m_GroupDatas": [],
@@ -953,6 +950,21 @@
         },
         {
             "m_Id": "7237a448cc294ca78d3511c672156530"
+        },
+        {
+            "m_Id": "f720e89c42524dc4afb57ac4049fcde0"
+        },
+        {
+            "m_Id": "92e113fe32bd43009f44da6379aaa31c"
+        },
+        {
+            "m_Id": "5b8636c25fe44fa9b6f6c8b26078c541"
+        },
+        {
+            "m_Id": "df023969c0e84ae7943e71eeef1f975f"
+        },
+        {
+            "m_Id": "904113052d274ccf95e824e845ec9893"
         }
     ],
     "m_Edges": [],
@@ -6566,44 +6578,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.Rendering.HighDefinition.DiffusionProfileNode",
-    "m_ObjectId": "2eb2767f11e54f0384a5e63f397fefe3",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Diffusion Profile",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 212.99998474121095,
-            "y": 516.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "9a966f51f39e4c4eb9c56bd9de828d16"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_DiffusionProfile": {
-        "selectedEntry": 0,
-        "popupEntries": []
-    },
-    "m_SerializedDiffusionProfile": ""
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector4Node",
     "m_ObjectId": "2ee3c86135f243c489e2a36b13d68dfd",
     "m_Group": {
@@ -11925,6 +11899,26 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "5b8636c25fe44fa9b6f6c8b26078c541",
+    "m_Title": "Ben",
+    "m_Content": "",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 1800.0001220703125,
+        "y": -76.00000762939453,
+        "width": 80.0,
+        "height": 100.00001525878906
+    },
+    "m_Group": {
+        "m_Id": ""
     }
 }
 
@@ -18279,6 +18273,26 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "904113052d274ccf95e824e845ec9893",
+    "m_Title": "Q3",
+    "m_Content": "",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 1270.0001220703125,
+        "y": -597.0000610351563,
+        "width": 99.0,
+        "height": 100.00003051757813
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.SamplerStateMaterialSlot",
     "m_ObjectId": "90524c585ef740a2983a17d31ee69bd0",
     "m_Id": 3,
@@ -18490,6 +18504,26 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "92e113fe32bd43009f44da6379aaa31c",
+    "m_Title": "Ben",
+    "m_Content": "",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 1347.0001220703125,
+        "y": -81.50000762939453,
+        "width": 80.0,
+        "height": 100.00000762939453
+    },
+    "m_Group": {
+        "m_Id": ""
     }
 }
 
@@ -18900,21 +18934,6 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "9a966f51f39e4c4eb9c56bd9de828d16",
-    "m_Id": 0,
-    "m_DisplayName": "Out",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
@@ -26195,6 +26214,26 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "df023969c0e84ae7943e71eeef1f975f",
+    "m_Title": "Tracy",
+    "m_Content": "",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 2084.500244140625,
+        "y": -78.50000762939453,
+        "width": 80.0,
+        "height": 100.00000762939453
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "df1159c587644b5ba5b97edcb56b9959",
     "m_Id": 4,
@@ -29124,6 +29163,26 @@
         "w": 0.0
     },
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "f720e89c42524dc4afb57ac4049fcde0",
+    "m_Title": "Tracy",
+    "m_Content": "",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 821.0000610351563,
+        "y": -97.00000762939453,
+        "width": 80.0,
+        "height": 100.00000762939453
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
 }
 
 {
