@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new (
                     "NormalWorldSpace",
-                    "Out = SHADERGRAPH_SAMPLE_SCENE_NORMAL(UV);",
+                    "Out = SHADERGRAPH_SAMPLE_SCENE_NORMAL(UV.xy);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec4, Usage.In, REF.ScreenPosition_Default),
