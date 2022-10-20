@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 //var vertNode = this.CreateGraphDataContextNode("VertOut");
                 //vertNode.Title = "Vertex Stage";
                 //vertNode.Position = new Vector2(0, -180);
-
+                //vertNode.AddBlocksFromGraphDelta();
             }
             var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
             outputNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
