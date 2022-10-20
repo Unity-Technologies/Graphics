@@ -425,6 +425,8 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
             }
+
+            EditorGUILayout.HelpBox(Styles.ShadowInfo.text, MessageType.Info);
         }
 
         static void DrawLightCookieContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
