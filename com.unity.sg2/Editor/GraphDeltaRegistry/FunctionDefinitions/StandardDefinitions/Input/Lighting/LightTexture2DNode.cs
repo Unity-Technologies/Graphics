@@ -2,9 +2,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class LightTextureNode : IStandardNode
+    internal class LightTexture2DNode : IStandardNode
     {
-        public static string Name => "LightTexture";
+        public static string Name => "LightTexture2D";
         public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
@@ -49,9 +49,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "2D Light Texture",
+            displayName: "Light Texture 2D",
             tooltip: "A 2D Light texture asset.",
-            category: "Utility/Input/2D",
+            category: "Utility/Input/Lighting",
             synonyms: new string[0],
             hasPreview: false,
             selectableFunctions: new()

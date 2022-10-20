@@ -51,7 +51,7 @@ Out = LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0);",
             Name,
             displayName: "URP Sample Buffer",
             tooltip: "Return data from the selected buffer.",
-            category: "Utility/Input/URP",
+            category: "Input/URP",
             synonyms: new string[3] { "normal", "motion vector", "blit" },
             selectableFunctions: new()
             {
