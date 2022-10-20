@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
-        Dictionary<RegistryKey, SGNodeUIData> m_NodeUIData;
+        Dictionary<RegistryKey, SGNodeUIData> m_NodeUIData = new();
 
         [NonSerialized]
         GraphDataContextNodeModel m_DefaultContextNode;
