@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 if (!UnityEditor.ShaderUtil.IsPassCompiled(material, passIndex))
                                 {
                                     if (!UnityEditor.ShaderUtil.ShaderHasError(material.shader))
-                                        UnityEditor.ShaderUtil.CompilePass(material, passIndex);
+                                        UnityEditor.ShaderUtil.CompilePass(material, passIndex, true);
                                     continue;
                                 }
 #endif
