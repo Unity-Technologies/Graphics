@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             AssetDatabase.DeleteAsset(testAssetPath);
         }
 
-        public void CreateWindow()
+        public TestEditorWindow CreateWindow()
         {
             m_Window = EditorWindow.CreateWindow<TestEditorWindow>(typeof(SceneView), typeof(TestEditorWindow));
             m_Window.shouldCloseWindowNoPrompt = true;
@@ -118,6 +118,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_TestEventHelper = new TestEventHelpers(m_Window);
 
             m_TestInteractionHelper = new TestInteractionHelpers(m_Window, m_TestEventHelper);
+
+            return m_Window;
         }
 
         public void CloseWindow()
