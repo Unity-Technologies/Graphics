@@ -113,7 +113,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
         private ComputeBuffer _dirtyBlockListBuffer;
-        private ComputeBuffer _dirtyBlockIndirectBuffer;
+        private ComputeBuffer _axesDirtyBlockIndirectBuffer;
+        private ComputeBuffer _combineDirtyBlockIndirectBuffer;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
         private int _propagationSettingsHash;
@@ -675,8 +676,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups.Length);
 
             _dirtyBlockListBuffer = new ComputeBuffer(32768, sizeof(int), ComputeBufferType.Append);
-            _dirtyBlockIndirectBuffer = new ComputeBuffer(3, sizeof(int), ComputeBufferType.IndirectArguments);
-            _dirtyBlockIndirectBuffer.SetData(new[] { 0, s_NeighborAxis.Length, 1 });
+            _axesDirtyBlockIndirectBuffer = new ComputeBuffer(3, sizeof(int), ComputeBufferType.IndirectArguments);
+            _axesDirtyBlockIndirectBuffer.SetData(new[] { 0, s_NeighborAxis.Length, 1 });
+            _combineDirtyBlockIndirectBuffer = new ComputeBuffer(3, sizeof(int), ComputeBufferType.IndirectArguments);
+            _combineDirtyBlockIndirectBuffer.SetData(new[] { 0, 1, 1 });
 
             _DebugDirtyFlagsShader = resources.shaders.probeVolumeDebugDirtyFlags;
 
@@ -1084,8 +1087,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int dispatch = (blockCount + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatch, 1, 1);
-
-            cmd.CopyCounterValue(_dirtyBlockListBuffer, _dirtyBlockIndirectBuffer, 0);
         }
 
         void DispatchResetNextDirtyFlags(CommandBuffer cmd, ProbeVolumeHandle probeVolume, bool dirtyAll)
@@ -1235,7 +1236,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
-                cmd.DispatchCompute(shader, kernel, _dirtyBlockIndirectBuffer, 0);
+                cmd.CopyCounterValue(_dirtyBlockListBuffer, _axesDirtyBlockIndirectBuffer, 0);
+                cmd.DispatchCompute(shader, kernel, _axesDirtyBlockIndirectBuffer, 0);
             }
         }
 
@@ -1328,10 +1330,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int dispatchX = (probeVolume.parameters.resolutionX + 3) / 4;
-            int dispatchY = (probeVolume.parameters.resolutionY + 3) / 4;
-            int dispatchZ = (probeVolume.parameters.resolutionZ + 3) / 4;
-            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
+            if (data.dirtyFlagsDisabled)
+            {
+                int dispatchX = (probeVolume.parameters.resolutionX + 3) / 4;
+                int dispatchY = (probeVolume.parameters.resolutionY + 3) / 4;
+                int dispatchZ = (probeVolume.parameters.resolutionZ + 3) / 4;
+                cmd.DispatchCompute(shader, kernel, dispatchX * dispatchY * dispatchZ, 1, 1);
+            }
+            else
+            {
+                cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
+                cmd.CopyCounterValue(_dirtyBlockListBuffer, _combineDirtyBlockIndirectBuffer, 0);
+                cmd.DispatchCompute(shader, kernel, _combineDirtyBlockIndirectBuffer, 0);
+            }
         }
 
         internal void DispatchPropagationOutputDynamicSH(
@@ -1405,7 +1416,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int dispatchX = (size.x + 3) / 4;
             int dispatchY = (size.y + 3) / 4;
             int dispatchZ = (size.z + 3) / 4;
-            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
+            cmd.DispatchCompute(shader, kernel, dispatchX * dispatchY * dispatchZ, 1, 1);
         }
 
         Material GetDebugDirtyProbeMaterial()

@@ -1,5 +1,6 @@
 #pragma kernel CombinePropagationAxis
-//#pragma enable_d3d11_debug_symbols
+#define GROUP_SIZE 64
+// #pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
 #pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
@@ -35,6 +36,7 @@ float3 _ProbeVolumeDGIBoundsUp;
 
 #ifndef DIRTY_FLAGS_DISABLED
 RWStructuredBuffer<int> _ProbeVolumeDirtyFlags;
+StructuredBuffer<int> _ProbeVolumeDirtyBlocks;
 #endif
 
 StructuredBuffer<RADIANCE> _RadianceCacheAxis;
@@ -320,36 +322,43 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
 groupshared int2 dirtyFlags;
 #endif
 
-[numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
+[numthreads(GROUP_SIZE, 1, 1)]
 void CombinePropagationAxis(
     uint3 groupId : SV_GroupID,
-    uint3 threadId : SV_GroupThreadID,
     uint threadIndex : SV_GroupIndex)
 {
-#ifndef DIRTY_FLAGS_DISABLED
-    const uint groupIndex = CoordinateToIndex(groupId, (uint2)_ProbeVolumeBlockResolution.xy);
-    if (threadIndex < 2)
-        dirtyFlags[threadIndex] = _ProbeVolumeDirtyFlags[groupIndex * 2 + threadIndex];
-    GroupMemoryBarrierWithGroupSync();
+    const uint4 blockResolution = (uint4)_ProbeVolumeBlockResolution;
 
-    if (all(dirtyFlags == 0))
-        return;
+#ifndef DIRTY_FLAGS_DISABLED
+    const uint blockIndex = _ProbeVolumeDirtyBlocks[groupId.x];
+#else
+    const uint blockIndex = groupId.x;
 #endif
 
-    const uint3 probeCoordinate = groupId * BLOCK_SIZE + threadId;
-
-    if (all(probeCoordinate < (uint3)_ProbeVolumeResolution))
-    {
-        const int paddedProbeIndex = GroupAndIndexToPaddedProbeIndex(groupId, threadIndex);
+    const uint3 blockCoord = IndexToCoordinate(blockIndex, blockResolution.xy);
+    const uint3 blockProbeCoord = IndexToCoordinate(threadIndex, BLOCK_SIZE);
+    const uint blockProbeIndex = threadIndex;
 
 #ifndef DIRTY_FLAGS_DISABLED
-        const uint dirtyFlagsIndex = threadIndex / 32;
-        const uint dirtyFlagsBitIndex = threadIndex - dirtyFlagsIndex * 32;
+    if (blockProbeIndex < 2)
+        dirtyFlags[blockProbeIndex] = _ProbeVolumeDirtyFlags[blockIndex * 2 + blockProbeIndex];
+    GroupMemoryBarrierWithGroupSync();
+#endif
+
+    const uint3 probeCoord = blockCoord * BLOCK_SIZE + blockProbeCoord;
+
+    if (all(probeCoord < (uint3)_ProbeVolumeResolution))
+    {
+        const int paddedProbeIndex = GroupAndIndexToPaddedProbeIndex(blockCoord, blockProbeIndex);
+
+#ifndef DIRTY_FLAGS_DISABLED
+        const uint dirtyFlagsIndex = blockProbeIndex / 32;
+        const uint dirtyFlagsBitIndex = blockProbeIndex - dirtyFlagsIndex * 32;
         if ((dirtyFlags[dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
             return;
 #endif
 
-        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
+        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoord);
 
         const float validity = ReadValidity(probeIndex);
 
@@ -372,6 +381,6 @@ void CombinePropagationAxis(
 
         bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosity);
         bakedOutgoingRadiosityProjectedConstantsPacked = SHOutgoingRadiosityWithProjectedConstantsPackedCompute(bakedOutgoingRadiosityProjectedConstants);
-        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(probeCoordinate, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
+        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(probeCoord, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
     }
 }
