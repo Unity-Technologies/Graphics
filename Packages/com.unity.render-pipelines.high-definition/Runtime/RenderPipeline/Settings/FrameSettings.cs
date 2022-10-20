@@ -834,8 +834,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
             bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
 
-            //MSAA only supported in forward and when not using ray tracing.
-            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
+            //MSAA only supported in forward and when not using ray tracing or water.
+            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing || renderPipelineSettings.supportWater)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
             bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
 
