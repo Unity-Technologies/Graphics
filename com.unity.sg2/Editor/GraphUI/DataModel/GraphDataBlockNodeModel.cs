@@ -42,6 +42,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        public override bool IsCompatibleWith(ContextNodeModel context)
+        {
+            if (context is GraphDataContextNodeModel graphDataContext && ContextNodeModel != null)
+            {
+                return graphDataContext.graphDataName == graphDataName;
+            }
+
+            // GTF wants us to maintain compatibility with a base ContextNodeModel for item library support
+            // (see ContextNodeModel.InsertBlock).
+            return base.IsCompatibleWith(context);
+        }
+
+        // Implementation of IGraphDataOwner is forwarded to the owning context so we can still be treated like a
+        // regular node.
         public string graphDataName => (ContextNodeModel as IGraphDataOwner)?.graphDataName;
         public RegistryKey registryKey => (ContextNodeModel as IGraphDataOwner)?.registryKey ?? default;
         public bool existsInGraphData => (ContextNodeModel as IGraphDataOwner)?.existsInGraphData ?? false;

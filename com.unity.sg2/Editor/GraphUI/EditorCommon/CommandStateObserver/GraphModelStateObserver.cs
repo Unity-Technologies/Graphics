@@ -24,6 +24,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        class BlockRemovalInfo
+        {
+            public string contextNodeName { get; }
+            public string contextEntryName { get; }
+
+            public BlockRemovalInfo(GraphDataBlockNodeModel blockNodeModel)
+            {
+                contextNodeName = (blockNodeModel.ContextNodeModel as GraphDataContextNodeModel)?.graphDataName;
+                contextEntryName = blockNodeModel.ContextEntryName;
+            }
+        }
+
         class VariableNodeRemovalInfo
         {
             public string graphDataName { get; }
@@ -63,6 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         Dictionary<SerializableGUID, NodeRemovalInfo> m_NodeRemovalInfo;
+        Dictionary<SerializableGUID, BlockRemovalInfo> m_BlockRemovalInfo;
         Dictionary<SerializableGUID, VariableNodeRemovalInfo> m_VariableNodeRemovalInfo;
         Dictionary<SerializableGUID, WireRemovalInfo> m_WireRemovalInfo;
         Dictionary<SerializableGUID, VariableRemovalInfo> m_VariableRemovalInfo;
@@ -91,6 +104,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (graphModel != null)
             {
                 m_NodeRemovalInfo = new Dictionary<SerializableGUID, NodeRemovalInfo>();
+                m_BlockRemovalInfo = new Dictionary<SerializableGUID, BlockRemovalInfo>();
                 m_VariableNodeRemovalInfo = new Dictionary<SerializableGUID, VariableNodeRemovalInfo>();
                 m_WireRemovalInfo = new Dictionary<SerializableGUID, WireRemovalInfo>();
                 m_VariableRemovalInfo = new Dictionary<SerializableGUID, VariableRemovalInfo>();
@@ -114,7 +128,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     case GraphDataEdgeModel wireModel when
                         graphModel.TryGetModelFromGuid(wireModel.ToNodeGuid, out var toNode) &&
-                        toNode is GraphDataNodeModel dataOwner:
+                        toNode is IGraphDataOwner dataOwner:
                     {
                         m_WireRemovalInfo[model.Guid] = new WireRemovalInfo(dataOwner);
                         break;
@@ -122,6 +136,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     case GraphDataNodeModel { HasPreview: true } nodeModel:
                     {
                         m_NodeRemovalInfo[model.Guid] = new NodeRemovalInfo(nodeModel);
+                        break;
+                    }
+                    case GraphDataBlockNodeModel blockNodeModel:
+                    {
+                        m_BlockRemovalInfo[model.Guid] = new BlockRemovalInfo(blockNodeModel);
                         break;
                     }
                     case GraphDataVariableNodeModel nodeModel:
@@ -139,6 +158,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 _ = m_WireRemovalInfo.Remove(guid) ||
                     m_NodeRemovalInfo.Remove(guid) ||
+                    m_BlockRemovalInfo.Remove(guid) ||
                     m_VariableNodeRemovalInfo.Remove(guid) ||
                     m_VariableRemovalInfo.Remove(guid);
             }
@@ -228,6 +248,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     // Remove CLDS data backing the node
                     graphModel.GraphHandler.RemoveNode(nodeRemovalInfo.graphDataName);
+                }
+                // TODO: This is naive and can update a context multiple times
+                else if (m_BlockRemovalInfo.TryGetValue(guid, out var blockRemovalInfo))
+                {
+                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(blockRemovalInfo.contextNodeName);
                 }
                 else if (m_VariableNodeRemovalInfo.TryGetValue(guid, out var variableNodeRemovalInfo))
                 {
