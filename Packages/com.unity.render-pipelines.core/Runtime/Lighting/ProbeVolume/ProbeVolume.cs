@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
                 if (overrideRendererFilters)
                 {
                     hash = hash * 23 + minRendererVolumeSize.GetHashCode();
-                    hash = hash * 23 + objectLayerMask.GetHashCode();
+                    hash = hash * 23 + objectLayerMask.value.GetHashCode();
                 }
             }
 
