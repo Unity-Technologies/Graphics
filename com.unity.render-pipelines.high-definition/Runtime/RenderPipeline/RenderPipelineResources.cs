@@ -355,6 +355,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probePropagationInitializeCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationHits.compute")]
             public ComputeShader probePropagationHitsCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationDirtyBlockList.compute")]
+            public ComputeShader probePropagationDirtyBlockListCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationResetDirtyFlags.compute")]
             public ComputeShader probePropagationResetDirtyFlagsCS;
             [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationAxes.compute")]

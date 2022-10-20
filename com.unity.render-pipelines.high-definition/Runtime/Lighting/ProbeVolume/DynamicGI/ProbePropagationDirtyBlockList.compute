@@ -1,0 +1,21 @@
+#pragma kernel DirtyBlockList
+#define GROUP_SIZE 64
+// #pragma enable_d3d11_debug_symbols
+
+StructuredBuffer<int> _ProbeVolumeDirtyFlags;
+AppendStructuredBuffer<int> _ProbeVolumeDirtyBlocks;
+uint _ProbeVolumeBlockCount;
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void DirtyBlockList(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    if (index < _ProbeVolumeBlockCount)
+    {
+        bool blockIsDirty = _ProbeVolumeDirtyFlags[index * 2] != 0 || _ProbeVolumeDirtyFlags[index * 2 + 1] != 0;
+        if (blockIsDirty)
+        {
+            _ProbeVolumeDirtyBlocks.Append(index);
+        }
+    }
+}

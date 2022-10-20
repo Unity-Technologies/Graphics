@@ -258,6 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDynamicGIClear,
         ProbeVolumeDynamicGIInitialize,
         ProbeVolumeDynamicGIHits,
+        ProbeVolumeDynamicGIDirtyBlockList,
         ProbeVolumeDynamicGIResetDirtyFlags,
         ProbeVolumeDynamicGIAxes,
         ProbeVolumeDynamicGICombine,

@@ -103,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ComputeShader _PropagationClearRadianceShader = null;
         private ComputeShader _PropagationInitializeShader = null;
         private ComputeShader _PropagationHitsShader = null;
+        private ComputeShader _PropagationDirtyBlockList = null;
         private ComputeShader _PropagationResetDirtyFlags = null;
         private ComputeShader _PropagationAxesShader = null;
         private ComputeShader _PropagationCombineShader = null;
@@ -110,6 +111,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private NeighborAxisLookup[] _sortedNeighborAxisLookups;
         private ComputeBuffer _sortedNeighborAxisLookupsBuffer;
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
+
+        private ComputeBuffer _dirtyBlockListBuffer;
+        private ComputeBuffer _dirtyBlockIndirectBuffer;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
         private int _propagationSettingsHash;
@@ -663,11 +667,16 @@ namespace UnityEngine.Rendering.HighDefinition
             _PropagationClearRadianceShader = resources.shaders.probePropagationClearRadianceCS;
             _PropagationInitializeShader = resources.shaders.probePropagationInitializeCS;
             _PropagationHitsShader = resources.shaders.probePropagationHitsCS;
+            _PropagationDirtyBlockList = resources.shaders.probePropagationDirtyBlockListCS;
             _PropagationResetDirtyFlags = resources.shaders.probePropagationResetDirtyFlagsCS;
             _PropagationAxesShader = resources.shaders.probePropagationAxesCS;
             _PropagationCombineShader = resources.shaders.probePropagationCombineCS;
 
             ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups.Length);
+
+            _dirtyBlockListBuffer = new ComputeBuffer(32768, sizeof(int), ComputeBufferType.Append);
+            _dirtyBlockIndirectBuffer = new ComputeBuffer(3, sizeof(int), ComputeBufferType.IndirectArguments);
+            _dirtyBlockIndirectBuffer.SetData(new[] { 0, s_NeighborAxis.Length, 1 });
 
             _DebugDirtyFlagsShader = resources.shaders.probeVolumeDebugDirtyFlags;
 
@@ -850,8 +859,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!data.dirtyFlagsDisabled)
             {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIDirtyBlockList)))
+                    DispatchDirtyBlockList(cmd, probeVolume);
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIResetDirtyFlags)))
-                    DispatchResetDirtyFlags(cmd, probeVolume, dirtyAll);
+                    DispatchResetNextDirtyFlags(cmd, probeVolume, dirtyAll);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
@@ -1054,7 +1065,30 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchResetDirtyFlags(CommandBuffer cmd, ProbeVolumeHandle probeVolume, bool dirtyAll)
+        void DispatchDirtyBlockList(CommandBuffer cmd, ProbeVolumeHandle probeVolume)
+        {
+            var kernel = _PropagationDirtyBlockList.FindKernel("DirtyBlockList");
+            var shader = _PropagationDirtyBlockList;
+
+            var data = probeVolume.GetPipelineData().EngineData;
+            var propagationPipelineData = probeVolume.GetPropagationPipelineData();
+            int blockResolutionX = ((int)data.resolution.x + 3) / 4;
+            int blockResolutionY = ((int)data.resolution.y + 3) / 4;
+            int blockResolutionZ = ((int)data.resolution.z + 3) / 4;
+            int blockCount = blockResolutionX * blockResolutionY * blockResolutionZ;
+
+            cmd.SetComputeBufferCounterValue(_dirtyBlockListBuffer, 0);
+            cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
+            cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyFlags", propagationPipelineData.GetDirtyFlags());
+            cmd.SetComputeIntParam(shader, "_ProbeVolumeBlockCount", blockCount);
+
+            int dispatch = (blockCount + 63) / 64;
+            cmd.DispatchCompute(shader, kernel, dispatch, 1, 1);
+
+            cmd.CopyCounterValue(_dirtyBlockListBuffer, _dirtyBlockIndirectBuffer, 0);
+        }
+
+        void DispatchResetNextDirtyFlags(CommandBuffer cmd, ProbeVolumeHandle probeVolume, bool dirtyAll)
         {
             var kernel = _PropagationResetDirtyFlags.FindKernel("ResetDirtyFlags");
             var shader = _PropagationResetDirtyFlags;
@@ -1191,10 +1225,18 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", data.giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", data.giSettings.sharpness.value);
 
-            int dispatchX = ((int)engineData.resolution.x + 3) / 4;
-            int dispatchY = ((int)engineData.resolution.y + 3) / 4;
-            int dispatchZ = ((int)engineData.resolution.z + 3) / 4 * s_NeighborAxis.Length;
-            cmd.DispatchCompute(shader, kernel, dispatchX, dispatchY, dispatchZ);
+            if (data.dirtyFlagsDisabled)
+            {
+                int dispatchX = ((int)engineData.resolution.x + 3) / 4;
+                int dispatchY = ((int)engineData.resolution.y + 3) / 4;
+                int dispatchZ = ((int)engineData.resolution.z + 3) / 4;
+                cmd.DispatchCompute(shader, kernel, dispatchX * dispatchY * dispatchZ, s_NeighborAxis.Length, 1);
+            }
+            else
+            {
+                cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
+                cmd.DispatchCompute(shader, kernel, _dirtyBlockIndirectBuffer, 0);
+            }
         }
 
         static void UpdateAmbientProbe(SphericalHarmonicsL2 ambientProbe, float multiplier)

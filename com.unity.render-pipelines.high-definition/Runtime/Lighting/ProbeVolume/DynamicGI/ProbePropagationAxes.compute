@@ -1,4 +1,5 @@
 #pragma kernel PropagateLight
+#define GROUP_SIZE 64
 // #pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile _ SAMPLE_NEIGHBORS_DIRECTION_ONLY SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION
@@ -46,6 +47,7 @@ int _ProbeVolumeNeighborsCount;
 #ifndef DIRTY_FLAGS_DISABLED
 StructuredBuffer<int> _ProbeVolumeDirtyFlags;
 RWStructuredBuffer<int> _ProbeVolumeNextDirtyFlags;
+StructuredBuffer<int> _ProbeVolumeDirtyBlocks;
 #endif
 
 StructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
@@ -288,24 +290,35 @@ groupshared RADIANCE prefetchedPreviousRadiance[PREFETCH_PROBE_COUNT];
 groupshared int2 dirtyFlags;
 #endif
 
-[numthreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)]
+[numthreads(GROUP_SIZE, 1, 1)]
 void PropagateLight(
     uint3 groupId : SV_GroupID,
-    uint3 threadId : SV_GroupThreadID,
     uint threadIndex : SV_GroupIndex)
 {
     const uint4 resolution = (uint4)_ProbeVolumeResolution;
     const uint4 blockResolution = (uint4)_ProbeVolumeBlockResolution;
-    const uint axisIndex = groupId.z / blockResolution.z;
-    const uint3 probeGroupId = groupId - uint3(0, 0, axisIndex * blockResolution.z);
+
+#ifndef DIRTY_FLAGS_DISABLED
+    const uint blockIndex = _ProbeVolumeDirtyBlocks[groupId.x];
+#else
+    const uint blockIndex = groupId.x;
+#endif
+
+    const uint axisIndex = groupId.y;
+    const uint3 blockCoord = IndexToCoordinate(blockIndex, blockResolution.xy);
+    const uint3 blockProbeCoord = IndexToCoordinate(threadIndex, BLOCK_SIZE);
+    const uint blockProbeIndex = threadIndex;
+
+    const uint3 probeCoord = blockCoord * BLOCK_SIZE + blockProbeCoord;
+    const uint radianceIndex = axisIndex * PaddedProbeCount() + blockIndex * BLOCK_PROBE_COUNT + blockProbeIndex;
 
 #ifdef PREFETCH
     for (uint i = 0; i < PREFETCH_PROBE_COUNT_PER_THREAD; i++)
     {
-        const uint prefetchIndex = threadIndex * PREFETCH_PROBE_COUNT_PER_THREAD + i;
+        const uint prefetchIndex = blockProbeIndex * PREFETCH_PROBE_COUNT_PER_THREAD + i;
         if (prefetchIndex < PREFETCH_PROBE_COUNT)
         {
-            const int3 prefetchProbeCoords = (int3)probeGroupId * BLOCK_SIZE + (int3)IndexToCoordinate(prefetchIndex, PREFETCH_BLOCK_SIZE) - 1;
+            const int3 prefetchProbeCoords = (int3)blockCoord * BLOCK_SIZE + (int3)IndexToCoordinate(prefetchIndex, PREFETCH_BLOCK_SIZE) - 1;
             if (all(prefetchProbeCoords >= 0) && all(prefetchProbeCoords < (int3)resolution.xyz))
             {
                 const uint prefetchPaddedProbeIndex = ProbeCoordinateToPaddedProbeIndex(prefetchProbeCoords);
@@ -319,56 +332,40 @@ void PropagateLight(
     }
 #endif
 
-    const uint3 probeCoordinate = probeGroupId * BLOCK_SIZE + threadId;
-    const uint probeGroupIndex = CoordinateToIndex(probeGroupId, blockResolution.xy);
-    const uint paddedIndex = GroupAndIndexToPaddedProbeIndex(groupId, threadIndex);
-
 #ifndef DIRTY_FLAGS_DISABLED
-    if (threadIndex < 2)
-        dirtyFlags[threadIndex] = _ProbeVolumeDirtyFlags[probeGroupIndex * 2 + threadIndex];
+    if (blockProbeIndex < 2)
+        dirtyFlags[blockProbeIndex] = _ProbeVolumeDirtyFlags[blockIndex * 2 + blockProbeIndex];
     GroupMemoryBarrierWithGroupSync();
-
-    if (all(dirtyFlags == 0))
-    {
-        if (all(probeCoordinate < resolution.xyz))
-#ifdef PREFETCH
-            _RadianceCacheAxis[paddedIndex] = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
-#else
-            _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
-#endif
-        return;
-    }
-
 #elif defined(PREFETCH)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    if (all(probeCoordinate < resolution.xyz))
+    if (all(probeCoord < resolution.xyz))
     {
 #ifndef DIRTY_FLAGS_DISABLED
-        const uint dirtyFlagsIndex = threadIndex / 32;
-        const uint dirtyFlagsBitIndex = threadIndex - dirtyFlagsIndex * 32;
+        const uint dirtyFlagsIndex = blockProbeIndex / 32;
+        const uint dirtyFlagsBitIndex = blockProbeIndex - dirtyFlagsIndex * 32;
         if ((dirtyFlags[dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
         {
 #ifdef PREFETCH
-            _RadianceCacheAxis[paddedIndex] = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+            _RadianceCacheAxis[radianceIndex] = prefetchedPreviousRadiance[CoordinateToIndex(blockProbeCoord + 1, PREFETCH_BLOCK_SIZE)];
 #else
-            _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
+            _RadianceCacheAxis[radianceIndex] = GetPreviousAxisRadiance(radianceIndex);
 #endif
             return;
         }
 #endif
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
-        const float3 probePositionWS =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
+        const float3 probePositionWS =  ProbeCoordinatesToWorldPosition(probeCoord, probeVolumeLtw);
 
         // Early out at far distances
         if (IsFarFromCamera(probePositionWS, _RangeInFrontOfCamera, _RangeBehindCamera))
         {
 #ifdef PREFETCH
-            _RadianceCacheAxis[paddedIndex] = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+            _RadianceCacheAxis[radianceIndex] = prefetchedPreviousRadiance[CoordinateToIndex(blockProbeCoord + 1, PREFETCH_BLOCK_SIZE)];
 #else
-            _RadianceCacheAxis[paddedIndex] = GetPreviousAxisRadiance(paddedIndex);
+            _RadianceCacheAxis[radianceIndex] = GetPreviousAxisRadiance(radianceIndex);
 #endif
             return;
         }
@@ -376,7 +373,7 @@ void PropagateLight(
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY)
         SHIncomingIrradiance shIncomingIrradianceProbeCurrent;
         ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradianceProbeCurrent);
-        if (IsBoundaryProbe(probeCoordinate))
+        if (IsBoundaryProbe(probeCoord))
         {
             float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, axisIndex, probeVolumeLtw);
             shIncomingIrradianceProbeCurrent = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
@@ -389,7 +386,7 @@ void PropagateLight(
 
         BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[axisIndex].xyz, _Sharpness);
         
-        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoordinate);
+        const int probeIndex = ProbeCoordinateToProbeIndex(probeCoord);
 
         for(int l=0; l < PROPAGATION_AXIS_AMOUNT; ++l)
         {
@@ -421,13 +418,13 @@ void PropagateLight(
             {
                 // Miss
                 int3 offset = GetNeighborAxisOffset(i);
-                int3 neighborProbeCoordinate = probeCoordinate + offset;
+                int3 neighborProbeCoordinate = probeCoord + offset;
 
                 if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (int3)_ProbeVolumeResolution))
                 {
 #if !defined(PREVIOUS_RADIANCE_CACHE_INVALID)
 #ifdef PREFETCH
-                    uint3 neighborPrefetchCoordinate = threadId + 1 + offset;
+                    uint3 neighborPrefetchCoordinate = blockProbeCoord + 1 + offset;
                     uint neighborPrefetchIndex = CoordinateToIndex(neighborPrefetchCoordinate, PREFETCH_BLOCK_SIZE);
                     float3 prevAxisRadiance = DecodeRadiance(prefetchedPreviousRadiance[neighborPrefetchIndex]);
 #else
@@ -467,13 +464,13 @@ void PropagateLight(
         }
 
         const float3 radiance = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
-        _RadianceCacheAxis[paddedIndex] = EncodeRadiance(radiance);
+        _RadianceCacheAxis[radianceIndex] = EncodeRadiance(radiance);
 
 #ifndef DIRTY_FLAGS_DISABLED
 #ifdef PREFETCH
-        RADIANCE previousRadiance = prefetchedPreviousRadiance[CoordinateToIndex(threadId + 1, PREFETCH_BLOCK_SIZE)];
+        RADIANCE previousRadiance = prefetchedPreviousRadiance[CoordinateToIndex(blockProbeCoord + 1, PREFETCH_BLOCK_SIZE)];
 #else
-        RADIANCE previousRadiance = GetPreviousAxisRadiance(paddedIndex);
+        RADIANCE previousRadiance = GetPreviousAxisRadiance(radianceIndex);
 #endif
         if (!IsSimilarEqual(previousRadiance, radiance))
         {
@@ -485,7 +482,7 @@ void PropagateLight(
                 int3 offset = GetNeighborAxisOffset(i);
                 // When we gathered radiance from neighbors in miss directions we were adding the offset,
                 // but here we try to predict which probes will gather changes from us so we subtract.
-                int3 neighborProbeCoordinate = probeCoordinate - offset;
+                int3 neighborProbeCoordinate = probeCoord - offset;
 
                 if (all(neighborProbeCoordinate >= 0) && all(neighborProbeCoordinate < (int3)_ProbeVolumeResolution))
                 {
