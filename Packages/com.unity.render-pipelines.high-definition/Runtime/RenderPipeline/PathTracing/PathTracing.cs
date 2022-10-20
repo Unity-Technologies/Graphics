@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Enables path tracing (thus disabling most other passes).
         /// </summary>
         [Tooltip("Enables path tracing (thus disabling most other passes).")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Defines the layers that path tracing should include.

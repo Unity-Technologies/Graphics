@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
             EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component

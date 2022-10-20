@@ -27,7 +27,7 @@ Micro shadowing only works with directional [Lights](Light-Component.md). If you
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Enable**   | Enable the checkbox to make HDRP calculate micro shadows when this Volume affects the Camera. |
+| **State**    | When set to **Enabled**, HDRP calculates micro shadows when this Volume affects the Camera. |
 | **Opacity**  | Use the slider to set the opacity of micro shadows for this Volume. |
 
 ## Details
@@ -41,5 +41,5 @@ Note that processing micro shadows is more resource intensive than not processin
 
 ### Useful links
 
-- This micro shadowing technique is inspired by this presentation from Naughty Dog : [Technical Art of Uncharted 4](<http://advances.realtimerendering.com/other/2016/naughty_dog/index.html>).
-- For an example of how to generate ambient occlusion maps in a consistent way, see this presentation from Sledgehammer : [Material Advances in Call of Duty WWII]( http://advances.realtimerendering.com/s2018/MaterialAdvancesInWWII.pdf).
+- This micro shadowing technique is inspired by this presentation from Naughty Dog: [Technical Art of Uncharted 4](<http://advances.realtimerendering.com/other/2016/naughty_dog/index.html>).
+- For an example of how to generate ambient occlusion maps in a consistent way, see this presentation from Sledgehammer: [Material Advances in Call of Duty WWII]( http://advances.realtimerendering.com/s2018/MaterialAdvancesInWWII.pdf).

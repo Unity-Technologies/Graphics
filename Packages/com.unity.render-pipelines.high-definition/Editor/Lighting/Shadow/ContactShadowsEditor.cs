@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP processes Contact Shadows for this Volume."));
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State", "When enabled, HDRP processes Contact Shadows for this Volume."));
 
             if (!m_Enable.value.hasMultipleDifferentValues)
             {

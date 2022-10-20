@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
 
             EditorGUILayout.LabelField("Level of Detail", EditorStyles.miniLabel);
             PropertyField(m_MinGridSize);

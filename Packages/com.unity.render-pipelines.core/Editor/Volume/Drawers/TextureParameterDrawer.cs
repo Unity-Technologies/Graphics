@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering
                     TextureParameterHelper.DoObjectField(rect, property, title, typeof(Cubemap), typeof(RenderTexture), validator);
                     break;
                 default:
-                    EditorGUILayout.PropertyField(property, title);
+                    EditorGUI.PropertyField(rect, property, title);
                     break;
             }
             EditorGUI.EndProperty();

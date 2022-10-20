@@ -8,7 +8,7 @@ The **Fog** uses the [Volume](Volumes.md) framework, so to enable and modify **F
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** > **Fog**.
-3. In the override, select **Enable**. HDRP now renders **Fog** for any Camera this Volume affects.
+3. In the override, set **State** to **Enabled**. HDRP now renders **Fog** for any Camera this Volume affects.
 
 At this point, the Scene contains global fog. However, the effect might not suit your needs. To override the default property with your own chosen values, follow the steps in the [Customizing Global Fog](#CustomizingGlobalFog) section.
 
@@ -36,13 +36,13 @@ The **Fog** override of the active Volume controls the appearance of the global 
 
 ## Properties
 
-![](Images/fog-overrides.png)
+![](Images/Override-VolumetricFog1.png)
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                 | Function                                                     |
 | :----------------------- | :----------------------------------------------------------- |
-| **Enable** | Enables the fog. |
+| **State** | Controls whether the fog is enabled. |
 | **Fog Attenuation Distance** | Controls the density at the base of the fog and determines how far you can see through the fog in meters. At this distance, the fog has absorbed and out-scattered 63% of background light. |
 | **Base Height**          | The height of the boundary between the constant (homogeneous) fog and the exponential fog. |
 | **Maximum Height**   | Controls the rate of falloff for the height fog in meters. Higher values stretch the fog vertically. At this height , the falloff reduces the initial base density by 63%. |

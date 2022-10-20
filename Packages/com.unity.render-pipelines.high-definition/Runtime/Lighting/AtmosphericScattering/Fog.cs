@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
-        public BoolParameter enabled = new BoolParameter(false);
+        public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>Fog color mode.</summary>
         public FogColorParameter colorMode = new FogColorParameter(FogColorMode.SkyColor);
