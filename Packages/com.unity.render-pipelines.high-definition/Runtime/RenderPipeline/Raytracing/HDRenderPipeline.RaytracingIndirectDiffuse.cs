@@ -89,6 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
+            deferredParameters.raytracingCB._RayTracingAPVRayMiss = 1;
             deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
             deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
@@ -348,7 +349,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Grab the additional parameters
-                passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
+                if (IsAPVEnabled())
+                {
+                    if(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
+                    {
+                        passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingL1RT;
+                    }
+                    else
+                    {
+                        passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingL2RT;
+                    }
+                }
+                else
+                {
+                    passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingOffRT;
+                }
+
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);

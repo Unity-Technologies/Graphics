@@ -103,9 +103,21 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     }
     #endif
 
+    // Fill the ray context
+    RayContext rayContext;
+    rayContext.reflection = reflected;
+    rayContext.reflectionWeight = reflectedWeight;
+    rayContext.transmission = 0.0;
+    rayContext.transmissionWeight = 0.0;
+    #ifdef MULTI_BOUNCE_INDIRECT
+    rayContext.useAPV = _RayTracingDiffuseLightingOnly ? rayIntersection.remainingDepth == _RaytracingMaxRecursion : 1;
+    #else
+    rayContext.useAPV = 1;
+    #endif
+
     // Run the lightloop
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float4(reflected, reflectedWeight), float4(0.0, 0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, rayContext, lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;

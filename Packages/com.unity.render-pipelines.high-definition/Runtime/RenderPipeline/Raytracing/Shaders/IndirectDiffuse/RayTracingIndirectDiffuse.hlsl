@@ -1,6 +1,3 @@
-// We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
-#pragma max_recursion_depth 31
-
 #define HAS_LIGHTLOOP
 
 // Include and define the shader pass
@@ -39,6 +36,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/RayTracingFallbackHierarchy.cs.hlsl"
 
+// GI includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
 
@@ -53,8 +54,21 @@ void MissShaderIndirectDiffuse(inout RayIntersection rayIntersection : SV_RayPay
 
     float weight = 0.0f;
 
-    if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy)
-        rayIntersection.color = RayTraceReflectionProbes(rayOrigin, rayDirection, weight);
+    // Cannot be done because we lack the multi compiles on ray trace shaders
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    // Try the APV if enabled
+    if(_EnableProbeVolumes)
+    {
+        // Read from the APV
+        float3 backBakeDiffuseLighting = 0.0;
+        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(rayOrigin), rayDirection, -rayDirection, 0.0, 0.0, rayIntersection.color, backBakeDiffuseLighting);
+        weight = 1.0;
+    }
+#endif
+
+    // Try the reflection probes    
+    if ((RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingRayMissFallbackHierarchy) && weight < 1.0)
+        rayIntersection.color += RayTraceReflectionProbes(rayOrigin, rayDirection, weight);
 
     if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight < 1.0)
     {
