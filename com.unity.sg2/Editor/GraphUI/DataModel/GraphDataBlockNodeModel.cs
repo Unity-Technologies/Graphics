@@ -1,3 +1,4 @@
+using System.Linq;
 using Unity.GraphToolsFoundation;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -44,9 +45,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool IsCompatibleWith(ContextNodeModel context)
         {
-            if (context is GraphDataContextNodeModel graphDataContext && ContextNodeModel != null)
+            if (context is GraphDataContextNodeModel graphDataContext)
             {
-                return graphDataContext.graphDataName == graphDataName;
+                // Prevent moving between context types (i.e. vertex to fragment), which doesn't make sense
+                if (ContextNodeModel != null && graphDataContext.graphDataName != graphDataName)
+                {
+                    return false;
+                }
+
+                // Prevent duplicate blocks for context entries
+                return context.GraphElementModels
+                    .OfType<GraphDataBlockNodeModel>()
+                    .Where(otherBlock => otherBlock != this)
+                    .All(otherBlock => otherBlock.ContextEntryName != ContextEntryName);
             }
 
             // GTF wants us to maintain compatibility with a base ContextNodeModel for item library support

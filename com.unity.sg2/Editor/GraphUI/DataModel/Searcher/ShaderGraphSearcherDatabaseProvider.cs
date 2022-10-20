@@ -83,6 +83,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         if (result is GraphDataContextNodeModel fakeContext)
                         {
                             fakeContext.graphDataName = contextNode.graphDataName;
+                            fakeContext.Title = contextNode.Title;
                             fakeContext.DefineNode();
                             var block = (GraphDataBlockNodeModel)fakeContext.GraphElementModels.First();
                             block.DefineNode();

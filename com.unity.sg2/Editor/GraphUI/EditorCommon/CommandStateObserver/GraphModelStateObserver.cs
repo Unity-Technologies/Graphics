@@ -27,12 +27,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         class BlockRemovalInfo
         {
             public string contextNodeName { get; }
-            public string contextEntryName { get; }
 
             public BlockRemovalInfo(GraphDataBlockNodeModel blockNodeModel)
             {
                 contextNodeName = (blockNodeModel.ContextNodeModel as GraphDataContextNodeModel)?.graphDataName;
-                contextEntryName = blockNodeModel.ContextEntryName;
             }
         }
 
@@ -249,7 +247,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // Remove CLDS data backing the node
                     graphModel.GraphHandler.RemoveNode(nodeRemovalInfo.graphDataName);
                 }
-                // TODO: This is naive and can update a context multiple times
                 else if (m_BlockRemovalInfo.TryGetValue(guid, out var blockRemovalInfo))
                 {
                     m_PreviewUpdateDispatcher.OnListenerConnectionChanged(blockRemovalInfo.contextNodeName);

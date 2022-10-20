@@ -59,9 +59,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         case GraphDataNodeModel graphDataNode:
                             graphDataNode.TryGetNodeHandler(out nodeReader);
                             break;
-                        // TODO: temporary...
-                        case GraphDataBlockNodeModel { ContextNodeModel: GraphDataContextNodeModel ctx }:
-                            ctx.TryGetNodeHandler(out nodeReader);
+                        case GraphDataBlockNodeModel { ContextNodeModel: GraphDataContextNodeModel owningContext }:
+                            owningContext.TryGetNodeHandler(out nodeReader);
                             break;
                         default:
                             return new MissingFieldEditor(builder.CommandTarget, builder.Label);
