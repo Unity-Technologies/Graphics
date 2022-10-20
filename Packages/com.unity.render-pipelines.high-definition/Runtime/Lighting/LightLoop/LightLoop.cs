@@ -1128,8 +1128,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
+        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData,
+            out int fetchIndex, out Vector4 scaleOffset, out Matrix4x4 vp, out Vector3 capturedForwardWS)
         {
+            // Initialize the fetch index
+            fetchIndex = -1;
+            scaleOffset = Vector4.zero;
+            vp = Matrix4x4.identity;
+            capturedForwardWS = Vector3.zero;
+
             // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
             envLightData.distanceBasedRoughness = 0.0f;
@@ -1167,7 +1174,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var gpuProjNonOblique = GL.GetGPUProjectionMatrix(projectionMatrixNonOblique, true);
 
                     // Build the oblique and non oblique view projection matrices
-                    var vp = gpuProj * worldToCameraRHSMatrix;
+                    vp = gpuProj * worldToCameraRHSMatrix;
                     var vpNonOblique = gpuProjNonOblique * worldToCameraRHSMatrix;
 
                     // We need to collect the set of parameters required for the filtering
@@ -1186,7 +1193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     planarTextureFilteringParameters.captureFarPlane = probe.settings.cameraSettings.frustum.farClipPlane;
 
                     // Fetch the slice and do the filtering
-                    var scaleOffset = m_TextureCaches.reflectionProbeTextureCache.FetchPlanarReflectionProbe(cmd, probe, ref planarTextureFilteringParameters, out int fetchIndex);
+                    scaleOffset = m_TextureCaches.reflectionProbeTextureCache.FetchPlanarReflectionProbe(cmd, probe, ref planarTextureFilteringParameters, out fetchIndex);
 
                     // We don't need to provide the capture position
                     // It is already encoded in the 'worldToCameraRHSMatrix'
@@ -1205,10 +1212,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Propagate the smoothness information to the env light data
                     envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
 
-                    var capturedForwardWS = renderData.captureRotation * Vector3.forward;
+                    capturedForwardWS = renderData.captureRotation * Vector3.forward;
                     //capturedForwardWS.z *= -1; // Transform to RHS standard
-
-                    SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
 
                     //We must use the setting resolved from the probe, not from the frameSettings.
                     //Using the frmaeSettings from the probe is wrong because it can be disabled (not ticking on using custom frame settings in the probe reflection component)
@@ -1221,7 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HDAdditionalReflectionData reflectionData:
                 {
                     // Fetch the slice and do the filtering
-                    var scaleOffset = m_TextureCaches.reflectionProbeTextureCache.FetchCubeReflectionProbe(cmd, probe, out int fetchIndex);
+                    scaleOffset = m_TextureCaches.reflectionProbeTextureCache.FetchCubeReflectionProbe(cmd, probe, out fetchIndex);
 
                     // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
                     envIndex = scaleOffset == Vector4.zero ? int.MinValue : (fetchIndex + 1);
@@ -1232,8 +1237,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogWarning("Maximum reflection probes on screen reached. To fix this error, increase the 'Maximum Cube Reflection Probes on Screen' property in the HDRP asset.");
                         break;
                     }
-
-                    SetCubeReflectionData(fetchIndex, ref scaleOffset);
 
                     // Calculate settings to use for the probe
                     var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
@@ -1795,10 +1798,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     // In 1. we have already classify and sorted the light, we need to use this sorted order here
                     ProcessedProbeData processedProbe = GetSortedProcessedProbe(sortIndex);
 
+                    // Output data of the function
+                    int fetchIndex;
+                    Vector4 scaleOffset;
+                    Matrix4x4 vp;
+                    Vector3 capturedForwardWS;
                     EnvLightData envLightData = new EnvLightData();
 
-                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData))
+                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp, out capturedForwardWS))
                     {
+                        switch (processedProbe.hdProbe)
+                        {
+                            case PlanarReflectionProbe planarProbe:
+                                SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
+                            break;
+                            case HDAdditionalReflectionData reflectionData:
+                                SetCubeReflectionData(fetchIndex, ref scaleOffset);
+                            break;
+                        };
+
                         // it has been filled
                         m_lightList.envLights.Add(envLightData);
 

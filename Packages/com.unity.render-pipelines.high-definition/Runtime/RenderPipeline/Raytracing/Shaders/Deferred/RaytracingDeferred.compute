@@ -5,6 +5,9 @@
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
+// Environement data that need to be used aer the ray tracing ones
+#define RAY_TRACING_ENVIRONMENT_DATA
+
 // If you need to change this, be sure to read this comment.
 // For raytracing we decided to force the shadow quality to low.
 // - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
