@@ -5,7 +5,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Split Toning effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lift, Gamma, Gain", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

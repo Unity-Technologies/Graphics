@@ -29,7 +29,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the tonemapping effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Tonemapping", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

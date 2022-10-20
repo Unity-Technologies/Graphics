@@ -3,13 +3,15 @@ using System.Linq;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
     using Styles = UniversalRenderPipelineCameraUI.Styles;
 
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(UniversalRenderPipelineAsset))]
+    [CustomEditor(typeof(Camera))]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
     class UniversalRenderPipelineCameraEditor : CameraEditor
     {

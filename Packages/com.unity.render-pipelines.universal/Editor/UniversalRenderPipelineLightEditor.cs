@@ -5,8 +5,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [CustomEditor(typeof(Light))]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(Light), typeof(UniversalRenderPipelineAsset))]
     class UniversalRenderPipelineLightEditor : LightEditor
     {
         UniversalRenderPipelineSerializedLight serializedLight { get; set; }
