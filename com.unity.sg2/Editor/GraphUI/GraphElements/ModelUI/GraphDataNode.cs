@@ -19,12 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // If this isn't in place, things like the PreviewMode dropdown show up on nodes
             PartList.RemovePart(nodeSettingsContainerPartName);
 
-            if (NodeModel is not GraphDataNodeModel)
-                return;
-
-            if (!graphDataNodeModel.TryGetNodeHandler(out var nodeReader))
-                return;
-
             // Retrieve this node's view model
             var nodeViewModel = graphDataNodeModel.GetViewModel();
             if (nodeViewModel.Name == null)
