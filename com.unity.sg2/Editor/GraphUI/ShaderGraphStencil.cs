@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ShaderGraphRegistry.Instance;
         }
 
-        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node)
+        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node = null)
         {
             return ShaderGraphRegistry.Instance.GetNodeUIDescriptor(nodeKey, node);
         }

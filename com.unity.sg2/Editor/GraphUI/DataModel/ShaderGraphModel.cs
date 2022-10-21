@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.CommandStateObserver;
 using Unity.GraphToolsFoundation;
-
+using UnityEditor.ShaderGraph.GraphUI.UIData;
 using SerializedMesh = UnityEditor.ShaderGraph.Utils.SerializableMesh;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -130,6 +130,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
+        Dictionary<RegistryKey, SGNodeUIData> m_NodeUIData = new();
+
+        [NonSerialized]
         GraphDataContextNodeModel m_DefaultContextNode;
 
         [NonSerialized]
@@ -182,6 +185,62 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             mainPreviewData = new(Guid.ToString());
             m_DefaultContextNode = GetMainContextNode();
+        }
+
+        /// <summary>
+        /// Used to retrieve the UI data associated with a node & ports on that node, via that node's registry key
+        /// </summary>
+        /// <param name="registryKey"></param>
+        /// <returns></returns>
+        public SGNodeUIData GetUIData(RegistryKey registryKey)
+        {
+            return m_NodeUIData[registryKey];
+        }
+
+        /// <summary>
+        /// Called after the graph model is loaded
+        /// Creates the application side UI data by extracting it from the UI Descriptors
+        /// </summary>
+        public void CreateUIData()
+        {
+            if (Stencil is ShaderGraphStencil stencil)
+            {
+                foreach (var registryKey in RegistryInstance.Registry.BrowseRegistryKeys())
+                {
+                    var nodeUIInfo = stencil.GetUIHints(registryKey);
+                    var functionDictionary = nodeUIInfo.SelectableFunctions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                    var portInfoList = new List<SGPortUIData>();
+                    foreach (var parameter in nodeUIInfo.Parameters)
+                    {
+                        portInfoList.Add(new SGPortUIData(
+                                                    parameter.Name,
+                                                    parameter.DisplayName,
+                                                    parameter.Tooltip,
+                                                    parameter.UseColor,
+                                                    parameter.IsHdr,
+                                                    false,      // TODO: Add flags for isStatic and isGradient to ParameterUIDescriptor
+                                                    false,
+                                                    parameter.UseSlider,
+                                                    parameter.InspectorOnly,
+                                                    parameter.Options));
+                    }
+
+                    var nodeUIData = new SGNodeUIData(
+                                            nodeUIInfo.Version,
+                                            nodeUIInfo.Name,
+                                            nodeUIInfo.Tooltip,
+                                            nodeUIInfo.Category,
+                                            nodeUIInfo.Synonyms.ToArray(),
+                                            nodeUIInfo.DisplayName,
+                                            nodeUIInfo.HasPreview,
+                                            functionDictionary,
+                                            portInfoList.ToArray(),
+                                            nodeUIInfo.FunctionSelectorLabel);
+
+                    m_NodeUIData.Add(registryKey, nodeUIData);
+                }
+            }
         }
 
         internal void InitializeContextFromTarget(Target target)
