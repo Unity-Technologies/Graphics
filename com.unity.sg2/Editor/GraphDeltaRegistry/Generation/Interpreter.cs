@@ -3,6 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -20,6 +22,510 @@ namespace UnityEditor.ShaderGraph.Generation
 // the ShaderFoundry objects as well.
     public static class Interpreter
     {
+
+        internal class ShaderEvaluationCache
+        {
+            private struct ReferableData
+            {
+                public PropertyBlockUsage propertyBlockUsage;
+                public DataSource dataSource;
+                public string displayName;
+                public string defaultValue;
+                public string referenceName;
+                public ShaderType shaderType;
+            }
+
+            private struct VariableData
+            {
+                public string desiredVariableName;
+                public string actualVariableName;
+                public ShaderType shaderType;
+                public string initializationString;
+                public bool inlineInitialization;
+            }
+
+            private struct VariableReference
+            {
+                private int m_hash;
+                public VariableReference(VariableData variable)
+                {
+                    m_hash = HashCode.Combine(variable.desiredVariableName.GetHashCode(StringComparison.Ordinal),
+                                              variable.actualVariableName?.GetHashCode(StringComparison.Ordinal),
+                                              variable.shaderType,
+                                              variable.initializationString?.GetHashCode(StringComparison.Ordinal));
+                }
+            }
+
+            private struct FunctionReference
+            {
+                private int m_hash;
+                public FunctionReference(ShaderFunction function)
+                {
+                    int tmp = 0;
+                    foreach(var param in function.Parameters)
+                    {
+                        tmp += param.Name.GetHashCode(StringComparison.Ordinal) ^ param.Type.Name.GetHashCode(StringComparison.Ordinal);
+                    }
+                    m_hash = HashCode.Combine(function.Name.GetHashCode(StringComparison.Ordinal),
+                                              function.Body.GetHashCode(StringComparison.Ordinal),
+                                              tmp);
+                }
+            }
+
+            public struct ProcessingResult
+            {
+                public IEnumerable<ShaderType> usedTypes;
+                public IEnumerable<ShaderFoundry.IncludeDescriptor> includes;
+                public IEnumerable<ShaderFunction> functions;
+                public ShaderFunction entryPointFunction;
+            }
+
+            private static Regex variableNameMatch = new Regex(@"(?<functionName>\w+)Node(?<nodeVersion>\d*)_(?<parameterName>\w+)",RegexOptions.CultureInvariant);
+
+            private Dictionary<VariableReference, VariableData> variableReferences;
+            private Dictionary<VariableReference, int> variableCollisions;
+
+            private Dictionary<ElementID, VariableReference> portToVariableLookup;
+            private HashSet<VariableReference> initialized;
+
+            private Dictionary<FunctionReference, ShaderFunction> functionReferences;
+            private HashSet<ShaderFoundry.IncludeDescriptor> includeReferences;
+            private HashSet<ShaderType> typeReferences;
+
+            private ShaderFunction.Builder mainFunction;
+
+            private Registry registry;
+            public ShaderEvaluationCache(ref ShaderFunction.Builder mainFunctionBuilder, Registry registry)
+            {
+                variableReferences = new Dictionary<VariableReference, VariableData>();
+                portToVariableLookup = new Dictionary<ElementID, VariableReference>();
+                initialized = new HashSet<VariableReference>();
+                functionReferences = new Dictionary<FunctionReference, ShaderFunction>();
+                includeReferences = new HashSet<ShaderFoundry.IncludeDescriptor>();
+                typeReferences = new HashSet<ShaderType>();
+                variableCollisions = new Dictionary<VariableReference, int>();
+                mainFunction = mainFunctionBuilder;
+                mainFunction.Indent();
+                this.registry = registry;
+            }
+
+            public ProcessingResult Process(NodeHandler node)
+            {
+                //starting with root node, gather all leaf nodes. //Create iterator of leaf first traversal
+                //process each leaf node, setting up input and output variables,gathering any includes, and adding to the main function any initializations //while iterator has values
+                //foreach value
+                //  ask variable management to setup or verify variable initialization
+                //  input variable management output into main function
+                //  input function call into main function
+
+                var workset = GatherTreeLeafFirst(node);
+                List < (FunctionReference , IEnumerable < VariableReference >)> toPrint = new List<(FunctionReference, IEnumerable<VariableReference>)>();
+                foreach(var workunit in workset)
+                {
+                    var functionToCall = RegisterNodeDependencies(workunit);
+                    var variables = RegisterVariables(workunit, functionToCall).ToList();
+                    toPrint.Add((functionToCall, variables));
+                }
+                foreach((var functionToCall, var variables) in toPrint)
+                {
+                    WriteFunctionCall(functionToCall, variables);
+                }
+                return new ProcessingResult() { entryPointFunction = mainFunction.Build(), functions = functionReferences.Values, includes = includeReferences, usedTypes = typeReferences };
+            }
+
+            private void WriteFunctionCall(FunctionReference functionRef, IEnumerable<VariableReference> parameterReferences)
+            {
+                List<string> paramStrings = new List<string>();
+                foreach(var paramRef in parameterReferences)
+                {
+                    var param = variableReferences[paramRef];
+                    if (!param.inlineInitialization)
+                    {
+                        var s = param.actualVariableName ?? param.desiredVariableName;
+                        if(param.actualVariableName == null && variableCollisions.ContainsKey(paramRef))
+                        {
+                            s = CreateActualVariableName(param.desiredVariableName, 0);
+                        }
+                        if (!initialized.Contains(paramRef))
+                        {
+                            mainFunction.AddVariableDeclarationStatement(param.shaderType, s, param.initializationString);
+                            initialized.Add(paramRef);
+                        }
+                        paramStrings.Add(s);
+                    }
+                    else
+                    {
+                        paramStrings.Add(param.initializationString);
+                    }
+
+                }
+                var function = functionReferences[functionRef];
+                mainFunction.CallFunction(function, paramStrings.ToArray());
+            }
+
+            private IEnumerable<VariableReference> RegisterVariables(NodeHandler workunit, FunctionReference functionReference)
+            {
+                var function = functionReferences[functionReference];
+                foreach(var param in function.Parameters)
+                {
+                    var port = workunit.GetPort(param.Name);
+                    if(param.IsInput)
+                    {
+                        //check and see if this port is already mapped to a variable - I dont think this should ever actually happen
+                        if(portToVariableLookup.TryGetValue(port.ID, out VariableReference varref))
+                        {
+                            //TODO: Remove this line. Theoretically, the below code should handle the case, but its weird it got hit to begin with
+                            Debug.LogWarning("If this message shows up, contact shadergraph team");
+                            //while the variable reference might already exist, we may still need to cast it to the correct type
+                            var data = variableReferences[varref];
+                            if(data.shaderType != param.Type)
+                            {
+                                //Handle cast and replace variable reference with casted data
+                                VariableData castData = CreateCastVariableData(data, param.Type);
+                                var castRef = new VariableReference(castData);
+                                variableReferences.Add(castRef, castData);
+                                portToVariableLookup.Remove(port.ID);
+                                portToVariableLookup.Add(port.ID, castRef);
+                                yield return castRef;
+                                continue;
+                            }
+                            else
+                            {
+                                yield return varref;
+                                continue;
+                            }
+                        }
+                        //if we are connected, then the variables should have been setup in a previous step. Conditionally cast and return them
+                        var connection = port.GetFirstConnectedPort();
+                        if(connection != null)
+                        {
+                            if(!portToVariableLookup.TryGetValue(connection.ID, out VariableReference connref))
+                            {
+                                Debug.LogError("Previous node output variable was not setup properly");
+                            }
+                            else
+                            {
+                                var data = variableReferences[connref];
+                                if(data.shaderType != param.Type)
+                                {
+                                    VariableData castData = CreateCastVariableData(data, param.Type);
+                                    var castRef = new VariableReference(castData);
+                                    variableReferences.Add(castRef, castData);
+                                    portToVariableLookup.Add(port.ID, castRef);
+                                    yield return castRef;
+                                    continue;
+                                }
+                                else
+                                {
+                                    //May want to promote inline to variable here, since this would indicate the value being used in more than one place
+                                    portToVariableLookup.Add(port.ID, connref);
+                                    yield return connref;
+                                    continue;
+                                }
+                            }
+                        }
+                        //Otherwise, we need to setup a new variable for the port
+                        yield return CreateVariableData(port, function, param);
+                    }
+                    else
+                    {
+                        yield return CreateVariableData(port, function, param);
+                    }
+                }
+            }
+
+            private VariableReference CreateVariableData(PortHandler port, ShaderFunction function, FunctionParameter param)
+            {
+                string initialization = null;
+                //we dont initialize function outputs - the function calls do that
+                if (param.IsInput)
+                {
+                    initialization = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
+                }
+                //generally, inlining values makes more readable code unless the same value is being used in multiple places. 
+                bool inline = port.IsInput;
+                string desiredName = $"{function.Name}_{param.Name}";
+                VariableData data = new VariableData
+                {
+                    desiredVariableName = desiredName,
+                    initializationString = initialization,
+                    inlineInitialization = inline,
+                    shaderType = param.Type,
+                    actualVariableName = null
+                };
+                VariableReference reference = new VariableReference(data);
+                if (variableReferences.TryGetValue(reference, out var existingData))
+                {
+                    //there was a variable name collision - need to resolve it
+                    ResolveVariableNameCollision(reference, data, existingData, out VariableReference newRef, out VariableData newData);
+                    variableReferences.Add(newRef, newData);
+                    portToVariableLookup.Add(port.ID, newRef);
+                    return newRef;
+                }
+                else
+                {
+                    variableReferences.Add(reference, data);
+                    portToVariableLookup.Add(port.ID, reference);
+                    return reference;
+                }
+            }
+
+            private string CreateActualVariableName(string desiredName, int collisionCount)
+            {
+                string output = "";
+                foreach(char c in desiredName)
+                {
+                    if(c == '_')
+                    {
+                        output += collisionCount + 1;
+                    }
+                    output += c;
+                }
+                return output;
+            }
+
+            private void ResolveVariableNameCollision(VariableReference reference, VariableData data, VariableData existingData, out VariableReference newRef, out VariableData newData)
+            {
+                int currentCollisions;
+                if(variableCollisions.TryGetValue(reference, out currentCollisions))
+                {
+                    currentCollisions++;
+                    variableCollisions[reference] = currentCollisions;
+                }
+                else
+                {
+                    currentCollisions = 1;
+                    variableCollisions[reference] = currentCollisions;
+                }
+
+                newData = new VariableData
+                {
+                    actualVariableName = CreateActualVariableName(data.desiredVariableName, currentCollisions),
+                    shaderType = data.shaderType,
+                    desiredVariableName = data.desiredVariableName,
+                    initializationString = data.initializationString,
+                    inlineInitialization = data.inlineInitialization,
+                };
+                newRef = new VariableReference(newData);
+            }
+
+            private VariableData CreateCastVariableData(VariableData data, ShaderType type)
+            {
+                throw new NotImplementedException();
+            }
+
+            private FunctionReference RegisterNodeDependencies(NodeHandler workunit)
+            {
+                var nodeBuilder = registry.GetNodeBuilder(workunit.GetRegistryKey());
+                List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
+                var func = nodeBuilder.GetShaderFunction(workunit, mainFunction.Container, registry, out var dependencies);
+                var output = EnsureFunction(func);
+                if (dependencies.localFunctions != null)
+                {
+                    foreach (var f in dependencies.localFunctions)
+                    {
+                        EnsureFunction(func);
+                    }
+                }
+                if (dependencies.includes != null)
+                {
+                    foreach (var inc in dependencies.includes)
+                    {
+                        EnsureInclude(inc);
+                    }
+                }
+                return output;
+            }
+
+            private void EnsureInclude(ShaderFoundry.IncludeDescriptor include)
+            {
+                includeReferences.Add(include);
+            }
+
+            private FunctionReference EnsureFunction(ShaderFunction function)
+            {
+                var reference = new FunctionReference(function);
+                if(!functionReferences.ContainsKey(reference))
+                {
+                    functionReferences.Add(reference, function);
+                }
+                foreach(var param in function.Parameters)
+                {
+                    typeReferences.Add(param.Type);
+                }
+                return reference;
+            }
+
+            private void EvaluateReferableVariableData(IEnumerable<ReferableData> referables)
+            {
+                foreach(var referable in referables)
+                {
+                    var data = new VariableData() { desiredVariableName = null, initializationString = referable.referenceName, inlineInitialization = true, shaderType = referable.shaderType };
+                    var reference = new VariableReference(data);
+                    variableReferences.Add(reference, data);
+                    initialized.Add(reference);
+                }
+            }
+        }
+
+
+        internal static class InterpreterTestStub
+        {
+            public static void GetShaderFunctionInHumanReadableForm(ref StringBuilder sb, NodeHandler node, Registry reg, RegistryKey key)
+            {
+                Interpreter.GetShaderFunctionInHumanReadableForm(ref sb, reg.GetNodeBuilder(key).GetShaderFunction(node, new ShaderContainer(), reg, out _));
+            }
+
+            public static string GetShaderBlockInHumanReadableForm(NodeHandler node, Registry registry)
+            {
+                return Interpreter.GetShaderBlockInHumanReadableForm(GetShaderBlockForNode(node, registry, new ShaderContainer()));
+            }
+        }
+
+        internal static void GetShaderFunctionInHumanReadableForm(ref StringBuilder sb, ShaderFunction function)
+        {
+            sb.Append(function.ReturnType.Name + " " + function.Name + "(");
+            bool any = false;
+            foreach (var param in function.Parameters)
+            {
+                any = true;
+                sb.Append($"{param.Type.Name} {param.Name}, ");
+            }
+            if (any)
+            {
+                sb.Remove(sb.Length - 2, 2);
+            }
+            sb.AppendLine(")");
+            sb.AppendLine("{");
+            sb.Append(function.Body);
+            sb.AppendLine("}");
+        }
+
+        internal static string GetShaderBlockInHumanReadableForm(BlockInstance block)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("//INCLUDES------");
+            foreach(var include in block.Block.Includes)
+            {
+                sb.AppendLine(include.Value);
+            }
+
+            sb.AppendLine();
+            sb.AppendLine();
+
+            sb.AppendLine("//FUNCTIONS------");
+            foreach(var function in block.Block.Functions)
+            {
+                if (function != block.Block.EntryPointFunction)
+                {
+                    GetShaderFunctionInHumanReadableForm(ref sb, function);
+                }
+            }
+            
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine("//MAIN FUNCTION------");
+
+            GetShaderFunctionInHumanReadableForm(ref sb, block.Block.EntryPointFunction);
+
+            return sb.ToString();
+
+        }
+
+        private struct WorkUnit
+        {
+            //The overarching shader foundary container. Everything gets created and managed through this.
+            public ShaderContainer container; 
+            //The builder for an individual shader block. 
+            public Block.Builder builder;
+            //Every shader block needs an "entry point function" - this is the main code for the block
+            public ShaderFunction.Builder mainBodyFunctionBuilder;
+            //Still need a cache object of some kind to keep track of functions and variables
+        }
+
+        public static string GetShaderStringForGraph(GraphHandler graph)
+        {
+            return null;
+        }
+
+        internal static string GetShaderStringForNode(NodeHandler node, Registry registry)
+        {
+            return GetShaderBlockInHumanReadableForm(GetShaderBlockForNode(node, registry, new ShaderContainer()));
+        }
+
+        internal static BlockInstance GetShaderBlockForNode(NodeHandler node, Registry registry, ShaderContainer shaderContainer)
+        {
+            Block.Builder builder = new Block.Builder(shaderContainer, $"{node.ID.LocalPath}_NODE_BLOCK");
+            ShaderFunction.Builder mainFunctionBuilder = new ShaderFunction.Builder(builder, $"{node.ID.LocalPath}_MAIN_FUNCTION");
+
+            ShaderEvaluationCache sec = new ShaderEvaluationCache(ref mainFunctionBuilder, registry/*any SF stuff needed for creation of block instance*/);
+            var workunit = sec.Process(node);
+            //builder.AddInput(sec.InputType)
+            //builder.AddOutput
+            //etc
+            foreach(var type in workunit.usedTypes)
+            {
+                builder.AddType(type);
+            }
+            foreach(var include in workunit.includes)
+            {
+                builder.AddInclude(include);
+            }
+            foreach(var func in workunit.functions)
+            {
+                builder.AddFunction(func);
+            }
+            builder.SetEntryPointFunction(workunit.entryPointFunction);
+            var block = builder.Build();
+            var blockDescBuilder = new BlockInstance.Builder(shaderContainer, block);
+            return blockDescBuilder.Build();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         private class ShaderFunctionRegistry : List<ShaderFunction>
         {
             public void EnsureFunctionPresent(ShaderFunction function)
