@@ -80,8 +80,6 @@ namespace UnityEditor.ShaderGraph.Generation
                 public ShaderFunction entryPointFunction;
             }
 
-            private static Regex variableNameMatch = new Regex(@"(?<functionName>\w+)Node(?<nodeVersion>\d*)_(?<parameterName>\w+)",RegexOptions.CultureInvariant);
-
             private Dictionary<VariableReference, VariableData> variableReferences;
             private Dictionary<VariableReference, int> variableCollisions;
 
