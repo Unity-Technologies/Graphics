@@ -199,7 +199,6 @@ namespace UnityEngine.Rendering.Universal
         private DecalScreenSpaceSettings m_ScreenSpaceSettings;
         private bool m_RecreateSystems;
 
-        private CopyDepthPass m_CopyDepthPass;
         private DecalPreviewPass m_DecalPreviewPass;
         private Material m_CopyDepthMaterial;
 
@@ -212,6 +211,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawErrorSystem m_DrawErrorSystem;
 
         // DBuffer
+        private DBufferCopyDepthPass m_CopyDepthPass;
         private DBufferRenderPass m_DBufferRenderPass;
         private DecalForwardEmissivePass m_ForwardEmissivePass;
         private DecalDrawDBufferSystem m_DecalDrawDBufferSystem;
@@ -423,10 +423,10 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 case DecalTechnique.DBuffer:
-                    m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
+                    m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
                     m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
+                    
                     m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
-
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
                     break;

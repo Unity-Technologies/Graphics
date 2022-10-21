@@ -274,6 +274,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (frameResources.additionalShadowsTexture.IsValid())
                     builder.ReadTexture(frameResources.additionalShadowsTexture);
 
+                if (frameResources.dbuffer != null)
+                {
+                    foreach (var dbuffer in frameResources.dbuffer)
+                    {
+                        if (dbuffer.IsValid())
+                            builder.ReadTexture(dbuffer);
+                    }
+                }
+
                 builder.AllowPassCulling(false);
 
 

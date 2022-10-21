@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -14,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         private ProfilingSampler m_ProfilingSampler;
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawFowardEmissiveSystem m_DrawSystem;
+        private PassData m_PassData;
 
         public DecalForwardEmissivePass(DecalDrawFowardEmissiveSystem drawSystem)
         {
@@ -26,24 +28,67 @@ namespace UnityEngine.Rendering.Universal
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalMeshForwardEmissive));
+
+            m_PassData = new PassData();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
-            DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            InitPassData(ref m_PassData);
+            ExecutePass(context, m_PassData, ref renderingData, renderingData.commandBuffer);
+        }
 
-            var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+        private class PassData
+        {
+            internal FilteringSettings filteringSettings;
+            internal ProfilingSampler profilingSampler;
+            internal List<ShaderTagId> shaderTagIdList;
+            internal DecalDrawFowardEmissiveSystem drawSystem;
+
+            internal RenderingData renderingData;
+        }
+
+        void InitPassData(ref PassData passData)
+        {
+            passData.filteringSettings = m_FilteringSettings;
+            passData.profilingSampler = m_ProfilingSampler;
+            passData.shaderTagIdList = m_ShaderTagIdList;
+            passData.drawSystem = m_DrawSystem;
+        }
+
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData, CommandBuffer cmd)
+        {
+            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
+            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(passData.shaderTagIdList, ref renderingData, sortingCriteria);
+
+            var param = new RendererListParams(renderingData.cullResults, drawingSettings, passData.filteringSettings);
             var rl = context.CreateRendererList(ref param);
 
-            var cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, passData.profilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                m_DrawSystem.Execute(cmd);
+
+                passData.drawSystem.Execute(cmd);
 
                 cmd.DrawRendererList(rl);
+            }
+        }
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("Decal Forward Emissive Pass", out var passData, m_ProfilingSampler))
+            {
+                InitPassData(ref passData);
+                passData.renderingData = renderingData;
+
+                builder.UseColorBuffer(UniversalRenderer.m_ActiveRenderGraphColor, 0);
+                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Read);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                {
+                    ExecutePass(rgContext.renderContext, data, ref data.renderingData, data.renderingData.commandBuffer);
+                });
             }
         }
     }

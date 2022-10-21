@@ -61,6 +61,10 @@ namespace UnityEngine.Rendering.Universal
 
             // rendering layers
             internal TextureHandle renderingLayersTexture;
+
+            // dbuffer
+            internal TextureHandle[] dbuffer;
+            internal TextureHandle dbufferDepth;
             internal TextureHandle afterPostProcessColor;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
@@ -98,6 +102,26 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.wrapMode = wrapMode;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None;
             // TODO RENDERGRAPH: depthStencilFormat handling?
+
+            return renderGraph.CreateTexture(rgDesc);
+        }
+
+        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear, Color color,
+            FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp)
+        {
+            TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
+            rgDesc.dimension = desc.dimension;
+            rgDesc.clearBuffer = clear;
+            rgDesc.clearColor = color;
+            rgDesc.bindTextureMS = desc.bindMS;
+            rgDesc.colorFormat = desc.graphicsFormat;
+            rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
+            rgDesc.slices = desc.volumeDepth;
+            rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
+            rgDesc.name = name;
+            rgDesc.enableRandomWrite = false;
+            rgDesc.filterMode = filterMode;
+            rgDesc.wrapMode = wrapMode;
 
             return renderGraph.CreateTexture(rgDesc);
         }
@@ -394,8 +418,7 @@ namespace UnityEngine.Rendering.Universal
                 RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.BeforeRenderingGbuffer);
 
                 m_GBufferPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, ref renderingData, ref frameResources);
-                m_GBufferCopyDepthPass.Render(renderGraph, ref frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData, "GBuffer Depth Copy");
-
+                m_GBufferCopyDepthPass.Render(renderGraph, ref frameResources.cameraDepthTexture, in m_ActiveRenderGraphDepth, ref renderingData, "GBuffer Depth Copy");
                 RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
 
                 m_DeferredPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.gbuffer, ref renderingData);
@@ -681,6 +704,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DepthNormalPrepass.enableRenderingLayers = true;
                 m_DepthNormalPrepass.renderingLayersMaskSize = m_RenderingLayersMaskSize;
+            }
+            else
+            {
+                m_DepthNormalPrepass.enableRenderingLayers = false;
             }
 
             if (renderingModeActual == RenderingMode.Deferred)

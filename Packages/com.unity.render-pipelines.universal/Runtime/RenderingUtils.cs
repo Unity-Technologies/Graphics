@@ -142,6 +142,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static void SetScaleBiasRt(CommandBuffer cmd, in RenderingData renderingData, RTHandle rTHandle)
+        {
+            // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
+            CameraData cameraData = renderingData.cameraData;
+            bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && rTHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
+            bool yflip = !isCameraColorFinalTarget;
+            float flipSign = yflip ? -1.0f : 1.0f;
+            Vector4 scaleBiasRt = (flipSign < 0.0f)
+                ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
+        }
+
         internal static void SetScaleBiasRt(CommandBuffer cmd, in RenderingData renderingData)
         {
             var renderer = renderingData.cameraData.renderer;

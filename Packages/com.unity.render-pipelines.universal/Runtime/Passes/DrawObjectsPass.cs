@@ -353,6 +353,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal PassData basePassData;
             internal RenderingLayerUtils.MaskSize maskSize;
+
+            public RenderingLayersPassData()
+            {
+                basePassData = new PassData();
+            }
         }
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, ref RenderingData renderingData)

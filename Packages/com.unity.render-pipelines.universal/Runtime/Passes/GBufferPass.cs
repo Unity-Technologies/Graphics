@@ -240,8 +240,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                         passData.gbuffer[i] = builder.ReadTexture(frameResources.gbuffer[i]);
                 }
 
-                builder.AllowPassCulling(false);
+                if (frameResources.dbuffer != null)
+                {
+                    foreach (var dbuffer in frameResources.dbuffer)
+                    {
+                        if (dbuffer.IsValid())
+                            builder.ReadTexture(dbuffer);
+                    }
+                }
 
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     for (int i = 0; i < data.gbuffer.Length; i++)
