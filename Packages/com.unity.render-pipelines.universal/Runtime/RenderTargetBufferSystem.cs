@@ -108,6 +108,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             ReAllocate(cmd);
         }
 
+        public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode)
+        {
+            m_Desc = desc;
+            m_FilterMode = filterMode;
+        }
+
         public RTHandle GetBufferA()
         {
             return (m_AllowMSAA && m_A.msaa > 1) ? m_A.rtMSAA : m_A.rtResolve;
