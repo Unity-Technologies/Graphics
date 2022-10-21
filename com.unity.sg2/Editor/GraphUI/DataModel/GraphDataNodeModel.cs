@@ -6,7 +6,6 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.GraphToolsFoundation;
-using UnityEditor.ShaderGraph.GraphUI.UIData;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -190,7 +189,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             DefineNode();
         }
-        public SGNodeUIData UIData => shaderGraphModel.GetUIData(registryKey);
+
+        public SGNodeViewModel GetViewModel()
+        {
+            shaderGraphModel.GetNodeViewModel(registryKey, out var nodeViewModel);
+            return nodeViewModel;
+        }
 
         /// <summary>
         /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.

@@ -164,18 +164,26 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static GraphType.Precision GetPrecision(FieldHandler field) =>
             field.GetSubField<GraphType.Precision>(GraphType.kPrecision).GetData();
 
-        public static GraphType.Primitive GetPrimitive(FieldHandler field) =>
-            field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).GetData();
+        public static GraphType.Primitive GetPrimitive(FieldHandler field)
+        {
+            var primitiveField = field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive);
+            return primitiveField?.GetData() ?? GraphType.Primitive.Any;
+        }
 
-        public static GraphType.Length GetLength(FieldHandler field) =>
-            field.GetSubField<GraphType.Length>(GraphType.kLength).GetData();
+        public static GraphType.Length GetLength(FieldHandler field)
+        {
+            var lengthField = field.GetSubField<GraphType.Length>(GraphType.kLength);
+            return lengthField?.GetData() ?? GraphType.Length.Any;
+        }
 
-        public static GraphType.Height GetHeight(FieldHandler field) =>
-            field.GetSubField<GraphType.Height>(GraphType.kHeight).GetData();
+        public static GraphType.Height GetHeight(FieldHandler field)
+        {
+            var heightField = field.GetSubField<GraphType.Height>(GraphType.kHeight);
+            return heightField?.GetData() ?? GraphType.Height.Any;
+        }
 
         public static float GetComponent(FieldHandler field, int idx) =>
             field.GetSubField<float>(GraphType.kC(idx))?.GetData() ?? 0;
-
 
         public static IEnumerable<float> GetComponents(FieldHandler field, int idx = 0)
         {
