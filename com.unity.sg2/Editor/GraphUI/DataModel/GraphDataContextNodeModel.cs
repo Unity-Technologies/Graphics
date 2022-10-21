@@ -42,6 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
         }
 
+
         public bool TryGetNodeHandler(out NodeHandler reader)
         {
             try
@@ -61,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (!TryGetNodeHandler(out var nodeReader)) return;
 
-            var currentBlocks = GraphElementModels.OfType<GraphDataBlockNodeModel>().Select(b => b.ContextEntryName).ToHashSet();
+            var currentBlockNames = GraphElementModels.OfType<GraphDataBlockNodeModel>().Select(b => b.ContextEntryName).ToHashSet();
 
             foreach (var portHandler in nodeReader.GetPorts())
             {
@@ -73,15 +74,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (staticField != null && staticField.GetData()) continue;
                 if (localField != null && localField.GetData()) continue;
 
-                if (!currentBlocks.Contains(portHandler.LocalID))
+                if (!currentBlockNames.Contains(portHandler.LocalID))
                 {
-                    CreateAndInsertBlock<GraphDataBlockNodeModel>(initializationCallback: node =>
-                    {
-                        if (node is not GraphDataBlockNodeModel blockNode) return;
-
-                        blockNode.Title = portHandler.LocalID;
-                        blockNode.ContextEntryName = portHandler.LocalID;
-                    });
+                    CreateAndInsertBlockForEntry(portHandler.LocalID);
                 }
             }
         }
@@ -97,14 +92,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
             throw new NotImplementedException();
         }
 
-        #region Legacy Context methods // TODO: Update to use blocks
+        GraphDataBlockNodeModel CreateAndInsertBlockForEntry(string entryName)
+        {
+            return CreateAndInsertBlock<GraphDataBlockNodeModel>(initializationCallback: node =>
+            {
+                if (node is not GraphDataBlockNodeModel blockNode) return;
+
+                blockNode.Title = entryName;
+                blockNode.ContextEntryName = entryName;
+            });
+        }
+
+        // TODO (Joe): These were only used by the prototype subgraph output editor and can eventually be removed.
+        #region Legacy Context methods
 
         public bool IsMainContextNode()
         {
             return graphDataName == shaderGraphModel.DefaultContextName;
         }
 
-        public PortModel GetInputPortForEntry(string name) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == name);
+        public PortModel GetInputPortForEntry(string entryName) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == entryName);
 
         public void CreateEntry(string entryName, TypeHandle typeHandle)
         {
@@ -112,18 +119,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             ContextBuilder.AddContextEntry(nodeHandler, typeHandle.GetBackingDescriptor(), entryName, nodeHandler.Registry);
             graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
-            DefineNode();
+            CreateAndInsertBlockForEntry(entryName);
         }
 
-        public void RemoveEntry(string name)
+        public void RemoveEntry(string entryName)
         {
             if (!TryGetNodeHandler(out var nodeHandler)) return;
 
-            nodeHandler.RemovePort(name);
-            nodeHandler.RemovePort("out_" + name);
+            nodeHandler.RemovePort(entryName);
+            nodeHandler.RemovePort("out_" + entryName);
 
             graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
-            DefineNode();
+            RemoveElements(GraphElementModels.Where(model => model is GraphDataBlockNodeModel blockNode && blockNode.ContextEntryName == entryName).ToList());
         }
 
         #endregion
