@@ -756,7 +756,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // TODO: Replace with a Preview Service side solution
         bool IsConnectedToTimeNode(PortNodeModel nodeModel)
         {
-            foreach (var inputEdge in nodeModel.GetIncomingEdges())
+            IEnumerable<WireModel> incomingEdges;
+
+            if (nodeModel is GraphDataContextNodeModel context)
+            {
+                incomingEdges = context.GraphElementModels.OfType<GraphDataBlockNodeModel>()
+                    .Select(block => block.GetIncomingEdges())
+                    .Aggregate(Enumerable.Empty<WireModel>(), Enumerable.Concat);
+            }
+            else
+            {
+                incomingEdges = nodeModel.GetIncomingEdges();
+            }
+
+            foreach (var inputEdge in incomingEdges)
             {
                 if (TryGetModelFromGuid(inputEdge.FromNodeGuid, out var inputNode)
                 && inputNode is GraphDataNodeModel inputGraphDataNode)
@@ -774,7 +787,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             // Special casing for main context node now as we don't use a GTF guid as its CLDS ID
             if (graphDataName == DefaultContextName)
+            {
+                m_DefaultContextNode ??= GetMainContextNode();
                 return IsConnectedToTimeNode(m_DefaultContextNode);
+            }
 
             return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
                 && elementModel is GraphDataNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);

@@ -103,13 +103,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             });
         }
 
-        // TODO (Joe): These were only used by the prototype subgraph output editor and can eventually be removed.
-        #region Legacy Context methods
-
         public bool IsMainContextNode()
         {
             return graphDataName == shaderGraphModel.DefaultContextName;
         }
+
+        // TODO (Joe): These were only used by the prototype subgraph output editor and can eventually be removed.
+        #region Legacy Context methods
 
         public PortModel GetInputPortForEntry(string entryName) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == entryName);
 
