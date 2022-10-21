@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -13,36 +14,65 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.SortVisibleLights)))
             {
-                //Tunning against ps4 console,
-                //32 items insertion sort has a workst case of 3 micro seconds.
-                //200 non recursive merge sort has around 23 micro seconds.
-                //From 200 and more, Radix sort beats everything.
-                var sortSize = sortedLightCounts;
-                if (sortSize <= 32)
-                    CoreUnsafeUtils.InsertionSort(m_SortKeys, sortSize);
-                else if (m_Size <= 200)
-                    CoreUnsafeUtils.MergeSort(m_SortKeys, sortSize, ref m_SortSupportArray);
-                else
-                    CoreUnsafeUtils.RadixSort(m_SortKeys, sortSize, ref m_SortSupportArray);
+                SortArray(ref m_SortKeys, m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ProcessedLights]);
+                SortArray(ref m_SortKeysDGI, m_ProcessDynamicGILightCounts[(int)ProcessLightsCountSlots.ProcessedLights]);
             }
         }
 
-        private void BuildVisibleLightEntities(in CullingResults cullResults)
+        private void SortArray(ref NativeArray<uint> array, int size)
+        {
+            //Tunning against ps4 console,
+            //32 items insertion sort has a workst case of 3 micro seconds.
+            //200 non recursive merge sort has around 23 micro seconds.
+            //From 200 and more, Radix sort beats everything.
+            if (size <= 32)
+                CoreUnsafeUtils.InsertionSort(array, size);
+            else if (size <= 200)
+                CoreUnsafeUtils.MergeSort(array, size, ref m_SortSupportArray);
+            else
+                CoreUnsafeUtils.RadixSort(array, size, ref m_SortSupportArray);
+        }
+
+        private static Color GetLightFinalColor(Light light)
+        {
+            var finalColor = light.color.linear * light.intensity;
+
+            if (light.useColorTemperature)
+                finalColor *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+
+            if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                finalColor = finalColor.gamma;
+
+            return finalColor;
+        }
+
+        private void BuildVisibleLightEntities(in CullingResults cullResults, in SortedList<uint, Light> allDGIEnabledLights, bool processDynamicGI)
         {
             m_Size = 0;
 
+            int totalCounts = m_ProcessVisibleLightCounts.IsCreated ? m_ProcessDynamicGILightCounts.Length : Enum.GetValues(typeof(ProcessLightsCountSlots)).Length;
+
             if (!m_ProcessVisibleLightCounts.IsCreated)
             {
-                int totalCounts = Enum.GetValues(typeof(ProcessLightsCountSlots)).Length;
                 m_ProcessVisibleLightCounts.ResizeArray(totalCounts);
             }
 
-            for (int i = 0; i < m_ProcessVisibleLightCounts.Length; ++i)
+            if (!m_ProcessDynamicGILightCounts.IsCreated)
+            {
+                m_ProcessDynamicGILightCounts.ResizeArray(totalCounts);
+            }
+
+            for (int i = 0; i < totalCounts; ++i)
+            {
                 m_ProcessVisibleLightCounts[i] = 0;
+                m_ProcessDynamicGILightCounts[i] = 0;
+            }
 
             using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BuildVisibleLightEntities)))
             {
-                int totalLightCount = GetTotalLightCount(cullResults);
+                int visibleLightCount = cullResults.visibleLights.Length;
+                int dgiLightCount = processDynamicGI ? allDGIEnabledLights.Count : 0;
+                int totalLightCount = visibleLightCount + dgiLightCount;
 
                 if (totalLightCount == 0 || HDLightRenderDatabase.instance == null)
                     return;
@@ -52,36 +82,98 @@ namespace UnityEngine.Rendering.HighDefinition
                     ResizeArrays(totalLightCount);
                 }
 
-                m_Size = totalLightCount;
-
                 //TODO: this should be accelerated by a c++ API
                 var defaultEntity = HDLightRenderDatabase.instance.GetDefaultLightEntity();
-                for (int i = 0; i < totalLightCount; ++i)
+                int validDGIVisibleLights = 0;
+                for (int i = 0; i < visibleLightCount; ++i)
                 {
-                    Light light = GetLightByIndex(cullResults, i, out bool isFromVisibleList);
+                    Light light = cullResults.visibleLights[i].light;
 
-                    int dataIndex = HDLightRenderDatabase.instance.FindEntityDataIndex(light);
-                    if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                    int dataIndex = FindDataIndex(light, ref defaultEntity);
+
+                    StoreLightData(i, light, dataIndex);
+
+                    if (dgiLightCount > 0 && dataIndex != HDLightRenderDatabase.InvalidDataIndex)
                     {
-                        //Shuriken lights bullshit: this happens because shuriken lights dont have the HDAdditionalLightData OnEnabled.
-                        //Because of this, we have to forcefully create a light render entity on the rendering side. Horrible!!!
-                        if (light.TryGetComponent<HDAdditionalLightData>(out var hdAdditionalLightData))
-                        {
-                            if (!hdAdditionalLightData.lightEntity.valid)
-                                hdAdditionalLightData.CreateHDLightRenderEntity(autoDestroy: true);
-                        }
-                        else
-                            dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(defaultEntity);
+                        m_VisibleLightIDs[validDGIVisibleLights++] = (uint)light.GetInstanceID();
                     }
+                }
 
-                    m_VisibleLightEntityDataIndices[i] = dataIndex;
-                    m_VisibleLightBakingOutput[i] = light.bakingOutput;
-                    m_VisibleLightShadowCasterMode[i] = light.lightShadowCasterMode;
-                    m_VisibleLightShadows[i] = light.shadows;
-                    m_VisibleLightIsFromVisibleList[i] = isFromVisibleList;
-                    m_VisibleLightBounceIntensity[i] = light.bounceIntensity;
+                m_Size = visibleLightCount;
+
+                if (dgiLightCount > 0)
+                {
+                    SortArray(ref m_VisibleLightIDs, validDGIVisibleLights);
+
+                    int currentVisibleLightIdx = 0;
+
+                    for (int i = 0; i < dgiLightCount; i++)
+                    {
+                        uint lightID = allDGIEnabledLights.Keys[i];
+
+                        while (currentVisibleLightIdx < validDGIVisibleLights && m_VisibleLightIDs[currentVisibleLightIdx] < lightID)
+                            currentVisibleLightIdx++;
+                        if (currentVisibleLightIdx < validDGIVisibleLights && m_VisibleLightIDs[currentVisibleLightIdx] == lightID)
+                            continue;
+
+                        Light light = allDGIEnabledLights[lightID];
+                        int dataIndex = FindDataIndex(light, ref defaultEntity);
+
+                        if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                            continue;
+
+                        StoreLightData(m_Size, light, dataIndex);
+
+                        // Create a fake VisibleLight
+                        m_OffscreenDynamicGILights[m_Size - visibleLightCount] = new VisibleLight()
+                        {
+                            localToWorldMatrix = light.transform.localToWorldMatrix,
+                            lightType = light.type,
+                            screenRect = default, // Unused for offscreen lights
+                            finalColor = GetLightFinalColor(light),
+                            range = light.range,
+                            spotAngle = light.spotAngle,
+                        };
+
+                        m_Size++;
+                    }
                 }
             }
+        }
+
+        private void StoreLightData(int index, Light light, int dataIndex)
+        {
+            m_VisibleLightEntityDataIndices[index] = dataIndex;
+            m_VisibleLightBakingOutput[index] = light.bakingOutput;
+            m_VisibleLightShadowCasterMode[index] = light.lightShadowCasterMode;
+            m_VisibleLightShadows[index] = light.shadows;
+            m_VisibleLightBounceIntensity[index] = light.bounceIntensity;
+        }
+
+        private static int FindDataIndex(Light light, ref HDLightRenderEntity defaultEntity)
+        {
+            int dataIndex = HDLightRenderDatabase.instance.FindEntityDataIndex(light);
+            if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+            {
+                //Shuriken lights bullshit: this happens because shuriken lights dont have the HDAdditionalLightData OnEnabled.
+                //Because of this, we have to forcefully create a light render entity on the rendering side. Horrible!!!
+                if (light.TryGetComponent<HDAdditionalLightData>(out var hdAdditionalLightData))
+                {
+                    if (!hdAdditionalLightData.lightEntity.valid)
+                        hdAdditionalLightData.CreateHDLightRenderEntity(autoDestroy: true);
+                }
+                else
+                    dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(defaultEntity);
+            }
+            // custom-begin:
+#if UNITY_EDITOR
+            else if (UnityEditor.SceneVisibilityManager.instance.IsHidden(light.gameObject))
+            {
+                dataIndex = HDLightRenderDatabase.InvalidDataIndex;
+            }
+#endif
+            // custom-end
+            return dataIndex;
         }
 
         private void ProcessShadows(
@@ -109,16 +201,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int lightIndex = m_ShadowLightsDataIndices[i];
                         HDProcessedVisibleLight* entity = entitiesPtr + lightIndex;
-                        if (!cullResults.GetShadowCasterBounds(lightIndex, out var bounds) || defaultEntityDataIndex == entity->dataIndex)
+                        HDAdditionalLightData additionalLightData = HDLightRenderDatabase.instance.hdAdditionalLightData[entity->dataIndex];
+
+                        if (additionalLightData == null)
+                            continue;
+
+                        if ((!cullResults.GetShadowCasterBounds(lightIndex, out var bounds) && additionalLightData.shadowUpdateMode != ShadowUpdateMode.OnDemand) || defaultEntityDataIndex == entity->dataIndex)
                         {
                             entity->shadowMapFlags = ShadowMapFlags.None;
                             continue;
                         }
 
-                        HDAdditionalLightData additionalLightData = HDLightRenderDatabase.instance.hdAdditionalLightData[entity->dataIndex];
-                        if (additionalLightData == null)
-                            continue;
-
+                        
                         VisibleLight visibleLight = visibleLights[lightIndex];
                         additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType);
                     }
@@ -143,55 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!aovRequest.IsLightEnabled(go))
                     m_VisibleLightEntityDataIndices[i] = HDLightRenderDatabase.InvalidDataIndex;
-
-                // custom-begin:
-#if UNITY_EDITOR
-                if (UnityEditor.SceneVisibilityManager.instance.IsHidden(go))
-                    m_VisibleLightEntityDataIndices[i] = HDLightRenderDatabase.InvalidDataIndex;
-#endif
-                // custom-end
-            }
-        }
-
-        protected abstract int GetTotalLightCount(in CullingResults cullResults);
-        protected abstract Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList);
-    }
-
-    internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
-    {
-        protected override int GetTotalLightCount(in CullingResults cullResults)
-        {
-            return cullResults.visibleLights.Length;
-        }
-
-        protected override Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList)
-        {
-            isFromVisibleList = true;
-            return cullResults.visibleLights[index].light;
-        }
-    }
-
-    internal partial class HDProcessedVisibleLightsDynamicBuilder : HDProcessedVisibleLightsBuilder
-    {
-        protected override int GetTotalLightCount(in CullingResults cullResults)
-        {
-            return cullResults.visibleLights.Length + cullResults.visibleOffscreenVertexLights.Length;
-        }
-
-        protected override Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList)
-        {
-            if (index < cullResults.visibleLights.Length)
-            {
-                isFromVisibleList = true;
-                return cullResults.visibleLights[index].light;
-            }
-            else
-            {
-                int offScreenLightIndex = index - cullResults.visibleLights.Length;
-                isFromVisibleList = false;
-                return cullResults.visibleOffscreenVertexLights[offScreenLightIndex].light;
             }
         }
     }
-
 }

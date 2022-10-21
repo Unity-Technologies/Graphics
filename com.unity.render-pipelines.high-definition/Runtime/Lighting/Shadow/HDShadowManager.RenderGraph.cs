@@ -166,6 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RenderShadowsParameters parameters;
             public ShadowDrawingSettings shadowDrawSettings;
+            public CullingResults cullingResults;
 
             public bool isRenderingOnACache;
         }
@@ -191,6 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
                 passData.isRenderingOnACache = m_IsACacheForShadows;
                 passData.constantBuffer = m_GlobalConstantBuffer;
+                passData.cullingResults = cullResults;
 
                 result = renderGraph.ImportTexture(m_Atlas);
 
@@ -223,6 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.atlasTexture,
                                     data.shadowDrawSettings,
                                     context.renderContext,
+                                    data.cullingResults,
                                     data.isRenderingOnACache,
                                     data.constantBuffer,
                                     context.cmd);
