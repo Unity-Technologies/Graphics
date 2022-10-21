@@ -1,9 +1,15 @@
 using System;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -11,6 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             First,
             AddProbeVolumesAtlasEncodingModes,
+            AddOctahedralDepthVarianceFromLightmapper,
+            AddRotation,
+            RearrangeNeighborData,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -19,13 +28,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
         [SerializeField] internal int Version { get => m_Version; }
 
-        [SerializeField] internal int instanceID;
-
         // dataSH, dataValidity, and dataOctahedralDepth is from AssetVersion.First. In versions AddProbeVolumesAtlasEncodingModes or greater, this should be null.
         [SerializeField] internal SphericalHarmonicsL1[] dataSH = null;
         [SerializeField] internal float[] dataValidity = null;
         [SerializeField] internal float[] dataOctahedralDepth = null;
-
 
         [SerializeField] internal ProbeVolumePayload payload = ProbeVolumePayload.zero;
 
@@ -36,9 +42,22 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal float backfaceTolerance;
         [SerializeField] internal int dilationIterations;
 
+        [SerializeField] internal Quaternion rotation;
+
+        [SerializeField] internal VolumeGlobalUniqueID globalUniqueID;
+        
+        [SerializeField] internal bool dynamicGIMixedLightsBaked;
+        
+        [SerializeField] internal int dataVersion;
+
         internal bool IsDataAssigned()
         {
             return payload.dataSHL01 != null;
+        }
+
+        internal VolumeGlobalUniqueID GetID()
+        {
+            return (globalUniqueID == VolumeGlobalUniqueID.zero) ? new VolumeGlobalUniqueID(0, 0, 0, (ulong)unchecked((uint)GetInstanceID()), 0) : globalUniqueID;
         }
 
 #if UNITY_EDITOR
@@ -50,45 +69,43 @@ namespace UnityEngine.Rendering.HighDefinition
         //     CreateAsset();
         // }
 
-        internal static string GetFileName(int id = -1)
+        private static string GetFileName(VolumeGlobalUniqueID globalUniqueID)
         {
             string assetName = "ProbeVolumeData";
 
             String assetFileName;
             String assetPath;
 
-            if (id == -1)
-            {
-                assetPath = "Assets";
-                assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
-            }
-            else
-            {
-                String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
-                String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
-                String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
-                assetPath = System.IO.Path.Combine(sceneDir, sceneName);
+            String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
+            String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
+            String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
-                if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
-                    UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
+            assetPath = System.IO.Path.Combine(sceneDir, sceneName);
 
-                assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + id + ".asset");
-            }
+            if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+                UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
+
+            assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(string.Format("{0}-{1}{2}", assetName, globalUniqueID.ToString(), ".asset"));
 
             assetFileName = System.IO.Path.Combine(assetPath, assetFileName);
 
             return assetFileName;
         }
 
-        internal static ProbeVolumeAsset CreateAsset(int id = -1)
+        internal static ProbeVolumeAsset CreateAsset(VolumeGlobalUniqueID globalUniqueID)
         {
             ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
-            string assetFileName = GetFileName(id);
+            asset.globalUniqueID = globalUniqueID;
+            EditorUtility.SetDirty(asset);
+
+            string assetFileName = GetFileName(globalUniqueID);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
+            
+            // TODO: Why do we need those? Let's try without it to speed baking up.
+            // UnityEditor.AssetDatabase.SaveAssets();
+            // UnityEditor.AssetDatabase.Refresh();
 
             return asset;
         }
@@ -133,6 +150,14 @@ namespace UnityEngine.Rendering.HighDefinition
         protected internal int ComputeIndex1DFrom3D(Vector3Int pos)
         {
             return pos.x + pos.y * resolutionX + pos.z * resolutionX * resolutionY;
+        }
+
+        internal Vector3Int ComputePos3DFrom1D(int index)
+        {
+            return new Vector3Int(
+                index % resolutionX,
+                index / resolutionX % resolutionY,
+                index / (resolutionX * resolutionY));
         }
 
         bool OverwriteInvalidProbe(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst, Vector3Int index3D, float backfaceTolerance)
@@ -219,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Foreach probe, gather neighboring probe data, weighted by validity.
                 // TODO: "validity" is actually stored as how occluded the surface is, so it is really inverse validity.
-                // We should probably rename this to avoid confusion. 
+                // We should probably rename this to avoid confusion.
                 for (int z = 0; z < resolutionZ; ++z)
                 {
                     for (int y = 0; y < resolutionY; ++y)
@@ -268,6 +293,151 @@ namespace UnityEngine.Rendering.HighDefinition
             this.backfaceTolerance = backfaceTolerance;
             this.dilationIterations = dilationIterations;
         }
+
+        [ContextMenu("Reserialize")]
+        void Reserialize()
+        {
+            Migrate(null);
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+        
+        [ContextMenu("Reserialize All")]
+        void ReserializeAll()
+        {
+            const string k_ProgressBarTitle = "Reserializing all Probe Volume assets";
+            EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Searching assets", 1f / 6f);
+            var assetGuids = AssetDatabase.FindAssets("t:" + nameof(ProbeVolumeAsset));
+            EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Loading assets", 3f / 6f);
+            for (int i = 0; i < assetGuids.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(assetGuids[i]);
+                var asset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(path);
+                asset.Migrate(null);
+                EditorUtility.SetDirty(asset);
+            }
+            EditorUtility.DisplayProgressBar(k_ProgressBarTitle, "Saving assets", 5f / 6f);
+            AssetDatabase.SaveAssets();
+            EditorUtility.ClearProgressBar();
+        }
 #endif
+
+        internal void Migrate(ProbeVolume volume)
+        {
+#if UNITY_EDITOR
+            var isDirty = false;
+#endif
+            while (Version < (int)AssetVersion.Current)
+            {
+                var nextVersion = Version + 1;
+                bool migrationFailed = false;
+                switch ((AssetVersion)nextVersion)
+                {
+                    case AssetVersion.AddProbeVolumesAtlasEncodingModes:
+                        ApplyMigrationAddProbeVolumesAtlasEncodingModes();
+                        break;
+                    case AssetVersion.AddOctahedralDepthVarianceFromLightmapper:
+                        ApplyMigrationAddOctahedralDepthVarianceFromLightmapper();
+                        break;
+                    case AssetVersion.AddRotation:
+                        migrationFailed = !TryApplyMigrationAddRotation(volume);
+                        break;
+                    case AssetVersion.RearrangeNeighborData:
+                        ApplyMigrationRearrangeNeighborData();
+                        break;
+                }
+
+                if (migrationFailed)
+                    break;
+
+                m_Version = nextVersion;
+#if UNITY_EDITOR
+                isDirty = true;
+#endif
+            }
+            
+#if UNITY_EDITOR
+            if (isDirty)
+                EditorUtility.SetDirty(this);
+#endif
+        }
+
+        void ApplyMigrationAddProbeVolumesAtlasEncodingModes()
+        {
+            int probeLength = dataSH.Length;
+
+            ProbeVolumePayload.Allocate(ref payload, probeLength);
+
+            for (int i = 0; i < probeLength; ++i)
+            {
+                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref payload, dataSH[i], i);
+            }
+
+            dataSH = null;
+            dataValidity = null;
+            dataOctahedralDepth = null;
+        }
+
+        void ApplyMigrationAddOctahedralDepthVarianceFromLightmapper()
+        {
+            if (payload.dataOctahedralDepth == null)
+                return;
+
+            int probeLength = ProbeVolumePayload.GetLength(ref payload);
+            var dataOctahedralDepthMigrated = new float[probeLength * ProbeVolumePayload.GetDataOctahedralDepthStride()];
+
+            // Previously, the lightmapper only returned scalar mean depth values for octahedralDepth.
+            // Now it returns float2(depthMean, depthMean^2) which can be used to reconstruct a variance estimate.
+            int dataOctahedralDepthLengthPrevious = payload.dataOctahedralDepth.Length;
+            for (int i = 0; i < dataOctahedralDepthLengthPrevious; ++i)
+            {
+                float depthMean = payload.dataOctahedralDepth[i];
+
+                // For our migration, simply initialize our depthMeanSquared slots with depthMean * depthMean, which will reconstruct a zero variance estimate.
+                // Really, the user will want to rebake to get a real variance estimate. This migration just ensures we do not error out.
+                float depthMeanSquared = depthMean * depthMean;
+                dataOctahedralDepthMigrated[i * 2 + 0] = depthMean;
+                dataOctahedralDepthMigrated[i * 2 + 1] = depthMeanSquared;
+            }
+            payload.dataOctahedralDepth = dataOctahedralDepthMigrated;
+        }
+
+        bool TryApplyMigrationAddRotation(ProbeVolume volume)
+        {
+            if (volume == null)
+            {
+                Debug.LogWarning($"Data version of Probe Volume Asset \"{name}\" can't be updated on it's own, rotation is required. Open a scene with an enabled Probe Volume that uses this asset to update it.", this);
+                return false;
+            }
+
+            rotation = volume.transform.rotation;
+            return true;
+        }
+
+        void ApplyMigrationRearrangeNeighborData()
+        {
+            var neighborAxis = payload.neighborAxis;
+            if (neighborAxis == null)
+                return;
+
+            // Neighbor data was grouped by probe: Probe0_Dir0, .., Probe0_DirN, Probe1_Dir0 .., Probe1_DirN, etc.
+            // Rearrange so they are grouped by direction: Dir0_Probe0, .., Dir0_ProbeN, etc.
+
+            var axisCount = neighborAxis.Length;
+            var directionCount = ProbeVolumeDynamicGI.s_NeighborAxis.Length;
+
+            var neighborAxisMigrated = new NeighborAxis[axisCount];
+            var writeAxis = 0;
+            for (int direction = 0; direction < directionCount; direction++)
+            {
+                // Iterate over probes reading the same direction.
+                for (int readAxis = direction; readAxis < axisCount; readAxis += directionCount)
+                {
+                    neighborAxisMigrated[writeAxis] = neighborAxis[readAxis];
+                    writeAxis++;
+                }
+            }
+            payload.neighborAxis = neighborAxisMigrated;
+        }
     }
 }

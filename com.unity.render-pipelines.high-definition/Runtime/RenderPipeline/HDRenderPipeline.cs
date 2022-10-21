@@ -598,6 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.resolveMotionVecPS);
 
             InitializeProbeVolumes();
+            InitializeMaskVolumes();
             CustomPassUtils.Initialize();
 
             // We allocate shadow manager non rendergraph resources regardless of whether RG is enabled or not
@@ -608,6 +609,8 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeHierarchicalVarianceScreenSpaceShadows(m_Asset);
 
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+
+            ProbeVolumeDynamicGI.instance.Allocate(defaultResources);
         }
 
 #if UNITY_EDITOR
@@ -1171,6 +1174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Cleanup();
 
             DecalSystem.instance.Cleanup();
+            ProbeVolumeDynamicGI.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
@@ -1203,6 +1207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupVolumetricLighting();
             CleanupProbeVolumes();
             CleanupSubsurfaceScattering();
+            CleanupMaskVolumes();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
@@ -1336,6 +1341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalMaskVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
@@ -2589,17 +2595,20 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd);
 
             // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
-            ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
+            ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(hdCamera, cmd, m_RenderGraph);
             // Cache probe volume list as a member variable so it can be accessed inside of async compute tasks.
             SetProbeVolumeList(probeVolumes);
 
+            // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
+            MaskVolumeList maskVolumes = PrepareVisibleMaskVolumeList(hdCamera, cmd, m_RenderGraph);
+            
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
             // However there is no C# function that we can query to know what mode have been select in Lighting Panel and it will be wrong anyway. Lighting Panel setup what will be the next bake mode. But until light is bake, it is wrong.
             // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
             // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
             // So the first thing to do is to go through all the light: PrepareLightsForGPU
-            bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, m_CurrentDebugDisplaySettings, aovRequest);
+            bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, maskVolumes, m_CurrentDebugDisplaySettings, aovRequest);
 
             UpdateGlobalConstantBuffers(hdCamera, cmd);
 
@@ -2677,6 +2686,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Do they depend on hdCamera.xr.StartSinglePass()?
             var buildProbeVolumeLightListTask = new HDGPUAsyncTask("Build probe volume light list", ComputeQueueType.Background);
 
+            // We evaluate mask volumes in material pass, so we build a custom mask volume light list.
+            // Build mask volumes light list async during depth prepass.
+            // TODO: (Nick): Take a look carefully at data dependancies - could this be moved even earlier? Directly after PrepareVisibleMaskVolumeList?
+            // The mask volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
+            // Do they depend on hdCamera.xr.StartSinglePass()?
+            var buildMaskVolumeLightListTask = new HDGPUAsyncTask("Build mask volume light list", ComputeQueueType.Background);
+
             // Avoid garbage by explicitely passing parameters to the lambdas
             var asyncParams = new HDGPUAsyncTaskParams
             {
@@ -2702,6 +2718,21 @@ namespace UnityEngine.Rendering.HighDefinition
                         => BuildGPULightListProbeVolumesCommon(a.hdCamera, c);
                 }
             }
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
+            {
+                // TODO: (Nick): Should we only build mask volume light lists async of we build standard light lists async? Or should we always build mask volume light lists async?
+                if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    buildMaskVolumeLightListTask.Start(cmd, asyncParams, Callback, !haveAsyncTaskWithDepthPrepass);
+
+                    haveAsyncTaskWithDepthPrepass = true;
+
+                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
+                        => BuildGPULightListMaskVolumesCommon(a.hdCamera, c);
+                }
+            }
+            
             // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
@@ -2747,6 +2778,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
                     var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
                     PushProbeVolumeLightListGlobalParams(globalParams, cmd);
+                }
+            }
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MaskVolume))
+            {
+                if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    buildMaskVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+
+                    void Callback(CommandBuffer c, HDCamera cam)
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_MaskVolumeClusterData);
+                        PushMaskVolumeLightListGlobalParams(globalParams, c);
+                    }
+                }
+                else
+                {
+                    BuildGPULightListMaskVolumesCommon(hdCamera, cmd);
+                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_MaskVolumeClusterData);
+                    PushMaskVolumeLightListGlobalParams(globalParams, cmd);
                 }
             }
 
@@ -2912,7 +2965,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
                     ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 }
-
+                
+                ProbeVolumeDynamicGICommonData commonData = PrepareProbeVolumeDynamicGIData(hdCamera);
+                if (commonData.mode != ProbeVolumeDynamicGIMode.None)
+                {
+                    ExecuteProbeVolumeDynamicGI(cmd, in commonData, m_ProbeVolumeAtlasSHRTHandle);
+                }
+                
                 hdCamera.xr.StartSinglePass(cmd);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
@@ -5521,6 +5580,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting
             public LightLoopDebugOverlayParameters lightingOverlayParameters;
             public ProbeVolumeDebugOverlayParameters probeVolumeOverlayParameters;
+            public MaskVolumeDebugOverlayParameters maskVolumeOverlayParameters;
 
             // Color picker
             public bool     colorPickerEnabled;
@@ -5547,6 +5607,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
             parameters.lightingOverlayParameters = PrepareLightLoopDebugOverlayParameters();
             parameters.probeVolumeOverlayParameters = PrepareProbeVolumeOverlayParameters(m_CurrentDebugDisplaySettings.data.lightingDebugSettings);
+            parameters.maskVolumeOverlayParameters = PrepareMaskVolumeOverlayParameters(m_CurrentDebugDisplaySettings.data.lightingDebugSettings);
 
             parameters.rayTracingSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             parameters.rayCountManager = m_RayCountManager;
@@ -5793,7 +5854,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugParams.rayTracingSupported)
                     RenderRayCountOverlay(debugParams, cmd);
                 RenderLightLoopDebugOverlay(debugParams, cmd, m_TileAndClusterData.tileList, m_TileAndClusterData.lightList, m_TileAndClusterData.perVoxelLightLists, m_TileAndClusterData.dispatchIndirectBuffer, m_SharedRTManager.GetDepthTexture());
-                RenderProbeVolumeDebugOverlay(debugParams, cmd); // TODO(Nicholas): renders as a black square in the upper right.
+                RenderProbeVolumeDebugOverlay(debugParams, cmd);
+                RenderMaskVolumeDebugOverlay(debugParams, cmd);
 
                 HDShadowManager.ShadowDebugAtlasTextures atlases = debugParams.lightingOverlayParameters.shadowManager.GetDebugAtlasTextures();
                 RenderShadowsDebugOverlay(debugParams, atlases, cmd, m_SharedPropertyBlock);

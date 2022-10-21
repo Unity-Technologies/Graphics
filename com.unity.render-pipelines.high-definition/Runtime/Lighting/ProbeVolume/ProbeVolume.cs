@@ -1,11 +1,12 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using UnityEngine.Experimental.Rendering;
+using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
+[assembly: InternalsVisibleTo("Unity.Entities.Hybrid.HybridComponents")]
 [assembly: InternalsVisibleTo("Unity.Rendering.Hybrid")]
 
 // custom-begin:
@@ -68,20 +69,25 @@ namespace UnityEngine.Rendering.HighDefinition
         shCr.x, shCr.y, shCr.z
     }
     */
+
     [Serializable]
     internal struct ProbeVolumePayload
     {
         public float[] dataSHL01;
         public float[] dataSHL2;
         public float[] dataValidity;
-        public float[] dataOctahedralDepth;
+        public float[] dataOctahedralDepth; // [depth, depthSquared] tuples.
+        public PackedNeighborHit[] hitNeighborAxis;
+        public NeighborAxis[] neighborAxis;
 
         public static readonly ProbeVolumePayload zero = new ProbeVolumePayload
         {
             dataSHL01 = null,
             dataSHL2 = null,
             dataValidity = null,
-            dataOctahedralDepth = null
+            dataOctahedralDepth = null,
+            hitNeighborAxis = null,
+            neighborAxis = null,
         };
 
         public static int GetDataSHL01Stride()
@@ -94,9 +100,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return 9 * 3 - GetDataSHL01Stride();
         }
 
+        public static int GetDataOctahedralDepthStride()
+        {
+            return 8 * 8 * 2;
+        }
+
         public static bool IsNull(ref ProbeVolumePayload payload)
         {
             return payload.dataSHL01 == null;
+        }
+
+        public static bool HasNeighbors(ref ProbeVolumePayload payload)
+        {
+            return payload.neighborAxis != null && payload.neighborAxis.Length > 0;
         }
 
         public static int GetLength(ref ProbeVolumePayload payload)
@@ -117,8 +133,11 @@ namespace UnityEngine.Rendering.HighDefinition
             payload.dataOctahedralDepth = null;
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
-                payload.dataOctahedralDepth = new float[length * 8 * 8];
+                payload.dataOctahedralDepth = new float[length * GetDataOctahedralDepthStride()];
             }
+
+            payload.hitNeighborAxis = default;
+            payload.neighborAxis = default;
         }
 
         public static void Ensure(ref ProbeVolumePayload payload, int length)
@@ -137,6 +156,8 @@ namespace UnityEngine.Rendering.HighDefinition
             payload.dataSHL2 = null;
             payload.dataValidity = null;
             payload.dataOctahedralDepth = null;
+            payload.hitNeighborAxis = null;
+            payload.neighborAxis = null;
         }
 
         public static void Copy(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst)
@@ -155,8 +176,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (payloadSrc.dataOctahedralDepth != null && payloadDst.dataOctahedralDepth != null)
             {
-                Array.Copy(payloadSrc.dataOctahedralDepth, payloadDst.dataOctahedralDepth, length * 8 * 8);
+                Array.Copy(payloadSrc.dataOctahedralDepth, payloadDst.dataOctahedralDepth, length * GetDataOctahedralDepthStride());
             }
+
+            ProbeVolumeDynamicGI.Copy(ref payloadSrc, ref payloadDst);
         }
 
         public static void GetSphericalHarmonicsL1FromIndex(ref SphericalHarmonicsL1 sh, ref ProbeVolumePayload payload, int indexProbe)
@@ -365,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     internal struct ProbeVolumeSettingsKey
     {
-        public int id;
+        public VolumeGlobalUniqueID id;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 size;
@@ -375,14 +398,34 @@ namespace UnityEngine.Rendering.HighDefinition
         public float backfaceTolerance;
         public int dilationIterations;
 
+        public static readonly ProbeVolumeSettingsKey zero = new ProbeVolumeSettingsKey()
+        {
+            id = VolumeGlobalUniqueID.zero,
+            position = Vector3.zero,
+            rotation = Quaternion.identity,
+            size = Vector3.zero,
+            resolutionX = 0,
+            resolutionY = 0,
+            resolutionZ = 0,
+            backfaceTolerance = 0.0f,
+            dilationIterations = 0
+        };
     }
 
     [Serializable]
     internal struct ProbeVolumeArtistParameters
     {
         public bool drawProbes;
+        public bool highlightRinging;
+        public bool drawValidity;
+        public bool drawNeighbors;
+        public bool drawEmission;
+        public bool drawOctahedralDepthRays;
+        public float neighborsQuadScale;
+        public int drawOctahedralDepthRayIndexX;
+        public int drawOctahedralDepthRayIndexY;
+        public int drawOctahedralDepthRayIndexZ;
         public Color debugColor;
-        public int payloadIndex;
         public Vector3 size;
         [SerializeField]
         private Vector3 m_PositiveFade;
@@ -393,10 +436,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool advancedFade;
         public float distanceFadeStart;
         public float distanceFadeEnd;
-
-        public Vector3 scale;
-        public Vector3 bias;
-        public Vector4 octahedralDepthScaleBias;
 
         public ProbeSpacingMode probeSpacingMode;
 
@@ -411,7 +450,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeBlendMode volumeBlendMode;
         public float weight;
         public float normalBiasWS;
-
+        public float viewBiasWS;
+        public bool supportDynamicGI;
         public float backfaceTolerance;
         public int dilationIterations;
 
@@ -459,7 +499,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             this.debugColor = debugColor;
             this.drawProbes = false;
-            this.payloadIndex = -1;
+            this.highlightRinging = false;
+            this.drawValidity = false;
+            this.drawNeighbors = false;
+            this.drawEmission = false;
+            this.drawOctahedralDepthRays = false;
+            this.neighborsQuadScale = 1;
+            this.drawOctahedralDepthRayIndexX = 0;
+            this.drawOctahedralDepthRayIndexY = 0;
+            this.drawOctahedralDepthRayIndexZ = 0;
             this.size = Vector3.one;
             this.m_PositiveFade = Vector3.zero;
             this.m_NegativeFade = Vector3.zero;
@@ -467,9 +515,6 @@ namespace UnityEngine.Rendering.HighDefinition
             this.advancedFade = false;
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
-            this.scale = Vector3.zero;
-            this.bias = Vector3.zero;
-            this.octahedralDepthScaleBias = Vector4.zero;
             this.probeSpacingMode = ProbeSpacingMode.Density;
             this.resolutionX = 4;
             this.resolutionY = 4;
@@ -480,6 +525,8 @@ namespace UnityEngine.Rendering.HighDefinition
             this.volumeBlendMode = VolumeBlendMode.Normal;
             this.weight = 1;
             this.normalBiasWS = 0.0f;
+            this.viewBiasWS = 0.0f;
+            this.supportDynamicGI = false;
             this.dilationIterations = 2;
             this.backfaceTolerance = 0.25f;
             this.lightLayers = LightLayerEnum.LightLayerDefault;
@@ -520,18 +567,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 default:
                 {
-                    Debug.Assert(false, "Error: ProbeVolume: Encountered unsupported Probe Spacing Mode: " + this.probeSpacingMode);
+                    Debug.AssertFormat(false, "Error: ProbeVolume: Encountered unsupported Probe Spacing Mode: {0}", this.probeSpacingMode);
                     break;
                 }
             }
         }
 
-        internal ProbeVolumeEngineData ConvertToEngineData()
+        internal ProbeVolumeEngineData ConvertToEngineData(ProbeVolumePipelineData pipelineData, int probeVolumeAtlasSHRTDepthSliceCount, float globalDistanceFadeStart, float globalDistanceFadeEnd)
         {
             ProbeVolumeEngineData data = new ProbeVolumeEngineData();
 
             data.weight = this.weight;
             data.normalBiasWS = this.normalBiasWS;
+            data.viewBiasWS = this.viewBiasWS;
+            data.maxNeighborDistance = ProbeVolumeDynamicGI.GetMaxNeighborDistance(in this);
 
             data.debugColor.x = this.debugColor.r;
             data.debugColor.y = this.debugColor.g;
@@ -551,38 +600,71 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.volumeBlendMode = (int)this.volumeBlendMode;
 
-            float distFadeLen = Mathf.Max(this.distanceFadeEnd - this.distanceFadeStart, 0.00001526f);
-            data.rcpDistFadeLen = 1.0f / distFadeLen;
-            data.endTimesRcpDistFadeLen = this.distanceFadeEnd * data.rcpDistFadeLen;
+            float distanceFadeStart = Mathf.Min(globalDistanceFadeStart, this.distanceFadeStart);
+            float distanceFadeEnd = Mathf.Min(globalDistanceFadeEnd, this.distanceFadeEnd);
 
-            data.scale = this.scale;
-            data.bias = this.bias;
-            data.octahedralDepthScaleBias = this.octahedralDepthScaleBias;
+            float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
+            data.rcpDistFadeLen = 1.0f / distFadeLen;
+            data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
+
+            data.scale = pipelineData.Scale;
+            data.bias = pipelineData.Bias;
+            data.octahedralDepthScaleBias = pipelineData.OctahedralDepthScaleBias;
 
             data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
             data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
 
             data.lightLayers = (uint)this.lightLayers;
+            data.resolutionX = (uint)resolutionX;
+            data.resolutionXY = (uint)(resolutionX * resolutionY);
+
+            // Note: The system is not aware of slice packing in Z.
+            // Need to modify scale and bias terms just before uploading to GPU.
+            // TODO: Should we make it aware earlier up the chain?
+            data.scale.z = data.scale.z / (float)probeVolumeAtlasSHRTDepthSliceCount;
+            data.bias.z = data.bias.z / (float)probeVolumeAtlasSHRTDepthSliceCount;
 
             return data;
         }
 
     } // class ProbeVolumeArtistParameters
 
-    [ExecuteAlways]
-    //[AddComponentMenu("Light/Experimental/Probe Volume")]
-    internal class ProbeVolume : MonoBehaviour
+    internal struct ProbeVolumePipelineData
     {
+        public ComputeBuffer SHL01Buffer;
+        public ComputeBuffer SHL2Buffer;
+        public ComputeBuffer ValidityBuffer;
+
+        public int BuffersDataHash;
+
+        public Vector3 Scale;
+        public Vector3 Bias;
+        public Vector4 OctahedralDepthScaleBias;
+
+        public ProbeVolume.ProbeVolumeAtlasKey UsedAtlasKey;
+
+        public int EngineDataIndex;
+        public OrientedBBox BoundingBox;
+        public ProbeVolumeEngineData EngineData;
+
+        public static ProbeVolumePipelineData Empty => new ProbeVolumePipelineData
+        {
+            BuffersDataHash = -1,
+            UsedAtlasKey = ProbeVolume.ProbeVolumeAtlasKey.empty,
+            EngineDataIndex = -1,
+        };
+    }
+
+    [ExecuteAlways]
+    [AddComponentMenu("Light/Experimental/Probe Volume")]
+    internal class ProbeVolume : MonoBehaviour
 #if UNITY_EDITOR
-        // Debugging code
-        private Material m_DebugMaterial = null;
-        private Mesh m_DebugMesh = null;
-        private List<Matrix4x4[]> m_DebugProbeMatricesList;
-        private List<Mesh> m_DebugProbePointMeshList;
+        , IVolumeGlobalUniqueIDOwnerEditorOnly
 #endif
+    {
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
-            id = 0,
+            id = VolumeGlobalUniqueID.zero,
             position = Vector3.zero,
             rotation = Quaternion.identity,
             size = Vector3.zero,
@@ -593,90 +675,227 @@ namespace UnityEngine.Rendering.HighDefinition
             dilationIterations = 0
         };
 
-        internal bool dataUpdated = false;
+        internal struct ProbeVolumeAtlasKey : IEquatable<ProbeVolumeAtlasKey>
+        {
+            public VolumeGlobalUniqueID id;
+            public int dataVersion;
+            public Vector3 position;
+            public Quaternion rotation;
+            public int width;
+            public int height;
+            public int depth;
+
+            public static readonly ProbeVolumeAtlasKey empty = new ProbeVolumeAtlasKey
+            {
+                id = VolumeGlobalUniqueID.zero,
+                dataVersion = -1,
+                position = Vector3.zero,
+                rotation = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
+                width = 0,
+                height = 0,
+                depth = 0,
+            };
+
+            // Override Equals to manually control when atlas keys are considered equivalent.
+            public bool Equals(ProbeVolumeAtlasKey keyOther)
+            {
+                return (this.id == keyOther.id)
+                    && (this.dataVersion == keyOther.dataVersion)
+                    && (this.width == keyOther.width)
+                    && (this.height == keyOther.height)
+                    && (this.depth == keyOther.depth)
+                    && ComputePositionApproximatelyEqual(this.position, keyOther.position, 1e-2f)
+                    && ComputeQuaternionApproximatelyEqual(this.rotation, keyOther.rotation, 1e-5f);
+            }
+
+            public override bool Equals(object other)
+            {
+                return other is ProbeVolumeAtlasKey key && Equals(key);
+            }
+
+            public override int GetHashCode()
+            {
+                var hash = id.GetHashCode();
+                hash = hash * 23 + dataVersion.GetHashCode();
+                hash = hash * 23 + width.GetHashCode();
+                hash = hash * 23 + height.GetHashCode();
+                hash = hash * 23 + depth.GetHashCode();
+                hash = hash * 23 + ComputePositionDiscretized(position).GetHashCode();
+                hash = hash * 23 + ComputeQuaternionDiscretized(rotation).GetHashCode();
+
+                return hash;
+            }
+
+            private static Vector3 ComputePositionDiscretized(Vector3 position)
+            {
+                Vector3 positionSnapped = position;
+
+                // Equals comparison is done with 1cm precision, lets hash with 10cm precision.
+                const float POSITION_HASH_PRECISION = 10.0f;
+                const float POSITION_HASH_PRECISION_INVERSE = 1.0f / POSITION_HASH_PRECISION;
+                positionSnapped.x = Mathf.Round(positionSnapped.x * POSITION_HASH_PRECISION) * POSITION_HASH_PRECISION_INVERSE;
+                positionSnapped.y = Mathf.Round(positionSnapped.y * POSITION_HASH_PRECISION) * POSITION_HASH_PRECISION_INVERSE;
+                positionSnapped.z = Mathf.Round(positionSnapped.z * POSITION_HASH_PRECISION) * POSITION_HASH_PRECISION_INVERSE;
+
+                return positionSnapped;
+            }
+
+            private static bool ComputePositionApproximatelyEqual(Vector3 a, Vector3 b, float epsilon)
+            {
+                Vector3 offset = b - a;
+                return Mathf.Abs(offset.x) < epsilon && Mathf.Abs(offset.y) < epsilon && Mathf.Abs(offset.z) < epsilon;
+            }
+
+            private static Quaternion ComputeQuaternionDiscretized(Quaternion rotation)
+            {
+                // Need to ensure that rotations which pass ComputeQuaternionApproximatelyEqual() will always generate the same hash.
+                // First, handle handedness equivalence: {x, y, z, w} is the same as {-x, -y, -z, -w}
+                Quaternion rotationSnapped = rotation;
+                rotationSnapped.x = (rotationSnapped.w < 0.0f) ? -rotationSnapped.x : rotationSnapped.x;
+                rotationSnapped.y = (rotationSnapped.w < 0.0f) ? -rotationSnapped.y : rotationSnapped.y;
+                rotationSnapped.z = (rotationSnapped.w < 0.0f) ? -rotationSnapped.z : rotationSnapped.z;
+                rotationSnapped.w = (rotationSnapped.w < 0.0f) ? -rotationSnapped.w : rotationSnapped.w;
+
+                // Now, discretize the rotation such that if ComputeQuaternionApproximatelyEqual(rotationA, rotationB, epsilon) == true then (rotationSnappedA == rotationSnappedB) == true.
+                // The more aggressively we snap, the more hash collisions we will encounter.
+                const float ROTATION_HASH_PRECISION = 8.0f;
+                const float ROTATION_HASH_PRECISION_INVERSE = 1.0f / ROTATION_HASH_PRECISION;
+                rotationSnapped.x = Mathf.Round(rotationSnapped.x * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+                rotationSnapped.y = Mathf.Round(rotationSnapped.y * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+                rotationSnapped.z = Mathf.Round(rotationSnapped.z * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+                rotationSnapped.w = Mathf.Round(rotationSnapped.w * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+
+                return rotationSnapped;
+            }
+
+            private static bool ComputeQuaternionApproximatelyEqual(Quaternion a, Quaternion b, float epsilon)
+            {
+                float AdotB = Quaternion.Dot(a, b);
+                return AdotB >= (1.0f - epsilon);
+            }
+        }
+
+#if UNITY_EDITOR
+        internal Vector3[] m_ProbePositions;
+        private bool bakingEnabled = false;
+        private bool dataNeedsDilation = false;
+#endif
+
+        [SerializeField] private VolumeGlobalUniqueID globalUniqueID = VolumeGlobalUniqueID.zero;
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
+        internal ProbeVolumePipelineData pipelineData = ProbeVolumePipelineData.Empty;
+        internal ProbeVolumePropagationPipelineData propagationPipelineData = ProbeVolumePropagationPipelineData.Empty;
 
-        internal int GetID()
+        // custom-begin:
+        [System.NonSerialized] private static List<ProbeVolume> s_Instances = new List<ProbeVolume>();
+
+        private void InstanceAdd()
         {
-            return GetInstanceID();
+            Debug.Assert(s_Instances.IndexOf(this) == -1);
+            s_Instances.Add(this);
+        }
+
+        private void InstanceRemove()
+        {
+            int index = s_Instances.IndexOf(this);
+            if (index != -1)
+            {
+                s_Instances.RemoveAt(index);
+            }
+        }
+
+        public static List<ProbeVolume> GetInstances()
+        {
+            return s_Instances;
+        }
+        // custom-end
+
+        public bool IsDataAssigned()
+        {
+            return probeVolumeAsset != null && probeVolumeAsset.IsDataAssigned();
+        }
+
+        private VolumeGlobalUniqueID GetPayloadID()
+        {
+            return (probeVolumeAsset == null) ? VolumeGlobalUniqueID.zero : probeVolumeAsset.GetID();
+        }
+
+        internal ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey()
+        {
+            if (probeVolumeAsset == null)
+                return ProbeVolumeAtlasKey.empty;
+
+            Quaternion assetRotation = GetAssetRotation();
+            Quaternion volumeRotation = transform.rotation;
+            return ComputeProbeVolumeAtlasKey(GetPayloadID(), probeVolumeAsset.dataVersion,
+                probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
+                volumeRotation, assetRotation, transform.position, parameters.supportDynamicGI);
+        }
+
+        internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(VolumeGlobalUniqueID id, int dataVersion, int width, int height, int depth,
+            Quaternion volumeRotation, Quaternion assetRotation, Vector3 position, bool supportDynamicGI)
+        {
+            Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
+
+            // Only enforce uniquing the key based on position if dynamic GI is enabled.
+            // If dynamic GI is enabled, two probe volumes that point to the same asset, streamed in at different locations need unique space in the atlas (because their dynamic GI component is different).
+            // If dynamic GI is disabled, two probe volumes that point to the same asset, streamed in at different locations should share space in the atlas, since their baked data is identical.
+            position = supportDynamicGI ? position : Vector3.zero;
+
+            return new ProbeVolumeAtlasKey
+                {
+                    id = id,
+                    dataVersion = dataVersion,
+                    width = width,
+                    height = height,
+                    depth = depth,
+                    position = position,
+                    rotation = sphericalHarmonicWSFromOS
+                };
         }
 
         private void BakeKeyClear()
         {
-            bakeKey = new ProbeVolumeSettingsKey
+            bakeKey = ProbeVolumeSettingsKey.zero;
+        }
+
+        public int GetDataVersion()
+        {
+            return probeVolumeAsset != null ? probeVolumeAsset.dataVersion : -1;
+        }
+
+        public void IncrementDataVersion()
+        {
+            if (probeVolumeAsset != null)
             {
-                id = 0,
-                position = Vector3.zero,
-                rotation = Quaternion.identity,
-                size = Vector3.zero,
-                resolutionX = 0,
-                resolutionY = 0,
-                resolutionZ = 0,
-                backfaceTolerance = 0.0f,
-                dilationIterations = 0
-            };
+                // Skip -1 as it represents empty data.
+                if (probeVolumeAsset.dataVersion != -2)
+                    probeVolumeAsset.dataVersion = unchecked(probeVolumeAsset.dataVersion + 1);
+                else
+                    probeVolumeAsset.dataVersion = 0;
+            }
         }
 
         internal ProbeVolumePayload GetPayload()
         {
-            dataUpdated = false;
-
             if (!probeVolumeAsset) { return ProbeVolumePayload.zero; }
 
             return probeVolumeAsset.payload;
         }
 
-        bool CheckMigrationRequirement()
+        private Quaternion GetAssetRotation()
         {
-            if (probeVolumeAsset == null) return false;
-            if (probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current) return false;
-            return true;
+            if (!probeVolumeAsset) { return transform.rotation; }
+
+            return probeVolumeAsset.rotation;
         }
 
         void Migrate()
         {
-            // Must not be called at deserialization time if require other component
-            while (CheckMigrationRequirement())
-            {
-                ApplyMigration();
-            }
-        }
-
-        void ApplyMigration()
-        {
-            switch ((ProbeVolumeAsset.AssetVersion)probeVolumeAsset.Version)
-            {
-                case ProbeVolumeAsset.AssetVersion.First:
-                    ApplyMigrationAddProbeVolumesAtlasEncodingModes();
-                    break;
-
-                case ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes:
-                default:
-                    // No migration required.
-                    break;
-            }
-        }
-
-        void ApplyMigrationAddProbeVolumesAtlasEncodingModes()
-        {
-            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.First);
-
-            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes;
-
-            int probeLength = probeVolumeAsset.dataSH.Length;
-
-            ProbeVolumePayload.Allocate(ref probeVolumeAsset.payload, probeLength);
-
-            for (int i = 0; i < probeLength; ++i)
-            {
-                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, probeVolumeAsset.dataSH[i], i);
-            }
-
-            probeVolumeAsset.dataSH = null;
-            probeVolumeAsset.dataValidity = null;
-            probeVolumeAsset.dataOctahedralDepth = null;
+            if (probeVolumeAsset != null)
+                probeVolumeAsset.Migrate(this);
         }
 
         protected void OnEnable()
@@ -684,34 +903,37 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
 
 #if UNITY_EDITOR
-            OnValidate();
+            dataNeedsDilation = false;
+            InitializeGlobalUniqueIDEditorOnly(this);
+            ForceBakingEnabled();
 #endif
 
             ProbeVolumeManager.manager.RegisterVolume(this);
 
-            // Signal update
-            if (probeVolumeAsset)
-                dataUpdated = true;
-
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                return;
-
-            m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
-#endif
+            // custom-begin:
+            InstanceAdd();
+            // custom-end
         }
 
         protected void OnDisable()
         {
-            ProbeVolumeManager.manager.DeRegisterVolume(this);
 #if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                return;
+            dataNeedsDilation = false;
+#endif
+
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
+            ProbeVolumeManager.manager.DeRegisterVolume(this);
+
+#if UNITY_EDITOR
+            // Make sure to tell the lightmapper to no longer attempt to bake the probe positions at this ID.
+            ForceBakingDisabled();
 #endif
         }
 
-        internal bool IsAssetCompatible()
+        public bool IsAssetCompatible()
         {
             return IsAssetCompatibleResolution();
         }
@@ -727,7 +949,112 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        public static void EnsureVolumeBuffers(ProbeVolumeHandle probeVolume, ProbeVolumesEncodingModes encodingMode)
+        {
+            ref var bakedLightingPipelineData = ref probeVolume.GetPipelineData();
+
+            var dataHash = probeVolume.GetDataVersion();
+            dataHash = dataHash * 23 + encodingMode.GetHashCode();
+
+            if (bakedLightingPipelineData.BuffersDataHash == dataHash)
+                return;
+            
+            EnsureBuffer<float>(ref bakedLightingPipelineData.SHL01Buffer, probeVolume.DataSHL01Length);
+            probeVolume.SetDataSHL01(bakedLightingPipelineData.SHL01Buffer);
+
+            if (encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+            {
+                EnsureBuffer<float>(ref bakedLightingPipelineData.SHL2Buffer, probeVolume.DataSHL2Length);
+                probeVolume.SetDataSHL2(bakedLightingPipelineData.SHL2Buffer);
+            }
+            else if (bakedLightingPipelineData.SHL2Buffer != null)
+            {
+                bakedLightingPipelineData.SHL2Buffer.Release();
+                bakedLightingPipelineData.SHL2Buffer = null;
+            }
+
+            EnsureBuffer<float>(ref bakedLightingPipelineData.ValidityBuffer, probeVolume.DataValidityLength);
+            probeVolume.SetDataValidity(bakedLightingPipelineData.ValidityBuffer);
+
+            bakedLightingPipelineData.BuffersDataHash = dataHash;
+        }
+
+        public static void CleanupBuffers(ProbeVolumeHandle probeVolume)
+        {
+            ref var pipelineData = ref probeVolume.GetPipelineData();
+        
+            CleanupBuffer(pipelineData.SHL01Buffer);
+            CleanupBuffer(pipelineData.SHL2Buffer);
+            CleanupBuffer(pipelineData.ValidityBuffer);
+            pipelineData.BuffersDataHash = -1;
+        }
+
+        // returns true if released it
+        public static bool CleanupBuffer(ComputeBuffer buffer)
+        {
+            if (buffer != null
+                && buffer.IsValid())
+            {
+                buffer.Release();
+                return true;
+            }
+
+            return false;
+        }
+
+        // returns true if needed to change it
+        public static bool EnsureBuffer<T>(ref ComputeBuffer buffer, int count)
+        {
+            if (buffer == null
+                || !buffer.IsValid()
+                || buffer.count != count)
+            {
+                CleanupBuffer(buffer);
+                buffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(T)), ComputeBufferType.Structured);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void SetBuffer<T>(ComputeBuffer buffer, T[] data)
+        {
+            if (buffer != null
+                && buffer.IsValid()
+                && data != null)
+            {
+                buffer.SetData(data);
+            }
+        }
+
+        public static void ReleaseVolumeFromAtlas(ProbeVolumeHandle probeVolume)
+        {
+            if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
+                hdrp.ReleaseProbeVolumeFromAtlas(probeVolume);
+        }
+
 #if UNITY_EDITOR
+        internal VolumeGlobalUniqueID GetBakeID()
+        {
+            // Handle case where a globalUniqueId has not been assigned yet.
+            // This occurs due to legacy data - probe volumes that were serialized before we introduced globalUniqueIds.
+            // The IDs can only be generated in the editor, so no way to perform runtime migrations (i.e: during streaming).
+            return (globalUniqueID == VolumeGlobalUniqueID.zero) ? new VolumeGlobalUniqueID(0, 0, 0, (ulong)unchecked((uint)GetInstanceID()), 0) : globalUniqueID;
+        }
+
+        public void SetProbeVolumeAsset(ProbeVolumeAsset asset)
+        {
+            probeVolumeAsset = asset;
+            bakeKey = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
+
+            UnityEditor.EditorUtility.SetDirty(this);
+
+            if (probeVolumeAsset != null)
+            {
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+            }
+        }
+
         protected void Update()
         {
             OnValidate();
@@ -741,7 +1068,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ForceBakingDisabled()
         {
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), null);
+            bakingEnabled = false;
+
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                // Do not spend time interacting with the baking API if we are in playmode.
+                AdditionalGIBakeRequestsManager.instance.SetAdditionalBakedProbes(GetBakeID(), null);
+                return;
+            }
         }
 
         protected void OnValidate()
@@ -749,9 +1083,25 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
+            // custom-begin: Make lightmapper respect scene visibility toggle.
+            // Probe Volumes will now not bake if they are hidden.
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(this.gameObject))
+            {
+                ForceBakingDisabled();
+                return;
+            }
+            // custom-end
+
+            if (ProbeVolumeAssetIsReadOnlyReference())
+            {
+                return;
+            }
+
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
-            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent) &&
-                m_DebugProbeMatricesList != null) { return; }
+            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent))
+            {
+                return;
+            }
 
             parameters.Constrain();
 
@@ -766,17 +1116,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                         parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
                 }
-
-                dataUpdated = true;
             }
 
             SetupProbePositions();
         }
 
+        internal bool ProbeVolumeAssetIsReadOnlyReference()
+        {
+            // If this probe volume is referencing a probeVolumeAsset that it did not create, do not allow it to write (bake) to that asset.
+            return (probeVolumeAsset != null) && (probeVolumeAsset.globalUniqueID != VolumeGlobalUniqueID.zero) && (probeVolumeAsset.globalUniqueID != GetBakeID());
+        }
+
         internal void OnLightingDataCleared()
         {
             probeVolumeAsset = null;
-            dataUpdated = true;
             BakeKeyClear();
         }
 
@@ -797,7 +1150,24 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void OnProbesBakeCompleted()
         {
             if (this.gameObject == null || !this.gameObject.activeInHierarchy)
+            {
                 return;
+            }
+
+            if (!bakingEnabled)
+            {
+                // Baking was not setup for this probe volume.
+                // This is caused by calls to ForceBakingDisabled()
+                return;
+            }
+
+            // custom-begin: Make lightmapper respect scene visibility toggle.
+            // Probe Volumes will now not bake if they are hidden.
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(this.gameObject))
+            {
+                return;
+            }
+            // custom-end
 
             int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
 
@@ -806,17 +1176,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: Currently, we need to always allocate and pass this octahedralDepth array into GetAdditionalBakedProbes().
             // In the future, we should add an API call for GetAdditionalBakedProbes() without octahedralDepth required.
+#if false
+            var octahedralDepth = new NativeArray<Vector2>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+#else
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-            if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
+#endif
+            if(AdditionalGIBakeRequestsManager.instance.GetAdditionalBakedProbes(GetBakeID(), sh, validity, octahedralDepth))
             {
-                if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
-                    probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
+                if (probeVolumeAsset == null)
+                {
+                    probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetBakeID());
+                }
 
-                probeVolumeAsset.instanceID = GetID();
+                probeVolumeAsset.globalUniqueID = GetBakeID();
+
                 probeVolumeAsset.resolutionX = parameters.resolutionX;
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
+                // Store the orientation that the probe data was baked at in order to support probe volume rotation post bake.
+                // Without this data, the probe positions will be correct, but the orientation of the spherical harmonics will be incorrect
+                // (as the spherical harmonics are baked and serialized in world space).
+                probeVolumeAsset.rotation = transform.rotation;
 
                 ProbeVolumePayload.Ensure(ref probeVolumeAsset.payload, numProbes);
 
@@ -831,15 +1212,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
                 {
-                    octahedralDepth.CopyTo(probeVolumeAsset.payload.dataOctahedralDepth);
+                    for (int i = 0, iLen = octahedralDepth.Length; i < iLen; ++i)
+                    {
+#if false
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 0] = octahedralDepth[i].x;
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 1] = octahedralDepth[i].y;
+#else
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 0] = octahedralDepth[i];
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 1] = octahedralDepth[i] * octahedralDepth[i]; // zero variance.
+#endif
+                    }
                 }
 
-                if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                    UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                IncrementDataVersion();
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
 
-                UnityEditor.AssetDatabase.Refresh();
-
-                dataUpdated = true;
+                dataNeedsDilation = true;
+            }
+            else
+            {
+                // We should never hit this case.
+                // Lets log some additional information to make this case easier to debug in the future.
+                string name = gameObject.name;
+                string parentName = (transform.parent == null) ? "null" : transform.parent.name;
+                bool isCompanionGameObject = gameObject.scene.path == "";
+                string companionString = isCompanionGameObject ? "true" : "false";
+                Debug.LogFormat("Failed to get data at id: {0}, with probe volume: {1}, and parent: {2}, companionGameObject: {3}", GetBakeID(), name, parentName, companionString);
             }
 
             sh.Dispose();
@@ -852,15 +1250,210 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!probeVolumeAsset)
                 return;
 
+            if (!dataNeedsDilation)
+                return;
+
             probeVolumeAsset.Dilate(parameters.backfaceTolerance, parameters.dilationIterations);
-            dataUpdated = true;
+
+            if (parameters.supportDynamicGI)
+            {
+                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters, false);
+            }
+
+            IncrementDataVersion();
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+
+            dataNeedsDilation = false;
         }
 
+        public void BakeDynamicGIOnly()
+        {
+            if (this.gameObject == null || !this.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
+
+            var bakeId = GetBakeID();
+            if (probeVolumeAsset == null)
+            {
+                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(bakeId);
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                probeVolumeAsset.globalUniqueID = bakeId;
+                ProbeVolumePayload.Dispose(ref probeVolumeAsset.payload);
+            }
+
+            probeVolumeAsset.resolutionX = parameters.resolutionX;
+            probeVolumeAsset.resolutionY = parameters.resolutionY;
+            probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
+            // Store the orientation that the probe data was baked at in order to support probe volume rotation post bake.
+            // Without this data, the probe positions will be correct, but the orientation of the spherical harmonics will be incorrect
+            // (as the spherical harmonics are baked and serialized in world space).
+            probeVolumeAsset.rotation = transform.rotation;
+
+            ProbeVolumePayload.Allocate(ref probeVolumeAsset.payload, numProbes);
+
+            if (parameters.supportDynamicGI)
+            {
+                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters, true);
+            }
+
+            IncrementDataVersion();
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+
+            dataNeedsDilation = false;
+        }
+
+        internal void CopyDirectLightingToMixed()
+        {
+            var hits = probeVolumeAsset?.payload.hitNeighborAxis;
+            if (hits == null || hits.Length == 0)
+                return;
+
+            var hitRadianceCache = propagationPipelineData.hitRadianceCache;
+            if (hitRadianceCache == null || !hitRadianceCache.IsValid() || hitRadianceCache.count != hits.Length)
+                return;
+
+            if (ProbeVolumeDynamicGI.IsRadianceEncodedInUint(propagationPipelineData.radianceEncoding))
+            {
+                var hitRandiance = new uint[hits.Length];
+                hitRadianceCache.GetData(hitRandiance);
+                switch (propagationPipelineData.radianceEncoding)
+                {
+                    case ProbeVolumeDynamicGIRadianceEncoding.LogLuv:
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var lighting = ProbeVolumeDynamicGI.DecodeLogLuv(hitRandiance[i]);
+                            hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                        }
+                        break;
+                    case ProbeVolumeDynamicGIRadianceEncoding.HalfLuv:
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var lighting = ProbeVolumeDynamicGI.DecodeHalfLuv(hitRandiance[i]);
+                            hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                        }
+                        break;
+                    case ProbeVolumeDynamicGIRadianceEncoding.R11G11B10:
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var lighting = ProbeVolumeDynamicGI.DecodeSimpleR11G11B10(hitRandiance[i]);
+                            hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(lighting);
+                        }
+                        break;
+                    default:
+                        Debug.Assert(false);
+                        return;
+                }
+            }
+            else
+            {
+                var hitRandiance = new Vector3[hits.Length];
+                hitRadianceCache.GetData(hitRandiance);
+                for (int i = 0; i < hits.Length; i++)
+                    hits[i].mixedLighting = ProbeVolumeDynamicGI.PackEmission(hitRandiance[i]);
+            }
+
+            probeVolumeAsset.dynamicGIMixedLightsBaked = true;
+            IncrementDataVersion();
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+        }
+
+        internal void CopyDynamicSHToAsset()
+        {
+            if (propagationPipelineData.buffersDataVersion == -1)
+                return;
+
+            if (!ProbeVolumeManager.manager.TryGetVolumeHandle(this, out var volumeHandle))
+                return;
+
+            EnsureVolumeBuffers(volumeHandle, ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+
+            var resolution = new Vector3Int(parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
+
+            // Always output full SHL2
+            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+
+            var rtHandle = RTHandles.Alloc(
+                width: (int)resolution.x,
+                height: (int)resolution.y,
+                slices: (int)resolution.z * sliceCount,
+                dimension: TextureDimension.Tex3D,
+                colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
+                enableRandomWrite: true,
+                useMipMap: false,
+                name: "ProbeVolumeDynamicGICapture"
+            );
+
+            var cmd = CommandBufferPool.Get();
+            ProbeVolumeDynamicGI.instance.DispatchPropagationOutputDynamicSH(cmd, resolution, pipelineData, propagationPipelineData, rtHandle);
+            Graphics.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+            
+            var request = AsyncGPUReadback.Request(
+                rtHandle, 0,
+                0, resolution.x,
+                0, resolution.y,
+                0, resolution.z * sliceCount
+            );
+            request.WaitForCompletion();
+
+            var dataSHL01 = probeVolumeAsset.payload.dataSHL01;
+            var dataSHL2 = probeVolumeAsset.payload.dataSHL2;
+
+            var strideSHL01 = ProbeVolumePayload.GetDataSHL01Stride();
+            var strideSHL2 = ProbeVolumePayload.GetDataSHL2Stride();
+            
+            CopySHTextureSliceToAssetData(request, resolution, 0, dataSHL01, strideSHL01, 0, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 1, dataSHL01, strideSHL01, 1, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 2, dataSHL01, strideSHL01, 2, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 3, dataSHL2, strideSHL2, 0, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 4, dataSHL2, strideSHL2, 1, 4);
+            CopySHTextureSliceToAssetData(request, resolution, 5, dataSHL2, strideSHL2, 2, 4);
+            // Note we only copy 3 floats from each texel of the last slice.
+            // The 4th float is validity we don't need here.
+            CopySHTextureSliceToAssetData(request, resolution, 6, dataSHL2, strideSHL2, 3, 3);
+
+            rtHandle.Release();
+
+            IncrementDataVersion();
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+        }
+
+        static void CopySHTextureSliceToAssetData(AsyncGPUReadbackRequest request, Vector3Int volumeSize, int slice, float[] targetData, int targetDataStride, int targetOffset, int valueCount)
+        {
+            var layerSize = volumeSize.x * volumeSize.y;
+            var sliceStartLayer = volumeSize.z * slice;
+            for (int z = 0; z < volumeSize.z; z++)
+            {
+                var textureData = request.GetData<float>(sliceStartLayer + z);
+                for (int xy = 0; xy < layerSize; xy++)
+                {
+                    var probeIndex = z * layerSize + xy;
+                    var textureDataStart = xy * 4;
+                    var targetDataStart = probeIndex * targetDataStride + targetOffset * 4;
+                    for (int i = 0; i < valueCount; i++)
+                    {
+                        if (textureDataStart + i >= layerSize * 4)
+                        {
+                            Debug.LogError($"Index: {textureDataStart + i}, slice: {slice}, z: {z}, xy: {xy}, probeIndex: {probeIndex}");
+                        }
+                        targetData[targetDataStart + i] = textureData[textureDataStart + i];
+                    }
+                }
+            }
+        }
+        
         private static ProbeVolumeSettingsKey ComputeProbeVolumeSettingsKeyFromProbeVolume(ProbeVolume probeVolume)
         {
             return new ProbeVolumeSettingsKey
             {
-                id = probeVolume.GetID(),
+                id = probeVolume.GetBakeID(),
                 position = probeVolume.transform.position,
                 rotation = probeVolume.transform.rotation,
                 size = probeVolume.parameters.size,
@@ -885,15 +1478,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 && (a.dilationIterations == b.dilationIterations);
         }
 
+        private static bool ProbeVolumeSettingsKeyIsCleared(ref ProbeVolumeSettingsKey a)
+        {
+            return (a.id == ProbeVolumeSettingsKey.zero.id)
+                && (a.position == ProbeVolumeSettingsKey.zero.position)
+                && (a.rotation == ProbeVolumeSettingsKey.zero.rotation)
+                && (a.size == ProbeVolumeSettingsKey.zero.size)
+                && (a.resolutionX == ProbeVolumeSettingsKey.zero.resolutionX)
+                && (a.resolutionY == ProbeVolumeSettingsKey.zero.resolutionY)
+                && (a.resolutionZ == ProbeVolumeSettingsKey.zero.resolutionZ)
+                && (a.backfaceTolerance == ProbeVolumeSettingsKey.zero.backfaceTolerance)
+                && (a.dilationIterations == ProbeVolumeSettingsKey.zero.dilationIterations);
+        }
+
         private void SetupProbePositions()
         {
             if (!this.gameObject.activeInHierarchy)
                 return;
 
-            float debugProbeSize = Gizmos.probeSize;
+            // Do not spend time generating debug meshes or bake API positions if we are in playmode.
+            if (UnityEditor.EditorApplication.isPlaying)
+                return;
 
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
-            Vector3[] positions = new Vector3[probeCount];
+            m_ProbePositions = new Vector3[probeCount];
 
             OrientedBBox obb = new OrientedBBox(Matrix4x4.TRS(this.transform.position, this.transform.rotation, parameters.size));
 
@@ -906,26 +1514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 - obb.up      * (parameters.size.y - probeSteps.y) * 0.5f
                 + obb.forward * (parameters.size.z - probeSteps.z) * 0.5f;
 
-            Quaternion rotation = Quaternion.identity;
-            Vector3 scale = new Vector3(debugProbeSize, debugProbeSize, debugProbeSize);
-
-            // Debugging objects start here
-            int maxBatchSize = 1023;
-            int probesInCurrentBatch = System.Math.Min(maxBatchSize, probeCount);
-            int indexInCurrentBatch = 0;
-
-            // Everything around cached matrices for the probe spheres
-            m_DebugProbeMatricesList = new List<Matrix4x4[]>();
-            Matrix4x4[] currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
-            int[] indices = new int[probesInCurrentBatch];
-
-            // Everything around point meshes for non-selected ProbeVolumes
-            m_DebugProbePointMeshList = new List<Mesh>();
-            int[] currentProbeDebugIndices = new int[probesInCurrentBatch];
-            Vector3[] currentProbeDebugPositions = new Vector3[probesInCurrentBatch];
-
             int processedProbes = 0;
-
             for (int z = 0; z < parameters.resolutionZ; ++z)
             {
                 for (int y = 0; y < parameters.resolutionY; ++y)
@@ -933,50 +1522,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int x = 0; x < parameters.resolutionX; ++x)
                     {
                         Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * -obb.forward);
-                        positions[processedProbes] = position;
-
-                        currentProbeDebugIndices[indexInCurrentBatch] = indexInCurrentBatch;
-                        currentProbeDebugPositions[indexInCurrentBatch] = position;
-
-                        Matrix4x4 matrix = new Matrix4x4();
-                        matrix.SetTRS(position, rotation, scale);
-                        currentprobeMatrices[indexInCurrentBatch] = matrix;
-
-                        indexInCurrentBatch++;
-                        processedProbes++;
-
-                        int probesLeft = probeCount - processedProbes;
-
-                        if (indexInCurrentBatch >= 1023 || probesLeft == 0)
-                        {
-                            Mesh currentProbeDebugMesh = new Mesh();
-                            currentProbeDebugMesh.SetVertices(currentProbeDebugPositions);
-                            currentProbeDebugMesh.SetIndices(currentProbeDebugIndices, MeshTopology.Points, 0);
-
-                            m_DebugProbePointMeshList.Add(currentProbeDebugMesh);
-                            m_DebugProbeMatricesList.Add(currentprobeMatrices);
-
-                            // More sets follow, reallocate
-                            if (probesLeft > 0)
-                            {
-                                probesInCurrentBatch = System.Math.Min(maxBatchSize, probesLeft);
-
-                                currentProbeDebugPositions = new Vector3[probesInCurrentBatch];
-                                currentProbeDebugIndices = new int[probesInCurrentBatch];
-                                currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
-
-                                indexInCurrentBatch = 0;
-                            }
-                        }
+                        m_ProbePositions[processedProbes++] = position;
                     }
                 }
             }
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), positions);
+            AdditionalGIBakeRequestsManager.instance.SetAdditionalBakedProbes(GetBakeID(), m_ProbePositions);
+            bakingEnabled = true;
         }
 
-        private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
+        private static bool ShouldDrawGizmos(ProbeVolume probeVolume, out Camera camera)
         {
+            camera = null;
+
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return false;
 
@@ -985,63 +1543,223 @@ namespace UnityEngine.Rendering.HighDefinition
             if (sceneView == null)
                 sceneView = UnityEditor.SceneView.lastActiveSceneView;
 
+            if (sceneView == null)
+                return false;
+
             if (sceneView != null && !sceneView.drawGizmos)
                 return false;
 
             if (!probeVolume.enabled)
                 return false;
 
-            return probeVolume.parameters.drawProbes;
-        }
+            // Do not spend time interacting with the baking API if we are in playmode.
+            if (UnityEditor.EditorApplication.isPlaying)
+                return false;
 
-        [UnityEditor.DrawGizmo(UnityEditor.GizmoType.NotInSelectionHierarchy)]
-        private static void DrawProbes(ProbeVolume probeVolume, UnityEditor.GizmoType gizmoType)
-        {
-            if (!ShouldDrawGizmos(probeVolume))
-                return;
-
-            probeVolume.OnValidate();
-
-            var pointMeshList = probeVolume.m_DebugProbePointMeshList;
-
-            probeVolume.m_DebugMaterial.SetPass(8);
-            foreach (Mesh debugMesh in pointMeshList)
-                Graphics.DrawMeshNow(debugMesh, Matrix4x4.identity);
+            camera = sceneView.camera;
+            return true;
         }
 
         internal void DrawSelectedProbes()
         {
-            if (!ShouldDrawGizmos(this))
+            if (!ShouldDrawGizmos(this, out Camera camera))
+            {
                 return;
+            }
 
-            OnValidate();
+            DrawOctahedralDepthRays(this);
 
-            int layer = 0;
+            if (parameters.supportDynamicGI && parameters.drawNeighbors)
+            {
+                OnValidate();
+                ProbeVolumeManager.manager.DebugDrawNeighborhood(this, camera);
+            }
 
-            Material material = m_DebugMaterial;
-
-            if (!material)
-                return;
-
-            material.enableInstancing = true;
-
-            Mesh mesh = m_DebugMesh;
-
-            if (!mesh)
-                return;
-
-            int submeshIndex = 0;
-            MaterialPropertyBlock properties = null;
-            ShadowCastingMode castShadows = ShadowCastingMode.Off;
-            bool receiveShadows = false;
-
-            Camera emptyCamera = null;
-            LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
-            LightProbeProxyVolume lightProbeProxyVolume = null;
-
-            foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
-                Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
+            if (parameters.drawProbes && HDRenderPipeline.currentPipeline != null)
+            {
+                OnValidate();
+                HDRenderPipeline.currentPipeline.DrawProbeVolumeDebugSHPreview(this, camera);
+            }
         }
+
+        VolumeGlobalUniqueID IVolumeGlobalUniqueIDOwnerEditorOnly.GetGlobalUniqueID() { return globalUniqueID; }
+        void IVolumeGlobalUniqueIDOwnerEditorOnly.SetGlobalUniqueID(VolumeGlobalUniqueID id) { globalUniqueID = id; }
+        void IVolumeGlobalUniqueIDOwnerEditorOnly.InitializeDuplicate()
+        {
+            // When a probe volume is duplicated, we unlink the asset.
+            // This is not strictly necessary, it is valid at runtime to have multiple probe volumes who point to the same asset.
+            // However, this is not valid to have multiple probe volumes pointing to the same asset at bake time.
+            // To be extra safe, simply unlink the asset so a new one will be created next time we bake.
+            probeVolumeAsset = null;
+            BakeKeyClear();
+        }
+
+        internal static Bounds ComputeBoundsWS(ProbeVolume probeVolume)
+        {
+            return VolumeUtils.ComputeBoundsWS(probeVolume.transform, probeVolume.parameters.size);
+        }
+
+        internal static Matrix4x4 ComputeProbeIndex3DToPositionWSMatrix(ProbeVolume probeVolume)
+        {
+            return VolumeUtils.ComputeProbeIndex3DToPositionWSMatrix(
+                probeVolume.transform,
+                probeVolume.parameters.size,
+                probeVolume.parameters.resolutionX,
+                probeVolume.parameters.resolutionY,
+                probeVolume.parameters.resolutionZ
+            );
+        }
+
+        internal static Vector3 ComputeCellSizeWS(ProbeVolume probeVolume)
+        {
+            return VolumeUtils.ComputeCellSizeWS(
+                probeVolume.parameters.size,
+                probeVolume.parameters.resolutionX,
+                probeVolume.parameters.resolutionY,
+                probeVolume.parameters.resolutionZ
+            );
+        }
+
+        internal static int ComputeProbeCount(ProbeVolume probeVolume)
+        {
+            return VolumeUtils.ComputeProbeCount(
+                probeVolume.parameters.resolutionX,
+                probeVolume.parameters.resolutionY,
+                probeVolume.parameters.resolutionZ
+            );
+        }
+
+        private static void DrawOctahedralDepthRays(ProbeVolume probeVolume)
+        {
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth) { return; }
+            if (!probeVolume.parameters.drawOctahedralDepthRays) { return; }
+            if (probeVolume.probeVolumeAsset == null) { return; }
+            if (probeVolume.probeVolumeAsset.payload.dataOctahedralDepth == null) { return; }
+
+            Vector3 probePositionWS = ComputeProbePositionWS(
+                probeVolume,
+                probeVolume.parameters.drawOctahedralDepthRayIndexX,
+                probeVolume.parameters.drawOctahedralDepthRayIndexY,
+                probeVolume.parameters.drawOctahedralDepthRayIndexZ
+            );
+
+            int probeIndex1D = ComputeProbeIndex1DFrom3D(
+                probeVolume,
+                probeVolume.parameters.drawOctahedralDepthRayIndexX,
+                probeVolume.parameters.drawOctahedralDepthRayIndexY,
+                probeVolume.parameters.drawOctahedralDepthRayIndexZ
+            );
+
+            const int octahedralDepthResolution = 8;
+            int octahedralDepthIndexBase = probeIndex1D * octahedralDepthResolution * octahedralDepthResolution;
+
+            for (int y = 0; y < octahedralDepthResolution; ++y)
+            {
+                for (int x = 0; x < octahedralDepthResolution; ++x)
+                {
+                    int i = y * 8 + x + octahedralDepthIndexBase;
+
+                    Vector3 rayDirectionWS = UnpackNormalOctQuadEncode(new Vector2(
+                        ((float)x + 0.5f) / octahedralDepthResolution * 2.0f - 1.0f,
+                        ((float)y + 0.5f) / octahedralDepthResolution * 2.0f - 1.0f
+                    ));
+
+                    float depthMean = probeVolume.probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 0];
+                    float depthMeanSquared = probeVolume.probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 1];
+                    float variance = Mathf.Max(1e-5f, depthMeanSquared - depthMean * depthMean);
+
+                    Vector3 positionVarianceMinWS = rayDirectionWS * Mathf.Max(0.0f, (depthMean - variance)) + probePositionWS;
+                    Vector3 positionVarianceMaxWS = rayDirectionWS * Mathf.Max(0.0f, (depthMean + variance)) + probePositionWS;
+                    Debug.DrawLine(probePositionWS, positionVarianceMinWS, Color.red);
+                    Debug.DrawLine(positionVarianceMinWS, positionVarianceMaxWS, Color.green);
+                }
+            }
+        }
+
+        private static Vector3 ComputeProbePositionWS(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            Vector3 uvw = new Vector3(
+                (x + 0.5f) / probeVolume.parameters.resolutionX,
+                (y + 0.5f) / probeVolume.parameters.resolutionY,
+                (z + 0.5f) / probeVolume.parameters.resolutionZ
+            );
+
+            Vector3 positionOS = new Vector3(
+                (uvw.x - 0.5f) * probeVolume.parameters.size.x,
+                (uvw.y - 0.5f) * probeVolume.parameters.size.y,
+                (uvw.z - 0.5f) * probeVolume.parameters.size.z
+            );
+            Vector3 positionWS = (probeVolume.transform.rotation * positionOS) + probeVolume.transform.position;
+
+            return positionWS;
+        }
+
+        // Expects a [-1, 1] range value.
+        private static Vector3 UnpackNormalOctQuadEncode(Vector2 f)
+        {
+            Vector3 n = new Vector3(f.x, f.y, 1.0f - Mathf.Abs(f.x) - Mathf.Abs(f.y));
+            float t = Mathf.Max(-n.z, 0.0f);
+
+            n = new Vector3(
+                n.x + (n.x > 0.0f ? -t : t),
+                n.y + (n.y > 0.0f ? -t : t),
+                n.z
+            );
+
+            return Vector3.Normalize(n);
+        }
+
+        internal static int ComputeProbeIndex1DFrom3D(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            return z * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionX
+                + y * probeVolume.parameters.resolutionX
+                + x;
+        }
+
+        internal static Vector2Int ComputeProbeOctahedralDepthIndex2DFrom3D(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            // Z slices are packed horizontally.
+            return new Vector2Int(
+                x + z * probeVolume.parameters.resolutionX,
+                y
+            );
+        }
+
+        internal static Vector4 ComputeProbeOctahedralDepthScaleBias2D(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            Vector2Int probeOctahedralDepthIndex2D = ComputeProbeOctahedralDepthIndex2DFrom3D(probeVolume, x, y, z);
+
+            // Z slices are packed horizontally.
+            Vector2 probeOctahedralDepthScale2D = new Vector2(
+                1.0f / (probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionZ),
+                1.0f / probeVolume.parameters.resolutionY
+            );
+
+            return new Vector4(probeOctahedralDepthScale2D.x, probeOctahedralDepthScale2D.y, probeOctahedralDepthIndex2D.x, probeOctahedralDepthIndex2D.y);
+        }
+
+        public static bool preparingMixedLights;
+        public static bool preparingForBake;
 #endif
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

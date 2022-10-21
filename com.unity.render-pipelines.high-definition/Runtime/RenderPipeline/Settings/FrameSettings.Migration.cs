@@ -435,6 +435,18 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void MigrateVirtualTexturing(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.VirtualTexturing, true);
-        }        
+        }
+
+        internal static void MigrateDynamicGIQuality(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces, true);
+            cameraFrameSettings.probeVolumeDynamicGIPropagationQuality = 2;
+            cameraFrameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame = -1;
+        }
+
+        internal static void MigrateProbeVolumeQuality(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.probeVolumeEncoding = 2;
+        }
     }
 }

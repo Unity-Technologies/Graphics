@@ -211,5 +211,263 @@ namespace UnityEngine.Rendering.HighDefinition
             // Quadratic (5)
             packedCoeffs[6].Set(sh[0, 8], sh[1, 8], sh[2, 8], 1.0f);
         }
+
+        // Sources (derivation in shadertoy):
+        // https://www.shadertoy.com/view/NlsGWB
+        // http://filmicworlds.com/blog/simple-and-fast-spherical-harmonic-rotation/
+        // https://zvxryb.github.io/blog/2015/09/03/sh-lighting-part2/
+        public static void Rotate(Matrix4x4 M, ref SphericalHarmonicsL2 sh)
+        {
+            RotateBandL1(M, ref sh);
+            RotateBandL2(M, ref sh);
+        }
+
+        public static void RotateBandL1(Matrix4x4 M, ref SphericalHarmonicsL2 sh)
+        {
+            Vector3 x0 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 1);
+            Vector3 x1 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 2);
+            Vector3 x2 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 3);
+            
+            Matrix4x4 SH = new Matrix4x4();
+            SH.SetColumn(0, new Vector4(x2.x, x2.y, x2.z, 0.0f));
+            SH.SetColumn(1, new Vector4(x0.x, x0.y, x0.z, 0.0f));
+            SH.SetColumn(2, new Vector4(x1.x, x1.y, x1.z, 0.0f));
+            SH.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+
+            x0 = SH.MultiplyPoint3x4(new Vector3(M[1, 0], M[1, 1], M[1, 2]));
+            x1 = SH.MultiplyPoint3x4(new Vector3(M[2, 0], M[2, 1], M[2, 2]));
+            x2 = SH.MultiplyPoint3x4(new Vector3(M[0, 0], M[0, 1], M[0, 2]));
+
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 1, x0);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 2, x1);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 3, x2);
+        }
+
+        public static void RotateBandL2(Matrix4x4 M, ref SphericalHarmonicsL2 sh)
+        {
+            Vector3 x0 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 4);
+            Vector3 x1 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 5);
+            Vector3 x2 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 6);
+            Vector3 x3 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 7);
+            Vector3 x4 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 8);
+
+            // Decomposed + factored version of 5x5 matrix multiply of invA * sh from source.
+            Vector3 sh0 = x1 * 0.5f + (x3 * -0.5f + x4 * 2.0f);
+            Vector3 sh1 = x0 * 0.5f + 3.0f * x2 - x3 * 0.5f + x4;
+            Vector3 sh2 = x0;
+            Vector3 sh3 = x3;
+            Vector3 sh4 = x1;
+
+            const float kInv = 1.41421356237f; // sqrt(2.0f);
+            const float k3 = 0.25f;
+            const float k4 = -1.0f / 6.0f;
+            
+            // Decomposed + factored version of 5x5 matrix multiply of 5 normals projected to 5 SH2 bands.
+            // Column 0
+            {
+                Vector3 rn0 = new Vector3(M[0, 0], M[1, 0], M[2, 0]) * kInv; // (Vector3(1, 0, 0) * M) / k;
+                x0 = (rn0.x * rn0.y) * sh0;
+                x1 = (rn0.y * rn0.z) * sh0;
+                x2 = (rn0.z * rn0.z * k3 + k4) * sh0;
+                x3 = (rn0.x * rn0.z) * sh0;
+                x4 = (rn0.x * rn0.x - rn0.y * rn0.y) * sh0;
+            }
+
+            // Column 1
+            {
+                Vector3 rn1 = new Vector3(M[0, 2], M[1, 2], M[2, 2]) * kInv; // (Vector3(0, 0, 1) * M) / k;
+                x0 += (rn1.x * rn1.y) * sh1;
+                x1 += (rn1.y * rn1.z) * sh1;
+                x2 += (rn1.z * rn1.z * k3 + k4) * sh1;
+                x3 += (rn1.x * rn1.z) * sh1;
+                x4 += (rn1.x * rn1.x - rn1.y * rn1.y) * sh1;
+            }
+
+            // Column 2
+            {
+                Vector3 rn2 = new Vector3(M[0, 0] + M[0, 1], M[1, 0] + M[1, 1], M[2, 0] + M[2, 1]); // (Vector3(k, k, 0) * M) / k;
+                x0 += (rn2.x * rn2.y) * sh2;
+                x1 += (rn2.y * rn2.z) * sh2;
+                x2 += (rn2.z * rn2.z * k3 + k4) * sh2;
+                x3 += (rn2.x * rn2.z) * sh2;
+                x4 += (rn2.x * rn2.x - rn2.y * rn2.y) * sh2;
+            }
+
+            // Column 3
+            {
+                Vector3 rn3 = new Vector3(M[0, 0] + M[0, 2], M[1, 0] + M[1, 2], M[2, 0] + M[2, 2]); // (Vector3(k, 0, k) * M) / k;
+                x0 += (rn3.x * rn3.y) * sh3;
+                x1 += (rn3.y * rn3.z) * sh3;
+                x2 += (rn3.z * rn3.z * k3 + k4) * sh3;
+                x3 += (rn3.x * rn3.z) * sh3;
+                x4 += (rn3.x * rn3.x - rn3.y * rn3.y) * sh3;
+            }
+
+            // Column 4
+            {
+                Vector3 rn4 = new Vector3(M[0, 1] + M[0, 2], M[1, 1] + M[1, 2], M[2, 1] + M[2, 2]); // (Vector3(0, k, k) * M) / k;
+                x0 += (rn4.x * rn4.y) * sh4;
+                x1 += (rn4.y * rn4.z) * sh4;
+                x2 += (rn4.z * rn4.z * k3 + k4) * sh4;
+                x3 += (rn4.x * rn4.z) * sh4;
+                x4 += (rn4.x * rn4.x - rn4.y * rn4.y) * sh4;
+            }
+
+            x4 *= 0.25f;
+
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 4, x0);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 5, x1);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 6, x2);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 7, x3);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 8, x4);
+        }
+    }
+
+    /// <summary>
+    /// A collection of utility functions used to access and set SphericalHarmonicsL2 in a more verbose way.
+    /// </summary>
+    public class SphericalHarmonicsL2Utils
+    {
+        /// <summary>
+        /// Returns the L1 coefficients organized in such a way that are swizzled per channel rather than per coefficient.
+        /// </summary>
+        /// <param name ="sh"> The SphericalHarmonicsL2 data structure to use to query the information.</param>
+        /// <param name ="L1_R">The red channel of all coefficient for the L1 band.</param>
+        /// <param name ="L1_G">The green channel of all coefficient for the L1 band.</param>
+        /// <param name ="L1_B">The blue channel of all coefficient for the L1 band.</param>
+        public static void GetL1(SphericalHarmonicsL2 sh, out Vector3 L1_R, out Vector3 L1_G, out Vector3 L1_B)
+        {
+            L1_R = new Vector3(sh[0, 1],
+                sh[0, 2],
+                sh[0, 3]);
+
+            L1_G = new Vector3(sh[1, 1],
+                sh[1, 2],
+                sh[1, 3]);
+
+            L1_B = new Vector3(sh[2, 1],
+                sh[2, 2],
+                sh[2, 3]);
+        }
+
+        /// <summary>
+        /// Returns all the L2 coefficients.
+        /// </summary>
+        /// <param name ="sh"> The SphericalHarmonicsL2 data structure to use to query the information.</param>
+        /// <param name ="L2_0">The first coefficient for the L2 band.</param>
+        /// <param name ="L2_1">The second coefficient for the L2 band.</param>
+        /// <param name ="L2_2">The third coefficient for the L2 band.</param>
+        /// <param name ="L2_3">The fourth coefficient for the L2 band.</param>
+        /// <param name ="L2_4">The fifth coefficient for the L2 band.</param>
+        public static void GetL2(SphericalHarmonicsL2 sh, out Vector3 L2_0, out Vector3 L2_1, out Vector3 L2_2, out Vector3 L2_3, out Vector3 L2_4)
+        {
+            L2_0 = new Vector3(sh[0, 4],
+                sh[1, 4],
+                sh[2, 4]);
+
+            L2_1 = new Vector3(sh[0, 5],
+                sh[1, 5],
+                sh[2, 5]);
+
+            L2_2 = new Vector3(sh[0, 6],
+                sh[1, 6],
+                sh[2, 6]);
+
+            L2_3 = new Vector3(sh[0, 7],
+                sh[1, 7],
+                sh[2, 7]);
+
+            L2_4 = new Vector3(sh[0, 8],
+                sh[1, 8],
+                sh[2, 8]);
+        }
+
+        /// <summary>
+        /// Set L0 coefficient.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to store information on.</param>
+        /// <param name ="L0">The L0 coefficient to set.</param>
+        public static void SetL0(ref SphericalHarmonicsL2 sh, Vector3 L0)
+        {
+            sh[0, 0] = L0.x;
+            sh[1, 0] = L0.y;
+            sh[2, 0] = L0.z;
+        }
+
+        /// <summary>
+        /// Set the red channel for each of the L1 coefficients.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to store information on.</param>
+        /// <param name ="L1_R">The red channels for each L1 coefficient.</param>
+        public static void SetL1R(ref SphericalHarmonicsL2 sh, Vector3 L1_R)
+        {
+            sh[0, 1] = L1_R.x;
+            sh[0, 2] = L1_R.y;
+            sh[0, 3] = L1_R.z;
+        }
+
+        /// <summary>
+        /// Set the green channel for each of the L1 coefficients.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to store information on.</param>
+        /// <param name ="L1_G">The green channels for each L1 coefficient.</param>
+        public static void SetL1G(ref SphericalHarmonicsL2 sh, Vector3 L1_G)
+        {
+            sh[1, 1] = L1_G.x;
+            sh[1, 2] = L1_G.y;
+            sh[1, 3] = L1_G.z;
+        }
+
+        /// <summary>
+        /// Set the blue channel for each of the L1 coefficients.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to store information on.</param>
+        /// <param name ="L1_B">The blue channels for each L1 coefficient.</param>
+        public static void SetL1B(ref SphericalHarmonicsL2 sh, Vector3 L1_B)
+        {
+            sh[2, 1] = L1_B.x;
+            sh[2, 2] = L1_B.y;
+            sh[2, 3] = L1_B.z;
+        }
+
+        /// <summary>
+        /// Set all L1 coefficients per channel.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to store information on.</param>
+        /// <param name ="L1_R">The red channels for each L1 coefficient.</param>
+        /// <param name ="L1_G">The green channels for each L1 coefficient.</param>
+        /// <param name ="L1_B">The blue channels for each L1 coefficient.</param>
+        public static void SetL1(ref SphericalHarmonicsL2 sh, Vector3 L1_R, Vector3 L1_G, Vector3 L1_B)
+        {
+            SetL1R(ref sh, L1_R);
+            SetL1G(ref sh, L1_G);
+            SetL1B(ref sh, L1_B);
+        }
+
+        /// <summary>
+        /// Set a spherical harmonics coefficient.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to store information on.</param>
+        /// <param name ="index">The index of the coefficient that is set (must be less than 9).</param>
+        /// <param name ="coefficient">The values of the coefficient is set.</param>
+        public static void SetCoefficient(ref SphericalHarmonicsL2 sh, int index, Vector3 coefficient)
+        {
+            Debug.Assert(index < 9);
+            sh[0, index] = coefficient.x;
+            sh[1, index] = coefficient.y;
+            sh[2, index] = coefficient.z;
+        }
+
+        /// <summary>
+        /// Get a spherical harmonics coefficient.
+        /// </summary>
+        /// <param name ="sh">The SphericalHarmonicsL2 data structure to get information from.</param>
+        /// <param name ="index">The index of the coefficient that is requested (must be less than 9).</param>
+        /// <returns>The value of the requested coefficient.</returns>
+        public static Vector3 GetCoefficient(SphericalHarmonicsL2 sh, int index)
+        {
+            Debug.Assert(index < 9);
+            return new Vector3(sh[0, index], sh[1, index], sh[2, index]);
+        }
     }
 }

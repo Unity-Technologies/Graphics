@@ -79,10 +79,12 @@ struct DirectionalLightData
     float distanceFromCamera;
     float angularDiameter;
     float flareFalloff;
-    float __unused__;
+    int affectDynamicGI;
+    int mixedDynamicGI;
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
+    float bounceIntensity;
     float4 surfaceTextureScaleOffset;
 };
 
@@ -120,8 +122,8 @@ struct LightData
     int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
-    float __unused__;
-    float2 padding;
+    int mixedDynamicGI;
+    float padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;
     int hierarchicalVarianceScreenSpaceShadowsIndex;
@@ -158,6 +160,8 @@ struct EnvLightData
     float roughReflections;
     float distanceBasedRoughness;
     int envIndex;
+    int normalizeWithProbeVolumes;
+    float2 padding;
 };
 
 

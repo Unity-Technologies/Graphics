@@ -100,6 +100,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probeVolumeAtlasOctahedralDepthConvolveCS;
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
+            [Reload("Runtime/Material/MaskVolume/MaskVolumeAtlasBlit.compute")]
+            public ComputeShader maskVolumeAtlasBlitCS;
+            [Reload("Runtime/Material/MaskVolume/DebugDisplayMaskVolume.shader")]
+            public Shader debugDisplayMaskVolumePS;
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
@@ -338,6 +342,26 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ssGIDenoiserCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
+
+            // Probe Volume Dynamic GI
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ExtractGIData.compute")]
+            public ComputeShader extractProbeExtraDataCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationClearRadianceCache.compute")]
+            public ComputeShader probePropagationClearRadianceCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationInitialize.compute")]
+            public ComputeShader probePropagationInitializeCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationHits.compute")]
+            public ComputeShader probePropagationHitsCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationResetDirtyFlags.compute")]
+            public ComputeShader probePropagationResetDirtyFlagsCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationAxes.compute")]
+            public ComputeShader probePropagationAxesCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationCombine.compute")]
+            public ComputeShader probePropagationCombineCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/DebugNeighbors.shader")]
+            public Shader probeVolumeDebugNeighbors;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicGI/DebugDirtyFlags.shader")]
+            public Shader probeVolumeDebugDirtyFlags;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

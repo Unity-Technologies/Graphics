@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 using UnityEditorInternal;
+using UnityEngine.UI;
 
 // TODO(Nicholas): deduplicate with DensityVolumeUI.Drawer.cs.
 namespace UnityEditor.Rendering.HighDefinition
@@ -15,12 +16,21 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Volume = 1 << 0,
             Probes = 1 << 1,
-            Baking = 1 << 2
+            Baking = 1 << 2,
+            DynamicBaking = 1 << 3
+        }
+
+        enum DynamicGIBakingStage
+        {
+            Neighborhood,
+            MixedLights,
+            FallbackRadiance,
         }
 
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateVolume = new ExpandedState<Expandable, ProbeVolume>(Expandable.Volume, "HDRP");
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateProbes = new ExpandedState<Expandable, ProbeVolume>(Expandable.Probes, "HDRP");
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
+        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateDynamicBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.DynamicBaking, "HDRP");
 
         internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
@@ -54,6 +64,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         Expandable.Baking,
                         k_ExpandedStateBaking,
                         Drawer_BakeToolBar
+                        ),
+                    CED.space,
+                    CED.FoldoutGroup(
+                        Styles.k_DynamicBakingHeader,
+                        Expandable.DynamicBaking,
+                        k_ExpandedStateDynamicBaking,
+                        Drawer_DynamicBakeToolBar
                         )
                     )
                 )
@@ -84,13 +101,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var asset = serialized.probeVolumeAsset.objectReferenceValue as ProbeVolumeAsset;
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
-                && asset != null && asset.payload.dataOctahedralDepth == null)
+                && asset != null && (asset.payload.dataOctahedralDepth == null || asset.payload.dataOctahedralDepth.Length == 0))
             {
                 EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthEnabledNoData, MessageType.Error);
             }
             
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth
-                && asset != null && asset.payload.dataOctahedralDepth != null)
+                && asset != null && (asset.payload.dataOctahedralDepth != null && asset.payload.dataOctahedralDepth.Length > 0))
             {
                 EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthDisableYesData, MessageType.Error);
             }
@@ -100,12 +117,108 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Slider(serialized.backfaceTolerance, 0.0f, 1.0f, Styles.s_BackfaceToleranceLabel);
             EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
 
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button(Styles.k_BakeSelectedText))
+            var bakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+            if (GUI.Button(bakeButtonRect, Styles.k_BakeSelectedText))
             {
                 ProbeVolumeManager.BakeSelected();
             }
-            GUILayout.EndHorizontal();
+        }
+
+        static void Drawer_DynamicBakeToolBar(SerializedProbeVolume serialized, Editor owner)
+        {
+            DynamicGIBakingStage dynamicGIBakingStage;
+            if (ProbeVolume.preparingMixedLights)
+                dynamicGIBakingStage = DynamicGIBakingStage.MixedLights;
+            else if (ProbeVolume.preparingForBake)
+                dynamicGIBakingStage = DynamicGIBakingStage.FallbackRadiance;
+            else
+                dynamicGIBakingStage = DynamicGIBakingStage.Neighborhood;
+
+            EditorGUI.BeginChangeCheck();
+            dynamicGIBakingStage = (DynamicGIBakingStage)EditorGUILayout.EnumPopup(Styles.k_DynamicBakingStageLabel, dynamicGIBakingStage);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ProbeVolume.preparingMixedLights = dynamicGIBakingStage == DynamicGIBakingStage.MixedLights;
+                ProbeVolume.preparingForBake = dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance;
+            }
+
+            EditorGUILayout.Space();
+
+            var targets = serialized.GetTargetObjects();
+
+            if (dynamicGIBakingStage == DynamicGIBakingStage.Neighborhood)
+            {
+                var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeNeighborhoodLabel))
+                {
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        var probeVolume = (ProbeVolume)targets[i];
+                        EditorUtility.DisplayProgressBar("Baking Dynamic GI", $"{i + 1}/{targets.Length} {probeVolume.name}", (i + 0.5f) / targets.Length);
+                        probeVolume.BakeDynamicGIOnly();
+                    }
+                    EditorUtility.ClearProgressBar();
+                }
+            }
+            else
+            {
+                GUI.enabled = !CheckAndWarnNoNeighborhoodBaked(targets);
+
+                var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (dynamicGIBakingStage == DynamicGIBakingStage.MixedLights)
+                {
+                    if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeMixedLightsLabel))
+                    {
+                        foreach (var target in targets)
+                        {
+                            var probeVolume = (ProbeVolume)target;
+                            probeVolume.CopyDirectLightingToMixed();
+                        }
+                    }
+                }
+                else if (dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance)
+                {
+                    if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeFallbackRadianceLabel))
+                    {
+                        foreach (var target in targets)
+                        {
+                            var probeVolume = (ProbeVolume)target;
+                            probeVolume.CopyDynamicSHToAsset();
+                        }
+                    }
+                }
+
+                GUI.enabled = true;
+
+                EditorGUILayout.Space();
+                
+                EditorGUILayout.HelpBox(Styles.k_DynamicPipelineOverridesWarning, MessageType.Warning);
+                var resetButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (GUI.Button(resetButtonRect, Styles.k_DynamicResetPipelineOverridesLabel))
+                {
+                    ProbeVolume.preparingMixedLights = false;
+                    ProbeVolume.preparingForBake = false;
+                }
+            }
+        }
+
+        static bool CheckAndWarnNoNeighborhoodBaked(Object[] targets)
+        {
+            var noNeighborhoodBaked = false;
+            foreach (var target in targets)
+            {
+                var probeVolume = (ProbeVolume)target;
+                if (probeVolume.probeVolumeAsset == null)
+                {
+                    noNeighborhoodBaked = true;
+                    break;
+                }
+            }
+
+            if (noNeighborhoodBaked)
+                EditorGUILayout.HelpBox(Styles.k_DynamicNoNeighborhoodWarning, MessageType.Error);
+
+            return noNeighborhoodBaked;
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
@@ -130,6 +243,41 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel);
+            if (serialized.drawProbes.boolValue)
+            {
+                EditorGUILayout.PropertyField(serialized.drawValidity, Styles.s_DrawValidityLabel);
+                if (!serialized.drawValidity.boolValue)
+                {
+                    EditorGUILayout.PropertyField(serialized.highlightRinging, Styles.s_HighlightRingingLabel);
+                }
+                
+                EditorGUILayout.PropertyField(serialized.drawOctahedralDepthRays, Styles.s_DrawOctahedralDepthRays);
+                if (serialized.drawOctahedralDepthRays.boolValue)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.DelayedIntField(serialized.drawOctahedralDepthRayIndexX, Styles.s_DrawOctahedralDepthRayIndexX);
+                    EditorGUILayout.DelayedIntField(serialized.drawOctahedralDepthRayIndexY, Styles.s_DrawOctahedralDepthRayIndexY);
+                    EditorGUILayout.DelayedIntField(serialized.drawOctahedralDepthRayIndexZ, Styles.s_DrawOctahedralDepthRayIndexZ);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.drawOctahedralDepthRayIndexX.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexX.intValue, 0, serialized.resolutionX.intValue - 1);
+                        serialized.drawOctahedralDepthRayIndexY.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexY.intValue, 0, serialized.resolutionY.intValue - 1);
+                        serialized.drawOctahedralDepthRayIndexZ.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexZ.intValue, 0, serialized.resolutionZ.intValue - 1);
+                    }
+                }
+            }
+            
+            if (serialized.supportDynamicGI.boolValue)
+            {
+                EditorGUILayout.PropertyField(serialized.drawNeighbors, Styles.s_DrawNeighborsLabel);
+
+                if (serialized.drawNeighbors.boolValue)
+                {
+                    EditorGUILayout.PropertyField(serialized.drawEmission, Styles.s_DrawEmissionLabel);
+                    EditorGUILayout.PropertyField(serialized.neighborsQuadScale, Styles.s_NeighborsQuadScaleLabel);
+                }
+            }
+            
             EditorGUILayout.PropertyField(serialized.probeSpacingMode, Styles.s_ProbeSpacingModeLabel);
             switch ((ProbeSpacingMode)serialized.probeSpacingMode.enumValueIndex)
             {
@@ -287,7 +435,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     serialized.normalBiasWS.floatValue = Mathf.Max(0, normalBiasWS);
                 }
+
+                EditorGUI.BeginChangeCheck();
+                float viewBiasWS = EditorGUILayout.FloatField(Styles.s_ViewBiasWSLabel, serialized.viewBiasWS.floatValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.viewBiasWS.floatValue = Mathf.Max(0, viewBiasWS);
+                }
             }
+            EditorGUILayout.PropertyField(serialized.supportDynamicGI);
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
 
             if (ShaderConfig.s_ProbeVolumesAdditiveBlending == 0 && serialized.volumeBlendMode.intValue != (int)VolumeBlendMode.Normal)

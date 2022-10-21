@@ -1,0 +1,357 @@
+#pragma kernel CombinePropagationAxis
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
+#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
+#pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+#pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
+#pragma multi_compile _ DIRTY_FLAGS_DISABLED
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeRotate.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
+
+StructuredBuffer<float> _ProbeVolumeAtlasReadSHL01Buffer;
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+StructuredBuffer<float> _ProbeVolumeAtlasReadSHL2Buffer;
+#endif
+StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
+RWTexture3D<float4> _ProbeVolumeAtlasWriteTextureSH;
+
+uint _ProbeVolumeAtlasReadBufferCount;
+float3 _ProbeVolumeResolution;
+float3 _ProbeVolumeAtlasBias;
+float4 _ProbeVolumeAtlasResolutionAndSliceCount;
+float3 _ProbeVolumeAtlasSHRotateRight;
+float3 _ProbeVolumeAtlasSHRotateUp;
+float3 _ProbeVolumeAtlasSHRotateForward;
+
+float3 _ProbeVolumeDGIBoundsRight;
+float3 _ProbeVolumeDGIBoundsUp;
+
+#ifndef DIRTY_FLAGS_DISABLED
+RWStructuredBuffer<int> _ProbeVolumeDirtyFlags;
+#endif
+
+StructuredBuffer<RADIANCE> _RadianceCacheAxis;
+int _RadianceCacheAxisCount;
+float _BakedLightingContribution;
+float _DynamicPropagationContribution;
+float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
+
+float _Sharpness;
+
+
+uint3 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution)
+{
+    // _ProbeVolumeAtlasReadBuffer[z * resolutionY * resolutionX + y * resolutionX + x]
+    // TODO: Could implement as floating point operations, which is likely faster.
+    // Would need to verify precision.
+    uint x = readIndex % (uint)resolution.x;
+    uint y = (readIndex / (uint)resolution.x) % (uint)resolution.y;
+    uint z = readIndex / ((uint)resolution.y * (uint)resolution.x);
+
+    uint3 writeIndex = uint3(x, y, z);
+    writeIndex += (uint3)floor(_ProbeVolumeAtlasBias * _ProbeVolumeAtlasResolutionAndSliceCount.xyz);
+
+    return writeIndex;
+}
+
+float ReadValidity(uint readIndex)
+{
+    const float occlusion = _ProbeVolumeAtlasReadValidityBuffer[readIndex];
+    return pow(1.0 - occlusion, 8.0);
+}
+
+SHOutgoingRadiosityWithProjectedConstantsPacked ReadBakedSH(uint readIndex)
+{
+    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosity;
+    ZERO_INITIALIZE(SHOutgoingRadiosityWithProjectedConstantsPacked, outgoingRadiosity)
+
+    const uint SH_STRIDE_L01 = 4 * 3;
+    const uint SH_STRIDE_L2 = (9 * 3) - SH_STRIDE_L01;
+
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+   outgoingRadiosity.data[0] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        0.0
+    );
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
+    outgoingRadiosity.data[0] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 3]  // shAr.x
+    );
+    outgoingRadiosity.data[1] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 4], // shAr.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 5], // shAr.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 6], // shAg.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 7]  // shAg.y
+    );
+    outgoingRadiosity.data[2] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 8], // shAg.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 9], // shAb.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 10], // shAb.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 11]  // shAb.z
+    );
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+    outgoingRadiosity.data[0] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 3]  // shAr.x
+    );
+    outgoingRadiosity.data[1] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 4], // shAr.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 5], // shAr.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 6], // shAg.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 7]  // shAg.y
+    );
+    outgoingRadiosity.data[2] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 8], // shAg.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 9], // shAb.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 10], // shAb.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 11]  // shAb.z
+    );
+    outgoingRadiosity.data[3] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 0], // shBr.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 1], // shBr.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 2], // shBr.z
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 3]  // shBr.w
+    );
+    outgoingRadiosity.data[4] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 4], // shBg.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 5], // shBg.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 6], // shBg.z
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 7]  // shBg.w
+    );
+    outgoingRadiosity.data[5] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 8], // shBb.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 9], // shBb.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 10], // shBb.z
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 11]  // shBb.w
+    );
+    outgoingRadiosity.data[6] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 12], // shCr.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 13], // shCr.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 14], // shCr.z
+        0.0
+    );
+
+#else
+    #error "Unsupported Probe Volumes atlas encoding";
+#endif
+
+    return outgoingRadiosity;
+}
+
+void WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(uint3 writeIndex, SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked, float validity)
+{
+#if defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L0)
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(outgoingRadiosityProjectedConstantsPacked.data[0].xyz, validity);
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1)
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = outgoingRadiosityProjectedConstantsPacked.data[0];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = outgoingRadiosityProjectedConstantsPacked.data[1];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = outgoingRadiosityProjectedConstantsPacked.data[2];
+    // Validity shouldn't change from the initial state so in the case when it's not packed with other coefficients we can skip writing to that slice.
+
+#elif defined(PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2)
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = outgoingRadiosityProjectedConstantsPacked.data[0];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = outgoingRadiosityProjectedConstantsPacked.data[1];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = outgoingRadiosityProjectedConstantsPacked.data[2];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3)] = outgoingRadiosityProjectedConstantsPacked.data[3];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 4)] = outgoingRadiosityProjectedConstantsPacked.data[4];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 5)] = outgoingRadiosityProjectedConstantsPacked.data[5];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6)] = float4(outgoingRadiosityProjectedConstantsPacked.data[6].xyz, validity);
+
+#else
+    #error "Unsupported Probe Volumes atlas encoding";
+#endif
+}
+
+SHIncomingIrradiance SHIncomingIrradianceComputeFromBasisAxisHit(BasisAxisHit basisAxisHit, float3 radiance)
+{
+    ZHWindow zhWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
+    SHWindow shWindow = SHWindowComputeFromZHWindow(zhWindow, basisAxisHit.mean);
+    SHIncomingIrradiance irradiance = SHIncomingIrradianceComputeFromSHWindowAndRadiance(shWindow, radiance);
+
+    return irradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSamplePeaks(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    uint localIndex = probeIndex;
+    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+    {
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+        float3 directionOS = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+        SHIncomingIrradianceAccumulate(incomingIrradiance, basisAxisHit.mean, radiance);
+
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
+    }
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    uint localIndex = probeIndex;
+    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+    {
+        float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+        float3 directionOS = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+        SHIncomingIrradiance incomingIrradianceCurrentLobe = SHIncomingIrradianceComputeFromBasisAxisHit(basisAxisHit, radiance);
+
+        SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentLobe);
+
+        localIndex += _ProbeVolumeAtlasReadBufferCount;
+    }
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonteCarlo(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    const int SAMPLE_COUNT = 8192;
+    const float SAMPLE_COUNT_INVERSE = 1.0 / float(SAMPLE_COUNT);
+    float GOLDEN_ANGLE = PI * (3.0 - sqrt(5.0));
+    float GOLDEN_ANGLE_HALF = GOLDEN_ANGLE * 0.5;
+    const float SOLID_ANGLE_SPHERE = 4.0 * PI;
+
+    for (int sampleIndex = 0; sampleIndex < SAMPLE_COUNT; ++sampleIndex)
+    {
+        float3 sampleDirectionWS;
+        {
+            float offset = (float)sampleIndex + 0.5;
+            float theta = offset * GOLDEN_ANGLE + GOLDEN_ANGLE_HALF;
+            float z = -(offset * SAMPLE_COUNT_INVERSE * 2.0 - 1.0);
+            float r = sqrt(1.0 - z * z);
+
+            sampleDirectionWS = float3(
+                r * cos(theta),
+                r * sin(theta),
+                z
+            );
+        }
+
+        float differentialArea = SOLID_ANGLE_SPHERE * SAMPLE_COUNT_INVERSE;
+        
+        float3 sampleIncomingRadiance = 0.0;
+
+        uint localIndex = probeIndex;
+        for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+        {
+            float3 radiance = DecodeRadiance(_RadianceCacheAxis[localIndex]);
+            float3 directionOS = _RayAxis[axis].xyz;
+            const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+            float3 directionWS = mul(directionOS, probeVolumeLtw);
+
+            BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+            basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
+
+            sampleIncomingRadiance += radiance * (ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, sampleDirectionWS) / basisAxisHit.amplitude);
+
+            localIndex += _ProbeVolumeAtlasReadBufferCount;
+        }
+
+        SHIncomingIrradianceAccumulate(incomingIrradiance, sampleDirectionWS, sampleIncomingRadiance * differentialArea);
+    }
+    return incomingIrradiance;
+}
+
+#define SH_FROM_RBF_MODE_MONTE_CARLO (0)
+#define SH_FROM_RBF_MODE_SAMPLE_PEAKS (1)
+#define SH_FROM_RBF_MODE_ZH_FIT (2)
+
+// When projecting from our radial basis function into L2 spherical harmonics, because our RBF is higher frequency than an L2 SH, converting each lobe to a zonal harmonic first, rotating, and accumulated gives the closest results to our ground truth monte carlo.
+// Simply accumulating the RBF lobe peaks as directional light sources gives less accurate, overly contrasty / overly sharp results when compared to our monte carlo ground truth. 
+#define SH_FROM_RBF_MODE SH_FROM_RBF_MODE_ZH_FIT
+
+SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
+{
+#if SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_MONTE_CARLO
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithMonteCarlo(probeIndex);
+#elif SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_SAMPLE_PEAKS
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithSamplePeaks(probeIndex);
+#elif SH_FROM_RBF_MODE == SH_FROM_RBF_MODE_ZH_FIT
+    SHIncomingIrradiance incomingIrradiance = ComputeSHIncomingIrradianceFromRadialBasisFunctionWithZHFit(probeIndex);
+#endif
+
+    return incomingIrradiance;
+}
+
+SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
+{
+    return ProjectPropagationAxisFromFit(probeIndex);
+}
+
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
+{
+    const uint readIndex = id.x;
+    if (readIndex < _ProbeVolumeAtlasReadBufferCount)
+    {
+#ifndef DIRTY_FLAGS_DISABLED
+        if (!IsProbeDirty(_ProbeVolumeDirtyFlags, readIndex))
+            return;
+#endif
+
+        uint3 writeIndex = ComputeWriteIndexFromReadIndex(readIndex, _ProbeVolumeResolution);
+        const float validity = ReadValidity(readIndex);
+
+        SHOutgoingRadiosityWithProjectedConstantsPacked bakedOutgoingRadiosityProjectedConstantsPacked = ReadBakedSH(readIndex);
+        SHIncomingIrradiance dynamicIncomingIrradiance = ProjectPropagationAxis(readIndex);
+
+        SHOutgoingRadiosity dynamicOutgoingRadiosity = SHOutgoingRadiosityComputeFromIncomingIrradiance(dynamicIncomingIrradiance);
+        SHOutgoingRadiosityWithProjectedConstants bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosityProjectedConstantsPacked);
+        SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(bakedOutgoingRadiosityProjectedConstants);
+
+        const float3x3 probeVolumeAtlasSHRotate = float3x3(_ProbeVolumeAtlasSHRotateRight, _ProbeVolumeAtlasSHRotateUp, _ProbeVolumeAtlasSHRotateForward);
+        SHOutgoingRadiosityRotate(probeVolumeAtlasSHRotate, bakedOutgoingRadiosity); // rotate baked SH Data into absolute world space before it is combined with dynamic SH data in absolute world space
+        SHOutgoingRadiosityBlend(bakedOutgoingRadiosity, _BakedLightingContribution, dynamicOutgoingRadiosity, _DynamicPropagationContribution);
+
+        #if DERING_LUMINANCE_ONLY
+            //SHOutgoingRadiosityDeringLuminance(bakedOutgoingRadiosity);
+        #else
+            //SHOutgoingRadiosityDering(bakedOutgoingRadiosity);
+        #endif
+
+        bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosity);
+        bakedOutgoingRadiosityProjectedConstantsPacked = SHOutgoingRadiosityWithProjectedConstantsPackedCompute(bakedOutgoingRadiosityProjectedConstants);
+        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(writeIndex, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
+    }
+}

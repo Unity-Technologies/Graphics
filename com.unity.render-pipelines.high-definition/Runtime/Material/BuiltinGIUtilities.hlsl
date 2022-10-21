@@ -15,10 +15,16 @@
 
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
-bool IsUninitializedGI(float3 bakedGI)
+bool IsUninitializedGI(BuiltinData builtinData)
 {
-    const float3 unitializedGI = UNINITIALIZED_GI;
-    return all(bakedGI == unitializedGI);
+    return all(builtinData.bakeDiffuseLighting == UNINITIALIZED_GI);
+}
+
+bool TryClearUninitializedGI(inout BuiltinData builtinData)
+{
+    bool isUninitializedGI = IsUninitializedGI(builtinData);
+    builtinData.bakeDiffuseLighting = isUninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+    return isUninitializedGI;
 }
 #endif
 
@@ -173,14 +179,22 @@ void SampleBakedGI(
         posInputs.tileCoord = tileCoord;
         #endif
 
+        float3 viewDirectionWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+        float3 reflectionDirectionWSUnused = normalWS;
+        float3 reflectionProbeNormalizationLightingUnused = 0.0f;
+        float reflectionProbeNormalizationWeightUnused = 0.0f;
         ProbeVolumeEvaluateSphericalHarmonics(
             posInputs,
             normalWS,
             backNormalWS,
+            reflectionDirectionWSUnused,
+            viewDirectionWS,
             renderingLayers,
             probeVolumeHierarchyWeight,
             bakeDiffuseLighting,
-            backBakeDiffuseLighting
+            backBakeDiffuseLighting,
+            reflectionProbeNormalizationLightingUnused,
+            reflectionProbeNormalizationWeightUnused
         );
 #endif
 

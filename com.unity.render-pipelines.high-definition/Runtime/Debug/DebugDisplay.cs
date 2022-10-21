@@ -288,6 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int grayscaleDebugModeIndex;
             internal int probeVolumeDebugModeEnumIndex;
             internal int probeVolumeAtlasSliceModeEnumIndex;
+            internal int maskVolumeDebugModeEnumIndex;
 
             // When settings mutually exclusives enum values, we need to reset the other ones.
             internal void ResetExclusiveEnumIndices()
@@ -734,6 +735,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Set the current Mask Volume Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Probe Volume Debug Mode.</param>
+        internal void SetMaskVolumeDebugMode(MaskVolumeDebugMode value)
+        {
+            data.lightingDebugSettings.maskVolumeDebugMode = value;
+        }
+
+        /// <summary>
         /// Set the current Exposure Debug Mode.
         /// </summary>
         /// <param name="value">Desired Probe Volume Debug Mode.</param>
@@ -1149,6 +1159,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     new DebugUI.EnumField { displayName = "Probe Volume Atlas Slice Mode", getter = () => (int)data.lightingDebugSettings.probeVolumeAtlasSliceMode, setter = value => SetProbeVolumeAtlasSliceMode((ProbeVolumeAtlasSliceMode)value), autoEnum = typeof(ProbeVolumeAtlasSliceMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.probeVolumeAtlasSliceModeEnumIndex, setIndex = value => data.probeVolumeAtlasSliceModeEnumIndex = value },
                     new DebugUI.FloatField { displayName = "Probe Volume Range Min Value", getter = () => data.lightingDebugSettings.probeVolumeMinValue, setter = value => data.lightingDebugSettings.probeVolumeMinValue = value },
                     new DebugUI.FloatField { displayName = "Probe Volume Range Max Value", getter = () => data.lightingDebugSettings.probeVolumeMaxValue, setter = value => data.lightingDebugSettings.probeVolumeMaxValue = value },
+                }
+                });
+
+                lighting.children.Add(new DebugUI.Foldout
+                {
+                    displayName = "Mask Volumes",
+                    children = {
+                    new DebugUI.EnumField { displayName = "Mask Volume Debug Mode", getter = () => (int)data.lightingDebugSettings.maskVolumeDebugMode, setter = value => SetMaskVolumeDebugMode((MaskVolumeDebugMode)value), autoEnum = typeof(MaskVolumeDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.maskVolumeDebugModeEnumIndex, setIndex = value => data.maskVolumeDebugModeEnumIndex = value }
                 }
                 });
 
@@ -1992,7 +2010,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.Grayscale) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
-                (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
+                (debugLighting == DebugLightingMode.ProbeVolume && debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
         }
     }
 }

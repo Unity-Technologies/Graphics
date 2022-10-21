@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 fresnel0;
 
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-            public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1
+            public float ambientOcclusion;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float specularOcclusion;
 
@@ -196,7 +196,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
-            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
+            gBufferCount = GetMaterialGBufferCountRequired()
+                + (supportShadowMask ? 1 : 0)
+                + ((supportLightLayers || (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)) ? 1 : 0);
 #if ENABLE_VIRTUALTEXTURES
             gBufferCount++;
 #endif
@@ -238,17 +240,24 @@ namespace UnityEngine.Rendering.HighDefinition
             enableWrite[3] = true;
 
             #if ENABLE_VIRTUALTEXTURES
-                int index = 4;
+                int index = GetMaterialGBufferCountRequired();
                 RTFormat[index] = VTBufferManager.GetFeedbackBufferFormat();
                 gBufferUsage[index] = GBufferUsage.VTFeedback;
                 enableWrite[index] = false;
                 index++;
             #else
-                int index = 4;
+                int index = GetMaterialGBufferCountRequired();
             #endif
 
-            if (supportLightLayers)
+            if (supportLightLayers || (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop))
             {
+                // Probe Volume Light Loop evaluation mode requires AO and an unitializedGI flag to be stored in the GBuffer.
+                // Use the previously unused R channel of the light layer RT to store this data.
+                // This means that we allocate this light layer RT if light layers is enabled OR Probe Volume Light Loop evaluation is enabled.
+                // This seems reasonable, as light layers are particularly important for controlling the look of surfaces in a fully deferred context.
+                // Probe Volumes are designed for this fully deferred context.
+                // My theory is it will be uncommon for a user to have light layers disabled, but probe volumes enabled.
+                // Typically, they will want both. 
                 RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
                 gBufferUsage[index] = GBufferUsage.LightLayers;
                 index++;
@@ -262,6 +271,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 gBufferUsage[index] = GBufferUsage.ShadowMask;
                 index++;
             }
+        }
+
+        private int GetMaterialGBufferCountRequired()
+        {
+            return 4;
         }
 
 

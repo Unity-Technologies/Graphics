@@ -880,6 +880,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.affectDiffuse, s_Styles.affectDiffuse);
                 EditorGUILayout.PropertyField(serialized.affectSpecular, s_Styles.affectSpecular);
+                EditorGUILayout.PropertyField(serialized.affectDynamicGI, s_Styles.affectDynamicGI);
+
                 if (lightType != HDLightType.Directional)
                 {
                     EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);

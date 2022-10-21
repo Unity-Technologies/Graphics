@@ -148,15 +148,20 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
     uint _EnableDecalLayers;
-    float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
+    float2 _ProbeVolumeBilateralFilterOctahedralDepthParameters;
+    float _Pad8;
+    float _Pad9;
+    float4 _ProbeVolumeReflectionProbeNormalizationParameters;
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
     int _HybridDeformedVertexStreamIndex;
     uint _EnableDynamicBranchLighting;
     uint _BlueNoiseRGBTextureResolutionMinusOne;
-    float _Pad8;
-    float _Pad9;
+    uint _EnableMaskVolumes;
+    uint _MaskVolumeCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCountInverse;
 CBUFFER_END
 
 

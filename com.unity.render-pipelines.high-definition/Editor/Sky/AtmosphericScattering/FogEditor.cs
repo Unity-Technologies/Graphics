@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_DirectionalLightsOnly;
         protected SerializedDataParameter m_DenoisingMode;
 
+        protected SerializedDataParameter m_VolumetricIndirectLightingMultiplier;
+
         static GUIContent s_Enabled = new GUIContent("Enable", "Check this to enable fog in your scene.");
         static GUIContent s_AlbedoLabel = new GUIContent("Albedo", "Specifies the color this fog scatters light to.");
         static GUIContent s_MeanFreePathLabel = new GUIContent("Fog Attenuation Distance", "Controls the density at the base level (per color channel). Distance at which fog reduces background light intensity by 63%. Units: m.");
@@ -76,6 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ResolutionDepthRatio = Unpack(o.Find(x => x.resolutionDepthRatio));
             m_DirectionalLightsOnly = Unpack(o.Find(x => x.directionalLightsOnly));
             m_DenoisingMode = Unpack(o.Find(x => x.denoisingMode));
+
+            m_VolumetricIndirectLightingMultiplier = Unpack(o.Find(x => x.volumetricIndirectLightingMultiplier));
 
             base.OnEnable();
         }
@@ -168,6 +172,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                 "When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.",
                                 MessageType.Info, wide: true);
                         }
+
+                        PropertyField(m_VolumetricIndirectLightingMultiplier);
                     }
                 }
             }

@@ -289,9 +289,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 builder.SetRenderFunc(
-                (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
+                (DebugOverlayPassData data, RenderGraphContext ctx) =>
                 {
                     RenderProbeVolumeDebugOverlay(data.debugParameters, ctx.cmd);
+                });
+            }
+        }
+
+        void RenderMaskVolumeDebugOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            if (!m_SupportMaskVolume || debugParameters.debugDisplaySettings.data.lightingDebugSettings.maskVolumeDebugMode == MaskVolumeDebugMode.None)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("RenderMaskVolumeDebugOverlay", out var passData))
+            {
+                passData.debugParameters = debugParameters;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+
+                builder.SetRenderFunc(
+                (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                {
+                    RenderMaskVolumeDebugOverlay(data.debugParameters, ctx.cmd);
                 });
             }
         }
@@ -359,11 +378,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                     in BuildGPULightListOutput  lightLists,
                                     in ShadowResult             shadowResult)
         {
-
             RenderSkyReflectionOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderRayCountOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderLightLoopDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, lightLists, depthPyramidTexture);
             RenderProbeVolumeDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
+            RenderMaskVolumeDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderShadowsDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
         }

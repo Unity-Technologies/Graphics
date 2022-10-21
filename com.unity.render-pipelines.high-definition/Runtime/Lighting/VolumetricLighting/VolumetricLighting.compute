@@ -12,6 +12,8 @@
 #pragma multi_compile _ ENABLE_ANISOTROPY
 #pragma multi_compile _ VL_PRESET_OPTIMAL
 #pragma multi_compile _ SUPPORT_LOCAL_LIGHTS
+#pragma multi_compile _ SUPPORT_PROBE_VOLUMES
+#pragma multi_compile PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L1 PROBE_VOLUMES_ENCODING_SPHERICAL_HARMONICS_L2
 
 // Don't want contact shadows
 #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS // To define before LightEvaluation.hlsl
@@ -43,16 +45,27 @@
 //--------------------------------------------------------------------------------------------------
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
+
 // We need to include this "for reasons"...
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+// ProbeVolume defines rely on ShaderConfig.cs.hlsl which is included inside of ShaderVariables.hlsl
+#define SAMPLE_PROBE_VOLUMES SUPPORT_PROBE_VOLUMES && (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED)
+// #define SAMPLE_PROBE_VOLUMES 0
+
+// Make VFX only sample probe volumes as SH0 for performance.
+#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+#define PROBE_VOLUMES_BILATERAL_FILTERING_MODE PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
 
@@ -64,6 +77,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+
+#if SAMPLE_PROBE_VOLUMES
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#endif
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -462,11 +479,104 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
     return lighting;
 }
 
+void ProbeVolumeEvaluateSphericalHarmonicsVolumetricLighting(PositionInputs posInput, float3 normalWS, float3 viewDirectionWS, uint renderingLayers, uint probeVolumeStart, uint probeVolumeCount, inout float weightHierarchy, inout float3 bakeDiffuseLighting)
+{
+#if SAMPLE_PROBE_VOLUMES
+
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    ProbeVolumeSphericalHarmonicsL0 coefficients;
+    ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL0, coefficients);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    ProbeVolumeSphericalHarmonicsL1 coefficients;
+    ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL1, coefficients);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    ProbeVolumeSphericalHarmonicsL2 coefficients;
+    ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL2, coefficients);
+#endif
+
+    for (uint probeVolumeOffset = 0; probeVolumeOffset < probeVolumeCount; probeVolumeOffset++)
+    {
+        uint probeVolumeIndex = FetchIndex(probeVolumeStart, probeVolumeOffset);
+        probeVolumeIndex -= _ProbeVolumeIndexShift;
+
+        ProbeVolumeEngineData probeVolumeData = _ProbeVolumeDatas[probeVolumeIndex];
+        OrientedBBox probeVolumeBounds = _ProbeVolumeBounds[probeVolumeIndex];
+
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+        ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, probeVolumeData, probeVolumeBounds, coefficients, weightHierarchy);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+        ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, probeVolumeData, probeVolumeBounds, coefficients, weightHierarchy);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+        ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, probeVolumeData, probeVolumeBounds, coefficients, weightHierarchy);
+#endif
+    }
+
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL0(coefficients);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL1(coefficients);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL2(coefficients);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
+#endif
+
+#else // SAMPLE_PROBE_VOLUMES
+    bakeDiffuseLighting = 0.0f;
+#endif
+}
+
+void EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0, float dt, float rndVal, float extinction, uint probeVolumeStart, uint probeVolumeCount, out float3 bakeDiffuseLighting)
+{
+#if SAMPLE_PROBE_VOLUMES
+    float tOffset, weight;
+    ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
+
+    float t = t0 + tOffset;
+    posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
+    posInput.linearDepth = LinearEyeDepth(posInput.positionWS, UNITY_MATRIX_V); // Probe volumes requires linearDepth for distance fade.
+
+    const uint RENDERING_LAYERS_ALL = ~0u;
+    float probeVolumeHierarchyWeight = 0.0f;
+    float3 viewDirectionWS = -ray.jitterDirWS;
+    
+    // Volumetrics has no access to the surface normal.
+    // We use our current view direction as the surface normal.
+    // In probe volumes, the surface normal is used for normal bias.
+    float3 normalWS = viewDirectionWS;
+
+    bakeDiffuseLighting = 0.0f;
+    ProbeVolumeEvaluateSphericalHarmonicsVolumetricLighting(posInput, normalWS, viewDirectionWS, RENDERING_LAYERS_ALL, probeVolumeStart, probeVolumeCount, probeVolumeHierarchyWeight, bakeDiffuseLighting);
+
+    // See VolumetricLighting.cs::SetPreconvolvedAmbientLightProbe() for example code of the expected format for SH data for volumetrics.
+    // This scale factor calculation is simply a factored out version of that, with the addition of the scale by PI to convert from radiance to irradiance first.
+    const float irradianceFromRadiance = PI;
+    const float cosineConvolutionL0 = sqrt(4.0f * PI);
+    const float cosineConvolutionL0Inverse = 1.0f / cosineConvolutionL0;
+    const float cornetteShanksZonalHarmonicL0 = cosineConvolutionL0; // <- sqrt(4.0f * PI) <- sqrt(4.0f * PI / (2 * 0 + 1)) <- sqrt(4.0f * PI / (2 * L + 1))
+    const float scaleFactor =
+        irradianceFromRadiance * // The lightmapper pre-divides irradiance by PI so that sampling gives outgoing radiance. Convert to raw irradiance.
+        cosineConvolutionL0Inverse * // SphericalHarmonicMath.UndoCosineRescaling()
+        cosineConvolutionL0 * cornetteShanksZonalHarmonicL0; // SphericalHarmonicMath.Convolve(SH, ZonalHarmonicsL2.GetCornetteShanksPhaseFunction()
+
+    bakeDiffuseLighting *= scaleFactor;
+
+    bakeDiffuseLighting *= (weight * _VolumetricIndirectLightingMultiplier);
+#else
+    bakeDiffuseLighting = 0.0f;
+#endif
+}
+
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, uint tileIndex, int groupIdx, JitteredRay ray, float tStart)
 {
     uint lightCount, lightStart;
+
+#if SAMPLE_PROBE_VOLUMES
+    uint probeVolumeCount, probeVolumeStart;
+#endif
 
 #ifdef USE_BIG_TILE_LIGHTLIST
     // Offset for stereo rendering
@@ -487,23 +597,47 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         int validLightCount = 0;
 
+#if SAMPLE_PROBE_VOLUMES
+        probeVolumeCount = 0;
+        probeVolumeStart = 0;
+#endif
         for (; offset < lightCount; offset++)
         {
             uint objectIndex = FetchIndex(lightStart, offset);
-#if PRE_FILTER_LIGHT_LIST
-            LightData light = _LightDatas[objectIndex];
-            if (light.volumetricLightDimmer > 0 && validLightCount < MAX_SUPPORTED_LIGHTS && objectIndex < _EnvLightIndexShift)
+
+#if SAMPLE_PROBE_VOLUMES
+            // Probe Volumes are the last index shift in the list.
+            // Warning: This code is brittle: if another IndexShift category is added to LightLoop.cs, this function would need to be updated
+            // to add an upper bound range check, i.e: objectIndex < _NewCategoryIndexShift
+            if (objectIndex >= _ProbeVolumeIndexShift)
             {
-                gs_localLightList[groupIdx][validLightCount++] = objectIndex;
+                ++probeVolumeCount;
+
+                // Because indices start at 1 (due to lightCount stored at zero) we can use index0 as a sentinel for whether or not
+                // probeVolumeStart has been initialized yet.
+                probeVolumeStart = (probeVolumeStart == 0) ? (lightStart + offset) : probeVolumeStart;
             }
-#else
-            validLightCount++;
+            else
 #endif
+            {
+#if PRE_FILTER_LIGHT_LIST
+                LightData light = _LightDatas[objectIndex];
+                if (light.volumetricLightDimmer > 0 && validLightCount < MAX_SUPPORTED_LIGHTS && objectIndex < _EnvLightIndexShift)
+                {
+                    gs_localLightList[groupIdx][validLightCount++] = objectIndex;
+                }
+#else
+                validLightCount++;
+#endif
+            }
+
+#if !SAMPLE_PROBE_VOLUMES
             if (objectIndex >= _EnvLightIndexShift)
             {
                 // We have found the last local analytical light.
                 break;
             }
+#endif
         }
 
         lightCount = validLightCount;
@@ -514,17 +648,15 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     lightCount = _PunctualLightCount;
     lightStart = 0;
 
+#if SAMPLE_PROBE_VOLUMES
+    probeVolumeCount = _ProbeVolumeCount;
+    probeVolumeStart = 0;
+#endif
+
 #endif // USE_BIG_TILE_LIGHTLIST
 
     float t0 = max(tStart, DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams));
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
-
-    // The contribution of the ambient probe does not depend on the position,
-    // only on the direction and the length of the interval.
-    // SampleSH9() evaluates the 3-band SH in a given direction.
-    // The probe is already pre-convolved with the phase function.
-    // Note: anisotropic, no jittering.
-    float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
@@ -615,6 +747,16 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         }
         #endif
 
+        #if SAMPLE_PROBE_VOLUMES
+        {
+            float3 bakeDiffuseLighting;
+            EvaluateVoxelDiffuseGI(posInput, ray, t0, dt, rndVal, extinction, probeVolumeStart, probeVolumeCount, bakeDiffuseLighting);
+
+            aggregateLighting.radianceNoPhase  += bakeDiffuseLighting;
+            aggregateLighting.radianceComplete += bakeDiffuseLighting;
+        }
+        #endif
+
     #ifdef ENABLE_REPROJECTION
         // Clamp here to prevent generation of NaNs.
         float4 voxelValue           = float4(aggregateLighting.radianceNoPhase, extinction * dt);
@@ -695,12 +837,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float phase = IsotropicPhaseFunction();
     #endif // ENABLE_ANISOTROPY
 
-        // Integrate the contribution of the probe over the interval.
-        // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
-
         // Accumulate radiance along the ray.
-        totalRadiance += transmittance * scattering * (phase * blendValue.rgb + probeRadiance);
+        totalRadiance += transmittance * scattering * (phase * blendValue.rgb);
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * blendValue.a;

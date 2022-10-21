@@ -1,0 +1,28 @@
+#pragma kernel ClearPreviousRadianceCache
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile _ RADIANCE_ENCODING_LOGLUV RADIANCE_ENCODING_HALFLUV RADIANCE_ENCODING_R11G11B10
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeDynamicGI.hlsl"
+
+RWStructuredBuffer<RADIANCE> _RadianceCacheAxis0;
+RWStructuredBuffer<RADIANCE> _RadianceCacheAxis1;
+RWStructuredBuffer<RADIANCE> _HitRadianceCacheAxis;
+int _RadianceCacheAxisCount;
+int _HitRadianceCacheAxisCount;
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void ClearPreviousRadianceCache(uint3 id : SV_DispatchThreadID)
+{
+    const int axisIndex = id.x;
+    if (axisIndex < _RadianceCacheAxisCount)
+    {
+        _RadianceCacheAxis0[axisIndex] = ZeroRadiance();
+        _RadianceCacheAxis1[axisIndex] = ZeroRadiance();
+    }
+    if (axisIndex < _HitRadianceCacheAxisCount)
+    {
+        _HitRadianceCacheAxis[axisIndex] = ZeroRadiance();
+    }
+}

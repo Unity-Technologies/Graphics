@@ -243,7 +243,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) && lightData.isActiveAndEnabled)
             {
 #if UNITY_2020_2_OR_NEWER
-                lightData.legacyLight.useViewFrustumForShadowCasterCull = false;
+                if (!lightData.affectDynamicGI)
+                {
+                    lightData.legacyLight.useViewFrustumForShadowCasterCull = false;
+                }
 #endif
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
                 RegisterTransformCacheSlot(lightData);
@@ -274,7 +277,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (valueFound)
                 {
 #if UNITY_2020_2_OR_NEWER
-                    lightData.legacyLight.useViewFrustumForShadowCasterCull = true;
+                    if(!lightData.affectDynamicGI)
+                    {
+                        lightData.legacyLight.useViewFrustumForShadowCasterCull = true;
+                    }
 #endif
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);

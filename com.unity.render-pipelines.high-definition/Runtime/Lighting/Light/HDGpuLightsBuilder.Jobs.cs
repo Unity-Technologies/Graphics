@@ -18,6 +18,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public int invalidScreenSpaceShadowIndex;
             public float maxShadowFadeDistance;
 
+#if UNITY_EDITOR
+            public bool dynamicGIPreparingMixedLights;
+            public bool dynamicGIPreparingForBake;
+#endif
+
             public static CreateGpuLightDataJobGlobalConfig Create(
                 HDCamera hdCamera,
                 HDShadowSettings hdShadowSettings)
@@ -27,7 +32,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers),
                     specularGlobalDimmer = hdCamera.frameSettings.specularGlobalDimmer,
                     maxShadowFadeDistance = hdShadowSettings.maxShadowDistance.value,
-                    invalidScreenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow
+                    invalidScreenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow,
+
+#if UNITY_EDITOR
+                    dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+                    dynamicGIPreparingForBake = ProbeVolume.preparingForBake
+#endif
                 };
             }
         }
@@ -307,14 +317,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
                 lightData.isRayTracedContactShadow = 0.0f;
 
-                // TODO: only apply for real-time lights, but lightComponent.lightmapBakeType is not available outside in built players, Editor only...
-                lightData.affectDynamicGI = lightRenderData.affectDynamicGI ? 1 : 0;
+                lightData.mixedDynamicGI = lightRenderData.mixedDynamicGI ? 1 : 0;
 
                 var distanceToCamera = processedEntity.distanceToCamera;
-                var lightsShadowFadeDistance = lightRenderData.shadowFadeDistance;
+                float shadowDistanceFade;
+#if UNITY_EDITOR
+                if (globalConfig.dynamicGIPreparingMixedLights || globalConfig.dynamicGIPreparingForBake)
+                {
+                    shadowDistanceFade = 1f;
+                }
+                else
+#endif
+                {
+                    var lightsShadowFadeDistance = lightRenderData.shadowFadeDistance;
+                    shadowDistanceFade = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(globalConfig.maxShadowFadeDistance, lightsShadowFadeDistance));
+                }
                 var shadowDimmerVal = lightRenderData.shadowDimmer;
                 var volumetricShadowDimmerVal = lightRenderData.affectVolumetric ? lightRenderData.volumetricShadowDimmer : 0.0f;
-                float shadowDistanceFade = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(globalConfig.maxShadowFadeDistance, lightsShadowFadeDistance));
                 lightData.shadowDimmer = shadowDistanceFade * shadowDimmerVal;
                 lightData.volumetricShadowDimmer = shadowDistanceFade * volumetricShadowDimmerVal;
 
@@ -682,8 +701,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightData.flareSize = Mathf.Max(lightRenderData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
                 lightData.flareFalloff = lightRenderData.flareFalloff;
-                // TODO: only apply for real-time lights, but lightComponent.lightmapBakeType is not available outside in built players, Editor only...
                 lightData.affectDynamicGI = lightRenderData.affectDynamicGI ? 1 : 0;
+                lightData.mixedDynamicGI = lightRenderData.mixedDynamicGI ? 1 : 0;
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 

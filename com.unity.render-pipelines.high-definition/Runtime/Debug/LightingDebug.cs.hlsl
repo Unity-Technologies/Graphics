@@ -96,6 +96,11 @@
 #define PROBEVOLUMEATLASSLICEMODE_VALIDITY (9)
 #define PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH (10)
 
+//
+// UnityEngine.Rendering.HighDefinition.MaskVolumeDebugMode:  static fields
+//
+#define MASKVOLUMEDEBUGMODE_NONE (0)
+#define MASKVOLUMEDEBUGMODE_VISUALIZE_ATLAS (1)
 
 
 #endif

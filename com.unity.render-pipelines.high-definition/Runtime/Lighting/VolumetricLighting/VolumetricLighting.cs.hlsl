@@ -43,8 +43,8 @@ CBUFFER_START(ShaderVariablesVolumetric)
     float4 _VBufferPrevDistanceDecodingParams;
     uint _NumTileBigTileX;
     uint _NumTileBigTileY;
+    float _VolumetricIndirectLightingMultiplier;
     uint _Pad0_SVV;
-    uint _Pad1_SVV;
 CBUFFER_END
 
 //

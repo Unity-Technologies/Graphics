@@ -47,13 +47,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool enableAreaLights;
             [ReadOnly]
             public bool enableDynamicGI;
-            [ReadOnly]
-            public bool dynamicGIUseRealtimeLights;
-            [ReadOnly]
-            public bool dynamicGIUseMixedLights;
 #if UNITY_EDITOR
             [ReadOnly]
             public bool dynamicGIPreparingMixedLights;
+            [ReadOnly]
+            public bool dynamicGIPreparingForBake;
 #endif
             [ReadOnly]
             public bool enableRayTracing;
@@ -194,6 +192,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If the shadow is too far away, we don't render it
                 bool isShadowInRange = lightType == HDLightType.Directional || distanceToCamera < shadowFadeDistanceVal;
+#if UNITY_EDITOR
+                isShadowInRange |= dynamicGIPreparingMixedLights || dynamicGIPreparingForBake;
+#endif
                 if (!isShadowInRange)
                     return flags;
 
@@ -259,8 +260,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool affectsDynamicGI =
                     enableDynamicGI &&
-                    lightRenderData.affectDynamicGI &&
-                    (lightRenderData.mixedDynamicGI ? dynamicGIUseMixedLights : dynamicGIUseRealtimeLights);
+                    lightRenderData.affectDynamicGI;
+
+#if UNITY_EDITOR
+                if (dynamicGIPreparingMixedLights || dynamicGIPreparingForBake)
+                    affectsDynamicGI &= lightRenderData.mixedDynamicGI;
+#endif
 
                 if (enableRayTracing && !lightRenderData.includeForRayTracing)
                     return;
@@ -287,7 +292,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugFilterMode != DebugLightFilterMode.None && debugFilterMode.IsEnabledFor(gpuLightType, spotLightShape))
                     return;
 
-                float lightDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.fadeDistance);
+                float lightDistanceFade;
+#if UNITY_EDITOR
+                if (dynamicGIPreparingMixedLights || dynamicGIPreparingForBake)
+                {
+                    lightDistanceFade = 1.0f;
+                }
+                else
+#endif
+                {
+                    lightDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.fadeDistance);
+                }
                 float volumetricDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.volumetricFadeDistance);
 
                 bool contributesToVisibleLighting = isFromVisibleList && (((lightRenderData.lightDimmer > 0) && (lightRenderData.affectDiffuse || lightRenderData.affectSpecular)) || ((lightRenderData.affectVolumetric ? lightRenderData.volumetricDimmer : 0.0f) > 0));
@@ -381,10 +396,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 pixelCount = hdCamera.actualWidth * hdCamera.actualHeight,
                 enableAreaLights = ShaderConfig.s_AreaLights != 0,
                 enableDynamicGI = processDynamicGI,
-                dynamicGIUseRealtimeLights = dynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly,
-                dynamicGIUseMixedLights = dynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.ForceRealtime,
 #if UNITY_EDITOR
                 dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+                dynamicGIPreparingForBake = ProbeVolume.preparingForBake,
 #endif
                 enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing),
                 showDirectionalLight = debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight,
@@ -416,14 +430,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortKeysDGI = m_SortKeysDGI,
                 shadowLightsDataIndices = m_ShadowLightsDataIndices
             };
-
-#if UNITY_EDITOR
-            if (ProbeVolume.preparingMixedLights)
-            {
-                processVisibleLightJob.dynamicGIUseRealtimeLights = false;
-                processVisibleLightJob.dynamicGIUseMixedLights = true;
-            }
-#endif
 
             m_ProcessVisibleLightJobHandle = processVisibleLightJob.Schedule(m_Size, 32);
         }

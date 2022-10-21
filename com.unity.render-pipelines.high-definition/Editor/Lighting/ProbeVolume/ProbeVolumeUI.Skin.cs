@@ -15,6 +15,14 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string k_ProbesHeader = "Probes";
             internal const string k_BakingHeader = "Baking";
             internal const string k_BakeSelectedText = "Bake Selected";
+            internal const string k_DynamicBakingHeader = "Dynamic GI Baking";
+            internal const string k_DynamicBakingStageLabel = "Baking Stage";
+            internal const string k_DynamicBakeNeighborhoodLabel = "Bake Neighborhood";
+            internal const string k_DynamicBakeMixedLightsLabel = "Bake Mixed Lights";
+            internal const string k_DynamicNoNeighborhoodWarning = "Please bake the neighborhood before any other stage.";
+            internal const string k_DynamicBakeFallbackRadianceLabel = "Bake Fallback Radiance";
+            internal const string k_DynamicPipelineOverridesWarning = "Some render pipeline settings are globally overriden for baking purposes. Please reset them after you finish baking.";
+            internal const string k_DynamicResetPipelineOverridesLabel = "Reset Pipeline Overrides";
 
             internal static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
@@ -25,6 +33,16 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
             internal static readonly GUIContent s_DebugColorLabel = new GUIContent("Debug Color", "This color is used to visualize per-pixel probe volume weights in the render pipeline debugger.");
             internal static readonly GUIContent s_DrawProbesLabel = new GUIContent("Draw Probes", "Enable or disable drawing probes.");
+            internal static readonly GUIContent s_DrawValidityLabel = new GUIContent("Draw Validity", "Visualize per-probe validity. Green is full validity, no backfaces visible. Red is no validity, max backfaces visible.");
+            internal static readonly GUIContent s_HighlightRingingLabel = new GUIContent("Highlight Ringing", "Negative values on probes due to ringing will be highlighted and blinked in red.");
+            internal static readonly GUIContent s_DrawNeighborsLabel = new GUIContent("Draw Neighbors", "Enable or disable drawing probe neighborhood to debug dynamic gi.");
+            internal static readonly GUIContent s_DrawEmissionLabel = new GUIContent("Draw Emission", "Show neighborhood emission instead of albedo.");
+            internal static readonly GUIContent s_NeighborsQuadScaleLabel = new GUIContent("Draw Neighbors Scale", "The size of the debug quads when viewing draw neighbors mode");
+            internal static readonly GUIContent s_DrawOctahedralDepthRays = new GUIContent("Draw Octahedral Depth Rays", "Enable or disable drawing rays to visualize to the octahedral depth data.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexX = new GUIContent("Octahedral Depth Rays Probe X", "Specifies the x index of the probe to visualize octahedral depth rays for.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexY = new GUIContent("Octahedral Depth Rays Probe Y", "Specifies the y index of the probe to visualize octahedral depth rays for.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexZ = new GUIContent("Octahedral Depth Rays Probe Z", "Specifies the z index of the probe to visualize octahedral depth rays for.");
+
             internal static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the contribution fades in completely.");
             internal static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Exposes standard parameters.");
             internal static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");
@@ -42,7 +60,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal static readonly GUIContent s_VolumeBlendModeLabel = new GUIContent("Volume Blend Mode", "A blending mode for the entire volume when overlapping others.");
             internal static readonly GUIContent s_WeightLabel = new GUIContent("Weight", "Weigh the probe contribution for the entire volume.");
-            internal static readonly GUIContent s_NormalBiasWSLabel = new GUIContent("Normal Bias", "Controls the distance in world space units to bias along the surface normal to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing artifacts.\nSignificantly large values can have performance implications, as normal bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
+            internal static readonly GUIContent s_NormalBiasWSLabel = new GUIContent("Normal Bias", "Controls the distance in world space units to bias along the surface normal to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing and light leak artifacts.\nSignificantly large values can have performance implications, as normal bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
+            internal static readonly GUIContent s_ViewBiasWSLabel = new GUIContent("View Bias", "Controls the distance in world space units to bias toward the camera position to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing and light leak artifacts.\nSignificantly large values can have performance implications, as view bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
+
 
             internal static readonly GUIContent s_BackfaceToleranceLabel = new GUIContent("Backface Tolerance", "The percentage of backfaces sampled per probe is acceptable before probe will receive dilated data.");
             internal static readonly GUIContent s_DilationIterationLabel = new GUIContent("Dilation Iterations", "The number of iterations Dilation copies over data from each probe to its neighbors.");

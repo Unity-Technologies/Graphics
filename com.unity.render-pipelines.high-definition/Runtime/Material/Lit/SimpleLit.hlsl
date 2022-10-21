@@ -396,6 +396,15 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     return lighting;
 }
 
+float3 ComputeReflectionProbeNormalizationDirection(BSDFData bsdfData, PreLightData preLightData, float3 V)
+{
+    // SimpleLit is used in the context of VFX, who only sample the DC term of the SH data.
+    // Could technically return any direction.
+    // To keep things reasonable, in case sampling additional SH terms is added at a later point to VFX,
+    // use the surface normal as the normalization direction. This works best with fully rough surfaces.
+    return bsdfData.normalWS;
+}
+
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------

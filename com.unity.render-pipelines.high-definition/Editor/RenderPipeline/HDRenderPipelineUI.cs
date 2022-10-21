@@ -1011,6 +1011,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
                         EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
 
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeDynamicGI, Styles.supportProbeVolumeDynamicGI);
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution, Styles.probeVolumeAtlasResolution);
                     if (EditorGUI.EndChangeCheck())
@@ -1120,6 +1121,36 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, Styles.supportFabricBSDFConvolutionContent);
+            
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMaskVolume, Styles.supportMaskVolumeContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportMaskVolume.boolValue))
+            {
+                ++EditorGUI.indentLevel;
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.maskVolumeSettings.atlasResolution, Styles.maskVolumeAtlasResolution);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.renderPipelineSettings.maskVolumeSettings.atlasResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.maskVolumeSettings.atlasResolution.intValue, 0);
+                }
+                else
+                {
+                    long currentCache = HDRenderPipeline.GetApproxMaskVolumeAtlasSizeInByte(serialized.renderPipelineSettings.maskVolumeSettings.atlasResolution.intValue);
+                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    {
+                        int reserved = HDRenderPipeline.GetMaxMaskVolumeAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
+                    else
+                    {
+                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                    }
+                }
+
+                --EditorGUI.indentLevel;
+            }
         }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";
@@ -1192,7 +1223,11 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
+            {
                 AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+                AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolumeDynamicGI, Styles.supportProbeVolumeDynamicGI);
+            }
+            AppendSupport(builder, serialized.renderPipelineSettings.supportMaskVolume, Styles.supportMaskVolumeContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);

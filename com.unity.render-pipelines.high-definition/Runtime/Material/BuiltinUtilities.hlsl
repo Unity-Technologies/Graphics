@@ -104,8 +104,10 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
                             inout BuiltinData builtinData)
 {
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
+    if (IsUninitializedGI(builtinData))
+    {
         return;
+    }
 #else
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it
@@ -126,6 +128,56 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 
 #endif
     ApplyDebugToBuiltinData(builtinData);
+}
+
+#ifdef SHADERPASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || SHADERPASS == SHADERPASS_DYNAMIC_GIDATA_SAMPLE || SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaskVolume/MaskVolume.hlsl"
+#endif
+#endif // #ifdef SHADERPASS
+
+// Function signature exposed in a shader graph node, to keep
+float3 SampleMaskVolume(float3 positionRWS, float3 normalWS)
+{
+    float3 mask = 0.0f;
+
+#ifdef SHADERPASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || SHADERPASS == SHADERPASS_DYNAMIC_GIDATA_SAMPLE || SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+
+    // Need PositionInputs for indexing mask volume clusters, but they are not available from the current SampleMaskVolume() function signature.
+    // Reconstruct.
+    PositionInputs posInputs;
+    ZERO_INITIALIZE(PositionInputs, posInputs);
+    posInputs.positionWS = positionRWS;
+
+    float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionRWS, 1.0));
+    positionCS.xyz /= positionCS.w;
+    float2 positionNDC = positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
+    float2 positionSS = positionNDC.xy * _ScreenSize.xy;
+    uint2 tileCoord = uint2(positionSS) / MaskVolumeGetTileSize();
+
+    posInputs.tileCoord = tileCoord; // Needed for mask volume cluster Indexing.
+    posInputs.linearDepth = LinearEyeDepth(positionRWS, UNITY_MATRIX_V); // Needed for mask volume cluster Indexing.
+    posInputs.positionNDC = float2(0, 0); // Not needed for mask volume cluster indexing.
+    posInputs.deviceDepth = 0.0f; // Not needed for mask volume cluster indexing.
+
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    uint renderingLayers = GetMeshRenderingLightLayer();
+
+    float maskVolumeHierarchyWeight = 0.0f;
+
+    MaskVolumeEvaluate(
+        posInputs,
+        normalWS,
+        renderingLayers,
+        maskVolumeHierarchyWeight,
+        mask
+    );
+
+#endif
+#endif // #ifdef SHADERPASS
+
+    return mask;
 }
 
 #endif //__BUILTINUTILITIES_HLSL__

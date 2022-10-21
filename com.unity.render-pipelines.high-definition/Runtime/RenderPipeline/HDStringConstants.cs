@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
+        /// <summary>Probe Dynamic GI data generation pass name.</summary>
+        public static readonly string s_DynamicGIDataSampleStr = "DynamicGIDataSample";
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -84,6 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_RayTracingPrepassName = new ShaderTagId(s_RayTracingPrepassStr);
         /// <summary>FullScreen Debug shader tag id.</summary>
         public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
+        /// <summary>Dynamic Probe GI data generation shader tag id.</summary>
+        public static readonly ShaderTagId s_DynamicGIDataPassName = new ShaderTagId(s_DynamicGIDataSampleStr);
 
         /// <summary>DBuffer Mesh shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);
@@ -163,6 +167,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _DynamicGILightDatas = Shader.PropertyToID("_DynamicGILightDatas");
+        public static readonly int _DynamicGIPunctualLightCount = Shader.PropertyToID("_DynamicGIPunctualLightCount");
+        public static readonly int _DynamicGIAreaLightCount = Shader.PropertyToID("_DynamicGIAreaLightCount");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -926,17 +933,42 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProbeVolumeAtlasOctahedralDepthWriteTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthWriteTexture");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthScaleBiasTexels = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthScaleBiasTexels");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthRWTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthRWTexture");
+        public static readonly int _ProbeVolumeAtlasSHRotateRight = Shader.PropertyToID("_ProbeVolumeAtlasSHRotateRight");
+        public static readonly int _ProbeVolumeAtlasSHRotateUp = Shader.PropertyToID("_ProbeVolumeAtlasSHRotateUp");
+        public static readonly int _ProbeVolumeAtlasSHRotateForward = Shader.PropertyToID("_ProbeVolumeAtlasSHRotateForward");
         public static readonly int _FilterSampleCount              = Shader.PropertyToID("_FilterSampleCount");
         public static readonly int _FilterSharpness                = Shader.PropertyToID("_FilterSharpness");
-        public static readonly int _AtlasTextureSH                 = Shader.PropertyToID("_AtlasTextureSH");
         public static readonly int _TextureViewScale               = Shader.PropertyToID("_TextureViewScale");
         public static readonly int _TextureViewBias                = Shader.PropertyToID("_TextureViewBias");
         public static readonly int _TextureViewResolution          = Shader.PropertyToID("_TextureViewResolution");
-        public static readonly int _AtlasTextureOctahedralDepth    = Shader.PropertyToID("_AtlasTextureOctahedralDepth");
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
         public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
-    
+
+        // Mask Volumes
+        public static readonly int _MaskVolumeBounds = Shader.PropertyToID("_MaskVolumeBounds");
+        public static readonly int _MaskVolumeDatas = Shader.PropertyToID("_MaskVolumeDatas");
+        public static readonly int g_vMaskVolumesLayeredOffsetsBuffer = Shader.PropertyToID("g_vMaskVolumesLayeredOffsetsBuffer");
+        public static readonly int g_vMaskVolumesLightListGlobal = Shader.PropertyToID("g_vMaskVolumesLightListGlobal");
+        public static readonly int _MaskVolumeAtlasSH             = Shader.PropertyToID("_MaskVolumeAtlasSH");
+        public static readonly int _MaskVolumeAtlasResolutionAndSliceCount = Shader.PropertyToID("_MaskVolumeAtlasResolutionAndSliceCount");
+        public static readonly int _MaskVolumeAtlasResolutionAndSliceCountInverse = Shader.PropertyToID("_MaskVolumeAtlasResolutionAndSliceCountInverse");
+        public static readonly int _MaskVolumeResolution          = Shader.PropertyToID("_MaskVolumeResolution");
+        public static readonly int _MaskVolumeResolutionInverse   = Shader.PropertyToID("_MaskVolumeResolutionInverse");
+        public static readonly int _MaskVolumeAtlasScale          = Shader.PropertyToID("_MaskVolumeAtlasScale");
+        public static readonly int _MaskVolumeAtlasBias           = Shader.PropertyToID("_MaskVolumeAtlasBias");
+        public static readonly int _MaskVolumeAtlasReadBufferCount = Shader.PropertyToID("_MaskVolumeAtlasReadBufferCount");
+        public static readonly int _MaskVolumeAtlasReadSHL0Buffer = Shader.PropertyToID("_MaskVolumeAtlasReadSHL0Buffer");
+        public static readonly int _MaskVolumeAtlasWriteTextureSH = Shader.PropertyToID("_MaskVolumeAtlasWriteTextureSH");
+        public static readonly int _MaskFilterSampleCount              = Shader.PropertyToID("_MaskFilterSampleCount");
+        public static readonly int _MaskFilterSharpness                = Shader.PropertyToID("_MaskFilterSharpness");
+        public static readonly int _MaskAtlasTextureSH                 = Shader.PropertyToID("_MaskAtlasTextureSH");
+        public static readonly int _MaskTextureViewScale               = Shader.PropertyToID("_MaskTextureViewScale");
+        public static readonly int _MaskTextureViewBias                = Shader.PropertyToID("_MaskTextureViewBias");
+        public static readonly int _MaskTextureViewResolution          = Shader.PropertyToID("_MaskTextureViewResolution");
+        public static readonly int _MaskValidRange                     = Shader.PropertyToID("_MaskValidRange");
+        public static readonly int _MaskVolumeAtlasSliceMode      = Shader.PropertyToID("_MaskVolumeAtlasSliceMode");
+
         // custom-begin
         // Custom Properties:
         public static readonly int _EnableDynamicBranchLighting = Shader.PropertyToID("_EnableDynamicBranchLighting");

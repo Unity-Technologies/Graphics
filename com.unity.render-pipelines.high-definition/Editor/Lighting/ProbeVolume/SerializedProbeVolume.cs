@@ -5,7 +5,17 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty probeVolumeParams;
         internal SerializedProperty probeVolumeAsset;
         internal SerializedProperty debugColor;
+        internal SerializedProperty supportDynamicGI;
         internal SerializedProperty drawProbes;
+        internal SerializedProperty drawValidity;
+        internal SerializedProperty highlightRinging;
+        internal SerializedProperty drawNeighbors;
+        internal SerializedProperty drawEmission;
+        internal SerializedProperty neighborsQuadScale;
+        internal SerializedProperty drawOctahedralDepthRays;
+        internal SerializedProperty drawOctahedralDepthRayIndexX;
+        internal SerializedProperty drawOctahedralDepthRayIndexY;
+        internal SerializedProperty drawOctahedralDepthRayIndexZ;
 
         internal SerializedProperty probeSpacingMode;
 
@@ -20,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty volumeBlendMode;
         internal SerializedProperty weight;
         internal SerializedProperty normalBiasWS;
+        internal SerializedProperty viewBiasWS;
 
         internal SerializedProperty size;
 
@@ -46,7 +57,18 @@ namespace UnityEditor.Rendering.HighDefinition
             probeVolumeAsset = m_SerializedObject.FindProperty("probeVolumeAsset");
 
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
+            supportDynamicGI = probeVolumeParams.FindPropertyRelative("supportDynamicGI");
             drawProbes = probeVolumeParams.FindPropertyRelative("drawProbes");
+            drawValidity = probeVolumeParams.FindPropertyRelative("drawValidity");
+            highlightRinging = probeVolumeParams.FindPropertyRelative("highlightRinging");
+            drawNeighbors = probeVolumeParams.FindPropertyRelative("drawNeighbors");
+            drawEmission = probeVolumeParams.FindPropertyRelative("drawEmission");
+            neighborsQuadScale = probeVolumeParams.FindPropertyRelative("neighborsQuadScale");
+
+            drawOctahedralDepthRays = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRays");
+            drawOctahedralDepthRayIndexX = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexX");
+            drawOctahedralDepthRayIndexY = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexY");
+            drawOctahedralDepthRayIndexZ = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexZ");
 
             probeSpacingMode = probeVolumeParams.FindPropertyRelative("probeSpacingMode");
 
@@ -61,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             volumeBlendMode = probeVolumeParams.FindPropertyRelative("volumeBlendMode");
             weight = probeVolumeParams.FindPropertyRelative("weight");
             normalBiasWS = probeVolumeParams.FindPropertyRelative("normalBiasWS");
+            viewBiasWS = probeVolumeParams.FindPropertyRelative("viewBiasWS");
 
             size = probeVolumeParams.FindPropertyRelative("size");
 
@@ -82,6 +105,11 @@ namespace UnityEditor.Rendering.HighDefinition
         internal void Apply()
         {
             m_SerializedObject.ApplyModifiedProperties();
+        }
+
+        internal UnityEngine.Object[] GetTargetObjects()
+        {
+            return m_SerializedObject.targetObjects;
         }
     }
 }

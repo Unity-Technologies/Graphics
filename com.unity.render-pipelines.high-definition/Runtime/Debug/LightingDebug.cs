@@ -201,7 +201,8 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         VisualizeAtlas,
         VisualizeDebugColors,
-        VisualizeValidity
+        VisualizeValidity,
+        VisualizeDynamicGIDirtyFlags
     }
 
 	/// <summary>
@@ -223,7 +224,14 @@ namespace UnityEngine.Rendering.HighDefinition
         OctahedralDepth
     }
 
-	/// <summary>
+    [GenerateHLSL]
+    internal enum MaskVolumeDebugMode
+    {
+        None,
+        VisualizeAtlas
+    }
+
+    /// <summary>
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
@@ -245,7 +253,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideSpecularColor
                 || overrideEmissiveColor
                 || shadowDebugMode == ShadowMapDebugMode.SingleShadow
-                || probeVolumeDebugMode != ProbeVolumeDebugMode.None;
+                || probeVolumeDebugMode != ProbeVolumeDebugMode.None
+                || maskVolumeDebugMode != MaskVolumeDebugMode.None;
         }
 
         /// <summary>Current Light Filtering.</summary>
@@ -272,7 +281,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal float probeVolumeMinValue = 0.0f;
 		/// <summary>The maximum display threshold for atlas slices.</summary>
         [SerializeField] internal float probeVolumeMaxValue = 1.0f;
-		/// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
+        /// <summary>Current Mask Volume Debug Mode.</summary>
+        [SerializeField] internal MaskVolumeDebugMode maskVolumeDebugMode = MaskVolumeDebugMode.None;
+        /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
         public uint                 shadowMapIndex = 0;
