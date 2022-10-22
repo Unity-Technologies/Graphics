@@ -308,6 +308,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal ScreenSpaceAmbientOcclusionSettings settings;
             internal RenderingData renderingData;
+            internal TextureHandle cameraColor;
             internal RTHandle[] ssaoTextures;
             internal Texture2D[] blueNoiseTextures;
             internal Material material;
@@ -393,10 +394,13 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize the pass data
                 InitSetupPassData(ref passData);
                 passData.renderingData = renderingData;
+                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+                passData.cameraColor = renderer.frameResources.cameraColor;
 
                 // Set up the builder
                 builder.SetRenderFunc((SetupPassData data, RenderGraphContext rgContext) =>
                 {
+                    PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
                     SetupKeywordsAndParameters(ref data, ref data.renderingData);
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
@@ -427,7 +431,6 @@ namespace UnityEngine.Rendering.Universal
             aoTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture0", false, FilterMode.Bilinear);
             blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture1", false, FilterMode.Bilinear);
             finalTexture = m_CurrentSettings.AfterOpaque ? renderer.frameResources.cameraColor : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
-            PostProcessUtils.SetSourceSize(renderingData.commandBuffer, finalTexture);
         }
 
         private void ExecuteOcclusionPass(RenderGraph renderGraph, ref UniversalRenderer renderer, in TextureHandle aoTexture)
