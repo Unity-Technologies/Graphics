@@ -24,8 +24,9 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
 {
     VertexDescriptionInputs output;
     ZERO_INITIALIZE(VertexDescriptionInputs, output);
-    // The only variable that needs to propagated from vertex to is the camera relative world position
+    // The only two variable that needs to be propagated from vertex to domain are the relative world space postion and the normalWS
     output.WorldSpacePosition = input.positionRWS;
+    output.WorldSpaceNormal = input.normalWS;
     return output;
 }
 

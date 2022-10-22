@@ -10,6 +10,8 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
+using System.Linq;
+using UnityEngine.VFX;
 
 public class HDRP_GraphicTestRunner
 {
@@ -90,21 +92,21 @@ public class HDRP_GraphicTestRunner
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
-		
-		// Grab the HDCamera
+
+        // Grab the HDCamera
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
-        
+
         //We need to get all the cameras to set accumulation in all of them for tests that uses multiple cameras
         cameras = GameObject.FindObjectsOfType<Camera>();
-        
+
         //Grab the HDCameras
         hdCameras = new HDCamera[cameras.Length];
         for(int i = 0; i < cameras.Length; ++i)
         {
             hdCameras[i] = HDCamera.GetOrCreate(cameras[i]);
         }
-		
-		
+
+
         bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
 
 // #if UNITY_EDITOR
@@ -148,7 +150,7 @@ public class HDRP_GraphicTestRunner
             // Wait again one frame, to be sure.
             yield return new WaitForEndOfFrame();
         }
-		
+
         // Reset temporal effects on hdCameras
         foreach(HDCamera hdCam in hdCameras)
             hdCam.Reset();
@@ -174,6 +176,20 @@ public class HDRP_GraphicTestRunner
         // Reset temporal effects on hdCameras
         foreach(HDCamera hdCam in hdCameras)
             hdCam.Reset();
+
+        // Ensure frame consistency for VFXs
+        if (settings.containsVFX)
+        {
+            const int maxFrameWaiting = 8;
+            int maxFrame = maxFrameWaiting;
+            var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
+            while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
+                yield return new WaitForEndOfFrame();
+            Assert.Greater(maxFrame, 0);
+
+            foreach (var component in vfxComponents)
+                component.Reinit();
+        }
 
         for (int i = 0; i < waitFrames; ++i)
             yield return new WaitForEndOfFrame();
@@ -255,7 +271,7 @@ public class HDRP_GraphicTestRunner
             else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
-		
+
 #if UNITY_EDITOR
         UnityEditor.ShaderUtil.allowAsyncCompilation = oldValueShaderUtil;
         UnityEditor.EditorSettings.asyncShaderCompilation = oldValueEditorSettings;
@@ -264,19 +280,19 @@ public class HDRP_GraphicTestRunner
         //When using back buffer, we have to set accumulation back to true at the end of the test
         if (useBackBuffer)
         {
-            SetRayTracingAccumulationOnCameras(hdCameras, true);	
+            SetRayTracingAccumulationOnCameras(hdCameras, true);
         }
 
     }
-    
+
     public void SetRayTracingAccumulationOnCameras(HDCamera[] hdCameras, bool b)
     {
         foreach(HDCamera hdCamera in hdCameras)
         {
-            hdCamera.SetRayTracingAccumulation(b);	
+            hdCamera.SetRayTracingAccumulation(b);
         }
     }
-    
+
 #if UNITY_EDITOR
 
     [TearDown]

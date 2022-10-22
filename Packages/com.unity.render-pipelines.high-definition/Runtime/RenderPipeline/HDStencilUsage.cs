@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // --- Stencil  is cleared after opaque rendering has finished ---
 
         // --- Following bits are used exclusively for what happens after opaque ---
+        WaterExclusion = (1 << 0),    // Prevents water surface from being rendered.
         ExcludeFromTAA = (1 << 1),    // Disable Temporal Antialiasing for certain objects
         DistortionVectors = (1 << 2),    // Distortion pass - reset after distortion pass, shared with SMAA
         SMAA = (1 << 2),    // Subpixel Morphological Antialiasing

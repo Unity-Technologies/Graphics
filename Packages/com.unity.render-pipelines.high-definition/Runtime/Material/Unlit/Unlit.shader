@@ -619,13 +619,13 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
-            
+
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
-            
+
             #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
                 #define SENSORSDK_ENABLE_LIDAR
             #endif
-            
+
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             #define SHADER_UNLIT

@@ -243,9 +243,9 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
             while (v_lightListOffset < lightCount)
             {
                 v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
-				uint s_lightIdx = v_lightIdx; // NOTE: No need to scalarize here as we have a guarantee that it is all threads are going to sample the same list. 
+                uint s_lightIdx = v_lightIdx; // NOTE: No need to scalarize here as we have a guarantee that it is all threads are going to sample the same list.
 
-				LightData s_lightData = FetchLight(s_lightIdx);
+                LightData s_lightData = FetchLight(s_lightIdx);
                 v_lightListOffset++;
                 if (s_lightData.contactShadowMask != 0 && s_lightData.isRayTracedContactShadow == 0.0)
                 {

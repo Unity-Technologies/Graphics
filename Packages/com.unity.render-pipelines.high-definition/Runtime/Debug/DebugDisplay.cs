@@ -201,6 +201,21 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// List of RTAS Full Screen Debug views.
+    /// </summary>
+    public enum VolumetricCloudsDebug
+    {
+        /// <summary>
+        /// Display the lighting of the volumetric clouds.
+        /// </summary>
+        Lighting,
+        /// <summary>
+        /// Display the depth of the volumetric clouds.
+        /// </summary>
+        Depth,
+    }
+
+    /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
     public partial class DebugDisplaySettings : IDebugData
@@ -287,6 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int debugCameraToFreeze = 0;
             internal RTASDebugView rtasDebugView = RTASDebugView.Shadows;
             internal RTASDebugMode rtasDebugMode = RTASDebugMode.InstanceID;
+            internal VolumetricCloudsDebug volumetricCloudDebug = VolumetricCloudsDebug.Lighting;
 
             /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
             public float minMotionVectorLength = 0.0f;
@@ -322,6 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int rtasDebugViewEnumIndex;
             internal int rtasDebugModeEnumIndex;
+            internal int volumetricCloudsDebugModeEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -748,6 +765,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Set the current Volumetric Clouds Debug mode.
+        /// </summary>
+        /// <param name="value">Desired Full Screen Volumetric Clouds Debug mode.</param>
+        public void SetVolumetricCloudsDebugMode(VolumetricCloudsDebug value)
+        {
+            data.volumetricCloudDebug = value;
+        }
+
+        /// <summary>
         /// Set the current Shadow Map Debug Mode.
         /// </summary>
         /// <param name="value">Desired Shadow Map debug mode.</param>
@@ -1049,6 +1075,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ContactShadowsLightIndex = new() { name = "Light Index", tooltip = "Enable to display Contact shadows for each Light individually." };
             public static readonly NameAndTooltip RTASDebugView = new() { name = "Ray Tracing Acceleration Structure View", tooltip = "Use the drop-down to select a rendering view to display the ray tracing acceleration structure." };
             public static readonly NameAndTooltip RTASDebugMode = new() { name = "Ray Tracing Acceleration Structure Mode", tooltip = "Use the drop-down to select a rendering mode to display the ray tracing acceleration structure." };
+            public static readonly NameAndTooltip VolumetricCloudsTooltip = new() { name = "Volumetric Clouds Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display the volumemtric clouds." };
 
             // Tile/Cluster debug
             public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
@@ -1337,6 +1364,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugMode, getter = () => (int)data.rtasDebugMode, setter = value => SetRTASDebugMode((RTASDebugMode)value), autoEnum = typeof(RTASDebugMode), getIndex = () => data.rtasDebugModeEnumIndex, setIndex = value => { data.rtasDebugModeEnumIndex = value; } }
                 }
             });
+
+            list.Add(new DebugUI.Container
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.VolumetricClouds,
+                children =
+                {
+                    new DebugUI.EnumField { nameAndTooltip = LightingStrings.VolumetricCloudsTooltip, getter = () => (int)data.volumetricCloudDebug, setter = value => SetVolumetricCloudsDebugMode((VolumetricCloudsDebug)value), autoEnum = typeof(VolumetricCloudsDebug), getIndex = () => data.volumetricCloudsDebugModeEnumIndex, setIndex = value => { data.volumetricCloudsDebugModeEnumIndex = value; } },
+                }
+            });
+
             list.Add(new DebugUI.Container()
             {
                 isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.PreRefractionColorPyramid && data.fullScreenDebugMode != FullScreenDebugMode.FinalColorPyramid && data.fullScreenDebugMode != FullScreenDebugMode.DepthPyramid,

@@ -99,15 +99,21 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
         VolumetricCloudsPreUpscale,
-        VolumetricCloudsUpscaleAndCombine,
+        VolumetricCloudsUpscale,
+        VolumetricCloudsCombine,
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
         VolumetricCloudsAmbientProbe,
 
         // Water surface
+        WaterSurfaceUpdate,
         WaterSurfaceSimulation,
+        WaterSurfaceDeformation,
+        WaterSurfaceCaustics,
+        WaterExclusion,
         WaterSurfaceRenderingGBuffer,
-        WaterSurfaceRenderingSSR,
+        WaterSurfaceRenderingMaskDebug,
+        WaterSurfacePrepareLighting,
         WaterSurfaceRenderingDeferred,
         WaterSurfaceRenderingUnderWater,
 
@@ -172,6 +178,10 @@ namespace UnityEngine.Rendering.HighDefinition
         SortVisibleLights,
         BuildVisibleLightEntities,
         ProcessShadows,
+        CalculateLightDataTextureInfo,
+        CalculateShadowIndices,
+        UpdateDirectionalShadowData,
+        EditorOnlyDebugSelectedLightShadow,
 
         // Profile sampler for shadow
         RenderShadowMaps,

@@ -54,7 +54,7 @@ This Sample includes the following Lens Flare examples that you can use in your 
 
 ![Volumetric Samples](Images/VolumetricSamples.png)
 This Sample includes content that will help you for volumetrics :
-- 3D textures  
+- 3D textures
 - Procedural 3D noise subgraphs
 - Fog Volume Shadergraph examples
 It includes a collection of Prefab showcasing how to use them with the Local Volumetric Fog.

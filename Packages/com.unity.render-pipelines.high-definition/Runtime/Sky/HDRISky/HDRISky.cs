@@ -6,9 +6,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDRI Sky Volume Component.
     /// This component setups HDRI sky for rendering.
     /// </summary>
-    [VolumeComponentMenuForRenderPipeline("Sky/HDRI Sky", typeof(HDRenderPipeline))]
+    [VolumeComponentMenu("Sky/HDRI Sky")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.HDRI)]
-    [HDRPHelpURLAttribute("Override-HDRI-Sky")]
+    [HDRPHelpURL("Override-HDRI-Sky")]
     public partial class HDRISky : SkySettings
     {
         /// <summary>

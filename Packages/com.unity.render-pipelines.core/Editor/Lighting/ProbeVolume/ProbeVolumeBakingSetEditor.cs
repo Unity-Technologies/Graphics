@@ -318,7 +318,7 @@ namespace UnityEditor.Rendering
                 middle.yMin += 2;
                 middle.width = 19;
                 EditorGUI.BeginChangeCheck();
-                bool toggled = EditorGUI.Toggle(middle, (ProbeReferenceVolume.instance.lightingScenario == scenarioName) && profile.sceneGUIDs.Count != 0, EditorStyles.radioButton);
+                bool toggled = EditorGUI.Toggle(middle, ProbeReferenceVolume.instance.lightingScenario == scenarioName, EditorStyles.radioButton);
                 if (EditorGUI.EndChangeCheck() && toggled)
                     SetActiveScenario(scenarioName);
 
@@ -376,6 +376,13 @@ namespace UnityEditor.Rendering
                         }
                     }
                 }
+            };
+
+            m_Scenarios.onSelectCallback = (ReorderableList list) =>
+            {
+                SetActiveScenario(profile.lightingScenarios[list.index]);
+                SceneView.RepaintAll();
+                Repaint();
             };
 
             m_Scenarios.onAddCallback = (list) =>

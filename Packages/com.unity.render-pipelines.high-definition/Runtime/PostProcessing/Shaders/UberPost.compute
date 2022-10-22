@@ -75,7 +75,7 @@ CBUFFER_END
 
 #define PostExposure            _LogLut3D_Params.z
 
-#define NeedLUT		            _LogLut3D_Params.w
+#define NeedLUT                 _LogLut3D_Params.w
 
 #define BloomTint               _BloomTint.xyz
 #define BloomIntensity          _BloomParams.x

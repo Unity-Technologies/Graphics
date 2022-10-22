@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateSimulationAdditionalData_Water (Preview)")]
-    class EvaluateSimulationAdditionalData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class EvaluateSimulationAdditionalData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireMeshUV, IMayRequireNormal
     {
         public EvaluateSimulationAdditionalData_Water()
         {
@@ -21,43 +21,35 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("EvaluateSimulationAdditionalData_Water");
 
-        const int kBandsMultiplierInputSlotId = 0;
-        const string kBandsMultiplierOutputSlotName = "BandsMutliplier";
+        const int kNormalWSOutputSlotId = 1;
+        const string kNormalWSOutputSlotName = "NormalWS";
 
-        const int kSurfaceGradientOutputSlotId = 1;
-        const string kSurfaceGradientOutputSlotName = "SurfaceGradient";
+        const int kLowFrequencyNormalWSOutputSlotId = 2;
+        const string kLowFrequencyNormalWSOutputSlotName = "LowFrequencyNormalWS";
 
-        const int kLowFrequencySurfaceGradientOutputSlotId = 2;
-        const string kLowFrequencySurfaceGradientOutputSlotName = "LowFrequencySurfaceGradient";
-
-        const int kSurfaceFoamOutputSlotId = 3;
-        const string kSurfaceFoamOutputSlotName = "SurfaceFoam";
-
-        const int kDeepFoamOutputSlotId = 4;
+        const int kDeepFoamOutputSlotId = 3;
         const string kDeepFoamOutputSlotName = "DeepFoam";
+
+        const int kSurfaceFoamOutputSlotId = 4;
+        const string kSurfaceFoamOutputSlotName = "SurfaceFoam";
 
         public override bool hasPreview { get { return false; } }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            // Input
-            AddSlot(new Vector4MaterialSlot(kBandsMultiplierInputSlotId, kBandsMultiplierOutputSlotName, kBandsMultiplierOutputSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment));
-
             // Output
-            AddSlot(new Vector3MaterialSlot(kSurfaceGradientOutputSlotId, kSurfaceGradientOutputSlotName, kSurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector3MaterialSlot(kLowFrequencySurfaceGradientOutputSlotId, kLowFrequencySurfaceGradientOutputSlotName, kLowFrequencySurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector1MaterialSlot(kSurfaceFoamOutputSlotId, kSurfaceFoamOutputSlotName, kSurfaceFoamOutputSlotName, SlotType.Output, 0));
+            AddSlot(new Vector3MaterialSlot(kNormalWSOutputSlotId, kNormalWSOutputSlotName, kNormalWSOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector3MaterialSlot(kLowFrequencyNormalWSOutputSlotId, kLowFrequencyNormalWSOutputSlotName, kLowFrequencyNormalWSOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector1MaterialSlot(kDeepFoamOutputSlotId, kDeepFoamOutputSlotName, kDeepFoamOutputSlotName, SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(kSurfaceFoamOutputSlotId, kSurfaceFoamOutputSlotName, kSurfaceFoamOutputSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
             {
-                // Input
-                kBandsMultiplierInputSlotId,
                 // Output
-                kSurfaceGradientOutputSlotId,
-                kLowFrequencySurfaceGradientOutputSlotId,
-                kSurfaceFoamOutputSlotId,
+                kNormalWSOutputSlotId,
+                kLowFrequencyNormalWSOutputSlotId,
                 kDeepFoamOutputSlotId,
+                kSurfaceFoamOutputSlotId,
             });
         }
 
@@ -70,16 +62,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);");
 
                 // Evaluate the data
-                string bandsMutliplier = GetSlotValue(kBandsMultiplierInputSlotId, generationMode);
-                sb.AppendLine("EvaluateWaterAdditionalData(IN.{0}.xyz, {1}, waterAdditionalData);",
-                    ShaderGeneratorNames.GetUVName(UVChannel.UV0),
-                    bandsMutliplier);
+                sb.AppendLine("EvaluateWaterAdditionalData(IN.{0}.xzy, IN.WorldSpacePosition, IN.WorldSpaceNormal, waterAdditionalData);",
+                    ShaderGeneratorNames.GetUVName(UVChannel.UV0));
 
                 // Output the data
-                sb.AppendLine("$precision3 {0} = waterAdditionalData.surfaceGradient;",
-                    GetVariableNameForSlot(kSurfaceGradientOutputSlotId));
-                sb.AppendLine("$precision3 {0} = waterAdditionalData.lowFrequencySurfaceGradient;",
-                    GetVariableNameForSlot(kLowFrequencySurfaceGradientOutputSlotId));
+                sb.AppendLine("$precision3 {0} = waterAdditionalData.normalWS;",
+                    GetVariableNameForSlot(kNormalWSOutputSlotId));
+                sb.AppendLine("$precision3 {0} = waterAdditionalData.lowFrequencyNormalWS;",
+                    GetVariableNameForSlot(kLowFrequencyNormalWSOutputSlotId));
                 sb.AppendLine("$precision {0} = waterAdditionalData.surfaceFoam;",
                     GetVariableNameForSlot(kSurfaceFoamOutputSlotId));
                 sb.AppendLine("$precision {0} = waterAdditionalData.deepFoam;",
@@ -89,9 +79,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Output zeros
                 sb.AppendLine("$precision3 {0} = 0.0;",
-                    GetVariableNameForSlot(kSurfaceGradientOutputSlotId));
+                    GetVariableNameForSlot(kNormalWSOutputSlotId));
                 sb.AppendLine("$precision3 {0} = 0.0;",
-                    GetVariableNameForSlot(kLowFrequencySurfaceGradientOutputSlotId));
+                    GetVariableNameForSlot(kLowFrequencyNormalWSOutputSlotId));
                 sb.AppendLine("$precision {0} = 0.0;",
                     GetVariableNameForSlot(kSurfaceFoamOutputSlotId));
                 sb.AppendLine("$precision {0} = 0.0;",
@@ -102,6 +92,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             return channel == UVChannel.UV0;
+        }
+
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability = ShaderStageCapability.Vertex)
+        {
+            return NeededCoordinateSpace.World;
+        }
+
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability = ShaderStageCapability.Vertex)
+        {
+            return NeededCoordinateSpace.World;
         }
     }
 }

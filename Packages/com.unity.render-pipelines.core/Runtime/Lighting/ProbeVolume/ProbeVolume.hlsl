@@ -28,6 +28,14 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif
 
+#ifndef __BUILTINGIUTILITIES_HLSL__
+// TODO Until ambient probe is moved to core
+float3 EvaluateAmbientProbe(float3 normalWS)
+{
+    return 0;
+}
+#endif
+
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
 SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_point_clamp_sampler);
@@ -545,6 +553,32 @@ void EvaluateAPVL1L2(APVSample apvSample, float3 N, out float3 diffuseLighting)
 // -------------------------------------------------------------
 // "Public" Evaluation functions, the one that callers outside this file should use
 // -------------------------------------------------------------
+void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, out float3 bakeDiffuseLighting)
+{
+    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+    {
+        apvSample.Decode();
+
+#if defined(PROBE_VOLUMES_L1)
+        EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
+#elif defined(PROBE_VOLUMES_L2)
+        EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
+#endif
+
+        bakeDiffuseLighting += apvSample.L0;
+
+        if (_Weight < 1.f)
+        {
+            bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
+        }
+    }
+    else
+    {
+        // no valid brick, fallback to ambient probe
+        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
+    }
+}
+
 void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 backNormalWS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
@@ -629,6 +663,17 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 
     APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS,
+    out float3 bakeDiffuseLighting)
+{
+    bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+
+    posWS = AddNoiseToSamplingPosition(posWS, positionSS);
+
+    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    EvaluateAdaptiveProbeVolume(apvSample, normalWS, bakeDiffuseLighting);
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)

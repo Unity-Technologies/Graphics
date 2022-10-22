@@ -111,7 +111,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float2 historyTapCoord = (float2)(historyUVUnscaled * _HistorySizeAndScale.xy);
     float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
     #endif
-    
+
     float4 historyRaw = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, 0);
     float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
 

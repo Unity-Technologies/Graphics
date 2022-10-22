@@ -820,7 +820,7 @@ namespace UnityEditor.VFX.UI
 
                 if (window &&
                     window.autoReinit &&
-                    m_LastFrameVFXReinit != currentFrame) // Prevent multi reinit per frame) 
+                    m_LastFrameVFXReinit != currentFrame) // Prevent multi reinit per frame)
                 {
                     var vfx = window.graphView.attachedComponent;
 
@@ -839,7 +839,7 @@ namespace UnityEditor.VFX.UI
                                 stepTime = window.autoReinitPrewarmTime / stepCount;
                                 vfx.Simulate(stepTime, stepCount);
                             }
-                        }                        
+                        }
                     }
                     m_LastFrameVFXReinit = currentFrame;
                 }

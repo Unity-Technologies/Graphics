@@ -29,17 +29,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget;
         /// <summary>
-        /// The debug mesh used to draw probes in the debug view.
-        /// </summary>
-        public Mesh probeDebugMesh;
-        /// <summary>
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
-        /// <summary>
-        /// The debug mesh used to visualize probes virtual offset in the debug view.
-        /// </summary>
-        public Mesh offsetDebugMesh;
         /// <summary>
         /// The shader used to visualize probes virtual offset in the debug view.
         /// </summary>
@@ -1116,6 +1108,21 @@ namespace UnityEngine.Rendering
 
         void PerformPendingLoading()
         {
+#if UNITY_EDITOR
+            // If an asset has been deleted on disk, unload everything
+            foreach (var set in m_ActiveAssets)
+            {
+                if (set.Value == null)
+                {
+                    clearAssetsOnVolumeClear = true;
+                    Clear();
+                    clearAssetsOnVolumeClear = false;
+                    m_ToBeLoadedCells.Clear(); // don't try to reload cells
+                    break;
+                }
+            }
+#endif
+
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 

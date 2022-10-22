@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Ambient Occlusion", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Ambient-Occlusion")]
+    [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Ambient-Occlusion")]
     public sealed class ScreenSpaceAmbientOcclusion : VolumeComponentWithQuality
     {
         /// <summary>
@@ -60,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         /// <summary>
-        /// Controls the influence of the ambient occlusion on the specular occlusion. 
+        /// Controls the influence of the ambient occlusion on the specular occlusion.
         /// </summary>
         [AdditionalProperty]
         public ClampedFloatParameter specularOcclusion = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);

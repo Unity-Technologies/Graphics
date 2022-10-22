@@ -4,9 +4,11 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ugui",
         "Unity.Mathematics",
+		"Unity.Collections",
         "Unity.Burst",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
         "Unity.Rendering.Denoising.Runtime",
+        "Unity.Timeline",
         "Unity.VisualEffectGraph.Runtime"
     ],
     "includePlatforms": [],
@@ -56,6 +58,11 @@
             "name": "com.unity.sensorsdk",
             "expression": "2.0.0",
             "define": "ENABLE_SENSOR_SDK"
+        },
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.0.0",
+            "define": "HDRP_HAS_TIMELINE"
         },
         {
             "name": "com.unity.rendering.denoising",

@@ -17,18 +17,18 @@ using UnityEngine.SceneManagement;
 public class HDRP_TestSettings : GraphicsTestSettings
 {
     public UnityEngine.Events.UnityEvent doBeforeTest;
-	
+
     [Tooltip("Sets the framerate to use when executing the tests. Setting 0 does not set any framerate.")]
     public int captureFramerate = 0;
-	
+
     [Tooltip("Sets the number of frames the framework needs to wait before executing the test.")]
     public int waitFrames = 0;
-	
+
     [Tooltip("When enabled, the framework waits for a specific frame multiple count before executing the test.")]
     public bool waitForFrameCountMultiple = false;
     [Tooltip("Sets the multiple frame count.")]
     public int frameCountMultiple = 8;
-	
+
     [Tooltip("When enabled, the tests handles XR compatibility.")]
     public bool xrCompatible = true;
 
@@ -44,6 +44,9 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     [Tooltip("RP Asset change is only effective after a frame is rendered.")]
     public bool forceCameraRenderDuringSetup = false;
+
+    [Tooltip("When enabled, the tests handle frame consistency for VFXs.")]
+    public bool containsVFX = false;
 
     void Awake()
     {

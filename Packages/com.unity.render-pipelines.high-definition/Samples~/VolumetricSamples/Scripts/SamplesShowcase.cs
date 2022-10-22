@@ -153,7 +153,7 @@ public class SamplesShowcaseEditor : Editor
         serializedObject.Update();
         currentIndex.intValue = index; //Send the new index value to the monobehaviour
         var sampleInfosElement = root.Q<VisualElement>("sampleInfosContainer");
-        string currentSampleText = samplesText.Count > index + 1 ? samplesText[index + 1] : ""; //Update description text, we put +1 because first paragraph is used for introduction 
+        string currentSampleText = samplesText.Count > index + 1 ? samplesText[index + 1] : ""; //Update description text, we put +1 because first paragraph is used for introduction
         CreateMarkdown(sampleInfosElement, currentSampleText, self.linkColor);
         serializedObject.ApplyModifiedProperties();
     }
@@ -228,9 +228,3 @@ public class SamplesShowcaseEditor : Editor
 
 }
 #endif
-
-
-
-
-
-

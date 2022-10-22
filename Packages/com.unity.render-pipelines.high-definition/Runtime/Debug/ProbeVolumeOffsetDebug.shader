@@ -11,35 +11,16 @@ Shader "Hidden/HDRP/ProbeVolumeOffsetDebug"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
-        #include "ProbeVolumeDebug.hlsl"
+        // Central render pipeline specific includes
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Debug/ProbeVolumeDebugBase.hlsl"
 
-        v2f vert(appdata v)
-        {
-            v2f o;
-
-            UNITY_SETUP_INSTANCE_ID(v);
-            UNITY_TRANSFER_INSTANCE_ID(v, o);
-
-            float3 offset = UNITY_ACCESS_INSTANCED_PROP(Props, _Offset).xyz;
-            float offsetLenSqr = dot(offset, offset);
-            if(offsetLenSqr <= 1e-6f)
-            {
-                DoCull(o);
-            }
-            else if(!ShouldCull(o))
-            {
-                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.x * _OffsetSize, v.vertex.y * _OffsetSize, v.vertex.z, 1.f));
-                o.vertex = mul(UNITY_MATRIX_VP, wsPos);
-                o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
-            }
-
-            return o;
-        }
-
-        float4 frag(v2f i) : SV_Target
-        {
-            return float4(0, 0, 1, 1);
-        }
+        #define PROBE_VOLUME_DEBUG_FUNCTION_OFFSET
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Debug/ProbeVolumeDebugFunctions.hlsl"
         ENDHLSL
 
         Pass

@@ -2,11 +2,13 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
+    [CustomEditor(typeof(Camera))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {

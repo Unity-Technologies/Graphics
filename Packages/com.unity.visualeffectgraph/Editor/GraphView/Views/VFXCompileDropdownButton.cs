@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
             m_ReinitPrewarmTime = m_PopupContent.Q<Slider>("prewarmTime");
             m_ReinitPrewarmTime.lowValue = 0;
             m_ReinitPrewarmTime.highValue = VFXViewPreference.authoringPrewarmMaxTime;
-            
+
             m_ReinitPrewarmTime.RegisterValueChangedCallback(evt =>
             {
                 m_ReinitPrewarmTimeField.SetValueWithoutNotify(m_ReinitPrewarmTime.value);

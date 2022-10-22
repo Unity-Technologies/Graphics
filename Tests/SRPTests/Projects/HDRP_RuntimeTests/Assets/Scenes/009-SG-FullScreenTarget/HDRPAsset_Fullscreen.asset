@@ -33,6 +33,9 @@ MonoBehaviour:
     renderingLayerMaskBuffer: 0
     supportWater: 0
     waterSimulationResolution: 128
+    supportWaterExclusion: 0
+    supportWaterDeformation: 0
+    deformationAtlasSize: 512
     waterCPUSimulation: 0
     supportDistortion: 1
     supportTransparentBackface: 1
@@ -64,6 +67,9 @@ MonoBehaviour:
     probeVolumeBlendingMemoryBudget: 128
     supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 1
+    supportProbeVolumeScenarios: 0
+    supportProbeVolumeScenarioBlending: 1
+    probeVolumeBlendingMemoryBudget: 128
     supportRayTracing: 0
     supportVFXRayTracing: 0
     supportedRayTracingMode: 3

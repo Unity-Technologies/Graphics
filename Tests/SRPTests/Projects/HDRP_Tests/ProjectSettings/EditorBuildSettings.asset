@@ -863,4 +863,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9932-ScreenCoordOverrideCustomPass.unity
     guid: 7dc226b1df302974099dea1b528277a7
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9940-BRG_Simple.unity
+    guid: 83354fd48bd3fbc4fb325e201d6b4dd5
   m_configObjects: {}

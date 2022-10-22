@@ -4,9 +4,6 @@
 #pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
 
-// Render clouds
-#pragma kernel RenderClouds
-
 // Trace to intermedaite
 #pragma kernel ReprojectClouds                      REPROJECT_CLOUDS=ReprojectClouds
 #pragma kernel ReprojectCloudsRejection             REPROJECT_CLOUDS=ReprojectCloudsRejection WITH_REJECTION
@@ -14,22 +11,19 @@
 #pragma kernel PreUpscaleCloudsSky
 
 // Intermediate to Full resolution
-#pragma kernel UpscaleAndCombineClouds_ColorRW      UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorRW CAN_RW_ON_COLOR_BUFFER
-#pragma kernel UpscaleAndCombineClouds_ColorCopy    UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorCopy
-#pragma kernel UpscaleAndCombineCloudsSky           UPSAMPLE_KERNEL_SKY=UpscaleAndCombineCloudsSky
+#pragma kernel UpscaleClouds UPSCALE_CLOUDS=UpscaleClouds
+#pragma kernel UpscaleCloudsPerceptual UPSCALE_CLOUDS=UpscaleCloudsPerceptual PERCEPTUAL_TRANSMITTANCE
+#pragma kernel UpscaleCloudsSky
 
 // Full resolution combination
-#pragma kernel CombineClouds_ColorRW                COMBINE_KERNEL=CombineClouds_ColorRW CAN_RW_ON_COLOR_BUFFER
-#pragma kernel CombineClouds_ColorCopy              COMBINE_KERNEL=CombineClouds_ColorCopy
-#pragma kernel CombineCloudsSky                     COMBINE_KERNEL_SKY=CombineCloudsSky
+#pragma kernel CombineClouds COMBINE_CLOUDS=CombineClouds
+#pragma kernel CombineCloudsPerceptual COMBINE_CLOUDS=CombineCloudsPerceptual PERCEPTUAL_TRANSMITTANCE
+#pragma kernel CombineCloudsSky
 
-// Shadows
-#pragma kernel ComputeVolumetricCloudsShadow
 #pragma kernel FilterVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
-#pragma multi_compile _ USE_INTERMEDIATE_BUFFER
 
 // #define WITHOUT_LDS
 // #pragma enable_d3d11_debug_symbols
@@ -51,6 +45,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsDenoising.hlsl"
 
 // Input textures
+TEXTURE2D_X(_CameraColorTexture);
 TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_VolumetricCloudsSourceDepth);
 TEXTURE2D_X(_MaxZMaskTexture);
@@ -63,7 +58,6 @@ TEXTURE2D_X(_HistoryVolumetricClouds1Texture);
 RW_TEXTURE2D_X(float, _DepthBufferRW);
 RW_TEXTURE2D_X(float, _HalfResDepthBufferRW);
 RW_TEXTURE2D_X(float4, _CloudsLightingTextureRW);
-RW_TEXTURE2D_X(float, _CloudsDepthTextureRW);
 RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
 
 [numthreads(8, 8, 1)]
@@ -96,143 +90,6 @@ void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupTh
 
     // Combine it with the current shift to define which half res depth should be used
     _HalfResDepthBufferRW[COORD_TEXTURE2D_X(intermediateCoord.xy)] = min(min(depth0, depth1), min(depth2, depth3));
-}
-
-CloudRay BuildRay(uint2 intermediateCoord, float integrationNoise)
-{
-    CloudRay ray;
-    ZERO_INITIALIZE(CloudRay, ray);
-
-    // Keep track of the integration noise
-    ray.integrationNoise = integrationNoise;
-
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
-    // Grab the depth value of the pixel
-    ray.depthValue = LOAD_TEXTURE2D_X(_VolumetricCloudsSourceDepth, intermediateCoord.xy).x;
-
-    // Flag is this sky pixel occluded by an object?
-    float isOccluded = ray.depthValue != UNITY_RAW_FAR_CLIP_VALUE ? 1.0 : 0.0;
-#else
-    ray.depthValue = UNITY_RAW_FAR_CLIP_VALUE;
-    // Flag is this sky pixel occluded by an object?
-    float isOccluded = 0.0;
-#endif
-
-    if (_RenderForSky)
-    {
-        // normalize to get the direction
-        ray.direction = GetCloudViewDirWS(_LowResolutionEvaluation ? intermediateCoord * 2 : intermediateCoord);
-
-        // Compute the max cloud ray length
-        ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
-    }
-    else
-    {
-        // Compute the world space position of the pixel (or at a virtual position is it the sky)
-        float3 pos = ComputeWorldSpacePosition((intermediateCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP);
-
-        // normalize to get the direction
-        ray.direction = normalize(pos);
-
-        // Compute the max cloud ray length
-        #ifdef LOCAL_VOLUMETRIC_CLOUDS
-            ray.maxRayLength = lerp(_ProjectionParams.z, length(pos), isOccluded);
-        #else
-            ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
-        #endif
-    }
-
-    // Compute the position of the point from which the ray will start
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
-    ray.originWS = _WorldSpaceCameraPos.xyz;
-#else
-    ray.originWS = float3(0, 0, 0);
-#endif
-
-    // Compute the distance to the center of the earth
-    ray.toEarthCenter = length(ray.originWS + float3(0, _EarthRadius, 0));
-
-    // Evaluate where the point is
-    // -2.0 means under the surface of the earth
-    // -1.0 means between the surface of the earth and the lower cloud bound
-    // 0.0 means inside the cloud domain
-    // 1.0 means above the cloud domain
-    if (ray.toEarthCenter < _EarthRadius)
-        ray.insideClouds = -2.0;
-    else if (ray.toEarthCenter <= (_LowestCloudAltitude + _EarthRadius))
-        ray.insideClouds = -1.0;
-    else if (ray.toEarthCenter > (_HighestCloudAltitude + _EarthRadius))
-        ray.insideClouds = 1.0f;
-    else
-        ray.insideClouds = 0.0;
-    return ray;
-}
-
-[numthreads(8, 8, 1)]
-void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(traceCoord.z);
-
-    // If this is bigger than the trace size, we are done
-    if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
-        return;
-
-#if defined(DISTANT_VOLUMETRIC_CLOUDS)
-    // Clear the cloud value
-    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(0.0, 0.0, 0.0, 1.0);
-
-    // Grab the depth 2x2 region just to be safe
-    float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, traceCoord.xy / _TraceScreenSize.xy * _RTHandleScale.xy);
-    // If there is any background pixel in the region we need to trace, otherwise we skip.
-    if (all(d != 1e10f) && _ValidMaxZMask)
-        return;
-#endif
-
-    // Depending on if we are in full res or not, use a different intermediate coord
-    uint2 intermediateCoord = traceCoord.xy; // Full resolution case
-    if (_LowResolutionEvaluation)
-    {
-        if (_EnableIntegration)
-        {
-            // Compute the half res coordinate that matches this thread (as we virtually do the computation in half res space)
-            int checkerBoardIndex = ComputeCheckerBoardIndex(traceCoord.xy, _SubPixelIndex);
-            intermediateCoord = traceCoord.xy * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
-        }
-        else
-            intermediateCoord = traceCoord.xy * 2;
-    }
-
-    // Given that the rendering resolution is not guaranteed to be an even number, we need to clamp to the intermediate resolution in this case
-    intermediateCoord = min(intermediateCoord, _IntermediateScreenSize.xy - 1);
-
-    // Compute the offset that shall be used (if any)
-    float offset = _EnableIntegration ? GetBNDSequenceSample(intermediateCoord, _AccumulationFrameIndex, 0) : 0.0;
-
-    // Build the ray we will use of the ray marching.
-    CloudRay ray = BuildRay(intermediateCoord, offset);
-
-    // Evaluate the cloud transmittance
-    VolumetricRayResult result = TraceVolumetricRay(ray);
-
-    // Apply a fast tonemap
-    result.inScattering = ApplyFastTonemapping(result.inScattering);
-
-    // output the result
-    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(result.inScattering, result.transmittance);
-
-    // Minimal distance to the clouds
-    float minimalDistance = min(result.meanDistance, ray.maxRayLength);
-
-    // If we are processing local clouds, we store the distance information as a depth, otherwise we just store the distance (for the fog).
-#if defined(LOCAL_VOLUMETRIC_CLOUDS)
-    // Compute the cloud depth
-    float cloudMinDistance = clamp(minimalDistance, _ProjectionParams.y, _ProjectionParams.z);
-    float cloudMinDepth = result.invalidRay ? ray.depthValue : ConvertCloudDepth(ray.direction * cloudMinDistance);
-    _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = cloudMinDepth;
-#else
-    // Output the cloud distance
-    _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.invalidRay ? ray.maxRayLength : max(minimalDistance, _ProjectionParams.y);
-#endif
 }
 
 [numthreads(8, 8, 1)]
@@ -575,11 +432,8 @@ CBUFFER_START(VolumetricCloudsUpscaleConstantBuffer)
     float2 _UpperScreenSize;
 CBUFFER_END
 
-// Input output camera color buffer
-#ifndef CAN_RW_ON_COLOR_BUFFER
-TEXTURE2D_X(_CameraColorTexture);
-#endif
-RW_TEXTURE2D_X(float4, _VolumetricCloudsUpscaleTextureRW);
+RW_TEXTURE2D_X(float4, _VolumetricCloudsLightingTextureRW);
+RW_TEXTURE2D_X(float, _VolumetricCloudsDepthTextureRW);
 
 void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 {
@@ -611,7 +465,7 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 }
 
 [numthreads(8, 8, 1)]
-void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
+void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
                             int groupIndex : SV_GroupIndex,
                             uint2 groupThreadId : SV_GroupThreadID,
                             uint2 groupId : SV_GroupID)
@@ -716,30 +570,25 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     float3 fogColor;
     float3 fogOpacity;
     EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
-#ifdef USE_INTERMEDIATE_BUFFER
-    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - (_CubicTransmittance ? currentClouds.a * currentClouds.a : currentClouds.a));
 
-    // Store the upscaled result only, composite in later pass.
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
-#else
-    // Read the color buffer
-#ifdef CAN_RW_ON_COLOR_BUFFER
-    float4 currentColor = _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
-#else
+#if defined(PERCEPTUAL_TRANSMITTANCE)
+    // Estimate the transmittance that shall be used
     float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
+    float finalTransmittance = EvaluateFinalTransmittance(currentColor.rgb, currentClouds.w);
+#else
+    float finalTransmittance = _CubicTransmittance ? currentClouds.a * currentClouds.a : currentClouds.a;
 #endif
 
-    // Estimate the transmittance that shall be used
-    float finalTransmittance = EvaluateFinalTransmittance(currentColor.rgb, currentClouds.w);
+    // Apply the atmospheric scattering to the clouds
     currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - finalTransmittance);
 
-    // Apply the transmittance
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * finalTransmittance + currentClouds.xyz, currentColor.a);
-#endif
+    // Store the upscaled result only, composite in later pass.
+    _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentClouds.xyz, finalTransmittance);
+    _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = cloudDepth;
 }
 
 [numthreads(8, 8, 1)]
-void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
+void UpscaleCloudsSky(uint3 finalCoord : SV_DispatchThreadID,
                             int groupIndex : SV_GroupIndex,
                             uint2 groupThreadId : SV_GroupThreadID,
                             uint2 groupId : SV_GroupID)
@@ -767,11 +616,11 @@ void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
     // Store the upscaled result only, composite in later pass.
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
+    _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
 
 [numthreads(8, 8, 1)]
-void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
+void COMBINE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
                             int groupIndex : SV_GroupIndex,
                             uint2 groupThreadId : SV_GroupThreadID,
                             uint2 groupId : SV_GroupID)
@@ -815,29 +664,29 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     cloudPosInput.positionWS = -viewDir * LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).z;
 #endif
 
+#if defined(PERCEPTUAL_TRANSMITTANCE)
+    // Estimate the transmittance that shall be used
+    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
+    float finalTransmittance = EvaluateFinalTransmittance(currentColor.rgb, currentClouds.w);
+#else
+    float finalTransmittance = _CubicTransmittance ? currentClouds.a * currentClouds.a : currentClouds.a;
+#endif
+
     // Compute the fog attenuation of the clouds
     float3 fogColor;
     float3 fogOpacity;
     EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
-    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - currentClouds.a);
 
-#ifdef USE_INTERMEDIATE_BUFFER
+    // Apply the fog to the clouds
+    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * finalTransmittance;
+
     // Store the upscaled result only, composite in later pass.
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
-#else
-    // Read the color buffer
-#ifdef CAN_RW_ON_COLOR_BUFFER
-    float4 currentColor = _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
-#else
-    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
-#endif
-    // If this is a background pixel, we want the cloud value, otherwise we do not.
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
-#endif
+    _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentClouds.xyz, finalTransmittance);
+    _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = cloudsDepth;
 }
 
 [numthreads(8, 8, 1)]
-void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
+void CombineCloudsSky(uint3 finalCoord : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
 
@@ -853,85 +702,7 @@ void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
     currentClouds.w = saturate(currentClouds.w);
 
     // Store the upscaled result only, composite in later pass.
-    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
-}
-
-RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
-
-[numthreads(8, 8, 1)]
-void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoords.z);
-
-    if (currentCoords.x == 0 || currentCoords.y == 0 || ((int)currentCoords.x) == (_ShadowCookieResolution - 1) || ((int)currentCoords.y) == (_ShadowCookieResolution - 1))
-    {
-        _VolumetricCloudsShadowRW[currentCoords.xy] = _ShadowFallbackValue;
-        return;
-    }
-
-    // First we compute the location of the shadow plane in the planet coordinate system
-    float3 shadowPlaneOrigin = _SunDirection.xyz * (_HighestCloudAltitude + _EarthRadius);
-    float3 shadowPlaneNormal = -_SunDirection.xyz;
-
-    // Here the plane is guaranteed to intersect, we don't need to test the result
-    float t;
-    IntersectPlane(0, _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
-
-    // Compute the position of the shadow plane
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.z) + t * _SunDirection.xyz;
-#else
-    float3 shadowCookieCenterWS = t * _SunDirection.xyz;
-#endif
-
-    // Compute the normalized coordinate on the shadow plane
-    float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);
-
-    // Compute the origin of the ray properties  in the planet space
-    float3 rayOriginWS = (normalizedCoord.x * _SunRight.xyz * _ShadowRegionSize.x + normalizedCoord.y * _SunUp.xyz * _ShadowRegionSize.y) + shadowCookieCenterWS;
-    float3 rayDirection = -_SunDirection.xyz;
-
-    // Compute the attenuation
-    float transmittance = 1.0f;
-
-    // Intersect the outer sphere
-    float2 intersectionO, intersectionI;
-    int numIntersectionO = RaySphereIntersection(rayOriginWS, rayDirection, _HighestCloudAltitude + _EarthRadius, intersectionO);
-    int numIntersectionI = RaySphereIntersection(rayOriginWS, rayDirection, _LowestCloudAltitude + _EarthRadius, intersectionI);
-    if (numIntersectionO != 0 && numIntersectionI != 0)
-    {
-        // Compute the integration range
-        float startDistance = intersectionO.x;
-        float totalDistance = intersectionI.x - intersectionO.x;
-
-        float stepSize = totalDistance / 16;
-
-        for (int i = 0; i < 16; ++i)
-        {
-            // Compute the sphere intersection position
-            float3 positionWS = rayOriginWS + rayDirection * (intersectionO.x + stepSize * i);
-
-            // Get the coverage at intersection point
-            CloudCoverageData cloudCoverageData;
-            GetCloudCoverageData(positionWS, cloudCoverageData);
-
-            // Compute the cloud density
-            CloudProperties cloudProperties;
-            EvaluateCloudProperties(positionWS, 0.0, 0.0, true, true, cloudProperties);
-
-            // Apply the camera fade it to match the clouds perceived by the camera
-            cloudProperties.density *= DensityFadeValue(length(positionWS - _WorldSpaceShadowCenter.xyz));
-
-            if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
-            {
-                // Apply the extinction
-                const float3 currentStepExtinction = exp(-_ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
-                transmittance *= Luminance(currentStepExtinction);
-            }
-        }
-    }
-
-    _VolumetricCloudsShadowRW[currentCoords.xy] = lerp(1.0 - _ShadowIntensity, 1.0, transmittance);
+    _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
 
 // LDS used to pre-fetch the neighborhood data a 8x8 region with a one pixel border (10x10)
@@ -964,6 +735,8 @@ uint ShadowOffsetToLDSAdress(uint2 groupThreadId, int2 offset)
     uint2 tapAddress = (uint2)((int2)(groupThreadId + 1) + offset);
     return clamp((uint)(tapAddress.x) % 10 + tapAddress.y * 10, 0, 99);
 }
+
+RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
 
 [numthreads(8, 8, 1)]
 void FilterVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, int groupIndex : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)

@@ -83,9 +83,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
-    [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
+    [VolumeComponentMenu("Sky/Cloud Layer")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
+    [HDRPHelpURL("Override-Cloud-Layer")]
     public partial class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>

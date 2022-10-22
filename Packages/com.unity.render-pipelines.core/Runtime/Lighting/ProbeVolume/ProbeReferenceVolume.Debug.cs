@@ -151,11 +151,11 @@ namespace UnityEngine.Rendering
         {
             if (parameters.supportsRuntimeDebug)
             {
-                m_DebugMesh = parameters.probeDebugMesh;
+                m_DebugMesh = DebugShapes.instance.BuildCustomSphereMesh(0.5f, 9, 8); // (longSubdiv + 1) * latSubdiv + 2 = 82
                 m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
                 m_DebugMaterial.enableInstancing = true;
 
-                m_DebugOffsetMesh = parameters.offsetDebugMesh;
+                m_DebugOffsetMesh = Resources.GetBuiltinResource<Mesh>("pyramid.fbx");
                 m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
                 m_DebugOffsetMaterial.enableInstancing = true;
                 m_DebugFragmentationMaterial = CoreUtils.CreateEngineMaterial(parameters.fragmentationDebugShader);

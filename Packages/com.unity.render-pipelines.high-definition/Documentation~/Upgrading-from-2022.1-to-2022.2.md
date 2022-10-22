@@ -4,7 +4,7 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Directional Light Surface Texture
 
-When you use Physically Based Sky, you can assign a surface Texture to Directional lights in the **Celestial Body** section. The orientation of the texture was incorrect, in HDRP 14 it is fixed by flipping UVs on the x axis. 
+When you use Physically Based Sky, you can assign a surface Texture to Directional lights in the **Celestial Body** section. The orientation of the texture was incorrect, in HDRP 14 it is fixed by flipping UVs on the x axis.
 
 ## XR
 

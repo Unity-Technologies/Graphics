@@ -196,7 +196,7 @@ class EditorTests
         //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.GetWindQuality
         //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.UpgradeWindQuality
         //  UnityEditor.Rendering.SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer
-        //  UnityEditor.Rendering.Universal.UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer 
+        //  UnityEditor.Rendering.Universal.UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer
         Assert.DoesNotThrow(() => AssetDatabase.ImportAsset(STv7AssetPath));
     }
 }

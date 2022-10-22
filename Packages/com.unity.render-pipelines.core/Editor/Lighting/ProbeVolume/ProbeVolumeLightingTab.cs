@@ -98,6 +98,8 @@ namespace UnityEngine.Rendering
 
         public static ProbeVolumeLightingTab instance;
 
+        public static bool singleSceneMode => instance?.m_SingleSceneMode ?? true;
+
 
         Vector2 m_ScrollPosition = Vector2.zero;
         bool m_SingleSceneMode = true;
@@ -159,8 +161,6 @@ namespace UnityEngine.Rendering
             titleContent = new GUIContent("Probe Volumes");
             priority = 1;
 
-            k_Foldouts = new(k_ExpandableDefault, "APV");
-
             RefreshSceneAssets();
         }
 
@@ -168,10 +168,10 @@ namespace UnityEngine.Rendering
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                string apvDisabledErrorMsg = "The Probe Volume is not enabled.";
+                string apvDisabledErrorMsg = "Probe Volumes are not enabled.";
                 var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                 if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
-                    apvDisabledErrorMsg += " Make sure it is enabled in the HDRP asset in use.";
+                    apvDisabledErrorMsg += " Make sure Light Probe System is set to Probe Volumes in the HDRP asset in use.";
 
                 EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
                 EditorGUILayout.Space();
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering
                     UseTemporaryBakingSet(activeScene.GetGUID(), activeSet ? activeSet.Clone() : null);
             }
 
-            using (new EditorGUI.DisabledScope(!m_Initialized))
+            using (new EditorGUI.DisabledScope(!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP))
             {
                 m_ScrollPosition = EditorGUILayout.BeginScrollView(m_ScrollPosition);
 
@@ -295,6 +295,14 @@ namespace UnityEngine.Rendering
 
             if (ButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback, GUILayout.Width(Styles.lightingButtonWidth)))
             {
+                // Make sure APV is enabled
+                var sceneData = ProbeReferenceVolume.instance.sceneData;
+                if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP || sceneData == null)
+                {
+                    Lightmapping.BakeAsync();
+                    return;
+                }
+
                 bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
                 if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
                             "Do you whish to add a Probe Volume to the Active Scene?", "Yes", "No"))
@@ -315,7 +323,6 @@ namespace UnityEngine.Rendering
                 SaveTempBakingSetIfNeeded();
 
                 // Exclude scenes unchecked from the UI and scenes from other baking sets
-                var sceneData = ProbeReferenceVolume.instance.sceneData;
                 ProbeGIBaking.partialBakeSceneList = new();
                 for (int i = 0; i < SceneManager.sceneCount; i++)
                 {
@@ -330,7 +337,7 @@ namespace UnityEngine.Rendering
                     ProbeGIBaking.partialBakeSceneList = null;
 
                 if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.lightingScenarios.Contains(sceneData.lightingScenario))
-                    sceneData.SetActiveScenario(activeSet.lightingScenarios[0]);
+                    sceneData.SetActiveScenario(activeSet.lightingScenarios[0], false);
 
                 Lightmapping.BakeAsync();
             }
@@ -548,6 +555,7 @@ namespace UnityEngine.Rendering
             var newSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
             newSet.name = "New Baking Set";
             newSet.singleSceneMode = false;
+            newSet.settings.SetDefaults();
             ProjectWindowUtil.CreateAsset(newSet, System.IO.Path.Combine(path, "New Baking Set.asset").Replace('\\', '/'));
             return newSet;
         }
@@ -690,7 +698,7 @@ namespace UnityEngine.Rendering
                     rect.yMax--;
                     SplitRectInThree(rect, out var sceneRect, out var statusRect, out var bakeRect);
 
-                    var scene = FindSceneData(activeSet.sceneGUIDs[index]);
+                    var scene = index < activeSet.sceneGUIDs.Count ? FindSceneData(activeSet.sceneGUIDs[index]) : default;
                     Scene scene2 = SceneManager.GetSceneByPath(scene.GetPath());
                     bool isLoaded = scene2.isLoaded;
                     bool isActive = SceneManager.GetActiveScene() == scene2;
@@ -709,7 +717,7 @@ namespace UnityEngine.Rendering
                         bakeRect.width = 21;
 
                         bool bake = true;
-                        if (sceneData.SceneHasProbeVolumes(scene.guid))
+                        if (scene.guid != null && sceneData.SceneHasProbeVolumes(scene.guid))
                         {
                             EditorGUI.BeginChangeCheck();
                             EditorGUI.LabelField(bakeRect, Styles.bakeBox); // Show a tooltip on the checkbox
@@ -730,7 +738,7 @@ namespace UnityEngine.Rendering
                             content = Styles.iconEnableAll;
                             scenesToEnable.Add(scene);
                         }
-                        if (!isLoaded)
+                        if (!isLoaded && scene.guid != null)
                         {
                             content = Styles.iconLoadForBake;
                             scenesForBake.Add(scene);
@@ -831,7 +839,7 @@ namespace UnityEngine.Rendering
 
                     // If we load a new scene that doesn't have the current scenario, change it
                     if (!set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
-                        ProbeReferenceVolume.instance.lightingScenario = set.lightingScenarios[0];
+                        ProbeReferenceVolume.instance.sceneData.SetActiveScenario(set.lightingScenarios[0], false);
                 }
             }
 
@@ -937,6 +945,9 @@ namespace UnityEngine.Rendering
                 if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
                     contextMenuCallback(contextMenuRect);
             }
+
+            if (k_Foldouts == null)
+                k_Foldouts = new(k_ExpandableDefault, "APV");
 
             bool foldout = title ?
                 (bool)k_FoldoutTitlebar.Invoke(null, new object[] { labelRect, label, k_Foldouts[expandable], true }) :
@@ -1120,7 +1131,7 @@ namespace UnityEngine.Rendering
                     {
                         var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(probeVolume.gameObject.scene);
                         if (profile != null)
-                            return (profile.maxSubdivision - 1, profile.minDistanceBetweenProbes);
+                            return (profile.maxSubdivision, profile.minDistanceBetweenProbes);
                     }
                 }
 

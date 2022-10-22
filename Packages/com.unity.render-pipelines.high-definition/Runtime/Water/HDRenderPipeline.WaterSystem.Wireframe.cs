@@ -31,11 +31,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render the water surface
                 WaterRenderingParameters parameters = PrepareWaterRenderingParameters(hdCamera, settings, currentWater, surfaceIdx, surfaceIdx == m_UnderWaterSurfaceIndex);
 
-                // Render the water surface (will be rendered as wireframe because of the hidden render state)
+                // Grab the gpu buffers of the surface
+                WaterSimulationResourcesGPU gpuBuffers = currentWater.simulation.gpuBuffers;
 
-                RTHandle causticsBuffer = currentWater.simulation.gpuBuffers.causticsBuffer != null ? currentWater.simulation.gpuBuffers.causticsBuffer : TextureXR.GetBlackTexture();
+                // Caustics buffer
+                RTHandle causticsBuffer = gpuBuffers.causticsBuffer != null ? gpuBuffers.causticsBuffer : TextureXR.GetBlackTexture();
+
+                // Render the water surface (will be rendered as wireframe because of the hidden render state)
                 RenderWaterSurface(cmd,
-                    currentWater.simulation.gpuBuffers.displacementBuffer, currentWater.simulation.gpuBuffers.additionalDataBuffer, causticsBuffer, TextureXR.GetBlackTexture(),
+                    gpuBuffers.displacementBuffer, gpuBuffers.additionalDataBuffer, causticsBuffer,
+                    Texture2D.blackTexture, Texture2D.blackTexture,
+                    TextureXR.GetBlackTexture(),
                     null, null,
                     m_WaterCameraHeightBuffer, m_WaterPatchDataBuffer, m_WaterIndirectDispatchBuffer, m_WaterCameraFrustrumBuffer, parameters);
             }

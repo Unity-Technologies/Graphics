@@ -38,6 +38,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float _MinMotionVector;
             float4 _MotionVecIntensityParams;
             float _FogVolumeOverdrawMaxValue;
+            int _VolumetricCloudsDebugMode;
             CBUFFER_END
 
             #define _MotionVecIntensityScale _MotionVecIntensityParams.x
@@ -217,7 +218,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VOLUMETRIC_CLOUDS)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-                    return float4(color.xyz * color.w, 1.0);
+                    return (_VolumetricCloudsDebugMode == 0) ? float4(color.xyz * color.w, 1.0) : Linear01Depth(color.x, _ZBufferParams);
                 }
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VOLUMETRIC_CLOUDS_SHADOW)
                 {

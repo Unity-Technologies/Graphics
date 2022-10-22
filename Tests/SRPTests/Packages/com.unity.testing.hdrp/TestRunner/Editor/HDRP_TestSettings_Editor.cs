@@ -24,6 +24,7 @@ public class HDRP_TestSettings_Editor : Editor
     SerializedProperty checkMemoryAllocation;
     SerializedProperty renderPipelineAsset;
     SerializedProperty forceCameraRenderDuringSetup;
+    SerializedProperty containsVFX;
     SerializedProperty doBeforeTest;
 
     void OnEnable()
@@ -39,6 +40,7 @@ public class HDRP_TestSettings_Editor : Editor
         checkMemoryAllocation = serializedObject.FindProperty("checkMemoryAllocation");
         renderPipelineAsset = serializedObject.FindProperty("renderPipelineAsset");
         forceCameraRenderDuringSetup = serializedObject.FindProperty("forceCameraRenderDuringSetup");
+        containsVFX = serializedObject.FindProperty("containsVFX");
         doBeforeTest = serializedObject.FindProperty("doBeforeTest");
     }
 
@@ -48,9 +50,9 @@ public class HDRP_TestSettings_Editor : Editor
         EditorGUILayout.PropertyField(captureFramerate);
         EditorGUILayout.PropertyField(waitFrames);
         EditorGUILayout.PropertyField(ImageComparisonSettings);
-		
-		
-		
+
+
+
         EditorGUILayout.PropertyField(xrCompatible);
         if(xrCompatible.boolValue)
         {
@@ -67,13 +69,14 @@ public class HDRP_TestSettings_Editor : Editor
             EditorGUI.indentLevel--;
         }
 
-		
+
         EditorGUILayout.PropertyField(checkMemoryAllocation);
         EditorGUILayout.PropertyField(renderPipelineAsset);
         EditorGUILayout.PropertyField(forceCameraRenderDuringSetup);
-		
+
+        EditorGUILayout.PropertyField(containsVFX);
         EditorGUILayout.PropertyField(doBeforeTest);
-		
+
         if(typedTarget.ImageComparisonSettings.UseBackBuffer)
         {
             targetResolution = GetResolutionFromBackBufferResolutionEnum(typedTarget.ImageComparisonSettings.ImageResolution.ToString());
@@ -82,7 +85,7 @@ public class HDRP_TestSettings_Editor : Editor
         {
             targetResolution = new Vector2(typedTarget.ImageComparisonSettings.TargetWidth, typedTarget.ImageComparisonSettings.TargetHeight);
         }
-			
+
         liveViewSize = GUILayout.Toggle(liveViewSize, "When enabled, Game View resolution is updated live.");
 
         if (GUILayout.Button("Set Game View Size") || liveViewSize && (prevWidth != targetResolution.x || prevHeight != targetResolution.y))
@@ -103,10 +106,10 @@ public class HDRP_TestSettings_Editor : Editor
 
             UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
         }
-		
+
         serializedObject.ApplyModifiedProperties();
     }
-	
+
     public Vector2 GetResolutionFromBackBufferResolutionEnum(string resolution)
     {
         string[] resolutionArray = resolution.ToString().Split('w')[1].Split('h');

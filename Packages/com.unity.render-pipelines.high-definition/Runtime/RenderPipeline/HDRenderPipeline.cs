@@ -169,6 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
         ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
+        ShaderTagId[] m_WaterStencilTagNames = { HDShaderPassNames.s_WaterStencilTagName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -281,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_AssetSupportsRayTracing = false;
 
         // Flag that defines if ray tracing is supported by the current asset and platform
-        // Note: this will include whether resources are available or not because we can be in a state where the asset was not included in the build and so the the resources were stripped. 
+        // Note: this will include whether resources are available or not because we can be in a state where the asset was not included in the build and so the the resources were stripped.
         bool m_RayTracingSupported = false;
 
         // Flag that defines if VFX ray tracing is supported by the current asset and platform
@@ -477,10 +478,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
-                    probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
-                    offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
@@ -854,8 +853,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            CoreUtils.SafeRelease(m_EmptyIndexBuffer);
-            m_EmptyIndexBuffer = null;
+            ProbeVolumeLighting.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
@@ -2259,7 +2257,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
-                BindAPVRuntimeResources(cmd, hdCamera);
+                ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,7 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProfileId.VolumetricClouds,
             HDProfileId.VolumetricCloudsTrace,
             HDProfileId.VolumetricCloudsReproject,
-            HDProfileId.VolumetricCloudsUpscaleAndCombine,
+            HDProfileId.VolumetricCloudsUpscale,
+            HDProfileId.VolumetricCloudsCombine,
             HDProfileId.RenderDeferredLightingCompute,
             HDProfileId.ForwardOpaque,
             HDProfileId.ForwardTransparent,

@@ -95,12 +95,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Converts an angle to a 2d direction
-        static internal Vector2 OrientationToDirection(float orientation)
+        static internal float2 OrientationToDirection(float orientation)
         {
             float orientationRad = orientation * Mathf.Deg2Rad;
             float directionX = Mathf.Cos(orientationRad);
             float directionY = Mathf.Sin(orientationRad);
-            return new Vector2(directionX, directionY);
+            return new float2(directionX, directionY);
         }
 
 
@@ -118,9 +118,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return WaterConsts.k_MaximumAmplitudeTable[tapIndex];
         }
 
+        static internal float NormalizeAngle(float degrees)
+        {
+            float angle = degrees % 360.0f;
+            return angle < 0.0 ? angle + 360.0f : angle;
+        }
+
         static internal float EvaluateMaxAmplitude(float patchSize, float windSpeed)
         {
-            // Convert the position from uv to floating pixel coords (for the bilinear interpolation)
+            // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
             Vector2 uv = new Vector2(windSpeed / WaterConsts.k_SwellMaximumWindSpeed, Mathf.Clamp((patchSize - 25.0f) / 4975.0f, 0.0f, 1.0f));
             float2 tapCoord = new float2(uv.x * (WaterConsts.k_TableResolution - 1), uv.y * (WaterConsts.k_TableResolution - 1));
             int2 pixelCoord = FloorCoordinate(tapCoord);
@@ -136,15 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float i0 = lerp(p0, p1, fract.x);
             float i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);
-        }
-
-        // Function that applies a profile to the scattering color to make the edition range linear
-        static internal Color RemapScatteringColor(Color scatteringColor)
-        {
-            float h, s, v;
-            Color.RGBToHSV(scatteringColor, out h, out s, out v);
-            v *= v;
-            return Color.HSVToRGB(h, s, v);
         }
 
         // Function that returns a mip offset (for caustics) based on the simulation resolution
@@ -198,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new float4(hashed.x, hashed.y, hashed.z, hashed.w) / (float)0xffffffffU;
         }
 
-        static void SetupWaterShaderKeyword(CommandBuffer cmd, int bandCount)
+        static void SetupWaterShaderKeyword(CommandBuffer cmd, int bandCount, bool localCurrent)
         {
             if (bandCount == 1)
             {
@@ -218,6 +215,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", false);
                 CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", true);
             }
+
+            CoreUtils.SetKeyword(cmd, "WATER_LOCAL_CURRENT", localCurrent);
+        }
+
+        static void ResetWaterShaderKeyword(CommandBuffer cmd)
+        {
+            CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", false);
+            CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", false);
+            CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", false);
+            CoreUtils.SetKeyword(cmd, "WATER_LOCAL_CURRENT", false);
         }
 
         static internal int EvaluateBandCount(WaterSurfaceType surfaceType, bool ripplesOn)
@@ -266,6 +273,56 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Offset position of the patch
             center = float2(signX * (offsets[absX] * centerGridSize + size.x * 0.5f), signY * (offsets[absY] * centerGridSize + size.y * 0.5f));
+        }
+
+        static void DrawInstancedQuadsCPU(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
+        {
+            int radius = (int)parameters.waterRenderingCB._WaterLODCount - 1;
+            float gridSize = parameters.waterRenderingCB._GridSize.x;
+            Vector4 patchOffset = parameters.waterRenderingCB._PatchOffset;
+            for (int y = -radius; y <= radius; ++y)
+            {
+                for (int x = -radius; x <= radius; ++x)
+                {
+                    // Compute the grid center and size of this patch
+                    float2 center;
+                    float2 size;
+                    ComputeGridBounds(x, y, gridSize, out center, out size);
+
+                    // Propagate the data to the constant buffer
+                    parameters.waterRenderingCB._GridSize.Set(size.x, size.y);
+                    parameters.waterRenderingCB._PatchOffset.Set(patchOffset.x + center.x, patchOffset.y, patchOffset.z + center.y, 0.0f);
+                    ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
+
+                    // Draw the target patch
+                    cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, parameters.waterMaterial, 0, passIndex, parameters.mbp);
+                }
+            }
+        }
+
+        static void DrawMeshRenderers(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
+        {
+            int numMeshRenderers = parameters.meshRenderers.Count;
+            for (int meshRenderer = 0; meshRenderer < numMeshRenderers; ++meshRenderer)
+            {
+                MeshRenderer currentRenderer = parameters.meshRenderers[meshRenderer];
+                if (currentRenderer != null)
+                {
+                    parameters.waterRenderingCB._WaterCustomMeshTransform = currentRenderer.transform.localToWorldMatrix;
+                    parameters.waterRenderingCB._WaterCustomMeshTransform_Inverse = currentRenderer.transform.worldToLocalMatrix;
+                    ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
+
+                    MeshFilter filter;
+                    currentRenderer.TryGetComponent(out filter);
+                    if (filter != null)
+                    {
+                        Mesh mesh = filter.sharedMesh;
+                        int numSubMeshes = mesh.subMeshCount;
+                        for (int subMeshIdx = 0; subMeshIdx < numSubMeshes; ++subMeshIdx)
+                            cmd.DrawMesh(mesh, Matrix4x4.identity, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
+                    }
+                }
+            }
         }
     }
 }

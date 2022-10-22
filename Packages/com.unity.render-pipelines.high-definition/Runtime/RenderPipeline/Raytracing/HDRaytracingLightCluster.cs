@@ -580,6 +580,32 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightDataGPUArray.SetData(m_LightDataCPUArray);
         }
 
+        internal const int k_MaxPlanarReflectionsOnScreen = 16;
+        internal const int k_MaxCubeReflectionsOnScreen = 64;
+        EnvLightReflectionDataRT m_EnvLightReflectionDataRT = new EnvLightReflectionDataRT();
+
+        unsafe void SetPlanarReflectionDataRT(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset, ref Vector3 capturedForwardWS)
+        {
+            Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
+
+            for (int j = 0; j < 16; ++j)
+                m_EnvLightReflectionDataRT._PlanarCaptureVPRT[index * 16 + j] = vp[j];
+
+            for (int j = 0; j < 4; ++j)
+                m_EnvLightReflectionDataRT._PlanarScaleOffsetRT[index * 4 + j] = scaleOffset[j];
+
+            for (int j = 0; j < 3; ++j)
+                m_EnvLightReflectionDataRT._PlanarCaptureForwardRT[index * 4 + j] = capturedForwardWS[j];
+        }
+
+        unsafe void SetCubeReflectionDataRT(int index, ref Vector4 scaleOffset)
+        {
+            Debug.Assert(index < k_MaxCubeReflectionsOnScreen);
+
+            for (int j = 0; j < 4; ++j)
+                m_EnvLightReflectionDataRT._CubeScaleOffsetRT[index * 4 + j] = scaleOffset[j];
+        }
+
         void BuildEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights lights)
         {
             int totalReflectionProbes = lights.reflectionProbeArray.Count;
@@ -599,15 +625,29 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnvLightDataCPUArray.Clear();
             ProcessedProbeData processedProbe = new ProcessedProbeData();
 
+            int fetchIndex;
+            Vector4 scaleOffset;
+            Matrix4x4 vp;
+            Vector3 capturedForwardWS;
+            EnvLightData envLightData = new EnvLightData();
+
             // Build the data for every light
             for (int lightIdx = 0; lightIdx < lights.reflectionProbeArray.Count; ++lightIdx)
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
 
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp, out capturedForwardWS);
 
-                var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
+                switch (processedProbe.hdProbe)
+                {
+                    case PlanarReflectionProbe planarProbe:
+                        SetPlanarReflectionDataRT(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
+                        break;
+                    case HDAdditionalReflectionData reflectionData:
+                        SetCubeReflectionDataRT(fetchIndex, ref scaleOffset);
+                        break;
+                };
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -821,6 +861,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void BindLightClusterData(CommandBuffer cmd)
         {
+            ConstantBuffer.PushGlobal(cmd, m_EnvLightReflectionDataRT, HDShaderIDs._EnvLightReflectionDataRT);
+
             cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, GetCluster());
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, GetLightDatas());
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatasRT, GetEnvLightDatas());

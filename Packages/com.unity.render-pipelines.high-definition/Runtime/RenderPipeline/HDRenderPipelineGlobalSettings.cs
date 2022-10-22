@@ -734,7 +734,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (apvScenesData == null)
                 apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
 
-
             apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
             return apvScenesData;
         }

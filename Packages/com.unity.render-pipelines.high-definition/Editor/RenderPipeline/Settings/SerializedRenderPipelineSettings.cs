@@ -29,9 +29,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
+
+        // Water
         public SerializedProperty supportWater;
         public SerializedProperty waterSimulationResolution;
+        public SerializedProperty supportWaterDeformation;
+        public SerializedProperty deformationAtlasSize;
+        public SerializedProperty supportWaterExclusion;
         public SerializedProperty waterCPUSimulation;
+
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
@@ -102,6 +108,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Water data
             supportWater = root.Find((RenderPipelineSettings s) => s.supportWater);
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
+            supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
+            deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
+            supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
             waterCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterCPUSimulation);
 
             supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);

@@ -127,9 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
-                supportWater = false,
-                waterSimulationResolution = WaterSimulationResolution.Medium128,
-                waterCPUSimulation = false,
+
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -146,6 +144,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
                 lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
                 lightSettings = LightSettings.NewDefault(),
+
+                // Water Properties
+                supportWater = false,
+                waterSimulationResolution = WaterSimulationResolution.Medium128,
+                supportWaterDeformation = false,
+                deformationAtlasSize = WaterDeformationAtlasSize.AtlasSize512,
+                supportWaterExclusion = false,
+                waterCPUSimulation = false,
 
                 supportRayTracing = false,
                 supportVFXRayTracing = false,
@@ -241,10 +247,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportLightLayers;
         /// <summary>Enable rendering layer mask buffer.</summary>
         public bool renderingLayerMaskBuffer;
+
+        // Water
         /// <summary>Support Water Surfaces.</summary>
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
         public WaterSimulationResolution waterSimulationResolution;
+        /// <summary>Support Water Surfaces deformation.</summary>
+        public bool supportWaterExclusion;
+        /// <summary>Support Water Surfaces exclusion.</summary>
+        public bool supportWaterDeformation;
+        /// <summary>Defines the resolution of the deformer atlas.</summary>
+        public WaterDeformationAtlasSize deformationAtlasSize;
         /// <summary>Enable water CPU simulation.</summary>
         public bool waterCPUSimulation;
 

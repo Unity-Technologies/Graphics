@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering
             ProbeReferenceVolume.instance.globalBounds = globalBounds;
         }
 
-        static void SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
+        static bool SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
         {
             // We need to make sure all scenes we are baking have the same profile. The same should be done for the baking settings, but we check only profile.
             // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
@@ -376,7 +376,12 @@ namespace UnityEngine.Rendering
                 var data = perSceneData[i];
                 var scene = data.gameObject.scene;
                 var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
-                Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
+
+                if (profile == null)
+                {
+                    Debug.LogError($"Scene '{scene.name}' does not belong to any Baking Set. Please add it to a Baking Set in the Probe Volumes tab of the Lighting Window.");
+                    return false;
+                }
 
                 // In case a scene is duplicated, we need to clear references to original asset
                 if (data.sceneGUID != data.gameObject.scene.GetGUID())
@@ -391,11 +396,11 @@ namespace UnityEngine.Rendering
                     m_BakingProfile = profile;
                     m_BakingSettings = profile.settings;
                 }
-                else
-                {
-                    Debug.Assert(m_BakingProfile.IsEquivalent(profile));
-                }
+                else if (!m_BakingProfile.IsEquivalent(profile))
+                    return false;
             }
+
+            return true;
         }
 
         static void EnsurePerSceneDataInOpenScenes()
@@ -488,7 +493,8 @@ namespace UnityEngine.Rendering
 
             currentBakingState = BakingStage.Started;
 
-            SetBakingContext(sceneDataList);
+            if (!SetBakingContext(sceneDataList))
+                return;
 
             if (isFreezingPlacement)
             {

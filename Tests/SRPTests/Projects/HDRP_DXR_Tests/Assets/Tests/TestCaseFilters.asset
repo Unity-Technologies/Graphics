@@ -47,6 +47,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 9fc75d906f08e784ab1183b8153659f0, type: 3}
     - {fileID: 102900000, guid: 59b393015a21d114d908a93adc455494, type: 3}
     - {fileID: 102900000, guid: 80273b12646e091409e2665bd76196ff, type: 3}
+    - {fileID: 102900000, guid: 02397f4078a0d654d8441ef84f750cc5, type: 3}
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4

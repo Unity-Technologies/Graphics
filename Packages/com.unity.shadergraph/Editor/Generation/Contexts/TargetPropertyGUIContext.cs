@@ -14,8 +14,11 @@ namespace UnityEditor.ShaderGraph
 
         public int globalIndentLevel { get; set; } = 0;
 
-        public TargetPropertyGUIContext()
+        public readonly Action graphValidation;
+
+        public TargetPropertyGUIContext(Action graphValidationCallback)
         {
+            graphValidation = graphValidationCallback;
         }
 
         public void AddProperty<T>(string label, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)

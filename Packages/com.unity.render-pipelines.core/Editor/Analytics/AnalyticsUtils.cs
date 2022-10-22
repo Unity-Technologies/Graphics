@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering
                         continue;
 
                     var valueCurrent = current != null ? field.GetValue(current) : null;
-                    
+
                     if (t == typeof(string))
                     {
                         var stringCurrent = (string)valueCurrent;

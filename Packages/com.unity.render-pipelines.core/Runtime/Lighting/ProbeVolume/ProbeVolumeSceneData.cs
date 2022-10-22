@@ -51,11 +51,13 @@ namespace UnityEngine.Rendering
             public List<string> lightingScenarios = new List<string>();
         }
 
+#if UNITY_EDITOR
         [SerializeField, FormerlySerializedAs("serializedBakingSets")] List<BakingSet> m_ObsoleteSerializedBakingSets;
+#endif
 
         [SerializeField] List<SerializableBoundItem> serializedBounds;
         [SerializeField] List<SerializableHasPVItem> serializedHasVolumes;
-        [SerializeField] List<ProbeVolumeBakingSet> serializedBakingSets;
+        [SerializeField] List<ProbeVolumeBakingSet> bakingSets;
 
         internal Object parentAsset = null;
         internal string parentSceneDataPropertyName;
@@ -72,7 +74,7 @@ namespace UnityEngine.Rendering
         internal string otherScenario => m_OtherScenario;
         internal float scenarioBlendingFactor => m_ScenarioBlendingFactor;
 
-        internal void SetActiveScenario(string scenario)
+        internal void SetActiveScenario(string scenario, bool verbose = true)
         {
             if (!ProbeReferenceVolume.instance.supportLightingScenarios)
             {
@@ -88,7 +90,7 @@ namespace UnityEngine.Rendering
             m_ScenarioBlendingFactor = 0.0f;
 
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario, verbose);
 
             if (ProbeReferenceVolume.instance.enableScenarioBlending)
             {
@@ -129,7 +131,7 @@ namespace UnityEngine.Rendering
             if (scenarioChanged)
             {
                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                    data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+                    data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario, true);
             }
 
             ProbeReferenceVolume.instance.ScenarioBlendingChanged(scenarioChanged);
@@ -155,7 +157,17 @@ namespace UnityEngine.Rendering
         {
             parentAsset = parent;
             this.parentSceneDataPropertyName = parentSceneDataPropertyName;
+
+            if (bakingSets == null) bakingSets = new();
+            if (sceneBounds == null) sceneBounds = new();
+            if (hasProbeVolumes == null) hasProbeVolumes = new();
+            if (sceneToBakingSet == null) sceneToBakingSet = new();
+
+            if (string.IsNullOrEmpty(m_LightingScenario))
+                m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
+
             SyncBakingSets();
+            MigrateBakingSets();
         }
 
         /// <summary>
@@ -164,21 +176,7 @@ namespace UnityEngine.Rendering
         public void OnAfterDeserialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (serializedBounds == null || serializedHasVolumes == null) return;
-
-#if UNITY_EDITOR
-            // Migration code
-            EditorApplication.delayCall += () =>
-            {
-                foreach (var set in m_ObsoleteSerializedBakingSets)
-                {
-                    set.profile.Migrate(set);
-                    AddBakingSet(set.profile);
-                    EditorUtility.SetDirty(set.profile);
-                }
-                m_ObsoleteSerializedBakingSets = null;
-            };
-#endif
+            if (serializedBounds == null || serializedHasVolumes == null || bakingSets == null) return;
 
             sceneBounds = new();
             hasProbeVolumes = new();
@@ -194,7 +192,7 @@ namespace UnityEngine.Rendering
                 hasProbeVolumes.Add(boundItem.sceneGUID, boundItem.hasProbeVolumes);
             }
 
-            foreach (var set in serializedBakingSets)
+            foreach (var set in bakingSets)
                 AddBakingSet(set);
 
             if (string.IsNullOrEmpty(m_LightingScenario))
@@ -202,6 +200,31 @@ namespace UnityEngine.Rendering
 
             if (m_OtherScenario == "")
                 m_OtherScenario = null;
+
+#if UNITY_EDITOR
+            // Migration code
+            EditorApplication.delayCall += MigrateBakingSets;
+#endif
+        }
+
+        void MigrateBakingSets()
+        {
+#if UNITY_EDITOR
+            if (m_ObsoleteSerializedBakingSets == null)
+                return;
+
+            foreach (var set in m_ObsoleteSerializedBakingSets)
+            {
+                set.profile.Migrate(set);
+                AddBakingSet(set.profile);
+                EditorUtility.SetDirty(set.profile);
+            }
+            if (parentAsset != null && m_ObsoleteSerializedBakingSets.Count != 0)
+            {
+                m_ObsoleteSerializedBakingSets = null;
+                EditorUtility.SetDirty(parentAsset);
+            }
+#endif
         }
 
         /// <summary>
@@ -210,10 +233,10 @@ namespace UnityEngine.Rendering
         public void OnBeforeSerialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (sceneBounds == null || hasProbeVolumes == null || serializedBounds == null || serializedHasVolumes == null) return;
+            if (sceneBounds == null || hasProbeVolumes == null) return;
 
-            serializedBounds.Clear();
-            serializedHasVolumes.Clear();
+            serializedBounds = new();
+            serializedHasVolumes = new();
 
             foreach (var k in sceneBounds.Keys)
             {
@@ -235,7 +258,7 @@ namespace UnityEngine.Rendering
         internal void SyncBakingSets()
         {
             #if UNITY_EDITOR
-            serializedBakingSets.Clear();
+            bakingSets.Clear();
             sceneToBakingSet.Clear();
 
             var setGUIDs = AssetDatabase.FindAssets("t:" + typeof(ProbeVolumeBakingSet).Name);
@@ -246,6 +269,9 @@ namespace UnityEngine.Rendering
                 var set = AssetDatabase.LoadAssetAtPath<ProbeVolumeBakingSet>(AssetDatabase.GUIDToAssetPath(setGUID));
                 AddBakingSet(set);
             }
+
+            if (parentAsset != null)
+                EditorUtility.SetDirty(parentAsset);
             #endif
         }
 
@@ -253,8 +279,8 @@ namespace UnityEngine.Rendering
         {
             if (set == null)
                 return;
-            if (!serializedBakingSets.Contains(set))
-                serializedBakingSets.Add(set);
+            if (!bakingSets.Contains(set))
+                bakingSets.Add(set);
             foreach (var guid in set.sceneGUIDs)
                 sceneToBakingSet[guid] = set;
         }
@@ -326,14 +352,12 @@ namespace UnityEngine.Rendering
                 hasProbeVolumes.TryGetValue(sceneGUID, out bool previousHasPV);
                 bool hasPV = volumes.Any(v => v.gameObject.scene == scene);
 
-                if (previousHasPV)
+                if (previousHasPV && !hasPV)
                 {
                     hasProbeVolumes.Remove(sceneGUID);
                     sceneBounds.Remove(sceneGUID);
                     EditorUtility.SetDirty(parentAsset);
                 }
-                else if (hasPV)
-                    Debug.LogWarning($"A probe volume is present in the scene '{scene.name}' but it is not part of a Baking Set. Please add it to a Baking Set in the Probe Volumes tab of the Lighting Window.");
 
                 if (previousHasPV || !hasPV)
                     return;
