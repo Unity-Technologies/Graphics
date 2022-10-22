@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering
                 Assert.IsNotNull(setter);
                 var v = ValidateValue(value);
 
-                if (!v.Equals(getter()))
+                if (v == null || !v.Equals(getter()))
                 {
                     setter(v);
                     onValueChanged?.Invoke(this, v);
