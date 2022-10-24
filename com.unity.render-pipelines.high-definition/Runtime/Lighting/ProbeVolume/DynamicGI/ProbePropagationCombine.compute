@@ -381,6 +381,8 @@ void CombinePropagationAxis(
 
         bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosity);
         bakedOutgoingRadiosityProjectedConstantsPacked = SHOutgoingRadiosityWithProjectedConstantsPackedCompute(bakedOutgoingRadiosityProjectedConstants);
-        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(probeCoord, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
+
+        const uint3 atlasCoord = probeCoord + (uint3)floor(_ProbeVolumeAtlasBias * _ProbeVolumeAtlasResolutionAndSliceCount.xyz);
+        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(atlasCoord, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
     }
 }
