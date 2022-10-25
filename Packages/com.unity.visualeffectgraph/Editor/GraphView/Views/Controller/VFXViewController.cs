@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.UI
                     Profiler.EndSample();
                     if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
-                        model.RefreshErrors(m_Graph);
+                        model.RefreshErrors();
                     }
                 }
                 m_CurrentlyNotified = null;

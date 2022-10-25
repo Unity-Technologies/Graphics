@@ -185,7 +185,8 @@ namespace UnityEditor.VFX.UI
             public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
         }
 
-        public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
+        public readonly HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
+        public readonly VFXErrorManager errorManager;
 
         public bool locked => m_VFXSettings.AttachedLocked;
 
@@ -267,12 +268,6 @@ namespace UnityEditor.VFX.UI
                 m_VCSDropDown.SetStatus(Asset.States.None);
             }
 
-            if (previousController.graph)
-            {
-                previousController.graph.errorManager.onClearAllErrors -= ClearAllErrors;
-                previousController.graph.errorManager.onRegisterError -= RegisterError;
-            }
-
             SceneView.duringSceneGui -= OnSceneGUI;
             OnFocus();
         }
@@ -284,12 +279,6 @@ namespace UnityEditor.VFX.UI
                 if (controller != null && controller.graph)
                     controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
             }).ExecuteLater(1);
-
-            if (m_Controller.graph)
-            {
-                m_Controller.graph.errorManager.onClearAllErrors += ClearAllErrors;
-                m_Controller.graph.errorManager.onRegisterError += RegisterError;
-            }
 
             m_Controller.RegisterHandler(this);
             m_Controller.useCount++;
@@ -435,7 +424,6 @@ namespace UnityEditor.VFX.UI
                         var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
                         if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
                         {
-                            ;
                             VFXModel newModel = VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
 
                             controller.AddVFXModel(mPos, newModel);
@@ -468,6 +456,22 @@ namespace UnityEditor.VFX.UI
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             }
             return null;
+        }
+
+        public void RefreshErrors(VFXModel model)
+        {
+            errorManager.ClearAllErrors(model, VFXErrorOrigin.Invalidate);
+            using (var reporter = new VFXInvalidateErrorReporter(errorManager, model))
+            {
+                try
+                {
+                    model.GenerateErrors(reporter);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
         }
 
         readonly VisualElement m_Toolbar;
@@ -530,6 +534,10 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
+            errorManager = new VFXErrorManager();
+            errorManager.onRegisterError += RegisterError;
+            errorManager.onClearAllErrors += ClearAllErrors;
+
             m_UseInternalClipboard = false;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             SetupZoom(0.125f, 8);
@@ -794,6 +802,8 @@ namespace UnityEditor.VFX.UI
                 var badge = type == VFXErrorType.Error ? IconBadge.CreateError(description) : IconBadge.CreateComment(description);
                 targetParent.Add(badge);
                 badge.AttachTo(target, alignement);
+                if (type == VFXErrorType.Warning)
+                    badge.SendToBack();
 
                 if (errorOrigin == VFXErrorOrigin.Compilation)
                 {
@@ -1361,7 +1371,7 @@ namespace UnityEditor.VFX.UI
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
-                    newElement.controller.model.RefreshErrors(controller.graph);
+                    RefreshErrors(newElement.controller.model);
                     if (m_UpdateSelectionWithNewNode)
                     {
                         if (!selectionCleared)
@@ -1665,7 +1675,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 VFXGraph.explicitCompile = true;
-                using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
+                using (var reporter = new VFXCompileErrorReporter(errorManager))
                 {
                     VFXGraph.compileReporter = reporter;
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
@@ -1689,7 +1699,7 @@ namespace UnityEditor.VFX.UI
                     try
                     {
                         VFXGraph.compilingInEditMode = !m_IsRuntimeMode;
-                        graph.GetResource().WriteAsset();
+                        graph.visualEffectResource.WriteAsset();
                     }
                     finally
                     {
@@ -2950,7 +2960,6 @@ namespace UnityEditor.VFX.UI
                     {
                         Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                         VFXModel newModel = (references.First() is VisualEffectAsset) ? VFXSubgraphContext.CreateInstance<VFXSubgraphContext>() as VFXModel : VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
-
 
                         UpdateSelectionWithNewNode();
                         controller.AddVFXModel(mousePosition, newModel);

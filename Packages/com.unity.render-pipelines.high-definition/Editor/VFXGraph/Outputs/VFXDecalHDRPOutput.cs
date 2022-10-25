@@ -343,7 +343,7 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (!supportDecals)

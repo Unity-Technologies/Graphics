@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -94,11 +93,9 @@ namespace UnityEditor.VFX
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
             if (resource != null)
             {
-                VFXGraph graph = resource.graph as VFXGraph;
-                if (graph != null)
-                    return resource.GetOrCreateGraph().GetImportDependencies();
-                else
-                    Debug.LogError("VisualEffectGraphResource without graph");
+                if (resource.graph is VFXGraph)
+                    return resource.GetOrCreateGraph().UpdateImportDependencies();
+                Debug.LogError("VisualEffectGraphResource without graph");
             }
             return null;
         }
@@ -374,8 +371,6 @@ namespace UnityEditor.VFX
         // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
         // 11: Instancing
         public static readonly int CurrentVersion = 11;
-
-        public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;
@@ -946,19 +941,7 @@ namespace UnityEditor.VFX
 
         public void SanitizeForImport()
         {
-            if (!explicitCompile)
-            {
-                HashSet<int> dependentAsset = new HashSet<int>();
-                GetImportDependentAssets(dependentAsset);
-
-                foreach (var instanceID in dependentAsset)
-                {
-                    if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
-                    {
-                        return;
-                    }
-                }
-            }
+            // We arrive from AssetPostProcess so dependencies are already loaded no need to worry about them (FB #1364156)
 
             foreach (var child in children)
                 child.CheckGraphBeforeImport();
@@ -973,22 +956,6 @@ namespace UnityEditor.VFX
 
             if (!GetResource().isSubgraph)
             {
-                // Don't pursue the compile if one of the dependency is not yet loaded
-                // which happen at first import with .pcache
-                if (!explicitCompile)
-                {
-                    HashSet<int> dependentAsset = new HashSet<int>();
-                    GetImportDependentAssets(dependentAsset);
-
-                    foreach (var instanceID in dependentAsset)
-                    {
-                        if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
-                        {
-                            return;
-                        }
-                    }
-                }
-
                 // Check Graph Before Import can be needed to synchronize modified shaderGraph
                 foreach (var child in children)
                     child.CheckGraphBeforeImport();
@@ -1106,20 +1073,24 @@ namespace UnityEditor.VFX
             get { return m_SubgraphDependencies.AsReadOnly(); }
         }
 
-        public string[] GetImportDependencies()
+        public string[] UpdateImportDependencies()
         {
             visualEffectResource.ClearImportDependencies();
 
-            HashSet<int> dependentAsset = new HashSet<int>();
-            GetImportDependentAssets(dependentAsset);
+            var dependencies = new HashSet<int>();
+            GetImportDependentAssets(dependencies);
+            var dependentAssetGUIDs = dependencies
+                .Where(x => x != 0)
+                .Select(x => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(x)))
+                .Distinct()
+                .ToArray();
 
-            foreach (var dep in dependentAsset)
+            foreach (var guid in dependentAssetGUIDs)
             {
-                if (dep != 0)
-                    visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+                visualEffectResource.AddImportDependency(guid);
             }
 
-            return dependentAsset.Select(t => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(t))).Distinct().ToArray();
+            return dependentAssetGUIDs;
         }
 
         private VisualEffectResource m_Owner;

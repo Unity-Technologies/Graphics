@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
     {
         protected VFXModelDescriptor(VFXModel template, Variant variants = null)
         {
-            m_Variants = variants?.settings ?? new KeyValuePair<string, object>[0];
+            m_Variants = variants?.settings ?? Array.Empty<KeyValuePair<string, object>>();
             //Don't notify model here for performance reason, we are assuming the name shouldn't relies on something in Invalidate of VFXModel
             ApplyVariant(template, false);
 

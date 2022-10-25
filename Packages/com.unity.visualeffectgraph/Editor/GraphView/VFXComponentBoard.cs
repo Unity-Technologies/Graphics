@@ -528,7 +528,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var context in contextsToRefresh)
             {
-                context.controller.model.RefreshErrors(m_View.controller.graph);
+                context.controller.model.RefreshErrors();
             }
         }
 

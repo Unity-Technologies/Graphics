@@ -2,22 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEditor.VFX.Block.Test;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-
-
-using Object = UnityEngine.Object;
 using System.IO;
-using UnityEngine.TestTools;
 using System.Collections;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using UnityEditor.VersionControl;
+
+using NUnit.Framework;
+
+using UnityEditor.VFX.Block.Test;
 using UnityEditor.VFX.UI;
+
+using UnityEngine;
+using UnityEngine.VFX;
+using UnityEngine.TestTools;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace UnityEditor.VFX.Test
@@ -1198,6 +1196,37 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < 4; ++i)
                 yield return null;
+        }
+
+        [UnityTest, Description("Cover regression UUM-563")]
+        public IEnumerator ShaderGraph_Not_Reverted_On_Save()
+        {
+            // Create empty graph
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXViewWindow.GetWindow(graph.GetResource(), true);
+            var viewController = VFXViewController.GetController(graph.GetResource(), true);
+            window.graphView.controller = viewController;
+            yield return null;
+
+            // Add a static mesh output
+            var staticMeshOutputContextDesc = VFXLibrary.GetContexts().Single(x => x.model is VFXStaticMeshOutput);
+            var staticMeshOutputContext = (VFXStaticMeshOutput)window.graphView.controller.AddVFXContext(Vector2.zero, staticMeshOutputContextDesc);
+            var shaderGraph = AssetDatabase.LoadAssetAtPath<Shader>("Assets/AllTests/Editor/Tests/Modify_SG_Property_A.shadergraph");
+            staticMeshOutputContext.SetSettingValue("shader", shaderGraph);
+            window.graphView.OnSave();
+            yield return null;
+
+            // Check that the shader is correctly assigned
+            var s = staticMeshOutputContext.GetSetting("shader").value;
+            Assert.NotNull(staticMeshOutputContext.GetSetting("shader").value);
+
+            // Change shader to None
+            staticMeshOutputContext.SetSettingValue("shader", null);
+            window.graphView.OnSave();
+            yield return null;
+
+            // Check that the shader is still set to None
+            Assert.IsNull(staticMeshOutputContext.GetSetting("shader").value, "The shader was expected to be null but it didn't. Probably the previous value has been restored when saving");
         }
 
         [OneTimeTearDown]

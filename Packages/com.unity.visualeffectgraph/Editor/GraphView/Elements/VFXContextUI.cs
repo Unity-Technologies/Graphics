@@ -609,7 +609,7 @@ namespace UnityEditor.VFX.UI
                                 addedBlocks.Add(blockUI);
                             }
                             //Refresh error can only be called after the block has been instantiated
-                            blockController.model.RefreshErrors(controller.viewController.graph);
+                            blockController.model.RefreshErrors();
                         }
 
                         if (prevBlock != null)
