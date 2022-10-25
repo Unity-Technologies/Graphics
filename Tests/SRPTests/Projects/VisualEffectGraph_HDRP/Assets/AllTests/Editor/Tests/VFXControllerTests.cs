@@ -57,6 +57,12 @@ namespace UnityEditor.VFX.Test
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
+        [OneTimeSetUp]
+        public void Init()
+        {
+            VFXTestCommon.CloseAllUnecessaryWindows();
+        }
+
         [TearDown]
         public void DestroyTestAsset()
         {

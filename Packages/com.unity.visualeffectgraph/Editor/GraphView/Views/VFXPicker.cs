@@ -15,34 +15,12 @@ static class VFXPicker
 {
     internal static void Pick(VisualEffectAsset vfxAsset, Action<VisualEffect> selectHandler)
     {
-        #if UNITY_2022_2_OR_NEWER
         var viewState = new SearchViewState(
             SearchService.CreateContext(CreateSceneRefProvider(vfxAsset)),
             (item, canceled) => SelectItem(item, canceled, selectHandler));
         viewState.title = "Visual Effect";
         viewState.flags |= SearchViewFlags.DisableInspectorPreview | SearchViewFlags.CompactView;
         SearchService.ShowPicker(viewState);
-        #else
-        var view = SearchService.ShowPicker(
-            SearchService.CreateContext(CreateSceneRefProvider(vfxAsset)),
-            (item, canceled) => SelectItem(item, canceled, selectHandler),
-            null,
-            null,
-            null,
-            "Visual Effect",
-            0f);
-        view.itemIconSize = 0f;
-
-        // Until the "viewState" API is made public (should be in 2022.1) we use reflection to remove the inspector button
-        var quickSearchType = typeof(SearchService).Assembly.GetType("UnityEditor.Search.QuickSearch");
-        var viewStateInfo = quickSearchType?.GetProperty("viewState", BindingFlags.Instance | BindingFlags.NonPublic);
-        var state = viewStateInfo?.GetValue(view);
-        if (state != null)
-        {
-            var flagsInfo = state.GetType().GetField("flags", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            flagsInfo?.SetValue(state, SearchViewFlags.DisableInspectorPreview);
-        }
-        #endif
     }
 
     static void SelectItem(SearchItem item, bool canceled, Action<VisualEffect> selectHandler)

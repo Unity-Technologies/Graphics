@@ -118,6 +118,8 @@ namespace UnityEditor.VFX.Test
             UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
 
             ShaderUtil.allowAsyncCompilation = false;
+
+            VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
         [OneTimeTearDown]
@@ -1653,7 +1655,7 @@ namespace UnityEditor.VFX.Test
                 if (camera.gameObject == m_mainCamera)
                     continue;
 
-                UnityEngine.Object.DestroyImmediate(camera);
+                camera.enabled = false;
             }
 
             var graph = VFXTestCommon.MakeTemporaryGraph();

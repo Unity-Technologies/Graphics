@@ -26,6 +26,12 @@ namespace UnityEditor.VFX.Test
     {
         const string TempDirectoryName = "Assets/TmpTests";
 
+        [OneTimeSetUp]
+        public void Init()
+        {
+            VFXTestCommon.CloseAllUnecessaryWindows();
+        }
+
         [OneTimeTearDown]
         public void DestroyTestAssets()
         {

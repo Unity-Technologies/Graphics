@@ -20,6 +20,15 @@ namespace UnityEditor.VFX.Test
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
         static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
 
+        public static void CloseAllUnecessaryWindows()
+        {
+            //See UUM-14622: AssetImport during inspector rendering is creating instabilities
+            while (EditorWindow.HasOpenInstances<InspectorWindow>())
+                EditorWindow.GetWindow<InspectorWindow>().Close(); // Panel:Repaint => Editor:IsAppropriateFileOpenForEdit => Destroying GameObjects immediately is not permitted
+            while (EditorWindow.HasOpenInstances<ProjectBrowser>())
+                EditorWindow.GetWindow<ProjectBrowser>().Close(); //ProjectBrowser:OnGUI => OnDidAddComponent from HDAdditionalLightData => Send Message is forbidden
+        }
+
         //Emulate function because VisualEffectUtility.GetSpawnerState has been removed
         //Prefer usage of GetSpawnSystemInfo for new implementation
         public static VFXSpawnerState GetSpawnerState(VisualEffect vfx, uint index)
