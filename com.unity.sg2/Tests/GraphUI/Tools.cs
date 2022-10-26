@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     /*
-     * A place to store any tools
+     * A place to store any tools for testing and tech-art needs
      */
     public class Tools
     {
@@ -35,7 +35,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             int Mod(int a, int n) => (a % n + n) % n;
 
-            // TODO: Move this into a menuitem and save the asset off
             if (window.GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
             {
                 var shaderGraphStencil = shaderGraphModel.Stencil as ShaderGraphStencil;
@@ -62,6 +61,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                     }
                 }
             }
+
+            // Save asset
+            ShaderGraphAssetUtils.HandleSave(testAssetPath, graphAsset);
         }
     }
 }
