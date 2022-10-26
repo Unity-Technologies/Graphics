@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModel)
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 var collapseButton = nodeGraphElement.Q("collapse");
                 Assert.IsNotNull(collapseButton);
 
-                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, collapseButton, true);
+                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, collapseButton, true);
                 m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
                 yield return null;
                 yield return null;
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return SaveAndReopenGraph();
 
-            nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModelReloaded)

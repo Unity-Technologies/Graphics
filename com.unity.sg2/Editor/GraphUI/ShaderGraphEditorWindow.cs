@@ -89,9 +89,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
 
-            m_PreviewUpdateDispatcher.Cleanup();
+            Cleanup();
 
             base.OnDisable();
+        }
+
+        // Made internal for tests to access and call in case of a test failing and exceptions being thrown
+        internal void Cleanup()
+        {
+            m_PreviewUpdateDispatcher.Cleanup();
         }
 
         // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
