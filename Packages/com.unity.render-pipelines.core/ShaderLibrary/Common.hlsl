@@ -76,7 +76,10 @@
     //
     // Platform Support
     //
-    #if (defined(UNITY_PLATFORM_SUPPORTS_WAVE_32) || defined(UNITY_PLATFORM_SUPPORTS_WAVE_64))
+    // Platforms may indicate support for wave operations at compile-time.
+    // Shaders on these platforms may not always be compiled with a compiler that supports wave operations.
+    // To simplify usage, we check for a supported compiler here before indicating that wave operations are supported.
+    #if ((defined(UNITY_PLATFORM_SUPPORTS_WAVE_32) || defined(UNITY_PLATFORM_SUPPORTS_WAVE_64)) && (defined(UNITY_COMPILER_DXC) || defined(SHADER_API_PSSL)))
         #if defined(UNITY_PLATFORM_SUPPORTS_WAVE_32)
             #define UNITY_HW_WAVE_SIZE 32
         #elif defined(UNITY_PLATFORM_SUPPORTS_WAVE_64)
@@ -87,6 +90,8 @@
     //
     // Device Support
     //
+    // Devices may indicate support for wave operations at run-time.
+    // Shaders compiled with these defines are always compiled with a compiler that supports wave operations.
     #elif (defined(UNITY_DEVICE_SUPPORTS_WAVE_ANY) || defined(UNITY_DEVICE_SUPPORTS_WAVE_8) || defined(UNITY_DEVICE_SUPPORTS_WAVE_16) || defined(UNITY_DEVICE_SUPPORTS_WAVE_32) || defined(UNITY_DEVICE_SUPPORTS_WAVE_64) || defined(UNITY_DEVICE_SUPPORTS_WAVE_128))
         #if defined(UNITY_DEVICE_SUPPORTS_WAVE_8)
             #define UNITY_HW_WAVE_SIZE 8
