@@ -113,8 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
         private ComputeBuffer _dirtyBlockListBuffer;
-        private ComputeBuffer _axesDirtyBlockIndirectBuffer;
-        private ComputeBuffer _combineDirtyBlockIndirectBuffer;
+        private ComputeBuffer _dirtyBlockIndirectBuffer;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
         private int _propagationSettingsHash;
@@ -675,11 +674,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups.Length);
 
-            _dirtyBlockListBuffer = new ComputeBuffer(32768, sizeof(int), ComputeBufferType.Append);
-            _axesDirtyBlockIndirectBuffer = new ComputeBuffer(3, sizeof(int), ComputeBufferType.IndirectArguments);
-            _axesDirtyBlockIndirectBuffer.SetData(new[] { 0, s_NeighborAxis.Length, 1 });
-            _combineDirtyBlockIndirectBuffer = new ComputeBuffer(3, sizeof(int), ComputeBufferType.IndirectArguments);
-            _combineDirtyBlockIndirectBuffer.SetData(new[] { 0, 1, 1 });
+            _dirtyBlockIndirectBuffer = new ComputeBuffer(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments);
+            _dirtyBlockIndirectBuffer.SetData(new[]
+            {
+                0, s_NeighborAxis.Length, 1,    // Axes pass parameters
+                0, 1, 1                         // Combine pass parameters
+            });
 
             _DebugDirtyFlagsShader = resources.shaders.probeVolumeDebugDirtyFlags;
 
@@ -697,6 +697,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             _propagationSettingsHash = 0;
             ProbeVolume.CleanupBuffer(_sortedNeighborAxisLookupsBuffer);
+            ProbeVolume.CleanupBuffer(_dirtyBlockListBuffer);
+            ProbeVolume.CleanupBuffer(_dirtyBlockIndirectBuffer);
         }
 
         private void SetBasisKeywords(ProbeVolumeDynamicGIBasis basis, ProbeVolumeDynamicGIBasisPropagationOverride basisPropagationOverride, ComputeShader shader)
@@ -1080,7 +1082,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int blockResolutionZ = ((int)data.resolution.z + 3) / 4;
             int blockCount = blockResolutionX * blockResolutionY * blockResolutionZ;
 
-            cmd.SetComputeBufferCounterValue(_dirtyBlockListBuffer, 0);
+            if (!ProbeVolume.CreateOrGrowBuffer<uint>(ref _dirtyBlockListBuffer, blockCount, ComputeBufferType.Append))
+                cmd.SetComputeBufferCounterValue(_dirtyBlockListBuffer, 0);
+
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyFlags", propagationPipelineData.GetDirtyFlags());
             cmd.SetComputeIntParam(shader, "_ProbeVolumeBlockCount", blockCount);
@@ -1236,8 +1240,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
-                cmd.CopyCounterValue(_dirtyBlockListBuffer, _axesDirtyBlockIndirectBuffer, 0);
-                cmd.DispatchCompute(shader, kernel, _axesDirtyBlockIndirectBuffer, 0);
+                cmd.CopyCounterValue(_dirtyBlockListBuffer, _dirtyBlockIndirectBuffer, 0);
+                cmd.DispatchCompute(shader, kernel, _dirtyBlockIndirectBuffer, 0);
             }
         }
 
@@ -1340,8 +1344,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeDirtyBlocks", _dirtyBlockListBuffer);
-                cmd.CopyCounterValue(_dirtyBlockListBuffer, _combineDirtyBlockIndirectBuffer, 0);
-                cmd.DispatchCompute(shader, kernel, _combineDirtyBlockIndirectBuffer, 0);
+                cmd.CopyCounterValue(_dirtyBlockListBuffer, _dirtyBlockIndirectBuffer, sizeof(uint) * 3);
+                cmd.DispatchCompute(shader, kernel, _dirtyBlockIndirectBuffer, sizeof(uint) * 3);
             }
         }
 

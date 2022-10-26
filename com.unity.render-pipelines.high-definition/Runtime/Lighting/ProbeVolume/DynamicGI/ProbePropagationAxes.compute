@@ -47,7 +47,7 @@ int _ProbeVolumeNeighborsCount;
 #ifndef DIRTY_FLAGS_DISABLED
 StructuredBuffer<int> _ProbeVolumeDirtyFlags;
 RWStructuredBuffer<int> _ProbeVolumeNextDirtyFlags;
-StructuredBuffer<int> _ProbeVolumeDirtyBlocks;
+StructuredBuffer<uint> _ProbeVolumeDirtyBlocks;
 #endif
 
 StructuredBuffer<RADIANCE> _HitRadianceCacheAxis;

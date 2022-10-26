@@ -1017,6 +1017,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        // returns true if it was reallocated
+        public static bool CreateOrGrowBuffer<T>(ref ComputeBuffer buffer, int count, ComputeBufferType type)
+        {
+            if (buffer == null
+                || !buffer.IsValid()
+                || buffer.count < count)
+            {
+                CleanupBuffer(buffer);
+                buffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(T)), type);
+                return true;
+            }
+
+            return false;
+        }
+
         public static void SetBuffer<T>(ComputeBuffer buffer, T[] data)
         {
             if (buffer != null

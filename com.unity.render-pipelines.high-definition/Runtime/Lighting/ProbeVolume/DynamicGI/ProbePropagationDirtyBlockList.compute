@@ -3,7 +3,7 @@
 // #pragma enable_d3d11_debug_symbols
 
 StructuredBuffer<int> _ProbeVolumeDirtyFlags;
-AppendStructuredBuffer<int> _ProbeVolumeDirtyBlocks;
+AppendStructuredBuffer<uint> _ProbeVolumeDirtyBlocks;
 uint _ProbeVolumeBlockCount;
 
 [numthreads(GROUP_SIZE, 1, 1)]
