@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
-using UnityEditor.ShaderGraph.Defs;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -66,12 +64,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         // TODO GTF UPGRADE: support edition of multiple models.
                         var model = models.First();
-                        if (model.GraphModel is not ShaderGraphModel {IsSubGraph: true} ||
-                            !model.TryGetNodeHandler(out var reader) ||
-                            reader.ID.LocalPath != Registry.ResolveKey<ShaderGraphContext>().Name)
-                        {
+                        var graphModel = model.GraphModel as ShaderGraphModel;
+                        if (graphModel?.IsSubGraph != true || model.IsMainContextNode() != true)
                             break;
-                        }
 
                         var subgraphOutputs = new SubgraphOutputsInspector(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(subgraphOutputs);

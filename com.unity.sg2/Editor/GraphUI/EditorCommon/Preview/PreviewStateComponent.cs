@@ -36,9 +36,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             public void UpdatePreviewData(string listenerID, Texture newTexture)
             {
-                m_State.m_PreviewData[listenerID] = newTexture;
-                m_State.m_PreviewVersionTrackers[listenerID]++;
-                m_State.SetUpdateType(UpdateType.Partial);
+                // Blocks preview service threads trying to write out results for a listener
+                // that has already been removed from the graph
+                if (m_State.m_PreviewData.ContainsKey(listenerID))
+                {
+                    m_State.m_PreviewData[listenerID] = newTexture;
+                    m_State.m_PreviewVersionTrackers[listenerID]++;
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
             }
 
             public void ClearState()

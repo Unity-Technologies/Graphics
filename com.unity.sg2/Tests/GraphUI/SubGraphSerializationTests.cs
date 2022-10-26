@@ -21,10 +21,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return SaveAndReopenGraph();
 
             // Wait till the graph model is loaded back up
-            while (m_Window.GraphView.GraphModel == null)
+            while (m_MainWindow.GraphView.GraphModel == null)
                 yield return null;
 
-            Assert.IsNotNull(m_Window.GetNodeModelFromGraphByName("Add"));
+            Assert.IsNotNull(m_MainWindow.GetNodeModelFromGraphByName("Add"));
         }
     }
 }

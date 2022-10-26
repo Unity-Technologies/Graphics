@@ -67,8 +67,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_Window.GraphView.ShowItemLibrary(new Vector2());
 
             // TODO: (Sai) This throws an exception on some occasions in DisplaySmartSearch, ask Vlad for help figuring out why?
-            //TestEventHelpers.SendKeyDownEvent(m_Window, KeyCode.Space);
-            //TestEventHelpers.SendKeyUpEvent(m_Window, KeyCode.Space);
+            //TestEventHelpers.SendKeyDownEvent(m_MainWindow, KeyCode.Space);
+            //TestEventHelpers.SendKeyUpEvent(m_MainWindow, KeyCode.Space);
 
             var searcherWindow = (ItemLibraryWindow)EditorWindow.GetWindow(typeof(ItemLibraryWindow));
             return searcherWindow;

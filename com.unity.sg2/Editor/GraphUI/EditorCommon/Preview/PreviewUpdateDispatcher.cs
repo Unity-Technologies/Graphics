@@ -39,6 +39,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ShaderGraphModel shaderGraphModel,
             IPreviewUpdateReceiver previewUpdateReceiver)
         {
+            // We can skip all this if we've already initialized
+            if (m_GraphModel != null)
+                return;
+
             m_GraphModel = shaderGraphModel;
             m_MainPreviewData = shaderGraphModel.MainPreviewData;
 
