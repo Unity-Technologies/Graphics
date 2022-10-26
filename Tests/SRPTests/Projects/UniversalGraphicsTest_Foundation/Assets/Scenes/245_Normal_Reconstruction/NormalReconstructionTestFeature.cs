@@ -96,11 +96,13 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         {
             internal CameraData cameraData;
         }
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Normal Reconstruction Test Pass", out var passData, m_ProfilingSampler))
             {
-                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+
+                TextureHandle color = renderer.activeColorTexture;
                 builder.UseColorBuffer(color, 0);
                 passData.cameraData = renderingData.cameraData;
 

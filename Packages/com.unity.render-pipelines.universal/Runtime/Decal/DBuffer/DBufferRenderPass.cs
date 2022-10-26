@@ -211,24 +211,27 @@ namespace UnityEngine.Rendering.Universal
             passData.dBufferColorHandles = dBufferColorHandles;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            TextureHandle depthTarget = (renderer.renderingModeActual == RenderingMode.Deferred) ? UniversalRenderer.m_ActiveRenderGraphDepth : renderer.frameResources.cameraDepthTexture;
+            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
+            TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+
+            TextureHandle depthTarget = (renderer.renderingModeActual == RenderingMode.Deferred) ? renderer.activeDepthTexture : cameraDepthTexture;
 
             RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), depthTarget);
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraNormalsTexture"), renderer.frameResources.cameraNormalsTexture);
+            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraNormalsTexture"), cameraNormalsTexture);
 
             using (var builder = renderGraph.AddRenderPass<PassData>("DBuffer Pass", out var passData, m_ProfilingSampler))
             {
                 InitPassData(ref passData);
                 passData.renderingData = renderingData;
 
-                UniversalRenderer.RenderGraphFrameResources frameResources = renderer.frameResources;
+                // TODO RENDERGRAPH: move decals frame resources to the new FrameResources manager
 
-                if (frameResources.dbuffer == null)
-                    frameResources.dbuffer = new TextureHandle[3];
+                if (renderer.frameResources.dbuffer == null)
+                    renderer.frameResources.dbuffer = new TextureHandle[3];
 
                 // base
                 {
@@ -237,8 +240,8 @@ namespace UnityEngine.Rendering.Universal
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
 
-                    frameResources.dbuffer[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[0], true, new Color(0, 0, 0, 1));
-                    builder.UseColorBuffer(frameResources.dbuffer[0], 0);
+                    renderer.frameResources.dbuffer[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[0], true, new Color(0, 0, 0, 1));
+                    builder.UseColorBuffer(renderer.frameResources.dbuffer[0], 0);
                 }
 
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
@@ -248,8 +251,8 @@ namespace UnityEngine.Rendering.Universal
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
 
-                    frameResources.dbuffer[1] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[1], true, new Color(0.5f, 0.5f, 0.5f, 1));
-                    builder.UseColorBuffer(frameResources.dbuffer[1], 1);
+                    renderer.frameResources.dbuffer[1] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[1], true, new Color(0.5f, 0.5f, 0.5f, 1));
+                    builder.UseColorBuffer(renderer.frameResources.dbuffer[1], 1);
                 }
 
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
@@ -259,16 +262,16 @@ namespace UnityEngine.Rendering.Universal
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
 
-                    frameResources.dbuffer[2] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[2], true, new Color(0, 0, 0, 1));
-                    builder.UseColorBuffer(frameResources.dbuffer[2], 2);
+                    renderer.frameResources.dbuffer[2] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[2], true, new Color(0, 0, 0, 1));
+                    builder.UseColorBuffer(renderer.frameResources.dbuffer[2], 2);
                 }
 
-                builder.UseDepthBuffer(frameResources.dbufferDepth, DepthAccess.Read);
+                builder.UseDepthBuffer(renderer.frameResources.dbufferDepth, DepthAccess.Read);
 
-                if (frameResources.cameraDepthTexture.IsValid())
-                    builder.ReadTexture(frameResources.cameraDepthTexture);
-                if (frameResources.cameraNormalsTexture.IsValid())
-                    builder.ReadTexture(frameResources.cameraNormalsTexture);
+                if (cameraDepthTexture.IsValid())
+                    builder.ReadTexture(cameraDepthTexture);
+                if (cameraNormalsTexture.IsValid())
+                    builder.ReadTexture(cameraNormalsTexture);
 
                 builder.AllowPassCulling(false);
 

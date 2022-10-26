@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.Universal
             data.blurRandomOffsetY = m_BlurRandomOffsetY;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
@@ -361,10 +361,10 @@ namespace UnityEngine.Rendering.Universal
                                        out TextureHandle finalTexture);
 
             // Setup up keywords and parameters...
-            ExecuteSetupPass(renderGraph, ref renderingData);
+            ExecuteSetupPass(renderGraph, frameResources, ref renderingData);
 
             // Ambient Occlusion Pass...
-            ExecuteOcclusionPass(renderGraph, ref renderer, in aoTexture);
+            ExecuteOcclusionPass(renderGraph, frameResources, in aoTexture);
 
             // Blur & Upsample Passes...
             switch (m_BlurType)
@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderGraphUtils.SetGlobalTexture(renderGraph,k_SSAOTextureName, finalTexture, "Set SSAO Texture");
         }
 
-        private void ExecuteSetupPass(RenderGraph renderGraph, ref RenderingData renderingData)
+        private void ExecuteSetupPass(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             using (RenderGraphBuilder builder = renderGraph.AddRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
             {
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.Universal
                 InitSetupPassData(ref passData);
                 passData.renderingData = renderingData;
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                passData.cameraColor = renderer.frameResources.cameraColor;
+                passData.cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
 
                 // Set up the builder
                 builder.SetRenderFunc((SetupPassData data, RenderGraphContext rgContext) =>
@@ -430,10 +430,10 @@ namespace UnityEngine.Rendering.Universal
             // Handles
             aoTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture0", false, FilterMode.Bilinear);
             blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture1", false, FilterMode.Bilinear);
-            finalTexture = m_CurrentSettings.AfterOpaque ? renderer.frameResources.cameraColor : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
+            finalTexture = m_CurrentSettings.AfterOpaque ? renderer.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
         }
 
-        private void ExecuteOcclusionPass(RenderGraph renderGraph, ref UniversalRenderer renderer, in TextureHandle aoTexture)
+        private void ExecuteOcclusionPass(RenderGraph renderGraph, FrameResources frameResources, in TextureHandle aoTexture)
         {
             using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
             {
@@ -445,12 +445,15 @@ namespace UnityEngine.Rendering.Universal
                 // Set up the builder
                 builder.UseColorBuffer(aoTexture, 0);
 
-                if (renderer.frameResources.cameraDepthTexture.IsValid())
-                    builder.ReadTexture(renderer.frameResources.cameraDepthTexture);
+                TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
+                TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+
+                if (cameraDepthTexture.IsValid())
+                    builder.ReadTexture(cameraDepthTexture);
 
                 if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
-                    if (renderer.frameResources.cameraNormalsTexture.IsValid())
-                        builder.ReadTexture(renderer.frameResources.cameraNormalsTexture);
+                    if (cameraNormalsTexture.IsValid())
+                        builder.ReadTexture(cameraNormalsTexture);
 
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }

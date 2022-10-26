@@ -468,8 +468,6 @@ namespace UnityEngine.Rendering.Universal
         #region DoF
         public void RenderDoF(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, ref RenderingData renderingData)
         {
-            var cameraData = renderingData.cameraData;
-
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
 
             var desc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
@@ -562,7 +560,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.ReadTexture(source);
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.ReadTexture(renderer.frameResources.cameraDepthTexture);
+                builder.ReadTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture));
 
                 passData.material = material;
                 builder.SetRenderFunc((DoFGaussianPassData data, RenderGraphContext context) =>
@@ -757,7 +755,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = material;
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.ReadTexture(renderer.frameResources.cameraDepthTexture);
+                builder.ReadTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture));
 
                 builder.SetRenderFunc((DoFBokehPassData data, RenderGraphContext context) =>
                 {
@@ -927,9 +925,9 @@ namespace UnityEngine.Rendering.Universal
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);    // TODO: use a constant for the name
 
             UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-            TextureHandle cameraDepth = renderer.frameResources.cameraDepth;
+            TextureHandle cameraDepth = renderer.resources.GetTexture(UniversalResource.CameraDepth);
             //TextureHandle motionVectors = renderGraph.ImportBackbuffer(m_MotionVectors.rt);
-            TextureHandle motionVectors = renderer.frameResources.motionVectorColor;
+            TextureHandle motionVectors = renderer.resources.GetTexture(UniversalResource.MotionVectorColor);
 
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, ref cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
         }
@@ -1160,7 +1158,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
-                passData.destinationTexture = builder.UseColorBuffer(renderer.frameResources.backBufferColor, 0);
+                passData.destinationTexture = builder.UseColorBuffer(renderer.resources.GetTexture(UniversalResource.BackBufferColor), 0);
                 passData.sourceTexture = builder.ReadTexture(source);
                 passData.cameraData = renderingData.cameraData;
                 passData.material = m_Materials.finalPass;

@@ -57,11 +57,13 @@ namespace UnityEngine.Rendering.Universal
             internal CameraData cameraData;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Capture Motion Vector Pass", out var passData, s_ProfilingSampler))
             {
-                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+
+                TextureHandle color = renderer.activeColorTexture;
                 passData.target = builder.UseColorBuffer(color, 0);
                 passData.cameraData = renderingData.cameraData;
 

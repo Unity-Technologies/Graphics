@@ -155,27 +155,27 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), renderer.frameResources.cameraDepthTexture);
+            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
 
             using (var builder = renderGraph.AddRenderPass<PassData>("Decal GBuffer Pass", out var passData, m_ProfilingSampler))
             {
                 InitPassData(ref passData);
                 passData.renderingData = renderingData;
 
-                UniversalRenderer.RenderGraphFrameResources frameResources = renderer.frameResources;
+                builder.UseColorBuffer(frameResources.GetTexture(UniversalResource.GBuffer0), 0);
+                builder.UseColorBuffer(frameResources.GetTexture(UniversalResource.GBuffer1), 1);
+                builder.UseColorBuffer(frameResources.GetTexture(UniversalResource.GBuffer2), 2);
+                builder.UseColorBuffer(frameResources.GetTexture(UniversalResource.GBuffer3), 3);
+                builder.UseDepthBuffer(renderer.activeDepthTexture, DepthAccess.Read);
 
-                builder.UseColorBuffer(frameResources.gbuffer[0], 0);
-                builder.UseColorBuffer(frameResources.gbuffer[1], 1);
-                builder.UseColorBuffer(frameResources.gbuffer[2], 2);
-                builder.UseColorBuffer(frameResources.gbuffer[3], 3);
-                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Read);
-
-                if (frameResources.cameraDepthTexture.IsValid())
-                    builder.ReadTexture(frameResources.cameraDepthTexture);
+                if (cameraDepthTexture.IsValid())
+                    builder.ReadTexture(cameraDepthTexture);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {

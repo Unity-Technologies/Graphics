@@ -75,15 +75,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Decal Forward Emissive Pass", out var passData, m_ProfilingSampler))
             {
                 InitPassData(ref passData);
                 passData.renderingData = renderingData;
 
-                builder.UseColorBuffer(UniversalRenderer.m_ActiveRenderGraphColor, 0);
-                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Read);
+                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+
+                builder.UseColorBuffer(renderer.activeColorTexture, 0);
+                builder.UseDepthBuffer(renderer.activeDepthTexture, DepthAccess.Read);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {

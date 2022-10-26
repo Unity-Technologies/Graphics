@@ -10,9 +10,89 @@ using UnityEngine.Profiling;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
+    /// Utility class to store handles of frame resources for communication between passes.
+    /// </summary>
+    public class FrameResources
+    {
+        Dictionary<Hash128, TextureHandle> m_TextureHandles = new();
+
+        static uint s_TypeCount;
+
+        internal bool isAccessible { get; set; }
+
+        static class TypeId<T>
+        {
+            public static uint value = s_TypeCount++;
+        }
+
+        internal void InitFrame()
+        {
+            m_TextureHandles.Clear();
+            isAccessible = true;
+        }
+
+        internal void EndFrame()
+        {
+            isAccessible = false;
+        }
+
+        Hash128 GetKey<T>(T id) where T : unmanaged, Enum
+        {
+            Hash128 hash = new Hash128();
+            var typeId = TypeId<T>.value;
+            hash.Append(typeId);
+            hash.Append(ref id);
+
+            return hash;
+        }
+
+        /// <summary>
+        /// Get the TextureHandle for a specific identifier.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public TextureHandle GetTexture<T>(T id) where T : unmanaged, Enum
+        {
+            if (!isAccessible)
+            {
+                Debug.LogError("Trying to access FrameResources outside of the current frame setup.");
+
+                return TextureHandle.nullHandle;
+            }
+
+            Hash128 key = GetKey(id);
+
+            if (!m_TextureHandles.ContainsKey(key))
+                return TextureHandle.nullHandle;
+
+            return m_TextureHandles[key];
+        }
+
+        /// <summary>
+        /// Add or replace the TextureHandle for a specific identifier.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="handle"></param>
+        /// <typeparam name="T"></typeparam>
+        public void SetTexture<T>(T id, TextureHandle handle) where T : unmanaged, Enum
+        {
+            if (!isAccessible)
+            {
+                Debug.LogError("Trying to access FrameResources outside of the current frame setup.");
+
+                return;
+            }
+
+            m_TextureHandles.TryAdd(GetKey(id), handle);
+        }
+    }
+
+    /// <summary>
     ///  Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting works and
     /// the effects supported.
     ///
+    /// TODO RENDERGRAPH: UPDATE THIS DOC FOR THE RENDERGRAPH PATH
     ///  A renderer can be used for all cameras or be overridden on a per-camera basis. It will implement light culling and setup
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
@@ -554,6 +634,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandleRenderTargetIdentifierCompat m_CameraDepthTarget;
         RTHandleRenderTargetIdentifierCompat m_CameraResolveTarget;
 
+
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
@@ -568,6 +649,13 @@ namespace UnityEngine.Rendering.Universal
         internal bool useRenderPassEnabled = false;
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] { 0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
+
+        private FrameResources m_Resources = new FrameResources();
+
+        internal FrameResources resources
+        {
+            get { return m_Resources; }
+        }
 
         private static RenderBufferStoreAction[] m_ActiveColorStoreActions = new RenderBufferStoreAction[]
         {
@@ -989,6 +1077,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         internal void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            m_Resources.InitFrame();
+
             using (new ProfilingScope(null, Profiling.sortRenderPasses))
             {
                 // Sort the render pass queue
@@ -1002,6 +1092,8 @@ namespace UnityEngine.Rendering.Universal
             OnRecordRenderGraph(renderGraph, context, ref renderingData);
 
             EndRenderGraphXRRendering(renderGraph, ref renderingData);
+
+            m_Resources.EndFrame();
         }
 
         /// <summary>
@@ -1038,7 +1130,7 @@ namespace UnityEngine.Rendering.Universal
             foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
             {
                 if (pass.renderPassEvent >= injectionPoint && (int) pass.renderPassEvent < nextValue)
-                    pass.RecordRenderGraph(renderGraph, ref renderingData);
+                    pass.RecordRenderGraph(renderGraph, m_Resources, ref renderingData);
             }
         }
 
@@ -1050,7 +1142,7 @@ namespace UnityEngine.Rendering.Universal
             foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
             {
                 if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
-                    pass.RecordRenderGraph(renderGraph, ref renderingData);
+                    pass.RecordRenderGraph(renderGraph, m_Resources, ref renderingData);
             }
         }
 
