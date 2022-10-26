@@ -91,7 +91,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         )
                         {
                             CategoryPath = uiInfo.Category,
-                            Synonyms = uiInfo.Synonyms.ToArray()
+                            Synonyms = uiInfo.Synonyms.ToArray(),
+                            Help = uiInfo.Description,
                         };
                         namesAddedToSearcher.Add(searcherItemName);
                         searcherItems.Add(searcherItem);

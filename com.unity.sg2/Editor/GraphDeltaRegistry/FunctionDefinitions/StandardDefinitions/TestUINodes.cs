@@ -460,7 +460,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: String.Empty,
             category: "Test",
             synonyms: Array.Empty<string>(),
-            hasPreview: true
+            hasPreview: true,
+            description: "Demonstrates the Float input on a node."
         );
     }
 
