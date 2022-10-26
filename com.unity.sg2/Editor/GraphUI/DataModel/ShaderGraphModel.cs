@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
-        Dictionary<RegistryKey, SGNodeViewModel> m_NodeUIData = new();
+        Dictionary<RegistryKey, SGNodeViewModel> m_NodeUIData;
 
         [NonSerialized]
         GraphDataContextNodeModel m_DefaultContextNode;
@@ -202,8 +202,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         public void CreateUIData()
         {
-            if (Stencil is ShaderGraphStencil stencil)
+            if (Stencil is ShaderGraphStencil stencil && m_NodeUIData == null)
             {
+                m_NodeUIData = new();
                 foreach (var registryKey in RegistryInstance.Registry.BrowseRegistryKeys())
                 {
                     var nodeUIInfo = stencil.GetUIHints(registryKey);
@@ -256,10 +257,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Returns true if we should create a view model for this port, false if it can be skipped
         /// </summary>
-        /// <param name="portInfo"></param>
-        /// <param name="parameter"></param>
-        /// <param name="portViewModel"></param>
-        /// <param name="showPreviewForType"></param>
+        /// <param name="portInfo"> Library port handler for the port</param>
+        /// <param name="parameter"> Library-side data struct containing UI info. of the port </param>
+        /// <param name="portViewModel"> Tool-side data struct that will contain all UI info of port </param>
+        /// <param name="showPreviewForType"> Flag that controls if this port opts into preview output</param>
         bool CreatePortViewModel(PortHandler portInfo, ParameterUIDescriptor parameter, out SGPortViewModel portViewModel, out bool showPreviewForType)
         {
             SGPortViewModel outViewModel = new SGPortViewModel();

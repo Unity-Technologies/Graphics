@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModel)
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 var collapseButton = nodeGraphElement.Q("collapse");
                 Assert.IsNotNull(collapseButton);
 
-                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, collapseButton, true);
+                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, collapseButton, true);
                 m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
                 yield return null;
                 yield return null;
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 var expandButton = nodeGraphElement.Q("expand");
                 Assert.IsNotNull(expandButton);
 
-                var expandButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, expandButton, true);
+                var expandButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, expandButton, true);
                 m_TestEventHelper.SimulateMouseClick(expandButtonPosition);
                 yield return null;
                 yield return null;
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            var afterContext = m_Window.GetNodeModelFromGraphByName(beforeContext.Title);
+            var afterContext = m_MainWindow.GetNodeModelFromGraphByName(beforeContext.Title);
             Assert.AreEqual(beforeContext, afterContext, "Context node should be unaffected by delete operation");
         }
 
@@ -92,13 +92,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             // Arbitrary node so that something other than a context exists in our graph.
             yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
 
             // Select the context nodes and the add node
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContexts.Append(nodeModel).ToList()));
 
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
-            Assert.IsNull(m_Window.GetNodeModelFromGraphByName("Add"), "Non-context node should be deleted from selection");
+            Assert.IsNull(m_MainWindow.GetNodeModelFromGraphByName("Add"), "Non-context node should be deleted from selection");
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context nodes should not be deleted from selection");
@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             // Select element programmatically because it might be behind another one
@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            var addNode = m_Window.GetNodeModelFromGraphByName("Add");
+            var addNode = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNull(addNode, "Node should be null after delete operation");
 
             var graphDataNodeModel = nodeModel as GraphDataNodeModel;
@@ -211,7 +211,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             Assert.AreEqual(2, m_GraphView.GraphModel.WireModels.Count, "Initial graph should have 2 edges");
 
-            var middleNode = m_Window.GetNodeModelFromGraphByName("Truncate");
+            var middleNode = m_MainWindow.GetNodeModelFromGraphByName("Truncate");
 
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, middleNode));
             yield return null;
@@ -228,12 +228,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModel = m_Window.GetNodeModelFromGraphByName("Add");
+            var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
             yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<AbstractNodeModel>() { nodeModel });
 
-            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 2);
+            Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("Add").Count == 2);
         }
 
         [UnityTest]
@@ -241,16 +241,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return m_TestInteractionHelper.CreateNodesAndConnect("View Direction", "Add", "Out", "A");
 
-            var viewDirectionNode = m_Window.GetNodeModelFromGraphByName("View Direction");
+            var viewDirectionNode = m_MainWindow.GetNodeModelFromGraphByName("View Direction");
             Assert.IsNotNull(viewDirectionNode);
 
-            var addNode = m_Window.GetNodeModelFromGraphByName("Add");
+            var addNode = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(addNode);
 
             yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<AbstractNodeModel>() { viewDirectionNode, addNode });
 
-            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 2);
-            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("View Direction").Count == 2);
+            Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("Add").Count == 2);
+            Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("View Direction").Count == 2);
         }
 
         [UnityTest]
@@ -260,11 +260,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
             yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
 
-            var nodeModels = m_Window.GetNodeModelsFromGraphByName("Add");
+            var nodeModels = m_MainWindow.GetNodeModelsFromGraphByName("Add");
 
             yield return m_TestInteractionHelper.SelectAndCopyNodes(nodeModels);
 
-            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Add").Count == 4);
+            Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("Add").Count == 4);
         }
 
         /*
@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator CreateAllNodesFromSearcherTest()
         {
-            if (m_Window.GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
+            if (m_MainWindow.GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
             {
                 var shaderGraphStencil = shaderGraphModel.Stencil as ShaderGraphStencil;
                 var searcherDatabaseProvider = new ShaderGraphSearcherDatabaseProvider(shaderGraphStencil);
@@ -295,10 +295,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestDynamicPortsUpdate()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Multiply");
+            var multiply = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector 2");
+            var vec2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
 
             foreach (var port in multiply.Ports)
             {
@@ -327,15 +327,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply1 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Multiply");
+            var multiply1 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
             multiply1.Title = "Multiply 1";
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Multiply");
+            var multiply2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
             multiply2.Title = "Multiply 2";
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (GraphDataNodeModel)m_Window.GetNodeModelFromGraphByName("Vector 2");
+            var vec2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
 
             m_GraphView.Dispatch(new CreateWireCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
             yield return null;

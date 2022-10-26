@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using UnityEngine;
@@ -11,8 +12,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 
-        protected TestEditorWindow m_Window;
+        protected TestEditorWindow m_MainWindow;
         protected TestGraphView m_GraphView;
+
+        protected List<TestEditorWindow> m_ExtraWindows = new();
+        protected List<string> m_ExtraGraphAssets = new();
 
         protected ShaderGraphModel GraphModel => m_GraphView.GraphModel as ShaderGraphModel;
 
@@ -46,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             CreateWindow();
 
-            m_GraphView = m_Window.GraphView as TestGraphView;
+            m_GraphView = m_MainWindow.GraphView as TestGraphView;
 
             GraphAsset graphAsset = null;
             switch (GraphToInstantiate)
@@ -87,37 +91,45 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             if (graphAsset != null)
             {
-                m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
-                m_Window.GraphTool.Update();
+                m_MainWindow.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
+                m_MainWindow.GraphTool.Update();
             }
 
             if (hideOverlayWindows)
             {
-                m_Window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
+                m_MainWindow.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
                 blackboardOverlay.displayed = false;
 
-                m_Window.TryGetOverlay(k_InspectorOverlayId, out var inspectorOverlay);
+                m_MainWindow.TryGetOverlay(k_InspectorOverlayId, out var inspectorOverlay);
                 inspectorOverlay.displayed = false;
             }
 
-            m_Window.Focus();
+            m_MainWindow.Focus();
         }
 
         [TearDown]
         public virtual void TearDown()
         {
-            CloseWindow();
+            // Close main window and delete asset
+            m_MainWindow.Close();
             AssetDatabase.DeleteAsset(testAssetPath);
+
+            // Close any extra windows and delete extra assets
+            foreach (var extraWindow in m_ExtraWindows)
+                extraWindow.Close();
+            foreach (var extraGraphAsset in m_ExtraGraphAssets)
+                AssetDatabase.DeleteAsset(extraGraphAsset);
+
         }
 
         public void CreateWindow()
         {
-            m_Window = EditorWindow.CreateWindow<TestEditorWindow>(typeof(SceneView), typeof(TestEditorWindow));
-            m_Window.shouldCloseWindowNoPrompt = true;
+            m_MainWindow = EditorWindow.CreateWindow<TestEditorWindow>(typeof(SceneView), typeof(TestEditorWindow));
+            m_MainWindow.shouldCloseWindowNoPrompt = true;
 
-            m_TestEventHelper = new TestEventHelpers(m_Window);
+            m_TestEventHelper = new TestEventHelpers(m_MainWindow);
 
-            m_TestInteractionHelper = new TestInteractionHelpers(m_Window, m_TestEventHelper);
+            m_TestInteractionHelper = new TestInteractionHelpers(m_MainWindow, m_TestEventHelper);
         }
 
         public void CloseWindow()
@@ -125,30 +137,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // See case: https://fogbugz.unity3d.com/f/cases/998343/
             // Clearing the capture needs to happen before closing the window
             MouseCaptureController.ReleaseMouse();
-            if (m_Window != null)
+            if (m_MainWindow != null)
             {
-                m_Window.Close();
+                m_MainWindow.Close();
             }
         }
 
         /// <summary>
         /// Saves the open graph, closes the tool window, then reopens the graph.
-        /// m_Window is reassigned after calling this method.
+        /// m_MainWindow is reassigned after calling this method.
         /// </summary>
         public IEnumerator SaveAndReopenGraph()
         {
-            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
+            GraphAssetUtils.SaveOpenGraphAsset(m_MainWindow.GraphTool);
             CloseWindow();
             yield return null;
 
             var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
             CreateWindow();
-            m_Window.Show();
-            m_Window.Focus();
-            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            m_MainWindow.Show();
+            m_MainWindow.Focus();
+            m_MainWindow.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
 
             // Wait till the graph model is loaded back up
-            while (m_Window.GraphView.GraphModel == null)
+            while (m_MainWindow.GraphView.GraphModel == null)
                 yield return null;
         }
 

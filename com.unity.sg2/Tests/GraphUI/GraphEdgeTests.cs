@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // Set up the graph
             yield return m_TestInteractionHelper.CreateNodesAndConnect();
 
-            var edgeModel = m_Window.GetEdgeModelFromGraphByName("Add", "Preview");
+            var edgeModel = m_MainWindow.GetEdgeModelFromGraphByName("Add", "Preview");
 
             // Select element programmatically because it might be behind another one
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, edgeModel));
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            edgeModel = m_Window.GetEdgeModelFromGraphByName("Add", "Preview");
+            edgeModel = m_MainWindow.GetEdgeModelFromGraphByName("Add", "Preview");
             Assert.IsNull(edgeModel, "Edge should be null after delete operation");
         }
 
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return m_TestInteractionHelper.SelectAndCopyNodes(modelsToCopy.ToList());
 
-            var edgeModels = m_Window.GetEdgeModelsFromGraphByName("Add", "Preview");
+            var edgeModels = m_MainWindow.GetEdgeModelsFromGraphByName("Add", "Preview");
             Assert.IsTrue(edgeModels.Count == 2);
         }
     }

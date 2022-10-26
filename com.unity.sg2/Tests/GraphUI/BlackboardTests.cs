@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public override void SetUp()
         {
             base.SetUp();
-            m_BlackboardView = FindBlackboardView(m_Window);
+            m_BlackboardView = FindBlackboardView(m_MainWindow);
         }
 
         // TODO: This will probably be useful elsewhere, consider abstracting it out
@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return SaveAndReopenGraph();
 
             {
-                m_BlackboardView = FindBlackboardView(m_Window);
+                m_BlackboardView = FindBlackboardView(m_MainWindow);
                 ValidateCreatedField();
             }
         }
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
 
             // Mimic drag-and-drop interaction by the user from blackboard item to center of the graph
-            var graphViewCenterPosition = TestEventHelpers.GetScreenPosition(m_Window, m_GraphView, true);
+            var graphViewCenterPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, m_GraphView, true);
             var command = new CreateNodeCommand();
             var variable = GraphModel.VariableDeclarations.FirstOrDefault();
             command.WithNodeOnGraph(variable, graphViewCenterPosition);
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return null;
 
-            Assert.IsNotNull(m_Window.GetNodeModelFromGraphByName("Vector 4"));
+            Assert.IsNotNull(m_MainWindow.GetNodeModelFromGraphByName("Vector 4"));
         }
 
         [UnityTest]
@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return TestVariableNodeCanBeAdded();
 
-            var variableNodeModel = m_Window.GetNodeModelFromGraphByName("Vector 4");
+            var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
 
             // NOTE: Unlike in GraphNodeTests where the graph view already has focus, if we don't
             // send focus to the graph view visual element first (after interacting with the blackboard),
@@ -193,7 +193,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
-            var vector4Node = m_Window.GetNodeModelFromGraphByName("Vector 4");
+            var vector4Node = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
             Assert.IsNull(vector4Node, "Node should be null after delete operation");
 
             var graphDataVariableNodeModel = variableNodeModel as GraphDataVariableNodeModel;
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return TestVariableNodeCanBeAdded();
 
-            var variableNodeModel = m_Window.GetNodeModelFromGraphByName("Vector 4");
+            var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
             Assert.IsNotNull(variableNodeModel);
 
             // NOTE: Unlike in GraphNodeTests where the graph view already has focus, if we don't
@@ -223,7 +223,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_TestEventHelper.SendDuplicateCommand());
             yield return null;
 
-            Assert.IsTrue(m_Window.GetNodeModelsFromGraphByName("Vector 4").Count == 2, "Should be two variable nodes after copy");
+            Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("Vector 4").Count == 2, "Should be two variable nodes after copy");
         }
 
         // Disabled for now, need to refactor preview tests to be async-ified
@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             yield return TestVariableNodeCanBeAdded();
 
-            var variableNodeModel = m_Window.GetNodeModelFromGraphByName("Vector 4");
+            var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
             Assert.IsNotNull(variableNodeModel);
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
@@ -245,7 +245,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 new Vector4(1, 0, 0, 0),
                 graphDataVariable.VariableDeclarationModel));
 
-            var nodePreviewMaterial = m_Window.previewUpdateDispatcher.(graphDataVariable.graphDataName);
+            var nodePreviewMaterial = m_MainWindow.previewUpdateDispatcher.(graphDataVariable.graphDataName);
             Assert.IsNotNull(nodePreviewMaterial);
             Assert.AreEqual(Color.red, SampleMaterialColor(nodePreviewMaterial));
         }*/
@@ -357,14 +357,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
 
             var secondGraphPath = CreateSecondGraph(out ShaderGraphAsset secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
+            // Cache these so we can do cleanup later
+            m_ExtraWindows.Add(secondEditorWindow);
+            m_ExtraGraphAssets.Add(secondGraphPath);
 
             // Wait till second graph is loaded as well
             while (secondGraphAsset.GraphModel == null)
                 yield return null;
 
             // Go back to first graph
-            m_Window.Show();
-            m_Window.Focus();
+            m_MainWindow.Show();
+            m_MainWindow.Focus();
 
             var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
 
@@ -379,11 +382,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             // We want a copy of the original blackboard items
             var originalItems = GraphModel.VariableDeclarations.ToList();
-            for(var index = 0; index < originalItems.Count; index++)
+            for (var index = 0; index < originalItems.Count; index++)
             {
                 // Switch back to first graph
-                m_Window.Show();
-                m_Window.Focus();
+                m_MainWindow.Show();
+                m_MainWindow.Focus();
                 yield return null;
 
                 // Select item
@@ -414,11 +417,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 // Check to make sure the copy worked and there is one of the copied type in the target graph
                 Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 1);
             }
-
-            // Close second window
-            secondEditorWindow.Close();
-            // Remove second graph asset
-            AssetDatabase.DeleteAsset(secondGraphPath);
         }
 
         // TODO: (Sai) Make these generalized to keywords also when those come in
@@ -436,8 +434,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
 
             // Go back to first graph
-            m_Window.Show();
-            m_Window.Focus();
+            m_MainWindow.Show();
+            m_MainWindow.Focus();
 
             var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
 
@@ -455,8 +453,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             for(var index = 0; index < originalItems.Count; index++)
             {
                 // Switch back to first graph
-                m_Window.Show();
-                m_Window.Focus();
+                m_MainWindow.Show();
+                m_MainWindow.Focus();
                 yield return null;
 
                 // Select item
