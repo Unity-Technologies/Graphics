@@ -74,7 +74,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return searcherWindow;
         }
 
-        // TODO (Sai): Move to TestInteractionHelpers
         public IEnumerator AddNodeFromSearcherAndValidate(string nodeName)
         {
             var searcherWindow = SummonSearcher();
