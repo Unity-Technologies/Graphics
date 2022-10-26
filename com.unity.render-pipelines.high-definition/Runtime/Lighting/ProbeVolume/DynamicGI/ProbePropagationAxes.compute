@@ -277,17 +277,18 @@ RADIANCE GetPreviousAxisRadiance(int index)
 // Our ZH Fit produces results that are closer to the monte carlo naive projection ground turth than the sample peaks approach does. Both approaches are reasonable however.
 #define BASIS_FROM_SH_MODE BASIS_FROM_SH_MODE_ZH_FIT
 
-#define PREFETCH
+// The path with a prefetch turned out to be slower but let's leave the option for now as a reference.
+// #define PREFETCH
 
 #ifdef PREFETCH
 #define PREFETCH_BLOCK_SIZE (BLOCK_SIZE + 2)
 #define PREFETCH_PROBE_COUNT (PREFETCH_BLOCK_SIZE * PREFETCH_BLOCK_SIZE * PREFETCH_BLOCK_SIZE)
 #define PREFETCH_PROBE_COUNT_PER_THREAD ((PREFETCH_PROBE_COUNT + BLOCK_PROBE_COUNT - 1) / BLOCK_PROBE_COUNT)
 groupshared RADIANCE prefetchedPreviousRadiance[PREFETCH_PROBE_COUNT];
-#endif
 
 #ifndef DIRTY_FLAGS_DISABLED
 groupshared int2 dirtyFlags;
+#endif
 #endif
 
 [numthreads(GROUP_SIZE, 1, 1)]
@@ -330,13 +331,12 @@ void PropagateLight(
             }
         }
     }
-#endif
 
 #ifndef DIRTY_FLAGS_DISABLED
     if (blockProbeIndex < 2)
         dirtyFlags[blockProbeIndex] = _ProbeVolumeDirtyFlags[blockIndex * 2 + blockProbeIndex];
-    GroupMemoryBarrierWithGroupSync();
-#elif defined(PREFETCH)
+#endif
+
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -344,12 +344,14 @@ void PropagateLight(
     {
 #ifndef DIRTY_FLAGS_DISABLED
         const uint dirtyFlagsIndex = blockProbeIndex / 32;
-        const uint dirtyFlagsBitIndex = blockProbeIndex - dirtyFlagsIndex * 32;
+        const uint dirtyFlagsBitIndex = blockProbeIndex % 32;
+#ifdef PREFETCH
         if ((dirtyFlags[dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
         {
-#ifdef PREFETCH
             _RadianceCacheAxis[radianceIndex] = prefetchedPreviousRadiance[CoordinateToIndex(blockProbeCoord + 1, PREFETCH_BLOCK_SIZE)];
 #else
+        if ((_ProbeVolumeDirtyFlags[blockIndex * 2 + dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
+        {
             _RadianceCacheAxis[radianceIndex] = GetPreviousAxisRadiance(radianceIndex);
 #endif
             return;

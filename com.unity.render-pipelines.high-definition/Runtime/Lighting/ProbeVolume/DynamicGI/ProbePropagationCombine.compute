@@ -315,7 +315,10 @@ SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
     return ProjectPropagationAxisFromFit(probeIndex);
 }
 
-#ifndef DIRTY_FLAGS_DISABLED
+// The path with a prefetch turned out to be slower but let's leave the option for now as a reference.
+// #define PREFETCH
+
+#if defined(PREFETCH) && !defined(DIRTY_FLAGS_DISABLED)
 groupshared int2 dirtyFlags;
 #endif
 
@@ -336,7 +339,7 @@ void CombinePropagationAxis(
     const uint3 blockProbeCoord = IndexToCoordinate(threadIndex, BLOCK_SIZE);
     const uint blockProbeIndex = threadIndex;
 
-#ifndef DIRTY_FLAGS_DISABLED
+#if defined(PREFETCH) && !defined(DIRTY_FLAGS_DISABLED)
     if (blockProbeIndex < 2)
         dirtyFlags[blockProbeIndex] = _ProbeVolumeDirtyFlags[blockIndex * 2 + blockProbeIndex];
     GroupMemoryBarrierWithGroupSync();
@@ -350,8 +353,12 @@ void CombinePropagationAxis(
 
 #ifndef DIRTY_FLAGS_DISABLED
         const uint dirtyFlagsIndex = blockProbeIndex / 32;
-        const uint dirtyFlagsBitIndex = blockProbeIndex - dirtyFlagsIndex * 32;
+        const uint dirtyFlagsBitIndex = blockProbeIndex % 32;
+#ifdef PREFETCH
         if ((dirtyFlags[dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
+#else
+        if ((_ProbeVolumeDirtyFlags[blockIndex * 2 + dirtyFlagsIndex] >> dirtyFlagsBitIndex & 1) == 0)
+#endif
             return;
 #endif
 
