@@ -52,28 +52,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 case GraphDataPortModel graphDataPort:
                 {
-                    NodeHandler nodeReader;
-
-                    switch (graphDataPort.NodeModel)
+                    var sgModel = (ShaderGraphModel)graphDataPort.GraphModel;
+                    if (!sgModel.GetNodeViewModel(graphDataPort.owner.registryKey, out var nodeViewModel))
                     {
-                        case GraphDataNodeModel graphDataNode:
-                            graphDataNode.TryGetNodeHandler(out nodeReader);
-                            break;
-                        case GraphDataBlockNodeModel { ContextNodeModel: GraphDataContextNodeModel owningContext }:
-                            owningContext.TryGetNodeHandler(out nodeReader);
-                            break;
-                        default:
-                            return new MissingFieldEditor(builder.CommandTarget, builder.Label);
+                        break;
                     }
 
-                    var length = constant.GetLength();
-                    var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-                    var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey, nodeReader);
-                    var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
-
-                    if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
+                    var portViewModel = nodeViewModel.GetParameterInfo(graphDataPort.graphDataName);
+                    if (portViewModel.UseColor)
                     {
-                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, parameterUIDescriptor.Tooltip);
+                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, portViewModel.Tooltip);
                     }
 
                     break;
