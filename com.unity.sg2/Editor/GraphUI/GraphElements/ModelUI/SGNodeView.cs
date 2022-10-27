@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         NodePreviewPart m_NodePreviewPart;
         DynamicPartHolder m_StaticFieldParts;
-        GraphDataNodeModel graphDataNodeModel => NodeModel as GraphDataNodeModel;
+        SGNodeModel graphDataNodeModel => NodeModel as SGNodeModel;
 
         protected override void BuildPartList()
         {
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var shouldShowPreview =
                 graphDataNodeModel.existsInGraphData &&
                 nodeHasPreview &&
-                graphDataNodeModel is not GraphDataContextNodeModel;
+                graphDataNodeModel is not SGContextNodeModel;
 
             if (shouldShowPreview)
                 m_NodePreviewPart = new NodePreviewPart(

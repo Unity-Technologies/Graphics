@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected TestGraphView m_GraphView;
         protected List<TestEditorWindow> m_ExtraWindows = new();
         protected List<string> m_ExtraGraphAssets = new();
-        protected ShaderGraphModel GraphModel => m_GraphView.GraphModel as ShaderGraphModel;
+        protected SGGraphModel GraphModel => m_GraphView.GraphModel as SGGraphModel;
 
         // Used to send events to the highest shader graph editor window
         protected TestEventHelpers m_TestEventHelper;

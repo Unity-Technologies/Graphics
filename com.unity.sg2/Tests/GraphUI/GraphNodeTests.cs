@@ -295,10 +295,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestDynamicPortsUpdate()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
+            var vec2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
 
             foreach (var port in multiply.Ports)
             {
@@ -327,15 +327,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply1 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply1 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
             multiply1.Title = "Multiply 1";
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
             multiply2.Title = "Multiply 2";
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
+            var vec2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
 
             m_GraphView.Dispatch(new CreateWireCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
             yield return null;

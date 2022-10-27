@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         // TODO GTF UPGRADE: support edition of multiple models.
                         var model = models.First();
-                        var graphModel = model.GraphModel as ShaderGraphModel;
+                        var graphModel = model.GraphModel as SGGraphModel;
                         if (graphModel?.IsSubGraph != true || model.IsMainContextNode() != true)
                             break;
 

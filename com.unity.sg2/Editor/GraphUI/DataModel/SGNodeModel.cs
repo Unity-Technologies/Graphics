@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public SGNodeViewModel GetViewModel()
         {
-            shaderGraphModel.GetNodeViewModel(registryKey, out var nodeViewModel);
+            graphModel.GetNodeViewModel(registryKey, out var nodeViewModel);
             return nodeViewModel;
         }
 
