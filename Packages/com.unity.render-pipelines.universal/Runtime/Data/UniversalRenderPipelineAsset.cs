@@ -439,6 +439,7 @@ namespace UnityEngine.Rendering.Universal
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use m_RendererDataList instead.")]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
@@ -1790,7 +1791,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_RendererType == RendererType.Custom)
                 {
+#pragma warning disable 618 // Obsolete warning
                     m_RendererDataList[0] = m_RendererData;
+#pragma warning restore 618 // Obsolete warning
                 }
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 5;
@@ -1884,7 +1887,9 @@ namespace UnityEngine.Rendering.Universal
                     {
                         asset.LoadBuiltinRendererData();
                     }
+#pragma warning disable 618 // Obsolete warning
                     asset.m_RendererData = null; // Clears the old renderer
+#pragma warning restore 618 // Obsolete warning
                 }
 
                 asset.k_AssetPreviousVersion = 5;
