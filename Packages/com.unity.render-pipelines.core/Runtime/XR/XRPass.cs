@@ -306,10 +306,9 @@ namespace UnityEngine.Experimental.Rendering
         public void InitBase(XRPassCreateInfo createInfo)
         {
             m_Views.Clear();
-            multipassId = createInfo.multipassId;
-            cullingPassId = createInfo.cullingPassId;
-            cullingParams = createInfo.cullingParameters;
             copyDepth = createInfo.copyDepth;
+            multipassId = createInfo.multipassId;
+            AssignCullingParams(createInfo.cullingPassId, createInfo.cullingParameters);
             renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
             renderTargetDesc = createInfo.renderTargetDesc;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
