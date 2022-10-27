@@ -157,7 +157,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeHandler.RemovePort("out_" + entryName);
 
             graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
-            RemoveElements(GraphElementModels.Where(model => model is GraphDataBlockNodeModel blockNode && blockNode.ContextEntryName == entryName).ToList());
+
+            if (TryGetBlockForContextEntry(entryName, out var blockNode))
+            {
+                RemoveElements(new[] { blockNode });
+            }
         }
 
         #endregion
