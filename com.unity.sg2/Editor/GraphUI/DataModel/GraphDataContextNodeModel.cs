@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -42,7 +43,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
         }
 
-
         public bool TryGetNodeHandler(out NodeHandler reader)
         {
             try
@@ -60,25 +60,52 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void AddBlocksFromGraphDelta()
         {
-            if (!TryGetNodeHandler(out var nodeReader)) return;
-
             var currentBlockNames = GraphElementModels.OfType<GraphDataBlockNodeModel>().Select(b => b.ContextEntryName).ToHashSet();
+
+            foreach (var blockName in GetContextEntryNames())
+            {
+                if (!currentBlockNames.Contains(blockName))
+                {
+                    CreateAndInsertBlockForEntry(blockName);
+                }
+            }
+        }
+
+        // Right now context entry names are all that are needed to represent blocks. This could eventually return
+        // something like a list of SGPortViewModels when more information (i.e., display names) is available.
+        public IEnumerable<string> GetContextEntryNames()
+        {
+            if (!TryGetNodeHandler(out var nodeReader))
+            {
+                yield break;
+            }
 
             foreach (var portHandler in nodeReader.GetPorts())
             {
-                if (!portHandler.IsHorizontal) continue;
-                if (portHandler.LocalID.Contains("out_")) continue;
+                if (!portHandler.IsHorizontal || !portHandler.IsInput) continue;
 
                 var staticField = portHandler.GetTypeField().GetSubField<bool>("IsStatic");
                 var localField = portHandler.GetTypeField().GetSubField<bool>("IsLocal");
                 if (staticField != null && staticField.GetData()) continue;
                 if (localField != null && localField.GetData()) continue;
 
-                if (!currentBlockNames.Contains(portHandler.LocalID))
+                yield return portHandler.LocalID;
+            }
+        }
+
+        public bool TryGetBlockForContextEntry(string contextEntryName, out GraphDataBlockNodeModel block)
+        {
+            foreach (var subModel in GraphElementModels)
+            {
+                if (subModel is GraphDataBlockNodeModel existingBlock && existingBlock.ContextEntryName == contextEntryName)
                 {
-                    CreateAndInsertBlockForEntry(portHandler.LocalID);
+                    block = existingBlock;
+                    return true;
                 }
             }
+
+            block = null;
+            return false;
         }
 
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)

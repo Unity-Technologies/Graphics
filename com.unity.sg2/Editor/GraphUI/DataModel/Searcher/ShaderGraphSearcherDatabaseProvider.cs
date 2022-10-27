@@ -15,9 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     class ShaderGraphSearcherDatabaseProvider : DefaultDatabaseProvider
     {
         public ShaderGraphSearcherDatabaseProvider(ShaderGraphStencil stencil)
-            : base(stencil)
-        {
-        }
+            : base(stencil) { }
 
         /// <inheritdoc/>
         public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementsDatabases(GraphModel graphModel)
@@ -41,63 +39,73 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementContainerDatabases(GraphModel graphModel, IGraphElementContainer container)
         {
-            if (container is not GraphDataContextNodeModel contextNode || graphModel is not ShaderGraphModel sgModel)
+            if (container is not GraphDataContextNodeModel contextNode)
             {
                 return base.GetGraphElementContainerDatabases(graphModel, container);
             }
 
+            var blocks = GetBlockSearcherItems(contextNode);
+            return new List<ItemLibraryDatabaseBase> {new ItemLibraryDatabase(blocks)};
+        }
+
+        private static List<ItemLibraryItem> GetBlockSearcherItems(GraphDataContextNodeModel context)
+        {
             var availableBlocks = new List<ItemLibraryItem>();
-            var handler = sgModel.GraphHandler.GetNode(contextNode.graphDataName);
 
-            foreach (var portHandler in handler.GetPorts())
+            foreach (var entryName in context.GetContextEntryNames())
             {
-                if (!portHandler.IsInput || !portHandler.IsHorizontal) continue;
-
                 availableBlocks.Add(new GraphNodeModelLibraryItem(
-                    name: portHandler.LocalID,
+                    entryName,
                     null,
                     creationData =>
                     {
                         var isPreview = (creationData.SpawnFlags & SpawnFlags.Orphan) != 0;
 
-                        if (!isPreview)
+                        if (!isPreview && context.TryGetBlockForContextEntry(entryName, out var existingBlock))
                         {
-                            foreach (var subModel in contextNode.GraphElementModels)
+                            // Point to an existing block if it's already present.
+                            return existingBlock;
+                        }
+
+                        var result = creationData.CreateBlock(
+                            typeof(GraphDataBlockNodeModel),
+                            initializationCallback: node =>
                             {
-                                if (subModel is GraphDataBlockNodeModel existingBlock && existingBlock.ContextEntryName == portHandler.LocalID)
-                                {
-                                    // Blocks are unique, so point to an existing one if it's already present.
-                                    return existingBlock;
-                                }
+                                if (node is not GraphDataBlockNodeModel graphDataBlock) return;
+
+                                graphDataBlock.Title = entryName;
+                                graphDataBlock.ContextEntryName = entryName;
+                            },
+                            typeof(GraphDataContextNodeModel));
+
+                        switch (result)
+                        {
+                            // When setting up a searcher preview, CreateBlock returns a dummy context to house our
+                            // block. In this case, copy over the important context info so the block can be dressed
+                            // properly.
+                            case GraphDataContextNodeModel previewContext:
+                            {
+                                previewContext.graphDataName = context.graphDataName;
+                                previewContext.Title = context.Title;
+                                previewContext.DefineNode();
+
+                                var previewBlock = (GraphDataBlockNodeModel)previewContext.GraphElementModels.First();
+                                previewBlock.DefineNode();
+                                break;
                             }
-                        }
 
-                        var result = creationData.CreateBlock(typeof(GraphDataBlockNodeModel), initializationCallback: node =>
-                        {
-                            if (node is not GraphDataBlockNodeModel graphDataBlock) return;
-
-                            graphDataBlock.Title = portHandler.LocalID;
-                            graphDataBlock.ContextEntryName = portHandler.LocalID;
-                        }, typeof(GraphDataContextNodeModel));
-
-                        if (result is GraphDataContextNodeModel fakeContext)
-                        {
-                            fakeContext.graphDataName = contextNode.graphDataName;
-                            fakeContext.Title = contextNode.Title;
-                            fakeContext.DefineNode();
-                            var block = (GraphDataBlockNodeModel)fakeContext.GraphElementModels.First();
-                            block.DefineNode();
-                        }
-                        else if (result is GraphDataBlockNodeModel realBlock)
-                        {
-                            realBlock.DefineNode();
+                            // If CreateBlock returns an actual block model, we created a real block. Define it now
+                            // that it's added to the context, so it appears with the right ports.
+                            case GraphDataBlockNodeModel block:
+                                block.DefineNode();
+                                break;
                         }
 
                         return result;
                     }));
             }
 
-            return new List<ItemLibraryDatabaseBase> {new ItemLibraryDatabase(availableBlocks)};
+            return availableBlocks;
         }
 
         internal static List<ItemLibraryItem> GetNodeSearcherItems(GraphModel graphModel)
