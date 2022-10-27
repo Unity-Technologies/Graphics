@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.2.4] - 2022-10-17
 - Updated materials to avoid popup
+- Disabled Auto Generate Lighting in the URP template scene
 
 ## [13.2.3] - 2022-05-10
 
