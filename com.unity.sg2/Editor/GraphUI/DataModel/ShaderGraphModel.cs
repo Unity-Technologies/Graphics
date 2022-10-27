@@ -8,7 +8,6 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.GraphToolsFoundation;
-using UnityEditor.ShaderGraph.GraphUI.UIData;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
