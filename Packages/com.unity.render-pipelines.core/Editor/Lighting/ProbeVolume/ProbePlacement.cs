@@ -261,8 +261,8 @@ namespace UnityEngine.Rendering
 
                 bool IsParentBrickInProbeVolume(Vector3Int parentSubCellPos, float minBrickSize, int brickSize)
                 {
-                    Vector3 center = (Vector3)parentSubCellPos * minBrickSize + Vector3.one * brickSize * minBrickSize / 2.0f;
-                    Bounds parentAABB = new Bounds(center, Vector3.one * brickSize * minBrickSize);
+                    Vector3 center = (Vector3)parentSubCellPos * minBrickSize + brickSize * minBrickSize * Vector3.one / 2.0f;
+                    Bounds parentAABB = new Bounds(center, brickSize * minBrickSize * Vector3.one);
 
                     bool generateParentBrick = false;
                     foreach (var probeVolume in probeVolumes)

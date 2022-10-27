@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Tests
                 .ToArray();
 
             var notAdditionalParameters = editor.GetField("m_VolumeNotAdditionalParameters") as List<VolumeParameter>;
-            Assert.True(fields.Count() + notAdditionalParameters.Count == component.parameters.Count);
+            Assert.True(fields.Length + notAdditionalParameters.Count == component.parameters.Count);
 
             ScriptableObject.DestroyImmediate(component);
 
@@ -153,9 +153,9 @@ namespace UnityEngine.Rendering.Tests
                 editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder,
                     SerializedDataParameter param)>;
 
-            Assert.True(parameters != null && parameters.Count() == k_ExpectedResults.Count());
+            Assert.True(parameters != null && parameters.Count == k_ExpectedResults.Length);
 
-            for (int i = 0; i < k_ExpectedResults.Count(); ++i)
+            for (int i = 0; i < k_ExpectedResults.Length; ++i)
             {
                 var property = parameters[i].param;
                 var title = new GUIContent(parameters[i].displayName);
