@@ -236,7 +236,7 @@ real3x3 CreateTangentToWorld(real3 normal, real3 tangent, real flipSign)
 
 // this function is intended to work on Normals (handles non-uniform scale)
 // tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
-real3 TransformTangentToWorld(real3 normalTS, real3x3 tangentToWorld, bool doNormalize = false)
+real3 TransformTangentToWorld(float3 normalTS, real3x3 tangentToWorld, bool doNormalize = false)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
     real3 result = mul(normalTS, tangentToWorld);
