@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Enable to allow Materials to receive decals.");
 
-            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when the not using a normal map).");
+            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when a normal map is not used).");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
@@ -173,6 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty blendMode = null;
         MaterialProperty enableBlendModePreserveSpecularLighting = null;
         MaterialProperty enableFogOnTransparent = null;
+        private const string kRenderQueueTypeShaderGraph = "_RenderQueueType";
 
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
@@ -249,9 +250,11 @@ namespace UnityEditor.Rendering.HighDefinition
             get => (materialEditor.targets[0] as Material).renderQueue;
             set
             {
-                foreach (var target in materialEditor.targets)
+                foreach (Material target in materialEditor.targets)
                 {
-                    (target as Material).renderQueue = value;
+                    if (target.HasProperty(kRenderQueueTypeShaderGraph))
+                        target.SetFloat(kRenderQueueTypeShaderGraph, (int)HDRenderQueue.GetTypeByRenderQueueValue(value));
+                    target.renderQueue = value;
                 }
             }
         }
@@ -419,10 +422,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUI.indentLevel++;
 
-                if (showAlphaClipThreshold && alphaCutoff != null)
+                if (alphaCutoff != null)
                     materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
 
-                if (showAlphaClipThreshold && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
+                if ((m_Features & Features.AlphaCutoffShadowThreshold) != 0)
                 {
                     // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
                     bool showUseShadowThreshold = useShadowThreshold != null;
@@ -448,7 +451,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
-                if (showAlphaClipThreshold && surfaceTypeValue == SurfaceType.Transparent)
+                if (surfaceTypeValue == SurfaceType.Transparent)
                 {
                     // TODO: check if passes exists
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
@@ -622,9 +625,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
-            if (material.HasProperty("_RenderQueueType"))
+            if (material.HasProperty(kRenderQueueTypeShaderGraph))
             {
-                renderQueueType = (HDRenderQueue.RenderQueueType)material.GetFloat("_RenderQueueType");
+                renderQueueType = (HDRenderQueue.RenderQueueType)material.GetFloat(kRenderQueueTypeShaderGraph);
             }
             // To know if we need to update the renderqueue, mainly happens if a material is created from a shader graph shader
             // with default render-states.

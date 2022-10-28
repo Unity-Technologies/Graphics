@@ -405,6 +405,8 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_LiftGammaGain.GetHashCode() * 23 +
                    m_ShadowsMidtonesHighlights.GetHashCode() * 23 +
                    m_Curves.GetHashCode() * 23 +
+                   m_TonemappingFS.GetHashCode() * 23 +
+                   m_ColorGradingFS.GetHashCode() * 23 +
                    HDROutputIsActive().GetHashCode()
 #if UNITY_EDITOR
                    * 23
@@ -4201,6 +4203,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
         }
 
+        /// <summary>
+        ///  Returns whether the data for HDR is detected properly from the device. If this returns false it is suggested that a calibration screen is used to set the min/max nits limits and paperwhite values. 
+        /// </summary>
+        /// <returns>Whether the data for HDR is detected properly from the device.</returns>
+        public static bool HDRDataDetectedProperly()
+        {
+            return HDROutputSettings.main.minToneMapLuminance >= 0 && HDROutputSettings.main.maxToneMapLuminance > 0 && HDROutputSettings.main.paperWhiteNits > 0;
+        }
+
         static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
             var minNits = HDROutputSettings.main.minToneMapLuminance;
@@ -4208,6 +4219,20 @@ namespace UnityEngine.Rendering.HighDefinition
             var paperWhite = HDROutputSettings.main.paperWhiteNits;
             int eetfMode = 0;
             float hueShift = 0.0f;
+
+            bool failedToDetectLimits = minNits < 0 || maxNits <= 0;
+            if (failedToDetectLimits && tonemappingComponent.detectBrightnessLimits.value)
+            {
+                minNits = 0;
+                maxNits = 1000;
+                Debug.LogWarning("The platform failed to detect min and max nits, minNits: 0 and maxNits: 1000 are used as default, but it is heavily suggested that the title provides a calibration screen to manually set the limits.");
+            }
+            bool failedToPaperwhite = paperWhite <= 0;
+            if (failedToPaperwhite && tonemappingComponent.detectPaperWhite.value)
+            {
+                paperWhite = 300;
+                Debug.LogWarning("The platform failed to detect paper white values, paperwhite: 300 will be used as default, but it is heavily suggested that the title provides a calibration screen to manually set the value.");
+            }
 
             TonemappingMode hdrTonemapMode = tonemappingComponent.GetHDRTonemappingMode();
 

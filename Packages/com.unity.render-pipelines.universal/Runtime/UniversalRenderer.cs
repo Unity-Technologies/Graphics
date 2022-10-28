@@ -573,7 +573,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
                 var baseRenderer = (UniversalRenderer)baseCameraData.scriptableRenderer;
-                m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                if (m_ColorBufferSystem != baseRenderer.m_ColorBufferSystem)
+                {
+                    m_ColorBufferSystem.Dispose();
+                    m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                }
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
                 m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
                 m_XRTargetHandleAlias = baseRenderer.m_XRTargetHandleAlias;
@@ -673,7 +677,7 @@ namespace UnityEngine.Rendering.Universal
                 var normalDescriptor = cameraTargetDescriptor;
                 normalDescriptor.depthBufferBits = 0;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-                normalDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                normalDescriptor.msaaSamples = useDepthPriming ? cameraTargetDescriptor.msaaSamples : 1;// Depth-Only passes don't use MSAA, unless depth priming is enabled
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.

@@ -256,7 +256,20 @@ namespace UnityEditor.VFX.URP
                 fieldDependencies = ElementSpaceDependencies,
                 pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
                 {
-                    ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") )
+                    ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") ),
+
+                    //Minimal target of VFX is always Target45 (2.0 is used with GLCore)
+                    ( Pragma.Target(ShaderModel.Target20), Pragma.Target(ShaderModel.Target45) ),
+                    ( Pragma.Target(ShaderModel.Target30), Pragma.Target(ShaderModel.Target45) ),
+                    ( Pragma.Target(ShaderModel.Target35), Pragma.Target(ShaderModel.Target45) ),
+                    ( Pragma.Target(ShaderModel.Target40), Pragma.Target(ShaderModel.Target45) ),
+
+                    //Irrelevant general multicompile instancing (VFX will append them when needed)
+                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
                 },
                 useFragInputs = false
             };

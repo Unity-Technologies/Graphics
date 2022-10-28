@@ -52,13 +52,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth() => 120;
 
-        public override void UpdateGUI(bool force)
-        {
-            if (force)
-            {
-                NotifyValueChanged();
-            }
-        }
+        public override void UpdateGUI(bool force) { }
 
         public override void SetValue(object obj) // object setvalue should accept null
         {

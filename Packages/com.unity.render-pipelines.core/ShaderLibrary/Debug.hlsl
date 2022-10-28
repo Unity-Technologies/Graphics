@@ -249,7 +249,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, uint mipCount
 
         // Mip count has been reduced but the texelSize was not updated to take that into account
         uint mipReductionLevel = originalTextureMipCount - mipCount;
-        uint mipReductionFactor = 1 << mipReductionLevel;
+        uint mipReductionFactor = 1U << mipReductionLevel;
         if (mipReductionFactor)
         {
             float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
