@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.AnimatedValues;
+using UnityEditor.Callbacks;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -65,44 +66,16 @@ namespace UnityEditor.Rendering
             set => m_EditorPrefBool.value = value;
         }
 
-        internal Type[] m_PipelineTypes;
+        internal bool visible { get; private set; }
 
-        internal Type[] pipelineTypes
+        static class Styles
         {
-            get
-            {
-                if (m_PipelineTypes == null)
-                {
-                    var supportedOn = volumeComponent.GetType().GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
-                    if(supportedOn != null)
-                        m_PipelineTypes = supportedOn.pipelineTypes;
-                    else
-                        m_PipelineTypes = Array.Empty<Type>();
-                }
+            public static readonly GUIContent k_OverrideSettingText = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
 
-                return m_PipelineTypes;
-            }
-        }
+            public static readonly GUIContent k_AllText =
+                EditorGUIUtility.TrTextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.");
 
-        internal bool visible
-        {
-            get
-            {
-                if (RenderPipelineManager.currentPipeline == null)
-                    return false;
-
-                if (!pipelineTypes.Any())
-                    return true;
-
-                return pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType());
-            }
-        }
-
-        class Styles
-        {
-            public static GUIContent overrideSettingText { get; } = EditorGUIUtility.TrTextContent("", "Override this setting for this volume.");
-            public static GUIContent allText { get; } = EditorGUIUtility.TrTextContent("ALL", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need.");
-            public static GUIContent noneText { get; } = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
+            public static readonly GUIContent k_NoneText = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
 
             public static string toggleAllText { get; } = L10n.Tr("Toggle All");
 
@@ -111,12 +84,13 @@ namespace UnityEditor.Rendering
         }
 
         Vector2? m_OverrideToggleSize;
+
         internal Vector2 overrideToggleSize
         {
             get
             {
                 if (!m_OverrideToggleSize.HasValue)
-                    m_OverrideToggleSize = CoreEditorStyles.smallTickbox.CalcSize(Styles.overrideSettingText);
+                    m_OverrideToggleSize = CoreEditorStyles.smallTickbox.CalcSize(Styles.k_OverrideSettingText);
                 return m_OverrideToggleSize.Value;
             }
         }
@@ -228,7 +202,7 @@ namespace UnityEditor.Rendering
             ReloadDecoratorTypes();
         }
 
-        [Callbacks.DidReloadScripts]
+        [DidReloadScripts]
         static void OnEditorReload()
         {
             ReloadDecoratorTypes();
@@ -296,8 +270,34 @@ namespace UnityEditor.Rendering
             };
 
             InitParameters();
-
             OnEnable();
+        }
+
+        internal void DetermineVisibility()
+        {
+            if (!GraphicsSettings.isScriptableRenderPipelineEnabled)
+            {
+                visible = false;
+                return;
+            }
+
+            var volumeComponentType = volumeComponent.GetType();
+            var supportedOnRenderPipelines = volumeComponentType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
+            if (supportedOnRenderPipelines != null)
+            {
+                visible = supportedOnRenderPipelines.isSupportedOnCurrentPipeline;
+                return;
+            }
+
+            var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
+            var pipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
+            if (RenderPipelineManager.currentPipeline != null && pipelineTypes.Length > 0)
+            {
+                visible = pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType());
+                return;
+            }
+
+            visible = false;
         }
 
         void InitParameters()
@@ -320,12 +320,10 @@ namespace UnityEditor.Rendering
                     if ((field.GetCustomAttributes(typeof(HideInInspector), false).Length == 0) &&
                         ((field.GetCustomAttributes(typeof(SerializeField), false).Length > 0) ||
                          (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
-                        infos.Add((field, prop == null ?
-                            serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
+                        infos.Add((field, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
                 }
                 else if (!field.FieldType.IsArray && field.FieldType.IsClass)
-                    GetFields(field.GetValue(o), infos, prop == null ?
-                        serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name));
+                    GetFields(field.GetValue(o), infos, prop == null ? serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name));
             }
         }
 
@@ -345,22 +343,23 @@ namespace UnityEditor.Rendering
 
             m_Parameters = fields
                 .Select(t =>
-            {
-                var name = "";
-                var order = 0;
-                var (fieldInfo, serializedProperty) = t;
-                var attr = (DisplayInfoAttribute[])fieldInfo.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                if (attr.Length != 0)
                 {
-                    name = attr[0].name;
-                    order = attr[0].order;
-                }
+                    var name = "";
+                    var order = 0;
+                    var (fieldInfo, serializedProperty) = t;
+                    var attr = (DisplayInfoAttribute[])fieldInfo.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                    if (attr.Length != 0)
+                    {
+                        name = attr[0].name;
+                        order = attr[0].order;
+                    }
 
-                var parameter = new SerializedDataParameter(t.Item2);
-                return (EditorGUIUtility.TrTextContent(name), order, parameter);
-            })
+                    var parameter = new SerializedDataParameter(t.Item2);
+                    return (EditorGUIUtility.TrTextContent(name), order, parameter);
+                })
                 .OrderBy(t => t.order)
                 .ToList();
+
         }
 
         /// <summary>
@@ -379,6 +378,7 @@ namespace UnityEditor.Rendering
                 OnInspectorGUI();
                 EditorGUILayout.Space();
             }
+
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -410,14 +410,19 @@ namespace UnityEditor.Rendering
         public virtual GUIContent GetDisplayTitle()
         {
             var targetType = target.GetType();
-            string title = string.IsNullOrEmpty(volumeComponent.displayName) ? ObjectNames.NicifyVariableName(volumeComponent.GetType().Name) : volumeComponent.displayName;
-            string tooltip = targetType.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline supportedOn
-                ? string.Join(", ", supportedOn.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)))
-                : string.Empty;
-            return EditorGUIUtility.TrTextContent(title, tooltip);
+            var title = string.IsNullOrEmpty(volumeComponent.displayName) ? ObjectNames.NicifyVariableName(volumeComponent.GetType().Name) : volumeComponent.displayName;
+            var supportedOn = targetType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>(false);
+            if(supportedOn !=null)
+                return EditorGUIUtility.TrTextContent(title, string.Join(", ", supportedOn.renderPipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name))));
+
+            var volumeComponentMenuForRenderPipelineAttribute = targetType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>(false);
+            if (volumeComponentMenuForRenderPipelineAttribute != null)
+                return EditorGUIUtility.TrTextContent(title, string.Join(", ", volumeComponentMenuForRenderPipelineAttribute.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name))));
+
+            return EditorGUIUtility.TrTextContent(title,  string.Empty);
         }
 
-        void AddToogleState(GUIContent content, bool state)
+        void AddToggleState(GUIContent content, bool state)
         {
             bool allOverridesSameState = AreOverridesTo(state);
             if (GUILayout.Toggle(allOverridesSameState, content, CoreEditorStyles.miniLabelButton, GUILayout.ExpandWidth(false)) && !allOverridesSameState)
@@ -428,8 +433,8 @@ namespace UnityEditor.Rendering
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                AddToogleState(Styles.allText, true);
-                AddToogleState(Styles.noneText, false);
+                AddToggleState(Styles.k_AllText, true);
+                AddToggleState(Styles.k_NoneText, false);
             }
         }
 
@@ -447,6 +452,7 @@ namespace UnityEditor.Rendering
                 if (m_VolumeNotAdditionalParameters[i].overrideState != state)
                     return false;
             }
+
             return true;
         }
 
@@ -473,6 +479,7 @@ namespace UnityEditor.Rendering
                 if (volumeComponent.parameters[i].overrideState != state)
                     return false;
             }
+
             return true;
         }
 
@@ -569,6 +576,7 @@ namespace UnityEditor.Rendering
                 if (attr is VolumeComponent.Indent indent)
                     return indent.relativeAmount;
             }
+
             return 0;
         }
 
@@ -652,6 +660,7 @@ namespace UnityEditor.Rendering
                         first = false;
                     }
                 }
+
                 property.value.isExpanded = expanded;
             }
 
@@ -668,13 +677,14 @@ namespace UnityEditor.Rendering
         {
             // Create a rect the height + vspacing of the property that is being overriden
             float height = EditorGUI.GetPropertyHeight(property.value) + EditorGUIUtility.standardVerticalSpacing;
-            var overrideRect = GUILayoutUtility.GetRect(Styles.allText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height), GUILayout.Width(Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset), GUILayout.ExpandWidth(false));
+            var overrideRect = GUILayoutUtility.GetRect(Styles.k_AllText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height),
+                GUILayout.Width(Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset), GUILayout.ExpandWidth(false));
 
             // also center vertically the checkbox
             overrideRect.yMin += height * 0.5f - overrideToggleSize.y * 0.5f;
             overrideRect.xMin += Styles.overrideCheckboxOffset;
 
-            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, Styles.overrideSettingText, CoreEditorStyles.smallTickbox);
+            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, Styles.k_OverrideSettingText, CoreEditorStyles.smallTickbox);
         }
 
         /// <summary>
@@ -694,10 +704,12 @@ namespace UnityEditor.Rendering
             IDisposable indentScope;
             internal bool haveCustomOverrideCheckbox { get; private set; }
             internal VolumeParameterDrawer drawer { get; private set; }
+
             /// <summary>
             /// Either the content property will be displayed or not (can varry with additional property settings)
             /// </summary>
             public bool displayed { get; private set; }
+
             /// <summary>
             /// The title modified regarding attribute used on the field
             /// </summary>
@@ -756,7 +768,7 @@ namespace UnityEditor.Rendering
 
                 //never draw override for embedded class/struct
                 haveCustomOverrideCheckbox = (displayed && !(drawer?.IsAutoProperty() ?? true))
-                    || VolumeParameter.IsObjectParameter(property.referenceType);
+                                             || VolumeParameter.IsObjectParameter(property.referenceType);
 
                 if (displayed)
                 {

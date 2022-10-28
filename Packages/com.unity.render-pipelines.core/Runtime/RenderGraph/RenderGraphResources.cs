@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     internal enum RenderGraphResourceType
     {
         Texture = 0,
-        ComputeBuffer,
+        Buffer,
         Count
     }
 

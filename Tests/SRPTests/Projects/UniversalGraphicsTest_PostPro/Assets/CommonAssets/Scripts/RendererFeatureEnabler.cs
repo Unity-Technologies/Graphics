@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 // This script enables certain renderer features based on their name
 // In order to enable certain renderer feature, it's name must be perfect match
+[ExecuteInEditMode]
 public class RendererFeatureEnabler : MonoBehaviour
 {
     public string rendererFeatureName;
@@ -15,7 +16,6 @@ public class RendererFeatureEnabler : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        SceneManager.sceneUnloaded += OnSceneChanges;
         foreach (var feature in rendererData.rendererFeatures)
         {
             if (feature.name == rendererFeatureName)
@@ -26,9 +26,9 @@ public class RendererFeatureEnabler : MonoBehaviour
         }
     }
 
-    void OnSceneChanges(Scene scene)
+    void OnDestroy()
     {
-        Debug.Log("Disabling renderer feature");
         usedFeature.SetActive(false);
     }
+
 }

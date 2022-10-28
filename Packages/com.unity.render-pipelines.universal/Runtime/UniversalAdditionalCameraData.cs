@@ -734,6 +734,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public void OnValidate()
         {
             if (m_CameraType == CameraRenderType.Overlay && m_Camera != null)

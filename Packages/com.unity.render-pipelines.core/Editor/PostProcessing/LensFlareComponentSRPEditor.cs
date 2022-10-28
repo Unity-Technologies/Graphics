@@ -8,7 +8,8 @@ namespace UnityEditor.Rendering
     /// Editor for LensFlareComponentSRP: Lens Flare Data-Driven which can be added on any GameObject
     /// </summary>
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(LensFlareComponentSRP), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
+    [CustomEditor(typeof(LensFlareComponentSRP))]
+    [SupportedOnRenderPipeline]
     class LensFlareComponentSRPEditor : Editor
     {
         SerializedProperty m_LensFlareData;

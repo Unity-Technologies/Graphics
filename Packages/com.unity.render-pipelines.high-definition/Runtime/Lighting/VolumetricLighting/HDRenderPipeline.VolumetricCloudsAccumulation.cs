@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void TraceVolumetricClouds_Accumulation(CommandBuffer cmd, VolumetricCloudsParameters_Accumulation parameters, ComputeBuffer ambientProbe,
+        static void TraceVolumetricClouds_Accumulation(CommandBuffer cmd, VolumetricCloudsParameters_Accumulation parameters, GraphicsBuffer ambientProbe,
             RTHandle colorBuffer, RTHandle depthPyramid, RTHandle motionVectors, RTHandle volumetricLightingTexture, RTHandle scatteringFallbackTexture, RTHandle maxZMask,
             RTHandle currentHistory0Buffer, RTHandle previousHistory0Buffer,
             RTHandle currentHistory1Buffer, RTHandle previousHistory1Buffer,
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
             public TextureHandle motionVectors;
             public TextureHandle maxZMask;
-            public ComputeBufferHandle ambientProbeBuffer;
+            public BufferHandle ambientProbeBuffer;
 
             public TextureHandle volumetricLighting;
             public TextureHandle scatteringFallbackTexture;
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
                 passData.maxZMask = settings.localClouds.value ? renderGraph.defaultResources.blackTextureXR : builder.ReadTexture(maxZMask);
-                passData.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_CloudsDynamicProbeBuffer));
+                passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
 
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;

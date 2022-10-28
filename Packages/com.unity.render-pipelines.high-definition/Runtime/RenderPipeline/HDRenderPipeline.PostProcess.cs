@@ -2263,7 +2263,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle pingNearRGB, RTHandle pongNearRGB, RTHandle nearCoC, RTHandle nearAlpha, RTHandle dilatedNearCoC,
             RTHandle pingFarRGB, RTHandle pongFarRGB, RTHandle farCoC, RTHandle fullresCoC, RTHandle[] mips, RTHandle dilationPingPong,
             RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture,
-            ComputeBuffer bokehNearKernel, ComputeBuffer bokehFarKernel, ComputeBuffer bokehIndirectCmd, ComputeBuffer nearBokehTileList, ComputeBuffer farBokehTileList,
+            GraphicsBuffer bokehNearKernel, GraphicsBuffer bokehFarKernel, GraphicsBuffer bokehIndirectCmd, GraphicsBuffer nearBokehTileList, GraphicsBuffer farBokehTileList,
             bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
         {
             bool nearLayerActive = dofParameters.nearLayerActive;
@@ -2922,11 +2922,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle nextCoC;
             public TextureHandle depthMinMaxAvgMSAA;
 
-            public ComputeBufferHandle bokehNearKernel;
-            public ComputeBufferHandle bokehFarKernel;
-            public ComputeBufferHandle bokehIndirectCmd;
-            public ComputeBufferHandle nearBokehTileList;
-            public ComputeBufferHandle farBokehTileList;
+            public BufferHandle bokehNearKernel;
+            public BufferHandle bokehFarKernel;
+            public BufferHandle bokehIndirectCmd;
+            public BufferHandle nearBokehTileList;
+            public BufferHandle farBokehTileList;
 
             public bool taaEnabled;
         }
@@ -3066,11 +3066,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
                         }
 
-                        passData.bokehNearKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
-                        passData.bokehFarKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
-                        passData.bokehIndirectCmd = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Bokeh Indirect Cmd" });
-                        passData.nearBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Near Tile List" });
-                        passData.farBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Far Tile List" });
+                        passData.bokehNearKernel = builder.CreateTransientBuffer(new BufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
+                        passData.bokehFarKernel = builder.CreateTransientBuffer(new BufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
+                        passData.bokehIndirectCmd = builder.CreateTransientBuffer(new BufferDesc(3 * 2, sizeof(uint), GraphicsBuffer.Target.IndirectArguments) { name = "Bokeh Indirect Cmd" });
+                        passData.nearBokehTileList = builder.CreateTransientBuffer(new BufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), GraphicsBuffer.Target.Append) { name = "Bokeh Near Tile List" });
+                        passData.farBokehTileList = builder.CreateTransientBuffer(new BufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), GraphicsBuffer.Target.Append) { name = "Bokeh Far Tile List" });
 
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
@@ -3082,8 +3082,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     mipsHandles[i] = data.mips[i];
                                 }
 
-                                ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
-                                ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
+                                ((GraphicsBuffer)data.nearBokehTileList).SetCounterValue(0u);
+                                ((GraphicsBuffer)data.farBokehTileList).SetCounterValue(0u);
 
                                 DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
                                     data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
@@ -4913,7 +4913,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle source;
             public TextureHandle destination;
 
-            public ComputeBufferHandle casParametersBuffer;
+            public BufferHandle casParametersBuffer;
         }
 
         TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, bool runsAsAfterTAA = false)
@@ -4939,7 +4939,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var dstTex = runsAsUpscale ? GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination") :
                                                  GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
                     passData.destination = builder.WriteTexture(dstTex);
-                    passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
+                    passData.casParametersBuffer = builder.CreateTransientBuffer(new BufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 
                     builder.SetRenderFunc(
                         (CASData data, RenderGraphContext ctx) =>

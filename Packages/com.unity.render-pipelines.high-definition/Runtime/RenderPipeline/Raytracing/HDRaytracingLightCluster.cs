@@ -27,18 +27,18 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_LightVolumeGPUArray = null;
 
         // Culling result
-        ComputeBuffer m_LightCullResult = null;
+        GraphicsBuffer m_LightCullResult = null;
 
         // Output cluster data
-        ComputeBuffer m_LightCluster = null;
+        GraphicsBuffer m_LightCluster = null;
 
         // Light runtime data
         List<LightData> m_LightDataCPUArray = new List<LightData>();
-        ComputeBuffer m_LightDataGPUArray = null;
+        GraphicsBuffer m_LightDataGPUArray = null;
 
         // Env Light data
         List<EnvLightData> m_EnvLightDataCPUArray = new List<EnvLightData>();
-        ComputeBuffer m_EnvLightDataGPUArray = null;
+        GraphicsBuffer m_EnvLightDataGPUArray = null;
 
         // Light cluster debug material
         Material m_DebugMaterial = null;
@@ -87,8 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderPipeline = renderPipeline;
 
             // Pre allocate the cluster with a dummy size
-            m_LightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-            m_EnvLightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+            m_LightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+            m_EnvLightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
 
             // Allocate the light cluster buffer at the right size
             m_NumLightsPerCell = renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell;
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (bufferSize > 0)
             {
-                m_LightCluster = new ComputeBuffer(bufferSize, sizeof(uint));
+                m_LightCluster = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bufferSize, sizeof(uint));
             }
         }
 
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (numLights > 0)
             {
-                m_LightCullResult = new ComputeBuffer(numLights, sizeof(uint));
+                m_LightCullResult = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numLights, sizeof(uint));
             }
         }
 
@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (numLights > 0)
             {
-                m_LightDataGPUArray = new ComputeBuffer(numLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                m_LightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             }
         }
 
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (numEnvLights > 0)
             {
-                m_EnvLightDataGPUArray = new ComputeBuffer(numEnvLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+                m_EnvLightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numEnvLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             }
         }
 
@@ -628,7 +628,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightClusterDebugKernel;
             public Vector3 clusterCellSize;
             public Material debugMaterial;
-            public ComputeBufferHandle lightCluster;
+            public BufferHandle lightCluster;
             public ComputeShader lightClusterDebugCS;
 
             public TextureHandle depthStencilBuffer;
@@ -650,7 +650,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.clusterCellSize = clusterCellSize;
-                passData.lightCluster = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_LightCluster));
+                passData.lightCluster = builder.ReadBuffer(renderGraph.ImportBuffer(m_LightCluster));
                 passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
                 passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
                 passData.debugMaterial = m_DebugMaterial;
@@ -698,17 +698,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderPipeline.PushFullScreenDebugTexture(renderGraph, debugTexture, FullScreenDebugMode.LightCluster);
         }
 
-        public ComputeBuffer GetCluster()
+        public GraphicsBuffer GetCluster()
         {
             return m_LightCluster;
         }
 
-        public ComputeBuffer GetLightDatas()
+        public GraphicsBuffer GetLightDatas()
         {
             return m_LightDataGPUArray;
         }
 
-        public ComputeBuffer GetEnvLightDatas()
+        public GraphicsBuffer GetEnvLightDatas()
         {
             return m_EnvLightDataGPUArray;
         }

@@ -557,44 +557,44 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Import an external Compute Buffer to the Render Graph
-        /// Any pass writing to an imported compute buffer will be considered having side effects and can't be automatically culled.
+        /// Import an external Graphics Buffer to the Render Graph
+        /// Any pass writing to an imported graphics buffer will be considered having side effects and can't be automatically culled.
         /// </summary>
-        /// <param name="computeBuffer">External Compute Buffer that needs to be imported.</param>
-        /// <returns>A new ComputeBufferHandle.</returns>
-        public ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
+        /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
+        /// <returns>A new GraphicsBufferHandle.</returns>
+        public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
         {
-            return m_Resources.ImportComputeBuffer(computeBuffer);
+            return m_Resources.ImportBuffer(graphicsBuffer);
         }
 
         /// <summary>
-        /// Create a new Render Graph Compute Buffer resource.
+        /// Create a new Render Graph Graphics Buffer resource.
         /// </summary>
-        /// <param name="desc">Compute Buffer descriptor.</param>
-        /// <returns>A new ComputeBufferHandle.</returns>
-        public ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc)
+        /// <param name="desc">Graphics Buffer descriptor.</param>
+        /// <returns>A new GraphicsBufferHandle.</returns>
+        public BufferHandle CreateBuffer(in BufferDesc desc)
         {
-            return m_Resources.CreateComputeBuffer(desc);
+            return m_Resources.CreateBuffer(desc);
         }
 
         /// <summary>
-        /// Create a new Render Graph Compute Buffer resource using the descriptor from another compute buffer.
+        /// Create a new Render Graph Graphics Buffer resource using the descriptor from another graphics buffer.
         /// </summary>
-        /// <param name="computeBuffer">Compute Buffer from which the descriptor should be used.</param>
-        /// <returns>A new ComputeBufferHandle.</returns>
-        public ComputeBufferHandle CreateComputeBuffer(in ComputeBufferHandle computeBuffer)
+        /// <param name="graphicsBuffer">Graphics Buffer from which the descriptor should be used.</param>
+        /// <returns>A new GraphicsBufferHandle.</returns>
+        public BufferHandle CreateBuffer(in BufferHandle graphicsBuffer)
         {
-            return m_Resources.CreateComputeBuffer(m_Resources.GetComputeBufferResourceDesc(computeBuffer.handle));
+            return m_Resources.CreateBuffer(m_Resources.GetBufferResourceDesc(graphicsBuffer.handle));
         }
 
         /// <summary>
-        /// Gets the descriptor of the specified Compute Buffer resource.
+        /// Gets the descriptor of the specified Graphics Buffer resource.
         /// </summary>
-        /// <param name="computeBuffer">Compute Buffer resource from which the descriptor is requested.</param>
-        /// <returns>The input compute buffer descriptor.</returns>
-        public ComputeBufferDesc GetComputeBufferDesc(in ComputeBufferHandle computeBuffer)
+        /// <param name="graphicsBuffer">Graphics Buffer resource from which the descriptor is requested.</param>
+        /// <returns>The input graphics buffer descriptor.</returns>
+        public BufferDesc GetBufferDesc(in BufferHandle graphicsBuffer)
         {
-            return m_Resources.GetComputeBufferResourceDesc(computeBuffer.handle);
+            return m_Resources.GetBufferResourceDesc(graphicsBuffer.handle);
         }
 
         /// <summary>
@@ -832,7 +832,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void InitializeCompilationData()
         {
             InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.Texture], m_Resources.GetTextureResourceCount());
-            InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.ComputeBuffer], m_Resources.GetComputeBufferResourceCount());
+            InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.Buffer], m_Resources.GetBufferResourceCount());
 
             m_CompiledPassInfos.Resize(m_RenderPasses.Count);
             for (int i = 0; i < m_CompiledPassInfos.size; ++i)

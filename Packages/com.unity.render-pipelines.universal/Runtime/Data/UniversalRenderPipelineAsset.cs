@@ -1365,7 +1365,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls whether the RenderGraph render path is enabled.
         /// </summary>
-        internal bool enableRenderGraph
+        public bool enableRenderGraph
         {
             get { return m_EnableRenderGraph; }
             set { m_EnableRenderGraph = value; }

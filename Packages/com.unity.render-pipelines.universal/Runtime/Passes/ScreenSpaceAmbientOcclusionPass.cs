@@ -427,6 +427,7 @@ namespace UnityEngine.Rendering.Universal
             aoTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture0", false, FilterMode.Bilinear);
             blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture1", false, FilterMode.Bilinear);
             finalTexture = m_CurrentSettings.AfterOpaque ? renderer.frameResources.cameraColor : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
+            PostProcessUtils.SetSourceSize(renderingData.commandBuffer, finalTextureDescriptor);
         }
 
         private void ExecuteOcclusionPass(RenderGraph renderGraph, ref UniversalRenderer renderer, in TextureHandle aoTexture)

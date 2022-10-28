@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Tests
         class RenderGraphTestPassData
         {
             public TextureHandle[] textures = new TextureHandle[8];
-            public ComputeBufferHandle[] buffers = new ComputeBufferHandle[8];
+            public BufferHandle[] buffers = new BufferHandle[8];
         }
 
         // Final output (back buffer) of render graph needs to be explicitly imported in order to know that the chain of dependency should not be culled.
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.Tests
         {
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.WriteComputeBuffer(m_RenderGraph.ImportComputeBuffer(null));
+                builder.WriteBuffer(m_RenderGraph.ImportBuffer(null));
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 

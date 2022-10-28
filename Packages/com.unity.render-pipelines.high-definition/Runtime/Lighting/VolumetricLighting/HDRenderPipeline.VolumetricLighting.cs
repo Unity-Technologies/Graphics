@@ -988,7 +988,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesLightList lightListCB;
 
             public TextureHandle densityBuffer;
-            public ComputeBuffer volumetricAmbientProbeBuffer;
+            public GraphicsBuffer volumetricAmbientProbeBuffer;
         }
 
         class LocalVolumetricFogMaterialVoxelizationPassData
@@ -1006,7 +1006,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public int computeRenderingParametersKernel;
             public ComputeShader volumetricMaterialCS;
-            public ComputeBufferHandle indirectArgumentBuffer;
+            public BufferHandle indirectArgumentBuffer;
             public ComputeBuffer visibleVolumeBoundsBuffer;
             public GraphicsBuffer materialDataBuffer;
             public GraphicsBuffer triangleFanIndexBuffer;
@@ -1020,7 +1020,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             CullingResults cullingResults,
             ComputeBuffer visibleVolumeBoundsBuffer,
-            ComputeBufferHandle bigTileLightList)
+            BufferHandle bigTileLightList)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1076,8 +1076,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return densityBuffer;
 
                 int maxLocalVolumetricFogOnScreen = asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen;
-                var indirectArgumentBuffer = renderGraph.CreateComputeBuffer(
-                    new ComputeBufferDesc(hdCamera.viewCount * k_VolumetricMaterialIndirectArgumentCount * maxLocalVolumetricFogOnScreen, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "FogVolumeIndirectArguments" }
+                var indirectArgumentBuffer = renderGraph.CreateBuffer(
+                    new BufferDesc(hdCamera.viewCount * k_VolumetricMaterialIndirectArgumentCount * maxLocalVolumetricFogOnScreen, sizeof(uint), GraphicsBuffer.Target.IndirectArguments) { name = "FogVolumeIndirectArguments" }
                 );
 
                 // We need XR rendering for shadergraph fog objects
@@ -1109,7 +1109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ComputeVolumetricFogSliceCountAndScreenFraction(passData.fog, out passData.maxSliceCount, out _);
 
-                    passData.indirectArgumentBuffer = builder.WriteComputeBuffer(indirectArgumentBuffer);
+                    passData.indirectArgumentBuffer = builder.WriteBuffer(indirectArgumentBuffer);
 
                     builder.SetRenderFunc(
                         (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
@@ -1312,11 +1312,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle maxZBuffer;
             public TextureHandle historyBuffer;
             public TextureHandle feedbackBuffer;
-            public ComputeBufferHandle bigTileLightListBuffer;
-            public ComputeBuffer volumetricAmbientProbeBuffer;
+            public BufferHandle bigTileLightListBuffer;
+            public GraphicsBuffer volumetricAmbientProbeBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, BufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1366,7 +1366,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.lightListCB = m_ShaderVariablesLightListCB;
 
                     if (passData.tiledLighting)
-                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
+                        passData.bigTileLightListBuffer = builder.ReadBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);

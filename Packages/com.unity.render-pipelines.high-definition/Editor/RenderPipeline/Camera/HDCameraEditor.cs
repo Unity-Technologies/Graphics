@@ -38,6 +38,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Disable builtin camera overlay
             k_SceneViewCameraOverlay_ForceDisable.SetValue(null, true);
+            Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
+        }
+
+        void ReconstructReferenceToAdditionalDataSO()
+        {
+            OnDisable();
+            OnEnable();
         }
 
         void OnDisable()
@@ -54,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Restore builtin camera overlay
             k_SceneViewCameraOverlay_ForceDisable.SetValue(null, false);
+            Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
         public override void OnInspectorGUI()

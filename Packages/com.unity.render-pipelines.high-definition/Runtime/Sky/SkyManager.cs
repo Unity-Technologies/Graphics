@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ComputeAmbientProbeCloudsKernel;
 
         CubemapArray m_BlackCubemapArray;
-        ComputeBuffer m_BlackAmbientProbeBuffer;
+        GraphicsBuffer m_BlackAmbientProbeBuffer;
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_BlackAmbientProbeBuffer == null)
             {
                 // 27 SH Coeffs in 7 float4
-                m_BlackAmbientProbeBuffer = new ComputeBuffer(7, 16);
+                m_BlackAmbientProbeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 7, 16);
                 float[] blackValues = new float[28];
                 for (int i = 0; i < 28; ++i)
                     blackValues[i] = 0.0f;
@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        ComputeBuffer GetDiffuseAmbientProbeBuffer(SkyUpdateContext skyContext)
+        GraphicsBuffer GetDiffuseAmbientProbeBuffer(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        ComputeBuffer GetVolumetricAmbientProbeBuffer(SkyUpdateContext skyContext)
+        GraphicsBuffer GetVolumetricAmbientProbeBuffer(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetAmbientProbe(GetLightingSky(hdCamera));
         }
 
-        internal ComputeBuffer GetDiffuseAmbientProbeBuffer(HDCamera hdCamera)
+        internal GraphicsBuffer GetDiffuseAmbientProbeBuffer(HDCamera hdCamera)
         {
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetDiffuseAmbientProbeBuffer(GetLightingSky(hdCamera));
         }
 
-        internal ComputeBuffer GetVolumetricAmbientProbeBuffer(HDCamera hdCamera)
+        internal GraphicsBuffer GetVolumetricAmbientProbeBuffer(HDCamera hdCamera)
         {
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
@@ -724,15 +724,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader computeAmbientProbeCS;
             public int computeAmbientProbeKernel;
             public TextureHandle skyCubemap;
-            public ComputeBuffer ambientProbeResult;
-            public ComputeBuffer diffuseAmbientProbeResult;
-            public ComputeBuffer volumetricAmbientProbeResult;
-            public ComputeBufferHandle scratchBuffer;
+            public GraphicsBuffer ambientProbeResult;
+            public GraphicsBuffer diffuseAmbientProbeResult;
+            public GraphicsBuffer volumetricAmbientProbeResult;
+            public BufferHandle scratchBuffer;
             public Vector4 fogParameters;
             public Action<AsyncGPUReadbackRequest> callback;
         }
 
-        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, bool outputForClouds, ComputeBuffer ambientProbeResult, ComputeBuffer diffuseAmbientProbeResult, ComputeBuffer volumetricAmbientProbeResult, Vector4 fogParameters, Action<AsyncGPUReadbackRequest> callback)
+        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, bool outputForClouds, GraphicsBuffer ambientProbeResult, GraphicsBuffer diffuseAmbientProbeResult, GraphicsBuffer volumetricAmbientProbeResult, Vector4 fogParameters, Action<AsyncGPUReadbackRequest> callback)
         {
             using (var builder = renderGraph.AddRenderPass<UpdateAmbientProbePassData>("UpdateAmbientProbe", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
             {
@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.skyCubemap = builder.ReadTexture(skyCubemap);
                 passData.ambientProbeResult = ambientProbeResult;
                 passData.diffuseAmbientProbeResult = diffuseAmbientProbeResult;
-                passData.scratchBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(27, sizeof(uint))); // L2 = 9 channel per component
+                passData.scratchBuffer = builder.CreateTransientBuffer(new BufferDesc(27, sizeof(uint))); // L2 = 9 channel per component
                 passData.volumetricAmbientProbeResult = volumetricAmbientProbeResult;
                 passData.fogParameters = fogParameters;
                 passData.callback = callback;
@@ -774,7 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle GenerateSkyCubemap(RenderGraph renderGraph, HDCamera hdCamera, SkyUpdateContext skyContext, ComputeBuffer cloudsProbeBuffer)
+        TextureHandle GenerateSkyCubemap(RenderGraph renderGraph, HDCamera hdCamera, SkyUpdateContext skyContext, GraphicsBuffer cloudsProbeBuffer)
         {
             var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
 
@@ -1068,7 +1068,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The static one is "permanent" until recomputed, the dynamic one is recomputed no matter what at the beginning of the frame which guarantees
                     // that it will be ready when we evaluate the clouds for the camera view.
                     HDRenderPipeline hdrp = HDRenderPipeline.currentPipeline;
-                    ComputeBuffer volumetricCloudsProbe = hdrp.RenderVolumetricCloudsAmbientProbe(renderGraph, hdCamera, skyContext, staticSky);
+                    GraphicsBuffer volumetricCloudsProbe = hdrp.RenderVolumetricCloudsAmbientProbe(renderGraph, hdCamera, skyContext, staticSky);
 
                     if (IsCachedContextValid(skyContext))
                     {

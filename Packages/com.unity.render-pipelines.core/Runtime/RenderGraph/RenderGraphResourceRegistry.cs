@@ -133,15 +133,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RendererListResources[handle].rendererList;
         }
 
-        internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
+        internal GraphicsBuffer GetBuffer(in BufferHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
-            var bufferResource = GetComputeBufferResource(handle.handle);
+            var bufferResource = GetBufferResource(handle.handle);
             var resource = bufferResource.graphicsResource;
             if (resource == null)
-                throw new InvalidOperationException("Trying to use a compute buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 
             return resource;
         }
@@ -164,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphResources[(int)RenderGraphResourceType.Texture].releaseResourceCallback = ReleaseTextureCallback;
             m_RenderGraphResources[(int)RenderGraphResourceType.Texture].pool = new TexturePool();
 
-            m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].pool = new ComputeBufferPool();
+            m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].pool = new BufferPool();
         }
 
         internal void BeginRenderGraph(int executionCount)
@@ -387,39 +387,39 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new RendererListHandle(newHandle);
         }
 
-        internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
+        internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
         {
-            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].AddNewRenderGraphResource(out ComputeBufferResource bufferResource);
-            bufferResource.graphicsResource = computeBuffer;
+            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
+            bufferResource.graphicsResource = graphicsBuffer;
             bufferResource.imported = true;
 
-            return new ComputeBufferHandle(newHandle);
+            return new BufferHandle(newHandle);
         }
 
-        internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc, int transientPassIndex = -1)
+        internal BufferHandle CreateBuffer(in BufferDesc desc, int transientPassIndex = -1)
         {
-            ValidateComputeBufferDesc(desc);
+            ValidateBufferDesc(desc);
 
-            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].AddNewRenderGraphResource(out ComputeBufferResource bufferResource);
+            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
             bufferResource.desc = desc;
             bufferResource.transientPassIndex = transientPassIndex;
 
-            return new ComputeBufferHandle(newHandle);
+            return new BufferHandle(newHandle);
         }
 
-        internal ComputeBufferDesc GetComputeBufferResourceDesc(in ResourceHandle handle)
+        internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle)
         {
-            return (m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray[handle] as ComputeBufferResource).desc;
+            return (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource).desc;
         }
 
-        internal int GetComputeBufferResourceCount()
+        internal int GetBufferResourceCount()
         {
-            return GetResourceCount(RenderGraphResourceType.ComputeBuffer);
+            return GetResourceCount(RenderGraphResourceType.Buffer);
         }
 
-        ComputeBufferResource GetComputeBufferResource(in ResourceHandle handle)
+        BufferResource GetBufferResource(in ResourceHandle handle)
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray[handle] as ComputeBufferResource;
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource;
         }
 
         internal void UpdateSharedResourceLastFrameIndex(int type, int index)
@@ -572,16 +572,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        void ValidateComputeBufferDesc(in ComputeBufferDesc desc)
+        void ValidateBufferDesc(in BufferDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (desc.stride % 4 != 0)
             {
-                throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer stride must be at least 4.");
+                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer stride must be at least 4.");
             }
             if (desc.count == 0)
             {
-                throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer count  must be non zero.");
+                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer count  must be non zero.");
             }
 #endif
         }

@@ -195,7 +195,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             destination = k_CameraTarget;
         }
 
-        internal void Render(RenderGraph renderGraph, ref TextureHandle destination, in TextureHandle source, ref RenderingData renderingData, string passName = "Copy Depth")
+        /// <summary>
+        /// Sets up the Copy Depth pass for RenderGraph execution
+        /// </summary>
+        /// <param name="renderGraph"></param>
+        /// <param name="destination"></param>
+        /// <param name="source"></param>
+        /// <param name="renderingData"></param>
+        /// <param name="passName"></param>
+        public void Render(RenderGraph renderGraph, ref TextureHandle destination, in TextureHandle source, ref RenderingData renderingData, string passName = "Copy Depth")
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;

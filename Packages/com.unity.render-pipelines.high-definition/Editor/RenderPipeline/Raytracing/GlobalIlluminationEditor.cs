@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
+using RayTracingMode = UnityEngine.Rendering.HighDefinition.RayTracingMode;
 
 namespace UnityEditor.Rendering.HighDefinition
 {

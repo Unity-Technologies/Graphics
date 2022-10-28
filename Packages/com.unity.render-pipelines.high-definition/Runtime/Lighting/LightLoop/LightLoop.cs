@@ -358,17 +358,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal class LightLoopLightData
         {
-            public ComputeBuffer directionalLightData { get; private set; }
-            public ComputeBuffer lightData { get; private set; }
-            public ComputeBuffer envLightData { get; private set; }
-            public ComputeBuffer decalData { get; private set; }
+            public GraphicsBuffer directionalLightData { get; private set; }
+            public GraphicsBuffer lightData { get; private set; }
+            public GraphicsBuffer envLightData { get; private set; }
+            public GraphicsBuffer decalData { get; private set; }
 
             public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount)
             {
-                directionalLightData = new ComputeBuffer(directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
-                lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
-                decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+                directionalLightData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
+                lightData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                envLightData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+                decalData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
             }
 
             public void Cleanup()
@@ -385,8 +385,8 @@ namespace UnityEngine.Rendering.HighDefinition
         class TileAndClusterData
         {
             // Internal to light list building
-            public ComputeBuffer lightVolumeDataBuffer { get; private set; }
-            public ComputeBuffer convexBoundsBuffer { get; private set; }
+            public GraphicsBuffer lightVolumeDataBuffer { get; private set; }
+            public GraphicsBuffer convexBoundsBuffer { get; private set; }
 
             public bool listsAreClear = false;
 
@@ -403,8 +403,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxLightOnScreen)
             {
-                convexBoundsBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-                lightVolumeDataBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+                convexBoundsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
+                lightVolumeDataBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
 
                 // Make sure to invalidate the content of the buffers
                 listsAreClear = false;

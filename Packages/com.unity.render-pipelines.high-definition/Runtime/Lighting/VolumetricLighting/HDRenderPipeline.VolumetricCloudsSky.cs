@@ -54,12 +54,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateDepthBuffer;
             public TextureHandle output;
             public TextureHandle maxZMask;
-            public ComputeBufferHandle ambientProbeBuffer;
+            public BufferHandle ambientProbeBuffer;
         }
 
         void PrepareVolumetricCloudsSkyLowPassData(RenderGraph renderGraph, RenderGraphBuilder builder,
             HDCamera hdCamera, int width, int height, Matrix4x4[] pixelCoordToViewDir, CubemapFace cubemapFace,
-            VolumetricClouds settings, ComputeBuffer ambientProbeBuffer, VolumetricCloudsSkyLowPassData data)
+            VolumetricClouds settings, GraphicsBuffer ambientProbeBuffer, VolumetricCloudsSkyLowPassData data)
         {
             // Compute the cloud model data
             CloudModelData cloudModelData = GetCloudModelData(settings);
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.intermediateDepthBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateDepthBufferDesc());
             data.output = builder.WriteTexture(renderGraph.CreateTexture(GetVolumetricCloudsIntermediateCubeTextureDesc()));
             data.maxZMask = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
-            data.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(ambientProbeBuffer));
+            data.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(ambientProbeBuffer));
         }
 
         static void TraceVolumetricClouds_Sky_Low(CommandBuffer cmd, VolumetricCloudsSkyLowPassData passData, MaterialPropertyBlock mpb)
@@ -174,12 +174,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateDepthBuffer;
             public TextureHandle output;
             public TextureHandle maxZMask;
-            public ComputeBufferHandle ambientProbeBuffer;
+            public BufferHandle ambientProbeBuffer;
         }
 
         void PrepareVolumetricCloudsSkyHighPassData(RenderGraph renderGraph, RenderGraphBuilder builder,
             HDCamera hdCamera, int width, int height, Matrix4x4[] pixelCoordToViewDir, CubemapFace cubemapFace,
-            VolumetricClouds settings, ComputeBuffer ambientProbeBuffer,
+            VolumetricClouds settings, GraphicsBuffer ambientProbeBuffer,
             TextureHandle output, VolumetricCloudsSkyHighPassData data)
         {
             // Compute the cloud model data
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.output = builder.WriteTexture(output);
             }
             data.maxZMask = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
-            data.ambientProbeBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(ambientProbeBuffer));
+            data.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(ambientProbeBuffer));
         }
 
         static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, VolumetricCloudsSkyHighPassData passData, MaterialPropertyBlock mpb)
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[] pixelCoordToViewDir;
         }
 
-        internal TextureHandle RenderVolumetricClouds_Sky(RenderGraph renderGraph, HDCamera hdCamera, Matrix4x4[] pixelCoordToViewDir, VolumetricClouds settings, int width, int height, ComputeBuffer probeBuffer, TextureHandle skyboxCubemap)
+        internal TextureHandle RenderVolumetricClouds_Sky(RenderGraph renderGraph, HDCamera hdCamera, Matrix4x4[] pixelCoordToViewDir, VolumetricClouds settings, int width, int height, GraphicsBuffer probeBuffer, TextureHandle skyboxCubemap)
         {
             // If the current volume does not enable the feature, quit right away.
             if (!HasVolumetricClouds(hdCamera, in settings))
