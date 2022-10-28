@@ -38,14 +38,6 @@
 #define UNITY_INV_HALF_PI   0.636619772367f
 #endif
 
-// SHADER_AVAILABLE_XXX defines are not yet passed to compute shader atm
-// So we define it manually for compute atm.
-// It won't compile for devices that don't have cubemap array support but this is acceptable by now
-// TODO Remove this once SHADER_AVAILABLE_XXX are passed to compute shaders
-#ifdef SHADER_STAGE_COMPUTE
-#define SHADER_AVAILABLE_CUBEARRAY 1
-#endif
-
 struct VFXSampler2D
 {
     Texture2D t;
@@ -70,6 +62,7 @@ struct VFXSamplerCube
     SamplerState s;
 };
 
+//Warning: this define 'SHADER_AVAILABLE_CUBEARRAY' relies on '#pragma require cubearray'
 #if SHADER_AVAILABLE_CUBEARRAY
 struct VFXSamplerCubeArray
 {

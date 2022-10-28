@@ -599,7 +599,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
     {
         i = 0;
 
-        for (uint b = 1 << firstbithigh(n - 1); b != 0; b >>= 1)
+        for (uint b = 1U << firstbithigh(n - 1); b != 0; b >>= 1)
         {
             uint p = i | b;
             v = LOAD_TEXTURE2D(haystack, uint2(p, j)).r;

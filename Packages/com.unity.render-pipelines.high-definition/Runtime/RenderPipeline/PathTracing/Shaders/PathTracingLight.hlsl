@@ -282,7 +282,7 @@ float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir);
+        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir).rgb;
     }
 #endif
 

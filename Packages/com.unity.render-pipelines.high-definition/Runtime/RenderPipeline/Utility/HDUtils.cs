@@ -755,7 +755,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 buildTarget == UnityEditor.BuildTarget.PS5 ||
                 // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
                 // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
-                buildTarget == UnityEditor.BuildTarget.CloudRendering ||
                 buildTarget == UnityEditor.BuildTarget.LinuxHeadlessSimulation);
         }
 
@@ -1150,9 +1149,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
             var osFamily = BuildTargetToOperatingSystemFamily(buildTarget);
+            bool isSupportedBuildTarget = IsSupportedBuildTarget(buildTarget);
 #else
             string currentPlatform = SystemInfo.operatingSystem;
             var osFamily = SystemInfo.operatingSystemFamily;
+            bool isSupportedBuildTarget = true;
 #endif
 
             string os = null;
@@ -1169,7 +1170,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            string msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
+            string msg;
+
+            if (isSupportedBuildTarget)
+                msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
+            else
+                msg = "Platform " + currentPlatform + " is not supported with HDRP";
 
             // Display more information to the users when it should have use Metal instead of OpenGL
             if (graphicAPI.StartsWith("OpenGL"))

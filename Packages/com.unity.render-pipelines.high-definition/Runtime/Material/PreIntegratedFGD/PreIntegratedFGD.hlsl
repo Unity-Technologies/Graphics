@@ -29,17 +29,8 @@ void GetPreIntegratedFGDGGXAndDisneyDiffuse(float NdotV, float perceptualRoughne
 
 void GetPreIntegratedFGDGGXAndLambert(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD, out float reflectivity)
 {
-    float2 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xy;
-
-    // Pre-integrate GGX FGD
-    // Integral{BSDF * <N,L> dw} =
-    // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
-    // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} + F0 * Integral{(BSDF / F) * <N,L> dw}=
-    // (1 - F0) * x + F0 * y = lerp(x, y, F0)
-    specularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0);
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, perceptualRoughness, fresnel0, specularFGD, diffuseFGD, reflectivity);
     diffuseFGD = 1.0;
-
-    reflectivity = preFGD.y;
 }
 
 TEXTURE2D(_PreIntegratedFGD_CharlieAndFabric);

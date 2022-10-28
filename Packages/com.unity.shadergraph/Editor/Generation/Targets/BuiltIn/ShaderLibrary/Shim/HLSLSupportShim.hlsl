@@ -123,6 +123,22 @@
     #define UNITY_SAMPLE_TEXCUBE_SHADOW(tex,coord) SAMPLE_TEXTURECUBE_SHADOW(tex, sampler##tex, coord)
 #endif
 
+// GLES has some issues with conflicting definitions between Legacy and SRP.
+#ifdef SHADER_API_GLES
+    // Undef the SRP versions and then redefine as the BuiltIn versions. However, 
+    // the BuiltIn SRP Lighting relies on SAMPLE_DEPTH_TEXTURE right now via SHADOW2D_SAMPLE,
+    // so redirect this macro to a temporary version that is identical to the SRP version
+    #define UNITY_SRP_SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2)                              SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
+    
+    #undef SHADOW2D_SAMPLE
+    #undef SAMPLE_DEPTH_TEXTURE
+    #undef SAMPLE_DEPTH_TEXTURE_PROJ
+
+    #define SHADOW2D_SAMPLE(textureName, samplerName, coord3) ((UNITY_SRP_SAMPLE_DEPTH_TEXTURE(textureName, samplerName, (coord3).xy) < (coord3).z) ? 0.0 : 1.0)
+    #define SAMPLE_DEPTH_TEXTURE(sampler, uv) (tex2D(sampler, uv).r)
+    #define SAMPLE_DEPTH_TEXTURE_PROJ(sampler, uv) (tex2Dproj(sampler, uv).r)
+#endif
+
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 
     #undef UNITY_DECLARE_DEPTH_TEXTURE_MS
