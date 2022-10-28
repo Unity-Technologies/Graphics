@@ -170,7 +170,7 @@ void AccumulateSample(SampleData sampleData, float weight, inout AccumData accum
 #endif
 }
 
-CTYPE ResolveBackGroundEstimate(SampleData centerSample, float fgAlpha, float4 bgEstimate, float4 bgEstimateAlpha)
+CTYPE ResolveBackGroundEstimate(SampleData centerSample, float fgAlpha, float4 bgEstimate, float bgEstimateAlpha)
 {
     CTYPE result;
     result.xyz = bgEstimate.w > 0 ? bgEstimate.xyz / bgEstimate.w : centerSample.color.xyz;

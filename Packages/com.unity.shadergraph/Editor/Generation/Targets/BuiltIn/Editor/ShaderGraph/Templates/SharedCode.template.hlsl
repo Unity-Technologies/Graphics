@@ -104,7 +104,9 @@ void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
     $Varyings.instanceID:       UNITY_TRANSFER_INSTANCE_ID(varyings, result);
     #endif
     #if UNITY_SHOULD_SAMPLE_SH
+    #if !defined(LIGHTMAP_ON)
     $Varyings.sh:               result.sh = varyings.sh;
+    #endif
     #endif
     #if defined(LIGHTMAP_ON)
     $Varyings.lightmapUV:       result.lmap.xy = varyings.lightmapUV;
@@ -130,7 +132,9 @@ void SurfaceVertexToVaryings(v2f_surf surfVertex, inout Varyings result)
     $Varyings.instanceID:       UNITY_TRANSFER_INSTANCE_ID(surfVertex, result);
     #endif
     #if UNITY_SHOULD_SAMPLE_SH
+    #if !defined(LIGHTMAP_ON)
     $Varyings.sh:               result.sh = surfVertex.sh;
+    #endif
     #endif
     #if defined(LIGHTMAP_ON)
     $Varyings.lightmapUV:       result.lightmapUV = surfVertex.lmap.xy;

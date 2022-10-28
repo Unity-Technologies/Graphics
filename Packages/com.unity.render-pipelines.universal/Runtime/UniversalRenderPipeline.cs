@@ -255,7 +255,11 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-            useRenderGraph = m_GlobalSettings.enableRenderGraph;
+#if RENDER_GRAPH_ENABLED
+            useRenderGraph = asset.enableRenderGraph;
+#else
+            useRenderGraph = false;
+#endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2

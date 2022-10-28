@@ -1,6 +1,9 @@
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -965,6 +968,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct WaterGBuffer
         {
+            public bool valid;
             public TextureHandle waterGBuffer0;
             public TextureHandle waterGBuffer1;
             public TextureHandle waterGBuffer2;
@@ -978,6 +982,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Allocate the return structure
             WaterGBuffer outputGBuffer = new WaterGBuffer();
+            outputGBuffer.valid = false;
+            outputGBuffer.waterGBuffer0 = renderGraph.defaultResources.blackTextureXR;
+            outputGBuffer.waterGBuffer1 = renderGraph.defaultResources.blackTextureXR;
+            outputGBuffer.waterGBuffer2 = renderGraph.defaultResources.blackTextureXR;
+            outputGBuffer.waterGBuffer3 = renderGraph.defaultResources.blackTextureXR;
 
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
@@ -990,11 +999,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 || numWaterSurfaces == 0
                 || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
             {
-                // Set the textures handles for the water gbuffer
-                outputGBuffer.waterGBuffer0 = renderGraph.defaultResources.blackTextureXR;
-                outputGBuffer.waterGBuffer1 = renderGraph.defaultResources.blackTextureXR;
-                outputGBuffer.waterGBuffer2 = renderGraph.defaultResources.blackTextureXR;
-                outputGBuffer.waterGBuffer3 = renderGraph.defaultResources.blackTextureXR;
                 return outputGBuffer;
             }
 
@@ -1023,6 +1027,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
                     continue;
 
+                #if UNITY_EDITOR
+                var stage = PrefabStageUtility.GetCurrentPrefabStage();
+                if (!CoreUtils.IsSceneViewPrefabStageContextHidden() && stage != null && stage.mode == PrefabStage.Mode.InContext)
+                {
+                    bool isInPrefabScene = stage.scene == currentWater.gameObject.scene;
+                    if ((hdCamera.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.Off && isInPrefabScene)
+                        || (hdCamera.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered && !isInPrefabScene))
+                    {
+                        continue;
+                    }
+                }
+                #endif
+                // At least one surface will write to the gbuffer
+                outputGBuffer.valid = true;
+
                 // Fill the water surface profile
                 FillWaterSurfaceProfile(hdCamera, settings, currentWater, surfaceIdx);
 
@@ -1031,6 +1050,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 depthBuffer, depthPyramid, lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
                                 WaterGbuffer0, WaterGbuffer1, WaterGbuffer2, WaterGbuffer3);
             }
+
+            // If no water surface was rendered here, we need to skip right away
+            if (!outputGBuffer.valid)
+                return outputGBuffer;
+
+            // Set the textures handles for the water gbuffer
+            outputGBuffer.waterGBuffer0 = WaterGbuffer0;
+            outputGBuffer.waterGBuffer1 = WaterGbuffer1;
+            outputGBuffer.waterGBuffer2 = WaterGbuffer2;
+            outputGBuffer.waterGBuffer3 = WaterGbuffer3;
 
             using (var builder = renderGraph.AddRenderPass<WaterRenderingSSRData>("Prepare water for SSR", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingSSR)))
             {
@@ -1069,11 +1098,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
             }
 
-            // Set the textures handles for the water gbuffer
-            outputGBuffer.waterGBuffer0 = WaterGbuffer0;
-            outputGBuffer.waterGBuffer1 = WaterGbuffer1;
-            outputGBuffer.waterGBuffer2 = WaterGbuffer2;
-            outputGBuffer.waterGBuffer3 = WaterGbuffer3;
             return outputGBuffer;
         }
 
@@ -1168,7 +1192,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!settings.enable.value
                 || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
                 || WaterSurface.instanceCount == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)
+                || !waterGBuffer.valid)
                 return;
 
             // Push the water profiles to the GPU for the deferred lighting pass

@@ -28,8 +28,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_UseAOV;
         SerializedDataParameter m_Temporal;
 
+#if !(ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN)
         // This is used to prevent users from spamming the denoising package install button
         bool s_DisplayDenoisingButtonInstall = true;
+#endif
 
         public override void OnEnable()
         {

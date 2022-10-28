@@ -292,7 +292,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] bool m_StripUnusedVariants = true;
 
-        [SerializeField] bool m_EnableRenderGraph = false;
         [SerializeField] bool m_StripUnusedLODCrossFadeVariants = true;
 
         [SerializeField] bool m_StripScreenCoordOverrideVariants = true;
@@ -318,11 +317,6 @@ namespace UnityEngine.Rendering.Universal
         /// Controls whether strip off variants if the feature is enabled.
         /// </summary>
         public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
-
-        /// <summary>
-        /// Controls whether the RenderGraph render path is enabled.
-        /// </summary>
-        internal bool enableRenderGraph { get => m_EnableRenderGraph; set { m_EnableRenderGraph = value; } }
 
         /// If this property is true, Unity strips the LOD variants if the LOD cross-fade feature (UniversalRenderingPipelineAsset.enableLODCrossFade) is disabled.
         /// </summary>

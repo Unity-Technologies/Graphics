@@ -865,7 +865,7 @@ namespace UnityEngine.Rendering.Universal
             var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
                 usePanini, paniniDistance, paniniCropToFit,
-                true,
+                true, false,
                 camera.transform.position,
                 gpuVP,
                 cmd, source,

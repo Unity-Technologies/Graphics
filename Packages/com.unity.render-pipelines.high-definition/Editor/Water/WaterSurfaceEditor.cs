@@ -522,12 +522,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw UI
             WaterSurfaceUI.Inspector.Draw(this, this);
 
-            // Handle the icons and w
-            var wgp = RequestGizmoProperties();
-            WaterSurface surface = (WaterSurface)(serializedObject.targetObject);
-            wgp.setIconForObject.Invoke(null, new object[] { surface, PickWaterIcon(surface, wgp) });
-            UnityEditor.GizmoUtility.SetIconEnabled(typeof(WaterSurface), false);
-
             // Apply the properties
             serializedObject.ApplyModifiedProperties();
         }

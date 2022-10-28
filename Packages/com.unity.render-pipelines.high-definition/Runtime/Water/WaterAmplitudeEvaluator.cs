@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        [MenuItem("Generation/Water Amplitude Table")]
+        // [MenuItem("Generation/Water Amplitude Table")]
         static public void GenerateAmplitudeTable()
         {
             // Number of pixels per band

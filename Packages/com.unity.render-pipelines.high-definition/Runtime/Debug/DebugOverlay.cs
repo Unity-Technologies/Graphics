@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Increment coordinates to the next overlay and return the current overlay rect.
         /// </summary>
         /// <param name="aspect">Aspect of the current overlay.</param>
-        /// <return>Returns a rect of the current overlay.</return>
+        /// <returns>Returns a rect of the current overlay.</returns>
         public Rect Next(float aspect = 1.0f)
         {
             int overlayWidth = (int)(overlaySize * aspect);

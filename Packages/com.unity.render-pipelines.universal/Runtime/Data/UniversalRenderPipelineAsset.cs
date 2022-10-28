@@ -468,6 +468,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
+        [SerializeField] bool m_EnableRenderGraph = false;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -1342,6 +1343,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
+        }
+
+        /// <summary>
+        /// Controls whether the RenderGraph render path is enabled.
+        /// </summary>
+        internal bool enableRenderGraph
+        {
+            get { return m_EnableRenderGraph; }
+            set { m_EnableRenderGraph = value; }
         }
 
         /// <summary>

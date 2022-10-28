@@ -2,6 +2,9 @@ using System;
 using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEditor;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -726,13 +729,68 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Add this water surface to the internal surface management
             RegisterInstance(this);
+
+            #if UNITY_EDITOR
+            // Handle scene visibility
+            PrefabStage.prefabStageOpened += RegisterWaterSurfaceVisibilityUpdatePrefabStage;
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null) // In case the prefab stage is already opened when enabling the decal
+                RegisterWaterSurfaceVisibilityUpdatePrefabStage();
+            #endif
         }
 
         private void OnDisable()
         {
             // Remove this water surface from the internal surface management
             UnregisterInstance(this);
+
+        #if UNITY_EDITOR
+            UnregisterWaterSurfaceVisibilityUpdatePrefabStage();
+            PrefabStage.prefabStageOpened -= RegisterWaterSurfaceVisibilityUpdatePrefabStage;
+        #endif
         }
+
+        #if UNITY_EDITOR
+        void RegisterWaterSurfaceVisibilityUpdatePrefabStage(PrefabStage stage = null)
+        {
+            SceneView.duringSceneGui -= UpdateWaterSurfaceVisibilityPrefabStage;
+            SceneView.duringSceneGui += UpdateWaterSurfaceVisibilityPrefabStage;
+        }
+
+        void UnregisterWaterSurfaceVisibilityUpdatePrefabStage()
+            => SceneView.duringSceneGui -= UpdateWaterSurfaceVisibilityPrefabStage;
+
+        bool m_LastPrefabStageVisibility = true;
+        void UpdateWaterSurfaceVisibilityPrefabStage(SceneView sv)
+        {
+            bool showWaterSurface = true;
+
+            // If prefab context is not hidden, then we should render the WaterSurface
+            if (!CoreUtils.IsSceneViewPrefabStageContextHidden())
+                showWaterSurface = true;
+
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null)
+            {
+                bool isWaterSurfaceInPrefabStage = gameObject.scene == stage.scene;
+
+                if (!isWaterSurfaceInPrefabStage && stage.mode == PrefabStage.Mode.InIsolation)
+                    showWaterSurface = false;
+                if (!isWaterSurfaceInPrefabStage && CoreUtils.IsSceneViewPrefabStageContextHidden())
+                    showWaterSurface = false;
+            }
+
+            // Update decal visibility based on showDecal
+            if (!m_LastPrefabStageVisibility && showWaterSurface)
+            {
+                RegisterInstance(this);
+            }
+            else if (m_LastPrefabStageVisibility && !showWaterSurface)
+            {
+                UnregisterInstance(this);
+            }
+            m_LastPrefabStageVisibility = showWaterSurface;
+        }
+        #endif
 
         bool SpectrumParametersAreValid(WaterSpectrumParameters spectrum)
         {
@@ -920,26 +978,5 @@ namespace UnityEngine.Rendering.HighDefinition
             if (simulation != null && simulation.AllocatedTextures())
                 simulation.ReleaseSimulationResources();
         }
-
-#if UNITY_EDITOR
-        // Path to the gizmos location
-        readonly static string s_gizmosLocationPath = "Packages/com.unity.render-pipelines.high-definition/Editor/RenderPipelineResources/Texture/WaterSurface";
-
-        void OnDrawGizmos()
-        {
-            switch (surfaceType)
-            {
-                case WaterSurfaceType.OceanSeaLake:
-                    Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "/OceanGizmo.png", true);
-                    break;
-                case WaterSurfaceType.River:
-                    Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "/RiverGizmo.png", true);
-                    break;
-                case WaterSurfaceType.Pool:
-                    Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "/PoolGizmo.png", true);
-                    break;
-            }
-        }
-#endif
     }
 }
