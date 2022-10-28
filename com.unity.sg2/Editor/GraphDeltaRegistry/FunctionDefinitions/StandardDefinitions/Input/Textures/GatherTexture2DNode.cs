@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"#if (SHADER_TARGET >= 41)
     RGBA = Texture.tex.Gather(Sampler.samplerstate, UV, Offset);
-    RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
@@ -27,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Defs
     RGBA.g = G;
     RGBA.b = B;
     RGBA.a = A;
-    RGB = RGBA.rgb;
 #endif",
             new ParameterDescriptor[]
             {
@@ -36,7 +34,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                 new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
                 new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                 new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                 new ParameterDescriptor("B", TYPE.Float, Usage.Out),
@@ -55,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[0],
             displayName: "Gather Texture 2D",
-            parameters: new ParameterUIDescriptor[10] {
+            parameters: new ParameterUIDescriptor[9] {
                 new ParameterUIDescriptor(
                     name: "Texture",
                     tooltip: "the texture to sample"
@@ -72,10 +69,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "RGBA",
                     tooltip: "the red channels of the 4 neighboring pixels from the specified sample position"
-                ),
-                new ParameterUIDescriptor(
-                    name: "RGB",
-                    tooltip: "the red channels of the first three neighboring pixels"
                 ),
                 new ParameterUIDescriptor(
                     name: "R",
