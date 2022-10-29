@@ -14,6 +14,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
@@ -42,6 +43,7 @@
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
 
 // Output structure of the reflection raytrace shader
 RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
@@ -100,10 +102,13 @@ void RayGenIntegration()
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
     ApplyRayTracingDepthOffset(depthValue);
-
-    // This point is part of the background, we don't really care
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    // This point is part of the background or is unlit, we don't really care
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || (stencilValue & STENCILUSAGE_IS_UNLIT) != 0)
+    {
+        _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0f);
         return;
+    }
 
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);

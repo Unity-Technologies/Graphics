@@ -10,6 +10,11 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+// We need the stencil flag of this.
+#define BILATERLAL_UNLIT
+
+// #pragma enable_d3d11_debug_symbols
+
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -88,13 +93,14 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const BilateralData center = TapBilateralData(sourceCoord);
 
     // If this is a background pixel, we are done
-    if (center.z01 == 1.0)
+    if (center.z01 == 1.0 || center.isUnlit)
     {
         #if SINGLE_CHANNEL
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
         #else
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 1.0);
         #endif
+        return;
     }
 
     // Create the local ortho basis for our sampling
@@ -159,7 +165,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         const BilateralData tapData = TapBilateralData(tapCoord);
 
         // If the tapped pixel is a background pixel or too far from the center pixel
-        if (tapData.z01 == UNITY_RAW_FAR_CLIP_VALUE || abs(tapData.zNF - hClip.w) > 0.1)
+        if (tapData.z01 == UNITY_RAW_FAR_CLIP_VALUE || tapData.isUnlit || abs(tapData.zNF - hClip.w) > 0.1)
             continue;
 
         // Compute the radius of the sample

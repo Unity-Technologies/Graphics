@@ -429,7 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture,
+            TextureHandle depthPyramid, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture,
             ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info, ComputeBufferHandle lightList)
         {
             // Grab the global illumination volume component
@@ -438,10 +438,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.SSGIPass)))
             {
                 // Trace the signal
-                TextureHandle colorBuffer = TraceSSGI(renderGraph, hdCamera, giSettings, depthPyramid, normalBuffer, stencilBuffer, motionVectorsBuffer, lightList);
+                TextureHandle colorBuffer = TraceSSGI(renderGraph, hdCamera, giSettings, depthPyramid, normalBuffer, depthStencilBuffer, motionVectorsBuffer, lightList);
 
                 // Denoise the result
-                TextureHandle denoisedSSGI = DenoiseSSGI(renderGraph, hdCamera, colorBuffer, depthPyramid, normalBuffer, motionVectorsBuffer, historyValidationTexture, giSettings.fullResolutionSS.value);
+                TextureHandle denoisedSSGI = DenoiseSSGI(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, normalBuffer, motionVectorsBuffer, historyValidationTexture, giSettings.fullResolutionSS.value);
 
                 // Upscale it if required
                 // If this was a half resolution effect, we still have to upscale it
@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (GetIndirectDiffuseMode(hdCamera))
             {
                 case IndirectDiffuseMode.ScreenSpace:
-                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
+                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
                     break;
 
                 case IndirectDiffuseMode.Raytrace:
