@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.Slider(serializedLight.settings.shadowsStrength, 0f, 1f, Styles.ShadowStrength);
 
                         // Bias
-                        DrawAdditionalShadowData(serializedLight);
+                        DrawAdditionalShadowData(serializedLight, owner);
 
                         // this min bound should match the calculation in SharedLightData::GetNearPlaneMinBound()
                         float nearPlaneMinBound = Mathf.Min(0.01f * serializedLight.settings.range.floatValue, 0.1f);
@@ -356,7 +356,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.BakingWarning.text, MessageType.Warning);
         }
 
-        static void DrawAdditionalShadowData(UniversalRenderPipelineSerializedLight serializedLight)
+        static void DrawAdditionalShadowData(UniversalRenderPipelineSerializedLight serializedLight, Editor editor)
         {
             // 0: Custom bias - 1: Bias values defined in Pipeline settings
             int selectedUseAdditionalData = serializedLight.additionalLightData.usePipelineSettings ? 1 : 0;
@@ -368,10 +368,12 @@ namespace UnityEditor.Rendering.Universal
                     selectedUseAdditionalData = EditorGUI.IntPopup(r, Styles.shadowBias, selectedUseAdditionalData, Styles.displayedDefaultOptions, Styles.optionDefaultValues);
                     if (checkScope.changed)
                     {
+                        Undo.RecordObjects(serializedLight.lightsAdditionalData, "Modified light additional data");
                         foreach (var additionData in serializedLight.lightsAdditionalData)
                             additionData.usePipelineSettings = selectedUseAdditionalData != 0;
 
                         serializedLight.Apply();
+                        (editor as UniversalRenderPipelineLightEditor)?.ReconstructReferenceToAdditionalDataSO();
                     }
                 }
             }

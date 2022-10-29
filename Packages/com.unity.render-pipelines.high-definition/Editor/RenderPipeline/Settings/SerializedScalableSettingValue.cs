@@ -210,6 +210,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(levelRect, label, self.useOverride);
             {
                 EditorGUI.BeginChangeCheck();
+
+                EditorGUI.BeginChangeCheck();
+                var prevMixedValue = EditorGUI.showMixedValue;
+                EditorGUI.showMixedValue = self.useOverride.hasMultipleDifferentValues || !self.useOverride.boolValue && self.level.hasMultipleDifferentValues;
                 var (level, useOverride) = LevelFieldGUI(
                     levelRect,
                     GUIContent.none,
@@ -223,6 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (!self.useOverride.boolValue)
                         self.level.intValue = level;
                 }
+                EditorGUI.showMixedValue = prevMixedValue;
             }
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
