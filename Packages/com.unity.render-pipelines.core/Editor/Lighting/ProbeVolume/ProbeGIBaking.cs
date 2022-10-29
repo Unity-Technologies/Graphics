@@ -221,6 +221,7 @@ namespace UnityEngine.Rendering
         static Vector3Int cellCount = Vector3Int.zero;
 
         static BakingStage currentBakingState = BakingStage.NotStarted;
+        static int pvHashesAtBakeStart = -1;
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
@@ -420,6 +421,38 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static void CachePVHashes(List<ProbeVolume> probeVolumes)
+        {
+            pvHashesAtBakeStart = 0;
+            foreach (var pv in probeVolumes)
+            {
+                pvHashesAtBakeStart += pvHashesAtBakeStart * 23 + pv.GetHashCode();
+            }
+        }
+
+        static void CheckPVChanges()
+        {
+            // If we have baking in flight.
+            if (Lightmapping.isRunning && currentBakingState > BakingStage.Started && (GUIUtility.hotControl == 0))
+            {
+                var pvList = GetProbeVolumeList();
+                int currHash = 0;
+                foreach (var pv in pvList)
+                {
+                    currHash += currHash * 23 + pv.GetHashCode();
+                }
+
+                if (currHash != pvHashesAtBakeStart)
+                {
+                    // Need to force stop the light baking and start it again.
+                    Lightmapping.Cancel();
+                    OnLightingDataCleared();
+                    OnBakeCompletedCleanup();
+                    Lightmapping.BakeAsync();
+                }
+            }
+        }
+
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return;
@@ -442,6 +475,8 @@ namespace UnityEngine.Rendering
             var pvList = GetProbeVolumeList();
             if (pvList.Count == 0) return; // We have no probe volumes.
 
+            CachePVHashes(pvList);
+            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
 
             currentBakingState = BakingStage.Started;
 
@@ -1700,6 +1735,9 @@ namespace UnityEngine.Rendering
 
         public static void OnBakeCompletedCleanup()
         {
+            Lightmapping.bakeCompleted -= OnBakeCompletedCleanup;
+            ProbeReferenceVolume.instance.checksDuringBakeAction = null;
+
             if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
                 if (m_BakingBatch.uniqueProbeCount == 0)

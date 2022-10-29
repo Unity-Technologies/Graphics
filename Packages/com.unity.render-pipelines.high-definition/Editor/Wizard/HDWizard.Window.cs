@@ -89,8 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: L10n.Tr("Assigned - Graphics"),
                 error: L10n.Tr("There is no HDRP asset assigned to the Graphic Settings!"));
             public static readonly ConfigStyle hdrpGlobalSettingsAssigned = new ConfigStyle(
-                label: L10n.Tr("Assigned - HDRP Settings"),
-                error: L10n.Tr("There is no HDRenderPipelineGlobalSettings assigned to Edit > Project Settings > HDRP Settings!"));
+                label: L10n.Tr("Assigned - HDRP Global Settings"),
+                error: L10n.Tr("There is no HDRenderPipelineGlobalSettings assigned to Edit > Project Settings > Graphics > HDRP Global Settings!"));
             public static readonly ConfigStyle hdrpAssetQualityAssigned = new ConfigStyle(
                 label: L10n.Tr("Assigned - Quality"),
                 error: L10n.Tr("The RenderPipelineAsset assigned in the current Quality must be null or a HDRenderPipelineAsset. If it is null, the asset for the current Quality will be the one in Graphics Settings. (The Fix or Fix All button will nullify it)"));
@@ -105,13 +105,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: L10n.Tr("SRP Batcher must be enabled!"));
             public static readonly ConfigStyle hdrpDiffusionProfile = new ConfigStyle(
                 label: L10n.Tr("Diffusion profile"),
-                error: L10n.Tr("There is no diffusion profile assigned in the HDRP Settings!"));
+                error: L10n.Tr("There is no diffusion profile assigned in the HDRP Global Settings!"));
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default volume profile"),
-                error: L10n.Tr("Default volume profile must be assigned in the HDRP Settings! Also, for it to be editable, it should be outside of package."));
+                error: L10n.Tr("Default volume profile must be assigned in the HDRP Global Settings! Also, for it to be editable, it should be outside of package."));
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default Look Dev volume profile"),
-                error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Settings! Also, for it to be editable, it should be outside of package."));
+                error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Global Settings! Also, for it to be editable, it should be outside of package."));
             public static readonly ConfigStyle hdrpMigratableAssets = new ConfigStyle(
                 label: L10n.Tr("Assets Migration"),
                 error: L10n.Tr("At least one of the HDRP assets used in quality or the current HDRenderPipelineGlobalSettings have not been migrated to last version."));
@@ -160,32 +160,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: L10n.Tr("Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Shadows (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
+                label: L10n.Tr("Screen Space Shadows (HDRP Global Settings)"),
+                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: L10n.Tr("Screan Space Reflection (Asset)"),
                 error: L10n.Tr("Screen Space Reflection is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections in Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Screen Space Reflections."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
-                label: L10n.Tr("Screan Space Reflection (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
+                label: L10n.Tr("Screan Space Reflection (HDRP Global Settings)"),
+                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection - Transparent (Asset)"),
                 error: L10n.Tr("Screen Space Reflection - Transparent is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections on transparent GameObjects from Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Transparents receive SSR."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Reflection - Transparent (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
+                label: L10n.Tr("Screen Space Reflection - Transparent (HDRP Global Settings)"),
+                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: L10n.Tr("Screen Space Global Illumination (Asset)"),
                 error: L10n.Tr("Screen Space Global Illumination is disabled in the current HDRP asset which means you cannot enable ray-traced global illumination in Volume components. To enable this feature, open your HDRP Asset, go to Lighting and enable Screen Space Global Illumination."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Global Illumination (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
+                label: L10n.Tr("Screen Space Global Illumination (HDRP Global Settings)"),
+                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrBuildTarget = new ConfigStyle(
                 label: L10n.Tr("Build Target"),

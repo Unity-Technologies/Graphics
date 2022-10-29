@@ -13,6 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         Material[] m_MaterialReferences = new Material[0];
 
+        internal Material[] materialReferences => m_MaterialReferences;
+
         public void SetDiffusionProfileReference(int index, DiffusionProfileSettings profile)
         {
             if (index >= m_DiffusionProfileReferences.Length)
