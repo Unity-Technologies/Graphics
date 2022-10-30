@@ -165,10 +165,3 @@ void RayGenIntegration()
     // We store the sampled color and the weight that shall be used for it (1.0f)
     _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0f);
 }
-
-[shader("closesthit")]
-void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
-	rayIntersection.color = float3(1.0, 0.0, 0.5);
-}

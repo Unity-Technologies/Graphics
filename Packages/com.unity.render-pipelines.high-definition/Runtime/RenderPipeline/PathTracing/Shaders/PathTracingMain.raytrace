@@ -187,10 +187,3 @@ void RayGen()
 
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
 }
-
-// This should never be called, return magenta just in case
-[shader("closesthit")]
-void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    pathIntersection.value = float3(1.0, 0.0, 0.5);
-}
