@@ -4,6 +4,8 @@ using UnityEngine.VFX;
 using UnityEngine.TestTools;
 using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
@@ -19,12 +21,15 @@ namespace UnityEditor.VFX.Test
         private readonly Quaternion m_Rotation = Quaternion.Euler(20.0f, 30.0f, 40.0f);
         private readonly Vector3 m_Scale = new Vector3(3.0f, 2.0f, 1.0f);
         private readonly Vector3 m_ParticleSize = 0.1f * Vector3.one;
+        private VFXBoundsRecorder m_BoundsRecorder = null;
 
         [UnityTest]
         public IEnumerator TestBoundsHelperResults([ValueSource(nameof(availableSpaces))] object systemSpace)
         {
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXBoundsHelperTest.vfx";
             var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            // Set CullingFlags to Always Simulate, so the bounds are computed even if no camera is rendering the effect
+            graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
             VFXCoordinateSpace space = (VFXCoordinateSpace)systemSpace;
             graph.children.OfType<VFXBasicInitialize>().First().space = space;
 
@@ -36,27 +41,26 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXViewWindow.GetWindow(vfxComponent.visualEffectAsset, true);
             VFXView view = window.graphView;
             VFXViewController controller = VFXViewController.GetController(vfxComponent.visualEffectAsset.GetResource(), true);
             view.controller = controller;
             view.attachedComponent = vfxComponent;
 
-            VFXBoundsRecorder boundsRecorder = new VFXBoundsRecorder(vfxComponent, view);
+            m_BoundsRecorder = new VFXBoundsRecorder(vfxComponent, view);
 
-            boundsRecorder.ToggleRecording();
-            vfxComponent.Simulate(1.0f/60.0f);
+            m_BoundsRecorder.ToggleRecording();
+            vfxComponent.Simulate(1.0f / 60.0f);
+
             const int maxFrameTimeout = 100;
             for (int i = 0; i < maxFrameTimeout; i++)
             {
-                boundsRecorder.UpdateBounds();
-                if (boundsRecorder.bounds.Count > 0)
+                m_BoundsRecorder.UpdateBounds();
+                if (GetBoundsByReflection(m_BoundsRecorder).Count > 0)
                     break;
                 yield return null; //skip a frame.
             }
-            boundsRecorder.ToggleRecording();
-            Bounds bounds = boundsRecorder.bounds.FirstOrDefault().Value;
-            boundsRecorder.CleanUp();
+            var bounds = GetBoundsByReflection(m_BoundsRecorder).FirstOrDefault().Value;
 
             Vector3 expectedCenter = Vector3.zero;
             Vector3 expectedExtent = new Vector3(2.0f,2.0f,2.0f);
@@ -75,6 +79,20 @@ namespace UnityEditor.VFX.Test
             window.Close();
 
             yield return null;
+        }
+
+        [TearDown]
+        public void CleanUp()
+        {
+            m_BoundsRecorder.CleanUp();
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+
+        private Dictionary<string, Bounds> GetBoundsByReflection(VFXBoundsRecorder boundsRecorder)
+        {
+            var boundsProperty = boundsRecorder.GetType().GetField("m_Bounds", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(boundsProperty);
+            return (Dictionary<string, Bounds>)boundsProperty.GetValue(boundsRecorder);
         }
     }
 

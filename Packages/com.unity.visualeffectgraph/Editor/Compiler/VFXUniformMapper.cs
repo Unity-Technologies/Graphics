@@ -72,7 +72,6 @@ namespace UnityEditor.VFX
                         m_NameCounts[data.name] = count + 1u;
                         previousNames.Add(data.id == -1 &&
                                            (!VFXExpression.IsUniform(exp.valueType)
-                                            || data.name.StartsWith("unity_")
                                             || !m_NeedsNameSuffixes ) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}");
                     }
                 }
@@ -141,28 +140,8 @@ namespace UnityEditor.VFX
             {
                 return m_UniformToName.Select(s =>
                 {
-                    string code = null;
-                    string firstName = s.Value.First();
-                    if (!firstName.StartsWith("unity_"))
-                    {
-                        firstName = "graphValues." + firstName;
-                    }
-                    switch (s.Key.valueType)
-                    {
-                        case VFXValueType.Int32:
-                            code = "asint(" + firstName + ")";
-                            break;
-                        case VFXValueType.Uint32:
-                            code = "asuint(" + firstName + ")";
-                            break;
-                        case VFXValueType.Boolean:
-                            code = "(bool)asuint(" + firstName + ")";
-                            break;
-                        default:
-                            code = firstName;
-                            break;
-                    }
-                    return new KeyValuePair<VFXExpression, string>(s.Key, code);
+                    string firstName = $"graphValues.{s.Value.First()}";
+                    return new KeyValuePair<VFXExpression, string>(s.Key, firstName);
                 })
                     .Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
                     .Union(m_BufferToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))

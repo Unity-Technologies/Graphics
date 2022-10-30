@@ -1,22 +1,22 @@
 Pass
-{        
+{
     Tags { "LightMode"="UniversalGBuffer" }
-    
+
     ${VFXStencilGBuffer}
-        
+
     HLSLPROGRAM
     #pragma target 4.5
     ${VFXPassGBufferAdditionalPragma}
     ${VFXURPGBufferDefines}
-    
+
     ${VFXIncludeRP("VFXLitVaryings.template")}
-    
+
     struct ps_input
     {
         float4 pos : SV_POSITION;
-        
+
         ${VFXURPLitDeclareVaryings}
-        
+
         #if USE_FLIPBOOK_INTERPOLATION
         float4 uv : TEXCOORD1;
         #else
@@ -53,22 +53,22 @@ Pass
         // y: motion vector scale v
         nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
         #endif
-        
+
         float3 posWS : TEXCOORD6; //Needed for GI
 
         ${VFXAdditionalInterpolantsDeclaration}
-    
+
         UNITY_VERTEX_OUTPUT_STEREO
         VFX_VERTEX_OUTPUT_INSTANCE_INDEX
     };
-    
+
     struct ps_output
     {
         float4 color : SV_Target0;
     };
 
 ${VFXURPLitVaryingsMacros}
-    
+
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
@@ -87,12 +87,12 @@ ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}
 ${VFXEnd}
 
-    ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}    
-    #define SHADERPASS SHADERPASS_GBUFFER    
+    ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
+    #define SHADERPASS SHADERPASS_GBUFFER
     ${VFXIncludeRP("VFXLit.template")}
-        
+
     ${SHADERGRAPH_PIXEL_CODE_GBUFFER}
-    
+
     #pragma fragment frag
     void frag(ps_input i
     , out FragmentOutput outGBuffer
@@ -103,8 +103,9 @@ ${VFXEnd}
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
         VFXTransformPSInputs(i);
+        VFX_FRAG_SETUP_INSTANCE_ID(i);
         ${VFXComputeNormalWS}
-        
+
         #ifdef VFX_SHADERGRAPH
             ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_GBUFFER}

@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.Operator
         }
 
 
-        [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the particleId is out of the point cache bounds.")]
+        [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the index is out of the point cache bounds.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
 

@@ -1,8 +1,8 @@
 // Forward pass
 Pass
-{        
+{
     Tags { "LightMode"="UniversalForward" }
-    
+
     ${VFXStencilForward}
 
     HLSLPROGRAM
@@ -10,22 +10,22 @@ Pass
     ${VFXPassForwardLitAdditionalPragma}
     ${VFXURPForwardDefines}
     //#pragma enable_d3d11_debug_symbols
-    
+
     ${VFXIncludeRP("VFXLitVaryings.template")}
-    
+
     struct ps_input
     {
         float4 pos : SV_POSITION;
-        
+
         ${VFXURPLitDeclareVaryings}
-        
+
         #if USE_FLIPBOOK_INTERPOLATION
         float4 uv : TEXCOORD1;
         #else
         #if USE_FLIPBOOK_ARRAY_LAYOUT
         float3 uv : TEXCOORD1;
         #else
-        float2 uv : TEXCOORD1;    
+        float2 uv : TEXCOORD1;
         #endif
         #endif
         #if VFX_SHADERGRAPH_HAS_UV1
@@ -50,7 +50,7 @@ Pass
         // z: frame blending factor
         nointerpolation float3 builtInInterpolants : TEXCOORD4;
         #endif
-        
+
         #if USE_FLIPBOOK_MOTIONVECTORS
         // x: motion vector scale u
         // y: motion vector scale v
@@ -58,13 +58,13 @@ Pass
         #endif
 
         float3 posWS : TEXCOORD6; // Needed for fog
-        
+
         ${VFXAdditionalInterpolantsDeclaration}
 
         UNITY_VERTEX_OUTPUT_STEREO
         VFX_VERTEX_OUTPUT_INSTANCE_INDEX
     };
-    
+
 ${VFXURPLitVaryingsMacros}
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -83,11 +83,11 @@ ${VFXURPLitVaryingsMacros}
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}
 ${VFXEnd}
-        
+
     ${VFXIncludeRP("Templates/ParticleMeshesLit/Pass.template")}
     #define SHADERPASS SHADERPASS_FORWARD
     ${VFXIncludeRP("VFXLit.template")}
-    
+
     ${SHADERGRAPH_PIXEL_CODE_FORWARD}
 
     #pragma fragment frag
@@ -100,12 +100,13 @@ ${VFXEnd}
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
         VFXTransformPSInputs(i);
+        VFX_FRAG_SETUP_INSTANCE_ID(i);
         ${VFXComputeNormalWS}
-        
+
         #ifdef VFX_SHADERGRAPH
             ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_FORWARD}
-            
+
             ${VFXIncludeRP("VFXSGSurfaceData.template")}
             outColor = VFXGetPixelOutputForwardShaderGraph(i, surface, normalWS);
         #else

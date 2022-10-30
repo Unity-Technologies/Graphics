@@ -130,9 +130,14 @@ namespace UnityEditor.VFX
                         Debug.LogError("CurrentFrameIndex isn't reachable in encapsulatedOutput for motionVector");
                 }
 
-                //Since it's a compute shader without renderer associated, these entries aren't automatically sent
-                expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
-                expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
+                var localSpace = ((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local;
+                if (localSpace)
+                {
+                    //Since it's a compute shader without renderer associated, these entries aren't automatically sent
+                    expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
+                    expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
+                }
+
                 if (m_Output.HasCustomSortingCriterion())
                 {
                     var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
