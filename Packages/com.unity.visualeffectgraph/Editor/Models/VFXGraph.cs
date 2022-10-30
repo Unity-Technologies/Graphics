@@ -373,7 +373,8 @@ namespace UnityEditor.VFX
         // 9: Update HDRP decal angle fade encoding
         // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
         // 11: Instancing
-        public static readonly int CurrentVersion = 11;
+        // 12: Unexpected incorrect synchronization of output with ShaderGraph
+        public static readonly int CurrentVersion = 12;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 

@@ -1200,6 +1200,50 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
+        [UnityTest, Description("Cover regression UUM-13863")]
+        public IEnumerator Crash_On_StoreObject_While_Modifying_SG()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_13863.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_13863";
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
+            Assert.IsNotNull(asset);
+
+            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            var baseFilePath = tempDest + "/Repro_13863_A.shadergraph";
+            var backupSGContent = File.ReadAllBytes(baseFilePath);
+            var newSGContent = File.ReadAllBytes(tempDest + "/Repro_13863_B.shadergraph");
+            Assert.IsNotEmpty(backupSGContent);
+            Assert.IsNotEmpty(newSGContent);
+
+            //Modify SG once
+            File.WriteAllBytes(baseFilePath, newSGContent);
+            AssetDatabase.Refresh();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            //Restore
+            File.WriteAllBytes(baseFilePath, backupSGContent);
+            AssetDatabase.Refresh();
+
+            for (int i = 0; i < 4; ++i)
+                yield return null; //Crash is occurring here
+
+
+            window.Close();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+        }
+
         [OneTimeTearDown]
         public void CleanUp()
         {
