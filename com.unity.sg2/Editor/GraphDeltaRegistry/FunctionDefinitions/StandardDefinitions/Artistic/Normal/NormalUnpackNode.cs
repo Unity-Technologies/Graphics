@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Object",
-                    "    Out = UnpackNormal(In);",
+                    "    Out = UnpackNormalRGB(In);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),

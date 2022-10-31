@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "FourSamples",
 @"    //4 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
-    Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
+    Offset = pow(Offset, 4) * 0.1;
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
     if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
@@ -64,9 +64,9 @@ namespace UnityEditor.ShaderGraph.Defs
     vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y + Offset)), channelMask);//Right
     vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y - Offset)), channelMask);//Left
     Out.x = va.x - va.y;
-    Out.y = vb.x - vb.y;
+    Out.y = vb.y - vb.x;
     Out.z = 1.0f / Strength;
-    Out = normalize(Out);//TODO: Check normal direction
+    Out = normalize(Out);
     if (OutputSpace==1)
     {
         TangentMatrix[0] = TangentWS;
@@ -84,7 +84,6 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                        new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                         new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                         new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
@@ -98,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "EightSamples",
 @"    //8 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
-    Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
+    Offset = pow(Offset, 5.5) * 0.1;
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
     if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
@@ -113,10 +112,10 @@ namespace UnityEditor.ShaderGraph.Defs
     // Compute dx using Sobel:
     Out.x = -(vb.y + 2*vb.z + vb.w -va.x - 2*va.y - va.z);
     // Compute dy using Sobel:
-    Out.y = va.z + 2*vb.x + vb.w -va.x - 2*va.w - vb.y;
+    Out.y = -(va.z + 2*vb.x + vb.w -va.x - 2*va.w - vb.y);
     // Build the normalized normal
     Out.z = 1.0f / Strength;
-    Out = normalize(Out);//TODO: Check normal direction
+    Out = normalize(Out);
     if (OutputSpace==1)
     {
         TangentMatrix[0] = TangentWS;
@@ -134,7 +133,6 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("OutputSpace", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
                         new ParameterDescriptor("channelMask", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
-                        new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                         new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                         new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                         new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
@@ -159,7 +157,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "ThreeSamples", "3 Samples" },
                 { "FourSamples", "4 Samples" },
                 { "EightSamples", "8 Samples" }
-             },
+            },
             functionSelectorLabel: "Sample Count",
             parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
