@@ -766,12 +766,6 @@
             "m_Id": "a9bfa0b91e7c4dc595deacb1ece31180"
         },
         {
-            "m_Id": "c891c0c2b7f54f8e93560f960a99c7d6"
-        },
-        {
-            "m_Id": "de2ec9eca6224d93a8d9211d353fc8bd"
-        },
-        {
             "m_Id": "bd90bfff825c43238634dce6436582cd"
         },
         {
@@ -997,7 +991,7 @@
     "m_FragmentContext": {
         "m_Position": {
             "x": 8704.5009765625,
-            "y": 516.0000610351563
+            "y": 472.5000915527344
         },
         "m_Blocks": [
             {
@@ -1020,12 +1014,6 @@
             },
             {
                 "m_Id": "64fcb8f7a7844406a2766ecf589ced8e"
-            },
-            {
-                "m_Id": "c891c0c2b7f54f8e93560f960a99c7d6"
-            },
-            {
-                "m_Id": "de2ec9eca6224d93a8d9211d353fc8bd"
             },
             {
                 "m_Id": "bd90bfff825c43238634dce6436582cd"
@@ -15119,29 +15107,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "77a19e863f0c45449d0e547f94703a48",
-    "m_Id": 0,
-    "m_DisplayName": "Transmittance",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Transmittance",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.30000001192092898,
-        "y": 0.19500000774860383,
-        "z": 0.09000000357627869
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "77dbb7b35f974a7aad6f59aabaefc63f",
     "m_Id": 2,
@@ -23626,40 +23591,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "c891c0c2b7f54f8e93560f960a99c7d6",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.HairStrandDirection",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "d0ea5649a0e746dbab32ccae1564b631"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.HairStrandDirection"
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "c8a08b90e090482090367297f417256d",
     "m_Id": 1622815993,
@@ -24424,29 +24355,6 @@
     "m_StageCapability": 3,
     "m_Value": 0.03999999910593033,
     "m_DefaultValue": 0.03999999910593033,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "d0ea5649a0e746dbab32ccae1564b631",
-    "m_Id": 0,
-    "m_DisplayName": "Hair Strand Direction",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "HairStrandDirection",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.0,
-        "y": -1.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
     "m_Labels": []
 }
 
@@ -26128,40 +26036,6 @@
         "z": 0.0,
         "w": 0.0
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "de2ec9eca6224d93a8d9211d353fc8bd",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.Transmittance",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "77a19e863f0c45449d0e547f94703a48"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.Transmittance"
 }
 
 {

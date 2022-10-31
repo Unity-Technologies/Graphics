@@ -12,41 +12,46 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "PI",
-                    "    Out = 3.1415926f;",
+                    "    Out = 3.1415926f * Multiplier;",
                     new ParameterDescriptor[]
                     {
+                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                     }
                 ),
                 new(
                     "TAU",
-                    "    Out = 6.28318530f;",
+                    "    Out = 6.28318530f * Multiplier;",
                     new ParameterDescriptor[]
                     {
+                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                     }
                 ),
                 new(
                     "PHI",
-                    "    Out = 1.618034f;",
+                    "    Out = 1.618034f * Multiplier;",
                     new ParameterDescriptor[]
                     {
+                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                     }
                 ),
                 new(
                     "E",
-                    "    Out = 2.718282f;",
+                    "    Out = 2.718282f * Multiplier;",
                     new ParameterDescriptor[]
                     {
+                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                     }
                 ),
                 new(
                     "SQRT2",
-                    "    Out = 1.414214f;",
+                    "    Out = 1.414214f * Multiplier;",
                     new ParameterDescriptor[]
                     {
+                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                     }
                 )
