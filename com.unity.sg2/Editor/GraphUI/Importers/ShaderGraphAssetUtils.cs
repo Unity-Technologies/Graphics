@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
             // Setup the GTF Model, it will default to using a universal target for now.
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             asset.CreateGraph(typeof(ShaderGraphStencil));
-            asset.ShaderGraphModel.Init(graph, isSubGraph, target);
+            asset.SGGraphModel.Init(graph, isSubGraph, target);
             return asset;
         }
 
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph
             EditorJsonUtility.FromJsonOverwrite(json, asset);
             // Although name gets set during asset's OnEnable, it can get clobbered during deserialize
             asset.Name = Path.GetFileNameWithoutExtension(path);
-            var sgModel = asset.ShaderGraphModel;
+            var sgModel = asset.SGGraphModel;
             sgModel.OnEnable();
             var graphHandler = sgModel.GraphHandler;
 
@@ -169,22 +169,18 @@ namespace UnityEditor.ShaderGraph
             string json = File.ReadAllText(assetPath, Encoding.UTF8);
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
-            asset.ShaderGraphModel.OnEnable();
-
-
-
+            asset.SGGraphModel.OnEnable();
             SortedSet<string> deps = new();
-            var graph = asset.ShaderGraphModel.GraphHandler;
-
+            var graph = asset.SGGraphModel.GraphHandler;
             foreach(var node in graph.GetNodes())
             {
-                // Subgraphs use their assetID as a registryKey for now-> this is bad and should be handled gracefully in the UI for a user to set in a safe way.
+                // Subgraphs use their assetID as a registryKey for now-> this is bad and should be handled gracefully in
+                // the UI for a user to set in a safe way.
                 // TODO: make it so any node can be asked about its asset dependencies (Either through the builder, or through a field).
                 var depPath = AssetDatabase.GUIDToAssetPath(node.GetRegistryKey().Name);
                 if (!String.IsNullOrEmpty(depPath))
                     deps.Add(depPath);
             }
-
             return deps.ToArray();
         }
     }

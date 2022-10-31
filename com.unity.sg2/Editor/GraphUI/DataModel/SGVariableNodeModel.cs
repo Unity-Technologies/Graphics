@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Represents an instance of a blackboard property/keyword on the graph
     /// </summary>
-    class GraphDataVariableNodeModel : VariableNodeModel, IGraphDataOwner
+    class SGVariableNodeModel : VariableNodeModel, IGraphDataOwner
     {
         [SerializeField]
         string m_GraphDataName;
@@ -36,14 +36,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public GraphDataPortModel outputPortModel => (GraphDataPortModel)m_MainPortModel;
+        public SGPortModel outputPortModel => (SGPortModel)m_MainPortModel;
 
         /// <summary>
         /// Determines whether or not this node has a valid backing representation at the data layer.
         /// </summary>
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
 
-        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
+        GraphHandler graphHandler => ((SGGraphModel)GraphModel).GraphHandler;
 
         protected override void OnDefineNode()
         {
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
-            return new GraphDataPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
         }
     }
 }

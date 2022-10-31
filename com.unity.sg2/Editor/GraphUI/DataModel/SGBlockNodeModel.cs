@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataBlockNodeModel : BlockNodeModel, IGraphDataOwner
+    class SGBlockNodeModel : BlockNodeModel, IGraphDataOwner
     {
         [field: SerializeField, HideInInspector] public string ContextEntryName { get; set; }
 
@@ -18,12 +18,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             string portId,
             PortModelOptions options)
         {
-            return new GraphDataPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
         }
 
         protected override void OnDefineNode()
         {
-            if (ContextNodeModel is not GraphDataContextNodeModel graphDataContext)
+            if (ContextNodeModel is not SGContextNodeModel graphDataContext)
             {
                 return;
             }
@@ -39,13 +39,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var input = this.AddDataInputPort(ContextEntryName, type);
             if (input.EmbeddedValue is BaseShaderGraphConstant sgConstant)
             {
-                sgConstant.Initialize((ShaderGraphModel) GraphModel, graphDataContext.graphDataName, ContextEntryName);
+                sgConstant.Initialize((SGGraphModel) GraphModel, graphDataContext.graphDataName, ContextEntryName);
             }
         }
 
         public override bool IsCompatibleWith(ContextNodeModel context)
         {
-            if (context is GraphDataContextNodeModel graphDataContext)
+            if (context is SGContextNodeModel graphDataContext)
             {
                 // Prevent moving between context types (i.e. vertex to fragment), which doesn't make sense
                 if (ContextNodeModel != null && graphDataContext.graphDataName != graphDataName)
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 // Prevent duplicate blocks for context entries
                 return context.GraphElementModels
-                    .OfType<GraphDataBlockNodeModel>()
+                    .OfType<SGBlockNodeModel>()
                     .Where(otherBlock => otherBlock != this)
                     .All(otherBlock => otherBlock.ContextEntryName != ContextEntryName);
             }

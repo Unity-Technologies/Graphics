@@ -13,17 +13,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
     class PreviewUpdateDispatcher
     {
         PreviewService m_PreviewHandlerInstance;
-        MainPreviewData m_MainPreviewData;
+        SGMainPreviewModel m_MainPreviewModel;
         // TODO: Should this communicate with the graph model through an interface layer?
         // Would allow for anyone (in theory) to hook up their own graph model and use our preview dispatcher
-        ShaderGraphModel m_GraphModel;
+        SGGraphModel m_GraphModel;
 
         HashSet<string> m_TimeDependentNodes;
         double m_LastTimedUpdateTime;
         EditorWindow m_OwningWindowReference;
 
-        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.x);
-        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewData.mainPreviewSize.y);
+        int PreviewWidth => Mathf.FloorToInt(m_MainPreviewModel.mainPreviewSize.x);
+        int PreviewHeight => Mathf.FloorToInt(m_MainPreviewModel.mainPreviewSize.y);
 
         // Stores the info. of all nodes that need to be updated when the preview is next visibile
         HashSet<string> m_DirtyNodes = new();
@@ -32,29 +32,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Provides this preview update dispatcher with necessary resources for initialization
         /// </summary>
         /// <param name="owningWindow"> Reference to the EditorWindow that is requesting for preview updates </param>
-        /// <param name="shaderGraphModel"> Source of the Graph Data needed to generate previews </param>
+        /// <param name="graphModel"> Source of the Graph Data needed to generate previews </param>
         /// <param name="previewUpdateReceiver"></param>
         public void Initialize(
             EditorWindow owningWindow,
-            ShaderGraphModel shaderGraphModel,
+            SGGraphModel graphModel,
             IPreviewUpdateReceiver previewUpdateReceiver)
         {
             // We can skip all this if we've already initialized
             if (m_GraphModel != null)
                 return;
 
-            m_GraphModel = shaderGraphModel;
-            m_MainPreviewData = shaderGraphModel.MainPreviewData;
-
+            m_GraphModel = graphModel;
+            m_MainPreviewModel = graphModel.MainPreviewData;
             m_TimeDependentNodes = new();
             m_OwningWindowReference = owningWindow;
-
             m_PreviewHandlerInstance = new PreviewService();
-
-            m_PreviewHandlerInstance.Initialize(shaderGraphModel.DefaultContextName, m_MainPreviewData.mainPreviewSize);
-            m_PreviewHandlerInstance.SetActiveGraph(shaderGraphModel.GraphHandler);
-            m_PreviewHandlerInstance.SetActiveRegistry(shaderGraphModel.RegistryInstance.Registry);
-            m_PreviewHandlerInstance.SetActiveTarget(shaderGraphModel.ActiveTarget);
+            m_PreviewHandlerInstance.Initialize(graphModel.DefaultContextName, m_MainPreviewModel.mainPreviewSize);
+            m_PreviewHandlerInstance.SetActiveGraph(graphModel.GraphHandler);
+            m_PreviewHandlerInstance.SetActiveRegistry(graphModel.RegistryInstance.Registry);
+            m_PreviewHandlerInstance.SetActiveTarget(graphModel.ActiveTarget);
             m_PreviewHandlerInstance.SetPreviewUpdateReceiver(previewUpdateReceiver);
 
             // Request preview data for any nodes that exist on graph load
@@ -63,10 +60,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (nodeModel)
                 {
-                    case GraphDataContextNodeModel contextNode when contextNode.IsMainContextNode():
+                    case SGContextNodeModel contextNode when contextNode.IsMainContextNode():
                         OnListenerAdded(contextNode.graphDataName, PreviewRenderMode.Inherit, m_GraphModel.DoesNodeRequireTime(contextNode));
                         break;
-                    case GraphDataNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
+                    case SGNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
                         OnListenerAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.NodePreviewMode, m_GraphModel.DoesNodeRequireTime(graphDataNodeModel));
                         break;
                 }
@@ -79,15 +76,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewHandlerInstance.RequestMainPreviewUpdate(
                     PreviewWidth,
                     PreviewHeight,
-                    m_MainPreviewData.mesh,
-                    m_MainPreviewData.scale,
-                    m_MainPreviewData.lockMainPreviewRotation,
-                    m_MainPreviewData.rotation,
+                    m_MainPreviewModel.mesh,
+                    m_MainPreviewModel.scale,
+                    m_MainPreviewModel.lockMainPreviewRotation,
+                    m_MainPreviewModel.rotation,
                     forceRender);
             else
             {
                 if (m_GraphModel.TryGetModelFromGuid(new SerializableGUID(nodeName), out var nodeModel)
-                    && nodeModel is GraphDataNodeModel { IsPreviewExpanded: true })
+                    && nodeModel is SGNodeModel { IsPreviewExpanded: true })
                 {
                     m_PreviewHandlerInstance.RequestNodePreviewUpdate(nodeName, previewRenderMode, forceRender);
                 }
@@ -138,7 +135,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var variableNodeNames = new List<string>();
             foreach(var node in linkedVariableNodes)
             {
-                var nodeModel = node as GraphDataVariableNodeModel;
+                var nodeModel = node as SGVariableNodeModel;
                 variableNodeNames.Add(nodeModel.graphDataName);
             }
 
@@ -159,10 +156,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewHandlerInstance.RequestMainPreviewUpdate(
                 PreviewWidth,
                 PreviewHeight,
-                m_MainPreviewData.mesh,
-                m_MainPreviewData.scale,
-                m_MainPreviewData.lockMainPreviewRotation,
-                m_MainPreviewData.rotation);
+                m_MainPreviewModel.mesh,
+                m_MainPreviewModel.scale,
+                m_MainPreviewModel.lockMainPreviewRotation,
+                m_MainPreviewModel.rotation);
         }
 
         bool TimedNodesShouldUpdate(EditorWindow editorWindow)
@@ -215,7 +212,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (m_DirtyNodes.Contains(nodeName)
                 &&  m_GraphModel.TryGetModelFromGuid(new SerializableGUID(nodeName), out var nodeModel)
-                    && nodeModel is GraphDataNodeModel graphDataNodeModel)
+                    && nodeModel is SGNodeModel graphDataNodeModel)
             {
                 RequestPreviewUpdate(nodeName, graphDataNodeModel.NodePreviewMode);
                 m_DirtyNodes.Remove(nodeName);

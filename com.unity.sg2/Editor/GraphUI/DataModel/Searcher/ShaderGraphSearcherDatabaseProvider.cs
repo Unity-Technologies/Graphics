@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementContainerDatabases(GraphModel graphModel, IGraphElementContainer container)
         {
-            if (container is not GraphDataContextNodeModel contextNode)
+            if (container is not SGContextNodeModel contextNode)
             {
                 return base.GetGraphElementContainerDatabases(graphModel, container);
             }
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new List<ItemLibraryDatabaseBase> {new ItemLibraryDatabase(blocks)};
         }
 
-        private static List<ItemLibraryItem> GetBlockSearcherItems(GraphDataContextNodeModel context)
+        private static List<ItemLibraryItem> GetBlockSearcherItems(SGContextNodeModel context)
         {
             var availableBlocks = new List<ItemLibraryItem>();
 
@@ -68,35 +68,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         }
 
                         var result = creationData.CreateBlock(
-                            typeof(GraphDataBlockNodeModel),
+                            typeof(SGBlockNodeModel),
                             initializationCallback: node =>
                             {
-                                if (node is not GraphDataBlockNodeModel graphDataBlock) return;
+                                if (node is not SGBlockNodeModel graphDataBlock) return;
 
                                 graphDataBlock.Title = entryName;
                                 graphDataBlock.ContextEntryName = entryName;
                             },
-                            typeof(GraphDataContextNodeModel));
+                            typeof(SGContextNodeModel));
 
                         switch (result)
                         {
                             // When setting up a searcher preview, CreateBlock returns a dummy context to house our
                             // block. In this case, copy over the important context info so the block can be dressed
                             // properly.
-                            case GraphDataContextNodeModel previewContext:
+                            case SGContextNodeModel previewContext:
                             {
                                 previewContext.graphDataName = context.graphDataName;
                                 previewContext.Title = context.Title;
                                 previewContext.DefineNode();
 
-                                var previewBlock = (GraphDataBlockNodeModel)previewContext.GraphElementModels.First();
+                                var previewBlock = (SGBlockNodeModel)previewContext.GraphElementModels.First();
                                 previewBlock.DefineNode();
                                 break;
                             }
 
                             // If CreateBlock returns an actual block model, we created a real block. Define it now
                             // that it's added to the context, so it appears with the right ports.
-                            case GraphDataBlockNodeModel block:
+                            case SGBlockNodeModel block:
                                 block.DefineNode();
                                 break;
                         }
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal static List<ItemLibraryItem> GetNodeSearcherItems(GraphModel graphModel)
         {
             var searcherItems = new List<ItemLibraryItem>();
-            if (graphModel is ShaderGraphModel shaderGraphModel)
+            if (graphModel is SGGraphModel shaderGraphModel)
             {
                 // Keep track of all the names that have been added to the ItemLibraryItem list.
                 // Having conflicting names in the ItemLibraryItem list causes errors

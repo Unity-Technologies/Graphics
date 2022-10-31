@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             Debug.Log("ChangeActiveTargetsCommand: Target Settings Change is unimplemented");
 
-            var shaderGraphModel = graphModelState.GraphModel as ShaderGraphModel;
+            var shaderGraphModel = graphModelState.GraphModel as SGGraphModel;
             foreach (var target in shaderGraphModel.Targets)
             {
                 shaderGraphModel.InitializeContextFromTarget(target);

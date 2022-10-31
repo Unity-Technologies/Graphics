@@ -5,11 +5,11 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataNode : CollapsibleInOutNode
+    class SGNodeView : CollapsibleInOutNode
     {
         NodePreviewPart m_NodePreviewPart;
         DynamicPartHolder m_StaticFieldParts;
-        GraphDataNodeModel graphDataNodeModel => NodeModel as GraphDataNodeModel;
+        SGNodeModel graphDataNodeModel => NodeModel as SGNodeModel;
 
         protected override void BuildPartList()
         {

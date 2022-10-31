@@ -9,7 +9,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataContextNodeModel : ContextNodeModel, IPreviewUpdateListener, IGraphDataOwner
+    class SGContextNodeModel : ContextNodeModel, IPreviewUpdateListener, IGraphDataOwner
     {
         [SerializeField]
         string m_GraphDataName;
@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeHandler(out _);
-        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
-        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+        GraphHandler graphHandler => ((SGGraphModel)GraphModel).GraphHandler;
+        SGGraphModel sgGraphModel => GraphModel as SGGraphModel;
 
         public RegistryKey registryKey
         {
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public int CurrentVersion { get; private set; }
         public string ListenerID => m_GraphDataName;
 
-        public GraphDataContextNodeModel()
+        public SGContextNodeModel()
         {
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Deletable);
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void AddBlocksFromGraphDelta()
         {
-            var currentBlockNames = GraphElementModels.OfType<GraphDataBlockNodeModel>().Select(b => b.ContextEntryName).ToHashSet();
+            var currentBlockNames = GraphElementModels.OfType<SGBlockNodeModel>().Select(b => b.ContextEntryName).ToHashSet();
 
             foreach (var blockName in GetContextEntryNames())
             {
@@ -93,11 +93,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public bool TryGetBlockForContextEntry(string contextEntryName, out GraphDataBlockNodeModel block)
+        public bool TryGetBlockForContextEntry(string contextEntryName, out SGBlockNodeModel block)
         {
             foreach (var subModel in GraphElementModels)
             {
-                if (subModel is GraphDataBlockNodeModel existingBlock && existingBlock.ContextEntryName == contextEntryName)
+                if (subModel is SGBlockNodeModel existingBlock && existingBlock.ContextEntryName == contextEntryName)
                 {
                     block = existingBlock;
                     return true;
@@ -119,11 +119,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             throw new NotImplementedException();
         }
 
-        GraphDataBlockNodeModel CreateAndInsertBlockForEntry(string entryName)
+        SGBlockNodeModel CreateAndInsertBlockForEntry(string entryName)
         {
-            return CreateAndInsertBlock<GraphDataBlockNodeModel>(initializationCallback: node =>
+            return CreateAndInsertBlock<SGBlockNodeModel>(initializationCallback: node =>
             {
-                if (node is not GraphDataBlockNodeModel blockNode) return;
+                if (node is not SGBlockNodeModel blockNode) return;
 
                 blockNode.Title = entryName;
                 blockNode.ContextEntryName = entryName;
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public bool IsMainContextNode()
         {
-            return graphDataName == shaderGraphModel.DefaultContextName;
+            return graphDataName == sgGraphModel.DefaultContextName;
         }
 
         // TODO (Joe): These were only used by the prototype subgraph output editor and can eventually be removed.

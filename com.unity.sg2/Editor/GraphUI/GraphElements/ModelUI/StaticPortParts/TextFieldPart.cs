@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnFieldValueChanged(ChangeEvent<string> change)
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (m_Model is not SGNodeModel graphDataNodeModel) return;
             // TODO (Brett) Figure out how / when we store strings
             // ---
             //m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
