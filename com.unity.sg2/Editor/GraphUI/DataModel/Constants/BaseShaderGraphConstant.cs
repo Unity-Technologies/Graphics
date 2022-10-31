@@ -87,7 +87,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool HasBackingVariableBeenDeleted()
         {
-            foreach(var model in graphModel.VariableDeclarations)
+            if (graphModel is null) return false;
+
+            foreach (var model in graphModel.VariableDeclarations)
             {
                 // If we can find a variable that is tied to this constant, we're fine!
                 if (model is GraphDataVariableDeclarationModel variableDeclarationModel
@@ -105,7 +107,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             // TODO: (Sai) this is a memory leak of some sort
             // TODO: the owning variable gets deleted so someone else is maintaining a reference
-            if (nodeName == graphModel.BlackboardContextName && HasBackingVariableBeenDeleted())
+            if (nodeName == graphModel?.BlackboardContextName && HasBackingVariableBeenDeleted())
                 return;
             StoreValueForCopy();
         }

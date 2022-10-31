@@ -4,19 +4,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     enum ComponentLength
     {
-        One,
-        Two,
-        Three,
-        Four,
-        Unknown
+        One = 1,
+        Two = 2,
+        Three = 3,
+        Four = 4,
+        Unknown = -1
     }
 
     enum NumericType
     {
-        Bool,
-        Int,
-        Float,
-        Unknown
+        Bool = 1,
+        Int = 2,
+        Float = 3,
+        Unknown = -1
     }
 
     /// <summary>

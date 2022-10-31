@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 switch (nodeModel)
                 {
                     case SGContextNodeModel contextNode when contextNode.IsMainContextNode():
-                        OnListenerAdded(contextNode.graphDataName, contextNode.NodePreviewMode, m_GraphModel.DoesNodeRequireTime(contextNode));
+                        OnListenerAdded(contextNode.graphDataName, PreviewRenderMode.Inherit, m_GraphModel.DoesNodeRequireTime(contextNode));
                         break;
                     case SGNodeModel graphDataNodeModel when graphDataNodeModel.HasPreview:
                         OnListenerAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.NodePreviewMode, m_GraphModel.DoesNodeRequireTime(graphDataNodeModel));
