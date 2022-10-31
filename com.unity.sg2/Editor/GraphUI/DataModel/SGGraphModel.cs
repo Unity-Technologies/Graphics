@@ -60,16 +60,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
             {
+                InitializeContextFromTarget(target);
                 Targets.Add(target);
                 // all target-based graphs have a Vert
                 // TODO: https://jira.unity3d.com/browse/GSG-1290
                 //var vertNode = this.CreateGraphDataContextNode("VertOut");
                 //vertNode.Title = "Vertex Stage";
                 //vertNode.Position = new Vector2(0, -180);
-
+                //vertNode.AddBlocksFromGraphDelta();
             }
             var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
             outputNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
+            outputNode.AddBlocksFromGraphDelta();
         }
 
 
@@ -656,9 +658,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // TODO: Replace with a Preview Service side solution
-        bool IsConnectedToTimeNode(SGNodeModel nodeModel)
+        bool IsConnectedToTimeNode(NodeModel nodeModel)
         {
-            foreach (var inputEdge in nodeModel.GetIncomingEdges())
+            IEnumerable<WireModel> incomingEdges;
+
+            if (nodeModel is SGContextNodeModel context)
+            {
+                incomingEdges = context.GraphElementModels.OfType<SGBlockNodeModel>()
+                    .Select(block => block.GetIncomingEdges())
+                    .Aggregate(Enumerable.Empty<WireModel>(), Enumerable.Concat);
+            }
+            else
+            {
+                incomingEdges = nodeModel.GetIncomingEdges();
+            }
+
+            foreach (var inputEdge in incomingEdges)
             {
                 if (TryGetModelFromGuid(inputEdge.FromNodeGuid, out var inputNode)
                 && inputNode is SGNodeModel inputGraphDataNode)
@@ -676,15 +691,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             // Special casing for main context node now as we don't use a GTF guid as its CLDS ID
             if (graphDataName == DefaultContextName)
+            {
+                m_DefaultContextNode ??= GetMainContextNode();
                 return IsConnectedToTimeNode(m_DefaultContextNode);
+            }
 
             return TryGetModelFromGuid(new SerializableGUID(graphDataName), out var elementModel)
                 && elementModel is SGNodeModel graphDataNodeModel && IsConnectedToTimeNode(graphDataNodeModel);
         }
 
-        public bool DoesNodeRequireTime(SGNodeModel sgNodeModel)
+        public bool DoesNodeRequireTime(NodeModel nodeModel)
         {
-            return IsConnectedToTimeNode(sgNodeModel);
+            return IsConnectedToTimeNode(nodeModel);
         }
 
         // Temporarily hide some unfinished nodes: https://jira.unity3d.com/browse/GSG-1290
