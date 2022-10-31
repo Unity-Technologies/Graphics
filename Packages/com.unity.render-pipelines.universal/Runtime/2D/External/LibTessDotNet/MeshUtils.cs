@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 private static Stack<T> _stack;
                 public abstract void Reset();
-                public virtual void OnFree() { }
+                public virtual void OnFree() {}
 
                 public static T Create()
                 {

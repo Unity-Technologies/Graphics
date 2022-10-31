@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     internal interface ILight2DCullResult
     {
         List<Light2D> visibleLights { get; }
-        List<ShadowCasterGroup2D> visibleShadows { get; }
+        HashSet<ShadowCasterGroup2D> visibleShadows { get; }
         LightStats GetLightStatsByLayer(int layer);
         bool IsSceneLit();
 
@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering.Universal
     {
         private List<Light2D> m_VisibleLights = new List<Light2D>();
         public List<Light2D> visibleLights => m_VisibleLights;
-        private List<ShadowCasterGroup2D> m_VisibleShadows = new List<ShadowCasterGroup2D>();
-        public List<ShadowCasterGroup2D> visibleShadows => m_VisibleShadows;
+        private HashSet<ShadowCasterGroup2D> m_VisibleShadows = new HashSet<ShadowCasterGroup2D>();
+        public HashSet<ShadowCasterGroup2D> visibleShadows => m_VisibleShadows;
 #if UNITY_EDITOR
         bool m_IsGameView;
 #endif

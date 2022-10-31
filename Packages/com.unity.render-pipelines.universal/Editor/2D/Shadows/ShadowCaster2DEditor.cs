@@ -45,32 +45,41 @@ namespace UnityEditor.Rendering.Universal
     internal class ShadowCaster2DEditor : PathComponentEditor<ShadowCasterPath>
     {
         [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
-        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
+        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool {};
 
         private static class Styles
         {
-            public static GUIContent shadowMode = EditorGUIUtility.TrTextContent("Use Renderer Silhouette", "When this and Self Shadows are enabled, the Renderer's silhouette is considered part of the shadow. When this is enabled and Self Shadows disabled, the Renderer's silhouette is excluded from the shadow.");
-            public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "When enabled, the Renderer casts shadows on itself.");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
+            public static GUIContent castingSourcePrefixLabel = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source used for projected shadows");
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
+            public static GUIContent shadowShapeTrim = EditorGUIUtility.TrTextContent("Trim Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
+            public static GUIContent alphaCutoff = EditorGUIUtility.TrTextContent("Alpha Cutoff", "Required for correct unshadowed sprite overlap.");
+            public static GUIContent castingOption = EditorGUIUtility.TrTextContent("Casting Option", "Specifies how to draw the shadow used with the ShadowCaster2D");
+            public static GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
         }
 
-        SerializedProperty m_UseRendererSilhouette;
+        SerializedProperty m_CastingOption;
         SerializedProperty m_CastsShadows;
-        SerializedProperty m_SelfShadows;
-
-
+        SerializedProperty m_CastingSource;
+        SerializedProperty m_ShadowMesh;
+        SerializedProperty m_TrimEdge;
+        SerializedProperty m_AlphaCutoff;
         SortingLayerDropDown m_SortingLayerDropDown;
-
+        CastingSourceDropDown m_CastingSourceDropDown;
 
         public void OnEnable()
         {
-            m_UseRendererSilhouette = serializedObject.FindProperty("m_UseRendererSilhouette");
-            m_SelfShadows = serializedObject.FindProperty("m_SelfShadows");
+            m_CastingOption = serializedObject.FindProperty("m_CastingOption");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
+            m_CastingSource = serializedObject.FindProperty("m_ShadowCastingSource");
+            m_ShadowMesh = serializedObject.FindProperty("m_ShadowMesh");
+            m_AlphaCutoff = serializedObject.FindProperty("m_AlphaCutoff");
+            m_TrimEdge = m_ShadowMesh.FindPropertyRelative("m_TrimEdge");
 
             m_SortingLayerDropDown = new SortingLayerDropDown();
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
+
+            m_CastingSourceDropDown = new CastingSourceDropDown();
         }
 
         public void ShadowCaster2DSceneGUI()
@@ -78,16 +87,7 @@ namespace UnityEditor.Rendering.Universal
             ShadowCaster2D shadowCaster = target as ShadowCaster2D;
 
             Transform t = shadowCaster.transform;
-            Vector3[] shape = shadowCaster.shapePath;
-            Handles.color = Color.white;
-
-            for (int i = 0; i < shape.Length - 1; ++i)
-            {
-                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(shape[i]), t.TransformPoint(shape[i + 1]) });
-            }
-
-            if (shape.Length > 1)
-                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(shape[shape.Length - 1]), t.TransformPoint(shape[0]) });
+            shadowCaster.DrawPreviewOutline();
         }
 
         public void ShadowCaster2DInspectorGUI<T>() where T : ShadowCaster2DShapeTool
@@ -103,38 +103,30 @@ namespace UnityEditor.Rendering.Universal
                 ShadowCaster2DSceneGUI();
         }
 
-        public bool HasRenderer()
-        {
-            if (targets != null)
-            {
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    ShadowCaster2D shadowCaster = (ShadowCaster2D)targets[i];
-                    Renderer renderer = shadowCaster.GetComponent<Renderer>();
-                    if (renderer != null)
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            using (new EditorGUI.DisabledScope(!HasRenderer()))  // Done to support multiedit
+            m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel);
+
+            if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
+                ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
+            else if (EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
+                ToolManager.RestorePreviousTool();
+
+            EditorGUILayout.PropertyField(m_CastingOption, Styles.castingOption);
+
+            bool usingShapeProvider = m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider;
+            if (usingShapeProvider)
             {
-                EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);
+                EditorGUILayout.PropertyField(m_TrimEdge, Styles.shadowShapeTrim);
+                if (m_TrimEdge.floatValue < 0)
+                    m_TrimEdge.floatValue = 0;
+
+                EditorGUILayout.PropertyField(m_AlphaCutoff, Styles.alphaCutoff);
             }
 
-            EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);
-            EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
-
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
-
-            if (m_CastsShadows.boolValue)
-                ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
 
             serializedObject.ApplyModifiedProperties();
         }

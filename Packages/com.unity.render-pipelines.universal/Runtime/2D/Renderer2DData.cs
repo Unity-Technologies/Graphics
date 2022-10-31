@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>Renderer2DData</c> contains resources for a <c>Renderer2D</c>.
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {
@@ -85,6 +85,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
         Shader m_SpriteUnshadowShader = null;
 
+        [SerializeField, Reload("Shaders/2D/Shadow2D-Shadow-Geometry.shader")]
+        Shader m_GeometryShadowShader = null;
+
         [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
         Shader m_GeometryUnshadowShader = null;
 
@@ -119,8 +122,8 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal Shader spriteShadowShader => m_SpriteShadowShader;
         internal Shader spriteUnshadowShader => m_SpriteUnshadowShader;
+        internal Shader geometryShadowShader => m_GeometryShadowShader;
         internal Shader geometryUnshadowShader => m_GeometryUnshadowShader;
-
         internal Shader projectedShadowShader => m_ProjectedShadowShader;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
@@ -158,23 +161,28 @@ namespace UnityEngine.Rendering.Universal
                 m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(m_LightBlendStyles[i].renderTargetHandleId, $"_ShapeLightTexture{i}");
             }
 
+            geometrySelfShadowMaterial = null;
+            geometryUnshadowMaterial = null;
+
             spriteSelfShadowMaterial = null;
             spriteUnshadowMaterial = null;
             projectedShadowMaterial = null;
-            stencilOnlyShadowMaterial = null;
+            projectedUnshadowMaterial = null;
         }
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
-        internal Material[] spriteSelfShadowMaterial { get; set; }
-        internal Material[] spriteUnshadowMaterial { get; set; }
-        internal Material[] geometryUnshadowMaterial { get; set; }
-
-        internal Material[] projectedShadowMaterial { get; set; }
-        internal Material[] stencilOnlyShadowMaterial { get; set; }
+        internal Material spriteSelfShadowMaterial { get; set; }
+        internal Material spriteUnshadowMaterial { get; set; }
+        internal Material geometrySelfShadowMaterial { get; set; }
+        internal Material geometryUnshadowMaterial { get; set; }
+        internal Material projectedShadowMaterial { get; set; }
+        internal Material projectedUnshadowMaterial { get; set; }
 
         internal RTHandle normalsRenderTarget;
         internal RTHandle cameraSortingLayerRenderTarget;
+
+
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }

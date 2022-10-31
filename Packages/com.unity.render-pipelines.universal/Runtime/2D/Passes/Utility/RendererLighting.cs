@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_DstBlendID = Shader.PropertyToID("_DstBlend");
         private static readonly int k_FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
         private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
+        private static readonly int k_ShadowSoftnessFalloffIntensityID = Shader.PropertyToID("_ShadowSoftnessFalloffIntensity");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
         private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
@@ -131,6 +132,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
             descriptor.msaaSamples = 1;
+            descriptor.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
             descriptor.dimension = TextureDimension.Tex2D;
 
             RenderingUtils.ReAllocateIfNeeded(ref pass.rendererData.cameraSortingLayerRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraSortingLayerTexture");
@@ -162,7 +164,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.DrawMesh(lightMesh, matrix, material);
         }
 
-
         private static bool CanCastShadows(Light2D light, int layerToRender)
         {
             return light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender);
@@ -174,10 +175,9 @@ namespace UnityEngine.Rendering.Universal
             return light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0 && topMostLayerValue == endLayerValue;
         }
 
-
         private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
-            var maxShadowLightCount = ShadowRendering.maxTextureCount * 4;
+            var maxShadowLightCount = ShadowRendering.maxTextureCount;
             var requiresRTInit = true;
 
             // This case should never happen, but if it does it may cause an infinite loop later.
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, RenderBufferStoreAction intermediateStoreAction,
             RenderBufferStoreAction finalStoreAction, bool requiresRTInit, List<Light2D> lights)
         {
-            var maxShadowLightCount = ShadowRendering.maxTextureCount * 4;  // Now encodes shadows into RGBA as well as seperate textures
+            var maxShadowLightCount = ShadowRendering.maxTextureCount;  // Now encodes shadows into RG,BA as well as seperate textures
 
             NativeArray<bool> doesLightAtIndexHaveShadows = new NativeArray<bool>(lights.Count, Allocator.Temp);
 
@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Global)
                         continue;
 
-                    if (light.volumeIntensity <= 0.0f || !light.volumeIntensityEnabled)
+                    if (light.volumeIntensity <= 0.0f || !light.volumetricEnabled)
                         continue;
 
                     var topMostLayerValue = light.GetTopMostLitLayer();
@@ -447,6 +447,7 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+            cmd.SetGlobalFloat(k_ShadowSoftnessFalloffIntensityID, light.shadowSoftnessFalloffIntensity);
             cmd.SetGlobalColor(k_LightColorID, color);
             cmd.SetGlobalFloat(k_VolumeOpacityID, volumeIntensity);
         }
@@ -469,6 +470,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
             cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+            cmd.SetGlobalFloat(k_ShadowSoftnessFalloffIntensityID, light.shadowSoftnessFalloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
             cmd.SetGlobalFloat(k_LightZDistanceID, light.normalMapDistance);
