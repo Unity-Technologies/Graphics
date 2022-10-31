@@ -15,8 +15,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     "    Out = 3.1415926f * Multiplier;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
-                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                        new ParameterDescriptor("Multiplier", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                     }
                 ),
                 new(
@@ -24,8 +24,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     "    Out = 6.28318530f * Multiplier;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
-                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                        new ParameterDescriptor("Multiplier", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                     }
                 ),
                 new(
@@ -33,8 +33,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     "    Out = 1.618034f * Multiplier;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
-                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                        new ParameterDescriptor("Multiplier", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                     }
                 ),
                 new(
@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     "    Out = 2.718282f * Multiplier;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
-                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                        new ParameterDescriptor("Multiplier", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                     }
                 ),
                 new(
@@ -51,8 +51,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     "    Out = 1.414214f * Multiplier;",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("Multiplier", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
-                        new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+                        new ParameterDescriptor("Multiplier", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                        new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                     }
                 )
             }
