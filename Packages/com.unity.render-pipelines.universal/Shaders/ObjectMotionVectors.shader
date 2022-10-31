@@ -23,6 +23,7 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -80,8 +81,7 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                 output.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, mul(UNITY_MATRIX_M, input.position));
 
                 const float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
-                output.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, prevPos));
-
+                output.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, prevPos));
                 return output;
             }
 
