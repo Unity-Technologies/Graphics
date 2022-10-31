@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         private static readonly string ROOT_CLASS_NAME = "sg-function-selector-part";
         public override VisualElement Root => m_rootVisualElement;
-        private readonly GraphDataNodeModel m_graphDataNodeModel;
+        private readonly SGNodeModel m_sgNodeModel;
         private VisualElement m_rootVisualElement;
         private DropdownField m_dropdownField;
         private int m_selectedFunctionIdx;
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             IReadOnlyDictionary<string, string> options,
             string label = ""): base(name, model, ownerElement, parentClassName)
         {
-            m_graphDataNodeModel = model as GraphDataNodeModel;
+            m_sgNodeModel = model as SGNodeModel;
             m_functionNames = options.Keys.ToList();
             m_displayNames = options.Values.ToList();
             m_selectedFunctionIdx = m_functionNames.IndexOf(selectedFunctionName);
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             string newFunctionName = m_functionNames[newIndex];
             string previousFunctionName = m_functionNames[previousIndex];
             var cmd = new ChangeNodeFunctionCommand(
-                m_graphDataNodeModel,
+                m_sgNodeModel,
                 newFunctionName,
                 previousFunctionName
             );

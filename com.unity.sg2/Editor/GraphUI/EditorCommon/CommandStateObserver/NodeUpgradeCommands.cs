@@ -6,9 +6,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class DismissNodeUpgradeCommand : UndoableCommand
     {
-        public readonly GraphDataNodeModel NodeModel;
+        public readonly SGNodeModel NodeModel;
 
-        public DismissNodeUpgradeCommand(GraphDataNodeModel nodeModel)
+        public DismissNodeUpgradeCommand(SGNodeModel nodeModel)
         {
             NodeModel = nodeModel;
             UndoString = $"Dismiss {nodeModel.DisplayTitle} Node Upgrade Flag";
@@ -33,9 +33,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     class UpgradeNodeCommand : UndoableCommand
     {
-        public readonly GraphDataNodeModel NodeModel;
+        public readonly SGNodeModel NodeModel;
 
-        public UpgradeNodeCommand(GraphDataNodeModel nodeModel)
+        public UpgradeNodeCommand(SGNodeModel nodeModel)
         {
             NodeModel = nodeModel;
             UndoString = $"Upgrade {nodeModel.DisplayTitle} Node";

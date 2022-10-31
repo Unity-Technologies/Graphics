@@ -34,9 +34,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
-        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+        SGGraphModel graphModel => GraphModel as SGGraphModel;
 
-        internal PortHandler ContextEntry => shaderGraphModel.GraphHandler
+        internal PortHandler ContextEntry => graphModel.GraphHandler
             .GetNode(contextNodeName)
             .GetPort(graphDataName);
 
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
         /// false otherwise.
         /// </summary>
-        public bool IsExposable => ((ShaderGraphStencil)shaderGraphModel?.Stencil)?.IsExposable(DataType) ?? false;
+        public bool IsExposable => ((ShaderGraphStencil)graphModel?.Stencil)?.IsExposable(DataType) ?? false;
 
         public override bool IsExposed
         {
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
-                    cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
+                    cldsConstant.Initialize(graphModel, contextNodeName, graphDataName);
                 }
 
                 if (DataType == ShaderGraphExampleTypes.Matrix2 ||

@@ -7,10 +7,10 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    // TODO/NOTE: Don't rely on this inheriting from GraphDataNodeModel, it will eventually become a context w/ blocks.
-    class GraphDataContextNodeModel : GraphDataNodeModel
+    // TODO Don't rely on this inheriting from GraphDataNodeModel, it will eventually become a context w/ blocks.
+    class SGContextNodeModel : SGNodeModel
     {
-        public GraphDataContextNodeModel()
+        public SGContextNodeModel()
         {
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Deletable);
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public bool IsMainContextNode()
         {
-            return graphDataName == shaderGraphModel.DefaultContextName;
+            return graphDataName == graphModel.DefaultContextName;
         }
 
         public PortModel GetInputPortForEntry(string name) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == name);

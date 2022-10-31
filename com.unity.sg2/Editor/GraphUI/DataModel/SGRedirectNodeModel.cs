@@ -6,7 +6,7 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class RedirectNodeModel : NodeModel
+    class SGRedirectNodeModel : NodeModel
     {
         [SerializeField]
         TypeHandle m_RedirectType = TypeHandle.Float;
@@ -38,14 +38,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         /// <param name="includeSelf">If true, this RedirectNodeModel will be yielded first.</param>
         /// <returns>An IEnumerable of redirect node descendants.</returns>
-        public IEnumerable<RedirectNodeModel> GetRedirectTree(bool includeSelf = false)
+        public IEnumerable<SGRedirectNodeModel> GetRedirectTree(bool includeSelf = false)
         {
             if (includeSelf) yield return this;
 
             foreach (var connectedEdge in OutputPort.GetConnectedWires())
             {
                 var port = connectedEdge.ToPort;
-                if (port.NodeModel is not RedirectNodeModel redirect) continue;
+                if (port.NodeModel is not SGRedirectNodeModel redirect) continue;
 
                 yield return redirect;
                 foreach (var nodeModel in redirect.GetRedirectTree()) yield return nodeModel;
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             foreach (var connectedEdge in OutputPort.GetConnectedWires())
             {
                 var port = connectedEdge.ToPort;
-                if (port.NodeModel is RedirectNodeModel redirect)
+                if (port.NodeModel is SGRedirectNodeModel redirect)
                 {
                     foreach (var portModel in redirect.ResolveDestinations()) yield return portModel;
                 }
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var port = InputPort.GetConnectedWires().FirstOrDefault()?.FromPort;
             if (port == null) return null;
 
-            if (port.NodeModel is RedirectNodeModel redirect)
+            if (port.NodeModel is SGRedirectNodeModel redirect)
             {
                 return redirect.ResolveSource();
             }

@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [Test]
         public void TestGraphModelIsSubGraph()
         {
-            var model = (ShaderGraphModel)m_MainWindow.GraphView.GraphModel;
+            var model = (SGGraphModel)m_MainWindow.GraphView.GraphModel;
             Assert.IsTrue(model.IsSubGraph, "GraphModel.IsSubGraph should be true for subgraph asset");
         }
 

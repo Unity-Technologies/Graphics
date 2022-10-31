@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // Set up the graph
             yield return m_TestInteractionHelper.CreateNodesAndConnect();
 
-            var modelsToCopy = m_GraphView.GraphModel.NodeModels.Where(model => model is not GraphDataContextNodeModel);
+            var modelsToCopy = m_GraphView.GraphModel.NodeModels.Where(model => model is not SGContextNodeModel);
 
             yield return m_TestInteractionHelper.SelectAndCopyNodes(modelsToCopy.ToList());
 
