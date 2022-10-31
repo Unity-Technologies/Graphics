@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 
-            if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+            if (nodeModel is SGNodeModel graphDataNodeModel)
             {
                 var nodeGraphElement = m_GraphView.GetGraphElement(graphDataNodeModel);
                 Assert.IsNotNull(nodeGraphElement);
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestContextNodesCannotBeDeleted()
         {
-            var beforeContext = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().FirstOrDefault();
+            var beforeContext = m_GraphView.GraphModel.NodeModels.OfType<SGContextNodeModel>().FirstOrDefault();
             Assert.IsNotNull(beforeContext, "Graph must contain at least one context node for test");
 
             // Select element programmatically because it might be behind another one
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestContextNodesCannotBeDeletedFromMixedSelection()
         {
-            var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<SGContextNodeModel>().ToList();
             var beforeContextCount = beforeContexts.Count;
             Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
 
@@ -100,20 +100,20 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             Assert.IsNull(m_MainWindow.GetNodeModelFromGraphByName("Add"), "Non-context node should be deleted from selection");
 
-            var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<SGContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context nodes should not be deleted from selection");
         }
 
         [UnityTest]
         public IEnumerator TestContextNodesCannotBeCopied()
         {
-            var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<SGContextNodeModel>().ToList();
             var beforeContextCount = beforeContexts.Count;
             Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
 
             yield return m_TestInteractionHelper.SelectAndCopyNodes(new List<AbstractNodeModel>() { beforeContexts[0] });
 
-            var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<SGContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
         }
 
@@ -194,7 +194,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var addNode = m_MainWindow.GetNodeModelFromGraphByName("Add");
             Assert.IsNull(addNode, "Node should be null after delete operation");
 
-            var graphDataNodeModel = nodeModel as GraphDataNodeModel;
+            var graphDataNodeModel = nodeModel as SGNodeModel;
             var addNodeHandler = GraphModel.GraphHandler.GetNode(graphDataNodeModel.graphDataName);
             Assert.IsNull(addNodeHandler, "Node should also be removed from CLDS after delete operation");
         }
@@ -295,10 +295,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestDynamicPortsUpdate()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
+            var vec2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
 
             foreach (var port in multiply.Ports)
             {
@@ -327,15 +327,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply1 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply1 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
             multiply1.Title = "Multiply 1";
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
             multiply2.Title = "Multiply 2";
 
             yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (GraphDataNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
+            var vec2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
 
             m_GraphView.Dispatch(new CreateWireCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
             yield return null;

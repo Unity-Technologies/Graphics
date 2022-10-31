@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnFieldValueChanged(ChangeEvent<string> change)
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (m_Model is not SGNodeModel graphDataNodeModel) return;
             // TODO (Brett) Turn the field value into the format that the node can handle.
             // ---
             //m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,

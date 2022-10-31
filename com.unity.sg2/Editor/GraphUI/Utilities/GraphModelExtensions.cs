@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     static class GraphModelExtensions
     {
-        public static GraphDataNodeModel CreateGraphDataNode(
+        public static SGNodeModel CreateGraphDataNode(
             this GraphModel graphModel,
             RegistryKey registryKey,
             string displayName = "",
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             SpawnFlags spawnFlags = SpawnFlags.Default
         )
         {
-            return graphModel.CreateNode<GraphDataNodeModel>(
+            return graphModel.CreateNode<SGNodeModel>(
                 displayName,
                 position,
                 guid,
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         var registry = ((ShaderGraphStencil)graphModel.Stencil).GetRegistry().Registry;
                         // Use this node's generated guid to bind it to an underlying element in the graph data.
                         var graphDataName = nodeModel.Guid.ToString();
-                        ((ShaderGraphModel)graphModel).GraphHandler.AddNode(registryKey, graphDataName);
+                        ((SGGraphModel)graphModel).GraphHandler.AddNode(registryKey, graphDataName);
                         nodeModel.graphDataName = graphDataName;
                     }
                 },
@@ -41,15 +41,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             );
         }
 
-        public static GraphDataContextNodeModel CreateGraphDataContextNode(
-            this ShaderGraphModel shaderGraphModel,
+        public static SGContextNodeModel CreateGraphDataContextNode(
+            this SGGraphModel graphModel,
             string existingContextName,
             Vector2 position = default,
             SerializableGUID guid = default,
             SpawnFlags spawnFlags = SpawnFlags.Default
         )
         {
-            return shaderGraphModel.CreateNode<GraphDataContextNodeModel>(
+            return graphModel.CreateNode<SGContextNodeModel>(
                 existingContextName,
                 position,
                 guid,
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             );
         }
 
-        public static GraphDataNodeModel CreateGraphDataNode(
+        public static SGNodeModel CreateGraphDataNode(
             this GraphNodeCreationData graphNodeCreationData,
             RegistryKey registryKey,
             string displayName

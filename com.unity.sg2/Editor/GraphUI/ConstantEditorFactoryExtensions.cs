@@ -50,9 +50,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             switch (owner)
             {
-                case GraphDataPortModel graphDataPort:
+                case SGPortModel graphDataPort:
                 {
-                    ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
+                    ((SGNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
 
                     var length = constant.GetLength();
                     var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;

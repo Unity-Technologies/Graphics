@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphModel.DeleteWire(command.Edge);
             updater.MarkDeleted(command.Edge);
 
-            var nodeModel = graphModel.CreateNode<RedirectNodeModel>(position: command.Position - k_RedirectSize / 2);
+            var nodeModel = graphModel.CreateNode<SGRedirectNodeModel>(position: command.Position - k_RedirectSize / 2);
             nodeModel.UpdateTypeFrom(fromPort);
             updater.MarkNew(nodeModel);
 
