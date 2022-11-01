@@ -74,10 +74,14 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "SQRT2", "SQRT2" },
             },
             functionSelectorLabel: " ",
-            parameters: new ParameterUIDescriptor[1] {
+            parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Out",
                     tooltip: "the constant value selected with the dropdown"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Multiplier",
+                    tooltip: "an input value to multiply with the selected constant value."
                 )
             }
         );
