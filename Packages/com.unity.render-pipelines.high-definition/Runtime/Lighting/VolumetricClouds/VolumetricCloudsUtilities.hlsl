@@ -41,23 +41,8 @@ Texture2D<float3> _CloudLutTexture;
 Texture3D<float> _Worley128RGBA;
 Texture3D<float> _ErosionNoise;
 
-// Ambient probe
+// Ambient probe. Contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 StructuredBuffer<float4> _VolumetricCloudsAmbientProbeBuffer;
-
-// Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
-float3 EvaluateVolumetricAmbientProbe(float3 normalWS)
-{
-    float4 SHCoefficients[7];
-    SHCoefficients[0] = _VolumetricCloudsAmbientProbeBuffer[0];
-    SHCoefficients[1] = _VolumetricCloudsAmbientProbeBuffer[1];
-    SHCoefficients[2] = _VolumetricCloudsAmbientProbeBuffer[2];
-    SHCoefficients[3] = _VolumetricCloudsAmbientProbeBuffer[3];
-    SHCoefficients[4] = _VolumetricCloudsAmbientProbeBuffer[4];
-    SHCoefficients[5] = _VolumetricCloudsAmbientProbeBuffer[5];
-    SHCoefficients[6] = _VolumetricCloudsAmbientProbeBuffer[6];
-
-    return SampleSH9(SHCoefficients, normalWS);
-}
 
 // Function that interects a ray with a sphere (optimized for very large sphere), returns up to two positives distances.
 int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
@@ -214,8 +199,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     lighting.sunDirection = _SunDirection.xyz;
     lighting.sunColor0 = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     lighting.sunColor1 = lighting.sunColor0;
-    lighting.ambientTermTop = EvaluateVolumetricAmbientProbe(float3(0, 1, 0)) * GetCurrentExposureMultiplier();
-    lighting.ambientTermBottom = EvaluateVolumetricAmbientProbe(float3(0, -1, 0)) * GetCurrentExposureMultiplier();
+    lighting.ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0)) * GetCurrentExposureMultiplier();
+    lighting.ambientTermBottom = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0)) * GetCurrentExposureMultiplier();
 
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
     EvaluateSunColorAttenuation(entryEvaluationPointWS, lighting.sunDirection, lighting.sunColor0);

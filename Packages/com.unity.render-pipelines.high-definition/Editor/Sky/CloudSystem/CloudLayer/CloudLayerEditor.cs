@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter raymarching;
             public SerializedDataParameter steps;
             public SerializedDataParameter thickness;
+            public SerializedDataParameter probeDimmer;
 
             public SerializedDataParameter castShadows;
         }
@@ -60,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 raymarching = Unpack(p.Find(x => x.lighting)),
                 steps = Unpack(p.Find(x => x.steps)),
                 thickness = Unpack(p.Find(x => x.thickness)),
+                probeDimmer = Unpack(p.Find(x => x.ambientProbeDimmer)),
                 castShadows = Unpack(p.Find(x => x.castShadows)),
             };
         }
@@ -128,6 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(map.steps);
                 PropertyField(map.thickness);
+                PropertyField(map.probeDimmer);
             }
             PropertyField(map.castShadows);
         }
