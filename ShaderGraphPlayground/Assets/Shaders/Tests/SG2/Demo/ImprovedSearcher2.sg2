@@ -99,7 +99,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1077276807262109797
+                                    "rid": 1005
                                 }
                             ]
                         },
@@ -163,7 +163,7 @@
                     }
                 },
                 {
-                    "rid": 1077276807262109797,
+                    "rid": 1005,
                     "type": {
                         "class": "GraphTypeConstant",
                         "ns": "UnityEditor.ShaderGraph.GraphUI",
