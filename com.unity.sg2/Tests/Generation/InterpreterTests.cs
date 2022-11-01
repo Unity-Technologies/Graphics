@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Defs;
 using System.Text;
 using static UnityEditor.ShaderGraph.Generation.Interpreter;
 using UnityEngine;
+using System;
 
 namespace UnityEditor.ShaderGraph.Generation.Tests
 {
@@ -16,6 +17,25 @@ namespace UnityEditor.ShaderGraph.Generation.Tests
     class InterpreterTestFxiture
     {
         private GraphHandler graphHandler;
+
+
+        // Cheat and do a hard-coded lookup of the UniversalTarget for testing.
+        // Shader Graph should build targets however it wants to.
+        static internal Target GetTarget()
+        {
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
+            {
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if (!target.isHidden)
+                    return target;
+            }
+            return null;
+        }
+
 
         [SetUp]
         public void Setup()
@@ -61,6 +81,16 @@ namespace UnityEditor.ShaderGraph.Generation.Tests
             NodeHandler nodeB = graphHandler.AddNode(key, "Add2");
             graphHandler.AddEdge(nodeA.GetPort("Out").ID, nodeB.GetPort("A").ID);
             var output = InterpreterTestStub.GetShaderBlockInHumanReadableForm(nodeB, graphHandler.registry);
+            Debug.Log(output);
+        }
+
+        [Test]
+        public void TestReferableNode()
+        {
+            graphHandler.AddContextNode("FragIn");
+            graphHandler.RebuildContextData("FragIn", GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
+            var node = graphHandler.AddReferenceNode("UV_Ref", "FragIn", "uv0");
+            var output = InterpreterTestStub.GetShaderBlockInHumanReadableForm(node, graphHandler.registry);
             Debug.Log(output);
         }
     }

@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -25,17 +24,16 @@ namespace UnityEditor.ShaderGraph.Generation
 
         internal class ShaderEvaluationCache
         {
-            private struct ReferableData
+            private class ReferableData : VariableData
             {
                 public PropertyBlockUsage propertyBlockUsage;
                 public DataSource dataSource;
                 public string displayName;
                 public string defaultValue;
-                public string referenceName;
-                public ShaderType shaderType;
+                public StructField field;
             }
 
-            private struct VariableData
+            private class VariableData
             {
                 public string desiredVariableName;
                 public string actualVariableName;
@@ -91,6 +89,10 @@ namespace UnityEditor.ShaderGraph.Generation
             private HashSet<ShaderType> typeReferences;
 
             private ShaderFunction.Builder mainFunction;
+            private HashSet<VariableReference> inputs;
+            private ShaderType.StructBuilder inputBuilder;
+            private HashSet<VariableReference> outputs;
+            private ShaderType.StructBuilder outputBuilder;
 
             private Registry registry;
             public ShaderEvaluationCache(ref ShaderFunction.Builder mainFunctionBuilder, Registry registry)
@@ -107,6 +109,8 @@ namespace UnityEditor.ShaderGraph.Generation
                 this.registry = registry;
             }
 
+            //Should this also take in the customization point? Then we can provide the known customization point inputs to the variable references. We still gather them at a later point anyways, but would
+            //largely be a redundancy 
             public ProcessingResult Process(NodeHandler node)
             {
                 //starting with root node, gather all leaf nodes. //Create iterator of leaf first traversal
@@ -116,18 +120,26 @@ namespace UnityEditor.ShaderGraph.Generation
                 //  input variable management output into main function
                 //  input function call into main function
 
+                inputs = new HashSet<VariableReference>();
+                inputBuilder = new ShaderType.StructBuilder(mainFunction.Container, $"ShaderGraph_Block_{node.ID.LocalPath}_Input");
                 var workset = GatherTreeLeafFirst(node);
                 List < (FunctionReference , IEnumerable < VariableReference >)> toPrint = new List<(FunctionReference, IEnumerable<VariableReference>)>();
                 foreach(var workunit in workset)
                 {
                     var functionToCall = RegisterNodeDependencies(workunit);
                     var variables = RegisterVariables(workunit, functionToCall).ToList();
-                    toPrint.Add((functionToCall, variables));
+                    if (functionToCall.HasValue)
+                    {
+                        toPrint.Add((functionToCall.Value, variables));
+                    }
                 }
                 foreach((var functionToCall, var variables) in toPrint)
                 {
                     WriteFunctionCall(functionToCall, variables);
                 }
+                var inputType = inputBuilder.Build();
+                typeReferences.Add(inputType);
+                mainFunction.AddInput(inputType, "In");
                 return new ProcessingResult() { entryPointFunction = mainFunction.Build(), functions = functionReferences.Values, includes = includeReferences, usedTypes = typeReferences };
             }
 
@@ -150,6 +162,11 @@ namespace UnityEditor.ShaderGraph.Generation
                             initialized.Add(paramRef);
                         }
                         paramStrings.Add(s);
+                        if(!inputs.Contains(paramRef) && param is ReferableData referable)
+                        {
+                            inputs.Add(paramRef);
+                            inputBuilder.AddField(referable.field);
+                        }
                     }
                     else
                     {
@@ -161,73 +178,89 @@ namespace UnityEditor.ShaderGraph.Generation
                 mainFunction.CallFunction(function, paramStrings.ToArray());
             }
 
-            private IEnumerable<VariableReference> RegisterVariables(NodeHandler workunit, FunctionReference functionReference)
+            private IEnumerable<VariableReference> RegisterVariables(NodeHandler workunit, FunctionReference? functionReference)
             {
-                var function = functionReferences[functionReference];
-                foreach(var param in function.Parameters)
+                //if this is a run of the mill, function generating node. Generate local variables to handle passing around block-local values.
+                if (functionReference.HasValue)
                 {
-                    var port = workunit.GetPort(param.Name);
-                    if(param.IsInput)
+                    var function = functionReferences[functionReference.Value];
+                    foreach (var param in function.Parameters)
                     {
-                        //check and see if this port is already mapped to a variable - I dont think this should ever actually happen
-                        if(portToVariableLookup.TryGetValue(port.ID, out VariableReference varref))
+                        var port = workunit.GetPort(param.Name);
+                        if (param.IsInput)
                         {
-                            //TODO: Remove this line. Theoretically, the below code should handle the case, but its weird it got hit to begin with
-                            Debug.LogWarning("If this message shows up, contact shadergraph team");
-                            //while the variable reference might already exist, we may still need to cast it to the correct type
-                            var data = variableReferences[varref];
-                            if(data.shaderType != param.Type)
+                            //check and see if this port is already mapped to a variable - I dont think this should ever actually happen
+                            if (portToVariableLookup.TryGetValue(port.ID, out VariableReference varref))
                             {
-                                //Handle cast and replace variable reference with casted data
-                                VariableData castData = CreateCastVariableData(data, param.Type);
-                                var castRef = new VariableReference(castData);
-                                variableReferences.Add(castRef, castData);
-                                portToVariableLookup.Remove(port.ID);
-                                portToVariableLookup.Add(port.ID, castRef);
-                                yield return castRef;
-                                continue;
-                            }
-                            else
-                            {
-                                yield return varref;
-                                continue;
-                            }
-                        }
-                        //if we are connected, then the variables should have been setup in a previous step. Conditionally cast and return them
-                        var connection = port.GetFirstConnectedPort();
-                        if(connection != null)
-                        {
-                            if(!portToVariableLookup.TryGetValue(connection.ID, out VariableReference connref))
-                            {
-                                Debug.LogError("Previous node output variable was not setup properly");
-                            }
-                            else
-                            {
-                                var data = variableReferences[connref];
-                                if(data.shaderType != param.Type)
+                                //TODO: Remove this line. Theoretically, the below code should handle the case, but its weird it got hit to begin with
+                                Debug.LogWarning("If this message shows up, contact shadergraph team");
+                                //while the variable reference might already exist, we may still need to cast it to the correct type
+                                var data = variableReferences[varref];
+                                if (data.shaderType != param.Type)
                                 {
+                                    //Handle cast and replace variable reference with casted data
                                     VariableData castData = CreateCastVariableData(data, param.Type);
                                     var castRef = new VariableReference(castData);
                                     variableReferences.Add(castRef, castData);
+                                    portToVariableLookup.Remove(port.ID);
                                     portToVariableLookup.Add(port.ID, castRef);
                                     yield return castRef;
                                     continue;
                                 }
                                 else
                                 {
-                                    //May want to promote inline to variable here, since this would indicate the value being used in more than one place
-                                    portToVariableLookup.Add(port.ID, connref);
-                                    yield return connref;
+                                    yield return varref;
                                     continue;
                                 }
                             }
+                            //if we are connected, then the variables should have been setup in a previous step. Conditionally cast and return them
+                            var connection = port.GetFirstConnectedPort();
+                            if (connection != null)
+                            {
+                                if (!portToVariableLookup.TryGetValue(connection.ID, out VariableReference connref))
+                                {
+                                    Debug.LogError("Previous node output variable was not setup properly");
+                                }
+                                else
+                                {
+                                    var data = variableReferences[connref];
+                                    if (data.shaderType != param.Type)
+                                    {
+                                        VariableData castData = CreateCastVariableData(data, param.Type);
+                                        var castRef = new VariableReference(castData);
+                                        variableReferences.Add(castRef, castData);
+                                        portToVariableLookup.Add(port.ID, castRef);
+                                        yield return castRef;
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        //May want to promote inline to variable here, since this would indicate the value being used in more than one place
+                                        portToVariableLookup.Add(port.ID, connref);
+                                        yield return connref;
+                                        continue;
+                                    }
+                                }
+                            }
+                            //Otherwise, we need to setup a new variable for the port
+                            yield return CreateVariableData(port, function, param);
                         }
-                        //Otherwise, we need to setup a new variable for the port
-                        yield return CreateVariableData(port, function, param);
+                        else
+                        {
+                            yield return CreateVariableData(port, function, param);
+                        }
                     }
-                    else
+                }
+                //Otherwise this is a node with some sort of data. In terms of interpretation, we only really need to know variables that are being supplied.
+                //Is it a context node?
+                else if(workunit.HasMetadata("_contextDescriptor"))
+                {
+                    foreach(var port in workunit.GetPorts())
                     {
-                        yield return CreateVariableData(port, function, param);
+                        if(port.IsHorizontal && !port.IsInput)
+                        {
+                            yield return CreateReferableData(port);
+                        }
                     }
                 }
             }
@@ -266,6 +299,29 @@ namespace UnityEditor.ShaderGraph.Generation
                     portToVariableLookup.Add(port.ID, reference);
                     return reference;
                 }
+            }
+
+            private VariableReference CreateReferableData(PortHandler port)
+            {
+                //remove the "out_" part of the reference.
+                var name = $"In.{port.ID.LocalPath.Remove(0, 4)}";
+                var container = mainFunction.Container;
+                var portTypeField = port.GetTypeField();
+                var shaderType = registry.GetTypeBuilder(portTypeField.GetRegistryKey()).GetShaderType(portTypeField, container, registry);
+                ReferableData data = new ReferableData
+                {
+                    desiredVariableName = name,
+                    actualVariableName = name,
+                    shaderType = shaderType,
+                    inlineInitialization = false,
+                    field = new StructField.Builder(container, port.ID.LocalPath.Remove(0, 4), shaderType).Build()
+                };
+
+                VariableReference reference = new VariableReference(data);
+                variableReferences.Add(reference, data);
+                portToVariableLookup.Add(port.ID, reference);
+                initialized.Add(reference);
+                return reference;
             }
 
             private string CreateActualVariableName(string desiredName, int collisionCount)
@@ -312,12 +368,11 @@ namespace UnityEditor.ShaderGraph.Generation
                 throw new NotImplementedException();
             }
 
-            private FunctionReference RegisterNodeDependencies(NodeHandler workunit)
+            private FunctionReference? RegisterNodeDependencies(NodeHandler workunit)
             {
                 var nodeBuilder = registry.GetNodeBuilder(workunit.GetRegistryKey());
                 List<ShaderFoundry.IncludeDescriptor> localIncludes = new();
                 var func = nodeBuilder.GetShaderFunction(workunit, mainFunction.Container, registry, out var dependencies);
-                var output = EnsureFunction(func);
                 if (dependencies.localFunctions != null)
                 {
                     foreach (var f in dependencies.localFunctions)
@@ -332,7 +387,14 @@ namespace UnityEditor.ShaderGraph.Generation
                         EnsureInclude(inc);
                     }
                 }
-                return output;
+                if (func.IsValid)
+                {
+                    return EnsureFunction(func);
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             private void EnsureInclude(ShaderFoundry.IncludeDescriptor include)
@@ -352,17 +414,6 @@ namespace UnityEditor.ShaderGraph.Generation
                     typeReferences.Add(param.Type);
                 }
                 return reference;
-            }
-
-            private void EvaluateReferableVariableData(IEnumerable<ReferableData> referables)
-            {
-                foreach(var referable in referables)
-                {
-                    var data = new VariableData() { desiredVariableName = null, initializationString = referable.referenceName, inlineInitialization = true, shaderType = referable.shaderType };
-                    var reference = new VariableReference(data);
-                    variableReferences.Add(reference, data);
-                    initialized.Add(reference);
-                }
             }
         }
 
@@ -422,8 +473,21 @@ namespace UnityEditor.ShaderGraph.Generation
             
             sb.AppendLine();
             sb.AppendLine();
-            sb.AppendLine("//MAIN FUNCTION------");
 
+            sb.AppendLine("//BLOCK INPUT------");
+            var input = block.Block.EntryPointFunction.Parameters.First();
+            var inputFields = input.Type.StructFields;
+            sb.AppendLine($"struct {input.Type.Name}");
+            sb.AppendLine("{");
+            foreach(var f in inputFields)
+            {
+                sb.AppendLine($"    {f.Type.Name} {f.Name};");
+            }
+            sb.AppendLine("}");
+
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine("//MAIN FUNCTION------");
             GetShaderFunctionInHumanReadableForm(ref sb, block.Block.EntryPointFunction);
 
             return sb.ToString();
