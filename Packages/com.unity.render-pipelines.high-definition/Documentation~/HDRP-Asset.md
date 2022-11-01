@@ -56,6 +56,9 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | - **LOD Bias**                          | Set the value that Cameras use to calculate their LOD bias. The Camera uses this value differently depending on the **LOD Bias Mode** you select. |
 | - **Maximum LOD Level**                 | Set the value that Cameras use to calculate their maximum level of detail. The Camera uses this value differently depending on the **Maximum LOD Level Mode** you select. |
 
+
+
+
 <a name="Decals"></a>
 
 ### Decals
@@ -70,7 +73,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
 | **- Metal and Ambient Occlusion properties** | Enable the checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
 | **- Maximum Clustered Decals on Screen**     | The maximum number of clustered decals that can affect transparent GameObjects on screen. Clustered decals refer to a list of decals that HDRP uses when it renders transparent GameObjects. |
-| **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers.|
+| **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers. <a name="decallayers"></a>|
 
 <a name="DynamicResolution"></a>
 
@@ -93,6 +96,11 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Forced Screen Percentage**              | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
 | **- Low Res Transparency Min Threshold**    | The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage. |
 | **- Ray Tracing Half Resolution Threshold** | The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution. |
+| **Water**   <a name="water"></a> | Controls for the Water System. |
+| **- Enable**    | Enable the Water System.|
+| **- Simulation Resolution**    | Set the resolution of the water simulation. Higher values use more system resources but provide higher visual quality. |
+| **- Script Interactions**    | Enable to have HDRP calculate the height of the water simulation on the CPU. Also makes it possible for you to query height data for specific points on the water's surface. You can use this data for customizations like your own buoyancy implementation, for example. |
+<a name="water-scriptinteractions"></a>
 
 ## Lighting
 
@@ -101,7 +109,8 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Screen Space Ambient Occlusion**   | Enable the checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
 | **Screen Space Global Illumination** | Enable the checkbox to make HDRP support screen space global illumination (SSGI). SSGI is a technique for approximating global illumination efficiently in real time. |
 | **Volumetrics**                      | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.md). |
-| **Light Layers**                     | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. |
+| **Light Layers**                     | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. <a name="lightlayers"></a>|
+| **Rendering Layer Mask Buffer**      | Enable the checkbox to make HDRP write the Rendering Layer Mask of GameObjects in a fullscreen buffer target. This comes with a performance and memory cost.<br/>The [HD Sample Buffer node](HD-Sample-Buffer-Node.md) in ShaderGraph can sample this target. |
 
 ### Cookies
 
