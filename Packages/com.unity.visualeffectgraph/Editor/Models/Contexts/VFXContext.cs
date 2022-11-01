@@ -393,7 +393,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if ((from.ownedType & to.ownedType) == to.ownedType)
+            if ((from.ownedType & to.ownedType) == to.ownedType && from.ownedType.HasFlag(VFXDataType.Particle))
                 to.InnerSetData(from.GetData(), false);
 
             from.m_OutputFlowSlot[fromIndex].link.Add(new VFXContextLink() { context = to, slotIndex = toIndex });

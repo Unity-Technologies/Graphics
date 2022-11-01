@@ -95,5 +95,4 @@ namespace UnityEditor.VFX.Test
             return (Dictionary<string, Bounds>)boundsProperty.GetValue(boundsRecorder);
         }
     }
-
 }

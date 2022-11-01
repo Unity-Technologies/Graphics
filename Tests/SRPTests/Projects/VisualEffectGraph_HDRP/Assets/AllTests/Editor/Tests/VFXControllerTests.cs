@@ -55,6 +55,10 @@ namespace UnityEditor.VFX.Test
             m_ViewController.useCount++;
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
+            while (EditorWindow.HasOpenInstances<VFXViewWindow>())
+            {
+                EditorWindow.GetWindow<VFXViewWindow>().Close();
+            }
         }
 
         [TearDown]
@@ -932,8 +936,8 @@ namespace UnityEditor.VFX.Test
 
             var systemNames = view.controller.graph.systemNames;
             var names = new List<string>();
-            foreach (var system in spawners)
-                names.Add(systemNames.GetUniqueSystemName(system));
+            foreach (var spawner in spawners)
+                names.Add(systemNames.GetUniqueSystemName(spawner.GetData()));
 
             Assert.IsTrue(names.Where(name => !string.IsNullOrEmpty(name)).Distinct().Count() == count, "Some spawners have the same name or are null or empty.");
 
@@ -1179,7 +1183,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXViewWindow.GetWindow(asset, true);
             var viewController = window.graphView.controller;
             window.graphView.controller.ApplyChanges();
             yield return null;
@@ -1212,7 +1216,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
             Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
 
-            var window = VFXViewWindow.GetWindow(asset);
+            var window = VFXViewWindow.GetWindow(asset, true);
             var viewController = window.graphView.controller;
 
             // Convert the first set attribute block into a subgraph block
