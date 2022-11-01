@@ -37,8 +37,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // the generated code like function dropdowns do (which also use fields).
 
             // TODO: Remove CLDS usage from view
-            var field = handler.GetField<string>(k_MaskFieldName) ?? handler.AddField(k_MaskFieldName, k_MaskDefaultValue);
-            m_MaskField.SetValueWithoutNotify(field.GetData());
+            var field = handler.GetField<string>(k_MaskFieldName);
+            m_MaskField.SetValueWithoutNotify(field?.GetData() ?? k_MaskDefaultValue);
         }
     }
 }
