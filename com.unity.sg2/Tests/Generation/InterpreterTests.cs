@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Generation.Tests
 {
 
     [TestFixture]
-    class InterpreterTestFxiture
+    class InterpreterTestFixture
     {
         private GraphHandler graphHandler;
 

@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 inputs = new HashSet<VariableReference>();
                 inputBuilder = new ShaderType.StructBuilder(mainFunction.Container, $"ShaderGraph_Block_{node.ID.LocalPath}_Input");
                 var workset = GatherTreeLeafFirst(node);
-                List < (FunctionReference , IEnumerable < VariableReference >)> toPrint = new List<(FunctionReference, IEnumerable<VariableReference>)>();
+                var toPrint = new List<(FunctionReference, IEnumerable<VariableReference>)>();
                 foreach(var workunit in workset)
                 {
                     var functionToCall = RegisterNodeDependencies(workunit);
@@ -494,16 +494,17 @@ namespace UnityEditor.ShaderGraph.Generation
 
         }
 
-        private struct WorkUnit
-        {
-            //The overarching shader foundary container. Everything gets created and managed through this.
-            public ShaderContainer container; 
-            //The builder for an individual shader block. 
-            public Block.Builder builder;
-            //Every shader block needs an "entry point function" - this is the main code for the block
-            public ShaderFunction.Builder mainBodyFunctionBuilder;
-            //Still need a cache object of some kind to keep track of functions and variables
-        }
+        //THIS IS A REFERENCE FOR LIZ
+        //private struct WorkUnit
+        //{
+        //    //The overarching shader foundary container. Everything gets created and managed through this.
+        //    public ShaderContainer container; 
+        //    //The builder for an individual shader block. 
+        //    public Block.Builder builder;
+        //    //Every shader block needs an "entry point function" - this is the main code for the block
+        //    public ShaderFunction.Builder mainBodyFunctionBuilder;
+        //    //Still need a cache object of some kind to keep track of functions and variables
+        //}
 
         public static string GetShaderStringForGraph(GraphHandler graph)
         {
