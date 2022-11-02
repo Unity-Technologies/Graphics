@@ -57,6 +57,10 @@ namespace UnityEngine.Rendering.Universal
         /// GBuffer3. Written to by the GBuffer pass.
         /// </summary>
         GBuffer3,
+        /// <summary>
+        /// GBuffer4. Written to by the GBuffer pass.
+        /// </summary>
+        GBuffer4,
 
         // camera opaque/depth/normal
 
