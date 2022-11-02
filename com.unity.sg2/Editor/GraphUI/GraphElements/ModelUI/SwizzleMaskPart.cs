@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void BuildPartUI(VisualElement parent)
         {
             m_MaskField = new TextField("Mask");
+            m_MaskField.isDelayed = true;
             m_MaskField.RegisterValueChangedCallback(e =>
             {
                 if (m_Model is not GraphDataNodeModel sgNodeModel) return;
