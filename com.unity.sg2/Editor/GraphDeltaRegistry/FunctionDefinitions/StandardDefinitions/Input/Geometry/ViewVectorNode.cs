@@ -91,9 +91,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "View Vector",
             selectableFunctions: new()
             {
-                { "World", "World" },
                 { "Object", "Object" },
                 { "View", "View" },
+                { "World", "World" },
                 { "Tangent", "Tangent" }
             },
             functionSelectorLabel: "Space",
