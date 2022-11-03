@@ -28,6 +28,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return Owner.GetConnectedPorts(this.ID, Registry);
         }
 
+        public PortHandler GetFirstConnectedPort()
+        {
+            using (var enumerator = GetConnectedPorts().GetEnumerator())
+            {
+                if (enumerator.MoveNext())
+                {
+                    return enumerator.Current;
+                }
+            }
+            return null;
+        }
+
         internal PortHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
             : base(elementID, owner, registry, defaultLayer)
         {

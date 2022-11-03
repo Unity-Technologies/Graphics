@@ -107,4 +107,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
         }
     }
+
+    class SetSwizzleMaskCommand : UndoableCommand
+    {
+        readonly GraphDataNodeModel m_GraphDataNodeModel;
+        readonly string m_FieldName;
+        readonly string m_Mask;
+
+        public SetSwizzleMaskCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, string mask)
+        {
+            m_GraphDataNodeModel = graphDataNodeModel;
+            m_FieldName = fieldName;
+            m_Mask = mask;
+        }
+
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphViewState,
+            SetSwizzleMaskCommand command)
+        {
+            using (var undoUpdater = undoState.UpdateScope)
+            {
+                undoUpdater.SaveState(graphViewState);
+            }
+
+            if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            var field = nodeHandler.GetField<string>(command.m_FieldName);
+            field.SetData(command.m_Mask);
+
+            using var graphUpdater = graphViewState.UpdateScope;
+            graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
+        }
+    }
 }

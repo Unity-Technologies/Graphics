@@ -6,7 +6,8 @@
         "ContextLayeredDataStorage",
         "Unity.ShaderGraph.GraphDeltaRegistry",
         "Unity.ShaderFoundry.Editor",
-        "Unity.ShaderGraph.GraphUI"
+        "Unity.ShaderGraph.GraphUI",
+        "Unity.ShaderGraph.StandardDefinitions"
     ],
     "includePlatforms": [
         "Editor"
