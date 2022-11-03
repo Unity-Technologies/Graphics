@@ -1,15 +1,12 @@
 using Unity.GraphToolsFoundation.Editor;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    using SwizzleNode = UnityEditor.ShaderGraph.GraphDelta.SwizzleNode;
+
     class SwizzleMaskPart : BaseModelViewPart
     {
-        // TODO: Move constants to node builder
-        const string k_MaskFieldName = "Mask";
-        const string k_MaskDefaultValue = "xyzw";
-
         TextField m_MaskField;
         public override VisualElement Root => m_MaskField;
 
@@ -23,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_MaskField.RegisterValueChangedCallback(e =>
             {
                 if (m_Model is not GraphDataNodeModel sgNodeModel) return;
-                m_OwnerElement.RootView.Dispatch(new SetSwizzleMaskCommand(sgNodeModel, k_MaskFieldName, e.newValue));
+                m_OwnerElement.RootView.Dispatch(new SetSwizzleMaskCommand(sgNodeModel, SwizzleNode.kMask, e.newValue));
             });
 
             parent.Add(m_MaskField);
@@ -38,8 +35,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // the generated code like function dropdowns do (which also use fields).
 
             // TODO: Remove CLDS usage from view
-            var field = handler.GetField<string>(k_MaskFieldName);
-            m_MaskField.SetValueWithoutNotify(field?.GetData() ?? k_MaskDefaultValue);
+            var field = handler.GetField<string>(SwizzleNode.kMask);
+            m_MaskField.SetValueWithoutNotify(field?.GetData() ?? SwizzleNode.kDefaultMask);
         }
     }
 }
