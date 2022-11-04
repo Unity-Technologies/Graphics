@@ -161,6 +161,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static bool IsDisabledBlock(VFXModel model)
+        {
+            VFXBlock block = null;
+            if (model is VFXBlock)
+                block = (VFXBlock)model;
+            else if (model is VFXSlot)
+                block = ((VFXSlot)model).owner as VFXBlock;
+
+            return block != null && !block.enabled;
+        }
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             base.OnInvalidate(model, cause);
@@ -178,17 +189,26 @@ namespace UnityEditor.VFX
                     // Check if the invalidation comes from a disable block and in that case don't recompile
                     if (cause != InvalidationCause.kEnableChanged)
                     {
-                        VFXBlock block = null;
-                        if (model is VFXBlock)
-                            block = (VFXBlock)model;
-                        else if (model is VFXSlot)
-                            block = ((VFXSlot)model).owner as VFXBlock;
-
-                        skip = block != null && !block.enabled;
+                        skip = IsDisabledBlock(model);
                     }
 
                     if (!skip)
                         Invalidate(InvalidationCause.kExpressionGraphChanged);
+                }
+            }
+
+            if (cause == InvalidationCause.kParamChanged ||
+                cause == InvalidationCause.kExpressionValueInvalidated)
+            {
+                if (contextType == VFXContextType.Spawner ||
+                    contextType == VFXContextType.Init)
+                {
+                    bool isBounds = model is VFXSlot slot && (
+                        slot.name.Equals(nameof(VFXBasicInitialize.InputPropertiesBounds.bounds)) ||
+                        slot.name.Equals(nameof(VFXBasicInitialize.InputPropertiesPadding.boundsPadding))); // Skip bounds so no reinit occurs when authoring the bounds
+
+                    if ((hasBeenCompiled || CanBeCompiled()) && !IsDisabledBlock(model) && !isBounds)
+                        Invalidate(InvalidationCause.kInitValueChanged);
                 }
             }
         }

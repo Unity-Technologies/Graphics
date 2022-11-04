@@ -275,6 +275,7 @@ namespace UnityEditor.VFX.UI
             rootVisualElement.Add(graphView);
 
             autoCompile = true;
+            autoReinit = true;
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
@@ -377,6 +378,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public bool autoCompile { get; set; }
+        public bool autoReinit { get; set; }
+        public float autoReinitPrewarmTime { get; set; }
 
         void Update()
         {

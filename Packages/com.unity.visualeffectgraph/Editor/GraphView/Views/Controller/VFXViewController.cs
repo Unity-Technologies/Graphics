@@ -305,6 +305,7 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
+                RemoveInvalidateDelegate(m_Graph, ReinitIfNeeded);
 
                 UnRegisterNotification(m_Graph, GraphChanged);
 
@@ -808,6 +809,43 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private int m_LastFrameVFXReinit = 0;
+
+        private void ReinitIfNeeded(VFXModel model, VFXModel.InvalidationCause cause)
+        {
+            if (cause == VFXModel.InvalidationCause.kInitValueChanged)
+            {
+                var window = VFXViewWindow.GetWindow(this.graph, false, false);
+                int currentFrame = Time.frameCount;
+
+                if (window &&
+                    window.autoReinit &&
+                    m_LastFrameVFXReinit != currentFrame) // Prevent multi reinit per frame) 
+                {
+                    var vfx = window.graphView.attachedComponent;
+
+                    if (vfx)
+                    {
+                        vfx.Reinit();
+                        int targetFPS = VFXViewPreference.authoringPrewarmStepCountPerSeconds;
+                        if (window.autoReinitPrewarmTime > 0.0f && targetFPS > 0)
+                        {
+                            bool alreadyHasPrewarm = vfx.visualEffectAsset.GetResource().preWarmStepCount > 0;
+
+                            if (!alreadyHasPrewarm)
+                            {
+                                float stepTime = 1.0f / targetFPS;
+                                uint stepCount = (uint)(window.autoReinitPrewarmTime / stepTime + 1);
+                                stepTime = window.autoReinitPrewarmTime / stepCount;
+                                vfx.Simulate(stepTime, stepCount);
+                            }
+                        }                        
+                    }
+                    m_LastFrameVFXReinit = currentFrame;
+                }
+            }
+        }
+
         protected override void ModelChanged(UnityObject obj)
         {
             if (model == null)
@@ -844,7 +882,7 @@ namespace UnityEditor.VFX.UI
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
-
+                    AddInvalidateDelegate(m_Graph, ReinitIfNeeded);
 
                     m_UI = m_Graph.UIInfos;
 
