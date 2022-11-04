@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 synonyms: new string[] { "swap", "reorder", "component mask" },
                 parameters: new ParameterUIDescriptor[]
                 {
-                    new(name: SwizzleNode.kInput),
+                    new(name: SwizzleNode.kInput, tooltip: "input value"),
                     new(name: SwizzleNode.kOutput, tooltip: "vector with components rearranged"),
                 }
             );

@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void BuildPartUI(VisualElement parent)
         {
             m_MaskField = new TextField("Mask");
+            m_MaskField.tooltip = "a combination of one to four characters that can be x, y, z, w (or r, g, b, a)";
             m_MaskField.isDelayed = true;
             m_MaskField.RegisterValueChangedCallback(e =>
             {
