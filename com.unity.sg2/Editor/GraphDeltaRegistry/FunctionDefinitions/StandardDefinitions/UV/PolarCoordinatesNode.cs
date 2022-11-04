@@ -37,13 +37,13 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Polar Coordinates",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
-                    name: "Center",
-                    tooltip: "center reference point"
-                ),
-                new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV",
                     options: REF.OptionList.UVs
+                ),
+                new ParameterUIDescriptor(
+                    name: "Center",
+                    tooltip: "center reference point"
                 ),
                 new ParameterUIDescriptor(
                     name: "RadialScale",

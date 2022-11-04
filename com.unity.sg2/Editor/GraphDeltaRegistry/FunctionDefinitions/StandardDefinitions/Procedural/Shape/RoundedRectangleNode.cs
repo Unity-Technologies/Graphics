@@ -42,13 +42,13 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Rounded Rectangle",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
-                    name: "Width",
-                    tooltip: "rounded rectangle width"
-                ),
-                new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV",
                     options: REF.OptionList.UVs
+                ),
+                new ParameterUIDescriptor(
+                    name: "Width",
+                    tooltip: "rounded rectangle width"
                 ),
                 new ParameterUIDescriptor(
                     name: "Height",
@@ -61,7 +61,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Out",
                     tooltip: "A rectangle shape with rounded corners with the given dimensions."
-                )            }
+                )
+            }
         );
     }
 }
