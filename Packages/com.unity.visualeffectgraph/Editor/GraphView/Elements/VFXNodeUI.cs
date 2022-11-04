@@ -328,7 +328,7 @@ namespace UnityEditor.VFX.UI
                 anchor.AddToClassList("subgraphblock");
 
             var settingsCount = expanded ? settingsContainer.childCount : 0;
-            anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : 0);
+            anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : -1);
             titleContainer.AddToClassList("activationslot");
             anchor.AddToClassList("activationslot");
             AddToClassList("activationslot");
