@@ -30,6 +30,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kMask = "Mask";
         public const string kDefaultMask = "xyzw";
 
+        const string kComponentsVec = "xyzw";
+        const string kComponentsColor = "rgba";
+        public const string kAllowedMaskComponents = kComponentsVec + kComponentsColor;
+
         public const string kInput = "In";
         public const string kOutput = "Out";
 
@@ -60,9 +64,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             GraphTypeHelpers.ResolveDynamicPorts(node);
         }
 
-        const string k_ComponentsVec = "xyzw";
-        const string k_ComponentsColor = "rgba";
-
         static bool MaskIsValid(string maskInput, int inputChannels)
         {
             if (maskInput.Length <= 0 || maskInput.Length > 4)
@@ -74,11 +75,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             for (var i = 0; i < maskInput.Length; i++)
             {
                 var c = maskInput[i];
-                var componentIndex = k_ComponentsVec.IndexOf(c);
+                var componentIndex = kComponentsVec.IndexOf(c);
 
                 if (componentIndex == -1)
                 {
-                    componentIndex = k_ComponentsColor.IndexOf(c);
+                    componentIndex = kComponentsColor.IndexOf(c);
                 }
 
                 if (componentIndex == -1 || componentIndex >= inputChannels)
@@ -99,8 +100,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var resultMask = new char[maskInput.Length];
             for (var i = 0; i < maskInput.Length; i++)
             {
-                var colorIndex = k_ComponentsColor.IndexOf(maskInput[i]);
-                resultMask[i] = colorIndex == -1 ? maskInput[i] : k_ComponentsVec[colorIndex];
+                var colorIndex = kComponentsColor.IndexOf(maskInput[i]);
+                resultMask[i] = colorIndex == -1 ? maskInput[i] : kComponentsVec[colorIndex];
             }
 
             return new string(resultMask);
