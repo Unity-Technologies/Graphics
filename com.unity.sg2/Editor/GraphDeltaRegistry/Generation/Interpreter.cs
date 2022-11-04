@@ -1,4 +1,5 @@
 //#define INTERPRETER_DEBUG
+//#define INTERPRETER_V2
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Generation
     public static class Interpreter
     {
 
+        static string defaultSurfaceDescriptionCPName = LegacyCustomizationPoints.SurfaceDescriptionCPName;
         internal class ShaderEvaluationCache
         {
             private class ReferableData : VariableData
@@ -72,10 +74,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
             public struct ProcessingResult
             {
-                public IEnumerable<ShaderType> usedTypes;
-                public IEnumerable<ShaderFoundry.IncludeDescriptor> includes;
-                public IEnumerable<ShaderFunction> functions;
-                public ShaderFunction entryPointFunction;
+                public Block.Builder blockBuilder;
             }
 
             private Dictionary<VariableReference, VariableData> variableReferences;
@@ -95,18 +94,18 @@ namespace UnityEditor.ShaderGraph.Generation
             private ShaderType.StructBuilder outputBuilder;
 
             private Registry registry;
-            public ShaderEvaluationCache(ref ShaderFunction.Builder mainFunctionBuilder, Registry registry)
+            private ShaderContainer container;
+            public ShaderEvaluationCache(ShaderContainer container, Registry registry)
             {
                 variableReferences = new Dictionary<VariableReference, VariableData>();
-                portToVariableLookup = new Dictionary<ElementID, VariableReference>();
+                portToVariableLookup = new Dictionary<ElementID, VariableReference>(new ElementIDComparer());
                 initialized = new HashSet<VariableReference>();
                 functionReferences = new Dictionary<FunctionReference, ShaderFunction>();
                 includeReferences = new HashSet<ShaderFoundry.IncludeDescriptor>();
                 typeReferences = new HashSet<ShaderType>();
                 variableCollisions = new Dictionary<VariableReference, int>();
-                mainFunction = mainFunctionBuilder;
-                mainFunction.Indent();
                 this.registry = registry;
+                this.container = container;
             }
 
             //Should this also take in the customization point? Then we can provide the known customization point inputs to the variable references. We still gather them at a later point anyways, but would
@@ -120,8 +119,17 @@ namespace UnityEditor.ShaderGraph.Generation
                 //  input variable management output into main function
                 //  input function call into main function
 
+
+                Block.Builder builder = new Block.Builder(container, $"{node.ID.LocalPath}Node");
+
                 inputs = new HashSet<VariableReference>();
-                inputBuilder = new ShaderType.StructBuilder(mainFunction.Container, $"ShaderGraph_Block_{node.ID.LocalPath}_Input");
+                inputBuilder = new ShaderType.StructBuilder(builder, $"ShaderGraph_Block_{node.ID.LocalPath}_Input");
+                outputs = new HashSet<VariableReference>();
+                outputBuilder = new ShaderType.StructBuilder(builder, $"ShaderGraph_Block_{node.ID.LocalPath}_Output");
+                RegisterOutputs(node, builder);
+                var outputType = outputBuilder.Build();
+                mainFunction = new ShaderFunction.Builder(builder, $"{node.ID.LocalPath}Node_Main", outputType);
+
                 var workset = GatherTreeLeafFirst(node);
                 var toPrint = new List<(FunctionReference, IEnumerable<VariableReference>)>();
                 foreach(var workunit in workset)
@@ -137,10 +145,37 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     WriteFunctionCall(functionToCall, variables);
                 }
+                WriteOutputInitializationAndAssignment(node, outputType);
+                mainFunction.AddLine("return Output;");
+
+
                 var inputType = inputBuilder.Build();
                 typeReferences.Add(inputType);
+                typeReferences.Add(outputType);
                 mainFunction.AddInput(inputType, "In");
-                return new ProcessingResult() { entryPointFunction = mainFunction.Build(), functions = functionReferences.Values, includes = includeReferences, usedTypes = typeReferences };
+                Finalize(ref builder);
+                return new ProcessingResult()
+                {
+                    blockBuilder = builder
+                };
+            }
+
+            private void Finalize(ref Block.Builder builder)
+            {
+                foreach (var type in typeReferences)
+                {
+                    builder.AddType(type);
+                }
+                foreach (var include in includeReferences)
+                {
+                    builder.AddInclude(include);
+                }
+                foreach (var func in functionReferences.Values)
+                {
+                    builder.AddFunction(func);
+                }
+                builder.SetEntryPointFunction(mainFunction.Build());
+
             }
 
             private void WriteFunctionCall(FunctionReference functionRef, IEnumerable<VariableReference> parameterReferences)
@@ -152,6 +187,8 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!param.inlineInitialization)
                     {
                         var s = param.actualVariableName ?? param.desiredVariableName;
+                        //small handling case for first variable with variable collisions - basically if this variable had variable collisions but no actual name was assigned,
+                        //this it was the first instance of the variable name and we need to create the actual variable name for it
                         if(param.actualVariableName == null && variableCollisions.ContainsKey(paramRef))
                         {
                             s = CreateActualVariableName(param.desiredVariableName, 0);
@@ -162,6 +199,7 @@ namespace UnityEditor.ShaderGraph.Generation
                             initialized.Add(paramRef);
                         }
                         paramStrings.Add(s);
+                        //if this is a reference, we now know we are using it. Make sure it is added to the inputs.
                         if(!inputs.Contains(paramRef) && param is ReferableData referable)
                         {
                             inputs.Add(paramRef);
@@ -178,6 +216,58 @@ namespace UnityEditor.ShaderGraph.Generation
                 mainFunction.CallFunction(function, paramStrings.ToArray());
             }
 
+            private void WriteOutputInitializationAndAssignment(NodeHandler node, ShaderType outputType)
+            {
+                mainFunction.AddLine($"{outputType.Name} Output;");
+                foreach(var field in outputType.StructFields)
+                {
+                    var port = node.GetPort(field.Name);
+                    if (port.IsInput)
+                    {
+                        var connport = port.GetFirstConnectedPort();
+                        if (connport != null)
+                        {
+                            VariableReference varref = portToVariableLookup[connport.ID];
+                            VariableData variable = variableReferences[varref];
+                            if (!variable.inlineInitialization && initialized.Contains(varref))
+                            {
+                                mainFunction.AddLine($"Output.{field.Name} = {variable.actualVariableName ?? variable.desiredVariableName};");
+                            }
+                            else
+                            {
+                                mainFunction.AddLine($"Output.{field.Name} = {variable.initializationString};");
+                            }
+                        }
+                        else
+                        {
+                            mainFunction.AddLine($"Output.{field.Name} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry)};");
+                        }
+
+                    }
+                    else
+                    {
+                        if (portToVariableLookup.TryGetValue(port.ID, out VariableReference varref) && variableReferences.TryGetValue(varref, out VariableData variable))
+                        {
+                            if (!variable.inlineInitialization && initialized.Contains(varref))
+                            {
+                                mainFunction.AddLine($"Output.{field.Name} = {variable.actualVariableName ?? variable.desiredVariableName};");
+                            }
+                            else
+                            {
+                                mainFunction.AddLine($"Output.{field.Name} = {variable.initializationString};");
+                            }
+                        }
+                        else
+                        {
+                            //this is an error?
+                            mainFunction.AddLine($"Output.{field.Name} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry)};");
+                        }
+                    }
+                }
+
+            }
+
+            #region Variable_Handling
             private IEnumerable<VariableReference> RegisterVariables(NodeHandler workunit, FunctionReference? functionReference)
             {
                 //if this is a run of the mill, function generating node. Generate local variables to handle passing around block-local values.
@@ -257,12 +347,45 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     foreach(var port in workunit.GetPorts())
                     {
-                        if(port.IsHorizontal && !port.IsInput)
+                        if(port.IsHorizontal && port.IsInput)
                         {
                             yield return CreateReferableData(port);
                         }
                     }
                 }
+            }
+
+            private void RegisterOutputs(NodeHandler root, Block.Builder builder)
+            {
+                bool useNodeInputs = root.HasMetadata("_contextDescriptor");
+                foreach(var port in root.GetPorts())
+                {
+                    if(port.IsHorizontal && (port.IsInput == useNodeInputs))
+                    {
+                        CreateOutputData(port, builder);
+                    }
+                }
+            }
+
+            private VariableReference CreateOutputData(PortHandler port, Block.Builder builder)
+            {
+                var name = $"Output.{port.ID.LocalPath}";
+                var portTypeField = port.GetTypeField();
+                var shaderType = registry.GetTypeBuilder(portTypeField.GetRegistryKey()).GetShaderType(portTypeField, builder.Container, registry);
+                ReferableData data = new ReferableData
+                {
+                    desiredVariableName = name,
+                    actualVariableName = name,
+                    shaderType = shaderType,
+                    inlineInitialization = false,
+                    field = new StructField.Builder(builder.Container, port.ID.LocalPath, shaderType).Build()
+                };
+
+                VariableReference reference = new VariableReference(data);
+                variableReferences.Add(reference, data);
+                outputBuilder.AddField(data.field);
+                return reference;
+
             }
 
             private VariableReference CreateVariableData(PortHandler port, ShaderFunction function, FunctionParameter param)
@@ -303,27 +426,49 @@ namespace UnityEditor.ShaderGraph.Generation
 
             private VariableReference CreateReferableData(PortHandler port)
             {
-                //remove the "out_" part of the reference.
-                var name = $"In.{port.ID.LocalPath.Remove(0, 4)}";
-                var container = mainFunction.Container;
+                //temp hookup to old system
+                var tmpOutputs = new VariableRegistry();
+                var tmpInputs = new VariableRegistry();
+                var tmpText = new List<(string, Texture)>();
+                BuildPropertyAttributes(port, registry, mainFunction.Container, ref tmpOutputs, ref tmpInputs, ref tmpText);
+
+                StructField field;
                 var portTypeField = port.GetTypeField();
                 var shaderType = registry.GetTypeBuilder(portTypeField.GetRegistryKey()).GetShaderType(portTypeField, container, registry);
+                if(tmpInputs.Any())
+                {
+                    field = tmpInputs.First();
+                }
+                else
+                {
+                    field = new StructField.Builder(container, port.ID.LocalPath, shaderType).Build();
+                }
+
+                var name = $"In.{field.Name}";
+
+
                 ReferableData data = new ReferableData
                 {
                     desiredVariableName = name,
                     actualVariableName = name,
                     shaderType = shaderType,
                     inlineInitialization = false,
-                    field = new StructField.Builder(container, port.ID.LocalPath.Remove(0, 4), shaderType).Build()
+                    field = field
                 };
 
                 VariableReference reference = new VariableReference(data);
                 variableReferences.Add(reference, data);
-                portToVariableLookup.Add(port.ID, reference);
+                if (!portToVariableLookup.ContainsKey(port.ID))
+                {
+                    portToVariableLookup.Add(port.ID, reference);
+                }
+                portToVariableLookup.Add(port.GetNode().GetPort($"out_{port.ID.LocalPath}").ID, reference);
                 initialized.Add(reference);
                 return reference;
             }
 
+            //Our current naming scheme for variables is {NodeName}_{VariableName}. If there is collision, then we instead do {NodeName}{NodeCount}_{VariableName}. Two
+            //instances of node Foo with variable Bar would create variables Foo1_Bar and Foo2_Bar.
             private string CreateActualVariableName(string desiredName, int collisionCount)
             {
                 string output = "";
@@ -338,6 +483,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 return output;
             }
 
+            //We keep track of the number of collisions for naming conventions
             private void ResolveVariableNameCollision(VariableReference reference, VariableData data, VariableData existingData, out VariableReference newRef, out VariableData newData)
             {
                 int currentCollisions;
@@ -367,7 +513,9 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 throw new NotImplementedException();
             }
+            #endregion
 
+            #region Dependency_Handling
             private FunctionReference? RegisterNodeDependencies(NodeHandler workunit)
             {
                 var nodeBuilder = registry.GetNodeBuilder(workunit.GetRegistryKey());
@@ -387,6 +535,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         EnsureInclude(inc);
                     }
                 }
+                //If the node is not one that generates a function (and function is a struct and cant be null), then we check by seeing if the provided function is valid
                 if (func.IsValid)
                 {
                     return EnsureFunction(func);
@@ -415,6 +564,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
                 return reference;
             }
+            #endregion
         }
 
 
@@ -486,6 +636,20 @@ namespace UnityEditor.ShaderGraph.Generation
             sb.AppendLine("}");
 
             sb.AppendLine();
+
+            sb.AppendLine("//BLOCK OUTPUT------");
+            var outputType = block.Block.EntryPointFunction.ReturnType;
+            var outputFields = outputType.StructFields;
+            sb.AppendLine($"struct {outputType.Name}");
+            sb.AppendLine("{");
+            foreach (var f in outputFields)
+            {
+                sb.AppendLine($"    {f.Type.Name} {f.Name};");
+            }
+            sb.AppendLine("}");
+
+
+            sb.AppendLine();
             sb.AppendLine();
             sb.AppendLine("//MAIN FUNCTION------");
             GetShaderFunctionInHumanReadableForm(ref sb, block.Block.EntryPointFunction);
@@ -518,34 +682,95 @@ namespace UnityEditor.ShaderGraph.Generation
 
         internal static BlockInstance GetShaderBlockForNode(NodeHandler node, Registry registry, ShaderContainer shaderContainer)
         {
-            Block.Builder builder = new Block.Builder(shaderContainer, $"{node.ID.LocalPath}_NODE_BLOCK");
-            ShaderFunction.Builder mainFunctionBuilder = new ShaderFunction.Builder(builder, $"{node.ID.LocalPath}_MAIN_FUNCTION");
-
-            ShaderEvaluationCache sec = new ShaderEvaluationCache(ref mainFunctionBuilder, registry/*any SF stuff needed for creation of block instance*/);
+            ShaderEvaluationCache sec = new ShaderEvaluationCache(shaderContainer, registry/*any SF stuff needed for creation of block instance*/);
             var workunit = sec.Process(node);
             //builder.AddInput(sec.InputType)
             //builder.AddOutput
             //etc
-            foreach(var type in workunit.usedTypes)
-            {
-                builder.AddType(type);
-            }
-            foreach(var include in workunit.includes)
-            {
-                builder.AddInclude(include);
-            }
-            foreach(var func in workunit.functions)
-            {
-                builder.AddFunction(func);
-            }
-            builder.SetEntryPointFunction(workunit.entryPointFunction);
-            var block = builder.Build();
+            var block = workunit.blockBuilder.Build();
             var blockDescBuilder = new BlockInstance.Builder(shaderContainer, block);
             return blockDescBuilder.Build();
         }
 
 
+        //This will replace the other GatherTreeLeafFirst, but since it makes a slightly different assumption than the initial one leaving both code paths separate for now
+        private static IEnumerable<NodeHandler> GatherTreeLeafFirstV2(NodeHandler rootNode)
+        {
+            Stack<NodeHandler> stack = new();
+            HashSet<string> visited = new();
 
+
+            var cpName = rootNode.GetField<string>("_CustomizationPointName");
+            string cpString = defaultSurfaceDescriptionCPName;
+            if(cpName != null)
+            {
+                cpString = cpName.GetData();
+            }
+
+            stack.Push(rootNode);
+            while (stack.Count > 0)
+            {
+                NodeHandler check = stack.Peek();
+                bool isLeaf = true;
+
+                bool isContext = check.HasMetadata("_contextDescriptor");
+                //We may still include a context node as part of the tree IFF the context node belongs to the same customization point
+                bool include = false;
+                if(isContext)
+                {
+                    var f = check.GetField<string>("_CustomizationPointName");
+                    if(f != null && f.GetData().Equals(cpString, StringComparison.Ordinal))
+                    {
+                        include = true;
+                    }
+                }
+                if (!isContext || check.ID.Equals(rootNode.ID) || include)
+                {
+                    foreach (PortHandler port in check.GetPorts())
+                    {
+                        if (port.IsInput)
+                        {
+                            foreach (NodeHandler connected in GetConnectedNodes(port))
+                            {
+                                if (!visited.Contains(connected.ID.FullPath))
+                                {
+                                    visited.Add(connected.ID.FullPath);
+                                    isLeaf = false;
+                                    stack.Push(connected);
+                                }
+                            }
+                        }
+                    }
+                }
+                if (isLeaf)
+                {
+                    yield return stack.Pop();
+                }
+            }
+
+        }
+
+
+
+        private static void GetBlocksV2(ShaderContainer container,
+                                        CustomizationPoint vertexCP,
+                                        CustomizationPoint surfaceCP,
+                                        NodeHandler node,
+                                        GraphHandler graph,
+                                        Registry registry,
+                                        ref List<(string, Texture)> defaultTextures,
+                                        out CustomizationPointInstance vertexCPDesc,
+                                        out CustomizationPointInstance surfaceCPDesc)
+        {
+            vertexCPDesc = CustomizationPointInstance.Invalid; // we currently do not use the vertex customization point
+            var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
+            var vertexDescBuilder = new CustomizationPointInstance.Builder(container, vertexCP);
+            var blockInstance = GetShaderBlockForNode(node, registry, container);
+            Debug.Log(GetShaderBlockInHumanReadableForm(blockInstance));
+            surfaceDescBuilder.BlockInstances.Add(blockInstance);
+            surfaceCPDesc = surfaceDescBuilder.Build();
+            
+        }
 
 
 
@@ -729,7 +954,12 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             List<(string, UnityEngine.Texture)> defaults = new();
             void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
+#if INTERPRETER_V2
+                => GetBlocksV2(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
+#else
                 => GetBlocks(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
+#endif
+
             var shader = SimpleSampleBuilder.Build(new ShaderContainer(), target ?? SimpleSampleBuilder.GetTarget(), shaderName ?? node.ID.LocalPath, lambda, String.Empty);
 
             defaultTextures = new();
@@ -1313,7 +1543,6 @@ namespace UnityEditor.ShaderGraph.Generation
                             {
                                 if (!visited.Contains(connected.ID.FullPath))
                                 {
-                                    visited.Add(connected.ID.FullPath);
                                     isLeaf = false;
                                     stack.Push(connected);
                                 }
@@ -1323,10 +1552,17 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
                 if(isLeaf)
                 {
-                    yield return stack.Pop();
+                    if (visited.Contains(check.ID.FullPath))
+                    {
+                        stack.Pop();
+                    }
+                    else
+                    {
+                        visited.Add(check.ID.FullPath);
+                        yield return stack.Pop();
+                    }
                 }
             }
-
         }
 
         private static IEnumerable<NodeHandler> GetConnectedNodes(PortHandler port)
