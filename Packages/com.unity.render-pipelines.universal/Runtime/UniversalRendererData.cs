@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System;
 using UnityEngine.Scripting.APIUpdating;
@@ -149,6 +150,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
+#if UNITY_EDITOR
+        // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.Vulkan)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings._GBUFFER_NORMALS_OCT)]
+#endif
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 

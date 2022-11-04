@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.Universal.Internal;
+#if UNITY_EDITOR
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
+#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -36,6 +39,12 @@ namespace UnityEngine.Rendering.Universal
     [System.Serializable]
     internal class DBufferSettings
     {
+#if UNITY_EDITOR
+        // TODO: Either add a disabled item in DecalNormalBlend or make m_DBufferSettings nullable for correct filtering
+        //[ShaderKeywordFilter.SelectIf(DecalSurfaceData.Albedo, overridePriority: true, keywordNames: ShaderKeywordStrings.DBufferMRT1)]
+        //[ShaderKeywordFilter.SelectIf(DecalSurfaceData.AlbedoNormal, overridePriority: true, keywordNames: ShaderKeywordStrings.DBufferMRT2)]
+        //[ShaderKeywordFilter.SelectIf(DecalSurfaceData.AlbedoNormalMAOS, overridePriority: true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
+#endif
         public DecalSurfaceData surfaceData = DecalSurfaceData.AlbedoNormalMAOS;
     }
 
@@ -52,6 +61,12 @@ namespace UnityEngine.Rendering.Universal
     [System.Serializable]
     internal class DecalScreenSpaceSettings
     {
+#if UNITY_EDITOR
+        // TODO: Either add a disabled item in DecalNormalBlend or make m_ScreenSpaceSettings nullable for correct filtering
+        //[ShaderKeywordFilter.SelectIf(DecalNormalBlend.Low, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalNormalBlendLow)]
+        //[ShaderKeywordFilter.SelectIf(DecalNormalBlend.Medium, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalNormalBlendMedium)]
+        //[ShaderKeywordFilter.SelectIf(DecalNormalBlend.High, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalNormalBlendHigh)]
+#endif
         public DecalNormalBlend normalBlend = DecalNormalBlend.Low;
     }
 
@@ -60,6 +75,10 @@ namespace UnityEngine.Rendering.Universal
     {
         public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
         public float maxDrawDistance = 1000f;
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
+        [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalLayers)]
+#endif
         public bool decalLayers = false;
         public DBufferSettings dBufferSettings;
         public DecalScreenSpaceSettings screenSpaceSettings;
