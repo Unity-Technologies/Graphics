@@ -124,6 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphViewState,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
             SetSwizzleMaskCommand command)
         {
             using (var undoUpdater = undoState.UpdateScope)
@@ -134,6 +135,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
             var field = nodeHandler.GetField<string>(command.m_FieldName);
             field.SetData(command.m_Mask);
+
+            previewUpdateDispatcher.OnListenerConnectionChanged(command.m_GraphDataNodeModel.graphDataName);
 
             using var graphUpdater = graphViewState.UpdateScope;
             graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
