@@ -231,7 +231,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1004
+                                    "rid": 2162987969746305592
                                 }
                             ]
                         },
@@ -295,1374 +295,6 @@
                     }
                 },
                 {
-                    "rid": 1004,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "DefaultContextDescriptor",
-                        "portName": "BaseColor",
-                        "m_StoredValue": {
-                            "e00": 0.5,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.5,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.5,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 3,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1005,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "cd649db0039ca7c5a0d779339b1a7ab1",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1006,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "8b8a10b2f231ae4b5f7c437571673b0b",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1007,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "778c0be8600d36a45f4a38e2cd85f21a",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1008,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "c606d56716350922223677aa319ad865",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1009,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "85d48675b9abc25c4c9c8d4ffc475012",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1010,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "6c7947cda01eaa2078e75fbbdcadc6e4",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1011,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "329dbe403686af778285cb040a5ca0f3",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1012,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "c0a495b01caef6e7ced35712b2a70722",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1013,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "a749e87069627b256fcafbbf42cb71d0",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1014,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "5698eebab490066320d55568087ccf03",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1015,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "ab9c3cd536daa0fe4b0231fe2e6d15ad",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1016,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "7def37a7caf60815ba202bc1660bc202",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1017,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "bd29c97eb5da37a0cfddb194d0ddbb86",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1018,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "befc03114b8626331eb299b9a23b3854",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1019,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "350b19bc42cb4f51b552be199758d16d",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1020,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "87ff712722e3dcea3e788233445939b8",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1021,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "fe157fc383d2c69a091f36db9bfaf6c7",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1022,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "d697612ebaeff24c1667da856f3b46ef",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1023,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "591f671c960d56d7e6f7b6096df10271",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1024,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "072c16842fb37487681daa7fd68675a1",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1025,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "9eb78977f46eb2db33adb95c30263800",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1026,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "2651aa9bd5c39e968721035207c14e02",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1027,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "fae80574ed421f5372674fffdf676a6c",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1028,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "593a56c68ec7e285494cb5b7b7756808",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1029,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "376e5a53420a202836da9f3654ed1282",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1030,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "0e080a92928e393639da261d9911bf37",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1031,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "24008f6eed9f1cb010922ea065dea006",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1032,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "73722f4430bcbe57b45f0d4ca3ec6c35",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1033,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "383dd7a5a4cc88cb04ea6c6699b4e225",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1034,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "f46a71883fef889a1e6849fbb74b1dd2",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1035,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "80e212667f09d1eb45f9f263ce394b9e",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1036,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "d4c35cb38d1423466dd32b2443d46308",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1037,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "ed77b21bf2ddf765eb3ee09332b5feb5",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1038,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "572d91f9614ffabd3f081cc7963c4837",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1039,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "168c1d1e8302427624efbc6c3ba58944",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1040,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "d09524bf25c0de4caf751ba269faf62f",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
-                    "rid": 1041,
-                    "type": {
-                        "class": "GraphTypeConstant",
-                        "ns": "UnityEditor.ShaderGraph.GraphUI",
-                        "asm": "Unity.ShaderGraph.GraphUI"
-                    },
-                    "data": {
-                        "graphModel": {
-                            "rid": 1000
-                        },
-                        "nodeName": "1f50c8369c39914ca6cdb6334e01d4bb",
-                        "portName": "In",
-                        "m_StoredValue": {
-                            "e00": 0.0,
-                            "e01": 0.0,
-                            "e02": 0.0,
-                            "e03": 0.0,
-                            "e10": 0.0,
-                            "e11": 0.0,
-                            "e12": 0.0,
-                            "e13": 0.0,
-                            "e20": 0.0,
-                            "e21": 0.0,
-                            "e22": 0.0,
-                            "e23": 0.0,
-                            "e30": 0.0,
-                            "e31": 0.0,
-                            "e32": 0.0,
-                            "e33": 0.0
-                        },
-                        "m_StoredLength": 1,
-                        "m_StoredHeight": 1,
-                        "m_StoredPrimitive": 3
-                    }
-                },
-                {
                     "rid": 2162987921625056037,
                     "type": {
                         "class": "GraphDataNodeModel",
@@ -1694,7 +326,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1005
+                                    "rid": 2162987969746305593
                                 }
                             ]
                         },
@@ -1741,7 +373,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1006
+                                    "rid": 2162987969746305594
                                 }
                             ]
                         },
@@ -1788,7 +420,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1007
+                                    "rid": 2162987969746305595
                                 }
                             ]
                         },
@@ -1835,7 +467,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1008
+                                    "rid": 2162987969746305596
                                 }
                             ]
                         },
@@ -1882,7 +514,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1009
+                                    "rid": 2162987969746305597
                                 }
                             ]
                         },
@@ -1929,7 +561,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1010
+                                    "rid": 2162987969746305598
                                 }
                             ]
                         },
@@ -1976,7 +608,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1011
+                                    "rid": 2162987969746305599
                                 }
                             ]
                         },
@@ -2023,7 +655,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1012
+                                    "rid": 2162987969746305600
                                 }
                             ]
                         },
@@ -2070,7 +702,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1013
+                                    "rid": 2162987969746305601
                                 }
                             ]
                         },
@@ -2117,7 +749,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1014
+                                    "rid": 2162987969746305602
                                 }
                             ]
                         },
@@ -2158,8 +790,8 @@
                         "m_TextSizeName": "Small",
                         "m_Position": {
                             "serializedVersion": "2",
-                            "x": -925.5000610351563,
-                            "y": -184.00001525878907,
+                            "x": -685.0,
+                            "y": -184.49993896484376,
                             "width": 200.0,
                             "height": 100.0
                         }
@@ -2197,7 +829,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1015
+                                    "rid": 2162987969746305603
                                 }
                             ]
                         },
@@ -2244,7 +876,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1016
+                                    "rid": 2162987969746305604
                                 }
                             ]
                         },
@@ -2291,7 +923,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1017
+                                    "rid": 2162987969746305605
                                 }
                             ]
                         },
@@ -2338,7 +970,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1018
+                                    "rid": 2162987969746305606
                                 }
                             ]
                         },
@@ -2385,7 +1017,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1019
+                                    "rid": 2162987969746305607
                                 }
                             ]
                         },
@@ -2432,7 +1064,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1020
+                                    "rid": 2162987969746305608
                                 }
                             ]
                         },
@@ -2479,7 +1111,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1021
+                                    "rid": 2162987969746305609
                                 }
                             ]
                         },
@@ -2823,7 +1455,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1022
+                                    "rid": 2162987969746305610
                                 }
                             ]
                         },
@@ -2870,7 +1502,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1023
+                                    "rid": 2162987969746305611
                                 }
                             ]
                         },
@@ -2917,7 +1549,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1024
+                                    "rid": 2162987969746305612
                                 }
                             ]
                         },
@@ -2964,7 +1596,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1025
+                                    "rid": 2162987969746305613
                                 }
                             ]
                         },
@@ -3011,7 +1643,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1026
+                                    "rid": 2162987969746305614
                                 }
                             ]
                         },
@@ -3058,7 +1690,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1027
+                                    "rid": 2162987969746305615
                                 }
                             ]
                         },
@@ -3105,7 +1737,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1028
+                                    "rid": 2162987969746305616
                                 }
                             ]
                         },
@@ -3152,7 +1784,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1029
+                                    "rid": 2162987969746305617
                                 }
                             ]
                         },
@@ -3199,7 +1831,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1030
+                                    "rid": 2162987969746305618
                                 }
                             ]
                         },
@@ -3246,7 +1878,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1031
+                                    "rid": 2162987969746305619
                                 }
                             ]
                         },
@@ -3293,7 +1925,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1032
+                                    "rid": 2162987969746305620
                                 }
                             ]
                         },
@@ -3340,7 +1972,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1033
+                                    "rid": 2162987969746305621
                                 }
                             ]
                         },
@@ -3387,7 +2019,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1034
+                                    "rid": 2162987969746305622
                                 }
                             ]
                         },
@@ -3434,7 +2066,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1035
+                                    "rid": 2162987969746305623
                                 }
                             ]
                         },
@@ -3481,7 +2113,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1036
+                                    "rid": 2162987969746305624
                                 }
                             ]
                         },
@@ -3528,7 +2160,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1037
+                                    "rid": 2162987969746305625
                                 }
                             ]
                         },
@@ -3575,7 +2207,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1038
+                                    "rid": 2162987969746305626
                                 }
                             ]
                         },
@@ -3622,7 +2254,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1039
+                                    "rid": 2162987969746305627
                                 }
                             ]
                         },
@@ -3669,7 +2301,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1040
+                                    "rid": 2162987969746305628
                                 }
                             ]
                         },
@@ -3716,7 +2348,7 @@
                             ],
                             "m_ValueList": [
                                 {
-                                    "rid": 1041
+                                    "rid": 2162987969746305629
                                 }
                             ]
                         },
@@ -3729,6 +2361,1374 @@
                         },
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 2162987969746305592,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "DefaultContextDescriptor",
+                        "portName": "BaseColor",
+                        "m_StoredValue": {
+                            "e00": 0.5,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.5,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.5,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 3,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305593,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "cd649db0039ca7c5a0d779339b1a7ab1",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305594,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "8b8a10b2f231ae4b5f7c437571673b0b",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305595,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "778c0be8600d36a45f4a38e2cd85f21a",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305596,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "c606d56716350922223677aa319ad865",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305597,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "85d48675b9abc25c4c9c8d4ffc475012",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305598,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "6c7947cda01eaa2078e75fbbdcadc6e4",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305599,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "329dbe403686af778285cb040a5ca0f3",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305600,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "c0a495b01caef6e7ced35712b2a70722",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305601,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "a749e87069627b256fcafbbf42cb71d0",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305602,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "5698eebab490066320d55568087ccf03",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305603,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "ab9c3cd536daa0fe4b0231fe2e6d15ad",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305604,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "7def37a7caf60815ba202bc1660bc202",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305605,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "bd29c97eb5da37a0cfddb194d0ddbb86",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305606,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "befc03114b8626331eb299b9a23b3854",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305607,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "350b19bc42cb4f51b552be199758d16d",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305608,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "87ff712722e3dcea3e788233445939b8",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305609,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "fe157fc383d2c69a091f36db9bfaf6c7",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305610,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "d697612ebaeff24c1667da856f3b46ef",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305611,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "591f671c960d56d7e6f7b6096df10271",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305612,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "072c16842fb37487681daa7fd68675a1",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305613,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "9eb78977f46eb2db33adb95c30263800",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305614,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "2651aa9bd5c39e968721035207c14e02",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305615,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "fae80574ed421f5372674fffdf676a6c",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305616,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "593a56c68ec7e285494cb5b7b7756808",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305617,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "376e5a53420a202836da9f3654ed1282",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305618,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "0e080a92928e393639da261d9911bf37",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305619,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "24008f6eed9f1cb010922ea065dea006",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305620,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "73722f4430bcbe57b45f0d4ca3ec6c35",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305621,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "383dd7a5a4cc88cb04ea6c6699b4e225",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305622,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "f46a71883fef889a1e6849fbb74b1dd2",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305623,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "80e212667f09d1eb45f9f263ce394b9e",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305624,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "d4c35cb38d1423466dd32b2443d46308",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305625,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "ed77b21bf2ddf765eb3ee09332b5feb5",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305626,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "572d91f9614ffabd3f081cc7963c4837",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305627,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "168c1d1e8302427624efbc6c3ba58944",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305628,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "d09524bf25c0de4caf751ba269faf62f",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 2162987969746305629,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "1f50c8369c39914ca6cdb6334e01d4bb",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
                     }
                 }
             ]
