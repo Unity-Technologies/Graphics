@@ -612,6 +612,27 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextures[3]);
 
+                #if ENABLE_VR && ENABLE_XR_MODULE
+                    bool isFoveatedEnabled = false;
+                    if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                    {
+                        // If we are downsampling we can't use the VRS texture
+                        // If it's a non uniform raster foveated rendering has to be turned off because it will keep applying non uniform for the other passes.
+                        // When calculating normals from depth, this causes artifacts that are amplified from VRS when going to say 4x4. Thus we disable foveated because of that
+                        if (m_CurrentSettings.Downsample || SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.NonUniformRaster ||
+                            (SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.FoveationImage && m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth))
+                        {
+                            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                        }
+                        // If we aren't downsampling and it's a VRS texture we can apply foveation in this case
+                        else if (SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.FoveationImage)
+                        {
+                            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                            isFoveatedEnabled = true;
+                        }
+                    }
+                #endif
+
                 GetPassOrder(m_BlurType, m_CurrentSettings.AfterOpaque, out int[] textureIndices, out ShaderPasses[] shaderPasses);
 
                 // Execute the SSAO
@@ -628,6 +649,11 @@ namespace UnityEngine.Rendering.Universal
 
                 // Set the global SSAO Params
                 cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                #if ENABLE_VR && ENABLE_XR_MODULE
+                    // Cleanup, making sure it doesn't stay enabled for a pass after that should not have it on
+                    if (isFoveatedEnabled)
+                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                #endif
             }
         }
 
