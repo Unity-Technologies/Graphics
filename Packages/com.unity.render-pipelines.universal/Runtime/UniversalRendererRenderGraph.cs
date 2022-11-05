@@ -336,6 +336,9 @@ namespace UnityEngine.Rendering.Universal
 
                 bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
 
+                // TODO RENDERGRAPH: once all passes are ported to RasterCommandBuffers we need to reenable depth resolve
+                m_CopyDepthPass.m_CopyResolvedDepth = false;
+
                 if (hasMSAA)
                     depthDescriptor.bindMS = true;
 
