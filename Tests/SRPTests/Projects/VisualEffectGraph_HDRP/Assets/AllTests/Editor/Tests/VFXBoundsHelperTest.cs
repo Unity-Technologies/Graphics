@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Test
     {
 
 #pragma warning disable 0414
-        private static VFXCoordinateSpace[] availableSpaces = { VFXCoordinateSpace.Local, VFXCoordinateSpace.World };
+        private static VFXSpace[] availableSpaces = { VFXSpace.Local, VFXSpace.World };
 #pragma warning restore 0414
 
         private readonly Vector3 m_Translation = new Vector3(1.0f, 2.0f, 3.0f);
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Test
             var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
             // Set CullingFlags to Always Simulate, so the bounds are computed even if no camera is rendering the effect
             graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
-            VFXCoordinateSpace space = (VFXCoordinateSpace)systemSpace;
+            VFXSpace space = (VFXSpace)systemSpace;
             graph.children.OfType<VFXBasicInitialize>().First().space = space;
 
             var gameObj = new GameObject("GameObjectToCheck");
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Test
 
             Vector3 expectedCenter = Vector3.zero;
             Vector3 expectedExtent = new Vector3(2.0f,2.0f,2.0f);
-            expectedExtent += 0.5f * m_ParticleSize * (space == VFXCoordinateSpace.Local
+            expectedExtent += 0.5f * m_ParticleSize * (space == VFXSpace.Local
                 ? Mathf.Sqrt(3.0f)
                 : Mathf.Sqrt(1.0f / Mathf.Pow(m_Scale.x,2) + 1.0f / Mathf.Pow(m_Scale.y,2) + 1.0f /  Mathf.Pow(m_Scale.z,2)));
 

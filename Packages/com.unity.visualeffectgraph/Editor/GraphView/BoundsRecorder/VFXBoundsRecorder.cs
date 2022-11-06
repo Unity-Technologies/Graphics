@@ -359,10 +359,10 @@ namespace UnityEditor.VFX.UI
                 {
                     var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
                     var boundsSlot = initializeContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
-                    // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
+                    // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
                     var padding = m_Effect.GetCurrentPadding(systemName);
                     var paddedBounds = new Bounds(currentBounds.center, 2 * (currentBounds.extents + padding));
-                    if (boundsSlot.space == VFXCoordinateSpace.Local)
+                    if (boundsSlot.space == VFXSpace.Local)
                         boundsSlot.value = new AABox { center = paddedBounds.center, size = paddedBounds.size };
                     else
                     {

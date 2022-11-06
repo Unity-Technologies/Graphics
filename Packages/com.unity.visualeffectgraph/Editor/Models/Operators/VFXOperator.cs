@@ -98,22 +98,12 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
-            /* Most common case : space is the maximal output space from input slot */
-            var space = VFXCoordinateSpace.None;
-            foreach (var inputSlot in inputSlots)
-            {
-                if (inputSlot.spaceable)
-                {
-                    var currentSpace = inputSlot.space;
-                    if (space == VFXCoordinateSpace.None || (currentSpace != VFXCoordinateSpace.None && space < currentSpace))
-                    {
-                        space = currentSpace;
-                    }
-                }
-            }
-            return space;
+            //Most common case : space is the maximal output space from input slot
+            return inputSlots.Any()
+                ? inputSlots.Select(o => o.space).Max()
+                : VFXSpace.None;
         }
 
         public override sealed void UpdateOutputExpressions()

@@ -97,13 +97,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
                 if (spaceable)
                     return GetMasterData().m_Space;
-                return VFXCoordinateSpace.None;
+                return VFXSpace.None;
             }
 
             set
@@ -363,7 +363,7 @@ namespace UnityEditor.VFX
             if (slot.spaceable)
             {
                 //When spaceable, initialize newly created slot with Local by default
-                slot.m_MasterData.m_Space = VFXCoordinateSpace.Local;
+                slot.m_MasterData.m_Space = VFXSpace.Local;
             }
             return slot;
         }
@@ -539,6 +539,14 @@ namespace UnityEditor.VFX
         {
             if (!IsMasterSlot())
                 return; //Give only the responsibility to the master slot to sanitize children (sanitizing deeper children first)
+
+            if (version < 12)
+            {
+                if (m_MasterData != null && (int)m_MasterData.m_Space == int.MaxValue)
+                {
+                    m_MasterData.m_Space = VFXSpace.None;
+                }
+            }
 
             //PropagateToChildrenReverse(c => c.InternalSanitize(version), false); //Not possible because collection could be modified while sanitizing
             var slotToSanitize = new List<VFXSlot>();
@@ -975,12 +983,12 @@ namespace UnityEditor.VFX
 
             var toInvalidate = new HashSet<VFXSlot>();
 
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : VFXCoordinateSpace.None);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : VFXSpace.None);
             masterSlot.PropagateToChildren(s =>
             {
                 var exp = s.ExpressionToChildren(s.m_OutExpression);
                 for (int i = 0; i < s.GetNbChildren(); ++i)
-                    s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : VFXCoordinateSpace.None);
+                    s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : VFXSpace.None);
             });
 
             foreach (var slot in toInvalidate)
@@ -1013,20 +1021,18 @@ namespace UnityEditor.VFX
             return exp;
         }
 
-        private VFXExpression ConvertSpace(VFXExpression input, VFXCoordinateSpace destSpace)
+        private VFXExpression ConvertSpace(VFXExpression input, VFXSpace destSpace)
         {
             if (spaceable)
-            {
                 if (space != destSpace)
                 {
                     var spaceType = GetSpaceTransformationType();
                     input = ConvertSpace(input, space, spaceType, destSpace);
                 }
-            }
             return input;
         }
 
-        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace)
+        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXSpace convertToSpace)
         {
             exp = m_Property.attributes.ApplyToExpressionGraph(exp);
             exp = ConvertSpace(exp, convertToSpace);
@@ -1202,12 +1208,12 @@ namespace UnityEditor.VFX
         {
             public MasterData()
             {
-                m_Space = VFXCoordinateSpace.None;
+                m_Space = VFXSpace.None;
             }
 
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
-            public VFXCoordinateSpace m_Space;
+            public VFXSpace m_Space;
         }
 
         private void SetMasterSlotAndData(VFXSlot masterSlot, MasterData masterData)

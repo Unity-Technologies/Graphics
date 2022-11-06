@@ -154,10 +154,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             if (slot.name == nameof(InputPropertiesBounds.bounds))
-                return VFXCoordinateSpace.Local;
+                return VFXSpace.Local;
             return base.GetOutputSpaceFromSlot(slot);
         }
 

@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Test
         }
 
 #pragma warning disable 0414
-        private static VFXCoordinateSpace[] available_Space = { VFXCoordinateSpace.Local, VFXCoordinateSpace.World };
+        private static VFXSpace[] available_Space = { VFXSpace.Local, VFXSpace.World };
 #pragma warning restore 0414
 
         [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14714")]
@@ -55,8 +55,8 @@ namespace UnityEditor.VFX.Test
             basicUpdate.LinkFrom(basicInitialize);
             quadOutput.LinkFrom(basicUpdate);
 
-            basicInitialize.space = (VFXCoordinateSpace)systemSpace;
-            basicInitialize.inputSlots[0].space = (VFXCoordinateSpace)boundSpace;
+            basicInitialize.space = (VFXSpace)systemSpace;
+            basicInitialize.inputSlots[0].space = (VFXSpace)boundSpace;
             basicInitialize.inputSlots[0][0].value = boundPosition;
             basicInitialize.inputSlots[0][1].value = Vector3.one * 5.0f;
 
@@ -82,21 +82,21 @@ namespace UnityEditor.VFX.Test
 
             var renderer = vfxComponent.GetComponent<VFXRenderer>();
             var parentFromCenter = VFXSpacePropagationTest.CollectParentExpression(basicInitialize.inputSlots[0][0].GetExpression()).ToArray();
-            if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.Local && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.Local)
+            if ((VFXSpace)systemSpace == VFXSpace.Local && (VFXSpace)boundSpace == VFXSpace.Local)
             {
                 Assert.IsFalse(parentFromCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
                 Assert.AreEqual(boundPosition.x + objectPosition.x, renderer.bounds.center.x, 0.0001);
                 Assert.AreEqual(boundPosition.y + objectPosition.y, renderer.bounds.center.y, 0.0001);
                 Assert.AreEqual(boundPosition.z + objectPosition.z, renderer.bounds.center.z, 0.0001);
             }
-            else if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.World && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.Local)
+            else if ((VFXSpace)systemSpace == VFXSpace.World && (VFXSpace)boundSpace == VFXSpace.Local)
             {
                 Assert.IsFalse(parentFromCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
                 Assert.AreEqual(boundPosition.x + objectPosition.x, renderer.bounds.center.x, 0.0001);
                 Assert.AreEqual(boundPosition.y + objectPosition.y, renderer.bounds.center.y, 0.0001);
                 Assert.AreEqual(boundPosition.z + objectPosition.z, renderer.bounds.center.z, 0.0001);
             }
-            else if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.World && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.World)
+            else if ((VFXSpace)systemSpace == VFXSpace.World && (VFXSpace)boundSpace == VFXSpace.World)
             {
                 Assert.IsTrue(parentFromCenter.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
                 //object position has no influence in that case
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(boundPosition.y, renderer.bounds.center.y, 0.0001);
                 Assert.AreEqual(boundPosition.z, renderer.bounds.center.z, 0.0001);
             }
-            else if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.Local && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.World)
+            else if ((VFXSpace)systemSpace == VFXSpace.Local && (VFXSpace)boundSpace == VFXSpace.World)
             {
                 Assert.IsTrue(parentFromCenter.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
                 //object position has no influence in that case

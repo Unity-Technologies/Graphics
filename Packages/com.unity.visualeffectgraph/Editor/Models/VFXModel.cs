@@ -437,19 +437,20 @@ namespace UnityEditor.VFX
             return input;
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, VFXCoordinateSpace srcSpace, SpaceableType dstSpaceType, VFXCoordinateSpace dstSpace)
+        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSpace srcSpace, SpaceableType dstSpaceType, VFXSpace dstSpace)
         {
-            if (dstSpace == VFXCoordinateSpace.None || srcSpace == VFXCoordinateSpace.None)
+            if (dstSpace == VFXSpace.None || srcSpace == VFXSpace.None)
             {
                 return input;
             }
 
+
             VFXExpression matrix = null;
-            if (dstSpace == VFXCoordinateSpace.Local)
+            if (dstSpace == VFXSpace.Local)
             {
                 matrix = VFXBuiltInExpression.WorldToLocal;
             }
-            else if (dstSpace == VFXCoordinateSpace.World)
+            else if (dstSpace == VFXSpace.World)
             {
                 matrix = VFXBuiltInExpression.LocalToWorld;
             }
@@ -460,14 +461,14 @@ namespace UnityEditor.VFX
             return TransformExpression(input, dstSpaceType, matrix);
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
+        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXSpace space)
         {
             VFXExpression matrix = null;
-            if (space == VFXCoordinateSpace.Local)
+            if (space == VFXSpace.Local)
             {
                 matrix = VFXBuiltInExpression.WorldToLocal;
             }
-            else if (space == VFXCoordinateSpace.World)
+            else if (space == VFXSpace.World)
             {
                 matrix = VFXBuiltInExpression.LocalToWorld;
             }

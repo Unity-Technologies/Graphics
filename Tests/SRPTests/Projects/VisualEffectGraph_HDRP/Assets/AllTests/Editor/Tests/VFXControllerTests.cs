@@ -358,17 +358,17 @@ namespace UnityEditor.VFX.Test
             var inlineOperatorController = allController.OfType<VFXOperatorController>().FirstOrDefault();
             inlineOperator.SetSettingValue("m_Type", (SerializableType)typeof(Position));
 
-            Assert.AreEqual(inlineOperator.inputSlots[0].space, VFXCoordinateSpace.Local);
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual(inlineOperator.inputSlots[0].space, VFXSpace.Local);
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
 
             Undo.IncrementCurrentGroup();
-            inlineOperator.inputSlots[0].space = VFXCoordinateSpace.World;
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.World);
+            inlineOperator.inputSlots[0].space = VFXSpace.World;
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.World);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
 
             Undo.PerformUndo(); //Should go back to local
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
         }
 

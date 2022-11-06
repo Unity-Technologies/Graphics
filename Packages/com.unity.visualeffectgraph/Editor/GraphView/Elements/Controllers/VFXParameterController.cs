@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.UI
         }
         IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
 
-        VFXCoordinateSpace IPropertyRMProvider.space
+        VFXSpace IPropertyRMProvider.space
         {
             get
             {
@@ -201,7 +201,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
 
-        VFXCoordinateSpace IPropertyRMProvider.space { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        VFXSpace IPropertyRMProvider.space { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         string IPropertyRMProvider.name => "Enum Values";
 
@@ -299,7 +299,7 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
@@ -918,7 +918,7 @@ namespace UnityEditor.VFX.UI
         }
 
         public int depth { get { return 0; } }
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
@@ -987,7 +987,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller.value; }
         }
 
-        public override VFXCoordinateSpace space
+        public override VFXSpace space
         {
             get
             {

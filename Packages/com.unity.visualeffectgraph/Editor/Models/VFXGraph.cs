@@ -370,7 +370,8 @@ namespace UnityEditor.VFX
         // 9: Update HDRP decal angle fade encoding
         // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
         // 11: Instancing
-        public static readonly int CurrentVersion = 11;
+        // 12: Change space value of VFXSpace.None from 'int.MaxValue' to '-1'
+        public static readonly int CurrentVersion = 12;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;

@@ -41,6 +41,15 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void SpaceEnumValue_Are_Fixed()
+        {
+            //The Space Enum are serialized in VFXSlot, we shouldn't modify it without migration solution.
+            Assert.AreEqual(-1, (int)VFXSpace.None);
+            Assert.AreEqual(0, (int)VFXSpace.Local);
+            Assert.AreEqual(1, (int)VFXSpace.World);
+        }
+
+        [Test]
         public void Sphere_Type_Should_Be_Spaceable()
         {
             var inline = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -56,12 +65,12 @@ namespace UnityEditor.VFX.Test
             add.SetOperandType(1, typeof(Position));
 
             Assert.AreEqual(add.outputSlots[0].property.type, typeof(Position));
-            Assert.AreEqual(add.outputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual(add.outputSlots[0].space, VFXSpace.Local);
 
-            add.inputSlots[0].space = VFXCoordinateSpace.World;
-            Assert.AreEqual(add.inputSlots[0].space, VFXCoordinateSpace.World);
-            Assert.AreEqual(add.inputSlots[1].space, VFXCoordinateSpace.Local);
-            Assert.AreEqual(add.outputSlots[0].space, VFXCoordinateSpace.World);
+            add.inputSlots[0].space = VFXSpace.World;
+            Assert.AreEqual(add.inputSlots[0].space, VFXSpace.World);
+            Assert.AreEqual(add.inputSlots[1].space, VFXSpace.Local);
+            Assert.AreEqual(add.outputSlots[0].space, VFXSpace.World);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var result = context.Compile(add.outputSlots[0].GetExpression());
@@ -80,8 +89,8 @@ namespace UnityEditor.VFX.Test
                 return inputs.Select(o => o.ToString()).Aggregate((a, b) => string.Format("{0}, {1}", a, b));
             }
 
-            internal VFXCoordinateSpace[] inputs;
-            internal VFXCoordinateSpace output;
+            internal VFXSpace[] inputs;
+            internal VFXSpace output;
             internal bool expectLocalToWorld;
             internal bool expectWorldToLocal;
         }
@@ -90,50 +99,50 @@ namespace UnityEditor.VFX.Test
         {
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.Local },
-                output = VFXCoordinateSpace.Local,
+                inputs = new VFXSpace[] { VFXSpace.Local, VFXSpace.Local },
+                output = VFXSpace.Local,
                 expectLocalToWorld = false,
                 expectWorldToLocal = false
             },
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.World },
-                output = VFXCoordinateSpace.World,
+                inputs = new VFXSpace[] { VFXSpace.Local, VFXSpace.World },
+                output = VFXSpace.World,
                 expectLocalToWorld = true,
                 expectWorldToLocal = false
             },
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.World, VFXCoordinateSpace.Local },
-                output = VFXCoordinateSpace.World,
+                inputs = new VFXSpace[] { VFXSpace.World, VFXSpace.Local },
+                output = VFXSpace.World,
                 expectLocalToWorld = true,
                 expectWorldToLocal = false
             },
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.Local, VFXCoordinateSpace.None },
-                output = VFXCoordinateSpace.Local,
+                inputs = new VFXSpace[] { VFXSpace.Local, VFXSpace.Local, VFXSpace.None },
+                output = VFXSpace.Local,
                 expectLocalToWorld = false,
                 expectWorldToLocal = false
             },
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.World, VFXCoordinateSpace.None },
-                output = VFXCoordinateSpace.World,
+                inputs = new VFXSpace[] { VFXSpace.Local, VFXSpace.World, VFXSpace.None },
+                output = VFXSpace.World,
                 expectLocalToWorld = true,
                 expectWorldToLocal = false
             },
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.World, VFXCoordinateSpace.Local, VFXCoordinateSpace.None },
-                output = VFXCoordinateSpace.World,
+                inputs = new VFXSpace[] { VFXSpace.World, VFXSpace.Local, VFXSpace.None },
+                output = VFXSpace.World,
                 expectLocalToWorld = true,
                 expectWorldToLocal = false
             },
             new SpaceConversionCase()
             {
-                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.None, VFXCoordinateSpace.None, VFXCoordinateSpace.None },
-                output = VFXCoordinateSpace.None,
+                inputs = new VFXSpace[] { VFXSpace.None, VFXSpace.None, VFXSpace.None },
+                output = VFXSpace.None,
                 expectLocalToWorld = false,
                 expectWorldToLocal = false
             }
@@ -154,7 +163,7 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < spaceConversion.inputs.Length; ++i)
             {
                 Assert.AreEqual(add.inputSlots[i].property.type, typeof(Position));
-                Assert.AreEqual(add.inputSlots[i].space, VFXCoordinateSpace.Local);
+                Assert.AreEqual(add.inputSlots[i].space, VFXSpace.Local);
 
                 add.inputSlots[i].space = spaceConversion.inputs[i];
 
@@ -192,17 +201,17 @@ namespace UnityEditor.VFX.Test
             position_A.SetSettingValue("m_Type", (SerializableType)type);
             position_B.SetSettingValue("m_Type", (SerializableType)type);
 
-            position_A.inputSlots[0].space = VFXCoordinateSpace.World;
-            Assert.AreEqual(VFXCoordinateSpace.World, position_A.outputSlots[0].space);
+            position_A.inputSlots[0].space = VFXSpace.World;
+            Assert.AreEqual(VFXSpace.World, position_A.outputSlots[0].space);
 
-            position_B.inputSlots[0].space = VFXCoordinateSpace.Local;
-            Assert.AreEqual(VFXCoordinateSpace.Local, position_B.outputSlots[0].space);
+            position_B.inputSlots[0].space = VFXSpace.Local;
+            Assert.AreEqual(VFXSpace.Local, position_B.outputSlots[0].space);
 
             position_B.inputSlots[0].Link(position_A.outputSlots[0]);
-            Assert.AreEqual(VFXCoordinateSpace.World, position_B.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, position_B.outputSlots[0].space);
 
-            position_A.inputSlots[0].space = VFXCoordinateSpace.Local;
-            Assert.AreEqual(VFXCoordinateSpace.Local, position_B.outputSlots[0].space);
+            position_A.inputSlots[0].space = VFXSpace.Local;
+            Assert.AreEqual(VFXSpace.Local, position_B.outputSlots[0].space);
         }
 
         [Test]
@@ -221,7 +230,7 @@ namespace UnityEditor.VFX.Test
             var allExprCenter = CollectParentExpression(resultCenter).ToArray();
             Assert.IsFalse(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal)); //everything is within the same space by default
 
-            arcSphere.inputSlots[0].space = VFXCoordinateSpace.World;
+            arcSphere.inputSlots[0].space = VFXSpace.World;
 
             resultCenter = context.Compile(arcSphere.inputSlots[0][0][0].GetExpression());
             allExprCenter = CollectParentExpression(resultCenter).ToArray();
@@ -238,14 +247,14 @@ namespace UnityEditor.VFX.Test
             sphere_A.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
             sphere_B.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
 
-            sphere_A.inputSlots[0].space = VFXCoordinateSpace.World;
-            sphere_B.inputSlots[0].space = VFXCoordinateSpace.Local;
+            sphere_A.inputSlots[0].space = VFXSpace.World;
+            sphere_B.inputSlots[0].space = VFXSpace.Local;
 
-            Assert.AreEqual(VFXCoordinateSpace.World, sphere_A.outputSlots[0].space);
-            Assert.AreEqual(VFXCoordinateSpace.Local, sphere_B.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, sphere_A.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, sphere_B.outputSlots[0].space);
 
             sphere_B.inputSlots[0][1].Link(sphere_A.outputSlots[0][1]); //link radius to other radius
-            Assert.AreEqual(VFXCoordinateSpace.Local, sphere_B.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, sphere_B.outputSlots[0].space);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultCenter = context.Compile(sphere_B.outputSlots[0][0].GetExpression());
@@ -268,15 +277,15 @@ namespace UnityEditor.VFX.Test
             sphere_B.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
 
             sphere_A.inputSlots[0][0].value = new Vector3(1, 2, 3);
-            sphere_A.inputSlots[0].space = VFXCoordinateSpace.World;
+            sphere_A.inputSlots[0].space = VFXSpace.World;
             sphere_B.inputSlots[0][0].value = new Vector3(4, 5, 6);
-            sphere_B.inputSlots[0].space = VFXCoordinateSpace.Local;
+            sphere_B.inputSlots[0].space = VFXSpace.Local;
 
-            Assert.AreEqual(VFXCoordinateSpace.World, sphere_A.outputSlots[0].space);
-            Assert.AreEqual(VFXCoordinateSpace.Local, sphere_B.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, sphere_A.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, sphere_B.outputSlots[0].space);
 
             sphere_B.inputSlots[0][0].Link(sphere_A.outputSlots[0][0]); //link sphere center to other sphere center
-            Assert.AreEqual(VFXCoordinateSpace.Local, sphere_B.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, sphere_B.outputSlots[0].space);
 
             var allExprCenter = CollectParentExpression(sphere_B.outputSlots[0][0].GetExpression()).ToArray();
             var allExprRadius = CollectParentExpression(sphere_B.outputSlots[0][1].GetExpression()).ToArray();
@@ -295,9 +304,9 @@ namespace UnityEditor.VFX.Test
             position_B.SetSettingValue("m_Type", (SerializableType)typeof(Position));
 
             position_A.inputSlots[0][0].value = new Vector3(1, 2, 3);
-            position_A.inputSlots[0].space = VFXCoordinateSpace.World;
+            position_A.inputSlots[0].space = VFXSpace.World;
             position_B.inputSlots[0][0].value = new Vector3(4, 5, 6);
-            position_B.inputSlots[0].space = VFXCoordinateSpace.Local;
+            position_B.inputSlots[0].space = VFXSpace.Local;
 
             for (int i = 0; i < 3; ++i)
             {
@@ -306,8 +315,8 @@ namespace UnityEditor.VFX.Test
 
             var allExprPosition = CollectParentExpression(position_B.outputSlots[0][0].GetExpression()).ToArray();
 
-            Assert.AreEqual(VFXCoordinateSpace.World, position_A.outputSlots[0].space);
-            Assert.AreEqual(VFXCoordinateSpace.Local, position_B.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, position_A.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, position_B.outputSlots[0].space);
             Assert.IsFalse(allExprPosition.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
         }
 
@@ -321,28 +330,28 @@ namespace UnityEditor.VFX.Test
             position_B.SetSettingValue("m_Type", (SerializableType)typeof(Position));
 
             position_A.inputSlots[0][0].value = new Vector3(1, 2, 3);
-            position_A.inputSlots[0].space = VFXCoordinateSpace.World;
+            position_A.inputSlots[0].space = VFXSpace.World;
             position_B.inputSlots[0][0].value = new Vector3(4, 5, 6);
-            position_B.inputSlots[0].space = VFXCoordinateSpace.Local;
+            position_B.inputSlots[0].space = VFXSpace.Local;
 
             var line = ScriptableObject.CreateInstance<VFXInlineOperator>();
             line.SetSettingValue("m_Type", (SerializableType)typeof(Line));
 
-            line.inputSlots[0].space = VFXCoordinateSpace.Local;
+            line.inputSlots[0].space = VFXSpace.Local;
             line.inputSlots[0][0].Link(position_A.outputSlots[0]);
             line.inputSlots[0][1].Link(position_B.outputSlots[0]);
 
             var lineOutputSlotA = CollectParentExpression(line.outputSlots[0][0].GetExpression()).ToArray();
             var lineOutputSlotB = CollectParentExpression(line.outputSlots[0][1].GetExpression()).ToArray();
 
-            Assert.AreEqual(line.inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual(line.inputSlots[0].space, VFXSpace.Local);
             Assert.IsTrue(lineOutputSlotA.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
             Assert.IsFalse(lineOutputSlotB.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
 
-            line.inputSlots[0].space = VFXCoordinateSpace.World;
+            line.inputSlots[0].space = VFXSpace.World;
             lineOutputSlotA = CollectParentExpression(line.outputSlots[0][0].GetExpression()).ToArray();
             lineOutputSlotB = CollectParentExpression(line.outputSlots[0][1].GetExpression()).ToArray();
-            Assert.AreEqual(line.inputSlots[0].space, VFXCoordinateSpace.World);
+            Assert.AreEqual(line.inputSlots[0].space, VFXSpace.World);
             Assert.IsFalse(lineOutputSlotA.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
             Assert.IsTrue(lineOutputSlotB.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
         }
@@ -360,7 +369,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsFalse(slotSpherePositionExpressions.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
 
             //Now switch space of block
-            initializeContext.space = VFXCoordinateSpace.World;
+            initializeContext.space = VFXSpace.World;
             slotSpherePositionExpressions = CollectParentExpression(positionSphere.inputSlots[0][0][0].GetExpression()).ToArray();
             Assert.IsTrue(slotSpherePositionExpressions.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
         }
@@ -383,7 +392,7 @@ namespace UnityEditor.VFX.Test
             var startUndoGroupId = Undo.GetCurrentGroup();
 
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            updateContext.space = VFXCoordinateSpace.World;
+            updateContext.space = VFXSpace.World;
             viewController.AddVFXModel(Vector2.zero, updateContext);
             viewController.ApplyChanges();
             viewController.ForceReload();
@@ -392,7 +401,7 @@ namespace UnityEditor.VFX.Test
             var contextController = viewController.allChildren.OfType<VFXContextController>().First();
             contextController.AddBlock(0, collision, true);
 
-            Assert.IsTrue(collision.inputSlots.Where(o => o.spaceable).All(o => o.space == VFXCoordinateSpace.World));
+            Assert.IsTrue(collision.inputSlots.Where(o => o.spaceable).All(o => o.space == VFXSpace.World));
 
             viewController.useCount--;
             Undo.RevertAllDownToGroup(startUndoGroupId);
@@ -411,22 +420,22 @@ namespace UnityEditor.VFX.Test
 
             //Local => Local
             var slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
-            Assert.AreEqual(VFXCoordinateSpace.Local, transformSpace.inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, transformSpace.inputSlots[0].space);
             Assert.IsFalse(slotVectorExpression.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
 
             //World => Local
-            transformSpace.inputSlots[0].space = VFXCoordinateSpace.World;
+            transformSpace.inputSlots[0].space = VFXSpace.World;
             slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
             Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 0);
             Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
 
             //World => World
-            transformSpace.SetSettingValue("m_targetSpace", VFXCoordinateSpace.World);
+            transformSpace.SetSettingValue("m_targetSpace", VFXSpace.World);
             slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
             Assert.IsFalse(slotVectorExpression.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
 
             //Local => World
-            transformSpace.inputSlots[0].space = VFXCoordinateSpace.Local;
+            transformSpace.inputSlots[0].space = VFXSpace.Local;
             slotVectorExpression = CollectParentExpression(inlineVector.outputSlots[0].GetExpression()).ToArray();
             Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.LocalToWorld) == 1);
             Assert.IsTrue(slotVectorExpression.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 0);
@@ -437,7 +446,7 @@ namespace UnityEditor.VFX.Test
         {
             var transformSpace = ScriptableObject.CreateInstance<ChangeSpace>();
             transformSpace.SetOperandType(typeof(DirectionType));
-            transformSpace.SetSettingValue("m_targetSpace", VFXCoordinateSpace.World);
+            transformSpace.SetSettingValue("m_targetSpace", VFXSpace.World);
             var expressions = CollectParentExpression(transformSpace.outputSlots[0].GetExpression()).ToArray();
             Assert.IsTrue(expressions.Count(o => o is VFXExpressionTransformDirection) == 1);
         }
@@ -447,7 +456,7 @@ namespace UnityEditor.VFX.Test
         {
             var transformSpace = ScriptableObject.CreateInstance<ChangeSpace>();
             transformSpace.SetOperandType(typeof(Vector));
-            transformSpace.SetSettingValue("m_targetSpace", VFXCoordinateSpace.World);
+            transformSpace.SetSettingValue("m_targetSpace", VFXSpace.World);
             var expressions = CollectParentExpression(transformSpace.outputSlots[0].GetExpression()).ToArray();
             Assert.IsTrue(expressions.Count(o => o is VFXExpressionTransformVector) == 1);
         }
@@ -467,9 +476,9 @@ namespace UnityEditor.VFX.Test
             position.outputSlots[0].Link(vector.inputSlots[0]);
             vector.outputSlots[0].Link(direction.inputSlots[0]);
 
-            Assert.AreEqual(VFXCoordinateSpace.Local, direction.outputSlots[0].space);
-            position.inputSlots[0].space = VFXCoordinateSpace.World;
-            Assert.AreEqual(VFXCoordinateSpace.World, direction.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, direction.outputSlots[0].space);
+            position.inputSlots[0].space = VFXSpace.World;
+            Assert.AreEqual(VFXSpace.World, direction.outputSlots[0].space);
         }
 
         [Test]
@@ -477,7 +486,7 @@ namespace UnityEditor.VFX.Test
         {
             var mainCamera = ScriptableObject.CreateInstance<MainCamera>();
             mainCamera.Invalidate(VFXModel.InvalidationCause.kUIChanged);
-            Assert.AreEqual(VFXCoordinateSpace.World, mainCamera.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, mainCamera.outputSlots[0].space);
             foreach (var slot in mainCamera.outputSlots[0].GetExpressionSlots())
             {
                 var expressions = CollectParentExpression(slot.GetExpression()).ToArray();
@@ -494,14 +503,14 @@ namespace UnityEditor.VFX.Test
 
             float trackValue = 1.234f;
 
-            switchOp.inputSlots[1].space = VFXCoordinateSpace.Local;
+            switchOp.inputSlots[1].space = VFXSpace.Local;
             switchOp.inputSlots[1].value = new Vector() {vector = new Vector3(trackValue, trackValue, trackValue) };
-            switchOp.inputSlots[2].space = VFXCoordinateSpace.World;
+            switchOp.inputSlots[2].space = VFXSpace.World;
             switchOp.inputSlots[2].value = new Vector() {vector = new Vector3(2.456f, 2.456f, 2.456f)};
-            switchOp.inputSlots[3].space = VFXCoordinateSpace.None;
+            switchOp.inputSlots[3].space = VFXSpace.None;
             switchOp.inputSlots[3].value = new Vector() {vector = new Vector3(3.789f, 3.789f, 3.789f)};
 
-            Assert.AreEqual(VFXCoordinateSpace.World, switchOp.outputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, switchOp.outputSlots[0].space);
 
             var expressions = CollectParentExpression(switchOp.outputSlots[0].GetExpression()).ToArray();
             Assert.AreEqual(1, expressions.Count(o => o.operation == VFXExpressionOperation.LocalToWorld));
@@ -528,7 +537,7 @@ namespace UnityEditor.VFX.Test
             var projectOnDepth = ScriptableObject.CreateInstance<Block.PositionDepth>();
             projectOnDepth.SetSettingValue("camera", CameraMode.Custom);
 
-            initialize.space = VFXCoordinateSpace.World;
+            initialize.space = VFXSpace.World;
             mainCamera.outputSlots[0].Link(projectOnDepth.inputSlots[0]);
             initialize.AddChild(projectOnDepth);
 
@@ -549,7 +558,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.ExtractMatrixFromMainCamera));
             Assert.IsFalse(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.WorldToLocal || o.operation == VFXExpressionOperation.LocalToWorld));
 
-            initialize.space = VFXCoordinateSpace.Local;
+            initialize.space = VFXSpace.Local;
 
             expressionSlotMatrix = CollectParentExpression(slotMatrixMainCameraOutput.GetExpression()).ToArray();
             Assert.IsTrue(expressionSlotMatrix.Any(o => o.operation == VFXExpressionOperation.ExtractMatrixFromMainCamera));
@@ -569,11 +578,11 @@ namespace UnityEditor.VFX.Test
             var slot = branch.inputSlots[1];
             Assert.AreEqual(typeof(Sphere), slot.property.type);
 
-            slot.space = VFXCoordinateSpace.World;
-            Assert.AreEqual(VFXCoordinateSpace.World, slot.space);
+            slot.space = VFXSpace.World;
+            Assert.AreEqual(VFXSpace.World, slot.space);
             slot.AddChild(VFXSlot.Create(new VFXProperty(typeof(float), "hacked"), VFXSlot.Direction.kInput), -1, false);
             slot.Sanitize(-1);
-            Assert.AreEqual(VFXCoordinateSpace.World, branch.inputSlots[1].space);
+            Assert.AreEqual(VFXSpace.World, branch.inputSlots[1].space);
         }
 
         #pragma warning disable 0414
@@ -589,8 +598,8 @@ namespace UnityEditor.VFX.Test
             var slot = branch.inputSlots[1];
             Assert.AreEqual(typeof(ArcSphere), slot.property.type);
 
-            slot.space = VFXCoordinateSpace.World;
-            Assert.AreEqual(VFXCoordinateSpace.World, slot.space);
+            slot.space = VFXSpace.World;
+            Assert.AreEqual(VFXSpace.World, slot.space);
 
             var slotToHack = hackChildSphere ? slot : slot.children.First();
             slotToHack.AddChild(VFXSlot.Create(new VFXProperty(typeof(float), "hacked"), VFXSlot.Direction.kInput), -1, false);
@@ -604,7 +613,7 @@ namespace UnityEditor.VFX.Test
                 slot.children.First().Sanitize(-1);
                 slot.Sanitize(-1);
             }
-            Assert.AreEqual(VFXCoordinateSpace.World, branch.inputSlots[1].space);
+            Assert.AreEqual(VFXSpace.World, branch.inputSlots[1].space);
         }
 
         [Test]
@@ -612,11 +621,11 @@ namespace UnityEditor.VFX.Test
         {
             var inlineOpSphere = ScriptableObject.CreateInstance<VFXInlineOperator>();
             inlineOpSphere.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
-            inlineOpSphere.inputSlots[0].space = VFXCoordinateSpace.World;
+            inlineOpSphere.inputSlots[0].space = VFXSpace.World;
 
             var inlineOpArcSphere = ScriptableObject.CreateInstance<VFXInlineOperator>();
             inlineOpArcSphere.SetSettingValue("m_Type", (SerializableType)typeof(ArcSphere));
-            inlineOpArcSphere.inputSlots[0].space = VFXCoordinateSpace.Local;
+            inlineOpArcSphere.inputSlots[0].space = VFXSpace.Local;
 
             inlineOpSphere.outputSlots[0].Link(inlineOpArcSphere.inputSlots[0][0]);
             Assert.IsTrue(inlineOpSphere.outputSlots[0].HasLink());

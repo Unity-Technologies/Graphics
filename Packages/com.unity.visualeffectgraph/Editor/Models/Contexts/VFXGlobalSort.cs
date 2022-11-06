@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            var localSpace = ((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local;
+            var localSpace = ((VFXDataParticle)GetData()).space == VFXSpace.Local;
             if (localSpace && target == VFXDeviceTarget.GPU) // Needs to add locaToWorld matrix
             {
                 var gpuMapper = new VFXExpressionMapper();

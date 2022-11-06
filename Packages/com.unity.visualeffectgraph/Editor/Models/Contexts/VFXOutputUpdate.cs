@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
@@ -131,7 +132,7 @@ namespace UnityEditor.VFX
                         Debug.LogError("CurrentFrameIndex isn't reachable in encapsulatedOutput for motionVector");
                 }
 
-                var localSpace = ((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local;
+                var localSpace = ((VFXDataParticle)GetData()).space == VFXSpace.Local;
                 if (localSpace)
                 {
                     //Since it's a compute shader without renderer associated, these entries aren't automatically sent

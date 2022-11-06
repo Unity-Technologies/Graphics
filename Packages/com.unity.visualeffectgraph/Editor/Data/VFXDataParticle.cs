@@ -409,7 +409,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get { return m_Space; }
             set { m_Space = value; Modified(false); }
@@ -886,7 +886,7 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemAutomaticBounds;
             }
 
-            if (space == VFXCoordinateSpace.World)
+            if (space == VFXSpace.World)
             {
                 systemFlag |= VFXSystemFlag.SystemInWorldSpace;
             }
@@ -1369,6 +1369,13 @@ namespace UnityEditor.VFX
             {
                 SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
+
+            if (version < 12 && (int)m_Space == int.MaxValue)
+            {
+                m_Space = VFXSpace.None;
+                Debug.LogError("Unexpected space none detected in VFXDataParticle");
+            }
+
             base.Sanitize(version);
         }
 
@@ -1389,7 +1396,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        private VFXCoordinateSpace m_Space; // TODO Should be an actual setting
+        private VFXSpace m_Space; // TODO Should be an actual setting
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]

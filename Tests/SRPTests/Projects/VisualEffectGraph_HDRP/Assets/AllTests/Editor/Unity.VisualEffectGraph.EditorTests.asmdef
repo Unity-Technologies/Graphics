@@ -6,6 +6,7 @@
         "Unity.ShaderGraph.Editor",
         "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Timeline",

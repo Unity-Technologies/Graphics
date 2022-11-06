@@ -285,6 +285,66 @@ namespace UnityEditor.VFX.Test
 
         }
 
+        [UnityTest]
+        public IEnumerator CreateComponent_With_Spaceable_Properties()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var coneParameter = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant() == "cone");
+            Assert.IsNotNull(coneParameter);
+
+            //Basic spaceable parameter
+            var baseName = "my_exposed_cone_";
+            var availableSpace = Enum.GetValues(typeof(VFXSpace)).Cast<VFXSpace>().ToArray();
+            var expectedSpaceCount = 3;
+            Assert.AreEqual(expectedSpaceCount, availableSpace.Count());
+            foreach (var space in availableSpace)
+            {
+                var parameter = coneParameter.CreateInstance();
+                parameter.SetSettingValue("m_ExposedName", baseName + space.ToString().ToLowerInvariant());
+                parameter.SetSettingValue("m_Exposed", true);
+                parameter.outputSlots[0].space = space;
+                graph.AddChild(parameter);
+            }
+
+            //Other parameter (not spaceable)
+            var intDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant().Contains("int"));
+            Assert.IsNotNull(intDesc);
+            var parameterInteger = intDesc.CreateInstance();
+            parameterInteger.SetSettingValue("m_ExposedName", "my_exposed_integer");
+            parameterInteger.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameterInteger);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var visualEffectAsset = graph.visualEffectResource.asset;
+
+            var exposedProperties = new List<VFXExposedProperty>();
+            visualEffectAsset.GetExposedProperties(exposedProperties);
+            var valueCountInCone = 6;
+            Assert.AreEqual(valueCountInCone * expectedSpaceCount + 1, exposedProperties.Count);
+
+            foreach (var exposedProperty in exposedProperties)
+            {
+                var readSpace = visualEffectAsset.GetExposedSpace(exposedProperty.name);
+                var expectedSpace = VFXSpace.None;
+                foreach (var space in availableSpace)
+                {
+                    //There is a mix of exposed properties in this test component
+                    //The name indicates the expected space if mentioned
+                    //If not in name, then, it wasn't a spaceable property
+                    if (exposedProperty.name.IndexOf(space.ToString(),
+                            StringComparison.InvariantCultureIgnoreCase) > 0)
+                    {
+                        expectedSpace = space;
+                        break;
+                    }
+                }
+                Assert.AreEqual(readSpace, expectedSpace);
+            }
+            yield return null;
+        }
+
         public enum GraphicsBufferResetCase
         {
             Reinit,

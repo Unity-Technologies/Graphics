@@ -187,7 +187,7 @@ namespace UnityEditor.VFX
             {
                 var spaceable = context.GetData() as ISpaceable;
                 defineSpaceDescriptorContent =
-                    $"#define {(spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE")} 1";
+                    $"#define {(spaceable.space == VFXSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE")} 1";
             }
             defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
 

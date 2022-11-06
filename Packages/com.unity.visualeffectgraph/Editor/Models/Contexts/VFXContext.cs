@@ -617,7 +617,7 @@ namespace UnityEditor.VFX
 
         public char letter { get; set; }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return space;
         }
@@ -630,7 +630,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
@@ -638,7 +638,7 @@ namespace UnityEditor.VFX
                 {
                     return (m_Data as ISpaceable).space;
                 }
-                return VFXCoordinateSpace.None;
+                return VFXSpace.None;
             }
 
             set

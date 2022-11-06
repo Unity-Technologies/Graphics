@@ -49,8 +49,8 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     enum ContextSpace
     {
-        Local = VFXCoordinateSpace.Local,
-        World = VFXCoordinateSpace.World
+        Local = VFXSpace.Local,
+        World = VFXSpace.World
     }
 
     protected void DisplaySpace()

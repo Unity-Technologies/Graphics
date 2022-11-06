@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
             return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
-        private VFXCoordinateSpace space
+        private VFXSpace space
         {
             get
             {
@@ -62,12 +62,12 @@ namespace UnityEditor.VFX.UI
 
         void ChangeSpace(object val)
         {
-            space = (VFXCoordinateSpace)val;
+            space = (VFXSpace)val;
         }
 
         void OnButtonClick()
         {
-            var values = (VFXCoordinateSpace[])Enum.GetValues(space.GetType());
+            var values = (VFXSpace[])Enum.GetValues(space.GetType());
 
             if (s_UseDropDownMenu)
             {
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            foreach (string name in Enum.GetNames(typeof(VFXCoordinateSpace)))
+            foreach (string name in Enum.GetNames(typeof(VFXSpace)))
             {
                 if (space.ToString() != name)
                     m_Button.RemoveFromClassList("space" + name);

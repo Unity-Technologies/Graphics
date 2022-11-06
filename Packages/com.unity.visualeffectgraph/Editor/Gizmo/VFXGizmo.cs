@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
         protected const float handleSize = 0.1f;
         protected const float arcHandleSizeMultiplier = 1.25f;
 
-        public VFXCoordinateSpace currentSpace { get; set; }
+        public VFXSpace currentSpace { get; set; }
         public VisualEffect component { get; set; }
         public int currentHashCode { get; set; }
 
@@ -396,7 +396,7 @@ namespace UnityEditor.VFX
                 return;
 
             var oldMatrix = Handles.matrix;
-            if (currentSpace == VFXCoordinateSpace.Local)
+            if (currentSpace == VFXSpace.Local)
             {
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
@@ -412,7 +412,7 @@ namespace UnityEditor.VFX
         public override Bounds OnGetGizmoBounds(T value)
         {
             Bounds bounds = OnGetSpacedGizmoBounds(value);
-            if (currentSpace == VFXCoordinateSpace.Local)
+            if (currentSpace == VFXSpace.Local)
             {
                 if (component == null)
                     return new Bounds();
@@ -428,12 +428,12 @@ namespace UnityEditor.VFX
             get
             {
                 var currentError = base.error;
-                var needsComponent = currentSpace == VFXCoordinateSpace.Local;
+                var needsComponent = currentSpace == VFXSpace.Local;
 
                 if (needsComponent && component == null)
                     currentError |= GizmoError.NeedComponent;
 
-                if (currentSpace == VFXCoordinateSpace.None)
+                if (currentSpace == VFXSpace.None)
                     currentError |= GizmoError.NeedExplicitSpace;
 
                 return currentError;

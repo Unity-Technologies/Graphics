@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -136,9 +137,9 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
 
-                VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
+                VFXSpace systemSpace = ((VFXDataParticle)GetData()).space;
                 // in custom camera mode, camera space is already in system space (conversion happened in slot)
-                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, camera == CameraMode.Main ? VFXCoordinateSpace.World : systemSpace, systemSpace);
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, camera == CameraMode.Main ? VFXSpace.World : systemSpace, systemSpace);
 
                 // Filter unused expressions
                 expressions = expressions.Where(t =>

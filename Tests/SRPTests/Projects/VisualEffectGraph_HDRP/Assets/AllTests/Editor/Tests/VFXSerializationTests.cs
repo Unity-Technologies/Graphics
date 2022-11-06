@@ -462,8 +462,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(2, graph.children.OfType<VFXBasicUpdate>().Count());
             Assert.AreEqual(4, graph.children.OfType<Operator.SampleMesh>().Count());
 
-            var basicUpdateInLocal = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.space == VFXCoordinateSpace.Local);
-            var basicUpdateInWorld = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.space == VFXCoordinateSpace.World);
+            var basicUpdateInLocal = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.space == VFXSpace.Local);
+            var basicUpdateInWorld = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.space == VFXSpace.World);
 
             //N.B. Tangent is transform into Tangent (vec3) + BitangentSigne (float), if sanitize has been done, we have another input
             var sampleMeshAll = graph.children.OfType<Operator.SampleMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("source") == Operator.SampleMesh.SourceType.Mesh && o.outputSlots.Count != 4);
@@ -499,10 +499,10 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(Operator.SampleMesh.SkinnedRootTransform.None, positionMeshWorld.GetSettingValue("skinnedTransform"));
             Assert.AreEqual(Operator.SampleMesh.SkinnedRootTransform.None, positionSkinnedWorld.GetSettingValue("skinnedTransform"));
 
-            Assert.AreEqual(VFXCoordinateSpace.Local, positionMeshLocal.inputSlots.Last().space);
-            Assert.AreEqual(VFXCoordinateSpace.Local, positionSkinnedLocal.inputSlots.Last().space);
-            Assert.AreEqual(VFXCoordinateSpace.World, positionMeshWorld.inputSlots.Last().space);
-            Assert.AreEqual(VFXCoordinateSpace.World, positionSkinnedWorld.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.Local, positionMeshLocal.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.Local, positionSkinnedLocal.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.World, positionMeshWorld.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.World, positionSkinnedWorld.inputSlots.Last().space);
 
             //Check where expected link
             var meshSlotAll = sampleMeshAll.outputSlots.Where(o => o.name != "Tangent");
@@ -590,6 +590,62 @@ namespace UnityEditor.VFX.Test
                 }
             }
             Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count()); //Orphan link
+        }
+
+        [Test]
+        public void Sanitize_SpaceNone_IntMaxValue_To_Minus_One()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSpaceNoneMigration.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(8, graph.children.OfType<VFXInlineOperator>().Count());
+            Assert.AreEqual(2, graph.children.OfType<Operator.Add>().Count());
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicUpdate>().Count());
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicInitialize>().Count());
+
+            var positions = graph.children.OfType<VFXInlineOperator>().Where(o => o.inputSlots[0] is VFXSlotPosition).ToArray();
+            Assert.AreEqual(3, positions.Length);
+            Assert.AreEqual(1, positions.Count(o => o.inputSlots[0].space == VFXSpace.Local));
+            Assert.AreEqual(1, positions.Count(o => o.inputSlots[0].space == VFXSpace.World));
+            Assert.AreEqual(1, positions.Count(o => o.inputSlots[0].space == VFXSpace.None));
+
+            var adds = graph.children.OfType<Operator.Add>().ToArray();
+            var addLocalAndNone = adds.FirstOrDefault(o => o.inputSlots[0].space == VFXSpace.Local && o.inputSlots[1].space == VFXSpace.None);
+            var addNoneAndNone = adds.FirstOrDefault(o => o != addLocalAndNone);
+            Assert.IsNotNull(addLocalAndNone);
+            Assert.IsNotNull(addNoneAndNone);
+
+            Assert.AreEqual(VFXSpace.Local, addLocalAndNone.inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, addLocalAndNone.inputSlots[1].space);
+            Assert.AreEqual(VFXSpace.Local, addLocalAndNone.outputSlots[0].space);
+
+            Assert.AreEqual(VFXSpace.None, addNoneAndNone.inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, addNoneAndNone.inputSlots[1].space);
+            Assert.AreEqual(VFXSpace.None, addNoneAndNone.outputSlots[0].space);
+
+            var basicUpdate = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault();
+            Assert.IsNotNull(basicUpdate);
+            Assert.AreEqual(3, basicUpdate.children.Count());
+
+            Assert.AreEqual(VFXSpace.Local, basicUpdate.children.ElementAt(0).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, basicUpdate.children.ElementAt(1).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, basicUpdate.children.ElementAt(2).inputSlots[0].space);
+
+            var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.IsNotNull(basicInitialize);
+            Assert.AreEqual(3, basicInitialize.children.Count());
+            Assert.IsTrue(basicInitialize.children.SelectMany(o => o.inputSlots).All(o => o.HasLink()));
+
+            Assert.AreEqual(VFXSpace.World, basicInitialize.children.ElementAt(0).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, basicInitialize.children.ElementAt(1).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, basicInitialize.children.ElementAt(2).inputSlots[0].space);
+
+            var directions = graph.children.OfType<VFXInlineOperator>().Where(o => o.inputSlots[0] is VFXSlotDirection).ToArray();
+            Assert.AreEqual(3, directions.Length);
+            Assert.IsTrue(directions.All(o => o.outputSlots[0].HasLink()));
+            Assert.AreEqual(1, directions.Count(o => o.inputSlots[0].space == VFXSpace.Local));
+            Assert.AreEqual(1, directions.Count(o => o.inputSlots[0].space == VFXSpace.World));
+            Assert.AreEqual(1, directions.Count(o => o.inputSlots[0].space == VFXSpace.None));
         }
 
         [OneTimeSetUpAttribute]

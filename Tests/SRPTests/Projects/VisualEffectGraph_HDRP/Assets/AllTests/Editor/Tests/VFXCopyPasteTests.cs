@@ -196,11 +196,11 @@ namespace UnityEditor.VFX.Test
             // Setup original operator slot value
             VFXSlot aSlot = newOperator.GetInputSlot(0);
             Assert.IsTrue(aSlot.spaceable);
-            aSlot.space = VFXCoordinateSpace.World;
+            aSlot.space = VFXSpace.World;
 
             // Copy selection and then modify the slot value
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-            aSlot.space = VFXCoordinateSpace.Local;
+            aSlot.space = VFXSpace.Local;
 
             // Paste selection
             view.UnserializeAndPasteElements("paste", copyData);
@@ -213,7 +213,7 @@ namespace UnityEditor.VFX.Test
                 .Single(x => x.controller.model != newOperator);
 
             var copyASlot = copyOperator.controller.model.GetInputSlot(0);
-            Assert.AreEqual(VFXCoordinateSpace.World, copyASlot.space);
+            Assert.AreEqual(VFXSpace.World, copyASlot.space);
         }
 
         [Test]

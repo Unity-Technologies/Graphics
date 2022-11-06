@@ -56,9 +56,9 @@ namespace UnityEditor.VFX
 
         protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) { }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            return VFXCoordinateSpace.Local;
+            return VFXSpace.Local;
         }
 
         private Shader GetOrRefreshShaderGraphObject(bool refreshErrors = true)
