@@ -297,12 +297,22 @@ namespace UnityEditor.Rendering.Universal
 
                     if (TextureHasAlpha(terrainLayer.diffuseTexture))
                     {
-                        GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
-                        warnStyle.wordWrap = true;
-                        GUILayout.Label("Smoothness is controlled by diffuse alpha channel", warnStyle);
+                        terrainLayer.smoothnessSource = (UnityEngine.TerrainLayerSmoothnessSource)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Smoothness Source"), terrainLayer.smoothnessSource);
+                        if (terrainLayer.smoothnessSource == TerrainLayerSmoothnessSource.DiffuseAlphaChannel)
+                        {
+                            GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
+                            warnStyle.wordWrap = true;
+                            GUILayout.Label("Smoothness is controlled by diffuse alpha channel", warnStyle);
+                        }
+                        else
+                        {
+                            smoothness = EditorGUILayout.Slider(s_Styles.smoothness, smoothness, 0, 1);
+                        }
                     }
                     else
+                    {
                         smoothness = EditorGUILayout.Slider(s_Styles.smoothness, smoothness, 0, 1);
+                    }
                 }
             }
 
