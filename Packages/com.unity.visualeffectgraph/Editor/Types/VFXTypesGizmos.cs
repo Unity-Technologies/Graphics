@@ -96,29 +96,33 @@ namespace UnityEditor.VFX
                 vector.vector = Vector3.up;
             }
 
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, vector.vector);
-
-            float length = vector.vector.magnitude;
-
             if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref vector.vector, true))
             {
                 m_Property.SetValue(vector);
             }
 
-            if (m_Property.isEditable)
+            Handles.DrawLine(Vector3.zero, vector.vector);
+
+            // Prevent gizmo highlight when not editable
+            var prevNearestControl = HandleUtility.nearestControl;
+            if (!m_Property.isEditable)
             {
-                Handles.DrawLine(Vector3.zero, vector.vector);
-                EditorGUI.BeginChangeCheck();
-                Vector3 result = Handles.Slider(vector.vector, vector.vector, handleSize * 2 * HandleUtility.GetHandleSize(vector.vector), Handles.ConeHandleCap, 0);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    vector.vector = vector.vector.normalized * result.magnitude;
-                    m_Property.SetValue(vector);
-                }
+                HandleUtility.nearestControl = -1;
             }
-            else
+
+            EditorGUI.BeginChangeCheck();
+            var result = Handles.Slider(vector.vector, vector.vector, handleSize * 2 * HandleUtility.GetHandleSize(vector.vector), Handles.ConeHandleCap, 0);
+            var changed = EditorGUI.EndChangeCheck();
+
+            if (changed && m_Property.isEditable)
             {
-                Handles.ArrowHandleCap(currentHashCode, Vector3.zero, normalQuat, length, Event.current.type);
+                vector.vector = vector.vector.normalized * result.magnitude;
+                m_Property.SetValue(vector);
+            }
+
+            if (!m_Property.isEditable)
+            {
+                HandleUtility.nearestControl = prevNearestControl;
             }
         }
 

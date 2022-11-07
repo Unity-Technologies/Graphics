@@ -53,7 +53,8 @@ namespace UnityEditor.VFX
             kUIChanged,                     // UI stuff has changed
             kUIChangedTransient,            // UI stuff has been changed be does not require serialization
             kMaterialChanged,               // Some asset material properties has changed
-            kEnableChanged                  // Node has been enabled/disabled
+            kEnableChanged,                 // Node has been enabled/disabled
+            kInitValueChanged,              // A value has changed in a spawn/init context and may require a reinit
         }
 
         public new virtual string name { get { return string.Empty; } }

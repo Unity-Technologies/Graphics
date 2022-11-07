@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // History buffers
                 passData.outputHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(historyBuffer));
-                passData.inputHistoryBuffer = ( historyValidity > 0 ) ? passData.outputHistoryBuffer : renderGraph.defaultResources.blackTextureArrayXR;
+                passData.inputHistoryBuffer = passData.outputHistoryBuffer;
                 passData.validationHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(validationHistoryBuffer));
                 passData.distanceHistorySignal = distanceBased ? builder.ReadWriteTexture(renderGraph.ImportTexture(distanceHistorySignal)) : renderGraph.defaultResources.blackTextureXR;
 

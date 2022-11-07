@@ -487,6 +487,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Action<ExtraDataActionInput> retrieveExtraDataAction;
 
+        /// <summary>
+        ///  An action that is used by the SRP to perform checks every frame during baking.
+        /// </summary>
+        public Action checksDuringBakeAction = null;
 
         bool m_BricksLoaded = false;
 
@@ -1143,6 +1147,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
+#if UNITY_EDITOR
+            checksDuringBakeAction?.Invoke();
+#endif
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();

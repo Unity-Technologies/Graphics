@@ -650,7 +650,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Pass 3: Neighborhood blending
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, m_BlendTexture.nameID);
-            RenderingUtils.Blit(cmd, source, pixelRect, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear, material, 2);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 2);
         }
 
         #endregion

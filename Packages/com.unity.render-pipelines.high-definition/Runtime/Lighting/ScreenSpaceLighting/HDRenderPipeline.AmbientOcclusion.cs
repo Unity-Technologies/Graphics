@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R32_SFloat, name = "Final Half Res AO Packed" });
         }
 
-        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
+        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
             in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
         {
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
@@ -168,13 +168,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, depthMipInfo);
 
-                        result = RenderAO(renderGraph, aoParameters, depthBuffer, normalBuffer);
+                        result = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
                         if (aoParameters.temporalAccumulation || aoParameters.fullResolution)
                             result = SpatialDenoiseAO(renderGraph, aoParameters, result);
                         if (aoParameters.temporalAccumulation)
-                            result = TemporalDenoiseAO(renderGraph, aoParameters, depthBuffer, motionVectors, result, currentHistory, outputHistory);
+                            result = TemporalDenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, result, currentHistory, outputHistory);
                         if (!aoParameters.fullResolution)
-                            result = UpsampleAO(renderGraph, aoParameters, result, depthBuffer);
+                            result = UpsampleAO(renderGraph, aoParameters, result, depthPyramid);
                     }
                 }
             }

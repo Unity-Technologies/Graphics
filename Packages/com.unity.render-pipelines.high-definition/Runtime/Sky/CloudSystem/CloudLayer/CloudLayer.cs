@@ -185,6 +185,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [InspectorName("Density")]
             [Tooltip("Density of the cloud layer.")]
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+            /// <summary>Ambient probe multiplier.</summary>
+            [Tooltip("Controls the influence of the ambient probe on the cloud layer volume. A lower value will suppress the ambient light and produce darker clouds overall.")]
+            public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -269,6 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + lighting.GetHashCode();
                     hash = hash * 23 + steps.GetHashCode();
                     hash = hash * 23 + thickness.GetHashCode();
+                    hash = hash * 23 + ambientProbeDimmer.GetHashCode();
 
                     hash = hash * 23 + castShadows.GetHashCode();
                 }

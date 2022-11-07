@@ -100,7 +100,7 @@ float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
 
 float GetSkyPDFNormalizationFactor()
 {
-    return _PathTracingSkyMarginalTexture[uint2(0, 0)];
+    return _PathTracingSkyMarginalTexture[uint2(0, 0)].x;
 }
 
 // This PDF approximation is valid only if PDF/CDF tables are computed with equiareal mapping

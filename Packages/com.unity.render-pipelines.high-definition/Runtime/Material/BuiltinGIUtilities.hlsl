@@ -8,16 +8,7 @@
 // AmbientProbe Data is fetch directly from a compute buffer to remain on GPU and is preconvolved with clamped cosinus
 real3 EvaluateAmbientProbe(real3 normalWS)
 {
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = _AmbientProbeData[0];
-    SHCoefficients[1] = _AmbientProbeData[1];
-    SHCoefficients[2] = _AmbientProbeData[2];
-    SHCoefficients[3] = _AmbientProbeData[3];
-    SHCoefficients[4] = _AmbientProbeData[4];
-    SHCoefficients[5] = _AmbientProbeData[5];
-    SHCoefficients[6] = _AmbientProbeData[6];
-
-    return SampleSH9(SHCoefficients, normalWS);
+    return SampleSH9(_AmbientProbeData, normalWS);
 }
 
 real3 EvaluateLightProbe(real3 normalWS)

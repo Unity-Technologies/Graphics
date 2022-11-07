@@ -22,8 +22,8 @@ This Context spawns particles within spawn loops. You can specify the number of 
 | ----------------- | ------------- | ------------------------------------------------------------ |
 | **Loop Duration** | float/Vector2 | The duration of the spawn loop.<br/>This property only appears if you set **Loop Duration** to **Constant** or **Random**. |
 | **Loop Count**    | int/Vector2   | Defines how many loops the Context processes before going back to the initial state.<br/>This property only appears if you set **Loop Count** to **Constant** or **Random**. |
-| **Delay Before**  | float/Vector2 | The duration of the delay before the spawn loop.<br/>This property only appears if you enable **Delay Before Random**. |
-| **Delay After**   | float/Vector2 | The duration of the delay after the spawn loop.<br/>This property only appears if you enable **Delay After Random**. |
+| **Delay Before**  | float/Vector2 | The duration of the delay before the spawn loop.<br/>This property only appears if you enable **Random**. |
+| **Delay After**   | float/Vector2 | The duration of the delay after the spawn loop.<br/>This property only appears if you enable **Random**. |
 
 ## Flow
 

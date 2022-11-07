@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
                 while (true)
                 {
                     var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery);
+                    var index = targetCopy.IndexOf(targetQuery, StringComparison.Ordinal);
                     if (index == -1)
                     {
                         break;
@@ -310,7 +310,7 @@ namespace UnityEditor.VFX
 
             int currentPos = -1;
             int builderOffset = 0;
-            while ((currentPos = source.IndexOf("${")) != -1)
+            while ((currentPos = source.IndexOf("${", StringComparison.Ordinal)) != -1)
             {
                 int endPos = source.IndexOf('}', currentPos);
                 if (endPos == -1)
@@ -376,12 +376,10 @@ namespace UnityEditor.VFX
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
-        internal static void BuildParameterBuffer(VFXContextCompiledData contextData,
-            IEnumerable<string> filteredOutTextures, out string parameterBufferContent,
-            VFXUniformMapper systemUniformMapper, VFXDataParticle.GraphValuesLayout graphValuesLayout, out bool needsGraphValueStruct) //TODO: pass all in one? Do we need some info out of that method?
+        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent, out bool needsGraphValueStruct) //TODO: pass all in one? Do we need some info out of that method?
         {
             var parameterBuffer = new VFXShaderWriter();
-            needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(graphValuesLayout, systemUniformMapper, "GraphValues");
+            needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(contextData.uniformMapper);
             parameterBuffer.WriteLine();
             parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             parameterBuffer.WriteLine();
@@ -537,6 +535,15 @@ namespace UnityEditor.VFX
             buildFragInputsGeneration = fragInputsGeneration.ToString();
         }
 
+        internal static void BuildFillGraphValues(VFXContextCompiledData contextData, VFXDataParticle.GraphValuesLayout graphValuesLayout,
+            VFXUniformMapper systemUniformMapper,
+            out string fillGraphValues)
+        {
+            var fillGraphValuesShaderWriter = new VFXShaderWriter();
+            fillGraphValuesShaderWriter.GenerateFillGraphValuesStruct(contextData.uniformMapper, graphValuesLayout);
+            fillGraphValues = fillGraphValuesShaderWriter.ToString();
+        }
+
         static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode,
             VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
@@ -572,7 +579,7 @@ namespace UnityEditor.VFX
             var particleData = (context.GetData() as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
             contextData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
-            var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(particleData.graphValuesLayout, systemUniformMapper, "GraphValues");
+            var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(contextData.uniformMapper);
             globalDeclaration.WriteLine();
 
             globalDeclaration.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
@@ -667,6 +674,10 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
+
+            VFXShaderWriter fillGraphValueStruct = new VFXShaderWriter();
+            fillGraphValueStruct.GenerateFillGraphValuesStruct(contextData.uniformMapper, particleData.graphValuesLayout);
+            ReplaceMultiline(stringBuilder, "${VFXLoadGraphValues}", fillGraphValueStruct.builder);
 
             var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
             foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))

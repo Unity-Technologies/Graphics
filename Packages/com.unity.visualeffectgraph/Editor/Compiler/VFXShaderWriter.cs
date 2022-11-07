@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
             int startIndex = 0;
             while (true)
             {
-                int index = str.IndexOf(tag, startIndex);
+                int index = str.IndexOf(tag, startIndex, StringComparison.Ordinal);
                 if (index == -1)
                     break;
 
@@ -219,14 +219,6 @@ namespace UnityEditor.VFX
         public override string ToString()
         {
             return m_Builder.ToString();
-        }
-
-        private int WritePadding(int alignment, int offset, ref int index)
-        {
-            int padding = (alignment - (offset % alignment)) % alignment;
-            if (padding != 0)
-                WriteLineFormat("uint{0} PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++);
-            return padding;
         }
 
         private static bool IsBufferBuiltinType(Type type)
@@ -374,77 +366,24 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
-        {
-            var uniformValues = mapper.uniforms
-                .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
-                .OrderByDescending(e => VFXValue.TypeToSize(e.valueType));
-
-            var uniformBlocks = new List<List<VFXExpression>>();
-            foreach (var value in uniformValues)
-            {
-                var block = uniformBlocks.FirstOrDefault(b => b.Sum(e => VFXValue.TypeToSize(e.valueType)) + VFXValue.TypeToSize(value.valueType) <= 4);
-                if (block != null)
-                    block.Add(value);
-                else
-                    uniformBlocks.Add(new List<VFXExpression>() { value });
-            }
-
-            if (uniformBlocks.Count > 0)
-            {
-                WriteLineFormat("CBUFFER_START({0})", bufferName);
-                Indent();
-
-                int paddingIndex = 0;
-                foreach (var block in uniformBlocks)
-                {
-                    int currentSize = 0;
-                    foreach (var value in block)
-                    {
-                        string type = VFXExpression.TypeToUniformCode(value.valueType);
-                        string name = mapper.GetName(value);
-                        if (name.StartsWith("unity_")) //Reserved unity variable name (could be filled manually see : VFXCameraUpdate)
-                            continue;
-
-                        currentSize += VFXExpression.TypeToSize(value.valueType);
-
-                        WriteLineFormat("{0} {1};", type, name);
-                    }
-
-                    WritePadding(4, currentSize, ref paddingIndex);
-                }
-
-                Deindent();
-                WriteLine("CBUFFER_END");
-            }
-        }
-
-        public bool WriteGraphValuesStruct(VFXDataParticle.GraphValuesLayout graphValuesLayout, VFXUniformMapper mapper, string bufferName)
+        public bool WriteGraphValuesStruct(VFXUniformMapper contextUniformMapper)
         {
             bool needsGraphValueStruct = false;
-            var uniformBlocks = graphValuesLayout.uniformBlocks;
-            if (uniformBlocks.Count > 0)
+            var contextUniforms = contextUniformMapper.uniforms;
+
+            if (contextUniforms.Any())
             {
-                WriteLineFormat("struct {0}", bufferName);
+                needsGraphValueStruct = true;
+
+                WriteLine("struct GraphValues");
                 WriteLine("{");
                 Indent();
 
-                int paddingIndex = 0;
-                foreach (var block in uniformBlocks)
+                foreach (var value in contextUniforms)
                 {
-                    int currentSize = 0;
-                    foreach (var value in block)
-                    {
-                        string type = VFXExpression.TypeToUniformCode(value.valueType);
-                        string name = mapper.GetName(value);
-                        if (name.StartsWith("unity_")) //Reserved unity variable name (could be filled manually see : VFXCameraUpdate)
-                            continue;
-
-                        currentSize += VFXExpression.TypeToSize(value.valueType);
-                        WriteLineFormat("{0} {1};", type, name);
-                        needsGraphValueStruct = true;
-                    }
-                    WritePadding(4, currentSize, ref paddingIndex);
+                    string name = contextUniformMapper.GetName(value);
+                    string type = VFXExpression.TypeToCode(value.valueType);
+                    WriteLineFormat("{0} {1};", type, name);
                 }
                 Deindent();
                 WriteLine("};");
@@ -452,10 +391,67 @@ namespace UnityEditor.VFX
 
             if (needsGraphValueStruct)
             {
-                WriteLine("StructuredBuffer<GraphValues> graphValuesBuffer;");
+                WriteLine("ByteAddressBuffer graphValuesBuffer;");
                 WriteLine();
             }
             return needsGraphValueStruct;
+        }
+
+        public void GenerateFillGraphValuesStruct(VFXUniformMapper contextUniformMapper, VFXDataParticle.GraphValuesLayout graphValuesLayout)
+        {
+            uint structSize = graphValuesLayout.paddedSizeInBytes;
+            var nameToOffset = graphValuesLayout.nameToOffset;
+            var contextUniforms = contextUniformMapper.uniforms;
+            if (contextUniforms.Any())
+            {
+                contextUniforms = contextUniforms.OrderBy(o => nameToOffset[contextUniformMapper.GetName(o)]);
+
+                WriteLine("GraphValues graphValues;");
+                WriteLine();
+
+                foreach (var value in contextUniforms)
+                {
+                    string name = contextUniformMapper.GetName(value);
+                    int currentOffset = nameToOffset[name];
+
+                    int typeSize = VFXExpression.TypeToSize(value.valueType);
+                    string loadType = typeSize == 1 ? "" : typeSize.ToString();
+                    if (value.valueType != VFXValueType.Matrix4x4)
+                    {
+                        string loadInstruction =
+                            $"graphValuesBuffer.Load{loadType}(instanceActiveIndex * {structSize}  + {currentOffset})";
+
+                        switch (value.valueType)
+                        {
+                            case VFXValueType.Float:
+                            case VFXValueType.Float2:
+                            case VFXValueType.Float3:
+                            case VFXValueType.Float4:
+                                loadInstruction = $"asfloat({loadInstruction})";
+                                break;
+                            case VFXValueType.Int32:
+                                loadInstruction = $"asint({loadInstruction})";
+                                break;
+                            case VFXValueType.Boolean:
+                                loadInstruction = $"(bool){loadInstruction}";
+                                break;
+                        }
+
+                        WriteLineFormat("graphValues.{0} = {1};", name, loadInstruction);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            string loadInstruction =
+                                $"asfloat(graphValuesBuffer.Load4(instanceActiveIndex * {structSize}  + {currentOffset + 16 * i}))";
+                            string columnGetter = String.Format("._m0{0}_m1{0}_m2{0}_m3{0}",i);
+                            WriteLineFormat("graphValues.{0}{1} = {2};", name,columnGetter, loadInstruction);
+                        }
+                    }
+
+                }
+            }
         }
 
         public void WriteAttributeStruct(IEnumerable<VFXAttribute> attributes, string name)

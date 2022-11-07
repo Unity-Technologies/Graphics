@@ -273,7 +273,7 @@ namespace UnityEditor.VFX.UI
             PasteGroupNodes(serializableGraph, center, ui);
             PasteStickyNotes(serializableGraph, center, ui);
 
-            PasteDatas(serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
+            PasteDatas(viewController, serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
             PasteDataEdges(serializableGraph);
             PasteFlowEdges(serializableGraph);
 
@@ -677,7 +677,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteDatas(SerializableGraph serializableGraph)
+        private void PasteDatas(VFXViewController vfxViewController, SerializableGraph serializableGraph)
         {
             for (int i = 0; i < newContexts.Count; ++i)
             {
@@ -694,10 +694,8 @@ namespace UnityEditor.VFX.UI
                     {
                         var data = serializableGraph.datas[serializableGraph.contexts[i].dataIndex];
 
-                        //At this stage, the context has the VFXGraph as its parent, so it can create a properly parented VFXData
-                        contextController.model.SetDefaultData(false);
-
                         VFXData targetData = contextController.model.GetData();
+                        vfxViewController.graph.AddChild(targetData);
                         if (targetData != null)
                         {
                             PasteModelSettings(targetData, data.settings, targetData.GetType());

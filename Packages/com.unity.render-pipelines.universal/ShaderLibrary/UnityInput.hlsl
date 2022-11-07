@@ -117,7 +117,7 @@ float4 unity_RenderingLayer;
 half4 unity_LightData;
 half4 unity_LightIndices[2];
 
-half4 unity_ProbesOcclusion;
+float4 unity_ProbesOcclusion;
 
 // Reflection Probe 0 block feature
 // HDR environment map decode instructions

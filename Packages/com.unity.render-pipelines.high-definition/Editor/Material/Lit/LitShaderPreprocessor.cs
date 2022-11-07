@@ -116,12 +116,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-#if !ENABLE_SENSOR_SDK
-            // If the SensorSDK package is not present, make sure that all code related to it is stripped away
-            if (inputData.shaderKeywordSet.IsEnabled(m_SensorEnableLidar) || inputData.shaderKeywordSet.IsEnabled(m_SensorOverrideReflectance))
-                return true;
-#endif
-
             // TODO: Tests for later
             // We need to find a way to strip useless shader features for passes/shader stages that don't need them (example, vertex shaders won't ever need SSS Feature flag)
             // This causes several problems:

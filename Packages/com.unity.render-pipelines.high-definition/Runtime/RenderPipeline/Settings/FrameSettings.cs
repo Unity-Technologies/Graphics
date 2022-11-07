@@ -192,8 +192,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Post-process", customOrderInGroup: 18, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
-        /// <summary>When enabled, HDRP renders user written post processes.</summary>
-        [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled on a Camera, HDRP render user written post processes.")]
+        /// <summary>When enabled on a Camera, HDRP renders user-written post processes.</summary>
+        [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled on a Camera, HDRP renders user-written post processes.")]
         CustomPostProcess = 39,
         /// <summary>When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Stop NaN", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.")]
@@ -834,8 +834,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
             bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
 
-            //MSAA only supported in forward and when not using ray tracing.
-            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
+            //MSAA only supported in forward and when not using ray tracing or water.
+            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing || renderPipelineSettings.supportWater)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
             bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
 
@@ -902,7 +902,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
 
             // We disable reflection probes and planar reflections in regular preview rendering for two reasons.

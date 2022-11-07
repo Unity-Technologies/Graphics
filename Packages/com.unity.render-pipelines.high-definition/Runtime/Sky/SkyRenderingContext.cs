@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeBuffer ambientProbeResult { get; private set; }
         public ComputeBuffer diffuseAmbientProbeBuffer { get; private set; }
         public ComputeBuffer volumetricAmbientProbeBuffer { get; private set; }
+        public ComputeBuffer cloudAmbientProbeBuffer { get; private set; }
         public RTHandle skyboxCubemapRT { get; private set; }
         public CubemapArray skyboxBSDFCubemapArray { get; private set; }
         public bool supportsConvolution { get; private set; } = false;
@@ -30,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricAmbientProbeBuffer = new ComputeBuffer(7, 16);
             // Compute buffer storing the diffuse convolution SH For diffuse ambient lighting. L2 SH => 9 float per component.
             diffuseAmbientProbeBuffer = new ComputeBuffer(7, 16);
+            // Same as diffuseAmbientProbeBuffer but contains only the sky. To be used by CloudRenderers
+            cloudAmbientProbeBuffer = new ComputeBuffer(7, 16);
 
             skyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: name);
 
@@ -63,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ambientProbeResult.Release();
             diffuseAmbientProbeBuffer.Release();
             volumetricAmbientProbeBuffer.Release();
+            cloudAmbientProbeBuffer.Release();
         }
 
         public void ClearAmbientProbe()

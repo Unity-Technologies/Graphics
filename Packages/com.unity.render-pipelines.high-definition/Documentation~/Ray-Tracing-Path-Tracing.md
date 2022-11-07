@@ -145,7 +145,7 @@ A double-sided surface with Transmission enabled.
 
 <a name="hair"></a>
 
-# Hair
+## Hair
 
 Path tracing gives human hair a volumetric look. To do this, path tracing calculates the multiple scattering events that happen in a full head of hair. It is particularly effective for lighter hair tones.
 
@@ -182,6 +182,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
   - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
   - Decals.
+  - Local Volumetric Fog.
   - Tessellation.
   - Tube and Disc-shaped Area Lights.
   - Translucent Opaque Materials.

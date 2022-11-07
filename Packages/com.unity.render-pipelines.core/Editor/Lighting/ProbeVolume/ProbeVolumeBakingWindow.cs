@@ -1016,7 +1016,7 @@ namespace UnityEngine.Rendering
                     {
                         var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(probeVolume.gameObject.scene);
                         if (profile != null)
-                            return (profile.maxSubdivision - 1, profile.minDistanceBetweenProbes);
+                            return (profile.maxSubdivision, profile.minDistanceBetweenProbes);
                     }
                 }
 

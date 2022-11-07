@@ -130,18 +130,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
-        /// <inheritdoc />
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            m_PassData.m_IsOpaque = m_IsOpaque;
-            m_PassData.m_RenderStateBlock = m_RenderStateBlock;
-            m_PassData.m_FilteringSettings = m_FilteringSettings;
-            m_PassData.m_ShaderTagIdList = m_ShaderTagIdList;
-            m_PassData.m_ProfilingSampler = m_ProfilingSampler;
-
-            CameraSetup(cmd, m_PassData, ref renderingData);
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -152,6 +140,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.m_ProfilingSampler = m_ProfilingSampler;
             m_PassData.pass = this;
 
+            CameraSetup(renderingData.commandBuffer, m_PassData, ref renderingData);
             ExecutePass(context, m_PassData, ref renderingData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
         }
 

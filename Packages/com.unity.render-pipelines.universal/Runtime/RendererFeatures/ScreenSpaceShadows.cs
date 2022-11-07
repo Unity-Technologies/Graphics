@@ -12,6 +12,11 @@ namespace UnityEngine.Rendering.Universal
     [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
+#if UNITY_EDITOR
+        [UnityEditor.ShaderKeywordFilter.SelectIf(true, keywordNames: ShaderKeywordStrings.MainLightShadowScreen)]
+        private const bool k_RequiresScreenSpaceShadowsKeyword = true;
+#endif
+
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
         [SerializeField] private ScreenSpaceShadowsSettings m_Settings = new ScreenSpaceShadowsSettings();

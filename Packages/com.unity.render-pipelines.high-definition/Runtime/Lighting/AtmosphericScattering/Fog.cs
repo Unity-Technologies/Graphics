@@ -162,8 +162,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool a = fog.enableVolumetricFog.value;
             bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
             bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
+            bool d = fog.enabled.value;
 
-            return a && b && c;
+            return a && b && c && d;
         }
 
         internal static bool IsPBRFogEnabled(HDCamera hdCamera)

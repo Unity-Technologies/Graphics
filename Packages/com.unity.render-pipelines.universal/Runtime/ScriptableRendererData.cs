@@ -5,6 +5,7 @@ using System.Reflection;
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 
 namespace UnityEngine.Rendering.Universal
@@ -43,6 +44,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
+#endif
         [SerializeField] bool m_UseNativeRenderPass = false;
 
         /// <summary>

@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             VFXSetting capacitySetting = GetSetting("capacity");
-            if ((uint)capacitySetting.value > 1000000)
+            if (capacitySetting.valid && (uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
             var data = GetData() as VFXDataParticle;
             if (data != null && CanBeCompiled())
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
                         manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
                             "In order to record the bounds, the current graph needs to be attached to a scene instance via the Target Game Object panel");
                     }
-                    var boundsSlot = inputSlots.FirstOrDefault(s => s.name == "bounds");
+                    var boundsSlot = inputSlots.FirstOrDefault(s => s.name == nameof(InputPropertiesBounds.bounds));
                     if (boundsSlot != null && boundsSlot.HasLink(true))
                     {
                         manager.RegisterError("OverriddenRecording", VFXErrorType.Warning,
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX
 
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            if (slot.name == "bounds")
+            if (slot.name == nameof(InputPropertiesBounds.bounds))
                 return VFXCoordinateSpace.Local;
             return base.GetOutputSpaceFromSlot(slot);
         }

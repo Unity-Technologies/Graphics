@@ -194,6 +194,7 @@ VFXContextUI #output .VFXDataAnchor.port #connector
 
 VFXEditableDataAnchor.activationslot
 {
+    flex-grow: 0;
     position: absolute;
 }
 

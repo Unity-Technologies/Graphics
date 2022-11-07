@@ -364,6 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Bind the input textures
                         ctx.cmd.SetComputeTextureParam(data.parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
                         ctx.cmd.SetComputeTextureParam(data.parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._RaytracingDistanceBuffer, data.distanceBuffer);
                         ctx.cmd.SetComputeTextureParam(data.parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._GBufferTexture[0], data.gbuffer0);

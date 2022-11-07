@@ -837,13 +837,14 @@ namespace UnityEditor.Rendering.HighDefinition
             //Note: do not use SerializedProperty.enumValueIndex here as this enum not start at 0 as it is used as flags.
             bool msaaAllowed = true;
             bool hasRayTracing = false;
+            bool hasWater = false;
             for (int index = 0; index < serialized.serializedObject.targetObjects.Length && msaaAllowed; ++index)
             {
                 var settings = (serialized.serializedObject.targetObjects[index] as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings;
                 var litShaderMode = settings.supportedLitShaderMode;
-                bool rayTracedSupported = settings.supportRayTracing;
-                hasRayTracing |= rayTracedSupported;
-                msaaAllowed &= (litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both) && !rayTracedSupported;
+                hasRayTracing |= settings.supportRayTracing;
+                hasWater |= settings.supportWater;
+                msaaAllowed &= (litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both) && !settings.supportRayTracing && !settings.supportWater;
             }
 
             using (new EditorGUI.DisabledScope(!msaaAllowed))
@@ -852,9 +853,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.MSAASampleCount, Styles.MSAASampleCountContent);
                 --EditorGUI.indentLevel;
             }
+
             if (hasRayTracing && serialized.renderPipelineSettings.MSAASampleCount.intValue != (int)MSAASamples.None)
             {
                 EditorGUILayout.HelpBox(Styles.rayTracingMSAAUnsupported.text, MessageType.Info, wide: true);
+            }
+
+            if (hasWater && serialized.renderPipelineSettings.MSAASampleCount.intValue != (int)MSAASamples.None)
+            {
+                EditorGUILayout.HelpBox(Styles.waterMSAAUnsupported.text, MessageType.Info, wide: true);
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);

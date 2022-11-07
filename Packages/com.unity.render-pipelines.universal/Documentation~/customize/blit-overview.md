@@ -22,4 +22,4 @@ Use the [Blitter API](https://docs.unity3d.com/Packages/com.unity.render-pipelin
 
 ## Custom full-screen blit example
 
-The [How to perform a full screen blit in URP](../renderer-features/how-to-fullscreen-blit-in-xr-spi.md) example shows how to create a custom Renderer Feature that performs a full screen blit. The example works in XR and is compatible with SRP APIs.
+The [How to perform a full screen blit in URP](../renderer-features/how-to-fullscreen-blit.md) example shows how to create a custom Renderer Feature that performs a full screen blit. The example works in XR and is compatible with SRP APIs.

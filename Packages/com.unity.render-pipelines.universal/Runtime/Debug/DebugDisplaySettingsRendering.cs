@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
@@ -175,25 +176,25 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateMapOverlays(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateMapOverlays(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
-                getter = () => (int)data.fullScreenDebugMode,
-                setter = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value,
-                getIndex = () => (int)data.fullScreenDebugMode,
-                setIndex = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value
+                getter = () => (int)panel.data.fullScreenDebugMode,
+                setter = (value) => panel.data.fullScreenDebugMode = (DebugFullScreenMode)value,
+                getIndex = () => (int)panel.data.fullScreenDebugMode,
+                setIndex = (value) => panel.data.fullScreenDebugMode = (DebugFullScreenMode)value
             };
 
-            internal static DebugUI.Widget CreateMapOverlaySize(DebugDisplaySettingsRendering data) => new DebugUI.Container()
+            internal static DebugUI.Widget CreateMapOverlaySize(SettingsPanel panel) => new DebugUI.Container()
             {
                 children =
                 {
                     new DebugUI.IntField
                     {
                         nameAndTooltip = Strings.MapSize,
-                        getter = () => data.fullScreenDebugModeOutputSizeScreenPercent,
-                        setter = value => data.fullScreenDebugModeOutputSizeScreenPercent = value,
+                        getter = () => panel.data.fullScreenDebugModeOutputSizeScreenPercent,
+                        setter = value => panel.data.fullScreenDebugModeOutputSizeScreenPercent = value,
                         incStep = 10,
                         min = () => 0,
                         max = () => 100
@@ -201,18 +202,18 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.AdditionalWireframeModes,
                 autoEnum = typeof(DebugWireframeMode),
-                getter = () => (int)data.wireframeMode,
-                setter = (value) => data.wireframeMode = (DebugWireframeMode)value,
-                getIndex = () => (int)data.wireframeMode,
-                setIndex = (value) => data.wireframeMode = (DebugWireframeMode)value,
+                getter = () => (int)panel.data.wireframeMode,
+                setter = (value) => panel.data.wireframeMode = (DebugWireframeMode)value,
+                getIndex = () => (int)panel.data.wireframeMode,
+                setIndex = (value) => panel.data.wireframeMode = (DebugWireframeMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
-            internal static DebugUI.Widget CreateWireframeNotSupportedWarning(DebugDisplaySettingsRendering data) => new DebugUI.MessageBox
+            internal static DebugUI.Widget CreateWireframeNotSupportedWarning(SettingsPanel panel) => new DebugUI.MessageBox
             {
                 nameAndTooltip = Strings.WireframeNotSupportedWarning,
                 style = DebugUI.MessageBox.Style.Warning,
@@ -226,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
                         case GraphicsDeviceType.OpenGLES2:
                         case GraphicsDeviceType.OpenGLES3:
                         case GraphicsDeviceType.Vulkan:
-                            return data.wireframeMode == DebugWireframeMode.None;
+                            return panel.data.wireframeMode == DebugWireframeMode.None;
                         default:
                             return true;
                     }
@@ -234,26 +235,26 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreateOverdrawMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField()
+            internal static DebugUI.Widget CreateOverdrawMode(SettingsPanel panel) => new DebugUI.EnumField()
             {
                 nameAndTooltip = Strings.OverdrawMode,
                 autoEnum = typeof(DebugOverdrawMode),
-                getter = () => (int)data.overdrawMode,
-                setter = (value) => data.overdrawMode = (DebugOverdrawMode)value,
-                getIndex = () => (int)data.overdrawMode,
-                setIndex = (value) => data.overdrawMode = (DebugOverdrawMode)value
+                getter = () => (int)panel.data.overdrawMode,
+                setter = (value) => panel.data.overdrawMode = (DebugOverdrawMode)value,
+                getIndex = () => (int)panel.data.overdrawMode,
+                setIndex = (value) => panel.data.overdrawMode = (DebugOverdrawMode)value
             };
 
-            internal static DebugUI.Widget CreateMaxOverdrawCount(DebugDisplaySettingsRendering data) => new DebugUI.Container()
+            internal static DebugUI.Widget CreateMaxOverdrawCount(SettingsPanel panel) => new DebugUI.Container()
             {
-                isHiddenCallback = () => data.overdrawMode == DebugOverdrawMode.None,
+                isHiddenCallback = () => panel.data.overdrawMode == DebugOverdrawMode.None,
                 children =
                 {
                     new DebugUI.IntField
                     {
                         nameAndTooltip = Strings.MaxOverdrawCount,
-                        getter = () => data.maxOverdrawCount,
-                        setter = value => data.maxOverdrawCount = value,
+                        getter = () => panel.data.maxOverdrawCount,
+                        setter = value => panel.data.maxOverdrawCount = value,
                         incStep = 10,
                         min = () => 1,
                         max = () => 500
@@ -261,92 +262,93 @@ namespace UnityEngine.Rendering.Universal
                 }
             };
 
-            internal static DebugUI.Widget CreatePostProcessing(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreatePostProcessing(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.PostProcessing,
                 autoEnum = typeof(DebugPostProcessingMode),
-                getter = () => (int)data.postProcessingDebugMode,
-                setter = (value) => data.postProcessingDebugMode = (DebugPostProcessingMode)value,
-                getIndex = () => (int)data.postProcessingDebugMode,
-                setIndex = (value) => data.postProcessingDebugMode = (DebugPostProcessingMode)value
+                getter = () => (int)panel.data.postProcessingDebugMode,
+                setter = (value) => panel.data.postProcessingDebugMode = (DebugPostProcessingMode)value,
+                getIndex = () => (int)panel.data.postProcessingDebugMode,
+                setIndex = (value) => panel.data.postProcessingDebugMode = (DebugPostProcessingMode)value
             };
 
-            internal static DebugUI.Widget CreateMSAA(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            internal static DebugUI.Widget CreateMSAA(SettingsPanel panel) => new DebugUI.BoolField
             {
                 nameAndTooltip = Strings.MSAA,
-                getter = () => data.enableMsaa,
-                setter = (value) => data.enableMsaa = value
+                getter = () => panel.data.enableMsaa,
+                setter = (value) => panel.data.enableMsaa = value
             };
 
-            internal static DebugUI.Widget CreateHDR(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            internal static DebugUI.Widget CreateHDR(SettingsPanel panel) => new DebugUI.BoolField
             {
                 nameAndTooltip = Strings.HDR,
-                getter = () => data.enableHDR,
-                setter = (value) => data.enableHDR = value
+                getter = () => panel.data.enableHDR,
+                setter = (value) => panel.data.enableHDR = value
             };
 
-            internal static DebugUI.Widget CreatePixelValidationMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreatePixelValidationMode(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
-                getter = () => (int)data.validationMode,
-                setter = (value) => data.validationMode = (DebugValidationMode)value,
-                getIndex = () => (int)data.validationMode,
-                setIndex = (value) => data.validationMode = (DebugValidationMode)value,
+                getter = () => (int)panel.data.validationMode,
+                setter = (value) => panel.data.validationMode = (DebugValidationMode)value,
+                getIndex = () => (int)panel.data.validationMode,
+                setIndex = (value) => panel.data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
-            internal static DebugUI.Widget CreatePixelValidationChannels(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreatePixelValidationChannels(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
-                getter = () => (int)data.validationChannels,
-                setter = (value) => data.validationChannels = (PixelValidationChannels)value,
-                getIndex = () => (int)data.validationChannels,
-                setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
+                getter = () => (int)panel.data.validationChannels,
+                setter = (value) => panel.data.validationChannels = (PixelValidationChannels)value,
+                getIndex = () => (int)panel.data.validationChannels,
+                setIndex = (value) => panel.data.validationChannels = (PixelValidationChannels)value
             };
 
-            internal static DebugUI.Widget CreatePixelValueRangeMin(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
+            internal static DebugUI.Widget CreatePixelValueRangeMin(SettingsPanel panel) => new DebugUI.FloatField
             {
                 nameAndTooltip = Strings.ValueRangeMin,
-                getter = () => data.validationRangeMin,
-                setter = (value) => data.validationRangeMin = value,
+                getter = () => panel.data.validationRangeMin,
+                setter = (value) => panel.data.validationRangeMin = value,
                 incStep = 0.01f
             };
 
-            internal static DebugUI.Widget CreatePixelValueRangeMax(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
+            internal static DebugUI.Widget CreatePixelValueRangeMax(SettingsPanel panel) => new DebugUI.FloatField
             {
                 nameAndTooltip = Strings.ValueRangeMax,
-                getter = () => data.validationRangeMax,
-                setter = (value) => data.validationRangeMax = value,
+                getter = () => panel.data.validationRangeMax,
+                setter = (value) => panel.data.validationRangeMax = value,
                 incStep = 0.01f
             };
         }
 
-        private class SettingsPanel : DebugDisplaySettingsPanel
+        [DisplayInfo(name = "Rendering", order = 1)]
+        internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsRendering>
         {
-            public override string PanelName => "Rendering";
-
             public SettingsPanel(DebugDisplaySettingsRendering data)
+                : base(data)
             {
                 AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
 
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Rendering Debug",
+                    flags = DebugUI.Flags.FrequentlyUsed,
                     isHeader = true,
                     opened = true,
                     children =
                     {
-                        WidgetFactory.CreateMapOverlays(data),
-                        WidgetFactory.CreateMapOverlaySize(data),
-                        WidgetFactory.CreateHDR(data),
-                        WidgetFactory.CreateMSAA(data),
-                        WidgetFactory.CreatePostProcessing(data),
-                        WidgetFactory.CreateAdditionalWireframeShaderViews(data),
-                        WidgetFactory.CreateWireframeNotSupportedWarning(data),
-                        WidgetFactory.CreateOverdrawMode(data),
-                        WidgetFactory.CreateMaxOverdrawCount(data),
+                        WidgetFactory.CreateMapOverlays(this),
+                        WidgetFactory.CreateMapOverlaySize(this),
+                        WidgetFactory.CreateHDR(this),
+                        WidgetFactory.CreateMSAA(this),
+                        WidgetFactory.CreatePostProcessing(this),
+                        WidgetFactory.CreateAdditionalWireframeShaderViews(this),
+                        WidgetFactory.CreateWireframeNotSupportedWarning(this),
+                        WidgetFactory.CreateOverdrawMode(this),
+                        WidgetFactory.CreateMaxOverdrawCount(this),
                     }
                 });
 
@@ -357,16 +359,16 @@ namespace UnityEngine.Rendering.Universal
                     opened = true,
                     children =
                     {
-                        WidgetFactory.CreatePixelValidationMode(data),
+                        WidgetFactory.CreatePixelValidationMode(this),
                         new DebugUI.Container()
                         {
                             displayName = Strings.RangeValidationSettingsContainerName,
                             isHiddenCallback = () => data.validationMode != DebugValidationMode.HighlightOutsideOfRange,
                             children =
                             {
-                                WidgetFactory.CreatePixelValidationChannels(data),
-                                WidgetFactory.CreatePixelValueRangeMin(data),
-                                WidgetFactory.CreatePixelValueRangeMax(data)
+                                WidgetFactory.CreatePixelValidationChannels(this),
+                                WidgetFactory.CreatePixelValueRangeMin(this),
+                                WidgetFactory.CreatePixelValueRangeMax(this)
                             }
                         }
                     }

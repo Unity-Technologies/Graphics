@@ -1,6 +1,8 @@
 using NUnit.Framework;
 using System;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {

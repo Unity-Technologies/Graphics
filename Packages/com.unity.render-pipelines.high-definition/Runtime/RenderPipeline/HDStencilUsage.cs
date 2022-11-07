@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: first bit is free and can still be used by both phases.
 
         // --- Following bits are used before transparent rendering ---
-
+        IsUnlit = (1 << 0), // Unlit materials (shader and shader graph) except for the shadow matte
         RequiresDeferredLighting = (1 << 1),
         SubsurfaceScattering = (1 << 2),     //  SSS, Split Lighting
         TraceReflectionRay = (1 << 3),     //  SSR or RTR - slot is reuse in transparent

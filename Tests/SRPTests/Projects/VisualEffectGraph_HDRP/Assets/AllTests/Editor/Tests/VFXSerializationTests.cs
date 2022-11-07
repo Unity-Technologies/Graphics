@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 using System.IO;
 using UnityEngine.TestTools;
 using System.Collections;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor.VersionControl;
@@ -1173,6 +1174,74 @@ namespace UnityEditor.VFX.Test
 
             var newVFXContent = File.ReadAllText(s_Modify_SG_Property_VFX);
             Assert.IsTrue(newVFXContent.Contains("Name_B"));
+        }
+
+        [UnityTest, Description("Cover regression UUM-5728")]
+        public IEnumerator ShaderGraph_Lit_On_Unlit()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
+
+            LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
+            LogAssert.Expect(LogType.Error, new Regex("Exception while compiling expression graph"));
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var scene = SceneManagement.EditorSceneManager.OpenScene(tempDest + "/Repro_5728.unity");
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            SceneManagement.EditorSceneManager.CloseScene(scene, false);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+        }
+
+        [UnityTest, Description("Cover regression UUM-13863")]
+        public IEnumerator Crash_On_StoreObject_While_Modifying_SG()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_13863.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_13863";
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
+            Assert.IsNotNull(asset);
+
+            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            var baseFilePath = tempDest + "/Repro_13863_A.shadergraph";
+            var backupSGContent = File.ReadAllBytes(baseFilePath);
+            var newSGContent = File.ReadAllBytes(tempDest + "/Repro_13863_B.shadergraph");
+            Assert.IsNotEmpty(backupSGContent);
+            Assert.IsNotEmpty(newSGContent);
+
+            //Modify SG once
+            File.WriteAllBytes(baseFilePath, newSGContent);
+            AssetDatabase.Refresh();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            //Restore
+            File.WriteAllBytes(baseFilePath, backupSGContent);
+            AssetDatabase.Refresh();
+
+            for (int i = 0; i < 4; ++i)
+                yield return null; //Crash is occurring here
+
+
+            window.Close();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
         }
 
         [OneTimeTearDown]

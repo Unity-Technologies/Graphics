@@ -597,6 +597,7 @@ namespace UnityEditor.VFX
         static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
+            count = new VFXExpressionMax(count, OneExpression[VFXValueType.Uint32]);
 
             if (mode == SequentialAddressingMode.Wrap)
             {

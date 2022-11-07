@@ -54,6 +54,15 @@
 #define ENVCACHETYPE_TEXTURE2D (0)
 #define ENVCACHETYPE_CUBEMAP (1)
 
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
+// PackingRules = Exact
+CBUFFER_START(EnvLightReflectionDataRT)
+    float4x4 _PlanarCaptureVPRT[16];
+    float4 _PlanarCaptureForwardRT[16];
+    float4 _PlanarScaleOffsetRT[16];
+    float4 _CubeScaleOffsetRT[64];
+CBUFFER_END
+
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
 struct DirectionalLightData

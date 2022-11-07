@@ -10,6 +10,7 @@ To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-
 
 1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Lighting > Light Layers** and enable the **Enable** checkbox.
 2. To enable Light Layers for all Cameras, open the [HDRP Global Settings](Default-Settings-Window.md), go to the **Frame Settings (Default Values) > Camera** section and, in the **Rendering** section, enable the **Light Layers** checkbox.
+3. Go to **Edit** > **Project Settings** > **Quality** > **HDRP** > **Lighting**, and enable **Light Layers**.
 
 To override the Frame Settings for Cameras and set Light Layers on an individual basis:
 

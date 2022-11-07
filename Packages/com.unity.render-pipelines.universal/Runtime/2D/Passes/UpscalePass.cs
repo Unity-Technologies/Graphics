@@ -8,10 +8,12 @@ namespace UnityEngine.Rendering.Universal
 
         RTHandle m_Source;
         RTHandle m_UpscaleHandle;
+        static Material m_BlitMaterial;
 
-        public UpscalePass(RenderPassEvent evt)
+        public UpscalePass(RenderPassEvent evt, Material blitMaterial)
         {
             renderPassEvent = evt;
+            m_BlitMaterial = blitMaterial;
         }
 
         public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, ref RenderingData renderingData, out RTHandle upscaleHandle)
@@ -41,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetRenderTarget(cmd, m_UpscaleHandle,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                     ClearFlag.None, Color.clear);
-                Blit(cmd, m_Source, m_UpscaleHandle);
+                Blit(cmd, m_Source, m_UpscaleHandle, m_BlitMaterial);
             }
         }
     }

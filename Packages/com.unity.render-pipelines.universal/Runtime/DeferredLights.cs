@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Output lighting result.
         internal RTHandle[] GbufferAttachments { get; set; }
-
+        private RTHandle[] GbufferRTHandles;
         internal TextureHandle[] GbufferTextureHandles { get; set; }
         internal RTHandle[] DeferredInputAttachments { get; set; }
         internal bool[] DeferredInputIsTransient { get; set; }
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
             // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
 
-            CreateGbufferAttachments();
+            CreateGbufferResources();
         }
 
         // In cases when custom pass is injected between GBuffer and Deferred passes we need to fallback
@@ -367,29 +367,36 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal void DisableFramebufferFetchInput()
         {
             this.UseRenderPass = false;
-            CreateGbufferAttachments();
+            CreateGbufferResources();
         }
 
-        internal void CreateGbufferAttachments()
+        internal void ReleaseGbufferResources()
+        {
+            if (this.GbufferRTHandles != null)
+            {
+                // Release the old handles before creating the new one
+                for (int i = 0; i < this.GbufferRTHandles.Length; ++i)
+                {
+                    RTHandles.Release(this.GbufferRTHandles[i]);
+                }
+            }
+        }
+
+        internal void CreateGbufferResources()
         {
             int gbufferSliceCount = this.GBufferSliceCount;
-            if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
+            if (this.GbufferRTHandles == null || this.GbufferRTHandles.Length != gbufferSliceCount)
             {
-                if (this.GbufferAttachments != null)
-                {
-                    // Release the old handles before creating the new one
-                    for (int i = 0; i < this.GbufferAttachments.Length; ++i)
-                    {
-                        RTHandles.Release(this.GbufferAttachments[i]);
-                    }
-                }
+                ReleaseGbufferResources();
 
                 this.GbufferAttachments = new RTHandle[gbufferSliceCount];
+                this.GbufferRTHandles = new RTHandle[gbufferSliceCount];
                 this.GbufferFormats = new GraphicsFormat[gbufferSliceCount];
                 this.GbufferTextureHandles = new TextureHandle[gbufferSliceCount];
                 for (int i = 0; i < gbufferSliceCount; ++i)
                 {
-                    this.GbufferAttachments[i] = RTHandles.Alloc(k_GBufferNames[i], name: k_GBufferNames[i]);
+                    this.GbufferRTHandles[i] = RTHandles.Alloc(k_GBufferNames[i], name: k_GBufferNames[i]);
+                    this.GbufferAttachments[i] = this.GbufferRTHandles[i];
                     this.GbufferFormats[i] = this.GetGBufferFormat(i);
                 }
             }

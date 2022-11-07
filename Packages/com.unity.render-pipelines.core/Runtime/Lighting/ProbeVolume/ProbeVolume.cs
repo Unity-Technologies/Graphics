@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering
                     minBrickSize = profile.minBrickSize;
             }
 
-            var bounds = ComputeBounds(GIContributors.ContributorFilter.Scene, scene);
+            var bounds = ComputeBounds(GIContributors.ContributorFilter.All, scene);
             transform.position = bounds.center;
             size = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
         }
@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering
             unchecked
             {
                 hash = hash * 23 + size.GetHashCode();
+                hash = hash * 23 + gameObject.transform.worldToLocalMatrix.GetHashCode();
                 hash = hash * 23 + overridesSubdivLevels.GetHashCode();
                 hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
@@ -152,7 +153,7 @@ namespace UnityEngine.Rendering
                 if (overrideRendererFilters)
                 {
                     hash = hash * 23 + minRendererVolumeSize.GetHashCode();
-                    hash = hash * 23 + objectLayerMask.GetHashCode();
+                    hash = hash * 23 + objectLayerMask.value.GetHashCode();
                 }
             }
 

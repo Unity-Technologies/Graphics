@@ -185,7 +185,6 @@ namespace UnityEditor.VFX
         static void CheckCompilationVersion()
         {
             EditorApplication.update -= CheckCompilationVersion;
-            string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
 
             UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
             SerializedObject serializedVFXManager = new SerializedObject(vfxmanager);
@@ -194,6 +193,7 @@ namespace UnityEditor.VFX
 
             if (compiledVersionProperty.intValue != VFXGraphCompiledData.compiledVersion || runtimeVersionProperty.intValue != VisualEffectAsset.currentRuntimeDataVersion)
             {
+                string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
                 compiledVersionProperty.intValue = (int)VFXGraphCompiledData.compiledVersion;
                 runtimeVersionProperty.intValue = (int)VisualEffectAsset.currentRuntimeDataVersion;
                 serializedVFXManager.ApplyModifiedProperties();
@@ -373,7 +373,8 @@ namespace UnityEditor.VFX
         // 9: Update HDRP decal angle fade encoding
         // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
         // 11: Instancing
-        public static readonly int CurrentVersion = 11;
+        // 12: Unexpected incorrect synchronization of output with ShaderGraph
+        public static readonly int CurrentVersion = 12;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 

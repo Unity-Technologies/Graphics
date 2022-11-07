@@ -2,4 +2,4 @@
 title: nodes-single-control
 ---
 
-The node has one control:
+node has one control:

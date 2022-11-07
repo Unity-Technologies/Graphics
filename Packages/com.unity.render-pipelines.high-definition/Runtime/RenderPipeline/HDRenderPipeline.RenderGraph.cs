@@ -107,6 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                 TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
 
+                // Volume components
+                PathTracing pathTracing = hdCamera.volumeStack.GetComponent<PathTracing>();
+
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
                     // Stop Single Pass is after post process.
@@ -134,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer, vtFeedbackBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
-                else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
+                else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && pathTracing.enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
                 {
                     //// We only request the light cluster if we are gonna use it for debug mode
                     //if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
@@ -163,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Evaluate the history validation buffer that may be required by temporal accumulation based effects
                     TextureHandle historyValidationTexture = EvaluateHistoryValidationBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
-                    lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, hdCamera.depthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
+                    lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, hdCamera.depthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
                     lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1].y);
 
                     var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, cullingResults, m_VisibleVolumeBoundsBuffer, gpuLightListOutput.bigTileLightList);
@@ -294,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 bool postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera, aovRequest);
-                TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, cullingResults, prepassOutput);
+                TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, pathTracing, cullingResults, prepassOutput);
                 var postProcessTargetFace = postProcessIsFinalPass ? target.face : CubemapFace.Unknown;
                 TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, sunOcclusionTexture, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
 
@@ -957,14 +960,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle transparentAfterPostprocessRL;
         }
 
-        TextureHandle RenderAfterPostProcessObjects(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, in PrepassOutput prepassOutput)
+        TextureHandle RenderAfterPostProcessObjects(RenderGraph renderGraph, HDCamera hdCamera, PathTracing pathTracing, CullingResults cullResults, in PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                 return renderGraph.defaultResources.blackTextureXR;
 
 #if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             // For now disable this pass when path tracing is ON and denoising is active (the denoiser flushes the command buffer for syncing and invalidates the recorded RendererLists)
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState() && m_PathTracingSettings.denoising.value != HDDenoiserType.None)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && GetRayTracingState()
+                && GetRayTracingClusterState()
+                && pathTracing.enable.value
+                && hdCamera.camera.cameraType != CameraType.Preview
+                && m_PathTracingSettings != null
+                && m_PathTracingSettings.denoising.value != HDDenoiserType.None)
                 return renderGraph.defaultResources.blackTextureXR;
 #endif
 

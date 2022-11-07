@@ -96,6 +96,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Return the current use RenderPipelineSettings (i.e for the current platform)</summary>
         public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
+        internal void TurnOffRayTracing()
+        {
+            m_RenderPipelineSettings.supportRayTracing = false;
+        }
+
         [SerializeField]
         internal bool allowShaderVariantStripping = true;
         [SerializeField]

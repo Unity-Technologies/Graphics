@@ -110,6 +110,20 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
     return res;
 }
 
+float3 SampleSH9(StructuredBuffer<float4> data, float3 N)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = data[0];
+    SHCoefficients[1] = data[1];
+    SHCoefficients[2] = data[2];
+    SHCoefficients[3] = data[3];
+    SHCoefficients[4] = data[4];
+    SHCoefficients[5] = data[5];
+    SHCoefficients[6] = data[6];
+
+    return SampleSH9(SHCoefficients, N);
+}
+
 void GetCornetteShanksPhaseFunction(out float3 zh, float anisotropy)
 {
     float g = anisotropy;

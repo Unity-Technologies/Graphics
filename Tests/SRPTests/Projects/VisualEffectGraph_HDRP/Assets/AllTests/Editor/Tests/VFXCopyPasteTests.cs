@@ -376,10 +376,13 @@ namespace UnityEditor.VFX.Test
             var systemNames = view.controller.graph.systemNames;
 
             var uniqueNames = m_ViewController.graph.children.OfType<VFXBasicSpawner>()
-                .Select(x => systemNames.GetUniqueSystemName(x))
+                .Select(x => systemNames.GetUniqueSystemName(x.GetData()))
                 .Union(m_ViewController.graph.children.OfType<VFXBasicInitialize>().Select(x => systemNames.GetUniqueSystemName(x.GetData())))
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToList();
+
+            var vfxDatas = m_ViewController.graph.children.OfType<VFXData>().Distinct().ToArray();
+            Assert.AreEqual(8, vfxDatas.Length, "There should be one distinct VFXData per system (8 spawners and 8 initialize");
 
             // Assert all names are unique, and the expected number of elements was obtained
             Assert.AreEqual(2 * (spawnerCount + GPUSystemsCount), uniqueNames.Count, "Some systems have the same name or are null or empty.");

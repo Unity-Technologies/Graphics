@@ -61,10 +61,36 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
+                if (data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
+                    return;
+
+                var volumeProfile = data.GetOrCreateDefaultVolumeProfile();
+
+                #if UNITY_EDITOR
+                // Profile from resources is read only in released packages, so we have to copy it to the assets folder
+                if (data.IsVolumeProfileFromResources())
+                {
+                    string path = "Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath + '/' + volumeProfile.name + ".asset";
+                    if (!UnityEditor.AssetDatabase.IsValidFolder("Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath))
+                        UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
+
+                    //try load one if one already exist
+                    volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    if (volumeProfile == null || volumeProfile.Equals(null))
+                    {
+                        //else create it
+                        UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile), path);
+                        volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    }
+
+                    data.volumeProfile = volumeProfile;
+                }
+                #endif
+
+                var overrides = data.GetOrCreateDiffusionProfileList();
                 foreach (var profile in data.m_ObsoleteDiffusionProfileSettingsList)
                 {
                     bool found = false;
-                    var overrides = data.GetOrCreateDiffusionProfileList();
                     foreach (var profile2 in overrides.diffusionProfiles.value)
                     {
                         if (profile2 == profile)

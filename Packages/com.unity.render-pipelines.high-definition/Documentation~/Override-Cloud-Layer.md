@@ -71,6 +71,7 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | **Raymarching**        | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
 | - **Steps**            | The number of raymarching steps HDRP uses to calculate lighting for the clouds. The higher the value, the greater the travelled distance is. |
 | - **Density**          | The density of the clouds. The larger the value, the darker the clouds will appear. |
+| - **Ambient Probe Dimmer** | Controls the influence of the ambient probe on the cloud layer volume. A lower value will suppress the ambient light and produce darker clouds overall. |
 | **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. |
 
 | Shadows Property      | Description                                                  |

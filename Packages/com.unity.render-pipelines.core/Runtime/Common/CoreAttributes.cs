@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Attribute used to customize UI display.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = false)]
     public class DisplayInfoAttribute : Attribute
     {
         /// <summary>Display name used in UI.</summary>

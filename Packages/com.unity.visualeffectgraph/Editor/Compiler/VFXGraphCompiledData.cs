@@ -630,7 +630,7 @@ namespace UnityEditor.VFX
 
                 string nativeName = string.Empty;
                 if (systemNames != null)
-                    nativeName = systemNames.GetUniqueSystemName(spawnContext);
+                    nativeName = systemNames.GetUniqueSystemName(spawnContext.GetData());
                 else
                     throw new InvalidOperationException("system names manager cannot be null");
 
@@ -753,13 +753,14 @@ namespace UnityEditor.VFX
             {
                 foreach (var context in contexts)
                 {
-                    var gpuMapper = graph.BuildGPUMapper(context);
-                    var uniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, context.GetData() is VFXDataParticle);
-
-                    // Add gpu and uniform mapper
                     var contextData = contextToCompiledData[context];
-                    contextData.gpuMapper = gpuMapper;
-                    contextData.uniformMapper = uniformMapper;
+                    if (contextData.uniformMapper == null) // Add gpu and uniform mapper if not done already (dataType != VFXDataParticle)
+                    {
+                        var gpuMapper = graph.BuildGPUMapper(context);
+                        var uniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, false);
+                        contextData.gpuMapper = gpuMapper;
+                        contextData.uniformMapper = uniformMapper;
+                    }
                     contextData.graphicsBufferUsage = graph.GraphicsBufferTypeUsage;
                     contextToCompiledData[context] = contextData;
 
@@ -776,10 +777,12 @@ namespace UnityEditor.VFX
                                 content = generatedContent
                             });
                         }
+                        else
+                        {
+                            throw new InvalidOperationException($"Code generation failure from context {context.name}");
+                        }
                     }
                 }
-
-                var resource = m_Graph.GetResource();
             }
             finally
             {
@@ -1106,7 +1109,7 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                 {
                     if (data is VFXDataParticle particleData)
-                        particleData.GenerateSystemUniformMapper(m_ExpressionGraph);
+                        particleData.GenerateSystemUniformMapper(m_ExpressionGraph, contextToCompiledData);
                 }
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 8 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies);

@@ -80,6 +80,7 @@ VFXContextUI VFXBlockUI.node.block-disabled #node-border #title, VFXContextUI VF
 
 VFXBlockUI.node #title #collapse-button
 {
+    flex-grow: 0;
     width: 20px;
     padding-right: 4px;
 }
@@ -99,12 +100,6 @@ VFXBlockUI.node > #node-border
     margin-right:0;
     margin-top:0;
     margin-bottom:0;
-}
-
-VFXEditableDataAnchor.activationslot
-{
-    flex-grow: 1;
-    margin-right: 24px;
 }
 
 VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label

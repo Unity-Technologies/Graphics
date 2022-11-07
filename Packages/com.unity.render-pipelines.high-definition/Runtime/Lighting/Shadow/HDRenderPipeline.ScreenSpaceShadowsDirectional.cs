@@ -190,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Input Buffer
                             ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.directionalShadowSample, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.directionalShadowSample, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
                             ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.directionalShadowSample, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                             // Output buffer

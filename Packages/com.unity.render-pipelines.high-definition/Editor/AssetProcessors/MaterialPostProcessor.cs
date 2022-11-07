@@ -532,6 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ExposeRefraction,
             MetallicRemapping,
             ForceForwardEmissiveForDeferred,
+            UnlitStencilTag,
         };
 
         #region Migrations
@@ -1341,6 +1342,12 @@ namespace UnityEditor.Rendering.HighDefinition
             container.FindPropertyRelative("m_Scale").vector2Value = scale;
             container.FindPropertyRelative("m_Offset").vector2Value = offset;
             res.parent.DeleteArrayElementAtIndex(res.index + 1);
+        }
+
+        static void UnlitStencilTag(Material material, ShaderID id)
+        {
+            if (id == ShaderID.Unlit || id == ShaderID.SG_Unlit)
+                HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         #endregion

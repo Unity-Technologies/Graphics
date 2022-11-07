@@ -190,9 +190,17 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         additionalRayCount += reflectedIntersection.rayCount;
     }
 
+    // Fill the ray context
+    RayContext rayContext;
+    rayContext.reflection = reflected;
+    rayContext.reflectionWeight = reflectedWeight;
+    rayContext.transmission = transmitted;
+    rayContext.transmissionWeight = refractedWeight;
+    rayContext.useAPV = 1;
+
     // Run the lightloop
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float4(reflected, reflectedWeight), float4(transmitted, refractedWeight), lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, rayContext, lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;

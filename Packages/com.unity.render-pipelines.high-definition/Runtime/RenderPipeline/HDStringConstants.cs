@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _AmbientProbeData = Shader.PropertyToID("_AmbientProbeData");
         public static readonly int _EnvLightReflectionData = Shader.PropertyToID("EnvLightReflectionData");
+        public static readonly int _EnvLightReflectionDataRT = Shader.PropertyToID("EnvLightReflectionDataRT");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -757,6 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AreaShadowHistoryRW = Shader.PropertyToID("_AreaShadowHistoryRW");
         public static readonly int _AnalyticProbBuffer = Shader.PropertyToID("_AnalyticProbBuffer");
         public static readonly int _AnalyticHistoryBuffer = Shader.PropertyToID("_AnalyticHistoryBuffer");
+        public static readonly int _AnalyticHistoryBufferRW = Shader.PropertyToID("_AnalyticHistoryBufferRW");
         public static readonly int _RaytracingLightRadius = Shader.PropertyToID("_RaytracingLightRadius");
         public static readonly int _RaytracingSpotAngle = Shader.PropertyToID("_RaytracingSpotAngle");
         public static readonly int _RaytracedShadowIntegration = Shader.PropertyToID("_RaytracedShadowIntegration");

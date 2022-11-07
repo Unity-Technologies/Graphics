@@ -19,16 +19,14 @@ To change the type of a Camera in the Unity Editor:
 
 ![Render Type in the Camera component Inspector](Images/camera-inspector-render-type.png)
 
-You can change a Camera’s type in a script, by setting the `renderType` property of the Camera's [Universal Additional Camera Data](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html) component, like this:
+You can change a Camera’s type in a script, by setting the `renderType` property of the Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
 ```
 var cameraData = camera.GetUniversalAdditionalCameraData();
 cameraData.renderType = CameraRenderType.Base;
 ```
 
-<a name="base-camera"></a>
-
-## Base Camera
+## <a name="base-camera"></a>Base Camera
 
 Base Camera is the default type of Camera in URP. A Base Camera is a general purpose Camera that renders to a given render target.
 
@@ -38,7 +36,7 @@ When you have an active Base Camera in your Scene, this icon appears next to the
 
 ![Overlay Camera icon](Images/camera-icon-base.png)
 
-For information on the properties that Unity exposes in the Inspector for a Base Camera, see the [Base Camera component reference](camera-component-reference.md#base-camera).
+For information on the properties that Unity exposes in the Inspector for a Base Camera, see the [Camera component reference](camera-component-reference.md).
 
 <a name="overlay-camera"></a>
 
@@ -71,4 +69,4 @@ Unity hides all of the other unused properties in the Inspector. You can access 
 
 You cannot apply post-processing to an individual Overlay Camera. You can apply post-processing to an individual Base Camera, or to a Camera Stack.
 
-For information on the properties that Unity exposes in the Inspector of an Overlay Camera, see the [Overlay Camera component reference](camera-component-reference.md#overlay-camera).
+For information on the properties that Unity exposes in the Inspector of an Overlay Camera, see the [Camera component reference](camera-component-reference.md).

@@ -45,9 +45,9 @@ RW_TEXTURE2D_X(float4, _MotionVectorAOV);
 [shader("miss")]
 void CameraMiss(inout PathPayload payload : SV_RayPayload)
 {
-    // Set initial "hit" to infinity (before potential volumetric scattering) and alpha to zero
+    // Set initial "hit" to infinity (before potential volumetric scattering) and alpha to the proper value
     payload.rayTHit = FLT_INF;
-    payload.alpha = 0.0;
+    payload.alpha = IsSkyEnabled() && _PathTracingCameraSkyEnabled ? 1.0 : min(_PathTracingCameraClearColor.a, 1.0);
 
     // In indirect-only mode, it makes more sense to return a null value
     if (_RaytracingMinRecursion > 1)
@@ -56,8 +56,11 @@ void CameraMiss(inout PathPayload payload : SV_RayPayload)
         return;
     }
 
+    // We use the pixel coordinates to access the skytexture, so we first have to remove the tiling 
+    uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
+    uint2 pixelCoord = payload.pixelCoord / tileCount; 
     payload.value = IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
-        GetSkyBackground(payload.pixelCoord).rgb : _PathTracingCameraClearColor.rgb * GetInverseCurrentExposureMultiplier();
+        GetSkyBackground(pixelCoord).rgb : _PathTracingCameraClearColor.rgb * GetInverseCurrentExposureMultiplier();
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value, payload.alpha);
 
@@ -209,11 +212,10 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
             // Update our continuation ray
             GetContinuationRay(payload, ray);
 
-            // Reset the payload (done after extracting continuation ray, because of data aliasing)
+            // Reset relevant fields of the payload
             payload.value = 0.0;
             payload.alpha = 0.0;
             payload.rayDirection = 0.0;
-            payload.pixelCoord = pixelCoord;
             payload.segmentID = segmentID;
 
             // Trace our continuation ray

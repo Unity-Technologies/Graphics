@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.Test
         {
             if (Directory.Exists(tempBasePath))
             {
-                foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
+                foreach (var file in Directory.EnumerateFiles(tempBasePath, "*.*", SearchOption.AllDirectories))
                 {
                     try
                     {
@@ -85,6 +85,19 @@ namespace UnityEditor.VFX.Test
                     {
                     }
                 }
+
+                foreach (var directory in Directory.EnumerateDirectories(tempBasePath))
+                {
+                    try
+                    {
+                        Directory.Delete(directory);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                }
+
+                Directory.Delete(tempBasePath);
             }
         }
 
@@ -119,12 +132,11 @@ namespace UnityEditor.VFX.Test
 
         internal static void CreateSystems(VFXView view, VFXViewController viewController, int count, int offset, string name = null)
         {
-            Func<int, VFXContextController> fnContextController = delegate(int i)
+            VFXContextController GetContextController(VFXContext context)
             {
                 viewController.ApplyChanges();
-                var controller = viewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
-                return controller[i];
-            };
+                return viewController.allChildren.OfType<VFXContextController>().Single(x => x.model == context);
+            }
 
             var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
             var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.StartsWith("Output Particle Quad"));
@@ -133,7 +145,7 @@ namespace UnityEditor.VFX.Test
                 var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc);
                 var init = viewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc);
 
-                var flowEdge = new VFXFlowEdgeController(fnContextController(2 * i + offset).flowInputAnchors.FirstOrDefault(), fnContextController(2 * i + offset + 1).flowOutputAnchors.FirstOrDefault());
+                var flowEdge = new VFXFlowEdgeController(GetContextController(output).flowInputAnchors.FirstOrDefault(), GetContextController(init).flowOutputAnchors.FirstOrDefault());
                 viewController.AddElement(flowEdge);
             }
 

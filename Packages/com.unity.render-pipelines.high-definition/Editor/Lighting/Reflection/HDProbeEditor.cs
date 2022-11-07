@@ -80,6 +80,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 s_Editors[(Component)target] = this;
 
             HDProbeUI.RegisterEditor(this);
+
+            Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
+        }
+
+        void ReconstructReferenceToAdditionalDataSO()
+        {
+            OnDisable();
+            OnEnable();
         }
 
         protected virtual void OnDisable()
@@ -91,6 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             HDProbeUI.UnregisterEditor(this);
+            Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
         protected virtual void Draw(TSerialized serialized, Editor owner)

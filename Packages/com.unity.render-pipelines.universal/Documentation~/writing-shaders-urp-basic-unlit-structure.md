@@ -97,9 +97,7 @@ The Unity shader in this example has the following blocks:
 * [Pass](#pass)
 * [HLSLPROGRAM](#hlsl)
 
-<a name="shader"></a>
-
-### Shader block
+### <a name="shader"></a>Shader block
 
 ShaderLab code starts with the `Shader` declaration.
 
@@ -111,15 +109,13 @@ The path in this declaration determines the display name and location of the Uni
 
 ![Location of the shader in the Shader menu on a Material](Images/shader-examples/urp-material-ui-shader-path.png)
 
-<a name="properties"></a>
-
-### Properties block
+### <a name="properties"></a>Properties block
 
 The [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) block contains the declarations of properties that users can set in the Inspector window on a Material.
 
 In this example, the Properties block is empty, because this Unity shader does not expose any Material properties that a user can define.
 
-### SubShader block
+### <a name="subshader"></a>SubShader block
 
 A Unity shader source file contains one or more [SubShader](https://docs.unity3d.com/Manual/SL-SubShader.html) blocks. When rendering a mesh, Unity selects the first SubShader that is compatible with the GPU on the target device.
 
@@ -135,13 +131,13 @@ To execute the same shader in different render pipelines, create multiple SubSha
 
 For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
-### Pass block
+### <a name="pass"></a>Pass block
 
 In this example, there is one Pass block that contains the HLSL program code. For more information on Pass blocks, see [ShaderLab: Pass](https://docs.unity3d.com/Manual/SL-Pass.html).
 
 A Pass block can optionally contain a Pass tags block. For more information, see [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md).
 
-### HLSLPROGRAM block
+### <a name="hlsl"></a>HLSLPROGRAM block
 
 This block contains the HLSL program code.
 

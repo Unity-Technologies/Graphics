@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting)
+        public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting, bool receivesLighting)
         {
             bool ssrStencil = false;
 
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Configure render state
-            BaseLitAPI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
+            BaseLitAPI.ComputeStencilProperties(receivesLighting, ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
