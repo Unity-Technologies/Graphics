@@ -331,7 +331,7 @@ The following steps show the changes that are specific to the effect implementat
     Camera camera = renderingData.cameraData.camera;
     // Set the projection matrix so that Unity draws the quad in screen space
     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-    // Add the scale variable, use the Camera aspect ration for the y coordinate
+    // Add the scale variable, use the Camera aspect ratio for the y coordinate
     Vector3 scale = new Vector3(1, camera.aspect, 1);
     // Draw a quad for each Light, at the screen space position of the Light.
     foreach (VisibleLight visibleLight in renderingData.lightData.visibleLights)
@@ -422,7 +422,7 @@ public class LensFlareRendererFeature : ScriptableRendererFeature
             Camera camera = renderingData.cameraData.camera;
             // Set the projection matrix so that Unity draws the quad in screen space.
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            // Add the scale variable, use the Camera aspect ration for the y coordinate
+            // Add the scale variable, use the Camera aspect ratio for the y coordinate
             Vector3 scale = new Vector3(1, camera.aspect, 1);
 
             // Draw a quad for each Light, at the screen space position of the Light.

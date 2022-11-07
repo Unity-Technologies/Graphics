@@ -59,7 +59,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             // Get data
-            var camera = renderingData.cameraData.camera;
+            ref var cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            MotionVectorsPersistentData motionData = null;
+
+            if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                motionData = additionalCameraData.motionVectorsPersistentData;
+
+            if (motionData == null)
+                return;
 
             // Never draw in Preview
             if (camera.cameraType == CameraType.Preview)
@@ -69,8 +77,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                int passID = motionData.GetXRMultiPassId(ref cameraData);
+
                 ExecuteCommand(context, cmd);
-                var cameraData = renderingData.cameraData;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {

@@ -194,9 +194,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
         }
 
-        static bool m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall = false;
-        static bool m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall = false;
-
         // Returns the guard angle that must be added to a point light shadow face frustum angle
         // in order to avoid shadows missing at the boundaries between cube faces.
         internal static float GetPointLightShadowFrustumFovBiasInDegrees(int shadowSliceResolution, bool shadowFiltering)
@@ -217,11 +214,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             // We can see that the guard angle is roughly proportional to the inverse of resolution https://docs.google.com/spreadsheets/d/1QrIZJn18LxVKq2-K1XS4EFRZcZdZOJTTKKhDN8Z1b_s
             if (shadowSliceResolution <= kMinimumPunctualLightHardShadowResolution)
             {
+                #if DEVELOPMENT_BUILD
                 if (!m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall)
                 {
                     Debug.LogWarning("Too many additional punctual lights shadows, increase shadow atlas size or remove some shadowed lights");
                     m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall = true; // Only output this once per shadow requests configuration
                 }
+                #endif
             }
             else if (shadowSliceResolution <= 16)
                 fovBias = 43.0f;
@@ -242,12 +241,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (shadowSliceResolution <= kMinimumPunctualLightSoftShadowResolution)
                 {
+                    #if DEVELOPMENT_BUILD
                     if (!m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall)
                     {
                         Debug.LogWarning("Too many additional punctual lights shadows to use Soft Shadows. Increase shadow atlas size, remove some shadowed lights or use Hard Shadows.");
                         // With such small resolutions no fovBias can give good visual results
                         m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall = true; // Only output this once per shadow requests configuration
                     }
+                    #endif
                 }
                 else if (shadowSliceResolution <= 32)
                     fovBias += 9.35f;
@@ -268,8 +269,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             return fovBias;
         }
-
-        bool m_IssuedMessageAboutShadowSlicesTooMany = false;
 
         // Adapted from InsertionSort() in com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDDynamicShadowAtlas.cs
         // Sort array in decreasing requestedResolution order,
@@ -401,6 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     shadowSlicesScaleFactor *= 2;
             }
 
+            #if DEVELOPMENT_BUILD
             if (!m_IssuedMessageAboutShadowMapsTooBig && tooManyShadows)
             {
                 Debug.LogWarning($"Too many additional punctual lights shadows. URP tried reducing shadow resolutions by {shadowSlicesScaleFactor} but it was still too much. Increase shadow atlas size, decrease big shadow resolutions, or reduce the number of shadow maps active in the same frame (currently was {totalShadowSlicesCount}).");
@@ -412,11 +412,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.Log($"Reduced additional punctual light shadows resolution by {shadowSlicesScaleFactor} to make {totalShadowSlicesCount} shadow maps fit in the {atlasSize}x{atlasSize} shadow atlas. To avoid this, increase shadow atlas size, decrease big shadow resolutions, or reduce the number of shadow maps active in the same frame");
                 m_IssuedMessageAboutShadowMapsRescale = true; // Only output this once per shadow requests configuration
             }
+            #endif
         }
 
-        bool m_IssuedMessageAboutShadowMapsRescale = false;
-        bool m_IssuedMessageAboutShadowMapsTooBig = false;
-        bool m_IssuedMessageAboutRemovedShadowSlices = false;
+        #if DEVELOPMENT_BUILD
+        private bool m_IssuedMessageAboutShadowSlicesTooMany = false;
+        private bool m_IssuedMessageAboutShadowMapsRescale = false;
+        private bool m_IssuedMessageAboutShadowMapsTooBig = false;
+        private bool m_IssuedMessageAboutRemovedShadowSlices = false;
+        private static bool m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall = false;
+        private static bool m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall = false;
+        #endif
 
         Dictionary<int, ulong> m_ShadowRequestsHashes = new Dictionary<int, ulong>();  // used to keep track of changes in the shadow requests and shadow atlas configuration (per camera)
 
@@ -495,6 +501,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_ShadowResolutionRequests.Clear();
 
+            #if DEVELOPMENT_BUILD
             // Check changes in the shadow requests and shadow atlas configuration - compute shadow request/configuration hash
             if (!renderingData.cameraData.isPreviewCamera)
             {
@@ -505,7 +512,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     m_ShadowRequestsHashes[renderingData.cameraData.camera.GetHashCode()] = newShadowRequestHash;
 
-                    // congif changed ; reset error message flags as we might need to issue those messages again
+                    // config changed ; reset error message flags as we might need to issue those messages again
                     m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall = false;
                     m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall = false;
                     m_IssuedMessageAboutShadowMapsRescale = false;
@@ -514,6 +521,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_IssuedMessageAboutRemovedShadowSlices = false;
                 }
             }
+            #endif
 
             if (m_VisibleLightIndexToAdditionalLightIndex.Length < visibleLights.Length)
             {
@@ -585,6 +593,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else // Skip shadow requests for this light ; their resolution is too small to look any good
                     totalShadowSlicesCount -= GetPunctualLightShadowSlicesCount(m_SortedShadowResolutionRequests[totalShadowSlicesCount - 1].pointLightShadow ? LightType.Point : LightType.Spot);
             }
+
+            #if DEVELOPMENT_BUILD
             if (totalShadowSlicesCount < totalShadowResolutionRequestsCount)
             {
                 if (!m_IssuedMessageAboutRemovedShadowSlices)
@@ -593,6 +603,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_IssuedMessageAboutRemovedShadowSlices = true;  // Only output this once per shadow requests configuration
                 }
             }
+            #endif
+
             for (int sortedArrayIndex = totalShadowSlicesCount; sortedArrayIndex < m_SortedShadowResolutionRequests.Length; ++sortedArrayIndex)
                 m_SortedShadowResolutionRequests[sortedArrayIndex].requestedResolution = 0; // Reset entries that we cannot fit in the atlas
 
@@ -640,12 +652,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if ((m_ShadowSliceToAdditionalLightIndex.Count + perLightShadowSlicesCount) > totalShadowSlicesCount && IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex))
                 {
+                    #if DEVELOPMENT_BUILD
                     if (!m_IssuedMessageAboutShadowSlicesTooMany)
                     {
                         // This case can especially happen in Deferred, where there can be a high number of visibleLights
                         Debug.Log($"There are too many shadowed additional punctual lights active at the same time, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
                         m_IssuedMessageAboutShadowSlicesTooMany = true; // Only output this once
                     }
+                    #endif
                     break;
                 }
 

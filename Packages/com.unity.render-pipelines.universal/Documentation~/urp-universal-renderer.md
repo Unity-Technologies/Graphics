@@ -102,4 +102,4 @@ This section contains the list of Renderer Features assigned to the selected Ren
 
 For information on how to add a Renderer Feature, see [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
 
-URP contains the pre-built Renderer Feature called [Render Objects](renderer-feature-render-objects.md).
+URP contains the pre-built Renderer Feature called [Render Objects](renderer-features/renderer-feature-render-objects.md).

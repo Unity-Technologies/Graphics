@@ -6,7 +6,7 @@ The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a 
 
 ## Using Bloom
 
-**Bloom** uses the [Volume](Volumes.md) system, so to enable and modify **Bloom** properties, you must add a **Bloom** override to a [Volume](Volume.md) in your Scene.
+**Bloom** uses the [Volume](Volumes.md) system, so to enable and modify **Bloom** properties, you must add a **Bloom** override to a [Volume](VolumeOverrides.md) in your Scene.
 
 To add **Bloom** to a Volume:
 

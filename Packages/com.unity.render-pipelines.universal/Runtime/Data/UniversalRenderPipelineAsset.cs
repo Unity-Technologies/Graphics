@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.Universal
             return new UniversalRenderPipeline(this);
         }
 
-        void DestroyRenderers()
+        internal void DestroyRenderers()
         {
             if (m_Renderers == null)
                 return;

@@ -2,7 +2,7 @@
 
 This section contains information about new features, improvements, and issues fixed in URP 12.
 
-For a complete list of changes made in URP 12, refer to the [Changelog](../../changelog/CHANGELOG.html).
+For a complete list of changes made in URP 12, refer to the [Changelog](xref:changelog).
 
 ## Features
 
@@ -177,7 +177,7 @@ This release contains multiple URP 2D Renderer improvements:
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 12, see the [Changelog](../../changelog/CHANGELOG.html).
+For a complete list of issues resolved in URP 12, see the [Changelog](xref:changelog).
 
 ## Known issues
 
