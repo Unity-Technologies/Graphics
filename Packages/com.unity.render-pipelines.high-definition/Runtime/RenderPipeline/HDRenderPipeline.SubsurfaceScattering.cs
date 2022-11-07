@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[] m_SSSTransmissionTintsAndFresnel0;
         Vector4[] m_SSSDisabledTransmissionTintsAndFresnel0;
         Vector4[] m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
+        Vector4[] m_SSSDualLobeAndDiffusePower;
         uint[] m_SSSDiffusionProfileHashes;
         int[] m_SSSDiffusionProfileUpdate;
         DiffusionProfileSettings[] m_SSSSetDiffusionProfiles;
@@ -57,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSDualLobeAndDiffusePower = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileHashes = new uint[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileUpdate = new int[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
@@ -108,6 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSTransmissionTintsAndFresnel0[index] = settings.transmissionTintAndFresnel0;
             m_SSSDisabledTransmissionTintsAndFresnel0[index] = settings.disabledTransmissionTintAndFresnel0;
             m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps[index] = settings.worldScaleAndFilterRadiusAndThicknessRemap;
+            m_SSSDualLobeAndDiffusePower[index] = settings.dualLobeAndDiffusePower;
             m_SSSDiffusionProfileHashes[index] = settings.profile.hash;
 
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
@@ -139,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // To disable transmission, we simply nullify the transmissionTint
                     cb._TransmissionTintsAndFresnel0[i * 4 + c] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0[i][c] : m_SSSDisabledTransmissionTintsAndFresnel0[i][c];
                     cb._WorldScalesAndFilterRadiiAndThicknessRemaps[i * 4 + c] = m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps[i][c];
+                    cb._DualLobeAndDiffusePower[i * 4 + c] = m_SSSDualLobeAndDiffusePower[i][c];
                 }
 
                 cb._DiffusionProfileHashTable[i * 4] = m_SSSDiffusionProfileHashes[i];

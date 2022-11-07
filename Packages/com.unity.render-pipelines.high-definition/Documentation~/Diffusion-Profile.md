@@ -23,11 +23,25 @@ For HDRP to detect it, you must add it to the **Diffusion Profile List** of the 
 | Property| Description |
 |:---|:---|
 | **Texturing Mode** | Use the drop-down to select when HDRP applies the albedo of the Material.<br />&#8226; **Post-Scatter**: HDRP applies the albedo to the Material after the subsurface scattering pass. This means that the contents of the albedo texture aren't blurred. Use this mode for scanned data and photographs that already contain some blur due to subsurface scattering. <br />&#8226; **Pre- and Post-Scatter**: Albedo is partially applied twice, before and after the subsurface scattering pass. Effectively, this blurs the albedo, resulting in a softer, more natural look. |
+| **Dual Lobe Multipliers** | Use the sliders to set the smoothness multipliers for the two specular lobes of the Material. The base material smoothness will be multiplied by the values of each slider to calculate the smoothness for both lobes. |
+| **Lobe Mix** | The amount of mixing between the primary and secondary specular lobes. |
+| **Diffuse Shading Power** | Use the slider to control the exponent on the cosine component of the diffuse lobe.<br />This is mainly used to simulate the diffuse lighting on non Lambertian surfaces that exhibit strong subsurface scattering. |
 
 The following image displays the effect of each Texturing Mode option on a human face model:
 
 ![](Images/profile_texturing_mode.png)
 
+When simulating skin, it is common to use two specular lobes to account for the thin oily layer covering the epidermis.\
+For the Lit shader, both lobes cannot be evaluated for every source of light for performance reasons, so it is limited to direct lighting from directional, punctual and area lights. Other sources of light will use the regular Material smoothness.\
+For the StackLit shader, the dual lobes are used everytime the specular BRDF needs to be evaluated. Set the __Dual Specular Lobe Parametrization__ to __From Diffusion Profile__ in your StackLit ShaderGraph surface options to control the lobe smoothnesses from the diffusion profile, otherwise they will be controlled by parameters set from the Shader Graph.
+
+The following image displays the effect of Dual Lobe on a human face model:
+
+![](Images/profile_dual_lobe.png)
+
+The following image displays the effect of Diffuse Shading Power on a human face model:
+
+![](Images/profile_diffuse_power.gif)
 
 
 ### Transmission only

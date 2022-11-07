@@ -93,7 +93,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float2 currentUV = (mainCoord + 0.5f) * _ScreenSize.zw;
 
     // Fetch the current and history values and apply the exposition to it.
-    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord) * GetCurrentExposureMultiplier();
+    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).rgb * GetCurrentExposureMultiplier();
     if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);

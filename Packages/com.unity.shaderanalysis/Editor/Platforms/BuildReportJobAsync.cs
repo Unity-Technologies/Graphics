@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderAnalysis
         protected bool isCancelled { get; private set; }
         /// <summary>The shader to process.</summary>
         protected Shader shader { get; private set; }
+        /// <summary>The profile to process.</summary>
+        protected ShaderProfile profile { get; private set; }
         /// <summary>The compute shader to process.</summary>
         protected ComputeShader compute { get; }
         /// <summary>The material process.</summary>
@@ -50,6 +52,7 @@ namespace UnityEditor.ShaderAnalysis
             if (args.asset != null && args.asset.Equals(null))
                 throw new ArgumentNullException(nameof(args.asset));
             shader = args.asset;
+            profile = args.common.targetProfile;
             m_Name = $"Build Shader Report ({shader})";
         }
 

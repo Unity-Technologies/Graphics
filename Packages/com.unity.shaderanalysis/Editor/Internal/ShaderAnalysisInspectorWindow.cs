@@ -14,6 +14,14 @@ namespace UnityEditor.ShaderAnalysis.Internal
         const int k_ExporterSize = 55;
         const int k_HorizontalSpacing = 10;
 
+        public enum ShaderStage
+        {
+            Vertex = ShaderProfile.VertexProgram,
+            Hull = ShaderProfile.HullProgram,
+            Domain = ShaderProfile.DomainProgram,
+            Fragment = ShaderProfile.PixelProgram,
+        }
+
         #region Platform UI API
         public delegate void DrawProgramToolbar(Object asset, ShaderBuildReport report, ShaderBuildReport.GPUProgram program, ShaderBuildReport reference, string assetGUID);
         public delegate void DrawUnitToolbar(
@@ -123,6 +131,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
         string[] m_SupportedPlatformNames;
         BuildTarget[] m_SupportedPlatforms;
         int m_SelectedPlatformIndex;
+        ShaderProfile m_SelectedShaderStage = ShaderProfile.PixelProgram;
         Object m_SelectedAsset;
 
         List<GUIAction> m_GUIActionCache = new List<GUIAction>();
@@ -263,7 +272,6 @@ namespace UnityEditor.ShaderAnalysis.Internal
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 OnGUI_AssetSelection(actions);
-                EditorGUILayout.Space();
                 OnGUI_AdvancedSettingsButton();
             }
             EditorGUILayout.EndHorizontal();
@@ -407,6 +415,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
         void OnGUI_AssetSelection(List<GUIAction> actions)
         {
+            var previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 90;
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             {
                 EditorGUI.BeginChangeCheck();
@@ -414,15 +424,24 @@ namespace UnityEditor.ShaderAnalysis.Internal
                     typeof(Object), false);
                 if (EditorGUI.EndChangeCheck() && m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
                     actions.Add(new GUIAction(GUIActionKind.OpenSelectedAsset));
-                EditorGUI.BeginChangeCheck();
 
+                EditorGUI.BeginChangeCheck();
                 m_SelectedPlatformIndex = EditorGUILayout.Popup(EditorGUIUtility.TrTempContent("Target Platform"), m_SelectedPlatformIndex,
                     m_SupportedPlatformNames);
                 m_CurrentPlatform = m_SelectedPlatformIndex >= 0 && m_SelectedPlatformIndex < m_SupportedPlatforms.Length ? m_SupportedPlatforms[m_SelectedPlatformIndex] : BuildTarget.StandaloneWindows;
                 if (EditorGUI.EndChangeCheck())
                     actions.Add(new GUIAction(GUIActionKind.LoadAssetMetaData));
+
+                if (m_SelectedAsset != null && !m_SelectedAsset.Equals(null) && (m_SelectedAsset.GetType() == typeof(Shader) || m_SelectedAsset.GetType() == typeof(Material)))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    m_SelectedShaderStage = (ShaderProfile)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTempContent("Target Stage"), (ShaderStage)m_SelectedShaderStage);
+                    if (EditorGUI.EndChangeCheck())
+                        actions.Add(new GUIAction(GUIActionKind.OpenSelectedAsset));
+                }
             }
             GUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = previousLabelWidth;
         }
 
         void OnGUI_BuildReportToolbar(List<GUIAction> actions, Func<IAsyncJob> buildReportJob, Object asset, PlatformJob capability)
@@ -721,19 +740,19 @@ namespace UnityEditor.ShaderAnalysis.Internal
         IAsyncJob BuildShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Shader, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
+            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Shader, m_CurrentPlatform, m_SelectedShaderStage, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         IAsyncJob BuildComputeShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Compute, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
+            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Compute, m_CurrentPlatform, ShaderProfile.ComputeProgram, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         IAsyncJob BuildMaterialReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Material, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
+            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Material, m_CurrentPlatform, m_SelectedShaderStage, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         void NOOPGUI()

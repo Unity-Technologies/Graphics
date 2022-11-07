@@ -1079,7 +1079,11 @@ namespace UnityEngine.Rendering.HighDefinition
             bool needsCurve = (isHistogramBased && m_Exposure.histogramUseCurveRemapping.value) || m_Exposure.mode.value == ExposureMode.CurveMapping;
 
             passData.histogramUsesCurve = m_Exposure.histogramUseCurveRemapping.value;
-            passData.adaptationParams = new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0.0f, 0.0f);
+
+            // When recording with accumulation, unity_DeltaTime is adjusted to account for the subframes.
+            // To match the ganeview's exposure adaptation when recording, we adjust similarly the speed.
+            float speedMultiplier = m_SubFrameManager.isRecording ? (float) m_SubFrameManager.subFrameCount : 1.0f;
+            passData.adaptationParams = new Vector4(m_Exposure.adaptationSpeedLightToDark.value * speedMultiplier, m_Exposure.adaptationSpeedDarkToLight.value * speedMultiplier, 0.0f, 0.0f);
 
             passData.exposureMode = m_Exposure.mode.value;
 
@@ -4689,6 +4693,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader uberPostCS;
             public int uberPostKernel;
             public bool outputColorLog;
+            public bool isSearchingInHierarchy;
             public int width;
             public int height;
             public int viewCount;
@@ -4771,6 +4776,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 passData.outputColorLog = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
+                passData.isSearchingInHierarchy = CoreUtils.IsSceneFilteringEnabled();
                 passData.width = postProcessViewportSize.x;
                 passData.height = postProcessViewportSize.y;
                 passData.viewCount = hdCamera.viewCount;
@@ -4827,7 +4833,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AlphaScaleBias, data.alphaScaleBias);
 
                         // Dispatch uber post
-                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, "_DebugFlags", new Vector4(data.outputColorLog ? 1 : 0, 0, 0, 0));
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, "_DebugFlags", new Vector4(data.outputColorLog ? 1 : 0, 0, 0, data.isSearchingInHierarchy ? 1 : 0));
                         ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._InputTexture, data.source);
                         ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._OutputTexture, data.destination);
                         ctx.cmd.DispatchCompute(data.uberPostCS, data.uberPostKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.viewCount);

@@ -66,6 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _RTHandlePostProcessScale;           // { postProcessWidth / RTHandle.maxWidth, postProcessWidth / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
         public Vector4 _RTHandlePostProcessScaleHistory;    // Same as above but the RTHandle handle size for post process is that of the history buffer
 
+        public Vector4 _DynamicResolutionFullscreenScale;   // Represent the scale between dynamic resolution and the final camera viewport resolution
+
         // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
         // x = 1 - f/n
         // y = f/n
@@ -155,9 +157,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _CachedAreaShadowAtlasSize;
 
         public int _SpecularFade;
+        public uint _EnableRenderingLayers;
         public int _UnusedPadding1;
         public int _UnusedPadding2;
-        public int _UnusedPadding3;
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
@@ -220,6 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _TransmissionTintsAndFresnel0[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];  // RGB = 1/4 * color, A = fresnel0
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _WorldScalesAndFilterRadiiAndThicknessRemaps[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // X = meters per world unit, Y = filter radius (in mm), Z = remap start, W = end - start
+        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
+        public fixed float _DualLobeAndDiffusePower[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // RGB = dual lobe, A = diffuse power
         // Because of constant buffer limitation, arrays can only hold 4 components elements (otherwise we get alignment issues)
         // We could pack the 16 values inside 4 uint4 but then the generated code is inefficient and generates a lots of swizzle operations instead of a single load.
         // That's why we have 16 uint and only use the first component of each element.
@@ -258,10 +262,5 @@ namespace UnityEngine.Rendering.HighDefinition
         // See ScreenCoordOverride.hlsl for details.
         public Vector4 _ScreenSizeOverride;
         public Vector4 _ScreenCoordScaleBias;
-
-        public float _EnableRenderingLayers;
-        public float _Pad1;
-        public float _Pad2;
-        public float _Pad3;
     }
 }

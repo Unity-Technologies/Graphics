@@ -16,9 +16,9 @@ static const float kSHBasisCoef[] = { kSHBasis0, -kSHBasis1, kSHBasis1, -kSHBasi
 
 // Clamped cosine convolution coefs (pre-divided by PI)
 // See https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
-#define kClampedCosine0 1.0f
-#define kClampedCosine1 2.0f / 3.0f
-#define kClampedCosine2 1.0f / 4.0f
+#define kClampedCosine0 (1.0f)
+#define kClampedCosine1 (2.0f / 3.0f)
+#define kClampedCosine2 (1.0f / 4.0f)
 
 static const float kClampedCosineCoefs[] = { kClampedCosine0, kClampedCosine1, kClampedCosine1, kClampedCosine1, kClampedCosine2, kClampedCosine2, kClampedCosine2, kClampedCosine2, kClampedCosine2 };
 
@@ -108,6 +108,20 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 #endif
 
     return res;
+}
+
+float3 SampleSH9(StructuredBuffer<float4> data, float3 N)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = data[0];
+    SHCoefficients[1] = data[1];
+    SHCoefficients[2] = data[2];
+    SHCoefficients[3] = data[3];
+    SHCoefficients[4] = data[4];
+    SHCoefficients[5] = data[5];
+    SHCoefficients[6] = data[6];
+
+    return SampleSH9(SHCoefficients, N);
 }
 
 void GetCornetteShanksPhaseFunction(out float3 zh, float anisotropy)

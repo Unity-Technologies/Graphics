@@ -300,6 +300,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowIndicesScratchpadArray = new NativeArray<int>(lightCount, Allocator.Persistent);
             }
 
+            if (m_IsValidIndexScratchpadArray.IsCreated && m_IsValidIndexScratchpadArray.Length < lightCount)
+            {
+                m_IsValidIndexScratchpadArray.Dispose();
+                m_IsValidIndexScratchpadArray = default;
+            }
+
+            if (!m_IsValidIndexScratchpadArray.IsCreated)
+            {
+                m_IsValidIndexScratchpadArray = new NativeBitArray(lightCount, Allocator.Persistent);
+            }
+
             if (!m_VisibleLightsAndIndicesBuffer.IsCreated)
             {
                 m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);

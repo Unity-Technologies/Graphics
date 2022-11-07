@@ -15,6 +15,9 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty scatteringDistanceMultiplier;
         internal SerializedProperty transmissionTint;
         internal SerializedProperty texturingMode;
+        internal SerializedProperty smoothnessMultipliers;
+        internal SerializedProperty lobeMix;
+        internal SerializedProperty diffusePower;
         internal SerializedProperty transmissionMode;
         internal SerializedProperty thicknessRemap;
         internal SerializedProperty worldScale;
@@ -41,6 +44,9 @@ namespace UnityEditor.Rendering.HighDefinition
             scatteringDistanceMultiplier = rp.Find(x => x.scatteringDistanceMultiplier);
             transmissionTint = rp.Find(x => x.transmissionTint);
             texturingMode = rp.Find(x => x.texturingMode);
+            smoothnessMultipliers = rp.Find(x => x.smoothnessMultipliers);
+            lobeMix = rp.Find(x => x.lobeMix);
+            diffusePower = rp.Find(x => x.diffuseShadingPower);
             transmissionMode = rp.Find(x => x.transmissionMode);
             thicknessRemap = rp.Find(x => x.thicknessRemap);
             worldScale = rp.Find(x => x.worldScale);

@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderAnalysis
         public static ShaderAnalysisReport<TAsset> New<TAsset>(
             TAsset asset,
             BuildTarget currentPlatform,
+            ShaderProfile currentProfile,
             ShaderProgramFilter filter = null,
             BuildReportFeature features = (BuildReportFeature)(-1),
             bool logCommandLines = false
@@ -18,6 +19,7 @@ namespace UnityEditor.ShaderAnalysis
                 common = new ShaderAnalysisReport
                 {
                     targetPlatform = currentPlatform,
+                    targetProfile = currentProfile,
                     filter = filter,
                     features = features,
                     logCommandLines = logCommandLines
@@ -25,6 +27,7 @@ namespace UnityEditor.ShaderAnalysis
             };
 
         public BuildTarget targetPlatform;
+        public ShaderProfile targetProfile;
         public ShaderProgramFilter filter;
         public BuildReportFeature features;
         /// <summary>True to log in the Unity console the command line used.</summary>

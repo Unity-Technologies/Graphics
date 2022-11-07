@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly int _CloudShadows = Shader.PropertyToID("_CloudShadows");
         static readonly int _FlowmapA = Shader.PropertyToID("_FlowmapA"), _FlowmapB = Shader.PropertyToID("_FlowmapB");
         static readonly int _CloudMapA = Shader.PropertyToID("_CloudMapA"), _CloudMapB = Shader.PropertyToID("_CloudMapB");
+        static readonly int _AmbientProbeBuffer = Shader.PropertyToID("_AmbientProbeBuffer");
         static ComputeShader s_BakeCloudTextureCS, s_BakeCloudShadowsCS;
         static int s_BakeCloudTextureKernel, s_BakeCloudShadowsKernel;
         static readonly Vector4[] s_VectorArray = new Vector4[2];
@@ -114,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._FlowmapParam, s_VectorArray);
 
+            // Sun light
             Color lightColor = Color.black;
             if (builtinParams.sunLight != null)
             {
@@ -129,6 +131,11 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VectorArray[0] = cloudLayer.layerA.Color * lightColor; s_VectorArray[1] = cloudLayer.layerB.Color * lightColor;
             s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params1, s_VectorArray);
+
+            // Ambient probe
+            var params2 = new Vector4(cloudLayer.layerA.ambientProbeDimmer.value, cloudLayer.layerB.ambientProbeDimmer.value, 0.0f, 0.0f);
+            m_CloudLayerMaterial.SetVector(HDShaderIDs._Params2, params2);
+            m_CloudLayerMaterial.SetBuffer(_AmbientProbeBuffer, builtinParams.cloudAmbientProbe);
 
             // Keywords
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
@@ -278,8 +285,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cloudTextureWidth = (int)cloudLayer.resolution.value;
                 cloudTextureHeight = cloudLayer.upperHemisphereOnly.value ? cloudTextureWidth / 2 : cloudTextureWidth;
                 if (!cloudTextureCache.TryGet(cloudTextureWidth, cloudTextureHeight, ref cloudTextureRT))
-                    cloudTextureRT = RTHandles.Alloc(cloudTextureWidth, cloudTextureHeight,
-                        cloudLayer.NumLayers, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureDimension.Tex2DArray,
+                    cloudTextureRT = RTHandles.Alloc(cloudTextureWidth, cloudTextureHeight, TextureWrapMode.Repeat, TextureWrapMode.Clamp,
+                        slices: cloudLayer.NumLayers, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureDimension.Tex2DArray,
                         enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Texture");
 
                 cloudShadowsRT = null;

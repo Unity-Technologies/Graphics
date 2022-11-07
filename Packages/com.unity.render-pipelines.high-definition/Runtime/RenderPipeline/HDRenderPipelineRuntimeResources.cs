@@ -451,6 +451,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Water Exclusion material
             [Reload("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
             public Material waterExclusionMaterial;
+            [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
+            public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
         }
 
         [Serializable, ReloadGroup]

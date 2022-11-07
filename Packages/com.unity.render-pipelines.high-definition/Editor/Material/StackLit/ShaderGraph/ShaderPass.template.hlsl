@@ -95,6 +95,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION;
     #endif
 
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER;
+    $UseProfileLobes: surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_DUAL_LOBE;
+
     #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
         // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
         $Specular.EnergyConserving: surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));

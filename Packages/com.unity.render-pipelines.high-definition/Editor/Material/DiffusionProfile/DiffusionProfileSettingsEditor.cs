@@ -98,19 +98,68 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Space();
         }
 
+        internal void DualSliderWithFields(GUIContent label, SerializedProperty values, float minLimit, float maxLimit)
+        {
+            const float fieldWidth = 65, padding = 4;
+            var rect = EditorGUILayout.GetControlRect();
+            rect = EditorGUI.PrefixLabel(rect, label);
+
+            float slider;
+            Vector2 value = values.vector2Value;
+            float midLevel = (minLimit + maxLimit) * 0.5f;
+
+            EditorGUI.showMixedValue = values.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+
+            if (rect.width >= 3 * fieldWidth + 2 * padding)
+            {
+                rect.xMin -= 15 * EditorGUI.indentLevel;
+                var tmpRect = new Rect(rect);
+                tmpRect.width = fieldWidth;
+
+                EditorGUI.BeginChangeCheck();
+                slider = EditorGUI.FloatField(tmpRect, value.x);
+                if (EditorGUI.EndChangeCheck())
+                    value.x = Mathf.Clamp(slider, minLimit, midLevel);
+
+                tmpRect.x = rect.xMax - fieldWidth;
+                EditorGUI.BeginChangeCheck();
+                slider = EditorGUI.FloatField(tmpRect, value.y);
+                if (EditorGUI.EndChangeCheck())
+                    value.y = Mathf.Clamp(slider, midLevel, maxLimit);
+
+                tmpRect.xMin = rect.xMin + (fieldWidth + padding);
+                tmpRect.xMax = rect.xMax - (EditorGUIUtility.fieldWidth + padding);
+                rect = tmpRect;
+            }
+
+            rect.width = (rect.width - padding) * 0.5f;
+            EditorGUI.BeginChangeCheck();
+            slider = GUI.HorizontalSlider(rect, value.x, minLimit, midLevel);
+            if (EditorGUI.EndChangeCheck())
+                value.x = slider;
+
+            rect.x += rect.width + padding - 1;
+            EditorGUI.BeginChangeCheck();
+            slider = GUI.HorizontalSlider(rect, value.y, midLevel, maxLimit);
+            if (EditorGUI.EndChangeCheck())
+                value.y = slider;
+
+            if (EditorGUI.EndChangeCheck())
+                values.vector2Value = value;
+            EditorGUI.showMixedValue = false;
+        }
+
         void DrawSSS()
         {
             EditorGUILayout.LabelField(Styles.subsurfaceScatteringLabel, EditorStyles.boldLabel);
 
-            var texturingModeMixedValues = m_SerializedDiffusionProfileSettings.texturingMode.hasMultipleDifferentValues;
             using (new EditorGUI.IndentLevelScope())
-            using (new EditorGUI.MixedValueScope(texturingModeMixedValues))
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
-                var previousTexturingMode = texturingModeMixedValues ? int.MinValue : m_SerializedDiffusionProfileSettings.texturingMode.intValue;
-                var newTexturingMode = EditorGUILayout.EnumPopup(Styles.texturingMode, (DiffusionProfile.TexturingMode)previousTexturingMode);
-                if (changeCheckScope.changed)
-                    m_SerializedDiffusionProfileSettings.texturingMode.intValue = (int)(DiffusionProfile.TexturingMode)newTexturingMode;
+                EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.texturingMode);
+                DualSliderWithFields(Styles.smoothnessMultipliers, m_SerializedDiffusionProfileSettings.smoothnessMultipliers, 0.0f, 2.0f);
+                EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.lobeMix);
+                EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.diffusePower);
             }
 
             EditorGUILayout.Space();

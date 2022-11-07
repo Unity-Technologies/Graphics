@@ -102,7 +102,7 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
 
             int index = abs(envLightData.envIndex) - 1;
 
-            float2 atlasCoords = GetReflectionAtlasCoordsCube(_CubeScaleOffset[index], R, 0);
+            float2 atlasCoords = GetReflectionAtlasCoordsCube(CUBE_SCALE_OFFSET[index], R, 0);
 
             float3 probeResult = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, 0, 0).rgb * envLightData.rangeCompressionFactorCompensation;
             probeResult = ClampToFloat16Max(probeResult);

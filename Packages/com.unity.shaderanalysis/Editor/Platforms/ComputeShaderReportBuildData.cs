@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderAnalysis
             ComputeShader compute,
             DirectoryInfo temporaryDirectory,
             ShaderProgramFilter filter,
-            ProgressWrapper progress) : base(temporaryDirectory, progress, filter)
+            ProgressWrapper progress) : base(ShaderProfile.ComputeProgram, temporaryDirectory, progress, filter)
         {
             this.compute = compute;
 
@@ -89,13 +89,13 @@ namespace UnityEditor.ShaderAnalysis
                     foreach (var keyword in (HashSet<string>)keywordSet)
                         compileOptions.defines.Add(keyword);
 
-                compileOptions.defines.Add(ShaderAnalysisUtils.DefineCompute);
+                compileOptions.defines.Add(k_ProfileToDefine[shaderProfile]);
 
                 var unit = new CompileUnit
                 {
                     sourceCodeFile = sourceCodeFile,
                     compileOptions = compileOptions,
-                    compileProfile = ShaderProfile.ComputeProgram,
+                    compileProfile = shaderProfile,
                     compileTarget = ShaderTarget.CS_5,
                     compiledFile = ShaderAnalysisUtils.GetTemporaryProgramCompiledFile(sourceCodeFile, temporaryDirectory, kernel.name)
                 };
@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderAnalysis
                     unit.compileOptions.defines.ToArray(),
                     unit.warnings.ToArray(),
                     unit.errors.ToArray(),
-                    ShaderProfile.ComputeProgram,
+                    shaderProfile,
                     unit.compileOptions.entry
                 );
 

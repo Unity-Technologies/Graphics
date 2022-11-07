@@ -151,9 +151,9 @@ uint3 GetSampleOffset(uint i)
 
 // The validity mask is sampled once and contains a binary info on whether a probe neighbour (relevant for trilinear) is to be used
 // or not. The entry in the mask uses the same mapping that GetSampleOffset above uses.
-float GetValidityWeight(int offset, uint validityMask)
+float GetValidityWeight(uint offset, uint validityMask)
 {
-    int mask = 1 << offset;
+    uint mask = 1U << offset;
     return (validityMask & mask) > 0 ? 1 : 0;
 }
 
@@ -424,7 +424,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
     ZERO_INITIALIZE(APVSample, baseSample);
 
     uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
-    for (int i = 0; i < 8; ++i)
+    for (uint i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
         float trilinearW =
@@ -461,7 +461,7 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
     float3 fracOffset = -texFrac;
     float weights[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
     float totalW = 0.0f;
-    int i = 0;
+    uint i = 0;
     float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
 
     for (i = 0; i < 8; ++i)

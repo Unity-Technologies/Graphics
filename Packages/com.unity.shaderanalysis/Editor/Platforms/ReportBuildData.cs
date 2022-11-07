@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -51,6 +51,8 @@ namespace UnityEditor.ShaderAnalysis
         protected DirectoryInfo temporaryDirectory { get; }
         /// <summary>Use this member to notify progress of the operation.</summary>
         protected ProgressWrapper progress { get; }
+        /// <summary>Profile to use.</summary>
+        protected ShaderProfile shaderProfile;
 
         // Outputs
         /// <summary>The compilation units to compile to make the report.</summary>
@@ -73,11 +75,22 @@ namespace UnityEditor.ShaderAnalysis
         public bool throwOnError { get; set; }
         public bool logCommandLine { get; set; }
 
+        static readonly protected Dictionary<ShaderProfile, string> k_ProfileToDefine = new()
+        {
+            { ShaderProfile.VertexProgram, "SHADER_STAGE_VERTEX=1" },
+            { ShaderProfile.HullProgram, "SHADER_STAGE_HULL=1" },
+            { ShaderProfile.DomainProgram, "SHADER_STAGE_DOMAIN=1" },
+            { ShaderProfile.PixelProgram, "SHADER_STAGE_FRAGMENT=1" },
+            { ShaderProfile.ComputeProgram, "SHADER_STAGE_COMPUTE=1" },
+        };
+
         protected ReportBuildData(
+            ShaderProfile profile,
             DirectoryInfo temporaryDirectory,
             ProgressWrapper progress,
             ShaderProgramFilter filter)
         {
+            this.shaderProfile = profile;
             this.temporaryDirectory = temporaryDirectory;
             this.progress = progress;
             this.filter = filter;

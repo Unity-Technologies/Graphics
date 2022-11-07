@@ -5,7 +5,7 @@
             {
             #if VFX_USE_GRAPH_VALUES
                 uint instanceActiveIndex = asuint(_InstanceActiveIndex);
-                $splice(VFXLoadGraphValues)
+                ${VFXLoadGraphValues}
             #endif
                 VFXAttributes attributes = rtProceduralData.attributes;
             #if USE_FLIPBOOK

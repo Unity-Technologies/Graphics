@@ -53,10 +53,17 @@ namespace UnityEngine.Rendering.HighDefinition
         [ColorUsage(false, false)]
         public Color scatteringDistance; // Per color channel (no meaningful units)
         [Min(0.0f)]
-        public float scatteringDistanceMultiplier = 1.0f;
+        public float scatteringDistanceMultiplier;
         [ColorUsage(false, true)]
         public Color transmissionTint;           // HDR color
+        [Tooltip("Specifies when HDRP applies the albedo of the Material.")]
         public TexturingMode texturingMode;
+        [Range(1.0f, 2.0f)]
+        public Vector2 smoothnessMultipliers;
+        [Range(0.0f, 1.0f), Tooltip("Amount of mixing between the primary and secondary specular lobes.")]
+        public float lobeMix;
+        [Range(1.0f, 3.0f), Tooltip("Exponent on the cosine component of the diffuse lobe.\nHelps to simulate surfaces with strong subsurface scattering.")]
+        public float diffuseShadingPower;
         public TransmissionMode transmissionMode;
         public Vector2 thicknessRemap;             // X = min, Y = max (in millimeters)
         public float worldScale;                 // Size of the world unit in meters
@@ -81,6 +88,9 @@ namespace UnityEngine.Rendering.HighDefinition
             scatteringDistanceMultiplier = 1;
             transmissionTint = Color.white;
             texturingMode = TexturingMode.PreAndPostScatter;
+            smoothnessMultipliers = Vector2.one;
+            lobeMix = 0.5f;
+            diffuseShadingPower = 1.0f;
             transmissionMode = TransmissionMode.ThinObject;
             thicknessRemap = new Vector2(0f, 5f);
             worldScale = 1f;
@@ -93,6 +103,15 @@ namespace UnityEngine.Rendering.HighDefinition
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
             worldScale = Mathf.Max(worldScale, 0.001f);
             ior = Mathf.Clamp(ior, 1.0f, 2.0f);
+
+            // Default values for serializable classes do not work, they are set to 0
+            // if we detect this case, we initialize them to the right default
+            if (diffuseShadingPower == 0.0f)
+            {
+                smoothnessMultipliers = Vector2.one;
+                lobeMix = 0.5f;
+                diffuseShadingPower = 1.0f;
+            }
 
             UpdateKernel();
         }
@@ -229,6 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [NonSerialized] internal Vector4 shapeParamAndMaxScatterDist;                // RGB = S = 1 / D, A = d = RgbMax(D)
         [NonSerialized] internal Vector4 transmissionTintAndFresnel0;                // RGB = color, A = fresnel0
         [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0;        // RGB = black, A = fresnel0 - For debug to remove the transmission
+        [NonSerialized] internal Vector4 dualLobeAndDiffusePower;                    // R = Smoothness A, G = Smoothness B, B = Lobe Mix, A = Diffuse Power - 1 (to have 0 as neutral value)
         [NonSerialized] internal int updateCount;
 
         /// <summary>
@@ -268,6 +288,42 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => profile.worldScale;
             set { profile.worldScale = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Multiplier for the primary specular lobe. This multiplier is clamped between 1 and 2.
+        /// </summary>
+        public float primarySmoothnessMultiplier
+        {
+            get => profile.smoothnessMultipliers.y;
+            set { profile.smoothnessMultipliers.y = Mathf.Clamp(value, 1, 2); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Multiplier for the secondary specular lobe. This multiplier is clamped between 0 and 1.
+        /// </summary>
+        public float secondarySmoothnessMultiplier
+        {
+            get => profile.smoothnessMultipliers.x;
+            set { profile.smoothnessMultipliers.x = Mathf.Clamp(value, 0, 1); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Amount of mixing between the primary and secondary specular lobes.
+        /// </summary>
+        public float lobeMix
+        {
+            get => profile.lobeMix;
+            set { profile.lobeMix = value; UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Exponent on the cosine component of the diffuse lobe.\nHelps to simulate non lambertian surfaces.
+        /// </summary>
+        public float diffuseShadingPower
+        {
+            get => profile.diffuseShadingPower;
+            set { profile.diffuseShadingPower = value; UpdateCache(); }
         }
 
         /// <summary>
@@ -329,6 +385,8 @@ namespace UnityEngine.Rendering.HighDefinition
             fresnel0 *= fresnel0; // square
             transmissionTintAndFresnel0 = new Vector4(profile.transmissionTint.r * 0.25f, profile.transmissionTint.g * 0.25f, profile.transmissionTint.b * 0.25f, fresnel0); // Premultiplied
             disabledTransmissionTintAndFresnel0 = new Vector4(0.0f, 0.0f, 0.0f, fresnel0);
+            float smoothnessB = profile.lobeMix == 0.0f ? 1.0f : profile.smoothnessMultipliers.y; // this helps shader determine if dual lobe is active
+            dualLobeAndDiffusePower = new Vector4(profile.smoothnessMultipliers.x, smoothnessB, profile.lobeMix, profile.diffuseShadingPower - 1.0f);
 
             updateCount++;
         }

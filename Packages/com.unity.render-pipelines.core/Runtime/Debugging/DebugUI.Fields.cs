@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class BoolField : Field<bool> { }
         /// <summary>
-        /// Boolean field with history.
+        /// An array of checkboxes that Unity displays in a horizontal row.
         /// </summary>
         public class HistoryBoolField : BoolField
         {
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Integer field.
+        /// A slider for an integer.
         /// </summary>
         public class IntField : Field<int>
         {
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Unsigned integer field.
+        /// A slider for a positive integer.
         /// </summary>
         public class UIntField : Field<uint>
         {
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Float field.
+        /// A slider for a float.
         /// </summary>
         public class FloatField : Field<float>
         {
@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Enumerator field.
+        /// A dropdown that contains the values from an enum.
         /// </summary>
         public class EnumField : EnumField<int>
         {
@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Object PopupField
+        /// A dropdown that contains a list of Unity objects.
         /// </summary>
         public class ObjectPopupField : Field<Object>
         {
@@ -560,7 +560,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Object field.
+        /// A field for selecting a Unity object.
         /// </summary>
         public class ObjectField : Field<Object>
         {
@@ -571,7 +571,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Object list field.
+        /// A list of fields for selecting Unity objects.
         /// </summary>
         public class ObjectListField : Field<Object[]>
         {
@@ -582,7 +582,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Simple message box widget, providing a couple of different styles.
+        /// A read-only message box with an icon.
         /// </summary>
         public class MessageBox : Widget
         {

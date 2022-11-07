@@ -389,9 +389,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             data.globalCB.PushGlobal(ctx.cmd, data.globalCBData, HDShaderIDs._ShaderVariablesGlobal);
 
+
                             for (int i = 0; i < HDShadowRequest.frustumPlanesCount; i++)
                             {
-                                planesScratchpad[i] = frustumPlanesStorageUnsafe[i];
+                                planesScratchpad[i] = frustumPlanesStorageUnsafe[shadowRequestHandle.storageIndexForFrustumPlanes + i];
                             }
 
                             ctx.cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, planesScratchpad);

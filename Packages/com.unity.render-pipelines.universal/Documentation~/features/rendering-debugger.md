@@ -26,7 +26,7 @@ The Rendering Debugger window is available in the following modes:
 
 * At runtime in the standalone Unity Player, on any device. The window is only available in **Development builds**.
 
-When using the **Rendering Debugger** window in the Development build, clear the **Strip Debug Variants** check box in **Project Settings > Graphics > URP Global Settings**.
+To enable all the sections of the **Rendering Debugger** in your built application, disable **Strip Debug Variants** in **Project Settings > Graphics > URP Global Settings**. Otherwise you can only use the [Display Stats](#display-stats) section.
 
 Use one of the following options to open the **Rendering Debugger** window.
 

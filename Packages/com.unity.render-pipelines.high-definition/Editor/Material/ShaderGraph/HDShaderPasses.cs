@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return structs;
         }
 
-        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation)
+        public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useVFX, bool useTessellation, bool useDebugSymbols = false)
         {
             PragmaCollection pragmas = input == null ? new PragmaCollection() : new PragmaCollection { input };
 
@@ -30,6 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas.Add(CorePragmas.BasicVFX);
             else
                 pragmas.Add(useTessellation ? CorePragmas.BasicTessellation : CorePragmas.Basic);
+
+            if (useDebugSymbols && Unsupported.IsDeveloperMode())
+                pragmas.Add(Pragma.DebugSymbols);
 
             return pragmas;
         }
@@ -433,7 +436,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Forward Only
 
-        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool useVFX, bool useTessellation)
+        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool useVFX, bool useTessellation, bool useDebugSymbols)
         {
             return new PassDescriptor
             {
@@ -448,7 +451,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicSurfaceData,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
@@ -762,7 +765,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region GBuffer
 
-        public static PassDescriptor GenerateGBuffer(bool useVFX, bool useTessellation)
+        public static PassDescriptor GenerateGBuffer(bool useVFX, bool useTessellation, bool useDebugSymbols)
         {
             return new PassDescriptor
             {
@@ -776,7 +779,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = GBufferRenderState,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,

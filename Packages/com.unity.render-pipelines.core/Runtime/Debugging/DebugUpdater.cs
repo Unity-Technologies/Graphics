@@ -11,6 +11,7 @@ using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
 {
+    [CoreRPHelpURL("Rendering-Debugger")]
     class DebugUpdater : MonoBehaviour
     {
         static DebugUpdater s_Instance = null;

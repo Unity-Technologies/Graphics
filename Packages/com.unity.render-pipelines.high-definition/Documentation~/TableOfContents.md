@@ -203,6 +203,7 @@
 * Debugging
   * [MatCap](MatCap.md)
   * [Rendering Debugger](Render-Pipeline-Debug-Window.md)
+  * [Add controls to the Rendering Debugger](Rendering-Debugger-Add-Controls.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
 * Consoles

@@ -86,6 +86,7 @@ CBUFFER_END
 #define DirtOffset              _BloomDirtScaleOffset.zw
 
 #define OutputLogEnabled        _DebugFlags.x
+#define IsSearchingHierarchy	_DebugFlags.w
 
 #define AlphaScale              _AlphaScaleBias.x
 #define AlphaBias               _AlphaScaleBias.y
@@ -243,11 +244,14 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Alpha mask
 #ifdef ENABLE_ALPHA
-        // Post processing is not applied on pixels with zero alpha
-        // The alpha scale and bias control how steep is the transition between the post-processed and plain regions
-        float alpha = inputColor.a * AlphaScale + AlphaBias;
-        // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
-        color.xyz = lerp(inputColor.xyz, color.xyz, saturate(alpha));
+		if (IsSearchingHierarchy == 0)
+		{
+			// Post processing is not applied on pixels with zero alpha
+			// The alpha scale and bias control how steep is the transition between the post-processed and plain regions
+			float alpha = inputColor.a * AlphaScale + AlphaBias;
+			// Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
+			color.xyz = lerp(inputColor.xyz, color.xyz, saturate(alpha));
+		}
 #endif
 
 #ifdef GAMMA2_OUTPUT
