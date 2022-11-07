@@ -326,7 +326,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
-    GraphicsDevice: 11
+    GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-12033
