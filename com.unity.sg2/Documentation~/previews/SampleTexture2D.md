@@ -5,7 +5,7 @@ Samples a 2D Texture.
 **Texture** - the texture asset to sample. The asset selector allows you to select a texture from the project.
 **UV** - the texture coordinates to use for sampling the texture
 **Sampler** - the texture sampler to use for sampling the texture
-**LOD** - explicitly defines the mip level to sample. (Available when Mip Sampling Mode is set to LOD.)
+**LOD** - explicitly defines the mip level to sample. (Available when Mip Sampling Mode is set to LOD.) This option allows the sampler to be used in the vertex shader.
 **DDX** - the horizontal derivitive used to calculate the mip level.(Available when Mip Sampling Mode is set to Gradient.)
 **DDY** - the vertical derivitive used to calculate the mip level. (Available when Mip Sampling Mode is set to Gradient.)
 **Bias** - adds or substracts from the auto-generated mip level. (Available when Mip Sampling Mode is set to Bias.)
