@@ -104,13 +104,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/160_MultiCameraVolumesViaScriptingTest.unity
     guid: 3f6f1488245db419bab368d787dcc0b1
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/171_CustomPostPro_ZeroCodePath_AfterPostPro.unity
     guid: a26ba46bfa1c74bc28a97e4db08eea7f
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/172_CustomPostPro_ZeroCodePath_BeforePostPro.unity
     guid: f4a20ab8d37eb40099a25a417d4998a0
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/173_CustomPostPro_ZeroCodePath_BeforeTransparents.unity
     guid: ca52f4b14ee7245b1b8476490b059e84
   - enabled: 1

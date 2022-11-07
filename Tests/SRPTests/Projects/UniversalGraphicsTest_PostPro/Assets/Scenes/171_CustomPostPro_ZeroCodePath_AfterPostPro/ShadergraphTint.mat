@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ShadergraphTint
-  m_Shader: {fileID: -6465566751694194690, guid: 4d4f44a4f43b842e0a0f586d73f63c6e,
+  m_Shader: {fileID: -6465566751694194690, guid: ad858fbefad5148cab903465ce3ce697,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
