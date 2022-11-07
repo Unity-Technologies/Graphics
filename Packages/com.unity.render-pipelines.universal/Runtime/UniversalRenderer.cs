@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class UniversalRenderer : ScriptableRenderer
     {
-        #if UNITY_SWITCH
+        #if UNITY_SWITCH || UNITY_ANDROID
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
         const int k_DepthBufferBits = 24;
         #else
@@ -540,6 +540,12 @@ namespace UnityEngine.Rendering.Universal
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
 
+            var colorDescriptor = cameraTargetDescriptor;
+            colorDescriptor.useMipMap = false;
+            colorDescriptor.autoGenerateMips = false;
+            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
+
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
@@ -589,11 +595,14 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+            // Check the createColorTexture logic above: intermediate color texture is not available for preview cameras.
+            // Because intermediate color is not available and copyColor pass requires it, we disable CopyColor pass here.
+            copyColorPass &= !isPreviewCamera;
 
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
 
-            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -843,10 +852,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
 
-                var colorDescriptor = cameraTargetDescriptor;
-                colorDescriptor.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
-                colorDescriptor.depthBufferBits = (int)DepthBits.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
+                var colorDesc = cameraTargetDescriptor;
+                colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
+                colorDesc.depthBufferBits = (int)DepthBits.None;
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;

@@ -1,82 +1,89 @@
-# Material Scripting API
+# Modifying HDRP Materials in C#
 
-Most HDRP shaders allow you to enable and disable functionalities through the use of Shader keywords.
+When you change a [Material’s properties](https://docs.unity3d.com/Manual/SL-Properties.html) in the Inspector, HDRP automatically validates a material when you change its properties in the inspector. This means that HDRP automatically sets up material properties, keywords, and passes.
 
-For example, on the HDRP Lit Shader, normal mapping code is stripped from Materials that don't use a normal map. These Materials don’t include the code for normal mapping, so they're faster to run and compile. The keyword for normal mapping is activated automatically when you use the Material Inspector, but you need to do it explicitly when you use a script.
+However, if you use a script to change the properties of a material made from an HDRP Shader, or a ShaderGraph that has an HDRP target, HDRP doesn’t validate the material automatically.
 
-You can find more information about Material parameters in Unity in the [Material section](https://docs.unity3d.com/Manual/MaterialsAccessingViaScript.html) of the Unity Manual. Information about shader variants, shader keywords and access in standalone builds can be found [here](https://docs.unity3d.com/Manual/shader-variants-and-keywords.html).
+When a material in your scene isn't valid, it might make a property change have no effect or cause the material to fail to render.
 
-## Modifying HDRP Materials in scripts
+To do this, when you modify an HDRP material in C#:
 
-When you change a Material’s properties in the Inspector, HDRP sets up properties, keywords, and passes on the Material to make sure HDRP can render it correctly. This is called a validation step.
-When you use a script to change a Material’s properties, HDRP doesn't perform this step automatically. This means you must validate that Material manually.
+- [Use the HDMaterial API](#hdmaterial) to change a property and validate it if it includes a method for the property the shader uses.
+- [Use ValidateMaterial](#validatematerial) after you change a property manually to validate the material. Use this method when `HDMaterial` doesn't include a method for the property the shader uses.
 
-### Validating a Material in HDRP
+You can find more information about Material properties in Unity in the [Material section of the Unity Manual](https://docs.unity3d.com/Manual/MaterialsAccessingViaScript.html). For more information about shader variants, shader keywords, and access in standalone builds, see [Branching, variants, and keywords](https://docs.unity3d.com/Manual/shader-variants-and-keywords.html).
 
-To validate a Material In HDRP, use the function `ValidateMaterial` to  force HDRP to perform a validation step on any Material made from an HDRP Shader or a ShaderGraph that has a HDRP Target.
+<a name="hdmaterial"></a>
 
-The following example script:
+## Modify a Material with the HDMaterial API
 
- * Creates a Material with the [HDRP/Lit](Lit-Shader.md) shader,
- * Enables Alpha Clipping and sets its cutoff value to `0.2`,
- * Uses the `ValidateMaterial` function to enable the Alpha Clipping keywords on the Material.
+To modify a Material property, use the methods in the `HDMaterial` class. When you use a method in `HDMaterial` to change a property, it automatically validates the Material.
+
+The `HDMaterial` class contains methods that correspond to certain material properties. For a full list of `HDMaterial` methods, see the [HDMaterial API documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
+
+The following example script: 
+
+- Creates a Material with the [HDRP/Lit](Lit-Shader.md) shader. 
+- Uses `HDmaterial.SetAlphaClipping` to enable alpha clipping.
+- Uses `HDmaterial.SetAlphaCutoff` to set the cutoff value to 0.2. 
+- Automatically sets keywords appropriately because it uses the `HDmaterial` API.
+
+```c#
+using UnityEngine.Rendering.HighDefinition;
+
+public class CreateCutoutMaterial : MonoBehaviour
+
+{
+
+   void Start()
+
+  {
+
+     var material = new Material(Shader.Find("HDRP/Lit"));
+
+     HDMaterial.SetAlphaClipping(material, true);
+
+     HDMaterial.SetAlphaCutoff(material, 0.2f);
+
+  }
+
+}
+
+```
+
+<a name="validatematerial"></a>
+
+## Modify and validate a Material with ValidateMaterial
+
+To validate a Material property which isn’t included in `HDMaterial`, use the `ValidateMaterial` method to force HDRP to validate the material.
+
+The following example script: 
+
+- Creates a Material with the [HDRP/Lit](Lit-Shader.md) shader.
+- Uses `_AlphaCutoffEnable` to enable alpha clipping.
+- Uses  "_AlphaCutoff" to set the cutoff value to 0.2.
+- Uses the `ValidateMaterial` function to validate this Material.
 
 ```C#
 using UnityEngine.Rendering.HighDefinition;
 
 public class CreateCutoutMaterial : MonoBehaviour
+
 {
-    void Start()
-    {
-        var material = new Material(Shader.Find("HDRP/Lit"));
-        material.SetFloat("_AlphaCutoffEnable", 1.0f);
-        material.SetFloat("_AlphaCutoff", 0.2f); // Settings this property is for HDRP
-        material.SetFloat("_Cutoff", 0.2f); // Setting this property is for the GI baking system
-        HDMaterial.ValidateMaterial(material);
-    }
+
+   void Start()
+
+  {
+
+       var material = new Material(Shader.Find("HDRP/Lit"));
+
+       material.SetFloat("_AlphaCutoffEnable", 1.0f);
+
+       material.SetFloat("_AlphaCutoff", 0.2f);
+
+      HDMaterial.ValidateMaterial(material);
+
+  }
+
 }
 ```
-
-### HDRP Material API
-
-Some properties of HDRP shaders aren't independent, and they require changes to other properties or keywords to have any effect.
-To help modify these properties, HDRP provides a set of functions that will take care of setting all the required states.
-You can find a list of available methods in the [Scripting API](../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
-Please refer to the documentation to know with which shaders the methods are compatible.
-
-The example script below:
-
- * Creates a Material with the HDRP/Lit shader,
- * Enables Alpha Clipping and sets its cutoff value to `0.2`. Keywords are automatically set appropriately.
-
-To do this, it uses the following helper functions:
-
- * material.SetAlphaClipping
- * material.SetAlphaCutoff
-
-```C#
-using UnityEngine.Rendering.HighDefinition;
-
-public class CreateCutoutMaterial : MonoBehaviour
-{
-    void Start()
-    {
-        var material = new Material(Shader.Find("HDRP/Lit"));
-        HDMaterial.SetAlphaClipping(material, true);
-        HDMaterial.SetAlphaCutoff(material, 0.2f);
-    }
-}
-```
-
-## Making shader variants available at runtime
-
-Unity uses the set of keywords enabled on a Material to determine which Shader Variant to use. When you build a project, Unity only includes the Shader Variants in the build that the Materials of the project are currently using.
-Because Unity has to compile Shader Variants at build time, changing keywords on a Material at runtime can require using a Variant that Unity hasn't built.
-
-To make all Shader Variants you need available at runtime, you need to ensure Unity knows that you need them. There are several ways to do that:
-
-1. You can record the shader variants used during a play session and store them in a **Shader Variant Collection** asset. To do that, navigate to the Project Settings window, open the Graphics tab and select **Save to asset…** This will build a collection containing all Shader Variants currently in use and save them out as an asset. You must then add this asset to the list of Preloaded Shaders for the variants to be included in a build.
-
-![](Images/shader-variants.png)
-
-2. You can include at least one Material using each variant in your Assets folder. You must use this Material in a scene or place it in your Resources Folder, otherwise Unity ignores this Material when it builds the project.
