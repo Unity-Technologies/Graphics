@@ -115,6 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Register<SamplerStateAssignment>();
 
             Register(new MultiplyNode(), new MultiplyNodeUI());
+            Register(new SwizzleNode(), new SwizzleNodeUI());
             Register(new SampleGradientNode(), new StaticNodeUIDescriptorBuilder(SampleGradientNode.kUIDescriptor));
             #endregion
 
