@@ -9,7 +9,7 @@ When HDRP sets the color you see reflected on a reflective object, or through a 
 3. If you have a sky, HDRP uses the cubemap texture or color of the sky.
 4. HDRP uses black.
 
-The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects. See [Depth pyramid and color pyramid generation in HDRP](Custom-Pass-buffers-pyramids#depth-pyramid-and-color-pyramid-generation-in-hdrp) for more information.
+The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects. See [Depth pyramid and color pyramid generation in HDRP](Custom-Pass-buffers-pyramids.md#depth-pyramid-and-color-pyramid-generation-in-hdrp) for more information.
 
 ## Hierarchy if you use ray-traced reflections
 
@@ -25,10 +25,9 @@ HDRP uses only the [specular color hierarchy](#specular) if the following happen
 
 HDRP works down the following hierarchy to find the diffuse color.
 
-1. If you have a Probe Volume in your Scene, HDRP uses the lighting data from the Probe Volume.
-2. If there's a baked lightmap for this position, HDRP uses the lightmap texture.
-3. If you have a baked [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) and the object is in the probe's Influence Volume, HDRP uses the lighting data from the Light Probe.
-4. If you set a static sky texture in **Lighting** > **Environment** > **Static Lighting Sky**, HDRP uses the cubemap texture of the sky in the ambient probe.
+1. If there's a baked lightmap for this position, HDRP uses the lightmap texture.
+2. If you have a baked [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) and the object is in the probe's Influence Volume, HDRP uses the lighting data from the Light Probe.
+3. If you set a static sky texture in **Lighting** > **Environment** > **Static Lighting Sky**, HDRP uses the cubemap texture of the sky in the ambient probe.
 4. HDRP uses black.
 
 <a name="specular"></a>

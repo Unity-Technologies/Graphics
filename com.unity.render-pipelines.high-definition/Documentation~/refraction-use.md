@@ -10,7 +10,7 @@ To create a refractive Material:
 To create a refractive ShaderGraph:
 
 1. Create a [Lit Shader Graph](master-stack-lit.md).
-2. In the [Graph Inspector](https://docs.unity3d.com/com.unity.shadergraph@15.0/manual/Internal-Inspector.html), in the **Graph Settings** tab, in the **Surface Options** section, set the **Surface Type** to **Transparent**. This adds Transparency settings to the Graph Inspector.
+2. In the [Graph Inspector](https://docs.unity3d.com/Packages/com.unity.shadergraph@10.10/manual/Internal-Inspector.html), in the **Graph Settings** tab, in the **Surface Options** section, set the **Surface Type** to **Transparent**. This adds Transparency settings to the Graph Inspector.
 3. Set **Rendering Pass** to **Default**.
 4. In the Master Stack, set **Alpha** to a value smaller than 1 to make the Material transparent. A value of 0 means the Material is fully transparent.
 5. Select a **Refraction Model** other than **None**. This adds new properties to the Master Stack.
@@ -110,7 +110,7 @@ When a vector leaves the object, it intersects with a point somewhere in the sce
 
 By default, HDRP uses screen space refraction. This means that HDRP samples the color buffer to find the color at the intersection point. That color becomes the color you see as you look through the transparent pixel on the object.
 
-The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects. See [Depth pyramid and color pyramid generation in HDRP](Custom-Pass-buffers-pyramids#depth-pyramid-and-color-pyramid-generation-in-hdrp) for more information.
+The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects. See [Depth pyramid and color pyramid generation in HDRP](Custom-Pass-buffers-pyramids.md#depth-pyramid-and-color-pyramid-generation-in-hdrp) for more information.
 
 If the intersection point is outside screen space, HDRP tries to fall back to the cubemap texture in a Reflection Probe. If there's no Reflection Probe, HDRP falls back to other sources.
 
@@ -125,12 +125,12 @@ To create more accurate reflections, check which Proxy Volume the object uses. S
 
 If you place the object inside the [Influence Volume](Reflection-Probe.html#influence-volume) of a Reflection Probe, HDRP uses the Proxy Volume from the probe. For more information about the size and shape of a Proxy Volume in a probe, see [Assign a custom Proxy Volume to a Reflection Probe](Reflection-Proxy-Volume.md#assign-a-custom-proxy-volume-to-a-reflection-probe).
 
-Note: Refraction might not be noticeable if your Material uses the planar refraction model and the probe's Proxy Volume uses the **Infinite** shape.
+Note: Refraction might not be noticeable if your Material uses the box refraction model and the probe's Proxy Volume uses the **Infinite** shape.
 
 If the object isn't inside the Influence Volume of a Reflection Probe, HDRP uses the following:
 
 - The **Sphere** Proxy Volume shape with a 10 meter radius, if the Material uses the [sphere refraction model](refraction-models.md#sphere-refraction-model).
-- The **Box** Proxy Volume shape with the same dimensions as the Renderer's bounding box, if the Material uses the [planar refraction model](refraction-models.md#planar-refraction-model) or the [thin refraction model](refraction-models.md#thin-refraction-model).
+- The **Infinite** Proxy Volume shape, if the Material uses the [box refraction model](refraction-models.md#box-refraction-model) or the [thin refraction model](refraction-models.md#thin-refraction-model).
 
 You might see seams or artifacts on the object, because the shape of the environment usually doesn't exactly match the shape of the Proxy Volume. You should try to use a Proxy Volume shape that matches your environment as closely as possible.
 
