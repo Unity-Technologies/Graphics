@@ -6,6 +6,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class ShaderGraphAsset : GraphAsset
     {
+        public static SGAssetVersion CurrentVersion = new SGAssetVersion(1, 0, 0);
+        public SGAssetVersion version;
         protected override Type GraphModelType => typeof(SGGraphModel);
         public SGGraphModel SGGraphModel => GraphModel as SGGraphModel;
 

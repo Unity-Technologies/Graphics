@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Text;
 using UnityEditor.AssetImporters;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
@@ -57,7 +55,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
-            if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
+            if (string.CompareOrdinal(Path.GetExtension(assetPath), "." + Extension) == 0)
             {
                 return ShaderGraphAssetUtils.GatherDependenciesForShaderGraphAsset(assetPath);
             }
@@ -66,7 +64,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
+            if (string.CompareOrdinal(Path.GetExtension(assetPath), "." + Extension) == 0)
             {
                 ShaderGraphAssetUtils.HandleImport(ctx);
             }
