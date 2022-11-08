@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tests_Diffusion_Profile_Settings_Layer_3
   m_EditorClassIdentifier: 
   profile:
-    name: Layer_3
-    scatteringDistance: {r: 0.65220183, g: 0.65220183, b: 41.523594, a: 1}
+    scatteringDistance: {r: 0.011764684, g: 0.011764684, b: 0.7490196, a: 1}
+    scatteringDistanceMultiplier: 55.43726
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 1
     transmissionMode: 1
@@ -22,5 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1076490333
-  m_Version: 1
-  profiles: []
+  m_Version: 2
