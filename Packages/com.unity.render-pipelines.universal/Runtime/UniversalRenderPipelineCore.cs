@@ -11,7 +11,10 @@ namespace UnityEngine.Rendering.Universal
 {
     static class NativeArrayExtensions
     {
-        public static unsafe ref readonly T UnsafeElementAt<T>(this NativeArray<T> array, int index) where T : struct
+        /// <summary>
+        /// IMPORTANT: Make sure you do not write to the value! There are no checks for this!
+        /// </summary>
+        public static unsafe ref T UnsafeElementAt<T>(this NativeArray<T> array, int index) where T : struct
         {
             return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafeReadOnlyPtr(), index);
         }
@@ -144,8 +147,6 @@ namespace UnityEngine.Rendering.Universal
         /// List of visible lights returned by culling.
         /// </summary>
         public NativeArray<VisibleLight> visibleLights;
-
-        internal NativeArray<int> originalIndices;
 
         /// <summary>
         /// True if additional lights should be shaded in vertex shader, otherwise additional lights will be shaded per pixel.
@@ -1162,6 +1163,7 @@ namespace UnityEngine.Rendering.Universal
         CopyDepth,
         DepthNormalPrepass,
         DepthPrepass,
+        UpdateReflectionProbeAtlas,
 
         // DrawObjectsPass
         DrawOpaqueObjects,

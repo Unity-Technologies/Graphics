@@ -1013,9 +1013,9 @@ namespace UnityEditor.Rendering.Universal
                                     break;
 
                                 case RenderingLayerUtils.Event.Opaque:
-                                    shaderFeatures |= universalRendererData.renderingMode == RenderingMode.Forward ?
-                                        ShaderFeatures.OpaqueWriteRenderingLayers :
-                                        ShaderFeatures.GBufferWriteRenderingLayers;
+                                    shaderFeatures |= universalRendererData.renderingMode == RenderingMode.Deferred ?
+                                        ShaderFeatures.GBufferWriteRenderingLayers :
+                                        ShaderFeatures.OpaqueWriteRenderingLayers;
                                     break;
 
                                 default:

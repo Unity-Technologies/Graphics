@@ -5,68 +5,78 @@
 
 #if USE_FORWARD_PLUS
 
-struct ClusteredLightLoop
+// internal
+struct ClusterIterator
 {
     uint tileOffset;
     uint zBinOffset;
     uint tileMask;
-    // Stores the word index in first 16 bits, and the max word index in the last 16 bits.
-    uint wordIndexMax;
+    // Stores the next light index in first 16 bits, and the max light index in the last 16 bits.
+    uint entityIndexNextMax;
 };
 
-ClusteredLightLoop ClusteredLightLoopInit(float2 normalizedScreenSpaceUV, float3 positionWS)
+// internal
+ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, int headerIndex)
 {
-    ClusteredLightLoop state = (ClusteredLightLoop)0;
+    ClusterIterator state = (ClusterIterator)0;
 
-    uint2 tileId = uint2(normalizedScreenSpaceUV * _AdditionalLightsTileScale);
-    state.tileOffset = (tileId.y * _AdditionalLightsTileCountX + tileId.x) * _AdditionalLightsWordsPerTile;
+    uint2 tileId = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
+    state.tileOffset = (tileId.y * URP_FP_TILE_COUNT_X + tileId.x) * URP_FP_WORDS_PER_TILE;
 
     float viewZ = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
-    uint zBinHeaderIndex = min(4*MAX_ZBIN_VEC4S - 1, (uint)(log2(viewZ) * URP_ADDITIONAL_LIGHTS_ZBIN_SCALE + URP_ADDITIONAL_LIGHTS_ZBIN_OFFSET)) * (1 + _AdditionalLightsWordsPerTile);
-    state.zBinOffset = zBinHeaderIndex + 1;
+    uint zBinBaseIndex = min(4*MAX_ZBIN_VEC4S - 1, (uint)(log2(viewZ) * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET)) * (2 + URP_FP_WORDS_PER_TILE);
+    uint zBinHeaderIndex = zBinBaseIndex + headerIndex;
+    state.zBinOffset = zBinBaseIndex + 2;
 
 #if MAX_LIGHTS_PER_TILE > 32
-    state.wordIndexMax = Select4(asuint(_AdditionalLightsZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+    state.entityIndexNextMax = Select4(asuint(URP_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
 #else
     uint tileIndex = state.tileOffset;
     uint zBinIndex = state.zBinOffset;
-    if (_AdditionalLightsWordsPerTile > 0)
+    if (URP_FP_WORDS_PER_TILE > 0)
     {
         state.tileMask =
-            Select4(asuint(_AdditionalLightsTiles[tileIndex / 4]), tileIndex % 4) &
-            Select4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
+            Select4(asuint(URP_Tiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4);
     }
 #endif
 
     return state;
 }
 
-bool ClusteredLightLoopNext(inout ClusteredLightLoop state)
+// internal
+bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
 {
 #if MAX_LIGHTS_PER_TILE > 32
-    uint wordMax = state.wordIndexMax >> 16;
-    while (state.tileMask == 0 && (state.wordIndexMax & 0xFFFF) <= wordMax)
+    uint maxIndex = it.entityIndexNextMax >> 16;
+    while (it.tileMask == 0 && (it.entityIndexNextMax & 0xFFFF) <= maxIndex)
     {
-        uint tileIndex = state.tileOffset + (state.wordIndexMax & 0xFFFF);
-        uint zBinIndex = state.zBinOffset + (state.wordIndexMax & 0xFFFF);
-        state.tileMask =
-            Select4(asuint(_AdditionalLightsTiles[tileIndex / 4]), tileIndex % 4) &
-            Select4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
-        state.wordIndexMax++;
+        // Extract the lower 16 bits and shift by 5 to divide by 32.
+        uint wordIndex = ((it.entityIndexNextMax & 0xFFFF) >> 5);
+        uint tileIndex = it.tileOffset + wordIndex;
+        uint zBinIndex = it.zBinOffset + wordIndex;
+        it.tileMask =
+            Select4(asuint(URP_Tiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            // Mask out the beginning and end of the word.
+            (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
+        // The light index can start at a non-multiple of 32, but the following iterations should always be multiples of 32.
+        // So we add 32 and mask out the lower bits.
+        it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;
     }
 #endif
-    return state.tileMask != 0;
-}
-
-uint ClusteredLightLoopGetLightIndex(inout ClusteredLightLoop state)
-{
-    uint bitIndex = FIRST_BIT_LOW(state.tileMask);
-    state.tileMask ^= (1 << bitIndex);
+    bool hasNext = it.tileMask != 0;
+    uint bitIndex = FIRST_BIT_LOW(it.tileMask);
+    it.tileMask ^= (1 << bitIndex);
 #if MAX_LIGHTS_PER_TILE > 32
-    return _AdditionalLightsDirectionalCount + ((state.wordIndexMax & 0xFFFF) - 1) * 32 + bitIndex;
+    // Subtract 32 because it stores the index of the _next_ word to fetch, but we want the current.
+    // The upper 16 bits and bits representing values < 32 are masked out. The latter is due to the fact that it will be
+    // included in what FIRST_BIT_LOW returns.
+    entityIndex = (((it.entityIndexNextMax - 32) & (0xFFFF & ~31))) + bitIndex;
 #else
-    return _AdditionalLightsDirectionalCount + bitIndex;
+    entityIndex = bitIndex;
 #endif
+    return hasNext;
 }
 
 #endif

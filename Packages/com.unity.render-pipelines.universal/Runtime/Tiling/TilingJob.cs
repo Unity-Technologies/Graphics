@@ -12,6 +12,9 @@ namespace UnityEngine.Rendering.Universal
         [ReadOnly]
         public NativeArray<VisibleLight> lights;
 
+        [ReadOnly]
+        public NativeArray<VisibleReflectionProbe> reflectionProbes;
+
         [NativeDisableParallelForRestriction]
         public NativeArray<InclusiveRange> tileRanges;
 
@@ -29,11 +32,9 @@ namespace UnityEngine.Rendering.Universal
         InclusiveRange m_TileYRange;
         int m_Offset;
 
-        public void Execute(int lightIndex)
+        public void Execute(int index)
         {
-            m_Offset = lightIndex * itemsPerLight;
-            var light = lights[lightIndex];
-            var near = this.near;
+            m_Offset = index * itemsPerLight;
 
             m_TileYRange = new InclusiveRange(short.MaxValue, short.MinValue);
 
@@ -42,6 +43,13 @@ namespace UnityEngine.Rendering.Universal
                 tileRanges[m_Offset + i] = new InclusiveRange(short.MaxValue, short.MinValue);
             }
 
+            if (index < lights.Length) { TileLight(index); }
+            else { TileReflectionProbe(index); }
+        }
+
+        void TileLight(int lightIndex)
+        {
+            var light = lights[lightIndex];
             var lightToWorld = (float4x4)light.localToWorldMatrix;
             var lightPositionVS = math.mul(worldToViewMatrix, math.float4(lightToWorld.c3.xyz, 1)).xyz;
             lightPositionVS.z *= -1;
@@ -52,7 +60,6 @@ namespace UnityEngine.Rendering.Universal
             var halfAngle = math.radians(light.spotAngle * 0.5f);
             var range = light.range;
             var rangesq = square(range);
-            var rangeinv = math.rcp(range);
             var cosHalfAngle = math.cos(halfAngle);
             var coneHeight = cosHalfAngle * range;
 
@@ -88,7 +95,6 @@ namespace UnityEngine.Rendering.Universal
             var sphereBoundX1 = math.float3(sphereBoundXZ1.x, lightPositionVS.y, sphereBoundXZ1.y);
             if (SpherePointIsValid(sphereBoundX0)) ExpandY(sphereBoundX0);
             if (SpherePointIsValid(sphereBoundX1)) ExpandY(sphereBoundX1);
-            // UnityEditor.TransformWorldPlacementJSON:{"position":{"x":-1.3365650177001954,"y":-30.506000518798829,"z":5.571170330047607},"rotation":{"x":0.9168553948402405,"y":-0.04080447554588318,"z":0.3962773084640503,"w":-0.025992946699261667},"scale":{"x":0.9999998807907105,"y":1.0,"z":0.9999998807907105}}
 
             if (light.lightType == LightType.Spot)
             {
@@ -138,28 +144,34 @@ namespace UnityEngine.Rendering.Universal
                 var baseExtentZ = baseRadius * math.sqrt(1.0f - square(lightDirectionVS.z));
                 var coneIsClipping = near >= math.min(baseCenter.z - baseExtentZ, lightPositionVS.z) && near <= math.max(baseCenter.z + baseExtentZ, lightPositionVS.z);
 
+                var coneU = math.cross(lightDirectionVS, lightPositionVS);
+                // The cross product will be the 0-vector if the light-direction and camera-to-light-position vectors are parallel.
+                // In that case, {1, 0, 0} is orthogonal to the light direction and we use that instead.
+                coneU = math.csum(coneU) != 0f ? math.normalize(coneU) : math.float3(1, 0, 0);
+                var coneV = math.cross(lightDirectionVS, coneU);
+
                 if (coneIsClipping)
                 {
                     var r = baseRadius / coneHeight;
 
                     // Find the Y bounds of the near-plane cone intersection, i.e. where y' = 0
-                    var thetaY = FindNearConicTangentTheta(lightPositionVS.yz, lightDirectionVS.yz, r, baseUX.yz, baseVX.yz);
-                    var p0Y = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, thetaY.x);
-                    var p1Y = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, thetaY.y);
+                    var thetaY = FindNearConicTangentTheta(lightPositionVS.yz, lightDirectionVS.yz, r, coneU.yz, coneV.yz);
+                    var p0Y = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaY.x);
+                    var p1Y = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaY.y);
                     if (ConicPointIsValid(p0Y)) ExpandY(p0Y);
                     if (ConicPointIsValid(p1Y)) ExpandY(p1Y);
 
                     // Find the X bounds of the near-plane cone intersection, i.e. where x' = 0
-                    var thetaX = FindNearConicTangentTheta(lightPositionVS.xz, lightDirectionVS.xz, r, baseUX.xz, baseVX.xz);
-                    var p0X = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, thetaX.x);
-                    var p1X = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, thetaX.y);
+                    var thetaX = FindNearConicTangentTheta(lightPositionVS.xz, lightDirectionVS.xz, r, coneU.xz, coneV.xz);
+                    var p0X = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaX.x);
+                    var p1X = EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, thetaX.y);
                     if (ConicPointIsValid(p0X)) ExpandY(p0X);
                     if (ConicPointIsValid(p1X)) ExpandY(p1X);
                 }
 
                 // Calculate the lines making up the sides of the cone as seen from the camera. `l1` and `l2` form lines
                 // from the light position.
-                GetConeSideTangentPoints(lightPositionVS, lightDirectionVS, cosHalfAngle, baseRadius, coneHeight, range, baseUY, baseVY, out var l1, out var l2);
+                GetConeSideTangentPoints(lightPositionVS, lightDirectionVS, cosHalfAngle, baseRadius, coneHeight, range, coneU, coneV, out var l1, out var l2);
 
                 {
                     var planeNormal = math.float3(0, 1, -viewPlaneHalfSize.y);
@@ -205,9 +217,9 @@ namespace UnityEngine.Rendering.Universal
                     {
                         var y = planeY * near;
                         var r = baseRadius / coneHeight;
-                        var theta = FindNearConicYTheta(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, y);
-                        var p0 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, theta.x).x, y, near);
-                        var p1 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, baseUX, baseVX, theta.y).x, y, near);
+                        var theta = FindNearConicYTheta(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, y);
+                        var p0 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.x).x, y, near);
+                        var p1 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.y).x, y, near);
                         if (ConicPointIsValid(p0)) planeRange.Expand((short)math.clamp(ViewToTileSpace(p0).x, 0, tileCount.x - 1));
                         if (ConicPointIsValid(p1)) planeRange.Expand((short)math.clamp(ViewToTileSpace(p1).x, 0, tileCount.x - 1));
                     }
@@ -237,6 +249,158 @@ namespace UnityEngine.Rendering.Universal
             }
 
             tileRanges[m_Offset] = m_TileYRange;
+        }
+
+        static readonly float3[] k_CubePoints =
+        {
+            new(-1, -1, -1),
+            new(-1, -1, +1),
+            new(-1, +1, -1),
+            new(-1, +1, +1),
+            new(+1, -1, -1),
+            new(+1, -1, +1),
+            new(+1, +1, -1),
+            new(+1, +1, +1),
+        };
+
+        // Each item represents 3 lines, with x being the start index and yzw the end indices.
+        static readonly int4[] k_CubeLineIndices =
+        {
+            // (-1, -1, -1) -> {(+1, -1, -1), (-1, +1, -1), (-1, -1, +1)}
+            new(0, 4, 2, 1),
+
+            // (-1, +1, +1) -> {(+1, +1, +1), (-1, -1, +1), (-1, +1, -1)}
+            new(3, 7, 1, 2),
+
+            // (+1, -1, +1) -> {(-1, -1, +1), (+1, +1, +1), (+1, -1, -1)}
+            new(5, 1, 7, 4),
+
+            // (+1, +1, -1) -> {(-1, +1, -1), (+1, -1, -1), (+1, +1, +1)}
+            new(6, 2, 4, 7),
+        };
+
+        void TileReflectionProbe(int index)
+        {
+            // The algorithm used here works by clipping all the lines of the cube against the near-plane, and then
+            // projects the resulting points to the view plane. These points are then used to construct a 2D convex
+            // hull, which we can iterate linearly to get the lines on screen making up the cube.
+
+            var reflectionProbe = reflectionProbes[index - lights.Length];
+            var localToWorld = (float4x4)reflectionProbe.localToWorldMatrix;
+            var centerWS = (float3)reflectionProbe.bounds.center;
+            var extentsWS = (float3)reflectionProbe.bounds.extents;
+
+            // The vertices of the cube in view space.
+            var points = new NativeArray<float3>(k_CubePoints.Length, Allocator.Temp);
+            // This is initially filled with just the cube vertices that lie in front of the near plane.
+            var clippedPoints = new NativeArray<float2>(k_CubePoints.Length + k_CubeLineIndices.Length * 3, Allocator.Temp);
+            var clippedPointsCount = 0;
+            var leftmostIndex = 0;
+            for (var i = 0; i < k_CubePoints.Length; i++)
+            {
+                var point = math.mul(worldToViewMatrix, math.float4(centerWS + extentsWS * k_CubePoints[i], 1)).xyz;
+                point.z *= -1;
+                points[i] = point;
+                if (point.z >= near)
+                {
+                    var clippedPoint = point.xy/point.z;
+                    var clippedIndex = clippedPointsCount++;
+                    clippedPoints[clippedIndex] = clippedPoint;
+                    if (clippedPoint.x < clippedPoints[leftmostIndex].x) leftmostIndex = clippedIndex;
+                }
+            }
+
+            // Clip the cube's line segments with the near plane, and add the new vertices to clippedPoints. Only lines
+            // that are clipped will generate new vertices.
+            for (var i = 0; i < k_CubeLineIndices.Length; i++)
+            {
+                var indices = k_CubeLineIndices[i];
+                var p0 = points[indices.x];
+                for (var j = 0; j < 3; j++)
+                {
+                    var p1 = points[indices[j+1]];
+                    // The entire line is in front of the near plane.
+                    if (p0.z < near && p1.z < near) continue;
+                    // Check whether the line needs clipping.
+                    if (p0.z < near || p1.z < near)
+                    {
+                        var d = (near - p0.z) / (p1.z - p0.z);
+                        var p = math.lerp(p0, p1, d);
+                        var clippedPoint = p.xy/p.z;
+                        var clippedIndex = clippedPointsCount++;
+                        clippedPoints[clippedIndex] = clippedPoint;
+                        if (clippedPoint.x < clippedPoints[leftmostIndex].x) leftmostIndex = clippedIndex;
+                    }
+                }
+            }
+
+            // Construct the convex hull. It is formed by the line loop consisting of the points in the array.
+            var hullPoints = new NativeArray<float2>(clippedPointsCount, Allocator.Temp);
+            var hullPointsCount = 0;
+
+            if (clippedPointsCount > 0)
+            {
+                // Start with the leftmost point, as that is guaranteed to be on the hull.
+                var hullPointIndex = leftmostIndex;
+
+                // Find the remaining hull points until we end up back at the leftmost point.
+                do
+                {
+                    var hullPoint = clippedPoints[hullPointIndex];
+                    ExpandY(math.float3(hullPoint, 1));
+                    hullPoints[hullPointsCount++] = hullPoint;
+
+                    // Find the endpoint resulting in the leftmost turning line. This line will be a part of the hull.
+                    var endpointIndex = 0;
+                    var endpointLine = clippedPoints[endpointIndex] - hullPoint;
+                    for (var i = 0; i < clippedPointsCount; i++)
+                    {
+                        var candidateLine = clippedPoints[i] - hullPoint;
+
+                        // Check if point i lies on the left side of the line to the current endpoint.
+                        if (endpointIndex == hullPointIndex || math.determinant(math.float2x2(endpointLine, candidateLine)) > 0)
+                        {
+                            endpointIndex = i;
+                            endpointLine = candidateLine;
+                        }
+                    }
+
+                    hullPointIndex = endpointIndex;
+                } while (hullPointIndex != leftmostIndex && hullPointsCount < clippedPointsCount);
+
+                m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
+
+                // Calculate tile plane ranges for sphere.
+                for (var planeIndex = m_TileYRange.start + 1; planeIndex <= m_TileYRange.end; planeIndex++)
+                {
+                    var planeRange = InclusiveRange.empty;
+
+                    var planeY = math.lerp(-viewPlaneHalfSize.y, viewPlaneHalfSize.y, planeIndex * tileScaleInv.y);
+
+                    for (var i = 0; i < hullPointsCount; i++)
+                    {
+                        var hp0 = hullPoints[i];
+                        var hp1 = hullPoints[(i + 1) % hullPointsCount];
+
+                        // planeY = hp0 + t * (hp1 - hp0) => planeY - hp0 = t * (hp1 - hp0) => (planeY - hp0) / (hp1 - hp0) = t
+                        var t = (planeY - hp0.y) / (hp1.y - hp0.y);
+                        if (t < 0 || t > 1) continue;
+                        var x = math.lerp(hp0.x, hp1.x, t);
+
+                        planeRange.Expand((short)math.clamp(ViewToTileSpace(math.float3(x, planeY, 1)).x, 0, tileCount.x - 1));
+                    }
+
+                    var tileIndex = m_Offset + 1 + planeIndex;
+                    tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
+                    tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+                }
+
+                tileRanges[m_Offset] = m_TileYRange;
+            }
+
+            hullPoints.Dispose();
+            clippedPoints.Dispose();
+            points.Dispose();
         }
 
         /// <summary>

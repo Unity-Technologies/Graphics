@@ -146,6 +146,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
         internal static int maxZBinWords => 1024 * 4;
         internal static int maxTileWords => (maxVisibleAdditionalLights <= 32 ? 1024 : 4096) * 4;
+        internal static int maxVisibleReflectionProbes => Math.Min(maxVisibleAdditionalLights, 64);
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
@@ -583,8 +584,6 @@ namespace UnityEngine.Rendering.Universal
                     // Timing scope inside
                     renderer.Execute(context, ref renderingData);
                 }
-
-                CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
@@ -1348,16 +1347,6 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
-            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
-            for (var i = 0; i < lightData.originalIndices.Length; i++)
-            {
-                lightData.originalIndices[i] = i;
-            }
-        }
-
-        static void CleanupLightData(ref LightData lightData)
-        {
-            lightData.originalIndices.Dispose();
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
@@ -1386,12 +1375,15 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
 
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
+            var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
+
+            if (!clustering)
+            {
+                configuration |= PerObjectData.ReflectionProbes | PerObjectData.LightData;
+            }
 
             if (additionalLightsCount > 0 && !clustering)
             {
-                configuration |= PerObjectData.LightData;
-
                 // In this case we also need per-object indices (unity_LightIndices)
                 if (!RenderingUtils.useStructuredBuffer)
                     configuration |= PerObjectData.LightIndices;
@@ -1453,8 +1445,8 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
 
             // Used as fallback cubemap for reflections
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
             Shader.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
+            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
 
             // Ambient
             Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));

@@ -279,7 +279,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                               inputData.bakedGI, aoFactor.indirectAmbientOcclusion, inputData.positionWS,
-                                              inputData.normalWS, inputData.viewDirectionWS);
+                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 #ifdef _LIGHT_LAYERS
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
 #endif
@@ -294,8 +294,10 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
 
     #if USE_FORWARD_PLUS
-    for (uint lightIndex = 0; lightIndex < min(_AdditionalLightsDirectionalCount, MAX_VISIBLE_LIGHTS); lightIndex++)
+    for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
+        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
 #ifdef _LIGHT_LAYERS
@@ -385,8 +387,10 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
 
     #if USE_FORWARD_PLUS
-    for (uint lightIndex = 0; lightIndex < min(_AdditionalLightsDirectionalCount, MAX_VISIBLE_LIGHTS); lightIndex++)
+    for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
+        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 #ifdef _LIGHT_LAYERS
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
