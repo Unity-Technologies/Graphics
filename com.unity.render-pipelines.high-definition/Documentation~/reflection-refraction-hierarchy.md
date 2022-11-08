@@ -9,7 +9,7 @@ When HDRP sets the color you see reflected on a reflective object, or through a 
 3. If you have a sky, HDRP uses the cubemap texture or color of the sky.
 4. HDRP uses black.
 
-The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects. See [Depth pyramid and color pyramid generation in HDRP](Custom-Pass-buffers-pyramids.md#depth-pyramid-and-color-pyramid-generation-in-hdrp) for more information.
+The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects.
 
 ## Hierarchy if you use ray-traced reflections
 

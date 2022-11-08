@@ -110,7 +110,7 @@ When a vector leaves the object, it intersects with a point somewhere in the sce
 
 By default, HDRP uses screen space refraction. This means that HDRP samples the color buffer to find the color at the intersection point. That color becomes the color you see as you look through the transparent pixel on the object.
 
-The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects. See [Depth pyramid and color pyramid generation in HDRP](Custom-Pass-buffers-pyramids.md#depth-pyramid-and-color-pyramid-generation-in-hdrp) for more information.
+The color buffer HDRP uses is the first color pyramid that contains only opaque objects, so refractive objects won't be visible through other refractive objects.
 
 If the intersection point is outside screen space, HDRP tries to fall back to the cubemap texture in a Reflection Probe. If there's no Reflection Probe, HDRP falls back to other sources.
 
