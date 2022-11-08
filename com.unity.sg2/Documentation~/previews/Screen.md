@@ -1,8 +1,6 @@
 ## Description
-Gets the camera's color buffer.
-
-## Inputs
-**UV** - Normalized screen coordinates
+Provides access to the screen's width and height parameters.
 
 ## Output
-**Out** - The output color value.
+**Width** - Screen's width in pixels.
+**Height** - Screen's height in pixels.
