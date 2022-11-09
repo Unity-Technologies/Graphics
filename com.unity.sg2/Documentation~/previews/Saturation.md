@@ -1,10 +1,10 @@
 ## Description
-adjusts the color intensity
+Adjusts the color intensity.
 
 ## Inputs
-**In** - a color to adjust
-**Saturation** - less than 1 is less saturated, more than 1 is more saturated
+**In** - A color to adjust.
+**Saturation** - Less than 1 is less saturated, more than 1 is more saturated.
 
 
 ## Output
-**Out** - color with adjusted saturation
+**Out** - Color with adjusted saturation.

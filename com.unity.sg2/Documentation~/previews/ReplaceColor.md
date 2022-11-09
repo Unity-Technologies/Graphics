@@ -2,11 +2,11 @@
 Converts the chosen color in the input to another color value.
 
 ## Inputs
-**In** - The input value
-**From** - color to replace
+**In** - The input value.
+**From** - color to replace.
 **To** - From color is converted to this color instead.
-**Range** - replace colors within this range from input From
-**Fuzziness** - soften edges around selection
+**Range** - Replace colors within this range from input From.
+**Fuzziness** - Soften edges around selection.
 
 ## Outputs
-**Out** - in color with colors replaced
+**Out** - In color with colors replaced.

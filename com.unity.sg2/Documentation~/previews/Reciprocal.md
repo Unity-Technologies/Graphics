@@ -1,11 +1,11 @@
 ## Description
-returns one divided by the input
+Returns one divided by the input.
 
 ## Inputs
-**In** - the input value
+**In** - The input value.
 
 ## Output
-**Out** - one divided by the input
+**Out** - One divided by the input.
 
 ## Controls
-**Method** - on some platforms, the Fast method is a more efficient calculation type.
+**Method** - On some platforms, the Fast method is a more efficient calculation type.

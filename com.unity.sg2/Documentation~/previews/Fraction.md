@@ -2,7 +2,7 @@
 Returns the decimal value of an input and excludes the integer portion.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the decimal portion of the input
+**Out** - The decimal portion of the input.

@@ -5,4 +5,4 @@ Gets a tangent vector in the selected space.
 **Out** - Mesh's tangent vector in selected space.
 
 ## Controls
-**Space** - selects the space of the output vector: Object, View, World, or Tangent space.
+**Space** - Selects the space of the output vector: Object, View, World, or Tangent space.

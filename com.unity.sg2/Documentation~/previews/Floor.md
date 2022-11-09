@@ -1,8 +1,8 @@
 ## Description
-rounds the input down to the nearest whole number
+Rounds the input down to the nearest whole number.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the input rounded down to the nearest whole number
+**Out** - The input rounded down to the nearest whole number.

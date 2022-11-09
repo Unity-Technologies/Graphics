@@ -2,4 +2,4 @@
 Calculates the vertex position of water vertices.
 
 ## Output
-**Out** - The vertex position
+**Out** - The vertex position.

@@ -2,7 +2,7 @@
 Round the input value up or down to the nearest whole number.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the nearest whole number of the input
+**Out** - The nearest whole number of the input.

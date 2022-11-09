@@ -2,7 +2,7 @@
 Clamps the input to a value between 0 and 1. In most cases, the graphics hardware can do this for free without adding additional performance cost.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the input clamped between 0 and 1
+**Out** - The input clamped between 0 and 1.

@@ -6,7 +6,7 @@ Gets the camera's color buffer.
 **Lod** - The mip level to sample.
 
 ## Output
-**Out** - the sample of the scene color buffer.
+**Out** - The sample of the scene color buffer.
 
 ## Controls
-**Exposure** - whether or not to apply exposure to the output.
+**Exposure** - Whether or not to apply exposure to the output.

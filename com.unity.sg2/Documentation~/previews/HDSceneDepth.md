@@ -9,4 +9,4 @@ Gets the camera's depth buffer.
 **Out** - The sample of the scene depth buffer.
 
 ## Controls
-**Sampling Mode** - selects the format for the depth: Linear, Raw, or Eye.
+**Sampling Mode** - Selects the format for the depth: Linear, Raw, or Eye.

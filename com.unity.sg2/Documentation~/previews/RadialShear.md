@@ -2,10 +2,10 @@
 Applies a radial shear warping effect to the UVs, similar to a wave.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Center** - center reference point
-**Strength** - strength of the effect
-**Offset** - individual channel offsets
+**UV** - The input UV coordinates.
+**Center** - Center reference point.
+**Strength** - Strength of the effect.
+**Offset** - Individual channel offsets.
 
 ## Output
-**Out** - radially warped UV coordinates
+**Out** - Radially warped UV coordinates.

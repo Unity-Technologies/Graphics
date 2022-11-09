@@ -2,11 +2,11 @@
 Creates a polygon of the specified size and shape, with rounded corners.
 
 ## Inputs
-**UV** - the coordinates used to create the rectangle
-**Width** - the width of the polygon
-**Height** - the height of the polygon
-**Sides** - number of sides of the polygon
-**Roundness** - roundness of the corners
+**UV** - The coordinates used to create the rectangle.
+**Width** - The width of the polygon.
+**Height** - The height of the polygon.
+**Sides** - Number of sides of the polygon.
+**Roundness** - Roundness of the corners.
 
 ## Output
-**Out** - an n-sided polygon with rounded corners
+**Out** - An n-sided polygon with rounded corners.

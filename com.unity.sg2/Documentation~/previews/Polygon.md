@@ -2,10 +2,10 @@
 Creates a polygon of the specified size and shape.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Sides** - the number of sides on the polygon
-**Width** - polygon width
-**Height** - polygon height
+**UV** - The input UV coordinates.
+**Sides** - The number of sides on the polygon.
+**Width** - Polygon width.
+**Height** - Polygon height.
 
 ## Output
-**Out** - a polygon shape with the given dimensions
+**Out** - A polygon shape with the given dimensions.

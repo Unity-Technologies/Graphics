@@ -1,8 +1,8 @@
 ## Description
-creates a wave form with a slow, linear ramp up and then an instant drop
+Creates a wave form with a slow, linear ramp up and then an instant drop.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - a sawtooth wave
+**Out** - A sawtooth wave.

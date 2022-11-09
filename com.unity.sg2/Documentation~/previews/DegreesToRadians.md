@@ -1,8 +1,8 @@
 ## Description
-converts degrees to radians
+Converts degrees to radians.
 
 ## Inputs
-**In** - a value in degrees
+**In** - A value in degrees.
 
 ## Output
-**Out** - the input converted to radians
+**Out** - The input converted to radians.

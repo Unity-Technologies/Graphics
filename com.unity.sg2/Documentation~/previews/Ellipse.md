@@ -2,9 +2,9 @@
 Generates an ellipse shape.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Width** - ellipse width
-**Height** - ellipse height
+**UV** - The input UV coordinates.
+**Width** - Ellipse width.
+**Height** - Ellipse height.
 
 ## Output
-**Out** - a procedurally-generated ellipse shape
+**Out** - A procedurally-generated ellipse shape.

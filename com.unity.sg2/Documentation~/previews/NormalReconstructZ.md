@@ -2,7 +2,7 @@
 Creates a normal from X and Y components.
 
 ## Inputs
-**Temperature** - input value
+**Temperature** - Input value.
 
 ## Output
-**Out** - return normal from just the X and Y components
+**Out** - Return normal from just the X and Y components.

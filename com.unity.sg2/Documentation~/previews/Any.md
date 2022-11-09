@@ -2,7 +2,7 @@
 Checks if any components of the input In are non-zero values.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - true if any input components are non-zero
+**Out** - True if any input components are non-zero.

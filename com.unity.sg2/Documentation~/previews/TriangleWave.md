@@ -1,8 +1,8 @@
 ## Description
-creates a linear wave form with triangular shapes
+Creates a linear wave form with triangular shapes.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - a triangle wave
+**Out** - A triangle wave.

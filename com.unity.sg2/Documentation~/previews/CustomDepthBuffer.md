@@ -8,4 +8,4 @@ Gets the custom depth buffer.
 **Out** - The sample of the custom depth buffer.
 
 ## Controls
-**Sampling Mode** - selects the format for the depth: Linear, Raw, or Eye.
+**Sampling Mode** - Selects the format for the depth: Linear, Raw, or Eye.

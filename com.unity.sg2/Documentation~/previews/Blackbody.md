@@ -1,8 +1,8 @@
 ## Description
-samples a Gradient that simulates the effect of black body radiation
+Samples a Gradient that simulates the effect of black body radiation.
 
 ## Inputs
-**Temperature** - input value
+**Temperature** - Input value.
 
 ## Output
-**Out** - a blackbody color value determined by the input temperature
+**Out** - A blackbody color value determined by the input temperature.

@@ -9,7 +9,7 @@ Combines the seperate components of the eye into unified material parameters.
 **Iris Normal** - Normal of the iris at the target fragment.
 **Cornea Smoothness** - Smoothness of the cornea at the target fragment.
 **Iris Radius** -  The radius of the Iris in the model.
-**Position OS** - Position of the current fragment to shade in object space
+**Position OS** - Position of the current fragment to shade in object space.
 **Diffusion Profile Sclera** - Diffusion profile used to compute the subsurface scattering of the sclera.
 **Diffusion Profile Iris** - Diffusion profile used to compute the subsurface scattering of the iris.
 

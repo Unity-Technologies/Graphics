@@ -2,7 +2,7 @@
 Calculates the magnitude, or length, of an input vector.
 
 ## Inputs
-**In** - input vector
+**In** - Input vector.
 
 ## Output
-**Out** - the length of the input vector
+**Out** - The length of the input vector.

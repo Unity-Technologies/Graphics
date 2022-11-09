@@ -8,4 +8,4 @@ Gets data from the selected buffer.
 **Out** - The sample of the selected buffer.
 
 ## Controls
-**Source Buffer** - selects the buffer to sample: World Space Normal, Smoothness, Motion Vectors, Is Sky, Post Process Input.
+**Source Buffer** - Selects the buffer to sample: World Space Normal, Smoothness, Motion Vectors, Is Sky, Post Process Input.

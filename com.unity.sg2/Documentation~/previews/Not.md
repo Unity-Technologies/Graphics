@@ -1,8 +1,8 @@
 ## Description
-returns the opposite of the input
+Returns the opposite of the input.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the opposite of the input
+**Out** - The opposite of the input.

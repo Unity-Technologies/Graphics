@@ -2,10 +2,10 @@
 Applies a spherical warping effect to the input UVs, similar to a fisheye camera lens.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Center** - center reference point
-**Strength** - strength of the effect
-**Offset** - individual channel offsets
+**UV** - The input UV coordinates.
+**Center** - Center reference point.
+**Strength** - Strength of the effect.
+**Offset** - Individual channel offsets.
 
 ## Output
-**Out** - spherically warped UV coordinates
+**Out** - Spherically warped UV coordinates.

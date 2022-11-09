@@ -1,8 +1,8 @@
 ## Description
-subtracts the input from one. For values between 0 and 1, this inverts the value.
+Subtracts the input from one. For values between 0 and 1, this inverts the value.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the input subtracted from one
+**Out** - The input subtracted from one.

@@ -2,7 +2,7 @@
 Creates a wave where the amplitude alternates between fixed min and max values at a steady frequency.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - a square wave
+**Out** - A square wave.

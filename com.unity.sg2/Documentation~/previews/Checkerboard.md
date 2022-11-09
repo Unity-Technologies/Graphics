@@ -2,10 +2,10 @@
 Creates a pattern of alternating colored squares.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Color A** - the first checker color
-**Color B** - the second checker color
-**Frequency** - the scale of checkerboard per axis
+**UV** - The input UV coordinates.
+**Color A** - The first checker color.
+**Color B** - The second checker color.
+**Frequency** - The scale of checkerboard per axis.
 
 ## Output
-**Out** - a pattern of alternating colored squares
+**Out** - A pattern of alternating colored squares.

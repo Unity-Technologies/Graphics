@@ -34,14 +34,14 @@ TextureDepth = CustomRenderTextureDepthRef;
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "TextureHeight",
-                    displayName:"Texture Height",
-                    tooltip: "Height of the Custom Texture in pixels."
-                    ),
-                new ParameterUIDescriptor(
                     name: "TextureWidth",
                     displayName:"Texture Width",
                     tooltip: "Width of the Custom Texture in pixels."
+                    ),
+                new ParameterUIDescriptor(
+                    name: "TextureHeight",
+                    displayName:"Texture Height",
+                    tooltip: "Height of the Custom Texture in pixels."
                     ),
                 new ParameterUIDescriptor(
                     name: "TextureDepth",

@@ -1,8 +1,8 @@
 ## Description
-Checks if all components of the input **In** are non-zero values
+Checks if all components of the input **In** are non-zero values.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - true if all input components are non-zero
+**Out** - True if all input components are non-zero.

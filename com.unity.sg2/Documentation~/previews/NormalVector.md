@@ -5,4 +5,4 @@ Gets a vector that defines the direction the point is facing.
 **Out** - Mesh's normal vector in selected space.
 
 ## Controls
-**Space** - selects the space of the output vector: Object, View, World, or Tangent space.
+**Space** - Selects the space of the output vector: Object, View, World, or Tangent space.

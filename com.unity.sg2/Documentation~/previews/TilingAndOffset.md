@@ -2,9 +2,9 @@
 Tiles and offsets the input UVs.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Tiling** - amount of tiling to apply per channel
-**Offset** - amount of offset to apply per channel
+**UV** - The input UV coordinates.
+**Tiling** - Amount of tiling to apply per channel.
+**Offset** - Amount of offset to apply per channel.
 
 ## Output
-**Out** - output UV coordinates
+**Out** - Output UV coordinates.

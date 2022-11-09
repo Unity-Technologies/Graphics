@@ -5,4 +5,4 @@ Gets a normalized vector from the current point to the camera position.
 **Out** - A normalized vector from the current point to the camera position.
 
 ## Controls
-**Space** - selects the space of the output vector: Object, View, World, or Tangent space.
+**Space** - Selects the space of the output vector: Object, View, World, or Tangent space.

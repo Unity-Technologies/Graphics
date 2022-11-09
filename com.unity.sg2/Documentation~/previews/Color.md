@@ -2,8 +2,8 @@
 Creates an RGBA value.
 
 ## Output
-**Out** - a constant RGBA color value
+**Out** - A constant RGBA color value.
 
 ## Controls
-**Color Picker** - opens the color picker for color selection
-**Mode** - select standard or HDR colors
+**Color Picker** - Opens the color picker for color selection.
+**Mode** - Select standard or HDR colors.

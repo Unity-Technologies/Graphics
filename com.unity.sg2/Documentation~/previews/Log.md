@@ -2,10 +2,10 @@
 Calculates the logarithm of the input.
 
 ## Inputs
-**In** - the input value
+**In** - The input value.
 
 ## Output
-**Out** - logarithm of the input
+**Out** - Logarithm of the input.
 
 ## Controls
-**Base** - the base type of the logarithm - BaseE, Base2, or Base10
+**Base** - The base type of the logarithm - BaseE, Base2, or Base10.

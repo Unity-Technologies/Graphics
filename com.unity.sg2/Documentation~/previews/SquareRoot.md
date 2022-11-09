@@ -2,7 +2,7 @@
 Calculates the square root of the input - which is a number which produces the **In** value when multiplied by itself.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the square root of the input
+**Out** - The square root of the input.

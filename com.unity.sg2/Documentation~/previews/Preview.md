@@ -2,7 +2,7 @@
 Gets a preview of the shader at a specific point in the graph. This node does not change the input.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the exact same value as the input
+**Out** - The exact same value as the input.

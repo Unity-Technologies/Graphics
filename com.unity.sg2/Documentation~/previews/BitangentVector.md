@@ -5,4 +5,4 @@ Gets a bitangent vector in the selected space.
 **Out** - The bitangent vector in the selected space.
 
 ## Controls
-**Space** - selects the space of the output vector: Object, View, World, or Tangent space.
+**Space** - Selects the space of the output vector: Object, View, World, or Tangent space.

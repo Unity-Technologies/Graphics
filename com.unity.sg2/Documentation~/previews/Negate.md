@@ -2,7 +2,7 @@
 Multiplies the input by -1.
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - the negated version of the input
+**Out** - The negated version of the input.

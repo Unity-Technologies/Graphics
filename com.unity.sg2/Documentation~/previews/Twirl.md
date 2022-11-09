@@ -2,10 +2,10 @@
 Applies a twirl-warping effect to the input UVs, similar to a black hole.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Center** - center reference point
-**Strength** - strength of the effect
-**Offset** - individual channel offsets
+**UV** - The input UV coordinates.
+**Center** - Center reference point.
+**Strength** - Strength of the effect.
+**Offset** - Individual channel offsets.
 
 ## Output
-**Out** - twirled UV coordinates
+**Out** - Twirled UV coordinates.

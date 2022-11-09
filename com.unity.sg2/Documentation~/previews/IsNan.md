@@ -2,7 +2,7 @@
 Checks if the input is not a number (NaN).
 
 ## Inputs
-**In** - input value
+**In** - Input value.
 
 ## Output
-**Out** - true if the input is not a number (NaN)
+**Out** - True if the input is not a number (NaN).

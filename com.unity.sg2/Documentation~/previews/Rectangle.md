@@ -2,12 +2,12 @@
 Creates a 4-sided polygon.
 
 ## Inputs
-**UV** - the input UV coordinates
-**Width** - the width of the rectangle
-**Height** - the height of the rectangle
+**UV** - The input UV coordinates.
+**Width** - The width of the rectangle.
+**Height** - The height of the rectangle.
 
 ## Output
-**Out** - a 4-sided polygon
+**Out** - A 4-sided polygon.
 
 ## Controls
-**Dropdown** - the Fastest method renders faster, but has aliasing artifacts.  The Nicest method takes longer to render but has smoother edges.
+**Dropdown** - The Fastest method renders faster, but has aliasing artifacts.  The Nicest method takes longer to render but has smoother edges.

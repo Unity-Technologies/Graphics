@@ -1,10 +1,10 @@
 ## Description
-adjusts temperature and tint
+Adjusts temperature and tint.
 
 ## Inputs
-**In** - a color to adjust
-**Temperature** - shifts towards yellow or blue
-**Tint** - shifts towards pink or green
+**In** - A color to adjust.
+**Temperature** - Shifts towards yellow or blue.
+**Tint** - Shifts towards pink or green.
 
 ## Output
-**Out** - color with adjusted white balance
+**Out** - Color with adjusted white balance.
