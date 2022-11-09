@@ -978,7 +978,7 @@ namespace UnityEngine.Rendering.Universal
                     data.material.SetFloat("_Intensity", data.intensity);
                     data.material.SetFloat("_Clamp", data.clamp);
 
-                    PostProcessUtils.SetSourceSize(cmd, passData.sourceTexture);
+                    PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
                     Blitter.BlitCameraTexture(cmd, data.sourceTexture, data.destinationTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material, data.passIndex);
                 });
 

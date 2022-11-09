@@ -584,16 +584,15 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
+            RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingSkybox);
 
+            m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
             {
                 TextureHandle depth = activeDepthTexture;
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
                 m_CopyDepthPass.Render(renderGraph, ref cameraDepthTexture, in depth, ref renderingData);
             }
-
-            RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingSkybox);
 
             if (cameraData.camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
             {
@@ -621,6 +620,8 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass.Render(renderGraph, activeColorTexture, activeDepthTexture, resources.GetTexture(UniversalResource.MainShadowsTexture), resources.GetTexture(UniversalResource.AdditionalShadowsTexture), ref renderingData);
             }
 
+            RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingTransparents);
+
             if (requiresDepthCopyPass && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
             {
                 TextureHandle depth = activeDepthTexture;
@@ -639,8 +640,6 @@ namespace UnityEngine.Rendering.Universal
                 // Depends on camera depth
                 m_MotionVectorPass.Render(renderGraph, ref cameraDepthTexture, in motionVectorColor, in motionVectorDepth, ref renderingData);
             }
-
-            RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.AfterRenderingTransparents);
 
             m_OnRenderObjectCallbackPass.Render(renderGraph, activeColorTexture, activeDepthTexture, ref renderingData);
         }
