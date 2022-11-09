@@ -759,7 +759,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsShadowResolutionTierLow
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
-            internal set { additionalLightsShadowResolutionTierLow = value; }
+            internal set { m_AdditionalLightsShadowResolutionTierLow = value; }
         }
 
         /// <summary>
@@ -777,7 +777,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsShadowResolutionTierHigh
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
-            internal set { additionalLightsShadowResolutionTierHigh = value; }
+            internal set { m_AdditionalLightsShadowResolutionTierHigh = value; }
         }
 
         internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
@@ -867,7 +867,7 @@ namespace UnityEngine.Rendering.Universal
         public float cascadeBorder
         {
             get { return m_CascadeBorder; }
-            set { cascadeBorder = value; }
+            set { m_CascadeBorder = value; }
         }
 
         /// <summary>
