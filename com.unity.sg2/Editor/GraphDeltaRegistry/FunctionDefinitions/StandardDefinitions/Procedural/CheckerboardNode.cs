@@ -53,10 +53,6 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
-                    name: "Frequency",
-                    tooltip: "the scale of checkerboard per axis"
-                ),
-                new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV",
                     options: REF.OptionList.UVs
@@ -72,6 +68,10 @@ namespace UnityEditor.ShaderGraph.Defs
                     displayName: "Color B",
                     tooltip: "the second checker color",
                     useColor: true
+                ),
+                new ParameterUIDescriptor(
+                    name: "Frequency",
+                    tooltip: "the scale of checkerboard per axis"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

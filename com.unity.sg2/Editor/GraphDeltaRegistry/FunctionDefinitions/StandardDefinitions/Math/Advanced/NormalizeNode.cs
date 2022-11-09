@@ -6,14 +6,28 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public static string Name => "Normalize";
         public static int Version => 1;
-
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static NodeDescriptor NodeDescriptor => new(
+            Version,
             Name,
-            "    Out = normalize(In);",
-            new ParameterDescriptor[]
-            {
-                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            functions: new FunctionDescriptor[] {
+                new(
+                    "Standard",
+                    "    Out = normalize(In);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
+                ),
+                new(
+                    "Safe",
+                    "    Out = SafeNormalize(In);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
+                )
             }
         );
 
@@ -23,6 +37,12 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Changes the length of the input vector to 1.",
             category: "Math/Advanced",
             synonyms: new string[1] { "Unitize" },
+            selectableFunctions: new()
+            {
+                { "Standard", "Standard" },
+                { "Safe", "Safe" }
+            },
+            functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
