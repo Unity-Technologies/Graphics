@@ -1,5 +1,6 @@
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.Defs;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -30,9 +31,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kOutput = "Out";
 
         // Fields
-        public const string kSourceSpace = "Source";
-        public const string kDestinationSpace = "Destination";
-        public const string kType = "Type";
+        const string kSourceSpace = "Source";
+        const string kDestinationSpace = "Destination";
+        const string kType = "ConversionType";
 
         public RegistryKey GetRegistryKey() => new() {Name = "Transform", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
@@ -42,14 +43,28 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var inPort = node.AddPort<GraphType>(kInput, isInput: true, registry);
             var outPort = node.AddPort<GraphType>(kOutput, isInput: false, registry);
 
-            GraphTypeHelpers.InitGraphType(inPort.GetTypeField(), GraphType.Length.Three);
-            GraphTypeHelpers.InitGraphType(outPort.GetTypeField(), GraphType.Length.Three);
+            GraphTypeHelpers.InitGraphType(inPort.GetTypeField(), GraphType.Length.Three, precisionDynamic: true);
+            GraphTypeHelpers.InitGraphType(outPort.GetTypeField(), GraphType.Length.Three, precisionDynamic: true);
+            GraphTypeHelpers.ResolveDynamicPorts(node);
+
+            node.AddField(kSourceSpace, CoordinateSpace.Object, reconcretizeOnDataChange: true);
+            node.AddField(kDestinationSpace, CoordinateSpace.View, reconcretizeOnDataChange: true);
+            node.AddField(kType, ConversionType.Direction, reconcretizeOnDataChange: true);
+        }
+
+        static SpaceTransform GetTransform(NodeHandler node)
+        {
+            var source = node.GetField<CoordinateSpace>(kSourceSpace).GetData();
+            var destination = node.GetField<CoordinateSpace>(kDestinationSpace).GetData();
+            var type = node.GetField<ConversionType>(kType).GetData();
+
+            return new SpaceTransform(source, destination, type);
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, out INodeDefinitionBuilder.Dependencies outputs)
         {
             outputs = new INodeDefinitionBuilder.Dependencies();
-            var builder = new ShaderFunction.Builder(container, "Multiply");
+            var builder = new ShaderFunction.Builder(container, "Transform");
 
             foreach (var port in node.GetPorts())
             {
@@ -60,7 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             // TODO: Implement the node!
-            builder.AddLine("Out = In;");
+            SpaceTransformUtils.GenerateTransformCodeStatement(GetTransform(node), kInput, kOutput, builder);
             return builder.Build();
         }
     }
