@@ -4,6 +4,12 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [15.1.1] - 2022-11-09
+
+### Fixed
+- Remove default sounds from the 3rd person controller asset
+- Remove a debug plane gameobject
+
 ## [15.1.0] - 2022-07-06
 
 ### Added
