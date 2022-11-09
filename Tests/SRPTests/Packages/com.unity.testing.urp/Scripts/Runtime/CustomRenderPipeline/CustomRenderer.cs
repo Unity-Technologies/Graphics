@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.ProcessLights(ref renderingData);
+            m_ForwardLights.PreSetup(ref renderingData);
 
             TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
             TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;

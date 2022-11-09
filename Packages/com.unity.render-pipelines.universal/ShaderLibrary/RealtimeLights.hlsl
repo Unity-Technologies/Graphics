@@ -26,12 +26,20 @@ struct Light
     #define _USE_WEBGL1_LIGHTS 0
 #endif
 
+#if USE_FORWARD_PLUS && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
+#define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK if (_AdditionalLightsColor[lightIndex].a > 0.0h) continue;
+#else
+#define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+#endif
+
 #if USE_FORWARD_PLUS
-    #define LIGHT_LOOP_BEGIN(lightCount) \
-    ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS); \
-    [loop] while (ClusteredLightLoopNext(cll)) { \
-        uint lightIndex = ClusteredLightLoopGetLightIndex(cll);
-    #define LIGHT_LOOP_END }
+    #define LIGHT_LOOP_BEGIN(lightCount) { \
+    uint lightIndex; \
+    ClusterIterator _urp_internal_clusterIterator = ClusterInit(inputData.normalizedScreenSpaceUV, inputData.positionWS, 0); \
+    [loop] while (ClusterNext(_urp_internal_clusterIterator, lightIndex)) { \
+        lightIndex += URP_FP_DIRECTIONAL_LIGHTS_COUNT; \
+        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+    #define LIGHT_LOOP_END } }
 #elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
@@ -91,7 +99,11 @@ Light GetMainLight()
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
 #if USE_FORWARD_PLUS
+#if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
+    light.distanceAttenuation = _MainLightColor.a;
+#else
     light.distanceAttenuation = 1.0;
+#endif
 #else
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
 #endif

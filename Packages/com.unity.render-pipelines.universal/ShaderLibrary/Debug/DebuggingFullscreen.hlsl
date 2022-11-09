@@ -30,6 +30,7 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
         case DEBUGFULLSCREENMODE_DEPTH:
         case DEBUGFULLSCREENMODE_MAIN_LIGHT_SHADOW_MAP:
         case DEBUGFULLSCREENMODE_ADDITIONAL_LIGHTS_SHADOW_MAP:
+        case DEBUGFULLSCREENMODE_REFLECTION_PROBE_ATLAS:
         {
             float2 uvOffset = half2(uv.x - _DebugTextureDisplayRect.x, uv.y - _DebugTextureDisplayRect.y);
 

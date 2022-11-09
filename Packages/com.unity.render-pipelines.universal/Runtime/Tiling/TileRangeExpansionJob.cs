@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<InclusiveRange> tileRanges;
 
         [NativeDisableParallelForRestriction]
-        public NativeArray<uint> lightMasks;
+        public NativeArray<uint> tileMasks;
 
         public int itemsPerLight;
         public int lightCount;
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(int rowIndex)
         {
             var compactCount = 0;
-            var lightIndices = new NativeArray<byte>(lightCount, Allocator.Temp);
+            var lightIndices = new NativeArray<short>(lightCount, Allocator.Temp);
             var lightRanges = new NativeArray<InclusiveRange>(lightCount, Allocator.Temp);
 
             // Compact the light ranges for the current row.
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
                 var range = tileRanges[lightIndex * itemsPerLight + 1 + rowIndex];
                 if (!range.isEmpty)
                 {
-                    lightIndices[compactCount] = (byte)lightIndex;
+                    lightIndices[compactCount] = (short)lightIndex;
                     lightRanges[compactCount] = range;
                     compactCount++;
                 }
@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
                     var range = lightRanges[i];
                     if (range.Contains((short)tileIndex))
                     {
-                        lightMasks[tileBaseIndex + wordIndex] |= lightMask;
+                        tileMasks[tileBaseIndex + wordIndex] |= lightMask;
                     }
                 }
             }

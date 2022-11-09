@@ -251,6 +251,28 @@ Shader "Hidden/Universal/CoreBlit"
                 #pragma fragment FragBilinearRedToRGBA
             ENDHLSL
         }
+
+        // 21. Nearest project cube to octahedral 2d quad with padding
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragOctahedralProjectNearestRepeat
+            ENDHLSL
+        }
+
+        // 22. Bilinear project cube to octahedral 2d quad with padding
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragOctahedralProjectBilinearRepeat
+            ENDHLSL
+        }
     }
 
     Fallback Off

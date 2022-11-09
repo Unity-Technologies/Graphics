@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.BeforeRendering injected passes should only be called before the first camera in the stack
             RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.BeforeRendering);
 
-            m_ForwardLights.ProcessLights(ref renderingData);
+            m_ForwardLights.PreSetup(ref renderingData);
 
             RecordCustomRenderGraphPasses(renderGraph, context, ref renderingData, RenderPassEvent.BeforeRenderingShadows);
 
