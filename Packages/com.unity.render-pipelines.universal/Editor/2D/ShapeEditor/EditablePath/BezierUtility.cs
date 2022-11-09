@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
         public static Vector3 BezierPoint(Vector3 startPosition, Vector3 startTangent, Vector3 endTangent, Vector3 endPosition, float t)
         {
             float s = 1.0f - t;
-            return startPosition * s * s * s + startTangent * s * s * t * 3.0f + endTangent * s * t * t * 3.0f + endPosition * t * t * t;
+            return s * s * s * startPosition + 3.0f * s * s * t * startTangent + 3.0f * s * t * t * endTangent + t * t * t * endPosition;
         }
 
         public static Vector3 ClosestPointOnCurve(Vector3 point, Vector3 startPosition, Vector3 endPosition, Vector3 startTangent, Vector3 endTangent, out float t)

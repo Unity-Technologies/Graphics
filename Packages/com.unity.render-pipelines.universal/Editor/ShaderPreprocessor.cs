@@ -308,10 +308,8 @@ namespace UnityEditor.Rendering.Universal
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2) && ContainsKeyword(kw3);
                 bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2) && !m_KeywordSet.IsEnabled(kw3);
                 bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2) || m_Features.HasFlag(feature3);
-                if (m_stripUnusedVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
-                    return true;
 
-                return false;
+                return m_stripUnusedVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled;
             }
 
             public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2)
@@ -331,10 +329,8 @@ namespace UnityEditor.Rendering.Universal
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2);
                 bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2);
                 bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2);
-                if (m_stripUnusedVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
-                    return true;
 
-                return false;
+                return m_stripUnusedVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -690,10 +686,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Editor visualization is only used in scene view debug modes.
-            if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
-                return true;
-
-            return false;
+            return compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
         }
 
         bool StripInvalidVariants(ShaderCompilerData compilerData)
@@ -708,10 +701,8 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             bool isShadowVariant = isMainShadow || isAdditionalShadow;
-            if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
-                return true;
 
-            return false;
+            return !isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows);
         }
 
         bool StripUnusedShaders(ShaderFeatures features, Shader shader)
@@ -748,12 +739,9 @@ namespace UnityEditor.Rendering.Universal
             // Strip terrain holes
             // TODO: checking for the string name here is expensive
             // maybe we can rename alpha clip keyword name to be specific to terrain?
-            if (compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
+            return compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
                 !IsFeatureEnabled(features, ShaderFeatures.TerrainHoles) &&
-                shader.name.Contains(kTerrainShaderName))
-                return true;
-
-            return false;
+                shader.name.Contains(kTerrainShaderName);
         }
 
         public bool active => UniversalRenderPipeline.asset != null;

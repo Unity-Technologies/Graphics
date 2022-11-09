@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.Universal
 
         private void ViewBatch(int index)
         {
-            if (index >= batchList.Count())
+            if (index >= batchList.Count)
                 return;
 
             var infoView = GetInfoView();
@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.Universal
             var lightLabel1 = infoView.Query<Label>("LightLabel1").First();
             lightLabel1.text = $"Lights in <b>Batch {batch1.batchId}:</b>";
 
-            if (batch1.Lights.Count() == 0)
+            if (batch1.Lights.Count == 0)
                 lightLabel1.text += "\n\nNo lights found.";
 
             var lightBubble1 = infoView.Query<VisualElement>("LightBubble1").First();
@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.Universal
             var shadowLabel1 = infoView.Query<Label>("ShadowLabel1").First();
             shadowLabel1.text = $"Shadow Casters in <b>Batch {batch1.batchId}:</b>";
 
-            if (batch1.Shadows.Count() == 0)
+            if (batch1.Shadows.Count == 0)
                 shadowLabel1.text += "\n\nNo shadow casters found.";
 
             var shadowBubble1 = infoView.Query<VisualElement>("ShadowBubble1").First();
@@ -305,7 +305,7 @@ namespace UnityEditor.Rendering.Universal
 
             Action<VisualElement, int> bindItem = (e, i) =>
             {
-                if (i >= batchList.Count())
+                if (i >= batchList.Count)
                     return;
 
                 // This is required to make the child of the ListView vary in heights
@@ -456,14 +456,14 @@ namespace UnityEditor.Rendering.Universal
             bool isDirty = false;
 
             // Refresh if layers are added or removed
-            isDirty |= Light2DManager.GetCachedSortingLayer().Count() != batchList.Sum(x => x.LayerNames.Count());
+            isDirty |= Light2DManager.GetCachedSortingLayer().Length != batchList.Sum(x => x.LayerNames.Count);
             isDirty |= cachedSceneHandle != SceneManager.GetActiveScene().handle;
             isDirty |= cachedCamPos != Camera.main?.transform.position;
 
             if (lightCullResult != null)
             {
-                isDirty |= totalLightCount != lightCullResult.visibleLights.Count();
-                isDirty |= totalShadowCount != lightCullResult.visibleShadows.Count();
+                isDirty |= totalLightCount != lightCullResult.visibleLights.Count;
+                isDirty |= totalShadowCount != lightCullResult.visibleShadows.Count;
             }
 
             return isDirty;
@@ -478,8 +478,8 @@ namespace UnityEditor.Rendering.Universal
 
             if (lightCullResult != null)
             {
-                totalLightCount = lightCullResult.visibleLights.Count();
-                totalShadowCount = lightCullResult.visibleShadows.Count();
+                totalLightCount = lightCullResult.visibleLights.Count;
+                totalShadowCount = lightCullResult.visibleShadows.Count;
             }
 
             doRefresh = false;

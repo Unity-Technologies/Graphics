@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            if (containerType != null && converterTypes.Any())
+            if (containerType != null && converterTypes.Count > 0)
             {
                 RunInBatchMode(containerType, converterTypes, converterFilter);
             }

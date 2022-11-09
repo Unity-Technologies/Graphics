@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
                 transform.localPosition = Vector3.zero;
                 transform.localRotation = Quaternion.identity;
                 transform.localScale = Vector3.one;
-                go.layer = parentTransform.gameObject.layer;
+                go.layer = parentTransform.layer;
 
                 if (parentTransform.GetComponent<RectTransform>())
                     ObjectFactory.AddComponent<RectTransform>(go);
