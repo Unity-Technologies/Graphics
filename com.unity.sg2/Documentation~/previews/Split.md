@@ -2,10 +2,10 @@
 Separates the channels of an input vector.
 
 ## Input
-**In** - a vector to split
+**In** - A vector to split.
 
 ## Outputs
-**R** - red channel of the input
-**G** - green channel of the input
-**B** - blue channel of the input
-**A** - alpha channel of the input
+**R** - Red channel of the input.
+**G** - Green channel of the input.
+**B** - Blue channel of the input.
+**A** - Alpha channel of the input.

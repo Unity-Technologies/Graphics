@@ -33,7 +33,7 @@ Height = unity_OrthoParams.y;",
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Gets a constantly increasing value used for animated effects.",
+            tooltip: "Gets various camera parameters.",
             category: "Input/Scene",
             synonyms: new string[7] { "Position", "Direction", "Orthographic", "NearPlane", "FarPlane", "Width", "Height" },
             hasPreview: false,
