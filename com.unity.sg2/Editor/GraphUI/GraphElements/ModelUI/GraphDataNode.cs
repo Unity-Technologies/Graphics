@@ -103,6 +103,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
+            // TODO: There should probably be a better way to assign "special" node parts like this.
+            // Possibly using the UI data classes once the refactor branch is merged.
+            if (nodeReader.GetRegistryKey().Name == "Swizzle")
+            {
+                PartList.InsertPartAfter(portContainerPartName, new SwizzleMaskPart("sg-swizzle-mask", GraphElementModel, this, ussClassName));
+            }
+
             // By default we assume all nodes should display previews, unless there
             // is a UIHint that dictates otherwise
             bool nodeHasPreview = nodeUIDescriptor.HasPreview;
