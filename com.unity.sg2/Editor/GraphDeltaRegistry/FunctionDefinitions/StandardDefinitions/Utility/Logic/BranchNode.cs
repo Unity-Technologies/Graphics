@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "provides a dynamic branch to the shader. Both sides of the branch will be evaluated",
+            tooltip: "Provides a dynamic branch to the shader. Both sides of the branch will be evaluated.",
             category: "Utility/Logic",
             synonyms: new string[3] { "switch", "if", "else" },
             hasPreview: false,
