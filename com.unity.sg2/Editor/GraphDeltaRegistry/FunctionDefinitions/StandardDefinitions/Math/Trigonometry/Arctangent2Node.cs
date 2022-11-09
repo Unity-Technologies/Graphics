@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Arctangent 2",
-            tooltip: "Calculates the arctangent of input A divided by input B",
+            tooltip: "Calculates the arctangent of input A divided by input B.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "atan2" },
             parameters: new ParameterUIDescriptor[3] {
