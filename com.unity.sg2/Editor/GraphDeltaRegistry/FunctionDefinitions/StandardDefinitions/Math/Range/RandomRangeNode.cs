@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Random Range",
-            tooltip: "Calculates a pseudo-random value between the given min and max.",
+            tooltip: "Calculates a pseudo-random value between the given Min and Max.",
             category: "Math/Range",
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {

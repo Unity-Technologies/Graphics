@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns true if either of the inputs are true",
+            tooltip: "Returns true if either of the inputs are true.",
             category: "Utility/Logic",
             synonyms: new string[1] { "||" },
             hasPreview: false,
