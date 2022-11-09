@@ -185,11 +185,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
+             bool isCameraDirty = false;
+             
             // Check resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
+                isCameraDirty = true;
             }
 
             // Check sky dirtiness
@@ -197,6 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
+                isCameraDirty = true;
             }
 
             // Check fog dirtiness
@@ -204,14 +208,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
+                isCameraDirty = true;
             }
 
+            bool isSceneDirty = false;
             // Check materials dirtiness
             if (m_MaterialsDirty)
             {
                 m_MaterialsDirty = false;
                 ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check light or geometry transforms dirtiness
@@ -219,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_TransformDirty = false;
                 ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check lights dirtiness
@@ -227,13 +233,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
                 ResetPathTracing();
-                return camData;
+                isCameraDirty = true;
             }
 
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // Check acceleration structure dirtiness
@@ -242,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (accelSize != camData.accelSize)
             {
                 camData.accelSize = accelSize;
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // If nothing but the camera has changed, re-render the sky texture
@@ -250,6 +256,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RenderSky = true;
                 m_CameraID = camID;
+            }
+            
+            if (isSceneDirty)
+            {
+                ResetPathTracing();
+                return camData;
+            }
+
+            if (isCameraDirty)
+            {
+                return ResetPathTracing(camID, camData);
             }
 
             return camData;
