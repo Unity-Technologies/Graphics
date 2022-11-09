@@ -185,6 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
 
             // Core properties
+            var graphValidation = context.graphValidation;
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
             {
@@ -201,6 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
+                graphValidation();
             });
 
             // SubTarget properties

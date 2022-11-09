@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        public void Init(int sizeX, int sizeY, GraphicsFormat format, VRTextureUsage vrUsage, TextureDimension texDim)
+        public void Init(int sizeX, int sizeY, int volumeDepth, GraphicsFormat format, VRTextureUsage vrUsage, TextureDimension texDim)
         {
-            if ((m_RtDesc.width != sizeX || m_RtDesc.height != sizeY || m_AccumulationTexture == null) &&
+            if ((m_RtDesc.width != sizeX || m_RtDesc.height != sizeY || m_RtDesc.volumeDepth != volumeDepth || m_AccumulationTexture == null) &&
                 (sizeX > 0 && sizeY >0))
             {
                 RenderTextureDescriptor desc = new RenderTextureDescriptor();
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.width = sizeX;
                 desc.height = sizeY;
                 desc.msaaSamples = 1;
-                desc.volumeDepth = 1;
+                desc.volumeDepth = volumeDepth;
                 desc.mipCount = 0;
                 desc.graphicsFormat = CheckFormat(format, usage);
                 desc.sRGB = false;

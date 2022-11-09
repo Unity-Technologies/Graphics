@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        [MenuItem("Generation/Water Amplitude Table")]
+        // [MenuItem("Generation/Water Amplitude Table")]
         static public void GenerateAmplitudeTable()
         {
             // Number of pixels per band
@@ -97,10 +97,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     spectrumInit.simulationResolution = resolution;
                     spectrumInit.waterSampleOffset = waterSampleOffset;
                     spectrumInit.sliceIndex = 0;
-                    spectrumInit.windOrientation = 0;
-                    spectrumInit.windSpeed = windSpeed;
                     spectrumInit.patchSize = currentPatchSize;
+                    spectrumInit.orientation = 0;
                     spectrumInit.directionDampner = 1.0f;
+                    spectrumInit.windSpeed = windSpeed;
                     spectrumInit.bufferOffset = 0;
                     spectrumInit.H0Buffer = h0BufferCPU;
 

@@ -367,6 +367,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void UpdateDecalVisibility()
         {
+            // This callback is called before HDRP is initialized after a domain reload
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // Fade out the decal when it is hidden by the scene visibility
             if (SceneVisibilityManager.instance.IsHidden(gameObject) && m_Handle != null)
             {

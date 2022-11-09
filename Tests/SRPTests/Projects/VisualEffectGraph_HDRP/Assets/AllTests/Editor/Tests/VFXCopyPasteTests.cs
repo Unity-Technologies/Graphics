@@ -196,11 +196,11 @@ namespace UnityEditor.VFX.Test
             // Setup original operator slot value
             VFXSlot aSlot = newOperator.GetInputSlot(0);
             Assert.IsTrue(aSlot.spaceable);
-            aSlot.space = VFXCoordinateSpace.World;
+            aSlot.space = VFXSpace.World;
 
             // Copy selection and then modify the slot value
             string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
-            aSlot.space = VFXCoordinateSpace.Local;
+            aSlot.space = VFXSpace.Local;
 
             // Paste selection
             view.UnserializeAndPasteElements("paste", copyData);
@@ -213,7 +213,7 @@ namespace UnityEditor.VFX.Test
                 .Single(x => x.controller.model != newOperator);
 
             var copyASlot = copyOperator.controller.model.GetInputSlot(0);
-            Assert.AreEqual(VFXCoordinateSpace.World, copyASlot.space);
+            Assert.AreEqual(VFXSpace.World, copyASlot.space);
         }
 
         [Test]
@@ -376,10 +376,13 @@ namespace UnityEditor.VFX.Test
             var systemNames = view.controller.graph.systemNames;
 
             var uniqueNames = m_ViewController.graph.children.OfType<VFXBasicSpawner>()
-                .Select(x => systemNames.GetUniqueSystemName(x))
+                .Select(x => systemNames.GetUniqueSystemName(x.GetData()))
                 .Union(m_ViewController.graph.children.OfType<VFXBasicInitialize>().Select(x => systemNames.GetUniqueSystemName(x.GetData())))
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToList();
+
+            var vfxDatas = m_ViewController.graph.children.OfType<VFXData>().Distinct().ToArray();
+            Assert.AreEqual(8, vfxDatas.Length, "There should be one distinct VFXData per system (8 spawners and 8 initialize");
 
             // Assert all names are unique, and the expected number of elements was obtained
             Assert.AreEqual(2 * (spawnerCount + GPUSystemsCount), uniqueNames.Count, "Some systems have the same name or are null or empty.");

@@ -55,19 +55,19 @@ namespace UnityEditor.VFX.Operator
             public Transform o = new Transform();
         }
 
-        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             if (slot.spaceable)
             {
                 switch (transform)
                 {
                     case VFXSkinnedTransform.LocalRootBoneTransform:
-                        return VFXCoordinateSpace.Local;
+                        return VFXSpace.Local;
                     case VFXSkinnedTransform.WorldRootBoneTransform:
-                        return VFXCoordinateSpace.World;
+                        return VFXSpace.World;
                 }
             }
-            return (VFXCoordinateSpace)int.MaxValue;
+            return VFXSpace.None;
         }
 
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -4,6 +4,11 @@ using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditorInternal;
+// TODO @ SHADERS: Enable as many of the rules (currently commented out) as make sense
+//                 once the setting asset aggregation behavior is finalized.  More fine tuning
+//                 of these rules is also desirable (current rules have been interpreted from
+//                 the variant stripping logic)
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -11,6 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HDRPHelpURLAttribute("HDRP-Asset")]
+#if UNITY_EDITOR
+    // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
+#endif
     public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
         [System.NonSerialized]
@@ -95,6 +103,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Return the current use RenderPipelineSettings (i.e for the current platform)</summary>
         public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+
+        internal void TurnOffRayTracing()
+        {
+            m_RenderPipelineSettings.supportRayTracing = false;
+        }
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;

@@ -5,8 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Exposure effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Exposure", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Exposure")]
+    [Serializable, VolumeComponentMenu("Exposure")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Exposure")]
     public sealed class Exposure : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

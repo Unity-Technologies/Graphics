@@ -7,6 +7,12 @@ namespace UnityEditor.VFX
 {
     static class VFXViewPreference
     {
+        private static readonly int kAuthoringPrewarmStepCountPerSecondsDefault = 20;
+        private static readonly float kAuthoringPrewarmMaxTimeDefault = 3.0f;
+
+        private static readonly int kAuthoringPrewarmStepCountPerSecondsMax = 200;
+        private static readonly float kAuthoringPrewarmMaxTimeMax = 60.0f;
+
         private static bool m_Loaded = false;
         private static bool m_GenerateOutputContextWithShaderGraph;
         private static bool m_DisplayExperimentalOperator = false;
@@ -17,6 +23,8 @@ namespace UnityEditor.VFX
         private static VFXMainCameraBufferFallback m_CameraBuffersFallback = VFXMainCameraBufferFallback.PreferMainCamera;
         private static bool m_MultithreadUpdateEnabled = true;
         private static bool m_InstancingEnabled = true;
+        private static int m_AuthoringPrewarmStepCountPerSeconds = kAuthoringPrewarmStepCountPerSecondsDefault;
+        private static float m_AuthoringPrewarmMaxTime = kAuthoringPrewarmMaxTimeDefault;
 
         public static bool generateOutputContextWithShaderGraph
         {
@@ -90,6 +98,24 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static int authoringPrewarmStepCountPerSeconds
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_AuthoringPrewarmStepCountPerSeconds;
+            }
+        }
+
+        public static float authoringPrewarmMaxTime
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_AuthoringPrewarmMaxTime;
+            }
+        }
+
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
@@ -98,6 +124,8 @@ namespace UnityEditor.VFX
         public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
         public const string multithreadUpdateEnabledKey = "VFX.MultithreadUpdateEnabled";
         public const string instancingEnabledKey = "VFX.InstancingEnabled";
+        public const string authoringPrewarmStepCountPerSecondsKey = "VFX.AuthoringPrewarmStepCountPerSeconds";
+        public const string authoringPrewarmMaxTimeKey = "VFX.AuthoringPrewarmMaxTimeKey";
 
         private static void LoadIfNeeded()
         {
@@ -112,6 +140,13 @@ namespace UnityEditor.VFX
                 m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
                 m_MultithreadUpdateEnabled = EditorPrefs.GetBool(multithreadUpdateEnabledKey, true);
                 m_InstancingEnabled = EditorPrefs.GetBool(instancingEnabledKey, true);
+
+                m_AuthoringPrewarmStepCountPerSeconds = EditorPrefs.GetInt(authoringPrewarmStepCountPerSecondsKey, kAuthoringPrewarmStepCountPerSecondsDefault);
+                m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);
+
+                m_AuthoringPrewarmMaxTime = EditorPrefs.GetFloat(authoringPrewarmMaxTimeKey, kAuthoringPrewarmMaxTimeDefault);
+                m_AuthoringPrewarmMaxTime = Mathf.Clamp(m_AuthoringPrewarmMaxTime, 0.0f, kAuthoringPrewarmMaxTimeMax);
+
                 m_Loaded = true;
             }
         }
@@ -170,6 +205,9 @@ namespace UnityEditor.VFX
 
                     var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
 
+                    m_AuthoringPrewarmStepCountPerSeconds = EditorGUILayout.IntField(new GUIContent("Authoring Prewarm Step Count Per Second", "Specifies the step count per second for prewarming during VFX authoring. High values may impact performance."), m_AuthoringPrewarmStepCountPerSeconds);
+                    m_AuthoringPrewarmMaxTime = EditorGUILayout.FloatField(new GUIContent("Authoring Prewarm Maximum Time", "Specifies the maximum prewarming time allowed during VFX authoring in seconds. High values may impact performance."), m_AuthoringPrewarmMaxTime);
+
                     if (GUI.changed)
                     {
                         EditorPrefs.SetBool(experimentalOperatorKey, m_DisplayExperimentalOperator);
@@ -180,6 +218,13 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
                         EditorPrefs.SetBool(instancingEnabledKey, m_InstancingEnabled);
+
+                        m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);
+                        EditorPrefs.SetInt(authoringPrewarmStepCountPerSecondsKey, m_AuthoringPrewarmStepCountPerSeconds);
+
+                        m_AuthoringPrewarmMaxTime = Mathf.Clamp(m_AuthoringPrewarmMaxTime, 0.0f, kAuthoringPrewarmMaxTimeMax);
+                        EditorPrefs.SetFloat(authoringPrewarmMaxTimeKey, m_AuthoringPrewarmMaxTime);
+
                         userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
                         userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });
                         userTemplateDirectory = userTemplateDirectory.TrimStart(new char[] { '/' });

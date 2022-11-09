@@ -144,17 +144,17 @@ ByteAddressBuffer unity_DOTSInstanceData;
 // NOTE: Do *NOT* use the string "Globals" in this cbuffer name, cbuffers
 // with those kinds of names will be automatically renamed.
 CBUFFER_START(unity_DOTSInstanceGlobalValues)
-    half4 unity_DOTS_ProbesOcclusion;
-    real4 unity_DOTS_SpecCube0_HDR;
-    real4 unity_DOTS_SpecCube1_HDR;
-    real4 unity_DOTS_SHAr;
-    real4 unity_DOTS_SHAg;
-    real4 unity_DOTS_SHAb;
-    real4 unity_DOTS_SHBr;
-    real4 unity_DOTS_SHBg;
-    real4 unity_DOTS_SHBb;
-    real4 unity_DOTS_SHC;
-    real4 unity_DOTS_SH_Padding;
+    float4 unity_DOTS_ProbesOcclusion;
+    float4 unity_DOTS_SpecCube0_HDR;
+    float4 unity_DOTS_SpecCube1_HDR;
+    float4 unity_DOTS_SHAr;
+    float4 unity_DOTS_SHAg;
+    float4 unity_DOTS_SHAb;
+    float4 unity_DOTS_SHBr;
+    float4 unity_DOTS_SHBg;
+    float4 unity_DOTS_SHBb;
+    float4 unity_DOTS_SHC;
+    float4 unity_DOTS_SH_Padding;
 CBUFFER_END
 
 // The data has to be wrapped inside a struct, otherwise the instancing code path
@@ -581,13 +581,13 @@ void SetupDOTSSHCoeffs(uint shMetadata)
     }
     else
     {
-        unity_DOTS_Sampled_SHAr = unity_DOTS_SHAr;
-        unity_DOTS_Sampled_SHAg = unity_DOTS_SHAg;
-        unity_DOTS_Sampled_SHAb = unity_DOTS_SHAb;
-        unity_DOTS_Sampled_SHBr = unity_DOTS_SHBr;
-        unity_DOTS_Sampled_SHBg = unity_DOTS_SHBg;
-        unity_DOTS_Sampled_SHBb = unity_DOTS_SHBb;
-        unity_DOTS_Sampled_SHC  = unity_DOTS_SHC;
+        unity_DOTS_Sampled_SHAr = real4(unity_DOTS_SHAr);
+        unity_DOTS_Sampled_SHAg = real4(unity_DOTS_SHAg);
+        unity_DOTS_Sampled_SHAb = real4(unity_DOTS_SHAb);
+        unity_DOTS_Sampled_SHBr = real4(unity_DOTS_SHBr);
+        unity_DOTS_Sampled_SHBg = real4(unity_DOTS_SHBg);
+        unity_DOTS_Sampled_SHBb = real4(unity_DOTS_SHBb);
+        unity_DOTS_Sampled_SHC  = real4(unity_DOTS_SHC);
     }
 }
 

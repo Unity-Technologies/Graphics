@@ -209,6 +209,16 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-15980
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -316,7 +326,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
-    GraphicsDevice: 11
+    GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-12033
@@ -391,6 +401,16 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Rendering Layers not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-15388
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}

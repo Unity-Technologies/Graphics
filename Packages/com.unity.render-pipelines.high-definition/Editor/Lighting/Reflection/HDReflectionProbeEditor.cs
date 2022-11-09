@@ -4,10 +4,12 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditorForRenderPipeline(typeof(ReflectionProbe), typeof(HDRenderPipelineAsset))]
+    [CustomEditor(typeof(ReflectionProbe))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     sealed partial class HDReflectionProbeEditor : HDProbeEditor<HDProbeSettingsProvider, SerializedHDReflectionProbe>
     {

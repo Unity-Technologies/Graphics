@@ -191,12 +191,12 @@ namespace UnityEditor.VFX.Operator
         public static readonly string kMixingSMRWorldAndLocalPostTransformMsg = @"Mixing World Root Bone transform with an input transform in Local space can yield unexpected results.
 To avoid this, change the input Transform space from Local to World or None.";
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 
             var transformSlot = inputSlots.Last();
-            if (actualSkinnedTransform == SkinnedRootTransform.ApplyWorldRootTransform && transformSlot.space == VFXCoordinateSpace.Local)
+            if (actualSkinnedTransform == SkinnedRootTransform.ApplyWorldRootTransform && transformSlot.space == VFXSpace.Local)
             {
                 manager.RegisterError("MixingSMRWorldAndLocalPostTransformOperator", VFXErrorType.Warning, kMixingSMRWorldAndLocalPostTransformMsg);
             }
@@ -221,15 +221,15 @@ To avoid this, change the input Transform space from Local to World or None.";
             //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
             if (cause == InvalidationCause.kExpressionInvalidated)
             {
-                model.RefreshErrors(GetGraph());
+                model.RefreshErrors();
             }
         }
 
-        private VFXCoordinateSpace GetWantedOutputSpace()
+        private VFXSpace GetWantedOutputSpace()
         {
             //If we are applying the skinned mesh in world, using a local transform afterwards looks unexpected, forcing conversion of inputs to world.
             if (actualSkinnedTransform == SkinnedRootTransform.ApplyWorldRootTransform)
-                return VFXCoordinateSpace.World;
+                return VFXSpace.World;
 
             //Otherwise, the input slot transform control the output space.
             var transformSlot = inputSlots.Last();
@@ -238,13 +238,13 @@ To avoid this, change the input Transform space from Local to World or None.";
             return transformSlot.space;
         }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
             if (outputSlot.spaceable)
             {
                 return GetWantedOutputSpace();
             }
-            return (VFXCoordinateSpace)int.MaxValue;
+            return VFXSpace.None;
         }
 
         private static string GetTooltip(VertexAttributeFlag attribute)

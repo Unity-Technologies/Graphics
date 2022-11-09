@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.UI
                     Profiler.EndSample();
                     if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
-                        model.RefreshErrors(m_Graph);
+                        model.RefreshErrors();
                     }
                 }
                 m_CurrentlyNotified = null;
@@ -305,6 +305,7 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
+                RemoveInvalidateDelegate(m_Graph, ReinitIfNeeded);
 
                 UnRegisterNotification(m_Graph, GraphChanged);
 
@@ -808,6 +809,43 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private int m_LastFrameVFXReinit = 0;
+
+        private void ReinitIfNeeded(VFXModel model, VFXModel.InvalidationCause cause)
+        {
+            if (cause == VFXModel.InvalidationCause.kInitValueChanged)
+            {
+                var window = VFXViewWindow.GetWindow(this.graph, false, false);
+                int currentFrame = Time.frameCount;
+
+                if (window &&
+                    window.autoReinit &&
+                    m_LastFrameVFXReinit != currentFrame) // Prevent multi reinit per frame)
+                {
+                    var vfx = window.graphView.attachedComponent;
+
+                    if (vfx)
+                    {
+                        vfx.Reinit();
+                        int targetFPS = VFXViewPreference.authoringPrewarmStepCountPerSeconds;
+                        if (window.autoReinitPrewarmTime > 0.0f && targetFPS > 0)
+                        {
+                            bool alreadyHasPrewarm = vfx.visualEffectAsset.GetResource().preWarmStepCount > 0;
+
+                            if (!alreadyHasPrewarm)
+                            {
+                                float stepTime = 1.0f / targetFPS;
+                                uint stepCount = (uint)(window.autoReinitPrewarmTime / stepTime + 1);
+                                stepTime = window.autoReinitPrewarmTime / stepCount;
+                                vfx.Simulate(stepTime, stepCount);
+                            }
+                        }
+                    }
+                    m_LastFrameVFXReinit = currentFrame;
+                }
+            }
+        }
+
         protected override void ModelChanged(UnityObject obj)
         {
             if (model == null)
@@ -844,7 +882,7 @@ namespace UnityEditor.VFX.UI
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
-
+                    AddInvalidateDelegate(m_Graph, ReinitIfNeeded);
 
                     m_UI = m_Graph.UIInfos;
 
@@ -1981,7 +2019,7 @@ namespace UnityEditor.VFX.UI
 
                 while (m_Systems.Count() < systems.Count())
                 {
-                    VFXSystemController systemController = new VFXSystemController(this, graph.UIInfos);
+                    VFXSystemController systemController = new VFXSystemController(graph.UIInfos);
                     m_Systems.Add(systemController);
                 }
 
@@ -1996,7 +2034,6 @@ namespace UnityEditor.VFX.UI
                 {
                     var contextToController = systems[i].Keys.Select(t => new KeyValuePair<VFXContextController, VFXContext>((VFXContextController)GetNodeController(t, 0), t)).Where(t => t.Key != null).ToDictionary(t => t.Value, t => t.Key);
                     m_Systems[i].contexts = contextToController.Values.ToArray();
-                    m_Systems[i].title = m_Graph.systemNames.GetUniqueSystemName(m_Systems[i].contexts.First().model.GetData());
                     VFXContextType type = VFXContextType.None;
                     VFXContext prevContext = null;
                     var orderedContexts = contextToController.Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();

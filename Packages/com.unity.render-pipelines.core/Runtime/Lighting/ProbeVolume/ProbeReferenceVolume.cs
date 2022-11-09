@@ -29,17 +29,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget;
         /// <summary>
-        /// The debug mesh used to draw probes in the debug view.
-        /// </summary>
-        public Mesh probeDebugMesh;
-        /// <summary>
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
-        /// <summary>
-        /// The debug mesh used to visualize probes virtual offset in the debug view.
-        /// </summary>
-        public Mesh offsetDebugMesh;
         /// <summary>
         /// The shader used to visualize probes virtual offset in the debug view.
         /// </summary>
@@ -65,6 +57,8 @@ namespace UnityEngine.Rendering
         public bool supportsRuntimeDebug;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
+        /// <summary>True if APV should support lighting scenarios.</summary>
+        public bool supportScenarios;
     }
 
     /// <summary>
@@ -139,8 +133,6 @@ namespace UnityEngine.Rendering
     [Serializable]
     public enum ProbeVolumeBlendingTextureMemoryBudget
     {
-        /// <summary>Disable Scenario Blending</summary>
-        None = 0,
         /// <summary>Low Budget</summary>
         MemoryBudgetLow = 128,
         /// <summary>Medium Budget</summary>
@@ -465,6 +457,7 @@ namespace UnityEngine.Rendering
 
         bool m_IsInitialized = false;
         bool m_SupportStreaming = false;
+        bool m_SupportScenarios = false;
         RefVolTransform m_Transform;
         int m_MaxSubdivision;
         ProbeBrickPool m_Pool;
@@ -502,6 +495,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Action<ExtraDataActionInput> retrieveExtraDataAction;
 
+        /// <summary>
+        ///  An action that is used by the SRP to perform checks every frame during baking.
+        /// </summary>
+        public Action checksDuringBakeAction = null;
+
         // Information of the probe volume asset that is being loaded (if one is pending)
         Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information on probes we need to remove.
@@ -519,7 +517,8 @@ namespace UnityEngine.Rendering
 
         internal bool hasUnloadedCells => m_ToBeLoadedCells.size != 0;
 
-        internal bool enableScenarioBlending => m_BlendingMemoryBudget != 0 && ProbeBrickBlendingPool.isSupported;
+        internal bool supportLightingScenarios => m_SupportScenarios;
+        internal bool enableScenarioBlending => m_SupportScenarios && m_BlendingMemoryBudget != 0 && ProbeBrickBlendingPool.isSupported;
 
         struct InitInfo
         {
@@ -645,6 +644,7 @@ namespace UnityEngine.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             m_BlendingMemoryBudget = parameters.blendingMemoryBudget;
+            m_SupportScenarios = parameters.supportScenarios;
             m_SHBands = parameters.shBands;
             m_ProbeVolumesWeight = 1f;
             m_SupportStreaming = parameters.supportStreaming;
@@ -1108,6 +1108,21 @@ namespace UnityEngine.Rendering
 
         void PerformPendingLoading()
         {
+#if UNITY_EDITOR
+            // If an asset has been deleted on disk, unload everything
+            foreach (var set in m_ActiveAssets)
+            {
+                if (set.Value == null)
+                {
+                    clearAssetsOnVolumeClear = true;
+                    Clear();
+                    clearAssetsOnVolumeClear = false;
+                    m_ToBeLoadedCells.Clear(); // don't try to reload cells
+                    break;
+                }
+            }
+#endif
+
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
@@ -1203,6 +1218,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
+#if UNITY_EDITOR
+            checksDuringBakeAction?.Invoke();
+#endif
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();

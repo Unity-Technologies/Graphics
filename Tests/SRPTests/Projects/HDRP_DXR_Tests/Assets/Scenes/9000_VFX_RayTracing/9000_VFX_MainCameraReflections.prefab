@@ -119,11 +119,14 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0.5
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
   taaBaseBlendFactor: 0.875
+  taaJitterScale: 1
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
@@ -143,6 +146,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   hasPersistentHistory: 0
+  screenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  screenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   allowDeepLearningSuperSampling: 1
   deepLearningSuperSamplingUseCustomQualitySettings: 0
   deepLearningSuperSamplingQuality: 0
@@ -166,6 +171,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -238,21 +244,25 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
+    RMSEThreshold: 0
     AverageCorrectnessThreshold: 0.0001
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
-    ImageResolution: 0
+    ImageResolution: 4
     ActiveImageTests: 1
-    ActivePixelTests: 7
+    ActivePixelTests: -1
   doBeforeTest:
     m_PersistentCalls:
       m_Calls: []
   captureFramerate: 30
-  waitFrames: 0
+  waitFrames: 10
+  waitForFrameCountMultiple: 0
+  frameCountMultiple: 8
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 0
-  renderPipelineAsset: {fileID: 11400000, guid: 14a0f3aaa5e78a3439ec76d270471ebe,
+  renderPipelineAsset: {fileID: 11400000, guid: 8ca879f4bcdd4d24cacbe23f8fceb6f4,
     type: 2}
   forceCameraRenderDuringSetup: 0
+  containsVFX: 1

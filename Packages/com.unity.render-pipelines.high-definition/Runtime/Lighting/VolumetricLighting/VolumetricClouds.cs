@@ -5,8 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Sky/Volumetric Clouds", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
+    [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Volumetric-Clouds")]
     public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
@@ -34,6 +35,31 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
             public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) { }
+        }
+
+        /// <summary>
+        /// Controls the quality level for the simple mode.
+        /// </summary>
+        public enum CloudSimpleMode
+        {
+            /// <summary>Control the volumetric clouds with a set of presets and very few parameters (performance mode).</summary>
+            Performance,
+            /// <summary>Control the volumetric clouds with a set of presets and very few parameters (quality mode).</summary>
+            Quality
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudSimpleMode"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudSimpleModeParameter : VolumeParameter<CloudSimpleMode>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudSimpleModeParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudSimpleModeParameter(CloudSimpleMode value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -184,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Enable/Disable the volumetric clouds effect.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// When enabled, clouds are part of the scene and you can interact with them. This means you can move around and inside the clouds, they can appear between the Camera and other GameObjects, and the Camera's clipping planes affect the clouds. When disabled, the clouds are part of the skybox. This means the clouds and their shadows appear relative to the Camera and always appear behind geometry.
@@ -271,9 +297,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudControlParameter cloudControl = new CloudControlParameter(CloudControl.Simple);
 
         /// <summary>
+        /// Specifies the quality mode used to render the volumetric clouds.
+        /// </summary>
+        public CloudSimpleModeParameter cloudSimpleMode = new CloudSimpleModeParameter(CloudSimpleMode.Performance);
+
+        /// <summary>
         /// Specifies the weather preset in Simple mode.
         /// </summary>
-        [Tooltip("Specifies the weather preset in Simple mode.")]
         public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
         /// <summary>
@@ -404,6 +434,24 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the type of noise used to generate the smaller noise passing through the cloud coverage.")]
         [AdditionalProperty]
         public CloudErosionNoiseParameter erosionNoiseType = new CloudErosionNoiseParameter(CloudErosionNoise.Perlin32);
+
+        /// <summary>
+        /// When enabled, an additional noise should be evaluated for the clouds in the advanced and manual modes. This increases signficantly the cost of the volumetric clouds.
+        /// </summary>
+        [Tooltip("When enabled, an additional noise should be evaluated for the clouds in the advanced and manual modes. This increases signficantly the cost of the volumetric clouds.")]
+        public BoolParameter microErosion = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the smallest noise on the edge of the clouds. A higher value will erode clouds more.
+        /// </summary>
+        [Tooltip("Controls the smallest noise on the edge of the clouds. A higher value will erode clouds more.")]
+        public ClampedFloatParameter microErosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the size of the smaller noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
+        public MinFloatParameter microErosionScale = new MinFloatParameter(200.0f, 0.1f);
 
         /// <summary>
         /// Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.

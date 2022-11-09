@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
 #endif
+        Camera.GateFitMode m_PreviousDefaultGateFitMode;
         ShadowmaskMode m_PreviousShadowMaskMode;
 
         bool m_FrameSettingsHistoryEnabled = false;
@@ -168,6 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
         ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
+        ShaderTagId[] m_WaterStencilTagNames = { HDShaderPassNames.s_WaterStencilTagName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -280,6 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_AssetSupportsRayTracing = false;
 
         // Flag that defines if ray tracing is supported by the current asset and platform
+        // Note: this will include whether resources are available or not because we can be in a state where the asset was not included in the build and so the the resources were stripped.
         bool m_RayTracingSupported = false;
 
         // Flag that defines if VFX ray tracing is supported by the current asset and platform
@@ -338,7 +341,16 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+            bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+
+            m_RayTracingSupported = pipelineSupportsRayTracing && m_GlobalSettings.renderPipelineRayTracingResources != null;
+            if (pipelineSupportsRayTracing && !m_RayTracingSupported)
+            {
+                Debug.LogWarning("The asset supports ray tracing but the ray tracing resources are not included in the build. This can happen if the asset currently in use was not included in any quality setting for the current platform.");
+                // We need to modify the pipeline settings here because we use them to sanitize the frame settings.
+                m_Asset.TurnOffRayTracing();
+            }
+
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
             m_VFXRayTracingSupported = m_Asset.currentPlatformRenderPipelineSettings.supportVFXRayTracing && m_RayTracingSupported;
             VFXManager.SetRayTracingEnabled(m_VFXRayTracingSupported);
@@ -457,23 +469,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool apvIsEnabled = IsAPVEnabled();
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            SupportedRenderingFeatures.active.rendererProbes = !apvIsEnabled;
             if (apvIsEnabled)
             {
                 var pvr = ProbeReferenceVolume.instance;
+                bool supportBlending = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarioBlending;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
-                    probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
-                    offsetDebugMesh = defaultResources.assets.pyramidMesh,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
-                    scenarioBlendingShader = defaultResources.shaders.probeVolumeBlendStatesCS,
+                    scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
-                    supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
-                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
+                    supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
+                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming,
+                    supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
                 SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
@@ -486,8 +499,11 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
+#endif
+
 #if UNITY_EDITOR
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             // All scene view will share the same FrameSettings for now as sometimes Dispose is called after
@@ -597,6 +613,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = (uint)m_GlobalSettings.defaultRenderingLayerMask;
 #endif
+            m_PreviousDefaultGateFitMode = GraphicsSettings.defaultGateFitMode;
+            GraphicsSettings.defaultGateFitMode = Camera.GateFitMode.Vertical;
 
             // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
             m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
@@ -722,6 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
             GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
 #endif
+            GraphicsSettings.defaultGateFitMode = m_PreviousDefaultGateFitMode;
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
@@ -817,8 +836,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ReleaseRayTracingManager();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.UnregisterDebug();
             m_DebugDisplaySettings.UnregisterDebug();
+#endif
 
             CleanupLightLoop();
 
@@ -831,8 +853,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            CoreUtils.SafeRelease(m_EmptyIndexBuffer);
-            m_EmptyIndexBuffer = null;
+            ProbeVolumeLighting.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
@@ -1871,9 +1892,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
-                m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
+            {
+                HDDebugDisplaySettings.Instance.UpdateDisplayStats();
+            }
 #endif
-
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
@@ -2224,9 +2246,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
-                if (DebugManager.instance.isAnyDebugUIActive)
-                    m_CurrentDebugDisplaySettings.UpdateAveragedProfilerTimings();
-
                 SetupCameraProperties(hdCamera, renderContext, cmd);
 
                 // TODO: Find a correct place to bind these material textures
@@ -2238,7 +2257,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
-                BindAPVRuntimeResources(cmd, hdCamera);
+                ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2253,8 +2272,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do the same for ray tracing if allowed
                 if (m_RayTracingSupported)
                 {
-                    m_RayCountManager.SetRayCountEnabled(m_CurrentDebugDisplaySettings.data.countRays);
-                    BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
+                    m_RayCountManager.SetRayCountEnabled((HDDebugDisplaySettings.Instance.displayStats.debugDisplayStats as HDDebugDisplayStats)?.countRays ?? false);
+                    BuildRayTracingLightData(cmd, hdCamera);
                 }
 
                 // Configure all the keywords

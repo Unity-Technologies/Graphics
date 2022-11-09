@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.XR;
 
 /// <summary>
 /// FullScreenPass is a renderer feature used to change screen appearance such as post processing effect. This implementation
@@ -103,6 +104,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
         private PassData m_PassData;
         private ProfilingSampler m_ProfilingSampler;
         private RTHandle m_CopiedColor;
+        private static readonly int m_BlitTextureShaderID = Shader.PropertyToID("_BlitTexture");
 
         public void Setup(Material mat, int index, bool requiresColor, bool isBeforeTransparents, string featureName, in RenderingData renderingData)
         {
@@ -151,7 +153,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
                     var source = m_IsBeforeTransparents ? cameraData.renderer.GetCameraColorBackBuffer(cmd) : cameraData.renderer.cameraColorTargetHandle;
 
                     Blitter.BlitCameraTexture(cmd, source, m_CopiedColor);
-                    s_PassMaterial.SetTexture(Shader.PropertyToID("_BlitTexture"), m_CopiedColor);
+                    s_PassMaterial.SetTexture(m_BlitTextureShaderID, m_CopiedColor);
                 }
 
                 CoreUtils.SetRenderTarget(cmd, cameraData.renderer.GetCameraColorBackBuffer(cmd));
@@ -160,8 +162,9 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
+            UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
             var colorCopyDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             colorCopyDescriptor.depthBufferBits = (int) DepthBits.None;
             TextureHandle copiedColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorCopyDescriptor, "_FullscreenPassColorCopy", false);
@@ -170,7 +173,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
             {
                 using (var builder = renderGraph.AddRenderPass<PassData>("CustomPostPro_ColorPass", out var passData, m_ProfilingSampler))
                 {
-                     passData.source = builder.ReadTexture(UniversalRenderer.m_ActiveRenderGraphColor);
+                     passData.source = builder.ReadTexture(renderer.activeColorTexture);
                      passData.copiedColor = builder.UseColorBuffer(copiedColor, 0);
                      builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                      {
@@ -186,7 +189,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
                 if (m_RequiresColor)
                     passData.copiedColor = builder.ReadTexture(copiedColor);
 
-                passData.source = builder.UseColorBuffer(UniversalRenderer.m_ActiveRenderGraphColor, 0);
+                passData.source = builder.UseColorBuffer(renderer.activeColorTexture, 0);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {

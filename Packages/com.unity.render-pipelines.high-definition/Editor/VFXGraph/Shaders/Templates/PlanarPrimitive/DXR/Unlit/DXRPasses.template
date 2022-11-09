@@ -1,0 +1,11 @@
+﻿	SubShader
+	{
+	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
+		// Required passes by ray tracing
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassVisibilityDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassIndirectDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassGBufferDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassForwardDXR.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/PassRayTracingDebug.template")}
+	}

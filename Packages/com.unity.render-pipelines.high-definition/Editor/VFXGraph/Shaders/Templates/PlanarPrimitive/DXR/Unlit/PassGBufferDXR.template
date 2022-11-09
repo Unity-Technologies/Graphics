@@ -8,6 +8,7 @@
             #pragma target 4.5
             #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
+            #pragma skip_variants INSTANCING_ON
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

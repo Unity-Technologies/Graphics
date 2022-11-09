@@ -50,6 +50,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+
+            if (TargetsVFX())
+            {
+                string inspector;
+                if (supportLighting)
+                    inspector = typeof(VFXShaderGraphGUILit).FullName;
+                else
+                    inspector = typeof(VFXShaderGraphGUIUnlit).FullName;
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
+            }
+
             base.Setup(ref context);
         }
 
@@ -99,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportForward)
                 {
                     passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
                 }
 
                 if (supportDistortion)

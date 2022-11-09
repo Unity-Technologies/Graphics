@@ -18,6 +18,7 @@ using VFXManager = UnityEngine.VFX.VFXManager;
 class VFXManagerEditor : Editor
 {
     SerializedProperty[] m_TimeProperties;
+    SerializedProperty[] m_CapacityProperties;
     SerializedProperty[] m_ShaderProperties;
     SerializedProperty[] m_InstancingProperties;
     SerializedProperty m_RuntimeResourcesProperty;
@@ -28,7 +29,12 @@ class VFXManagerEditor : Editor
         {
             serializedObject.FindProperty("m_FixedTimeStep"),
             serializedObject.FindProperty("m_MaxDeltaTime"),
-            serializedObject.FindProperty("m_MaxScrubTime")
+            serializedObject.FindProperty("m_MaxScrubTime"),
+        };
+
+        m_CapacityProperties = new SerializedProperty[]
+        {
+            serializedObject.FindProperty("m_MaxCapacity")
         };
 
         m_ShaderProperties = new SerializedProperty[]
@@ -70,6 +76,12 @@ class VFXManagerEditor : Editor
                 EditorGUILayout.PropertyField(property);
         }
 
+        GUILayout.Space(15);
+        foreach (var property in m_CapacityProperties)
+        {
+            if (property != null)
+                EditorGUILayout.PropertyField(property);
+        }
         GUILayout.Space(15);
         foreach (var property in m_ShaderProperties)
         {

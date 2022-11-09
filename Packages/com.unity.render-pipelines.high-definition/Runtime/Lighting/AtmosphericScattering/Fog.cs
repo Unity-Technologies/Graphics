@@ -7,13 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Volume Component.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Fog", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Fog")]
+    [Serializable, VolumeComponentMenu("Fog")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Fog")]
     public class Fog : VolumeComponentWithQuality
     {
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
-        public BoolParameter enabled = new BoolParameter(false);
+        public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>Fog color mode.</summary>
         public FogColorParameter colorMode = new FogColorParameter(FogColorMode.SkyColor);
@@ -162,8 +163,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool a = fog.enableVolumetricFog.value;
             bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
             bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
+            bool d = fog.enabled.value;
 
-            return a && b && c;
+            return a && b && c && d;
         }
 
         internal static bool IsPBRFogEnabled(HDCamera hdCamera)

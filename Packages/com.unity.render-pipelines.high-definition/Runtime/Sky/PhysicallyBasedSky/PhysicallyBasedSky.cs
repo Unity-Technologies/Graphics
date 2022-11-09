@@ -34,9 +34,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Physically Based Sky Volume Component.
     /// </summary>
-    [VolumeComponentMenuForRenderPipeline("Sky/Physically Based Sky", typeof(HDRenderPipeline))]
+    [VolumeComponentMenu("Sky/Physically Based Sky")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
-    [HDRPHelpURLAttribute("Override-Physically-Based-Sky")]
+    [HDRPHelpURL("Override-Physically-Based-Sky")]
     public partial class PhysicallyBasedSky : SkySettings
     {
         /* We use the measurements from Earth as the defaults. */

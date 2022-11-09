@@ -32,8 +32,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Display stats.
         /// </summary>
-        internal DebugDisplayStats displayStats { get; private set; }
-
+        internal DebugDisplaySettingsStats<URPProfileId> displayStats { get; private set; }
 
         #region IDebugDisplaySettingsQuery
 
@@ -89,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
         {
             base.Reset();
 
-            displayStats = Add(new DebugDisplayStats());
+            displayStats = Add(new DebugDisplaySettingsStats<URPProfileId>(new UniversalRenderPipelineDebugDisplayStats()));
             materialSettings = Add(new DebugDisplaySettingsMaterial());
             lightingSettings = Add(new DebugDisplaySettingsLighting());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
@@ -97,10 +96,10 @@ namespace UnityEngine.Rendering.Universal
             commonSettings = Add(new DebugDisplaySettingsCommon());
         }
 
-        internal void UpdateFrameTiming()
+        internal void UpdateDisplayStats()
         {
             if (displayStats != null)
-                displayStats.UpdateFrameTiming();
+                displayStats.debugDisplayStats.Update();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.VFX;
+using UnityEditor.VFX.UI;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
@@ -53,7 +54,8 @@ namespace UnityEditor.VFX
             kUIChanged,                     // UI stuff has changed
             kUIChangedTransient,            // UI stuff has been changed be does not require serialization
             kMaterialChanged,               // Some asset material properties has changed
-            kEnableChanged                  // Node has been enabled/disabled
+            kEnableChanged,                 // Node has been enabled/disabled
+            kInitValueChanged,              // A value has changed in a spawn/init context and may require a reinit
         }
 
         public new virtual string name { get { return string.Empty; } }
@@ -96,11 +98,10 @@ namespace UnityEditor.VFX
 
         public virtual void GetImportDependentAssets(HashSet<int> dependencies)
         {
-            //var monoScript = MonoScript.FromScriptableObject(this);
-            //dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
-
             foreach (var child in children)
+            {
                 child.GetImportDependentAssets(dependencies);
+            }
         }
 
         public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -128,23 +129,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void RefreshErrors(VFXGraph graph)
+        public void RefreshErrors()
         {
-            if (graph != null)
-            {
-                graph.errorManager.ClearAllErrors(this, VFXErrorOrigin.Invalidate);
-                using (var reporter = new VFXInvalidateErrorReporter(graph.errorManager, this))
-                {
-                    try
-                    {
-                        GenerateErrors(reporter);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
+            VFXViewWindow.RefreshErrors(this);
         }
 
         protected virtual void OnAdded() { }
@@ -328,7 +315,10 @@ namespace UnityEditor.VFX
             }
 
             var currentValue = setting.value;
-            if (!currentValue?.Equals(value) ?? value != null)
+            var isUnityObject = setting.field.FieldType.IsSubclassOf(typeof(UnityEngine.Object));
+            // Unity object Equals implementation consider null as equal which is not what we expect
+            // Because then we cannot assign "None" (or null) anymore
+            if ((isUnityObject && currentValue != value) || (!currentValue?.Equals(value) ?? value != null))
             {
                 setting.field.SetValue(setting.instance, value);
                 OnSettingModified(setting);
@@ -340,7 +330,7 @@ namespace UnityEditor.VFX
         }
 
         // Override this method to update other settings based on a setting modification
-        // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
+        // Use OnInvalidate with KSettingChanged and not this method to handle other side effects
         public virtual void OnSettingModified(VFXSetting setting) { }
         public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
@@ -368,34 +358,32 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        List<string> m_UIIgnoredErrors = new List<string>();
+        List<string> m_UIIgnoredErrors = new();
 
 
         public void IgnoreError(string error)
         {
-            if (m_UIIgnoredErrors == null)
-                m_UIIgnoredErrors = new List<string>();
             if (!m_UIIgnoredErrors.Contains(error))
                 m_UIIgnoredErrors.Add(error);
         }
 
         public bool IsErrorIgnored(string error)
         {
-            return m_UIIgnoredErrors != null && m_UIIgnoredErrors.Contains(error);
+            return m_UIIgnoredErrors.Contains(error);
         }
 
         public void ClearIgnoredErrors()
         {
-            m_UIIgnoredErrors = null;
-            RefreshErrors(GetGraph());
+            m_UIIgnoredErrors.Clear();
+            RefreshErrors();
         }
 
         public bool HasIgnoredErrors()
         {
-            return m_UIIgnoredErrors != null && m_UIIgnoredErrors.Count > 0;
+            return m_UIIgnoredErrors.Any();
         }
 
-        protected virtual void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal virtual void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
         }
 
@@ -449,19 +437,20 @@ namespace UnityEditor.VFX
             return input;
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, VFXCoordinateSpace srcSpace, SpaceableType dstSpaceType, VFXCoordinateSpace dstSpace)
+        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSpace srcSpace, SpaceableType dstSpaceType, VFXSpace dstSpace)
         {
-            if (dstSpace == VFXCoordinateSpace.None || srcSpace == VFXCoordinateSpace.None)
+            if (dstSpace == VFXSpace.None || srcSpace == VFXSpace.None)
             {
                 return input;
             }
 
+
             VFXExpression matrix = null;
-            if (dstSpace == VFXCoordinateSpace.Local)
+            if (dstSpace == VFXSpace.Local)
             {
                 matrix = VFXBuiltInExpression.WorldToLocal;
             }
-            else if (dstSpace == VFXCoordinateSpace.World)
+            else if (dstSpace == VFXSpace.World)
             {
                 matrix = VFXBuiltInExpression.LocalToWorld;
             }
@@ -472,14 +461,14 @@ namespace UnityEditor.VFX
             return TransformExpression(input, dstSpaceType, matrix);
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
+        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXSpace space)
         {
             VFXExpression matrix = null;
-            if (space == VFXCoordinateSpace.Local)
+            if (space == VFXSpace.Local)
             {
                 matrix = VFXBuiltInExpression.WorldToLocal;
             }
-            else if (space == VFXCoordinateSpace.World)
+            else if (space == VFXSpace.World)
             {
                 matrix = VFXBuiltInExpression.LocalToWorld;
             }
@@ -509,20 +498,23 @@ namespace UnityEditor.VFX
 
         public VFXGraph GetGraph()
         {
-            var graph = this as VFXGraph;
-            if (graph != null)
-                return graph;
-            var parent = GetParent();
-            if (parent != null)
-                return parent.GetGraph();
+            switch (this)
+            {
+                case VFXGraph graph:
+                    return graph;
+                case VFXSlot { owner: VFXModel m }:
+                   return m.GetGraph();
+                case { } m when m.GetParent() is { } parent:
+                    return parent.GetGraph();
+            }
+
             return null;
         }
 
         public static void UnlinkModel(VFXModel model, bool notify = true)
         {
-            if (model is IVFXSlotContainer)
+            if (model is IVFXSlotContainer slotContainer)
             {
-                var slotContainer = (IVFXSlotContainer)model;
                 VFXSlot slotToClean = null;
                 do
                 {

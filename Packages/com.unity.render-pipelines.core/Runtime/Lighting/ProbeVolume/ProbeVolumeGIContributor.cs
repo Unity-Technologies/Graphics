@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
 
             void PushTerrain(Terrain terrain)
             {
-                if (!ContributesGI(terrain.gameObject) || !terrain.gameObject.activeInHierarchy || !terrain.enabled)
+                if (!ContributesGI(terrain.gameObject) || !terrain.gameObject.activeInHierarchy || !terrain.enabled || terrain.terrainData == null)
                     return;
 
                 var terrainData = terrain.terrainData;
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering
             return contributors;
         }
 
-        static bool DiscardedByProbeVolume(ProbeVolume pv, ProbeReferenceVolumeProfile profile, float boundsVolume, int layerMask)
+        static bool DiscardedByProbeVolume(ProbeVolume pv, ProbeVolumeBakingSet profile, float boundsVolume, int layerMask)
         {
             if (profile == null)
                 return false;
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering
             return (boundsVolume < minRendererBoundingBoxSize) || (layerMask & renderersLayerMask) == 0;
         }
 
-        public GIContributors Filter(ProbeReferenceVolumeProfile profile, Bounds cellBounds, ProbeVolumeWithBoundsList probeVolumes)
+        public GIContributors Filter(ProbeVolumeBakingSet profile, Bounds cellBounds, ProbeVolumeWithBoundsList probeVolumes)
         {
             Profiling.Profiler.BeginSample("Filter GIContributors");
 

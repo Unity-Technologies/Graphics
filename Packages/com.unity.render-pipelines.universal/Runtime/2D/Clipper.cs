@@ -49,6 +49,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 //using System.Text;          //for Int128.AsString() & StringBuilder
 //using System.IO;            //debugging with streamReader & StreamWriter
 //using System.Windows.Forms; //debugging to clipboard
@@ -233,14 +234,14 @@ namespace UnityEngine.Rendering.Universal
             return hi < 0;
         }
 
-        public static bool operator ==(Int128 val1, Int128 val2)
+        public static bool operator==(Int128 val1, Int128 val2)
         {
             if ((object)val1 == (object)val2) return true;
             else if ((object)val1 == null || (object)val2 == null) return false;
             return (val1.hi == val2.hi && val1.lo == val2.lo);
         }
 
-        public static bool operator !=(Int128 val1, Int128 val2)
+        public static bool operator!=(Int128 val1, Int128 val2)
         {
             return !(val1 == val2);
         }
@@ -258,7 +259,7 @@ namespace UnityEngine.Rendering.Universal
             return hi.GetHashCode() ^ lo.GetHashCode();
         }
 
-        public static bool operator >(Int128 val1, Int128 val2)
+        public static bool operator>(Int128 val1, Int128 val2)
         {
             if (val1.hi != val2.hi)
                 return val1.hi > val2.hi;
@@ -266,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
                 return val1.lo > val2.lo;
         }
 
-        public static bool operator <(Int128 val1, Int128 val2)
+        public static bool operator<(Int128 val1, Int128 val2)
         {
             if (val1.hi != val2.hi)
                 return val1.hi < val2.hi;
@@ -274,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
                 return val1.lo < val2.lo;
         }
 
-        public static Int128 operator +(Int128 lhs, Int128 rhs)
+        public static Int128 operator+(Int128 lhs, Int128 rhs)
         {
             lhs.hi += rhs.hi;
             lhs.lo += rhs.lo;
@@ -282,12 +283,12 @@ namespace UnityEngine.Rendering.Universal
             return lhs;
         }
 
-        public static Int128 operator -(Int128 lhs, Int128 rhs)
+        public static Int128 operator-(Int128 lhs, Int128 rhs)
         {
             return lhs + -rhs;
         }
 
-        public static Int128 operator -(Int128 val)
+        public static Int128 operator-(Int128 val)
         {
             if (val.lo == 0)
                 return new Int128(-val.hi, 0);
@@ -372,12 +373,12 @@ namespace UnityEngine.Rendering.Universal
             this.N = pt.N; this.D = pt.D;
         }
 
-        public static bool operator ==(IntPoint a, IntPoint b)
+        public static bool operator==(IntPoint a, IntPoint b)
         {
             return a.X == b.X && a.Y == b.Y;
         }
 
-        public static bool operator !=(IntPoint a, IntPoint b)
+        public static bool operator!=(IntPoint a, IntPoint b)
         {
             return a.X != b.X || a.Y != b.Y;
         }
@@ -843,7 +844,7 @@ namespace UnityEngine.Rendering.Universal
         private TEdge FindNextLocMin(TEdge E)
         {
             TEdge E2;
-            for (; ; )
+            for (;;)
             {
                 while (E.Bot != E.Prev.Bot || E.Curr == E.Top) E = E.Next;
                 if (E.Dx != horizontal && E.Prev.Dx != horizontal) break;
@@ -1009,7 +1010,7 @@ namespace UnityEngine.Rendering.Universal
 
             //2. Remove duplicate vertices, and (when closed) collinear edges ...
             TEdge E = eStart, eLoopStop = eStart;
-            for (; ; )
+            for (;;)
             {
                 //nb: allows matching start and end points when not Closed ...
                 if (E.Curr == E.Next.Curr && (Closed || E.Next != eStart))
@@ -1075,7 +1076,7 @@ namespace UnityEngine.Rendering.Universal
                 locMin.RightBound = E;
                 locMin.RightBound.Side = EdgeSides.esRight;
                 locMin.RightBound.WindDelta = 0;
-                for (; ; )
+                for (;;)
                 {
                     if (E.Bot.X != E.Prev.Top.X) ReverseHorizontal(E);
                     if (E.Next.OutIdx == Skip) break;
@@ -1095,7 +1096,7 @@ namespace UnityEngine.Rendering.Universal
             //open paths have matching start and end points ...
             if (E.Prev.Bot == E.Prev.Top) E = E.Next;
 
-            for (; ; )
+            for (;;)
             {
                 E = FindNextLocMin(E);
                 if (E == EMin) break;
@@ -2887,7 +2888,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             OutPt op1 = null;
-            for (; ; ) //loop through consec. horizontal edges
+            for (;;)   //loop through consec. horizontal edges
             {
                 bool IsLastHorz = (horzEdge == eLastHorz);
                 TEdge e = GetNextInAEL(horzEdge, dir);
@@ -3501,7 +3502,11 @@ namespace UnityEngine.Rendering.Universal
 
         public static void ReversePaths(Paths polys)
         {
-            foreach (var poly in polys) { poly.Reverse(); }
+            for (int i = 0; i < polys.Count; i++)
+            {
+                var poly = polys[i];
+                poly.Reverse();
+            }
         }
 
         //------------------------------------------------------------------------------
@@ -3627,7 +3632,7 @@ namespace UnityEngine.Rendering.Universal
             outRec.BottomPt = null;
             OutPt pp = outRec.Pts;
             bool preserveCol = PreserveCollinear || StrictlySimple;
-            for (; ; )
+            for (;;)
             {
                 if (pp.Prev == pp || pp.Prev == pp.Next)
                 {
@@ -4514,16 +4519,22 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < pathCnt; i++)
                 {
                     Path p = new Path(polyCnt);
-                    foreach (IntPoint ip in pattern)
+                    for (int patternIndex = 0; patternIndex < pattern.Count; patternIndex++)
+                    {
+                        IntPoint ip = pattern[patternIndex];
                         p.Add(new IntPoint(path[i].X + ip.X, path[i].Y + ip.Y));
+                    }
                     result.Add(p);
                 }
             else
                 for (int i = 0; i < pathCnt; i++)
                 {
                     Path p = new Path(polyCnt);
-                    foreach (IntPoint ip in pattern)
+                    for (int patternIndex = 0; patternIndex < pattern.Count; patternIndex++)
+                    {
+                        IntPoint ip = pattern[patternIndex];
                         p.Add(new IntPoint(path[i].X - ip.X, path[i].Y - ip.Y));
+                    }
                     result.Add(p);
                 }
 
@@ -4735,8 +4746,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void AddPaths(Paths paths, JoinTypes joinType, EndTypes endType)
         {
-            foreach (Path p in paths)
+            for (int i = 0; i < paths.Count; i++)
+            {
+                Path p = paths[i];
                 AddPath(p, joinType, endType);
+            }
         }
 
         //------------------------------------------------------------------------------
@@ -5118,7 +5132,7 @@ namespace UnityEngine.Rendering.Universal
 
     class ClipperException : Exception
     {
-        public ClipperException(string description) : base(description) { }
+        public ClipperException(string description) : base(description) {}
     }
     //------------------------------------------------------------------------------
 } //end ClipperLib namespace

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
@@ -150,11 +151,11 @@ namespace UnityEngine.Rendering
         {
             if (parameters.supportsRuntimeDebug)
             {
-                m_DebugMesh = parameters.probeDebugMesh;
+                m_DebugMesh = DebugShapes.instance.BuildCustomSphereMesh(0.5f, 9, 8); // (longSubdiv + 1) * latSubdiv + 2 = 82
                 m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
                 m_DebugMaterial.enableInstancing = true;
 
-                m_DebugOffsetMesh = parameters.offsetDebugMesh;
+                m_DebugOffsetMesh = Resources.GetBuiltinResource<Mesh>("pyramid.fbx");
                 m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
                 m_DebugOffsetMaterial.enableInstancing = true;
                 m_DebugFragmentationMaterial = CoreUtils.CreateEngineMaterial(parameters.fragmentationDebugShader);
@@ -315,7 +316,7 @@ namespace UnityEngine.Rendering
                 widgetList.Add(streamingContainer);
             }
 
-            if (parameters.scenarioBlendingShader != null && parameters.blendingMemoryBudget != 0)
+            if (parameters.supportScenarios && parameters.scenarioBlendingShader != null && parameters.blendingMemoryBudget != 0)
             {
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
                 blendingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Blended Per Frame", getter = () => instance.numberOfCellsBlendedPerFrame, setter = value => instance.numberOfCellsBlendedPerFrame = value, min = () => 0 });
@@ -324,7 +325,7 @@ namespace UnityEngine.Rendering
                 void RefreshScenarioNames(string guid)
                 {
                     HashSet<string> allScenarios = new();
-                    foreach (var set in parameters.sceneData.bakingSets)
+                    foreach (var set in Resources.FindObjectsOfTypeAll<ProbeVolumeBakingSet>())
                     {
                         if (!set.sceneGUIDs.Contains(guid))
                             continue;

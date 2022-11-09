@@ -70,13 +70,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask", precision = FieldPrecision.Real)]
             public float subsurfaceMask;
-            [SurfaceDataAttributes("Transmission Mask", precision = FieldPrecision.Real)]
-            public float transmissionMask;
 
             // Transmission
             // + Diffusion Profile
             [SurfaceDataAttributes("Thickness", precision = FieldPrecision.Real)]
             public float thickness;
+            [SurfaceDataAttributes("Transmission Mask", precision = FieldPrecision.Real)]
+            public float transmissionMask;
 
             // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]
@@ -120,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 diffuseColor;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public Vector3 fresnel0;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
+            public float fresnel90;
 
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1

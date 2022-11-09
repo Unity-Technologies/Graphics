@@ -22,8 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Vignette effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Vignette", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Vignette")]
+    [Serializable, VolumeComponentMenu("Post-processing/Vignette")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Post-Processing-Vignette")]
     public sealed class Vignette : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

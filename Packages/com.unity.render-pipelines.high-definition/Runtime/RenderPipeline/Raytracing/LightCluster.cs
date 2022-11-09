@@ -5,8 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ray tracing light cluster.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Light Cluster (Preview)", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Ray-Tracing-Light-Cluster")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Light Cluster (Preview)")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Ray-Tracing-Light-Cluster")]
     public sealed class LightCluster : VolumeComponent
     {
         /// <summary>

@@ -271,13 +271,45 @@ namespace UnityEngine.Rendering
             return new Vector3Int(width, height, depth);
         }
 
-        public static Texture CreateDataTexture(int width, int height, int depth, GraphicsFormat format, string name, bool allocateRendertexture, ref int allocatedBytes)
+        static int EstimateMemoryCost(int width, int height, int depth, GraphicsFormat format)
         {
             int elementSize = format == GraphicsFormat.R16G16B16A16_SFloat ? 8 :
                 format == GraphicsFormat.R8G8B8A8_UNorm ? 4 : 1;
+            return (width * height * depth) * elementSize;
+        }
+
+        internal static int EstimateMemoryCost(ProbeVolumeTextureMemoryBudget memoryBudget, bool compressed, ProbeVolumeSHBands bands, bool allocateValidityData)
+        {
+            if (memoryBudget == 0)
+                return 0;
+
+            DerivePoolSizeFromBudget(memoryBudget, out int width, out int height, out int depth);
+            Vector3Int locSize = ProbeCountToDataLocSize(width * height * depth);
+            width = locSize.x;
+            height = locSize.y;
+            depth = locSize.z;
+
+            int allocatedBytes = 0;
+            var L0Format = GraphicsFormat.R16G16B16A16_SFloat;
+            var L1L2Format = compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm;
+
+            allocatedBytes += EstimateMemoryCost(width, height, depth, L0Format);
+            allocatedBytes += EstimateMemoryCost(width, height, depth, L1L2Format) * 2;
+
+            if (allocateValidityData)
+                allocatedBytes += EstimateMemoryCost(width, height, depth, GraphicsFormat.R8_UNorm);
+
+            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                allocatedBytes += EstimateMemoryCost(width, height, depth, L1L2Format) * 3;
+
+            return allocatedBytes;
+        }
+
+        public static Texture CreateDataTexture(int width, int height, int depth, GraphicsFormat format, string name, bool allocateRendertexture, ref int allocatedBytes)
+        {
+            allocatedBytes += EstimateMemoryCost(width, height, depth, format);
 
             Texture texture;
-            allocatedBytes += (width * height * depth) * elementSize;
             if (allocateRendertexture)
             {
                 texture = new RenderTexture(new RenderTextureDescriptor()
@@ -346,7 +378,7 @@ namespace UnityEngine.Rendering
             return loc;
         }
 
-        void DerivePoolSizeFromBudget(ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
+        static void DerivePoolSizeFromBudget(ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on.
@@ -409,7 +441,17 @@ namespace UnityEngine.Rendering
         ProbeVolumeSHBands m_ShBands;
 
         internal bool isAllocated => m_State0 != null;
-        internal int estimatedVMemCost => isAllocated ? m_State0.estimatedVMemCost + m_State1.estimatedVMemCost : 0;
+        internal int estimatedVMemCost
+        {
+            get
+            {
+                if (!isSupported || !ProbeReferenceVolume.instance.supportLightingScenarios)
+                    return 0;
+                if (isAllocated)
+                    return m_State0.estimatedVMemCost + m_State1.estimatedVMemCost;
+                return ProbeBrickPool.EstimateMemoryCost(m_MemoryBudget, false, m_ShBands, false) * 2;
+            }
+        }
 
         internal int GetPoolWidth() { return m_State0.m_Pool.width; }
         internal int GetPoolHeight() { return m_State0.m_Pool.height; }

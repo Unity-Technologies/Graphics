@@ -13,6 +13,11 @@ namespace UnityEngine.Rendering.Universal
     [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
+#if UNITY_EDITOR
+        [UnityEditor.ShaderKeywordFilter.SelectIf(true, keywordNames: ShaderKeywordStrings.MainLightShadowScreen)]
+        private const bool k_RequiresScreenSpaceShadowsKeyword = true;
+#endif
+
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
         [SerializeField] private ScreenSpaceShadowsSettings m_Settings = new ScreenSpaceShadowsSettings();
@@ -149,7 +154,7 @@ namespace UnityEngine.Rendering.Universal
                 internal RenderingData renderingData;
             }
 
-            public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
             {
                 using (var builder = renderGraph.AddRenderPass<PassData>("Screen Space Shadows Pass", out var passData, m_ProfilingSampler))
                 {
@@ -231,11 +236,12 @@ namespace UnityEngine.Rendering.Universal
                 internal ScreenSpaceShadowsPostPass pass;
                 internal RenderingData renderingData;
             }
-            public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
             {
                 using (var builder = renderGraph.AddRenderPass<PassData>("Screen Space Shadow Post Pass", out var passData, m_ProfilingSampler))
                 {
-                    TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                    UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+                    TextureHandle color = renderer.activeColorTexture;
                     builder.UseColorBuffer(color, 0);
                     passData.renderingData = renderingData;
                     passData.pass = this;

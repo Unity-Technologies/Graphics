@@ -33,8 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Screen Space Reflection", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Screen-Space-Reflection")]
+    [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Screen-Space-Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
@@ -53,11 +54,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #region General
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
-        public BoolParameter enabled = new BoolParameter(true);
+        public BoolParameter enabled = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>Enable Transparent Screen Space Reflections.</summary>
         [Tooltip("Enable Transparent Screen Space Reflections.")]
-        public BoolParameter enabledTransparent = new BoolParameter(true);
+        public BoolParameter enabledTransparent = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// </summary>

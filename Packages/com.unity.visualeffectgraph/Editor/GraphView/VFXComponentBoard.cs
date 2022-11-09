@@ -240,6 +240,11 @@ namespace UnityEditor.VFX.UI
             style.height = newPos.height;
         }
 
+        public void SetDebugMode(VFXUIDebug.Modes mode)
+        {
+            m_DebugUI?.SetDebugMode(mode, this);
+        }
+
         void OnMouseClick(MouseDownEvent e)
         {
             m_View.SetBoardToFront(this);
@@ -288,12 +293,12 @@ namespace UnityEditor.VFX.UI
             GenericMenu menu = new GenericMenu();
             foreach (VFXUIDebug.Modes mode in Enum.GetValues(typeof(VFXUIDebug.Modes)))
             {
-                menu.AddItem(EditorGUIUtility.TextContent(mode.ToString()), false, SetDebugMode, mode);
+                menu.AddItem(EditorGUIUtility.TextContent(mode.ToString()), false, SetDebugModeCallback, mode);
             }
             menu.DropDown(m_DebugModes.worldBound);
         }
 
-        void SetDebugMode(object mode)
+        private void SetDebugModeCallback(object mode)
         {
             m_DebugUI.SetDebugMode((VFXUIDebug.Modes)mode, this);
         }
@@ -396,7 +401,7 @@ namespace UnityEditor.VFX.UI
                     VFXComponentBoardBoundsSystemUI newUI = m_SystemBoundsContainer.Children().Last() as VFXComponentBoardBoundsSystemUI;
                     if (newUI != null)
                     {
-                        newUI.Setup(system, m_BoundsRecorder);
+                        newUI.Setup(m_View, system, m_BoundsRecorder);
                     }
                 }
             }
@@ -523,7 +528,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var context in contextsToRefresh)
             {
-                context.controller.model.RefreshErrors(m_View.controller.graph);
+                context.controller.model.RefreshErrors();
             }
         }
 
@@ -935,14 +940,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void Setup(string systemName, VFXBoundsRecorder boundsRecorder)
+        public void Setup(VFXView vfxView, string systemName, VFXBoundsRecorder boundsRecorder)
         {
             m_BoundsRecorder = boundsRecorder;
             m_CurrentMode = m_BoundsRecorder.GetSystemBoundsSettingMode(systemName);
             m_SystemName = systemName;
             m_SystemNameButton = this.Query<VFXBoundsRecorderField>("system-field");
-            var initContextUI = m_BoundsRecorder.GetInitContextController(m_SystemName);
-            m_SystemNameButton.Setup(initContextUI, m_BoundsRecorder.view);
+            var initContextUI = m_BoundsRecorder.GetInitializeContextUI(m_SystemName);
+            m_SystemNameButton.Setup(initContextUI, vfxView);
             m_SystemNameButton.text = m_SystemName;
             InitBoundsModeElement();
             m_Colors = new Dictionary<string, StyleColor>()

@@ -1,28 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-
-namespace UnityEngine.Rendering.Universal
-{
-    /// <summary>
-    ///  Implement this interface on every post process volumes
-    /// </summary>
-    public interface IPostProcessComponent
-    {
-        /// <summary>
-        /// Tells if the post process needs to be rendered or not.
-        /// </summary>
-        /// <returns>True if the component is active, otherwise false.</returns>
-        bool IsActive();
-
-        /// <summary>
-        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
-        /// </summary>
-        /// <returns>True if it can run on-tile, otherwise false.</returns>
-        bool IsTileCompatible();
-    }
-}
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -193,7 +173,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Cleans up the Material Library used in the passes.
         /// </summary>
-        public void Cleanup() => m_Materials.Cleanup();
+        public void Cleanup()
+        {
+            m_Materials.Cleanup();
+            Dispose();
+        }
 
         /// <summary>
         /// Disposes used resources.
@@ -679,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Pass 3: Neighborhood blending
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, m_BlendTexture.nameID);
-            RenderingUtils.Blit(cmd, source, pixelRect, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear, material, 2);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 2);
         }
 
         #endregion
@@ -719,7 +703,7 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
-            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            PostProcessUtils.SetSourceSize(cmd, m_FullCoCTexture);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
@@ -837,7 +821,7 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
-            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            PostProcessUtils.SetSourceSize(cmd, m_FullCoCTexture);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
             float uvMargin = (1.0f / m_Descriptor.height) * downSample;
             cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
@@ -897,12 +881,14 @@ namespace UnityEngine.Rendering.Universal
                 true,
                 camera.transform.position,
                 gpuVP,
-                cmd, source,
+                cmd,
+                false, false, null, null,
+                source,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
                 ShaderConstants._FlareOcclusionRemapTex, ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
-                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
-                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
-                false, false);
+                0, 0,
+                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
+                false);
         }
 
         #endregion
@@ -955,7 +941,7 @@ namespace UnityEngine.Rendering.Universal
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
-            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            PostProcessUtils.SetSourceSize(cmd, source);
 
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, (int)m_MotionBlur.quality.value);
         }
@@ -1315,7 +1301,7 @@ namespace UnityEngine.Rendering.Universal
             var material = m_Materials.finalPass;
             material.shaderKeywords = null;
 
-            PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
+            PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
 
             SetupGrain(ref cameraData, material);
             SetupDithering(ref cameraData, material);
@@ -1428,7 +1414,7 @@ namespace UnityEngine.Rendering.Universal
 
                                 // Update the source texture for the next operation
                                 sourceTex = m_UpscaledTarget;
-                                PostProcessUtils.SetSourceSize(cmd, upscaleRtDesc);
+                                PostProcessUtils.SetSourceSize(cmd, m_UpscaledTarget);
 
                                 break;
                             }

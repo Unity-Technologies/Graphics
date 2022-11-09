@@ -119,7 +119,11 @@ float3 GetElementSize(InternalAttributesElement attributes)
     return size3;
 }
 
-float3 GetElementSizeRT(InternalAttributesElement attributes, GraphValues graphValues)
+float3 GetElementSizeRT(InternalAttributesElement attributes
+#if VFX_USE_GRAPH_VALUES
+    , GraphValues graphValues
+#endif
+)
 {
     float3 size3 = GetElementSize(attributes);
 
@@ -177,7 +181,7 @@ void GetElementData(inout AttributesElement element)
     uint instanceIndex = element.instanceIndex;
     uint instanceActiveIndex = element.instanceActiveIndex;
 #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[instanceActiveIndex];
+    $splice(VFXLoadGraphValues)
 #endif
 
     InternalAttributesElement attributes;
@@ -210,7 +214,8 @@ bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout Attribut
 {
     GetElementData(element);
     #if VFX_USE_GRAPH_VALUES
-    GraphValues graphValues = graphValuesBuffer[element.instanceActiveIndex];
+    uint instanceActiveIndex = element.instanceActiveIndex;
+    $splice(VFXLoadGraphValues)
     #endif
     InternalAttributesElement attributes = element.attributes;
 
@@ -341,12 +346,12 @@ VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, A
 }
 
 // Vertex + Pixel Graph Properties Generation
-void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties
-#if VFX_USE_GRAPH_VALUES
-    ,GraphValues graphValues
-#endif
-    )
+void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
 {
+#if VFX_USE_GRAPH_VALUES
+    uint instanceActiveIndex = element.instanceActiveIndex;
+    $splice(VFXLoadGraphValues)
+#endif
     InternalAttributesElement attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)
     $splice(VFXVertexPropertiesAssign)

@@ -28,7 +28,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, select Add Override > Ray Tracing > Path Tracing.
-3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
+3. In the Inspector for the Path Tracing Volume Override, set **State** to **Enabled**. If you don't see **State**, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
 4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
 
 
@@ -38,12 +38,14 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 | Property                    | Description                                                  |
 | --------------------------- | ------------------------------------------------------------ |
+| **State**                   | When set to **Enabled**, HDRP uses path tracing. |
+| **LayerMask**               | Specifies the layers that path tracing includes. |
 | **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
 | **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
 | **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
 | **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
-| **Denoising** | Denoises the output of the the path tracer. This setting is only available when you install the **Unity Denoising** Package. **Denoising** has the following options:<br />&#8226; **None**: Does not denoise (this is the default option).<br />&#8226; **Intel Open Image Denoise** : Uses the Intel Open Image Denoise library to denoise the frame.<br />&#8226;**NVIDIA OptiX** : Uses NVIDIA OptiX to denoise the frame.<br /><br />You can also enable the following additional settings:<br />&#8226;**Use AOVs** (Arbitrary Output Variables): Increases the amount of detail kept in the frame after HDRP denoises it.<br />&#8226;**Temporal**: Improves the temporal consistency of denoised frame sequences. |
+| **Denoising** | Denoises the output of the the path tracer. This setting is only available when you install the **Unity Denoising** Package. **Denoising** has the following options:<br />&#8226; **None**: Does not denoise (this is the default option).<br />&#8226; **Intel Open Image Denoise** : Uses the Intel Open Image Denoise library to denoise the frame.<br />&#8226; **NVIDIA OptiX** : Uses NVIDIA OptiX to denoise the frame.<br /><br />You can also enable the following additional settings:<br />&#8226; **Use AOVs** (Arbitrary Output Variables): Increases the amount of detail kept in the frame after HDRP denoises it.<br />&#8226; **Temporal**: Improves the temporal consistency of denoised frame sequences. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -177,6 +179,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
   - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
   - Decals.
+  - Local Volumetric Fog.
   - Tessellation.
   - Tube and Disc-shaped Area Lights.
   - Translucent Opaque Materials.

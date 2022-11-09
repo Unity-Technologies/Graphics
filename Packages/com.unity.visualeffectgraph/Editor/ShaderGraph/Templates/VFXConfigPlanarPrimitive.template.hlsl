@@ -45,6 +45,9 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 
     #if !HAS_STRIPS
     $splice(VFXInitInstancing)
+    #ifdef UNITY_INSTANCING_ENABLED
+    input.instanceID = unity_InstanceID;
+    #endif
     #endif
 
     ContextData contextData = instancingContextData[instanceActiveIndex];
@@ -117,8 +120,9 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         GetElementData(element);
         const InternalAttributesElement attributes = element.attributes;
 
+        $splice(VFXLoadGraphValues)
+
         // Here we have to explicitly splice in the crop factor.
-        GraphValues graphValues = graphValuesBuffer[instanceIndex];
         $splice(VFXLoadCropFactorParameter)
 
         const float correctedCropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
@@ -133,6 +137,10 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 #ifdef ATTRIBUTES_NEED_TANGENT
     input.tangentOS = float4(1, 0, 0, 1);
 #endif
+#ifdef ATTRIBUTES_NEED_COLOR
+    input.color = float4(1, 1, 1, 1);
+#endif
+
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
     input.uv0 = uv;
 #endif
@@ -188,14 +196,19 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         uint index, instanceIndex, instanceActiveIndex;
         GetVFXInstancingIndices(index, instanceIndex, instanceActiveIndex);
         #if VFX_USE_GRAPH_VALUES
-        GraphValues graphValues = graphValuesBuffer[instanceActiveIndex];
+        $splice(VFXLoadGraphValues)
         #endif
 
         InternalAttributesElement attributes;
         ZERO_INITIALIZE(InternalAttributesElement, attributes);
         $splice(VFXLoadAttribute)
         $splice(VFXProcessBlocks)
-        float3 size3 = GetElementSizeRT(attributes, graphValues);
+
+        float3 size3 = GetElementSizeRT(attributes
+#if VFX_USE_GRAPH_VALUES
+            , graphValues
+#endif
+        );
 
         float3 rayDirection = WorldRayDirection();
         output.positionSS = float4(0.0, 0.0, 0.0, 0.0);

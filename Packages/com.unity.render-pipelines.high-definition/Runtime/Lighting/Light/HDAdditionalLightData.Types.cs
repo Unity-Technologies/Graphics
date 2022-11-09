@@ -286,6 +286,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("lightTypeExtent"), FormerlySerializedAs("m_LightTypeExtent")]
         PointLightHDType m_PointlightHDType = PointLightHDType.Punctual;
 
+        internal PointLightHDType pointLightHDType
+        {
+            get => m_PointlightHDType;
+            set => HDLightRenderDatabase.instance.SetPointLightType(lightEntity, m_PointlightHDType);
+        }
+
         // Only for Spotlight, should be hide for other light
         [SerializeField, FormerlySerializedAs("spotLightShape")]
         SpotLightShape m_SpotLightShape = SpotLightShape.Cone;
@@ -319,20 +325,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         case HDLightType.Directional:
                             legacyLight.type = LightType.Directional;
                             m_PointlightHDType = PointLightHDType.Punctual;
-                            if (lightEntity.valid)
-                                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
+                            HDLightRenderDatabase.instance.SetPointLightType(lightEntity, m_PointlightHDType);
                             break;
                         case HDLightType.Spot:
                             legacyLight.type = LightType.Spot;
                             m_PointlightHDType = PointLightHDType.Punctual;
-                            if (lightEntity.valid)
-                                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
+                            HDLightRenderDatabase.instance.SetPointLightType(lightEntity, m_PointlightHDType);
                             break;
                         case HDLightType.Point:
                             legacyLight.type = LightType.Point;
                             m_PointlightHDType = PointLightHDType.Punctual;
-                            if (lightEntity.valid)
-                                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
+                            HDLightRenderDatabase.instance.SetPointLightType(lightEntity, m_PointlightHDType);
                             break;
                         case HDLightType.Area:
                             ResolveAreaShape();
@@ -368,8 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_SpotLightShape = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).spotLightShape = m_SpotLightShape;
+                HDLightRenderDatabase.instance.SetSpotLightShape(lightEntity, m_SpotLightShape);
 
                 // If the current light unit is not supported by this spot light shape, we change it
                 var supportedUnits = GetSupportedLightUnits(type, value);
@@ -391,20 +393,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightShape = value;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).areaLightShape = m_AreaLightShape;
+                HDLightRenderDatabase.instance.SetAreaLightShape(lightEntity, m_AreaLightShape);
 
                 if (type == HDLightType.Area)
                     ResolveAreaShape();
                 UpdateAllLightValues();
+
+
             }
         }
 
         void ResolveAreaShape()
         {
             m_PointlightHDType = PointLightHDType.Area;
-            if (lightEntity.valid)
-                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
+            HDLightRenderDatabase.instance.SetPointLightType(lightEntity, m_PointlightHDType);
 
             if (areaLightShape == AreaLightShape.Disc)
             {
@@ -592,8 +594,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 legacyLight.type = LightType.Point;
                 m_PointlightHDType = PointLightHDType.Area;
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
+                HDLightRenderDatabase.instance.SetPointLightType(lightEntity, m_PointlightHDType);
 
                 m_AreaLightShape = AreaLightShape.Rectangle;
 

@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering
             {
                 ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
 
-                var bakeSettings = ProbeReferenceVolume.instance.sceneData.GetBakeSettingsForScene(ptv.gameObject.scene);
+                var bakeSettings = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene).settings;
 
                 EditorGUILayout.PropertyField(serialized.mode);
 
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering
 
                 if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
                 {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled on the used HDRP asset.", MessageType.Warning, wide: true);
                     return;
                 }
 

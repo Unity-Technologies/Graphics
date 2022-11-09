@@ -7,7 +7,12 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        // Re-evaluate the surface gradient of the simulation normal
+        float3 normalSG = SurfaceGradientFromPerturbedNormal(vtxNormal, surfaceData.normalWS);
+        // Add the contribution of the decals to the normal
+        normalSG += SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
+        // Move back to world space
+        surfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, normalSG);
     }
 
     surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;

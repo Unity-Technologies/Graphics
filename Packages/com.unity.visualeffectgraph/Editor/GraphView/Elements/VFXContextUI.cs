@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
         {
             var graph = controller.model.GetGraph();
             if (graph != null && controller.model.contextType == VFXContextType.Spawner)
-                m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
+                m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model.GetData());
             else
                 m_Label.text = controller.model.label;
         }
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
 
             var space = controller.model.space;
-            foreach (VFXCoordinateSpace val in System.Enum.GetValues(typeof(VFXCoordinateSpace)))
+            foreach (VFXSpace val in System.Enum.GetValues(typeof(VFXSpace)))
             {
                 if (val != space || !controller.model.spaceable)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
@@ -306,10 +306,10 @@ namespace UnityEditor.VFX.UI
         bool m_CanHaveBlocks = false;
         void OnSpace()
         {
-            if (controller.model.space == VFXCoordinateSpace.World)
-                controller.model.space = VFXCoordinateSpace.Local;
+            if (controller.model.space == VFXSpace.World)
+                controller.model.space = VFXSpace.Local;
             else
-                controller.model.space = VFXCoordinateSpace.World;
+                controller.model.space = VFXSpace.World;
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks)
@@ -609,7 +609,7 @@ namespace UnityEditor.VFX.UI
                                 addedBlocks.Add(blockUI);
                             }
                             //Refresh error can only be called after the block has been instantiated
-                            blockController.model.RefreshErrors(controller.viewController.graph);
+                            blockController.model.RefreshErrors();
                         }
 
                         if (prevBlock != null)

@@ -164,7 +164,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void CollectExposedDesc(List<VFXMapping> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
+        private static void CollectExposedDesc(List<(VFXMapping, VFXSpace, SpaceableType)> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
             var expression = slot.valueType != VFXValueType.None ? slot.GetInExpression() : null;
             if (expression != null)
@@ -173,11 +173,20 @@ namespace UnityEditor.VFX
                 if (exprIndex == -1)
                     throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
 
-                outExposedParameters.Add(new VFXMapping()
-                {
-                    name = name,
-                    index = exprIndex
-                });
+                var space = slot.space;
+                var spaceableType = SpaceableType.None;
+                if (space != VFXSpace.None)
+                    spaceableType = slot.GetSpaceTransformationType();
+
+                outExposedParameters.Add((
+                        new VFXMapping()
+                        {
+                            name = name,
+                            index = exprIndex
+                        },
+                        space,
+                        spaceableType
+                    ));
             }
             else
             {
@@ -188,7 +197,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillExposedDescs(List<VFXMapping> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
+        private static void FillExposedDescs(List<(VFXMapping, VFXSpace, SpaceableType)> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
             foreach (var parameter in parameters)
             {
@@ -630,7 +639,7 @@ namespace UnityEditor.VFX
 
                 string nativeName = string.Empty;
                 if (systemNames != null)
-                    nativeName = systemNames.GetUniqueSystemName(spawnContext);
+                    nativeName = systemNames.GetUniqueSystemName(spawnContext.GetData());
                 else
                     throw new InvalidOperationException("system names manager cannot be null");
 
@@ -754,13 +763,14 @@ namespace UnityEditor.VFX
                 List<VFXContext> failingContexts = null;
                 foreach (var context in contexts)
                 {
-                    var gpuMapper = graph.BuildGPUMapper(context);
-                    var uniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, context.GetData() is VFXDataParticle);
-
-                    // Add gpu and uniform mapper
                     var contextData = contextToCompiledData[context];
-                    contextData.gpuMapper = gpuMapper;
-                    contextData.uniformMapper = uniformMapper;
+                    if (contextData.uniformMapper == null) // Add gpu and uniform mapper if not done already (dataType != VFXDataParticle)
+                    {
+                        var gpuMapper = graph.BuildGPUMapper(context);
+                        var uniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, false);
+                        contextData.gpuMapper = gpuMapper;
+                        contextData.uniformMapper = uniformMapper;
+                    }
                     contextData.graphicsBufferUsage = graph.GraphicsBufferTypeUsage;
                     contextToCompiledData[context] = contextData;
 
@@ -1081,7 +1091,7 @@ namespace UnityEditor.VFX
                     contextToCompiledData[context] = contextData;
                 }
 
-                var exposedParameterDescs = new List<VFXMapping>();
+                var exposedParameterDescs = new List<(VFXMapping mapping, VFXSpace space, SpaceableType spaceType)>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();
@@ -1116,7 +1126,7 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                 {
                     if (data is VFXDataParticle particleData)
-                        particleData.GenerateSystemUniformMapper(m_ExpressionGraph);
+                        particleData.GenerateSystemUniformMapper(m_ExpressionGraph, contextToCompiledData);
                 }
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 8 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies);
@@ -1190,7 +1200,9 @@ namespace UnityEditor.VFX
                 expressionSheet.expressions = expressionDescs.ToArray();
                 expressionSheet.expressionsPerSpawnEventAttribute = expressionPerSpawnEventAttributesDescs.ToArray();
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
-                expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
+
+                var sortedExposedProperties = exposedParameterDescs.OrderBy(o => o.mapping.name);
+                expressionSheet.exposed = sortedExposedProperties.Select(o => new VFXExposedMapping() { mapping = o.mapping, space = (VFXSpace)o.space }).ToArray();
 
                 var vfxEventDesc = eventDescs.Select(e =>
                 {
@@ -1302,9 +1314,9 @@ namespace UnityEditor.VFX
                 }
             }
 
-            foreach (VFXMapping mapping in expressionSheet.exposed)
+            foreach (var exposed in expressionSheet.exposed)
             {
-                VFXExpression expression = m_ExpressionGraph.FlattenedExpressions[mapping.index];
+                VFXExpression expression = m_ExpressionGraph.FlattenedExpressions[exposed.mapping.index];
                 if (expression is VFXObjectValue)
                 {
                     reason |= VFXInstancingDisabledReason.ExposedObject;
@@ -1314,6 +1326,7 @@ namespace UnityEditor.VFX
 
             return reason;
         }
+
 
         public VisualEffectResource visualEffectResource
         {

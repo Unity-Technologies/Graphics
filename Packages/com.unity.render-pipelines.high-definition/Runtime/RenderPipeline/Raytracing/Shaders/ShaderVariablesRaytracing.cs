@@ -45,5 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RayTracingClampingFlag;
         // Dimmer that allows us to nuke the ambient probe (and legacy probe as a side effect) in ray tracing effects.
         public float _RayTracingAmbientProbeDimmer;
+
+        // Flag that defines if the APV should be used in the case of a ray miss in performance mode
+        public int _RayTracingAPVRayMiss;
+        public int _PaddingRT0;
+        public int _PaddingRT1;
+        public int _PaddingRT2;
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
@@ -9,7 +10,7 @@ namespace UnityEditor.VFX.Operator
     class ChangeSpace : VFXOperatorNumericUniform
     {
         [VFXSetting, SerializeField]
-        VFXCoordinateSpace m_targetSpace = VFXCoordinateSpace.Local;
+        VFXSpace m_targetSpace = VFXSpace.Local;
 
         public class InputProperties
         {
@@ -42,12 +43,21 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return m_targetSpace;
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+         public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+            if (version < 12 && (int)m_targetSpace == int.MaxValue)
+            {
+                m_targetSpace = VFXSpace.None;
+            }
+        }
+        
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (m_targetSpace == inputSlots[0].space)
             {
@@ -64,7 +74,7 @@ namespace UnityEditor.VFX.Operator
             //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
             if (cause == InvalidationCause.kExpressionInvalidated)
             {
-                model.RefreshErrors(GetGraph());
+                model.RefreshErrors();
             }
         }
 

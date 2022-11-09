@@ -266,7 +266,7 @@ namespace UnityEditor.VFX
                 var allSystemOutputContexts = owners.Where(ctx => ctx is VFXAbstractParticleOutput);
                 foreach (var ctx in allSystemOutputContexts)
                 {
-                    ctx.RefreshErrors(GetGraph());
+                    ctx.RefreshErrors();
                 }
 
                 if (boundsMode == BoundsSettingMode.Automatic)
@@ -409,7 +409,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get { return m_Space; }
             set { m_Space = value; Modified(false); }
@@ -886,7 +886,7 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemAutomaticBounds;
             }
 
-            if (space == VFXCoordinateSpace.World)
+            if (space == VFXSpace.World)
             {
                 systemFlag |= VFXSystemFlag.SystemInWorldSpace;
             }
@@ -986,8 +986,7 @@ namespace UnityEditor.VFX
             {
                 FillBatchedUniformsBuffers(outBufferDescs, systemBufferMappings, out batchedInitParamsIndex);
 
-                FillGraphValuesBuffers(outBufferDescs, systemBufferMappings, m_GraphValuesLayout, "graphValuesBuffer",
-                    out graphValuesBufferIndex);
+                FillGraphValuesBuffers(outBufferDescs, systemBufferMappings, m_GraphValuesLayout, out graphValuesBufferIndex);
 
                 FillPrefixSumBuffers(outBufferDescs, systemBufferMappings, staticSourceCount,
                     out instancesPrefixSumBufferIndex,
@@ -1220,15 +1219,7 @@ namespace UnityEditor.VFX
                 }
 
                 uniformMappings.Clear();
-                if (context is VFXOutputUpdate || context is VFXGlobalSort)
-                {
-                    foreach (var uniform in contextData.uniformMapper.uniforms)
-                    {
-                        var uniformName = contextData.uniformMapper.GetNames(uniform).FirstOrDefault(o => o.StartsWith("unity_"));
-                        if (!string.IsNullOrEmpty(uniformName))
-                            uniformMappings.Add(new VFXMapping(uniformName, expressionGraph.GetFlattenedIndex(uniform)));
-                    }
-                }
+
                 foreach (var buffer in contextData.uniformMapper.buffers)
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(buffer), expressionGraph.GetFlattenedIndex(buffer)));
                 foreach (var texture in contextData.uniformMapper.textures)
@@ -1326,11 +1317,10 @@ namespace UnityEditor.VFX
             });
         }
 
-        private void FillGraphValuesBuffers(List<VFXGPUBufferDesc> outBufferDescs, List<VFXMapping> systemBufferMappings, GraphValuesLayout graphValuesLayout,
-           string bufferName, out int graphValuesIndex)
+        private void FillGraphValuesBuffers(List<VFXGPUBufferDesc> outBufferDescs, List<VFXMapping> systemBufferMappings, GraphValuesLayout graphValuesLayout, out int graphValuesIndex)
         {
-            var graphValuesStride = graphValuesLayout.paddedSize * 4;
-            if (graphValuesStride == 0)
+            var graphValuesSize = graphValuesLayout.paddedSizeInBytes / 4;
+            if (graphValuesSize == 0)
             {
                 graphValuesIndex = -1;
                 return;
@@ -1338,9 +1328,9 @@ namespace UnityEditor.VFX
             graphValuesIndex = outBufferDescs.Count;
             outBufferDescs.Add(new VFXGPUBufferDesc()
             {
-                type = ComputeBufferType.Default, size = 1u, stride = graphValuesStride
+                type = ComputeBufferType.Raw, size = graphValuesSize, stride = 4u
             });
-            systemBufferMappings.Add(new VFXMapping(bufferName, graphValuesIndex));
+            systemBufferMappings.Add(new VFXMapping("graphValuesBuffer", graphValuesIndex));
         }
 
         private static void FillBatchedUniformsBuffers(List<VFXGPUBufferDesc> outBufferDescs, List<VFXMapping> systemBufferMappings,
@@ -1379,6 +1369,13 @@ namespace UnityEditor.VFX
             {
                 SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
+
+            if (version < 12 && (int)m_Space == int.MaxValue)
+            {
+                m_Space = VFXSpace.None;
+                Debug.LogError("Unexpected space none detected in VFXDataParticle");
+            }
+
             base.Sanitize(version);
         }
 
@@ -1399,7 +1396,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        private VFXCoordinateSpace m_Space; // TODO Should be an actual setting
+        private VFXSpace m_Space; // TODO Should be an actual setting
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]
@@ -1417,7 +1414,10 @@ namespace UnityEditor.VFX
         public struct GraphValuesLayout
         {
             public List<List<VFXExpression>> uniformBlocks;
-            public uint paddedSize;
+            public Dictionary<string, int> nameToOffset;
+            public uint paddedSizeInBytes;
+
+            private static readonly int kAlignement = 4;
 
             public void SetUniformBlocks(List<VFXExpression> orderedUniforms)
             {
@@ -1432,7 +1432,7 @@ namespace UnityEditor.VFX
                 foreach (var value in orderedUniforms)
                 {
                     var block = uniformBlocks.FirstOrDefault(b =>
-                        b.Sum(e => VFXValue.TypeToSize(e.valueType)) + VFXValue.TypeToSize(value.valueType) <= 4);
+                        b.Sum(e => VFXValue.TypeToSize(e.valueType)) + VFXValue.TypeToSize(value.valueType) <= kAlignement);
                     if (block != null)
                         block.Add(value);
                     else
@@ -1440,23 +1440,36 @@ namespace UnityEditor.VFX
                 }
             }
 
-            public void SetPaddedSize(VFXUniformMapper uniformMapper)
+            private static int ComputePadding(int offset)
             {
+                return (kAlignement - (offset % kAlignement)) % kAlignement;
+            }
+
+            public void GenerateOffsetMap(VFXUniformMapper systemUniformMapper)
+            {
+                int mapSize = uniformBlocks.Sum(o => o.Count);
+                nameToOffset = new Dictionary<string, int>(mapSize);
+                int currentOffset = 0;
                 foreach (var block in uniformBlocks)
                 {
-                    int currentSize = 0;
+                    int currentBlockSize = 0;
                     foreach (var value in block)
                     {
-                        string name = uniformMapper.GetName(value);
-                        if (name.StartsWith("unity_")) //Reserved unity variable name (could be filled manually see : VFXCameraUpdate)
-                            continue;
-                        currentSize += VFXExpression.TypeToSize(value.valueType);
-                    }
+                        string name = systemUniformMapper.GetName(value);
 
-                    paddedSize += (uint)currentSize;
-                    int padding = (4 - (currentSize % 4)) % 4;
-                    paddedSize += (uint)padding;
+                        if (nameToOffset.ContainsKey(name))
+                        {
+                            throw new ArgumentException(
+                                "Uniform name should not appear twice in the graph values offset map");
+                        }
+                        nameToOffset.Add(name, currentOffset);
+                        int typeSize = VFXExpression.TypeToSize(value.valueType);
+                        currentOffset += sizeof(uint) * typeSize;
+                        currentBlockSize += typeSize;
+                    }
+                    currentOffset += sizeof(uint) * ComputePadding(currentBlockSize);
                 }
+                paddedSizeInBytes = (uint)currentOffset;
             }
         }
 
@@ -1466,12 +1479,20 @@ namespace UnityEditor.VFX
             set { m_GraphValuesLayout = value; }
         }
 
-        public void GenerateSystemUniformMapper(VFXExpressionGraph graph)
+        public void GenerateSystemUniformMapper(VFXExpressionGraph graph, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             VFXUniformMapper uniformMapper = null;
             foreach (var context in m_Contexts)
             {
                 var gpuMapper = graph.BuildGPUMapper(context);
+                var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
+
+                // Add gpu and uniform mapper
+                var contextData = contextToCompiledData[context];
+                contextData.gpuMapper = gpuMapper;
+                contextData.uniformMapper = contextUniformMapper;
+                contextToCompiledData[context] = contextData;
+
                 if (uniformMapper == null)
                     uniformMapper = new VFXUniformMapper(gpuMapper, true, true);
                 else
@@ -1488,10 +1509,10 @@ namespace UnityEditor.VFX
                 .OrderByDescending(e => VFXValue.TypeToSize(e.valueType)));
 
             m_GraphValuesLayout.SetUniformBlocks(orderedUniforms);
-            m_GraphValuesLayout.SetPaddedSize(m_SystemUniformMapper);
+            m_GraphValuesLayout.GenerateOffsetMap(m_SystemUniformMapper);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 

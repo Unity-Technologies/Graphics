@@ -79,9 +79,9 @@ namespace UnityEditor.VFX.UI
                 show);
         }
 
-        public static VFXViewWindow GetWindow(VisualEffectResource resource, bool createIfNeeded = false)
+        public static VFXViewWindow GetWindow(VisualEffectResource resource, bool createIfNeeded = false, bool show = true)
         {
-            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == resource, createIfNeeded, true);
+            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource == resource, createIfNeeded, show);
         }
 
         public static VFXViewWindow GetWindow(VFXParameter vfxParameter, bool createIfNeeded = false)
@@ -90,6 +90,18 @@ namespace UnityEditor.VFX.UI
                 x => x.graphView?.controller?.parameterControllers.Any(y => y.model == vfxParameter) == true,
                 createIfNeeded,
                 true);
+        }
+
+        public static void RefreshErrors(VFXModel model)
+        {
+            if (model != null &&
+                model.GetGraph() is { } graph &&
+                GetWindow(graph, false, false) is { } window &&
+                window.graphView != null &&
+                window.graphView.controller != null)
+            {
+                window.graphView.RefreshErrors(model);
+            }
         }
 
         static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded, bool show)
@@ -144,7 +156,8 @@ namespace UnityEditor.VFX.UI
         public void UpdateHistory()
         {
             m_ResourceHistory.RemoveAll(x => x == null);
-            graphView.UpdateIsSubgraph();
+            if (graphView != null)
+                graphView.UpdateIsSubgraph();
         }
 
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
@@ -275,6 +288,7 @@ namespace UnityEditor.VFX.UI
             rootVisualElement.Add(graphView);
 
             autoCompile = true;
+            autoReinit = true;
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
@@ -377,6 +391,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public bool autoCompile { get; set; }
+        public bool autoReinit { get; set; }
+        public float autoReinitPrewarmTime { get; set; }
 
         void Update()
         {
@@ -403,8 +419,8 @@ namespace UnityEditor.VFX.UI
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
                             VFXGraph.explicitCompile = true;
-                            graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
-                            using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
+                            graphView.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
+                            using (var reporter = new VFXCompileErrorReporter(graphView.errorManager))
                             {
                                 VFXGraph.compileReporter = reporter;
                                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));

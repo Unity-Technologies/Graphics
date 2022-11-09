@@ -172,6 +172,17 @@ namespace UnityEngine.Rendering.Universal
         internal static RenderGraph s_RenderGraph;
         private static bool useRenderGraph;
 
+        // Reference to the asset associated with the pipeline.
+        // When a pipeline asset is switched in `GraphicsSettings`, the `UniversalRenderPipelineCore.asset` member
+        // becomes unreliable for the purpose of pipeline and renderer clean-up in the `Dispose` call from
+        // `RenderPipelineManager.CleanupRenderPipeline`.
+        // This field provides the correct reference for the purpose of cleaning up the renderers on this pipeline
+        // asset.
+        private readonly UniversalRenderPipelineAsset pipelineAsset;
+
+        /// <inheritdoc/>
+        public override string ToString() => pipelineAsset?.ToString();
+
         /// <summary>
         /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
@@ -179,6 +190,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="RenderPassEvent"/>
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
+            pipelineAsset = asset;
 #if UNITY_EDITOR
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
 #else
@@ -222,7 +234,10 @@ namespace UnityEngine.Rendering.Universal
             useRenderGraph = false;
 
             DebugManager.instance.RefreshEditor();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
+#endif
 
             QualitySettings.enableLODCrossFade = asset.enableLODCrossFade;
         }
@@ -230,11 +245,15 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.UnregisterDebug();
+#endif
 
             Blitter.Cleanup();
 
             base.Dispose(disposing);
+
+            pipelineAsset.DestroyRenderers();
 
             Shader.globalRenderPipeline = string.Empty;
 
@@ -287,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
 #if RENDER_GRAPH_ENABLED
             useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
 #else
-            useRenderGraph = false;
+            useRenderGraph = RenderGraphGraphicsAutomatedTests.enabled;
 #endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
@@ -324,7 +343,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
-                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();
 #endif
 
             SortCameras(cameras);
@@ -1200,7 +1219,7 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize shared TAA target desc.
                 ref var desc = ref cameraData.cameraTargetDescriptor;
                 cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
-                cameraData.taaPersistentData.Init(desc.width, desc.height, desc.graphicsFormat, desc.vrUsage, desc.dimension);
+                cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
 
                 ref var taaSettings = ref additionalCameraData.taaSettings;
                 cameraData.taaSettings = taaSettings;

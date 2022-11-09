@@ -810,22 +810,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static int RayTracingFrameIndex(HDCamera hdCamera)
         {
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                return 0;
-            else
-#endif
-            return (int)hdCamera.GetCameraFrameCount() % 8;
+            return hdCamera.ActiveRayTracingAccumulation() ? (int)hdCamera.GetCameraFrameCount() % 8 : 0;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
         {
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                return 0;
-            else
-#endif
-            return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
+            return hdCamera.ActiveRayTracingAccumulation() ? (int)hdCamera.GetCameraFrameCount() % targetFrameCount : 0;
         }
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
@@ -861,11 +851,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, DebugDisplaySettings debugDisplaySettings)
+        internal void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
             {
-                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights, debugDisplaySettings);
+                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights);
                 m_ValidRayTracingCluster = true;
 
                 UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
@@ -876,12 +866,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal float EvaluateHistoryValidity(HDCamera hdCamera)
         {
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                return 0.0f;
-            else
-#endif
-                return 1.0f;
+            // We need to check if something invalidated the history buffers
+            float historyValidity = (((int)hdCamera.GetCameraFrameCount() > 1) && hdCamera.ActiveRayTracingAccumulation()) ? 1.0f : 0.0f;
+            return historyValidity;
         }
 
         internal bool RayTracingHalfResAllowed()

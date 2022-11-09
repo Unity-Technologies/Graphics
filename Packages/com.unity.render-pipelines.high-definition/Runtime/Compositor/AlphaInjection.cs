@@ -1,6 +1,3 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
@@ -8,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // Injects an external alpha texture into the alpha channel. Used for controlling which pixels will be affected by post processing.
     // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal compositor use only)
     [Serializable, HideInInspector]
-    internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
+    internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent, ICompositionFilterComponent
     {
         internal class ShaderIDs
         {
@@ -19,24 +16,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         Material m_Material;
         CompositionFilter m_CurrentFilter;
 
-        public bool IsActive(HDCamera hdCamera)
+        #region ICompositionFilterComponent
+
+        CompositionFilter.FilterType ICompositionFilterComponent.compositionFilterType => CompositionFilter.FilterType.ALPHA_MASK;
+        CompositionFilter ICompositionFilterComponent.currentCompositionFilter
         {
-            if (m_Material == null)
-                return false;
-
-            hdCamera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out var layerData);
-            if (layerData == null || layerData.layerFilters == null)
-                return false;
-
-            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.ALPHA_MASK);
-            if (index < 0)
-                return false;
-
-            // Keep the current filter for the rendering avoiding to re-fetch it later on
-            m_CurrentFilter = layerData.layerFilters[index];
-
-            return true;
+            get => m_CurrentFilter;
+            set => m_CurrentFilter = value;
         }
+
+        #endregion
+
+        public bool IsActive() => m_Material != null;
 
         public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.BeforePostProcess;
 

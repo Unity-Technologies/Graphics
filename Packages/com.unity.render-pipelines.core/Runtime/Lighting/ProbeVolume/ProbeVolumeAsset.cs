@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering
             return asset;
         }
 
-        internal void StoreProfileData(ProbeReferenceVolumeProfile profile)
+        internal void StoreProfileData(ProbeVolumeBakingSet profile)
         {
             cellSizeInBricks = profile.cellSizeInBricks;
             simplificationLevels = profile.simplificationLevels;

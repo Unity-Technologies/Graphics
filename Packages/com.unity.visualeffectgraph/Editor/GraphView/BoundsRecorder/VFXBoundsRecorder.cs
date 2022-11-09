@@ -1,27 +1,20 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Remoting.Messaging;
+
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.VFX;
-
-using UnityEditor.VFX;
-using UnityEditor.VFX.UI;
-using UnityEngine.XR;
-
 
 namespace UnityEditor.VFX.UI
 {
     class VFXBoundsRecorder
     {
-        private VisualEffect m_Effect;
-        private bool m_IsRecording = false;
-        private Dictionary<string, Bounds> m_Bounds;
-        private Dictionary<string, bool> m_FirstBound;
-        private VFXView m_View;
-        private VFXGraph m_Graph;
+        readonly VisualEffect m_Effect;
+        readonly Dictionary<string, Bounds> m_Bounds;
+        readonly VFXView m_View;
+        readonly VFXGraph m_Graph;
+
+        bool m_IsRecording = false;
 
         public bool isRecording
         {
@@ -29,15 +22,13 @@ namespace UnityEditor.VFX.UI
             set => m_IsRecording = value;
         }
 
-        public Dictionary<string, Bounds> bounds => m_Bounds;
-
         public IEnumerable<string> systemNames
         {
             get
             {
-                foreach (var system in viewableSystems)
+                foreach (var system in systems)
                 {
-                    string systemName = "";
+                    var systemName = "";
                     try
                     {
                         systemName = m_Graph.systemNames.GetUniqueSystemName(system);
@@ -50,8 +41,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
-        public VFXView view => m_View;
 
         public enum ExclusionCause
         {
@@ -80,22 +69,21 @@ namespace UnityEditor.VFX.UI
             {ExclusionCause.kError, "an error occured."},
         };
 
-        IEnumerable<VFXDataParticle> viewableSystems
+        IEnumerable<VFXDataParticle> systems
         {
             get
             {
                 return m_View.GetAllContexts()
-                    .Select(c => c.controller.model)
-                    .OfType<VFXBasicInitialize>()
-                    .Select(c => c.GetData())
+                    .Select(c => c.controller.model.GetData())
                     .OfType<VFXDataParticle>()
-                    .Where(d => d.CanBeCompiled());
+                    .Distinct()
+                    .Where(x => x != null && x.CanBeCompiled());
             }
         }
 
         VFXDataParticle GetSystem(string systemName)
         {
-            return viewableSystems.First(s => m_Graph.systemNames.GetUniqueSystemName(s) == systemName);
+            return systems.First(x => m_Graph.systemNames.GetUniqueSystemName(x) == systemName);
         }
 
         public BoundsSettingMode GetSystemBoundsSettingMode(string systemName)
@@ -110,12 +98,7 @@ namespace UnityEditor.VFX.UI
             m_Effect = effect;
             EditorApplication.update += UpdateBounds;
             SceneView.duringSceneGui += RenderBounds;
-            m_FirstBound = new Dictionary<string, bool>();
             m_Bounds = new Dictionary<string, Bounds>();
-            foreach (var syst in systemNames)
-            {
-                m_FirstBound[syst] = true;
-            }
 
             m_Graph.onInvalidateDelegate += OnParamSystemModified;
         }
@@ -127,7 +110,7 @@ namespace UnityEditor.VFX.UI
             isRecording = false;
         }
 
-        public bool NeedsToBeRecorded(string systemName)
+        bool NeedsToBeRecorded(string systemName)
         {
             try
             {
@@ -152,51 +135,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool NeedsAnyToBeRecorded()
-        {
-            foreach (var system in viewableSystems)
-            {
-                if (NeedsToBeRecorded(system))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        public bool NeedsAnyToBeRecorded() => systems.Any(NeedsToBeRecorded);
 
         bool NeedsToBeRecorded(VFXDataParticle system)
         {
-            VFXContext initContext;
-            try
-            {
-                initContext = system.owners.First(m => m is VFXBasicInitialize);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            var boundsSlot = initContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
+            var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
+            var boundsSlot = initializeContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
             return system.boundsMode == BoundsSettingMode.Recorded && !boundsSlot.AllChildrenWithLink().Any();
         }
 
         bool NeedsToBeRecorded(VFXDataParticle system, out ExclusionCause cause)
         {
-            VFXContext initContext;
             try
             {
-                initContext = system.owners.First(m => m is VFXBasicInitialize);
-            }
-            catch
-            {
-                cause = ExclusionCause.kError;
-                return false;
-            }
-
-            VFXSlot boundsSlot;
-            try
-            {
-                boundsSlot = initContext.inputSlots.First(s => s.name == "bounds");
-                if (boundsSlot != null && boundsSlot.HasLink(true))
+                var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
+                var boundsSlot = initializeContext.inputSlots.First(s => s.name == "bounds");
+                if (boundsSlot.HasLink(true))
                 {
                     cause = ExclusionCause.kGraphComputed;
                     return false;
@@ -230,19 +184,12 @@ namespace UnityEditor.VFX.UI
             {
                 if (cause == VFXModel.InvalidationCause.kParamChanged || cause == VFXModel.InvalidationCause.kExpressionValueInvalidated)
                 {
-                    if (model is VFXSlot)
+                    if (model is VFXSlot slot && slot.name != "bounds" && slot.name != "boundsPadding")
                     {
-                        var slot = model as VFXSlot;
-                        if (slot.name == "bounds" || slot.name == "boundsPadding")
-                            return;
-
-                        if (slot.owner is IVFXDataGetter)
+                        if (slot.owner is IVFXDataGetter dataGetter && dataGetter.GetData() is VFXDataParticle system)
                         {
-                            if (((IVFXDataGetter)slot.owner).GetData() is VFXDataParticle particleData)
-                            {
-                                string systemName = m_Graph.systemNames.GetUniqueSystemName(particleData);
-                                m_FirstBound[systemName] = true;
-                            }
+                            var systemName = m_Graph.systemNames.GetUniqueSystemName(system);
+                            m_Bounds.Remove(systemName);
                         }
                     }
                 }
@@ -253,26 +200,24 @@ namespace UnityEditor.VFX.UI
         {
             if (m_IsRecording && m_Effect)
             {
-                foreach (var system in viewableSystems)
+                foreach (var system in systems)
                 {
-                    string systemName = m_Graph.systemNames.GetUniqueSystemName(system);
+                    var systemName = m_Graph.systemNames.GetUniqueSystemName(system);
                     if (NeedsToBeRecorded(system))
                     {
-                        Bounds currentBounds = m_Effect.GetComputedBounds(systemName);
+                        var currentBounds = m_Effect.GetComputedBounds(systemName);
                         if (currentBounds.size == Vector3.zero)
                             continue;
                         var padding = m_Effect.GetCurrentPadding(systemName);
                         currentBounds.extents -= padding;
-                        if (m_FirstBound[systemName])
+                        if (m_Bounds.TryGetValue(systemName, out var previousBounds))
                         {
-                            m_Bounds[systemName] = currentBounds;
-                            m_FirstBound[systemName] = false;
+                            previousBounds.Encapsulate(currentBounds);
+                            m_Bounds[systemName] = previousBounds;
                         }
                         else
                         {
-                            Bounds tmpBounds = m_Bounds[systemName];
-                            tmpBounds.Encapsulate(currentBounds);
-                            m_Bounds[systemName] = tmpBounds;
+                            m_Bounds[systemName] = currentBounds;
                         }
                     }
                 }
@@ -285,7 +230,7 @@ namespace UnityEditor.VFX.UI
             {
                 bool renderAllRecordedBounds = false;
                 HashSet<string> selectedSystems = new HashSet<string>();
-                foreach (var system in viewableSystems)
+                foreach (var system in systems)
                 {
                     var allSystemContexts = system.owners.ToList();
 
@@ -312,7 +257,7 @@ namespace UnityEditor.VFX.UI
 
                 if (!selectedSystems.Where(NeedsToBeRecorded).Any())
                     renderAllRecordedBounds = true;
-                foreach (var system in viewableSystems)
+                foreach (var system in systems)
                 {
                     string systemName = "";
                     try  //RenderBounds() is not executed in the same thread, so it can be executed before viewableSystems is up-to-date when a system is deleted
@@ -324,11 +269,11 @@ namespace UnityEditor.VFX.UI
                         continue;
                     }
 
-                    if ((selectedSystems.Contains(systemName) || renderAllRecordedBounds) &&
-                        m_Bounds.ContainsKey(systemName) && NeedsToBeRecorded(system))
+                    if ((renderAllRecordedBounds || selectedSystems.Contains(systemName)) &&
+                        m_Bounds.TryGetValue(systemName, out var currentBounds) && NeedsToBeRecorded(system))
                     {
                         var padding = m_Effect.GetCurrentPadding(systemName);
-                        var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
+                        var paddedBounds = new Bounds(currentBounds.center, 2 * (currentBounds.extents + padding));
                         RenderBoundsSystem(paddedBounds);
                     }
                 }
@@ -384,79 +329,57 @@ namespace UnityEditor.VFX.UI
             return points;
         }
 
-        public void ModifyMode(string syst, BoundsSettingMode mode)
+        public void ModifyMode(string systemName, BoundsSettingMode mode)
         {
-            VFXDataParticle system = GetSystem(syst);
+            var system = GetSystem(systemName);
             system.SetSettingValue("boundsMode", mode);
         }
 
         public void ToggleRecording()
         {
             m_IsRecording = !m_IsRecording;
-            foreach (var system in viewableSystems)
+            foreach (var system in systems.Where(NeedsToBeRecorded))
             {
-                string systemName = "";
-                try
-                {
-                    systemName = m_Graph.systemNames.GetUniqueSystemName(system);
-                }
-                catch
-                {
-                    continue;
-                }
-                if (NeedsToBeRecorded(system))
-                {
-                    system.SetSettingValue("needsComputeBounds", m_IsRecording);
-                }
+                system.SetSettingValue("needsComputeBounds", m_IsRecording);
             }
 
             if (m_IsRecording)
             {
-                foreach (var syst in systemNames)
-                    m_FirstBound[syst] = true;
+                m_Bounds.Clear();
             }
         }
 
         public void ApplyCurrentBounds()
         {
-            foreach (var system in viewableSystems)
+            foreach (var system in systems)
             {
                 string systemName = m_Graph.systemNames.GetUniqueSystemName(system);
 
-                if (m_Bounds.ContainsKey(systemName) && NeedsToBeRecorded(system))
+                if (m_Bounds.TryGetValue(systemName, out var currentBounds) && NeedsToBeRecorded(system))
                 {
-                    VFXContext initContext;
-                    try
-                    {
-                        initContext = system.owners.First(m => m is VFXBasicInitialize);
-                    }
-                    catch (Exception)
-                    {
-                        break;
-                    }
-                    var boundsSlot = initContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
-                    // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
+                    var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
+                    var boundsSlot = initializeContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
+                    // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
                     var padding = m_Effect.GetCurrentPadding(systemName);
-                    var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
-                    if (boundsSlot.space == VFXCoordinateSpace.Local)
-                        boundsSlot.value = new AABox() { center = paddedBounds.center, size = paddedBounds.size };
+                    var paddedBounds = new Bounds(currentBounds.center, 2 * (currentBounds.extents + padding));
+                    if (boundsSlot.space == VFXSpace.Local)
+                        boundsSlot.value = new AABox { center = paddedBounds.center, size = paddedBounds.size };
                     else
                     {
                         //Subject to change depending on the future behavior of AABox w.r.t. to Spaceable
                         var positionWorld = m_Effect.transform.TransformPoint(paddedBounds.center);
-                        boundsSlot.value = new AABox() { center = positionWorld, size = paddedBounds.size };
+                        boundsSlot.value = new AABox { center = positionWorld, size = paddedBounds.size };
                     }
                 }
             }
         }
 
-        public VFXContextUI GetInitContextController(string systemName)
+        public VFXContextUI GetInitializeContextUI(string systemName)
         {
-            var system = GetSystem(systemName);
-            VFXContextUI initContextUI;
+            VFXContextUI initializeContextUI;
             try
             {
-                initContextUI = m_View.GetAllContexts().First(c =>
+                initializeContextUI = m_View.GetAllContexts().First(c =>
                     c.controller.model is VFXBasicInitialize &&
                     m_Graph.systemNames.GetUniqueSystemName(c.controller.model.GetData()) == systemName);
             }
@@ -465,7 +388,7 @@ namespace UnityEditor.VFX.UI
                 throw new InvalidOperationException("The system does not have an Init context.");
             }
 
-            return initContextUI;
+            return initializeContextUI;
         }
     }
 }

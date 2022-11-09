@@ -41,23 +41,8 @@ Texture2D<float3> _CloudLutTexture;
 Texture3D<float> _Worley128RGBA;
 Texture3D<float> _ErosionNoise;
 
-// Ambient probe
+// Ambient probe. Contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 StructuredBuffer<float4> _VolumetricCloudsAmbientProbeBuffer;
-
-// Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
-float3 EvaluateVolumetricAmbientProbe(float3 normalWS)
-{
-    float4 SHCoefficients[7];
-    SHCoefficients[0] = _VolumetricCloudsAmbientProbeBuffer[0];
-    SHCoefficients[1] = _VolumetricCloudsAmbientProbeBuffer[1];
-    SHCoefficients[2] = _VolumetricCloudsAmbientProbeBuffer[2];
-    SHCoefficients[3] = _VolumetricCloudsAmbientProbeBuffer[3];
-    SHCoefficients[4] = _VolumetricCloudsAmbientProbeBuffer[4];
-    SHCoefficients[5] = _VolumetricCloudsAmbientProbeBuffer[5];
-    SHCoefficients[6] = _VolumetricCloudsAmbientProbeBuffer[6];
-
-    return SampleSH9(SHCoefficients, normalWS);
-}
 
 // Function that interects a ray with a sphere (optimized for very large sphere), returns up to two positives distances.
 int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
@@ -214,8 +199,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     lighting.sunDirection = _SunDirection.xyz;
     lighting.sunColor0 = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     lighting.sunColor1 = lighting.sunColor0;
-    lighting.ambientTermTop = EvaluateVolumetricAmbientProbe(float3(0, -1, 0)) * GetCurrentExposureMultiplier();
-    lighting.ambientTermBottom = EvaluateVolumetricAmbientProbe(float3(0, 1, 0)) * GetCurrentExposureMultiplier();
+    lighting.ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0)) * GetCurrentExposureMultiplier();
+    lighting.ambientTermBottom = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0)) * GetCurrentExposureMultiplier();
 
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
     EvaluateSunColorAttenuation(entryEvaluationPointWS, lighting.sunDirection, lighting.sunColor0);
@@ -419,7 +404,7 @@ float3 AnimateCloudMapPosition(float3 positionPS)
 }
 
 // Animation of the cloud shape position
-float3 AnimateBaseNoisePosition(float3 positionPS)
+float3 AnimateShapeNoisePosition(float3 positionPS)
 {
     // We reduce the top-view repetition of the pattern
     positionPS.y += (positionPS.x / 3.0f + positionPS.z / 7.0f);
@@ -428,7 +413,7 @@ float3 AnimateBaseNoisePosition(float3 positionPS)
 }
 
 // Animation of the cloud erosion position
-float3 AnimateFineNoisePosition(float3 positionPS)
+float3 AnimateErosionNoisePosition(float3 positionPS)
 {
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed + float3(0.0, _VerticalErosionWindDisplacement, 0.0);
 }
@@ -482,17 +467,13 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.height = EvaluateNormalizedCloudHeight(positionPS);
 
     // Evaluate the generic sampling coordinates
-    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionPS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, _VerticalShapeNoiseOffset);
+    float3 baseNoiseSamplingCoordinates = float3(AnimateShapeNoisePosition(positionPS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, _VerticalShapeNoiseOffset);
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
     baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, _WindDirection.y, 0.0f) * _AltitudeDistortion;
 
     // Read the low frequency Perlin-Worley and Worley noises
     float lowFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, baseNoiseSamplingCoordinates.xyz, noiseMipOffset);
-
-    // Initiliaze the erosion and shape factors (that will be overriden)
-    float shapeFactor = lerp(0.1, 1.0, _ShapeFactor);
-    float erosionFactor = _ErosionFactor;
 
     // Evaluate the cloud coverage data for this position
     CloudCoverageData cloudCoverageData;
@@ -506,8 +487,11 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
 
     // Adjust the shape and erosion factor based on the LUT and the coverage
-    shapeFactor = shapeFactor * densityErosionAO.y;
-    erosionFactor = erosionFactor * densityErosionAO.y;
+    float shapeFactor = lerp(0.1, 1.0, _ShapeFactor) * densityErosionAO.y;
+    float erosionFactor = _ErosionFactor * densityErosionAO.y;
+    #if defined(CLOUDS_MICRO_EROSION)
+    float microDetailFactor = _MicroErosionFactor * densityErosionAO.y;
+    #endif
 
     // Combine with the low frequency noise, we want less shaping for large clouds
     lowFrequencyNoise = lerp(1.0, lowFrequencyNoise, shapeFactor);
@@ -527,17 +511,28 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     // Apply the erosion for nifer details
     if (!cheapVersion)
     {
-        float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionPS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
-        float highFrequencyNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
-        // Compute the weight of the low frequency noise
-        highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
-        base_cloud = DensityRemap(base_cloud, highFrequencyNoise, 1.0, 0.0, 1.0);
-        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(highFrequencyNoise * _ErosionOcclusion));
+        float3 erosionCoords = AnimateErosionNoisePosition(positionPS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
+        float erosionNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, erosionCoords, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
+        erosionNoise = lerp(0.0, erosionNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
+        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(erosionNoise * _ErosionOcclusion));
+        base_cloud = DensityRemap(base_cloud, erosionNoise, 1.0, 0.0, 1.0);
+
+        #if defined(CLOUDS_MICRO_EROSION)
+        float3 fineCoords = AnimateErosionNoisePosition(positionPS) / (NOISE_TEXTURE_NORMALIZATION_FACTOR) * _MicroErosionScale;
+        float fineNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, fineCoords, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
+        fineNoise = lerp(0.0, fineNoise, microDetailFactor * 0.5f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
+        base_cloud = DensityRemap(base_cloud, fineNoise, 1.0, 0.0, 1.0);
+        #endif
     }
 
     // Given that we are not sampling the erosion texture, we compensate by substracting an erosion value
     if (lightSampling)
+    {
         base_cloud -= erosionFactor * 0.1;
+        #if defined(CLOUDS_MICRO_EROSION)
+        base_cloud -= microDetailFactor * 0.15;
+        #endif
+    }
 
     // Make sure we do not send any negative values
     base_cloud = max(0, base_cloud);

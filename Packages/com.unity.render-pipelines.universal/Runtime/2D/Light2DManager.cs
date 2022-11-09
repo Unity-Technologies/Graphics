@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal
                 targetSortingLayers = sortingLayerList.ToArray();
             }
 
-            if(s_NumLight == lights.Count)
+            if (s_NumLight == lights.Count)
             {
                 s_SortingLayers = layers;
                 s_NumLight = 0;

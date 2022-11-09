@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering
                 return;
             }
 
-            visible = false;
+            visible = true;
         }
 
         void InitParameters()

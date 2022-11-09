@@ -57,6 +57,12 @@ namespace UnityEditor.VFX.Test
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
+        [OneTimeSetUp]
+        public void Init()
+        {
+            VFXTestCommon.CloseAllUnecessaryWindows();
+        }
+
         [TearDown]
         public void DestroyTestAsset()
         {
@@ -352,17 +358,17 @@ namespace UnityEditor.VFX.Test
             var inlineOperatorController = allController.OfType<VFXOperatorController>().FirstOrDefault();
             inlineOperator.SetSettingValue("m_Type", (SerializableType)typeof(Position));
 
-            Assert.AreEqual(inlineOperator.inputSlots[0].space, VFXCoordinateSpace.Local);
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual(inlineOperator.inputSlots[0].space, VFXSpace.Local);
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
 
             Undo.IncrementCurrentGroup();
-            inlineOperator.inputSlots[0].space = VFXCoordinateSpace.World;
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.World);
+            inlineOperator.inputSlots[0].space = VFXSpace.World;
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.World);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
 
             Undo.PerformUndo(); //Should go back to local
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
         }
 
@@ -932,8 +938,8 @@ namespace UnityEditor.VFX.Test
 
             var systemNames = view.controller.graph.systemNames;
             var names = new List<string>();
-            foreach (var system in spawners)
-                names.Add(systemNames.GetUniqueSystemName(system));
+            foreach (var spawner in spawners)
+                names.Add(systemNames.GetUniqueSystemName(spawner.GetData()));
 
             Assert.IsTrue(names.Where(name => !string.IsNullOrEmpty(name)).Distinct().Count() == count, "Some spawners have the same name or are null or empty.");
 

@@ -244,11 +244,11 @@ namespace UnityEditor.VFX
 
         List<VFXParameter> m_GizmoableParameters = new List<VFXParameter>();
 
-        protected override void EmptyLineControl(string name, string tooltip, int depth, VisualEffectResource resource)
+        protected override void EmptyLineControl(string name, string tooltip, VFXSpace? space, int depth, VisualEffectResource resource)
         {
             if (depth != 1)
             {
-                base.EmptyLineControl(name, tooltip, depth, resource);
+                base.EmptyLineControl(name, tooltip, space, depth, resource);
                 return;
             }
 
@@ -256,7 +256,7 @@ namespace UnityEditor.VFX
 
             if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
-                base.EmptyLineControl(name, tooltip, depth, resource);
+                base.EmptyLineControl(name, tooltip, space, depth, resource);
                 return;
             }
 
@@ -268,17 +268,14 @@ namespace UnityEditor.VFX
             m_GizmoableParameters.Add(parameter);
             if (!m_GizmoDisplayed)
             {
-                base.EmptyLineControl(name, tooltip, depth, resource);
+                base.EmptyLineControl(name, tooltip, space, depth, resource);
                 return;
             }
 
             GUILayout.BeginHorizontal();
-
-
-            GUILayout.Space(overrideWidth);
+            GUILayout.Space(Styles.overrideWidth);
             // Make the label half the width to make the tooltip
             EditorGUILayout.LabelField(GetGUIContent(name, tooltip), EditorStyles.boldLabel, GUILayout.Width(EditorGUIUtility.labelWidth));
-
             GUILayout.FlexibleSpace();
 
             // Toggle Button
@@ -362,7 +359,7 @@ namespace UnityEditor.VFX
                 get { return m_Parameter.type; }
             }
 
-            public override VFXCoordinateSpace space
+            public override VFXSpace space
             {
                 get
                 {
@@ -608,7 +605,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var fieldInfo in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                     {
-                        if (fieldInfo.FieldType == typeof(VFXCoordinateSpace))
+                        if (fieldInfo.FieldType == typeof(VFXSpace))
                             continue;
                         cmdList.Add(o =>
                         {

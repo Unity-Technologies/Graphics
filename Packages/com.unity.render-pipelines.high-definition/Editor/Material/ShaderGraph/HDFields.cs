@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor RayTracing = new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit = new FieldDescriptor(string.Empty, "Unlit", string.Empty);
         public static FieldDescriptor UseProfileIor = new FieldDescriptor(string.Empty, "UseProfileIor", string.Empty);
+        public static FieldDescriptor UseProfileLobes = new FieldDescriptor(string.Empty, "UseProfileLobes", string.Empty);
 
         // Custom motion vector
         public static FieldDescriptor CustomVelocity = new FieldDescriptor(string.Empty, "CustomVelocity", "CUSTOM_VELOCITY 1");

@@ -85,7 +85,7 @@
 
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
-  * [Material Variants](materialvariant-URP)
+  * [Material Variants](materialvariant-URP.md)
   * [Complex Lit](shader-complex-lit.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
@@ -114,6 +114,7 @@
   * [beginCameraRendering event](using-begincamerarendering.md)
 * [Optimization](urp-optimization.md)
   * [Rendering Debugger](features/rendering-debugger.md)
+  * [Add controls to the Rendering Debugger](features/rendering-debugger-add-controls.md)
 * [2D graphic features](2d-index.md)
   * [Introduction to the 2D Lighting system](Lights-2D-intro.md)
     * [Requirements and setup](Setup.md)

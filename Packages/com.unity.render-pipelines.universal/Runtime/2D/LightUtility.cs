@@ -17,6 +17,13 @@ namespace UnityEngine.Rendering.Universal
             return changed;
         }
 
+        public static bool CheckForChange(Component a, ref Component b)
+        {
+            var changed = a != b;
+            b = a;
+            return changed;
+        }
+
         public static bool CheckForChange(int a, ref int b)
         {
             var changed = a != b;

@@ -56,9 +56,11 @@ MonoBehaviour:
     supportTerrainHole: 0
     lightProbeSystem: 1
     probeVolumeMemoryBudget: 1024
-    probeVolumeBlendingMemoryBudget: 128
     supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 1
+    supportProbeVolumeScenarios: 1
+    supportProbeVolumeScenarioBlending: 1
+    probeVolumeBlendingMemoryBudget: 128
     supportRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:

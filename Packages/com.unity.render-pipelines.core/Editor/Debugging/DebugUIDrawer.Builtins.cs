@@ -37,8 +37,7 @@ namespace UnityEditor.Rendering
         /// <param name="field">The widget</param>
         protected override void DoGUI(Rect rect, GUIContent label, DebugUI.ValueTuple field)
         {
-            var labelRect = PrepareControlRect();
-            EditorGUI.PrefixLabel(labelRect, label);
+            EditorGUI.PrefixLabel(rect, label);
 
             // Following layout should match DebugUIDrawerFoldout to make column labels align
             Rect drawRect = GUILayoutUtility.GetLastRect();
@@ -51,7 +50,12 @@ namespace UnityEditor.Rendering
                 columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
                 columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
                 var value = field.values[i].GetValue();
-                EditorGUI.LabelField(columnRect, field.values[i].FormatString(value));
+
+                var style = EditorStyles.label;
+                if (Convert.ToSingle(value) == 0)
+                    style = DebugWindow.Styles.labelWithZeroValueStyle;
+
+                EditorGUI.LabelField(columnRect, field.values[i].FormatString(value), style);
             }
             EditorGUI.indentLevel = indent;
         }
@@ -71,8 +75,7 @@ namespace UnityEditor.Rendering
         /// <param name="field">The widget</param>
         protected override void DoGUI(Rect rect, GUIContent label, DebugUI.ProgressBarValue field)
         {
-            var labelRect = PrepareControlRect();
-            var progressBarRect = EditorGUI.PrefixLabel(labelRect, label);
+            var progressBarRect = EditorGUI.PrefixLabel(rect, label);
             float value = (float)field.GetValue();
             EditorGUI.ProgressBar(progressBarRect, value, field.FormatString(value));
         }
@@ -445,6 +448,13 @@ namespace UnityEditor.Rendering
             {
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
+
+                if (w.isHeader) // display column labels on a separate row for header-styled foldouts
+                {
+                    drawRect = GUILayoutUtility.GetRect(1f, 1f, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+                    drawRect.x -= EditorGUIUtility.labelWidth / 2;
+                }
+
                 for (int i = 0; i < w.columnLabels.Length; i++)
                 {
                     var columnRect = drawRect;

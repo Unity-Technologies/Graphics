@@ -68,6 +68,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool useOcclusion = false;
         /// <summary>
+        /// Enable Occlusion using Background Cloud (for instance: CloudLayer)
+        /// </summary>
+        public bool useBackgroundCloudOcclusion = false;
+        /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
         [Min(0.0f)]

@@ -1,6 +1,3 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
@@ -9,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // Shader adapted from: https://github.com/keijiro/ProcAmp
     // Use HideInInspector to hide the component from the volume menu (it's for internal use only)
     [Serializable, HideInInspector]
-    internal sealed class ChromaKeying : CustomPostProcessVolumeComponent, IPostProcessComponent
+    internal sealed class ChromaKeying : CustomPostProcessVolumeComponent, IPostProcessComponent, ICompositionFilterComponent
     {
         internal class ShaderIDs
         {
@@ -22,24 +19,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         Material m_Material;
         CompositionFilter m_CurrentFilter;
 
-        public bool IsActive(HDCamera hdCamera)
+        #region ICompositionFilterComponent
+
+        CompositionFilter.FilterType ICompositionFilterComponent.compositionFilterType => CompositionFilter.FilterType.CHROMA_KEYING;
+        CompositionFilter ICompositionFilterComponent.currentCompositionFilter
         {
-            if (m_Material == null)
-                return false;
-
-            hdCamera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out var layerData);
-            if (activate.value == false || layerData == null || layerData.layerFilters == null)
-                return false;
-
-            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.CHROMA_KEYING);
-            if (index < 0)
-                return false;
-
-            // Keep the current filter for the rendering avoiding to re-fetch it later on
-            m_CurrentFilter = layerData.layerFilters[index];
-
-            return true;
+            get => m_CurrentFilter;
+            set => m_CurrentFilter = value;
         }
+
+        #endregion
+
+        public bool IsActive() => m_Material != null && activate.value;
 
         public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.BeforePostProcess;
 
@@ -54,8 +45,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
         {
             Debug.Assert(m_Material != null);
-
-            camera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out var layerData);
 
             Vector4 keyParams;
             keyParams.x = m_CurrentFilter.keyThreshold;

@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/10_BackBufferCapture.unity
+    guid: f4d24603c59eee84e8ef51ecbd727f4f
+  - enabled: 1
     path: Assets/Scenes/100_NoRayTracingEffects.unity
     guid: 4951b574dff43c34d93926b58d153f35
   - enabled: 1
@@ -105,6 +108,9 @@ EditorBuildSettings:
     path: Assets/Scenes/204_LocalAmbientOcclusionDenoised.unity
     guid: 99fcee2946036954b996b2ee62ab022b
   - enabled: 1
+    path: Assets/Scenes/205_AmbientOcclusionSpecularOcclusion.unity
+    guid: 92735b9a52466e04e9dd9d26ef232fe3
+  - enabled: 1
     path: Assets/Scenes/301_GlobalIlluminationPerfFull.unity
     guid: c54ecbf7af984ec4093589a91febdb7b
   - enabled: 1
@@ -164,6 +170,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackSky.unity
     guid: 827c090b62971674ba95418bc420df4f
+  - enabled: 1
+    path: Assets/Scenes/320_AmbientProbeDimmer_0.unity
+    guid: 6cecfe028a2a4af45bca3169587aa0d2
+  - enabled: 1
+    path: Assets/Scenes/320_AmbientProbeDimmer_1.unity
+    guid: 4eda7c234292a7f4b80c74f0e5c714f2
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe
@@ -410,6 +422,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5015_PathTracing_DoFCamera.unity
     guid: 9fc75d906f08e784ab1183b8153659f0
+  - enabled: 1
+    path: Assets/Scenes/5016_PathTracingTiledRendering.unity
+    guid: 02397f4078a0d654d8441ef84f750cc5
   - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb

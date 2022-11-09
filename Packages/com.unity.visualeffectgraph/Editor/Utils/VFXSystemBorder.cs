@@ -164,7 +164,7 @@ namespace UnityEditor.VFX.UI
             title = m_TitleField.value;
             m_TitleField.style.display = DisplayStyle.None;
 
-            controller.title = title;
+            controller.SetTitle(title);
         }
 
         void OnContextChanged(GeometryChangedEvent e)

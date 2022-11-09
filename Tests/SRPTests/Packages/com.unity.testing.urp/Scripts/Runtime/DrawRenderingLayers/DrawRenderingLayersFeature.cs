@@ -41,11 +41,13 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             internal TextureHandle color;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<PassData>("Draw Rendering Layers", out var passData, m_ProfilingSampler))
             {
-                passData.color = UniversalRenderer.m_ActiveRenderGraphColor;
+                UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+
+                passData.color = renderer.activeColorTexture;
                 builder.UseColorBuffer(passData.color, 0);
                 builder.ReadTexture(renderingLayerTexture);
 
@@ -117,7 +119,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             internal RenderingData renderingData;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 

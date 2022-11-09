@@ -17,12 +17,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent profileIor = EditorGUIUtility.TrTextContent("Index of Refraction", "Controls the refractive behavior of the Material, where larger values increase the intensity of specular reflection.");
 
             public static readonly GUIContent subsurfaceScatteringLabel = EditorGUIUtility.TrTextContent("Subsurface Scattering only");
-            public static readonly GUIContent texturingMode = EditorGUIUtility.TrTextContent("Texturing Mode", "Specifies when HDRP applies the albedo of the Material.");
+            public static readonly GUIContent smoothnessMultipliers = EditorGUIUtility.TrTextContent("Dual Lobe Multipliers", "Mutlipliers for the smoothness of the two specular lobes");
 
             public static readonly GUIContent transmissionLabel = EditorGUIUtility.TrTextContent("Transmission only");
             public static readonly GUIContent profileTransmissionMode = EditorGUIUtility.TrTextContent("Transmission Mode", "Specifies how HDRP calculates light transmission.");
             public static readonly GUIContent profileMinMaxThickness = EditorGUIUtility.TrTextContent("Thickness Remap Values (Min-Max)", "Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map.");
-            public static readonly GUIContent profileThicknessRemap = EditorGUIUtility.TrTextContent("Thickness Remap (Min-Max)", "Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map.");
+            public static readonly GUIContent profileThicknessRemap = EditorGUIUtility.TrTextContent("Thickness Remap (Min-Max)", profileMinMaxThickness.tooltip);
 
 
             public static readonly GUIContent profilePreview0 = EditorGUIUtility.TrTextContent("Diffusion Profile Preview");

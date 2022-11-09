@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 #if UNITY_EDITOR
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 #endif
@@ -61,11 +62,10 @@ namespace UnityEngine.Rendering
             get
             {
 #if UNITY_EDITOR
-                var packageInfo = PackageInfo.FindForAssembly(typeof(DocumentationInfo).Assembly);
-                return packageInfo == null ? fallbackVersion : packageInfo.version.Substring(0, 4);
-#else
-                return fallbackVersion;
+                if (DocumentationUtils.TryGetPackageInfoForType(typeof(DocumentationInfo), out _, out var version))
+                    return version;
 #endif
+                return fallbackVersion;
             }
         }
 
@@ -121,5 +121,29 @@ namespace UnityEngine.Rendering
             url = attribute?.URL;
             return attribute != null;
         }
+        
+#if UNITY_EDITOR
+        /// <summary>
+        /// Obtain package informations from a specific type
+        /// </summary>
+        /// <param name="type">The type used to retrieve package information</param>
+        /// <param name="packageName">The name of the package containing the given type</param>
+        /// <param name="version">The version number of the package containing the given type. Only Major.Minor will be returned as fix is not used for documentation</param>
+        /// <returns></returns>
+        public static bool TryGetPackageInfoForType([DisallowNull] Type type, [NotNullWhen(true)] out string packageName, [NotNullWhen(true)] out string version)
+        {
+            var packageInfo = PackageInfo.FindForAssembly(type.Assembly);
+            if (packageInfo == null)
+            {
+                packageName = null;
+                version = null;
+                return false;
+            }
+
+            packageName = packageInfo.name;
+            version = packageInfo.version.Substring(0, packageInfo.version.LastIndexOf('.'));
+            return true;
+        }
+#endif
     }
 }

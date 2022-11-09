@@ -160,6 +160,8 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 // profile because the thick flag is not set (for pixels that have transmission, we force the flags in a per-pixel
 // material feature)).
 #define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT     ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
+#define MATERIALFEATUREFLAGS_SSS_DUAL_LOBE                      ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 4)
+#define MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER                  ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 5)
 
 // 15 degrees
 #define TRANSMISSION_WRAP_ANGLE (PI/12)
@@ -186,6 +188,19 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
     // Subsurface scattering mode
     uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
     return ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
+}
+
+bool GetDualLobeParameters(uint diffusionProfileIndex, out float multiplierA, out float multiplierB, out float lobeMix)
+{
+    multiplierA = _DualLobeAndDiffusePower[diffusionProfileIndex].r;
+    multiplierB = _DualLobeAndDiffusePower[diffusionProfileIndex].g;
+    lobeMix     = _DualLobeAndDiffusePower[diffusionProfileIndex].b;
+    return multiplierA != multiplierB; // if both multipliers are equal, there is no dual lobe
+}
+
+float GetDiffusePower(uint diffusionProfileIndex)
+{
+    return _DualLobeAndDiffusePower[diffusionProfileIndex].a;
 }
 
 #endif

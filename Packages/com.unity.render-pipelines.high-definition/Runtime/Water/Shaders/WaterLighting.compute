@@ -1,0 +1,294 @@
+#pragma kernel WaterClearIndirect
+#pragma kernel WaterClassifyTiles USE_INDIRECT VARIANT=NUM_WATER_VARIANTS
+#pragma kernel PrepareSSRIndirect USE_INDIRECT VARIANT=NUM_WATER_VARIANTS
+
+// Indirect water deferred lighting variants
+#pragma kernel WaterDeferredLighting_Variant0 WATER_DEFERRED_LIGHTING=WaterDeferredLighting_Variant0 VARIANT=0 USE_INDIRECT
+#pragma kernel WaterDeferredLighting_Variant1 WATER_DEFERRED_LIGHTING=WaterDeferredLighting_Variant1 VARIANT=1 USE_INDIRECT
+#pragma kernel WaterDeferredLighting_Variant2 WATER_DEFERRED_LIGHTING=WaterDeferredLighting_Variant2 VARIANT=2 USE_INDIRECT
+#pragma kernel WaterDeferredLighting_Variant3 WATER_DEFERRED_LIGHTING=WaterDeferredLighting_Variant3 VARIANT=3 USE_INDIRECT
+#pragma kernel WaterDeferredLighting_Variant4 WATER_DEFERRED_LIGHTING=WaterDeferredLighting_Variant4 VARIANT=4 USE_INDIRECT
+#pragma kernel WaterDeferredLighting WATER_DEFERRED_LIGHTING=WaterDeferredLighting
+
+#pragma kernel WaterFogIndirect USE_INDIRECT VARIANT=NUM_WATER_VARIANTS
+
+// Given that the algorithm requires BSDF evaluation, we need to define this macro
+#define HAS_LIGHTLOOP
+#define SCREEN_SPACE_INDIRECT_DIFFUSE_DISABLED
+#define USE_CLUSTERED_LIGHTLIST
+#define HAS_REFRACTION 1
+
+#ifdef PLATFORM_LANE_COUNT
+#define NR_THREADS              PLATFORM_LANE_COUNT
+#else
+#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#endif
+
+// Shadow qualities are supported
+#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+#pragma multi_compile AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+#pragma multi_compile _ RENDERING_LAYERS
+
+// Include and define the shader pass
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
+#define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
+
+// #pragma enable_d3d11_debug_symbols
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+// Input textures of the kernels
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
+TEXTURE2D_X(_CameraColorTexture);
+
+// Output textures of the kernels
+RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+RW_TEXTURE2D_X(float4, _NormalBufferRW);
+
+#if defined (USE_INDIRECT)
+StructuredBuffer<uint> _WaterTileBuffer;
+RWStructuredBuffer<uint> _WaterTileBufferRW;
+int _WaterNumTiles;
+
+uint3 GetActualDispatchThread(uint2 groupThreadId, uint groupId)
+{
+    uint  tileIndex = _WaterTileBuffer[VARIANT * _WaterNumTiles * _XRViewCount + groupId];
+    uint2 tileCoord = uint2((tileIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tileIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK);
+    return uint3(tileCoord * 8 + groupThreadId, tileIndex >> TILE_INDEX_SHIFT_EYE);
+}
+#endif
+
+RWBuffer<uint> _WaterDispatchIndirectBuffer;
+[numthreads(NR_THREADS, 1, 1)]
+void WaterClearIndirect(uint dispatchThreadId : SV_DispatchThreadID)
+{
+    // We need NUM_WATER_VARIANTS + 1 Dispatch parameters, the last one being all the water tiles)
+    if (dispatchThreadId > NUM_WATER_VARIANTS)
+        return;
+
+    _WaterDispatchIndirectBuffer[dispatchThreadId * 3 + 0] = 0; // ThreadGroupCountX
+    _WaterDispatchIndirectBuffer[dispatchThreadId * 3 + 1] = 1; // ThreadGroupCountY
+    _WaterDispatchIndirectBuffer[dispatchThreadId * 3 + 2] = 1; // ThreadGroupCountZ
+}
+
+#if defined (USE_INDIRECT)
+// Holds the per-tile light features
+groupshared uint gs_tileFeatureFlags;
+
+[numthreads(8, 8, 1)]
+void WaterClassifyTiles(uint3 currentCoord : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    // Is this a water pixel?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord.xy));
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x;
+
+    // Compute the posInput
+    uint2 tileCoord = currentCoord.xy / GetTileSize();
+    PositionInputs posInput = GetPositionInput(currentCoord.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
+
+    // This is the minimal set of features we allow
+    uint featureFlags = LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_SSREFLECTION | LIGHTFEATUREFLAGS_SSREFRACTION;
+
+    // For this pixel, get the number of lights (for each type)
+    uint lightCount, tmp;
+    GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, tmp, lightCount);
+    featureFlags |= (lightCount != 0 ? LIGHTFEATUREFLAGS_PUNCTUAL : 0);
+    GetCountAndStart(posInput, LIGHTCATEGORY_AREA, tmp, lightCount);
+    featureFlags |= (lightCount != 0 ? LIGHTFEATUREFLAGS_AREA : 0);
+    GetCountAndStart(posInput, LIGHTCATEGORY_ENV, tmp, lightCount);
+    featureFlags |= (lightCount != 0 ? LIGHTFEATUREFLAGS_ENV : 0);
+
+    // if the pixel is not a water pixel, we reset the feature flags to 0
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        featureFlags = 0;
+
+    // Now that we defined the state of this specific pixel, we need to gather across the wave to know how to classify it
+    #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+    // Gather the feature flags through the wave
+    uint tileFeatureFlags = WaveActiveBitOr(featureFlags);
+    #else
+    // First lane initializes the LDS
+    if (groupIndex == 0)
+        gs_tileFeatureFlags = 0;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // TODO, do a parallel reduction here instead of a dumb interlock
+    uint previousValue = 0;
+    InterlockedOr(gs_tileFeatureFlags, featureFlags, previousValue);
+    GroupMemoryBarrierWithGroupSync();
+    uint tileFeatureFlags = gs_tileFeatureFlags;
+    #endif
+
+    // We now need to do two things:
+    // - Increase the number of active tiles of the variant in the indirect buffer
+    // - Store the coordinates of the tile into the array
+    if (groupIndex == 0 && tileFeatureFlags != 0)
+    {
+        // Evaluate the variant index
+        int variant = FeatureFlagsToTileVariant_Water(tileFeatureFlags);
+
+        // Evaluate the tile index
+        uint prevGroupCnt;
+        uint tileIndex = (unity_StereoEyeIndex << TILE_INDEX_SHIFT_EYE) | (groupId.y << TILE_INDEX_SHIFT_Y) | (groupId.x << TILE_INDEX_SHIFT_X);
+
+        // Increase the number of tiles in the indirect buffer
+        InterlockedAdd(_WaterDispatchIndirectBuffer[variant * 3 + 0], 1, prevGroupCnt);
+        _WaterTileBufferRW[variant * _WaterNumTiles * _XRViewCount + prevGroupCnt] = tileIndex;
+
+        // We also use an additional variant to track all the tiles that have water
+        InterlockedAdd(_WaterDispatchIndirectBuffer[NUM_WATER_VARIANTS * 3 + 0], 1, prevGroupCnt);
+        _WaterTileBufferRW[NUM_WATER_VARIANTS * _WaterNumTiles * _XRViewCount + prevGroupCnt] = tileIndex;
+    }
+}
+#endif
+
+#if defined (USE_INDIRECT)
+[numthreads(8, 8, 1)]
+void PrepareSSRIndirect(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
+{
+    // Evaluate the actual dispatch
+    uint3 dispatchThreadId  = GetActualDispatchThread(groupThreadId, groupId);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    // Is this a water pixel?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        return;
+
+    // Decode the normal and the smoothness
+    NormalData normalData;
+    DecodeWaterFromNormalBuffer(currentCoord, normalData);
+
+    // Grab the surface index of the current surface
+    uint surfaceIndex;
+    int frontFace;
+    DecompressWaterSSRData(currentCoord, surfaceIndex, frontFace);
+
+    // Grab the matching water profile
+    WaterSurfaceProfile profile = _WaterSurfaceProfiles[surfaceIndex];
+
+    // Adjust the normal based on where we are w/r to the surface
+    if (frontFace)
+        AdjustWaterNormalForSSR(profile, normalData.normalWS);
+
+    // Encode the normal data and output it
+    float4 outputNormalData;
+    EncodeIntoNormalBuffer(normalData, outputNormalData);
+    _NormalBufferRW[COORD_TEXTURE2D_X(currentCoord)] = outputNormalData;
+}
+#endif
+
+#if defined (USE_INDIRECT)
+[numthreads(8, 8, 1)]
+void WATER_DEFERRED_LIGHTING(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
+{
+    // Evaluate the actual dispatch
+    uint3 dispatchThreadId  = GetActualDispatchThread(groupThreadId, groupId);
+    uint featureFlags = kWaterFeatureVariantFlags[VARIANT];
+#else
+[numthreads(8, 8, 1)]
+void WATER_DEFERRED_LIGHTING(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint featureFlags = UINT_MAX;
+#endif
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
+    // If this is a background pixel or an invalid ray, leave right away
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Is this a water pixel?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        return;
+
+    // Compute the posInput
+    uint2 clusterTile = currentCoord / GetTileSize();
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), clusterTile);
+
+    // Compute the view vector
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    // Read the bsdf data and builtin data from the gbuffer
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+
+    BuiltinData builtinData;
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+
+    // Decode the water data from the gbuffer
+    DecodeFromGBuffer(currentCoord, bsdfData, builtinData);
+
+    // Compute the prelight data
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+
+    // Modify the bake diffuse lighting here because we don't benefit from the pass done during the post init builtin data
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+
+    // Evaluate the light loop
+    LightLoopOutput lightLoopOutput;
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+    // Combine both lighting terms and apply the exposure
+    float3 finalColor = (lightLoopOutput.diffuseLighting + lightLoopOutput.specularLighting) * GetCurrentExposureMultiplier();
+
+    // Output to the color buffer
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
+}
+
+#if defined (USE_INDIRECT)
+[numthreads(8, 8, 1)]
+void WaterFogIndirect(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
+{
+    // Evaluate the actual dispatch
+    uint3 dispatchThreadId  = GetActualDispatchThread(groupThreadId, groupId);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    // Is this a water pixel?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        return;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
+    // Compute the posInput
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Compute the view vector
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    float3 volColor, volOpacity;
+    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+
+    // Output to the color buffer
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord).xyz * (1 - volOpacity) + volColor, 1.0);
+}
+#endif

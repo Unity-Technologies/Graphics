@@ -170,12 +170,12 @@ namespace UnityEditor.VFX
         }
 
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (GetParent() is VFXBlockSubgraphContext)
             {
-                var notUndefinedSpace = inputSlots.Where(o => o.space != VFXCoordinateSpace.None);
+                var notUndefinedSpace = inputSlots.Where(o => o.space != VFXSpace.None);
                 if (notUndefinedSpace.Any())
                 {
                     manager.RegisterError("SubgraphBlockSpaceIsIgnored", VFXErrorType.Warning, "Space Local/World are ignored in subgraph blocks.");
@@ -183,14 +183,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected VFXCoordinateSpace GetOwnerSpace()
+        protected VFXSpace GetOwnerSpace()
         {
             if (GetParent() != null)
                 return GetParent().space;
-            return VFXCoordinateSpace.None;
+            return VFXSpace.None;
         }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             //For block, space is directly inherited from parent context
             //Override with care: most block are assuming expression are in same space than owner (and doesn't conversion afterwards).

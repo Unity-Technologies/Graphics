@@ -11,12 +11,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             ALPHA_MASK
         }
 
-        // TODO: idealy we should allow the use of arbitrary custom passes instead of hand-picked filters.
-
         public FilterType filterType;
         public Color maskColor;
         public float keyThreshold = 0.8f;
         public float keyTolerance = 0.5f;
+
+        [Range(0.0f, 1.0f)]
         public float spillRemoval = 0.0f;
         public Texture alphaMask;
 

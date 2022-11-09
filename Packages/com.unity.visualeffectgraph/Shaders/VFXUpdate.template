@@ -9,7 +9,7 @@ ${VFXGlobalDeclaration}
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
-#ifdef VFX_RT_DECIMATION_FACTOR
+#ifdef VFX_IS_RAYTRACED
 #pragma multi_compile _ VFX_COMPUTE_AABBS
 #endif
 
@@ -161,7 +161,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         #else
             float4x4 worldToLocal = (float4x4)0;
         #endif
-		InitReduction(attributes, size3, tid, instanceIndex, worldToLocal);
+		InitReduction(attributes, size3, tid, worldToLocal);
     #endif
     }
     #if VFX_COMPUTE_AABBS

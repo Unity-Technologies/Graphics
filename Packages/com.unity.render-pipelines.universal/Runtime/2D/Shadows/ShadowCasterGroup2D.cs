@@ -7,10 +7,11 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class for 2D shadow caster groups.
     /// </summary>
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
     public abstract class ShadowCasterGroup2D : MonoBehaviour
     {
-        [SerializeField] internal int m_ShadowGroup = 0;
+        [SerializeField] internal int  m_ShadowGroup = 0;
+        [SerializeField] internal int  m_Priority = 0;
         List<ShadowCaster2D> m_ShadowCasters;
 
         internal virtual void CacheValues()
@@ -49,7 +50,14 @@ namespace UnityEngine.Rendering.Universal
             if (m_ShadowCasters == null)
                 m_ShadowCasters = new List<ShadowCaster2D>();
 
-            m_ShadowCasters.Add(shadowCaster2D);
+            int insertAtIndex = 0;
+            for (insertAtIndex = 0; insertAtIndex < m_ShadowCasters.Count; insertAtIndex++)
+            {
+                if (shadowCaster2D.m_Priority >= m_ShadowCasters[insertAtIndex].m_Priority)
+                    break;
+            }
+
+            m_ShadowCasters.Insert(insertAtIndex, shadowCaster2D);
         }
 
         /// <summary>

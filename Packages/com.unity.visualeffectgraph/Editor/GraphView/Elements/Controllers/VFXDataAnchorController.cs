@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
@@ -692,7 +692,7 @@ namespace UnityEditor.VFX.UI
                 return stack.First();
             }
         }
-        public override VFXCoordinateSpace space
+        public override VFXSpace space
         {
             get
             {

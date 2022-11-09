@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering
             float indent = EditorGUI.indentLevel * k_IndentMargin - EditorStyles.helpBox.margin.left;
             GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
 
-            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.MinWidth(60));
+            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.MinWidth(60), GUILayout.ExpandWidth(false));
             Rect rect = GUILayoutUtility.GetRect(message, EditorStyles.helpBox);
             Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
 

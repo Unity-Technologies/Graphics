@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
             //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
             if (cause == InvalidationCause.kExpressionInvalidated)
             {
-                model.RefreshErrors(GetGraph());
+                model.RefreshErrors();
             }
         }
 

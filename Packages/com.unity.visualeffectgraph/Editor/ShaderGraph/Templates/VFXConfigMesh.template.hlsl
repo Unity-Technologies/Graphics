@@ -5,7 +5,9 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     uint index = VFX_GET_INSTANCE_ID(input);
 
     $splice(VFXInitInstancing)
-
+    #ifdef UNITY_INSTANCING_ENABLED
+    input.instanceID = unity_InstanceID;
+    #endif
     ContextData contextData = instancingContextData[instanceActiveIndex];
     uint systemSeed = contextData.systemSeed;
     uint nbMax = contextData.maxParticleCount;

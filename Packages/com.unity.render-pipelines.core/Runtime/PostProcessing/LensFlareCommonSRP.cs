@@ -413,6 +413,90 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Check if at least one LensFlareComponentSRP request CloudLayer opacity
+        /// </summary>
+        /// <param name="cam">Camera</param>
+        /// <returns>true if a cloudLayerOpacity is requested</returns>
+        static public bool IsCloudLayerOpacityNeeded(Camera cam)
+        {
+            if (Instance.IsEmpty() || occlusionRT == null)
+                return false;
+
+#if UNITY_EDITOR
+            if (cam.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == cam && !sv.sceneViewState.flaresEnabled)
+                    {
+                        return false;
+                    }
+                }
+            }
+#endif
+
+            foreach (LensFlareCompInfo info in Instance.Data)
+            {
+                if (info == null || info.comp == null)
+                    continue;
+
+                LensFlareComponentSRP comp = info.comp;
+                LensFlareDataSRP data = comp.lensFlareData;
+
+                if (!comp.enabled ||
+                    !comp.gameObject.activeSelf ||
+                    !comp.gameObject.activeInHierarchy ||
+                    data == null ||
+                    data.elements == null ||
+                    data.elements.Length == 0 ||
+                    !comp.useOcclusion ||
+                    (comp.useOcclusion && comp.sampleCount == 0) ||
+                    comp.intensity <= 0.0f)
+                    continue;
+
+                if (comp.useBackgroundCloudOcclusion)
+                    return true;
+            }
+
+            return false;
+        }
+
+        static void SetOcclusionPermutation(Rendering.CommandBuffer cmd,
+            bool useBackgroundCloudOcclusion, bool volumetricCloudOcclusion, bool hasCloudLayer,
+            int _FlareCloudOpacity, int _FlareSunOcclusionTex,
+            Texture cloudOpacityTexture, Texture sunOcclusionTexture)
+        {
+            if (useBackgroundCloudOcclusion && hasCloudLayer)
+            {
+                cmd.EnableShaderKeyword("FLARE_CLOUD_OPACITY");
+                cmd.SetGlobalTexture(_FlareCloudOpacity, cloudOpacityTexture);
+            }
+            else
+            {
+                cmd.DisableShaderKeyword("FLARE_CLOUD_OPACITY");
+            }
+
+            if (sunOcclusionTexture != null)
+            {
+                if (volumetricCloudOcclusion)
+                {
+                    cmd.EnableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                    cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                }
+            }
+            else
+            {
+                cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+            }
+        }
+
+        /// <summary>
         /// Effective Job of drawing the set of Lens Flare registered
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
@@ -428,8 +512,11 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
+        /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
@@ -445,9 +532,8 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            Texture sunOcclusionTexture,
-            bool taaEnabled,
-            int _FlareSunOcclusionTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
+            int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             Vector2 vScreenRatio;
 
@@ -561,25 +647,15 @@ namespace UnityEngine.Rendering
 
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
+                SetOcclusionPermutation(cmd,
+                    comp.useBackgroundCloudOcclusion, comp.volumetricCloudOcclusion, hasCloudLayer,
+                    _FlareCloudOpacity, _FlareSunOcclusionTex,
+                    cloudOpacityTexture, sunOcclusionTexture);
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
-                if (sunOcclusionTexture != null)
-                {
-                    if (comp.volumetricCloudOcclusion)
-                    {
-                        cmd.EnableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
-                        cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
-                    }
-                    else
-                    {
-                        cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
-                    }
-                }
-                else
-                {
-                    cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
-                }
 
-                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
+                if (SystemInfo.graphicsUVStartsAtTop)
+                    screenPos.y = -screenPos.y;
 
                 Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                 float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
@@ -637,11 +713,17 @@ namespace UnityEngine.Rendering
         /// <param name="cameraPositionWS">Camera World Space position</param>
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareOcclusionRemapTex">ShaderID for the OcclusionRemap</param>
+        /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
@@ -649,7 +731,6 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
-        /// <param name="taaEnabled">Set if TAA is enabled</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, LensFlareCommonSRP lensFlares, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
@@ -657,14 +738,17 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareOcclusionRemapTex, int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
-            bool taaEnabled, bool debugView)
+            int _FlareOcclusionRemapTex, int _FlareOcclusionTex, int _FlareOcclusionIndex,
+            int _FlareCloudOpacity, int _FlareSunOcclusionTex,
+            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
+            bool debugView)
         {
             Vector2 vScreenRatio;
 
-            if (lensFlares.IsEmpty() || occlusionRT == null)
+            if (lensFlares.IsEmpty())
                 return;
 
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
@@ -765,7 +849,9 @@ namespace UnityEngine.Rendering
                         globalColorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
                 }
 
-                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
+                if (SystemInfo.graphicsUVStartsAtTop)
+                    screenPos.y = -screenPos.y;
                 Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                 float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                 float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
@@ -788,13 +874,27 @@ namespace UnityEngine.Rendering
 
                 if (comp.useOcclusion && taaEnabled)
                 {
-                    cmd.EnableShaderKeyword("FLARE_OCCLUSION");
-                    cmd.DisableShaderKeyword("FLARE_MEASURE_OCCLUSION");
+                    // HDRP Only, have a prepass to resolve occlusion with TAA
+                    if (occlusionRT != null)
+                    {
+                        cmd.EnableShaderKeyword("FLARE_OCCLUSION");
+                        cmd.DisableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
+                    }
+                    // URP compute occlusion on VertexShader
+                    else
+                    {
+                        cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                        cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
+                    }
                 }
                 else if (comp.useOcclusion && !taaEnabled)
                 {
                     cmd.DisableShaderKeyword("FLARE_OCCLUSION");
                     cmd.EnableShaderKeyword("FLARE_MEASURE_OCCLUSION");
+                    SetOcclusionPermutation(cmd,
+                        comp.useBackgroundCloudOcclusion, comp.volumetricCloudOcclusion, hasCloudLayer,
+                        _FlareCloudOpacity, _FlareSunOcclusionTex,
+                        cloudOpacityTexture, sunOcclusionTexture);
                 }
                 else
                 {

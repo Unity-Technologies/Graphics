@@ -16,10 +16,17 @@ namespace UnityEditor.Rendering
 
         /// <summary>Shows a button with help icon and opens the url defined by <see cref="HelpURLAttribute"/></summary>
         /// <param name="r">The rect to show the button</param>
+        [Obsolete("This method will be removed soon. Please override OnHelpButtonClicked instead. #from(2023.1)", error: false)]
         protected virtual void ShowButton(Rect r)
         {
             if (GUI.Button(r, iconHelpGUIContent, CoreEditorStyles.iconHelpStyle))
-                Help.ShowHelpForObject(this);
+                OnHelpButtonClicked();
+        }
+
+        /// <summary>What hapens when the help button is clicked onto. Default implementation use the <see cref="HelpURLAttribute"/> onto the window class.</summary>
+        protected virtual void OnHelpButtonClicked()
+        {
+            Help.ShowHelpForObject(this);
         }
     }
 }

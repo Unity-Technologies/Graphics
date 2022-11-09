@@ -4,20 +4,48 @@
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
+// Ambient Probe is preconvolved with clamped cosinus
+// In case we use a diffuse power, we have to edit the coefficients to change the convolution
+// This is currently not used because visual difference is really minor
+void ReconvolveAmbientProbeWithPower(float diffusePower, inout float4 SHCoefficients[7])
+{
+    if (diffusePower == 0.0f)
+        return;
+
+    // convolution coefs
+    float w = diffusePower + 1;
+    float kModifiedLambertian0 = 1.0f;
+    float kModifiedLambertian1 = (w + 1.0f) / (w + 2.0f);
+    float kModifiedLambertian2 = w / (w + 3.0f);
+
+    // ambient probe is pre-convolved by clamped cosine - we have to undo pre-convolution and
+    // convolve again with coefs for modified lambertian
+    float wrapScaling0 = kModifiedLambertian0 / kClampedCosine0;
+    float wrapScaling1 = kModifiedLambertian1 / kClampedCosine1;
+    float wrapScaling2 = kModifiedLambertian2 / kClampedCosine2;
+
+    // handle coeficient packing - see AmbientProbeConvolution.compute : PackSHFromScratchBuffer
+    float3 ambient6 = float3(SHCoefficients[3].z, SHCoefficients[4].z, SHCoefficients[5].z) / 3.0f;
+    float3 ambient0 = float3(SHCoefficients[0].a, SHCoefficients[1].a, SHCoefficients[2].a) + ambient6;
+
+    SHCoefficients[0].xyz *= wrapScaling1;
+    SHCoefficients[1].xyz *= wrapScaling1;
+    SHCoefficients[2].xyz *= wrapScaling1;
+    SHCoefficients[3]     *= wrapScaling2;
+    SHCoefficients[4]     *= wrapScaling2;
+    SHCoefficients[5]     *= wrapScaling2;
+    SHCoefficients[6]     *= wrapScaling2;
+
+    SHCoefficients[0].a = ambient0.r * wrapScaling0 - ambient6.r * wrapScaling2;
+    SHCoefficients[1].a = ambient0.g * wrapScaling0 - ambient6.g * wrapScaling2;
+    SHCoefficients[2].a = ambient0.b * wrapScaling0 - ambient6.b * wrapScaling2;
+}
+
 // We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.
 // AmbientProbe Data is fetch directly from a compute buffer to remain on GPU and is preconvolved with clamped cosinus
 real3 EvaluateAmbientProbe(real3 normalWS)
 {
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = _AmbientProbeData[0];
-    SHCoefficients[1] = _AmbientProbeData[1];
-    SHCoefficients[2] = _AmbientProbeData[2];
-    SHCoefficients[3] = _AmbientProbeData[3];
-    SHCoefficients[4] = _AmbientProbeData[4];
-    SHCoefficients[5] = _AmbientProbeData[5];
-    SHCoefficients[6] = _AmbientProbeData[6];
-
-    return SampleSH9(SHCoefficients, normalWS);
+    return SampleSH9(_AmbientProbeData, normalWS);
 }
 
 real3 EvaluateLightProbe(real3 normalWS)

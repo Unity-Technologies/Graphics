@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var include in includes)
                 {
-                    AddInternal(include.guid, include.path, include.location, include.fieldConditions);
+                    AddInternal(include.guid, include.path, include.location, include.fieldConditions, include.shouldIncludeWithPragmas);
                 }
             }
             return this;
@@ -35,10 +35,22 @@ namespace UnityEditor.ShaderGraph
             return AddInternal(guid, includePath, location);
         }
 
+        public IncludeCollection Add(string includePath, IncludeLocation location, bool shouldIncludeWithPragmas)
+        {
+            var guid = AssetDatabase.AssetPathToGUID(includePath);
+            return AddInternal(guid, includePath, location, null, shouldIncludeWithPragmas);
+        }
+
         public IncludeCollection Add(string includePath, IncludeLocation location, FieldCondition fieldCondition)
         {
             var guid = AssetDatabase.AssetPathToGUID(includePath);
             return AddInternal(guid, includePath, location, new FieldCondition[] { fieldCondition });
+        }
+
+        public IncludeCollection Add(string includePath, IncludeLocation location, FieldCondition fieldCondition, bool shouldIncludeWithPragmas)
+        {
+            var guid = AssetDatabase.AssetPathToGUID(includePath);
+            return AddInternal(guid, includePath, location, new FieldCondition[] { fieldCondition }, shouldIncludeWithPragmas);
         }
 
         public IncludeCollection Add(string includePath, IncludeLocation location, FieldCondition[] fieldConditions)
@@ -47,7 +59,13 @@ namespace UnityEditor.ShaderGraph
             return AddInternal(guid, includePath, location, fieldConditions);
         }
 
-        public IncludeCollection AddInternal(string includeGUID, string includePath, IncludeLocation location, FieldCondition[] fieldConditions = null)
+        public IncludeCollection Add(string includePath, IncludeLocation location, FieldCondition[] fieldConditions, bool shouldIncludeWithPragmas)
+        {
+            var guid = AssetDatabase.AssetPathToGUID(includePath);
+            return AddInternal(guid, includePath, location, fieldConditions, shouldIncludeWithPragmas);
+        }
+
+        public IncludeCollection AddInternal(string includeGUID, string includePath, IncludeLocation location, FieldCondition[] fieldConditions = null, bool shouldIncludeWithPragmas = false)
         {
             if (string.IsNullOrEmpty(includeGUID))
             {
@@ -55,7 +73,7 @@ namespace UnityEditor.ShaderGraph
                 // de-duplicate by path
                 int existing = includes.FindIndex(i => i.path == includePath);
                 if (existing < 0)
-                    includes.Add(new IncludeDescriptor(null, includePath, location, fieldConditions));
+                    includes.Add(new IncludeDescriptor(null, includePath, location, fieldConditions, shouldIncludeWithPragmas));
                 return this;
             }
             else
@@ -65,7 +83,7 @@ namespace UnityEditor.ShaderGraph
                 if (existing < 0)
                 {
                     // no duplicates, just add it
-                    includes.Add(new IncludeDescriptor(includeGUID, includePath, location, fieldConditions));
+                    includes.Add(new IncludeDescriptor(includeGUID, includePath, location, fieldConditions, shouldIncludeWithPragmas));
                 }
                 else
                 {

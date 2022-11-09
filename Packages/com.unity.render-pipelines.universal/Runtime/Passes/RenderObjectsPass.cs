@@ -254,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <inheritdoc />
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
@@ -263,16 +263,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 InitPassData(ref passData);
                 passData.renderingData = renderingData;
 
-                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                TextureHandle color = renderer.activeColorTexture;
                 passData.color = builder.UseColorBuffer(color, 0);
-                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Write);
+                builder.UseDepthBuffer(renderer.activeDepthTexture, DepthAccess.Write);
 
-                UniversalRenderer.RenderGraphFrameResources frameResources = renderer.frameResources;
+                TextureHandle mainShadowsTexture = frameResources.GetTexture(UniversalResource.MainShadowsTexture);
+                TextureHandle additionalShadowsTexture = frameResources.GetTexture(UniversalResource.AdditionalShadowsTexture);
 
-                if (frameResources.mainShadowsTexture.IsValid())
-                    builder.ReadTexture(frameResources.mainShadowsTexture);
-                if (frameResources.additionalShadowsTexture.IsValid())
-                    builder.ReadTexture(frameResources.additionalShadowsTexture);
+                if (mainShadowsTexture.IsValid())
+                    builder.ReadTexture(mainShadowsTexture);
+                if (additionalShadowsTexture.IsValid())
+                    builder.ReadTexture(additionalShadowsTexture);
+
+                // TODO RENDERGRAPH: move decals frame resources to the new FrameResources manager
+
+                if (renderer.frameResources.dbuffer != null)
+                {
+                    foreach (var dbuffer in renderer.frameResources.dbuffer)
+                    {
+                        if (dbuffer.IsValid())
+                            builder.ReadTexture(dbuffer);
+                    }
+                }
 
                 builder.AllowPassCulling(false);
 

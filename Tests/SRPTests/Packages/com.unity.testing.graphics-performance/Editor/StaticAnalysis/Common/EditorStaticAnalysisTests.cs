@@ -20,6 +20,7 @@ public class EditorStaticAnalysisTests
 
         public readonly string errorString;
         public readonly BuildTarget buildTarget;
+        public readonly ShaderProfile profile;
         public readonly float timeout;
 
         public StaticAnalysisEntry(string error)
@@ -29,6 +30,7 @@ public class EditorStaticAnalysisTests
             filter = null;
             testName = default;
             buildTarget = 0;
+            profile = default;
             timeout = 0;
         }
 
@@ -41,6 +43,7 @@ public class EditorStaticAnalysisTests
             string filterCategory,
             string testName,
             BuildTarget buildTarget,
+            ShaderProfile profile,
             float timeout
             )
         {
@@ -48,6 +51,7 @@ public class EditorStaticAnalysisTests
             this.asset = asset;
             this.filter = filter;
             this.buildTarget = buildTarget;
+            this.profile = profile;
             this.timeout = timeout;
             this.testName = new TestName(
                 string.IsNullOrEmpty(assetAlias) ? asset.ToString() : assetAlias,
@@ -103,6 +107,7 @@ public class EditorStaticAnalysisTests
             }
 
             var programFilter = ShaderProgramFilter.Parse(filter.passNameFilter, filter.keywordFilter);
+            var profile = assetType == typeof(ComputeShader) ? ShaderProfile.ComputeProgram : ShaderProfile.PixelProgram;
             yield return new StaticAnalysisEntry(definition.asset,
                 definition.assetAlias,
                 definition.assetCategory,
@@ -111,13 +116,14 @@ public class EditorStaticAnalysisTests
                 filter.category,
                 definition.testName,
                 buildTarget,
+                profile,
                 resource.staticAnalysisTimeout);
         }
     }
 
     public static void StaticAnalysisExecute(StaticAnalysisEntry entry)
     {
-        var buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(ShaderAnalysisReport.New(entry.asset, entry.buildTarget, entry.filter));
+        var buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(ShaderAnalysisReport.New(entry.asset, entry.buildTarget, entry.profile, entry.filter));
         buildReportJob.throwOnError = true;
 
         var time = Time.realtimeSinceStartup;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
+using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -94,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
                 colorAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 depthAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 ClearFlag.None, Color.clear);
-            cmd.SetGlobalTexture(m_Renderer2DData.cameraSortingLayerRenderTargetId, m_Renderer2DData.cameraSortingLayerRenderTarget.nameID);
+            cmd.SetGlobalTexture(m_Renderer2DData.cameraSortingLayerRenderTarget.name, m_Renderer2DData.cameraSortingLayerRenderTarget.nameID);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
@@ -222,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
+                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle : null;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, layerBatch.lightStats);
                     }
 
@@ -346,6 +347,107 @@ namespace UnityEngine.Rendering.Universal
             return batchesDrawn;
         }
 
+        void CalculateFrustumCornersPerspective(Camera camera, float distance, NativeArray<Vector3> corners)
+        {
+            float verticalFieldOfView = camera.fieldOfView;  // This will need to be converted if user direction is allowed
+
+            float halfHeight = Mathf.Tan(0.5f * verticalFieldOfView * Mathf.Deg2Rad) * distance;
+            float halfWidth = halfHeight * camera.aspect;
+
+            corners[0] = new Vector3(halfWidth,  halfHeight, distance);
+            corners[1] = new Vector3(halfWidth, -halfHeight, distance);
+            corners[2] = new Vector3(-halfWidth,  halfHeight, distance);
+            corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
+        }
+
+        void CalculateFrustumCornersOrthographic(Camera camera, float distance, NativeArray<Vector3> corners)
+        {
+            float halfHeight = camera.orthographicSize;
+            float halfWidth = halfHeight * camera.aspect;
+
+            corners[0] = new Vector3(halfWidth, halfHeight, distance);
+            corners[1] = new Vector3(halfWidth, -halfHeight, distance);
+            corners[2] = new Vector3(-halfWidth, halfHeight, distance);
+            corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
+        }
+
+        private Bounds CalculateWorldSpaceBounds(Camera camera, ILight2DCullResult cullResult)
+        {
+            // TODO: This will need to take into account on screen lights as shadows can be cast from offscreen.
+
+            const int k_Corners = 4;
+            NativeArray<Vector3> nearCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Vector3> farCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            if (camera.orthographic)
+            {
+                CalculateFrustumCornersOrthographic(camera, camera.nearClipPlane, nearCorners);
+                CalculateFrustumCornersOrthographic(camera, camera.farClipPlane, farCorners);
+            }
+            else
+            {
+                CalculateFrustumCornersPerspective(camera, camera.nearClipPlane, nearCorners);
+                CalculateFrustumCornersPerspective(camera, camera.farClipPlane, farCorners);
+            }
+
+            Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            for (int i = 0; i < k_Corners; i++)
+            {
+                maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
+                maxCorner = Vector3.Max(maxCorner, farCorners[i]);
+                minCorner = Vector3.Min(minCorner, nearCorners[i]);
+                minCorner = Vector3.Min(minCorner, farCorners[i]);
+            }
+
+            nearCorners.Dispose();
+            farCorners.Dispose();
+
+            // Transform the point from camera space to world space
+            maxCorner = camera.transform.TransformPoint(maxCorner);
+            minCorner = camera.transform.TransformPoint(minCorner);
+
+            // TODO: Iterate through the lights
+            for (int i = 0; i < cullResult.visibleLights.Count; i++)
+            {
+                Vector3 lightPos = cullResult.visibleLights[i].transform.position;
+                maxCorner = Vector3.Max(maxCorner, lightPos);
+                minCorner = Vector3.Min(minCorner, lightPos);
+            }
+
+            Vector3 center = 0.5f * (minCorner + maxCorner);
+            Vector3 size = maxCorner - minCorner;
+
+            return new Bounds(center, size);;
+        }
+
+        private void CallOnBeforeRender(Camera camera, ILight2DCullResult cullResult)
+        {
+            if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
+            {
+                Bounds bounds = CalculateWorldSpaceBounds(camera, cullResult);
+
+                List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
+                for (int groupIndex = 0; groupIndex < groups.Count; groupIndex++)
+                {
+                    ShadowCasterGroup2D group = groups[groupIndex];
+
+                    List<ShadowCaster2D> shadowCasters = group.GetShadowCasters();
+                    if (shadowCasters != null)
+                    {
+                        for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
+                        {
+                            ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
+                            if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+                            {
+                                ShapeProviderUtility.CallOnBeforeRender(shadowCaster.shadowShape2DProvider, shadowCaster.shadowShape2DComponent, shadowCaster.m_ShadowMesh, bounds);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var isLitView = true;
@@ -387,6 +489,8 @@ namespace UnityEngine.Rendering.Universal
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
 
+                CallOnBeforeRender(renderingData.cameraData.camera, m_Renderer2DData.lightCullResult);
+
                 var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out var batchCount);
                 var batchesDrawn = 0;
 
@@ -394,7 +498,6 @@ namespace UnityEngine.Rendering.Universal
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
                 this.DisableAllKeywords(cmd);
-                this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -457,6 +560,14 @@ namespace UnityEngine.Rendering.Universal
         Renderer2DData IRenderPass2D.rendererData
         {
             get { return m_Renderer2DData; }
+        }
+
+        public void Dispose()
+        {
+            m_Renderer2DData.normalsRenderTarget?.Release();
+            m_Renderer2DData.normalsRenderTarget = null;
+            m_Renderer2DData.cameraSortingLayerRenderTarget?.Release();
+            m_Renderer2DData.cameraSortingLayerRenderTarget = null;
         }
     }
 }

@@ -201,16 +201,29 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// List of RTAS Full Screen Debug views.
+    /// </summary>
+    public enum VolumetricCloudsDebug
+    {
+        /// <summary>
+        /// Display the lighting of the volumetric clouds.
+        /// </summary>
+        Lighting,
+        /// <summary>
+        /// Display the depth of the volumetric clouds.
+        /// </summary>
+        Depth,
+    }
+
+    /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
     public partial class DebugDisplaySettings : IDebugData
     {
-        static string k_PanelDisplayStats = "Display Stats";
         static string k_PanelMaterials = "Material";
         static string k_PanelLighting = "Lighting";
         static string k_PanelRendering = "Rendering";
 
-        DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
         DebugUI.Widget[] m_DebugLightingItems;
         DebugUI.Widget[] m_DebugRenderingItems;
@@ -227,37 +240,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_CameraNamesValues = null;
 
         static bool needsRefreshingCameraFreezeList = true;
-
-        List<HDProfileId> m_RecordedSamplers = new List<HDProfileId>();
-
-        // Accumulate values to avg over one second.
-        class AccumulatedTiming
-        {
-            public float accumulatedValue = 0;
-            public float lastAverage = 0;
-
-            internal void UpdateLastAverage(int frameCount)
-            {
-                lastAverage = accumulatedValue / frameCount;
-                accumulatedValue = 0.0f;
-            }
-        }
-        Dictionary<int, AccumulatedTiming> m_AccumulatedGPUTiming = new Dictionary<int, AccumulatedTiming>();
-        Dictionary<int, AccumulatedTiming> m_AccumulatedCPUTiming = new Dictionary<int, AccumulatedTiming>();
-        Dictionary<int, AccumulatedTiming> m_AccumulatedInlineCPUTiming = new Dictionary<int, AccumulatedTiming>();
-        float m_TimeSinceLastAvgValue = 0.0f;
-        int m_AccumulatedFrames = 0;
-        const float k_AccumulationTimeInSeconds = 1.0f;
-
-        List<HDProfileId> m_RecordedSamplersRT = new List<HDProfileId>();
-        enum DebugProfilingType
-        {
-            CPU,
-            GPU,
-            InlineCPU
-        }
-
-        internal DebugFrameTiming debugFrameTiming = new DebugFrameTiming();
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
         internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
@@ -312,6 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Max vertex density for vertex density display.</summary>
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
+            [Obsolete("Obsolete, moved to HDDebugDisplayStats", false)]
             public bool countRays = false;
             /// <summary>Display Show Lens Flare Data Driven Only.</summary>
             public bool showLensFlareDataDrivenOnly = false;
@@ -319,6 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int debugCameraToFreeze = 0;
             internal RTASDebugView rtasDebugView = RTASDebugView.Shadows;
             internal RTASDebugMode rtasDebugMode = RTASDebugMode.InstanceID;
+            internal VolumetricCloudsDebug volumetricCloudDebug = VolumetricCloudsDebug.Lighting;
 
             /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
             public float minMotionVectorLength = 0.0f;
@@ -354,6 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int rtasDebugViewEnumIndex;
             internal int rtasDebugModeEnumIndex;
+            internal int volumetricCloudsDebugModeEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -780,6 +765,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Set the current Volumetric Clouds Debug mode.
+        /// </summary>
+        /// <param name="value">Desired Full Screen Volumetric Clouds Debug mode.</param>
+        public void SetVolumetricCloudsDebugMode(VolumetricCloudsDebug value)
+        {
+            data.volumetricCloudDebug = value;
+        }
+
+        /// <summary>
         /// Set the current Shadow Map Debug Mode.
         /// </summary>
         /// <param name="value">Desired Shadow Map debug mode.</param>
@@ -853,229 +847,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.mipMapDebugSettings.debugMipMapMode = value;
         }
 
-        void EnableProfilingRecorders()
-        {
-            Debug.Assert(m_RecordedSamplers.Count == 0);
-
-            m_RecordedSamplers.Add(HDProfileId.HDRenderPipelineAllRenderRequest);
-            m_RecordedSamplers.Add(HDProfileId.VolumeUpdate);
-            m_RecordedSamplers.Add(HDProfileId.RenderShadowMaps);
-            m_RecordedSamplers.Add(HDProfileId.GBuffer);
-            m_RecordedSamplers.Add(HDProfileId.PrepareLightsForGPU);
-            m_RecordedSamplers.Add(HDProfileId.VolumeVoxelization);
-            m_RecordedSamplers.Add(HDProfileId.VolumetricLighting);
-            m_RecordedSamplers.Add(HDProfileId.VolumetricClouds);
-            m_RecordedSamplers.Add(HDProfileId.VolumetricCloudsTrace);
-            m_RecordedSamplers.Add(HDProfileId.VolumetricCloudsReproject);
-            m_RecordedSamplers.Add(HDProfileId.VolumetricCloudsUpscaleAndCombine);
-            m_RecordedSamplers.Add(HDProfileId.RenderDeferredLightingCompute);
-            m_RecordedSamplers.Add(HDProfileId.ForwardOpaque);
-            m_RecordedSamplers.Add(HDProfileId.ForwardTransparent);
-            m_RecordedSamplers.Add(HDProfileId.ForwardPreRefraction);
-            m_RecordedSamplers.Add(HDProfileId.ColorPyramid);
-            m_RecordedSamplers.Add(HDProfileId.DepthPyramid);
-            m_RecordedSamplers.Add(HDProfileId.PostProcessing);
-        }
-
-        void DisableProfilingRecorders(List<HDProfileId> samplers)
-        {
-            foreach (var sampler in samplers)
-            {
-                ProfilingSampler.Get(sampler).enableRecording = false;
-            }
-
-            samplers.Clear();
-        }
-
         void EnableProfilingRecordersRT()
         {
-            Debug.Assert(m_RecordedSamplersRT.Count == 0);
-
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildCluster);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingCullLights);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildAccelerationStructure);
-
-            // Ray Traced Reflections
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionDirectionGeneration);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionEvaluation);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionAdjustWeight);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionUpscale);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionFilter);
-
-            // Ray Traced Ambient Occlusion
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingAmbientOcclusion);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingFilterAmbientOcclusion);
-
-            // Ray Traced Shadows
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingDirectionalLightShadow);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingLightShadow);
-
-            // Ray Traced Indirect Diffuse
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingIndirectDiffuseEvaluation);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingIndirectDiffuseUpscale);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingFilterIndirectDiffuse);
-
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingDebugOverlay);
-            m_RecordedSamplersRT.Add(HDProfileId.ForwardPreRefraction);
-            m_RecordedSamplersRT.Add(HDProfileId.RayTracingRecursiveRendering);
-            m_RecordedSamplersRT.Add(HDProfileId.RayTracingDepthPrepass);
-            m_RecordedSamplersRT.Add(HDProfileId.RayTracingFlagMask);
-            m_RecordedSamplersRT.Add(HDProfileId.RaytracingDeferredLighting);
-        }
-
-        float GetSamplerTiming(HDProfileId samplerId, ProfilingSampler sampler, DebugProfilingType type)
-        {
-            if (data.averageProfilerTimingsOverASecond)
-            {
-                // Find the right accumulated dictionary
-                var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                    type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                    m_AccumulatedGPUTiming;
-
-                AccumulatedTiming accTiming = null;
-                if (accumulatedDictionary.TryGetValue((int)samplerId, out accTiming))
-                    return accTiming.lastAverage;
-            }
-            else
-            {
-                return (type == DebugProfilingType.CPU) ? sampler.cpuElapsedTime : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime);
-            }
-
-            return 0.0f;
-        }
-
-        ObservableList<DebugUI.Widget> BuildProfilingSamplerWidgetList(List<HDProfileId> samplerList)
-        {
-            var result = new ObservableList<DebugUI.Widget>();
-
-            DebugUI.Value CreateWidgetForSampler(HDProfileId samplerId, ProfilingSampler sampler, DebugProfilingType type)
-            {
-                // Find the right accumulated dictionary and add it there if not existing yet.
-                var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                    type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                    m_AccumulatedGPUTiming;
-
-                if (!accumulatedDictionary.ContainsKey((int)samplerId))
-                {
-                    accumulatedDictionary.Add((int)samplerId, new AccumulatedTiming());
-                }
-                return new()
-                {
-                    formatString = "{0:F2}ms",
-                    refreshRate = 1.0f / 5.0f,
-                    getter = () => GetSamplerTiming(samplerId, sampler, type),
-                };
-            }
-
-            foreach (var samplerId in samplerList)
-            {
-                var sampler = ProfilingSampler.Get(samplerId);
-
-                sampler.enableRecording = true;
-
-                result.Add(new DebugUI.ValueTuple
-                {
-                    displayName = sampler.name,
-                    values = new[]
-                    {
-                        CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.CPU),
-                        CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.InlineCPU),
-                        CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.GPU),
-                    }
-                });
-            }
-
-            return result;
-        }
-
-        void UpdateListOfAveragedProfilerTimings(List<HDProfileId> samplers, bool needUpdatingAverages)
-        {
-            foreach (var samplerId in samplers)
-            {
-                var sampler = ProfilingSampler.Get(samplerId);
-
-                // Accumulate.
-                AccumulatedTiming accCPUTiming = null;
-                if (m_AccumulatedCPUTiming.TryGetValue((int)samplerId, out accCPUTiming))
-                    accCPUTiming.accumulatedValue += sampler.cpuElapsedTime;
-
-                AccumulatedTiming accInlineCPUTiming = null;
-                if (m_AccumulatedInlineCPUTiming.TryGetValue((int)samplerId, out accInlineCPUTiming))
-                    accInlineCPUTiming.accumulatedValue += sampler.inlineCpuElapsedTime;
-
-                AccumulatedTiming accGPUTiming = null;
-                if (m_AccumulatedGPUTiming.TryGetValue((int)samplerId, out accGPUTiming))
-                    accGPUTiming.accumulatedValue += sampler.gpuElapsedTime;
-
-                if (needUpdatingAverages)
-                {
-                    if (accCPUTiming != null)
-                        accCPUTiming.UpdateLastAverage(m_AccumulatedFrames);
-                    if (accInlineCPUTiming != null)
-                        accInlineCPUTiming.UpdateLastAverage(m_AccumulatedFrames);
-                    if (accGPUTiming != null)
-                        accGPUTiming.UpdateLastAverage(m_AccumulatedFrames);
-                }
-            }
-        }
-
-        internal void UpdateAveragedProfilerTimings()
-        {
-            m_TimeSinceLastAvgValue += Time.unscaledDeltaTime;
-            m_AccumulatedFrames++;
-            bool needUpdatingAverages = m_TimeSinceLastAvgValue >= k_AccumulationTimeInSeconds;
-
-            UpdateListOfAveragedProfilerTimings(m_RecordedSamplers, needUpdatingAverages);
-            UpdateListOfAveragedProfilerTimings(m_RecordedSamplersRT, needUpdatingAverages);
-
-            if (needUpdatingAverages)
-            {
-                m_TimeSinceLastAvgValue = 0.0f;
-                m_AccumulatedFrames = 0;
-            }
-        }
-
-        void RegisterDisplayStatsDebug()
-        {
-            var list = new List<DebugUI.Widget>();
-
-            debugFrameTiming.RegisterDebugUI(list);
-
-            EnableProfilingRecorders();
-            list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });
-            list.Add(new DebugUI.Foldout("Detailed Stats", BuildProfilingSamplerWidgetList(m_RecordedSamplers), new[] { "CPU", "CPUInline", "GPU" }));
-
-            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
-            {
-                EnableProfilingRecordersRT();
-                list.Add(new DebugUI.Foldout("Ray Tracing Stats", BuildProfilingSamplerWidgetList(m_RecordedSamplersRT), new[] { "CPU", "CPUInline", "GPU" }));
-            }
-            list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value });
-            {
-                list.Add(new DebugUI.Container
-                {
-                    isHiddenCallback = () => !data.countRays,
-                    children =
-                    {
-                        new DebugUI.Value { displayName = "Ambient Occlusion", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.AmbientOcclusion)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Shadows Directional", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ShadowDirectional)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Shadows Area", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ShadowAreaLight)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Shadows Point/Spot", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ShadowPointSpot)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Reflections Forward ", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ReflectionForward)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Reflections Deferred", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ReflectionDeferred)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Diffuse GI Forward", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.DiffuseGI_Forward)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Diffuse GI Deferred", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.DiffuseGI_Deferred)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Recursive Rendering", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Recursive)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Total", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
-                    }
-                });
-            }
-
-            m_DebugDisplayStatsItems = list.ToArray();
-            var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true, groupIndex: int.MinValue);
-            panel.flags = DebugUI.Flags.RuntimeOnly;
-            panel.children.Add(m_DebugDisplayStatsItems);
         }
 
         DebugUI.Widget CreateMissingDebugShadersWarning()
@@ -1090,20 +863,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     return true;
 #else
                     if (HDRenderPipelineGlobalSettings.instance != null)
-                        return HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                        return !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
                     return true;
 #endif
                 }
             };
-        }
-
-        void UnregisterDisplayStatsDebug()
-        {
-            DisableProfilingRecorders(m_RecordedSamplers);
-            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
-                DisableProfilingRecorders(m_RecordedSamplersRT);
-
-            UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
         }
 
         static class MaterialStrings
@@ -1229,12 +993,6 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugMaterialItems);
         }
 
-        void RefreshDisplayStatsDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            UnregisterDisplayStatsDebug();
-            RegisterDisplayStatsDebug();
-        }
-
         // For now we just rebuild the lighting panel if needed, but ultimately it could be done in a better way
         void RefreshLightingDebug<T>(DebugUI.Field<T> field, T value)
         {
@@ -1317,6 +1075,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ContactShadowsLightIndex = new() { name = "Light Index", tooltip = "Enable to display Contact shadows for each Light individually." };
             public static readonly NameAndTooltip RTASDebugView = new() { name = "Ray Tracing Acceleration Structure View", tooltip = "Use the drop-down to select a rendering view to display the ray tracing acceleration structure." };
             public static readonly NameAndTooltip RTASDebugMode = new() { name = "Ray Tracing Acceleration Structure Mode", tooltip = "Use the drop-down to select a rendering mode to display the ray tracing acceleration structure." };
+            public static readonly NameAndTooltip VolumetricCloudsTooltip = new() { name = "Volumetric Clouds Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display the volumemtric clouds." };
 
             // Tile/Cluster debug
             public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
@@ -1605,6 +1364,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugMode, getter = () => (int)data.rtasDebugMode, setter = value => SetRTASDebugMode((RTASDebugMode)value), autoEnum = typeof(RTASDebugMode), getIndex = () => data.rtasDebugModeEnumIndex, setIndex = value => { data.rtasDebugModeEnumIndex = value; } }
                 }
             });
+
+            list.Add(new DebugUI.Container
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.VolumetricClouds,
+                children =
+                {
+                    new DebugUI.EnumField { nameAndTooltip = LightingStrings.VolumetricCloudsTooltip, getter = () => (int)data.volumetricCloudDebug, setter = value => SetVolumetricCloudsDebugMode((VolumetricCloudsDebug)value), autoEnum = typeof(VolumetricCloudsDebug), getIndex = () => data.volumetricCloudsDebugModeEnumIndex, setIndex = value => { data.volumetricCloudsDebugModeEnumIndex = value; } },
+                }
+            });
+
             list.Add(new DebugUI.Container()
             {
                 isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.PreRefractionColorPyramid && data.fullScreenDebugMode != FullScreenDebugMode.FinalColorPyramid && data.fullScreenDebugMode != FullScreenDebugMode.DepthPyramid,
@@ -1959,7 +1728,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterDebug()
         {
-            RegisterDisplayStatsDebug();
             RegisterMaterialDebug();
             RegisterLightingDebug();
             RegisterRenderingDebug();
@@ -1968,7 +1736,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UnregisterDebug()
         {
-            UnregisterDisplayStatsDebug();
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterRenderingDebug();

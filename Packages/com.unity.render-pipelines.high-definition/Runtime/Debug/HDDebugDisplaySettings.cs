@@ -3,9 +3,14 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class HDDebugDisplaySettings : DebugDisplaySettings<HDDebugDisplaySettings>
     {
         /// <summary>
+        /// Rendering Debugger display stats.
+        /// </summary>
+        internal DebugDisplaySettingsStats<HDProfileId> displayStats { get; private set; }
+
+        /// <summary>
         /// Volume-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsVolume VolumeSettings { get; private set; }
+        internal DebugDisplaySettingsVolume volumeSettings { get; private set; }
 
         /// <summary>
         /// Decal-related Rendering Debugger settings.
@@ -19,8 +24,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void Reset()
         {
             base.Reset();
-            VolumeSettings = Add(new DebugDisplaySettingsVolume(new HDVolumeDebugSettings()));
+            displayStats = Add(new DebugDisplaySettingsStats<HDProfileId>(new HDDebugDisplayStats()));
+            volumeSettings = Add(new DebugDisplaySettingsVolume(new HDVolumeDebugSettings()));
             decalSettings = Add(new DebugDisplaySettingsDecal());
+        }
+
+        internal void UpdateDisplayStats()
+        {
+            if (displayStats != null)
+                displayStats.debugDisplayStats.Update();
         }
     }
 }

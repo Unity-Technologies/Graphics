@@ -62,13 +62,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
-            [SurfaceDataAttributes("Transmission Mask")]
-            public float transmissionMask;
 
             // Transmission
             // + Diffusion Profile
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
+            [SurfaceDataAttributes("Transmission Mask")]
+            public float transmissionMask;
 
             // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]

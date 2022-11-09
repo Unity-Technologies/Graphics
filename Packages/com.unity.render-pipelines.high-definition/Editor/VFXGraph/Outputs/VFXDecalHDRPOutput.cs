@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.HDRP
         public class AngleFadeProperty
         {
             [Tooltip("Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface." +
-                " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Settings."), MinMax(0.0f, 180.0f)]
+                " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Global Settings."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
 
@@ -343,20 +343,20 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (!supportDecals)
             {
                 manager.RegisterError("DecalsDisabled", VFXErrorType.Warning,
-                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Settings. Enable 'Decals' in your HDRP Asset and your HDRP Settings to make this output work.");
+                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Asset. Enable 'Decals' in your HDRP Asset to make this output work.");
             }
 
             if (!enableDecalLayers)
             {
                 manager.RegisterError("DecalLayersDisabled", VFXErrorType.Warning,
                     $"The Angle Fade parameter won't have any effect, because the 'Decal Layers' setting is disabled." +
-                    $" Enable 'Decal Layers' in your HDRP Asset and in the HDRP Settings if you want to control the Angle Fade." +
+                    $" Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade." +
                     $" There is a performance cost of enabling this option.");
             }
 

@@ -38,7 +38,7 @@ cameraData.cameraStack.Add(myOverlayCamera);
 
 The Overlay Camera remains in the Scene, but is no longer part of the Camera Stack.
 
-You can remove a Camera from a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html) component, like this:
+You can remove a Camera from a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
 ```
 var cameraData = camera.GetUniversalAdditionalCameraData();
@@ -56,7 +56,7 @@ cameraData.cameraStack.Remove(myOverlayCamera);
 
 The Base Camera renders the base layer of the Camera Stack, and the Overlay Cameras in the stack render on top of this in the order that they are listed, from top to bottom.
 
-You can reorder a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html) component.
+You can reorder a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component.
 
 ## Adding the same Overlay Camera to multiple stacks
 
@@ -69,7 +69,7 @@ To add an Overlay Camera to multiple Camera Stacks:
 
 The Overlay Camera is now rendering in both Camera Stacks.
 
-You can also add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html) component, like this:
+You can also add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
 ```
 var cameraData = camera.GetUniversalAdditionalCameraData();

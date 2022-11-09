@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using UnityEditor.VFX.Operator;
 
@@ -144,35 +145,35 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 
             var transformSlot = inputSlots.Last();
             if (actualSkinnedTransform == SampleMesh.SkinnedRootTransform.ApplyWorldRootTransform &&
-                transformSlot.space == VFXCoordinateSpace.Local)
+                transformSlot.space == VFXSpace.Local)
             {
                 manager.RegisterError("MixingSMRWorldAndLocalPostTransformBlock", VFXErrorType.Warning, SampleMesh.kMixingSMRWorldAndLocalPostTransformMsg);
             }
         }
 
-        private VFXCoordinateSpace GetWantedOutputSpace()
+        private VFXSpace GetWantedOutputSpace()
         {
             //If we are applying the skinned mesh in world, using a local transform afterwards looks unexpected, forcing conversion of inputs to world.
             if (actualSkinnedTransform == SampleMesh.SkinnedRootTransform.ApplyWorldRootTransform)
-                return VFXCoordinateSpace.World;
+                return VFXSpace.World;
 
             //Otherwise, the input slot transform control the owner space.
             return GetOwnerSpace();
         }
 
         //Warning: if GetOwnerSpace() != GetOutputSpaceFromSlot(), then, conversion *must* be handled in parameters computation
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
             if (outputSlot.spaceable)
                 return GetWantedOutputSpace();
 
-            return (VFXCoordinateSpace)int.MaxValue;
+            return (VFXSpace)int.MaxValue;
         }
 
         public override IEnumerable<VFXNamedExpression> parameters
@@ -243,8 +244,8 @@ namespace UnityEditor.VFX.Block
                 var ownerSpace = GetOwnerSpace();
                 var outputSpaceExpression = GetWantedOutputSpace();
                 if (ownerSpace != outputSpaceExpression
-                    && outputSpaceExpression != (VFXCoordinateSpace)int.MaxValue
-                    && ownerSpace != (VFXCoordinateSpace)int.MaxValue)
+                    && outputSpaceExpression != (VFXSpace)int.MaxValue
+                    && ownerSpace != (VFXSpace)int.MaxValue)
                 {
                     transform.current = ConvertSpace(transform.current, SpaceableType.Matrix, outputSpaceExpression);
                     transform.previous = ConvertSpace(transform.previous, SpaceableType.Matrix, outputSpaceExpression);

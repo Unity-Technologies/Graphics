@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var createdAsset = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                     UpdateGraphicsSettings(createdAsset);
 
-                    Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
+                    Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Global Settings.");
                 }
 
                 if (instance == null)
@@ -718,11 +718,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool supportProbeVolumes = false;
 
         /// <summary>
-        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
-        /// </summary>
-        public bool supportRuntimeDebugDisplay = false;
-
-        /// <summary>
         /// Controls whether diffusion profiles referenced by an imported material should be automatically added to the list.
         /// </summary>
         public bool autoRegisterDiffusionProfiles = true;
@@ -738,7 +733,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (apvScenesData == null)
                 apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
-
 
             apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
             return apvScenesData;

@@ -95,6 +95,8 @@ ${VFXEnd}
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
+		VFX_FRAG_SETUP_INSTANCE_ID(i);
+
 		${VFXComputeNormalWS}
 
         #ifdef VFX_SHADERGRAPH

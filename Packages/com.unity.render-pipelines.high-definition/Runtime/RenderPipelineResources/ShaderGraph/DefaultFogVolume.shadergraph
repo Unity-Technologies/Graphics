@@ -648,10 +648,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -844.0001220703125,
-            "y": 239.0,
-            "width": 208.0,
-            "height": 326.0001220703125
+            "x": -817.3333129882813,
+            "y": 227.3332977294922,
+            "width": 209.333251953125,
+            "height": 328.0
         }
     },
     "m_Slots": [
@@ -823,7 +823,8 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false
+    "m_SupportVFX": false,
+    "m_SupportComputeForVertexSetup": false
 }
 
 {
@@ -838,10 +839,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1881.0001220703125,
-            "y": 258.0000305175781,
-            "width": 143.0,
-            "height": 34.000030517578128
+            "x": -1879.0,
+            "y": 258.0,
+            "width": 142.5,
+            "height": 34.0
         }
     },
     "m_Slots": [
@@ -1122,10 +1123,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1012.0001220703125,
-            "y": 358.0000915527344,
-            "width": 130.99993896484376,
-            "height": 149.00003051757813
+            "x": -989.3333740234375,
+            "y": 353.3333435058594,
+            "width": 132.666748046875,
+            "height": 150.66668701171876
         }
     },
     "m_Slots": [
@@ -2350,7 +2351,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Scroll Speed",
     "m_DefaultReferenceName": "_Scroll_Speed",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "_ScrollSpeed",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",

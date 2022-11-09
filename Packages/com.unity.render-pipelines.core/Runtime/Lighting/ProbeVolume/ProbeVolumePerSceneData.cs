@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering
         }
 
         [SerializeField] internal ProbeVolumeAsset asset;
+        [SerializeField] internal string sceneGUID = "";
         [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
         [SerializeField] List<SerializablePerScenarioDataItem> serializedScenarios = new();
@@ -141,22 +142,41 @@ namespace UnityEngine.Rendering
         internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerScenarioCellData();
 
         internal bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
-        bool ResolvePerScenarioCellData()
+        bool ResolvePerScenarioCellData(bool verbose = true)
         {
-            int loadedCount = 0, targetLoaded = otherScenario == null ? 1 : 2;
-            if (activeScenario != null && scenarios.TryGetValue(activeScenario, out var data0))
+            if (activeScenario == null || !scenarios.TryGetValue(activeScenario, out var data0))
             {
-                if (asset.ResolvePerScenarioCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
-                    loadedCount++;
+                if (verbose)
+                    Debug.LogError($"Scenario '{activeScenario}' has not been baked.");
+                return false;
             }
-            if (otherScenario != null && scenarios.TryGetValue(otherScenario, out var data1))
+            if (!asset.ResolvePerScenarioCellData(data0.cellDataAsset, data0.cellOptionalDataAsset, 0))
             {
-                if (asset.ResolvePerScenarioCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, loadedCount))
-                    loadedCount++;
+                if (verbose)
+                    Debug.LogError($"Baked data for scenario '{activeScenario}' cannot be loaded.");
+                return false;
             }
+
+            if (otherScenario != null)
+            {
+                if (!scenarios.TryGetValue(otherScenario, out var data1))
+                {
+                    if (verbose)
+                        Debug.LogError($"Scenario '{otherScenario}' has not been baked.");
+                    return false;
+                }
+
+                if (!asset.ResolvePerScenarioCellData(data1.cellDataAsset, data1.cellOptionalDataAsset, 1))
+                {
+                    if (verbose)
+                        Debug.LogError($"Baked data for scenario '{otherScenario}' cannot be loaded.");
+                    return false;
+                }
+            }
+
             for (var i = 0; i < asset.cells.Length; ++i)
-                asset.cells[i].hasTwoScenarios = loadedCount == 2;
-            return loadedCount == targetLoaded;
+                asset.cells[i].hasTwoScenarios = otherScenario != null;
+            return true;
         }
 
         internal void QueueAssetLoading()
@@ -169,7 +189,10 @@ namespace UnityEngine.Rendering
             assetLoaded = true;
 #if UNITY_EDITOR
             if (refVol.sceneData != null)
-                refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
+            {
+                var set = refVol.sceneData.GetBakingSetForScene(gameObject.scene);
+                if (set) refVol.bakingProcessSettings = set.settings;
+            }
 #endif
         }
 
@@ -206,7 +229,7 @@ namespace UnityEngine.Rendering
             QueueAssetLoading();
         }
 
-        internal void UpdateActiveScenario(string activeScenario, string otherScenario)
+        internal void UpdateActiveScenario(string activeScenario, string otherScenario, bool verbose)
         {
             if (asset == null)
                 return;
@@ -218,8 +241,8 @@ namespace UnityEngine.Rendering
             this.otherScenario = otherScenario;
             if (!assetLoaded)
                 QueueAssetLoading();
-            else if (!ResolvePerScenarioCellData())
-                QueueAssetRemoval();
+            else
+                ResolvePerScenarioCellData(verbose);
         }
 
 #if UNITY_EDITOR
@@ -268,6 +291,17 @@ namespace UnityEngine.Rendering
         public void StripSupportData()
         {
             cellSupportDataAsset = null;
+        }
+
+        internal void ClearBakedDataReferences()
+        {
+            QueueAssetRemoval();
+
+            asset = null;
+            cellSharedDataAsset = null;
+            cellSupportDataAsset = null;
+            serializedScenarios.Clear();
+            scenarios.Clear();
         }
 #endif
     }

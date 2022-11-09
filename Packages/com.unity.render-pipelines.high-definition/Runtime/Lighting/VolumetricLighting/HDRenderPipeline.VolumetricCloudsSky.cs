@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Kernels
             data.renderKernel = m_CloudRenderKernel;
             data.preUpscaleKernel = m_PreUpscaleCloudsSkyKernel;
-            data.finalUpscaleKernel = m_UpscaleAndCombineCloudsSkyKernel;
+            data.finalUpscaleKernel = m_UpscaleCloudsSkyKernel;
 
             data.pixelCoordToViewDir = pixelCoordToViewDir;
 
@@ -127,26 +127,29 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.Push(cmd, passData.commonData.cloudsCB, passData.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
 
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", passData.commonData.microErosion);
 
             // Ray-march the clouds for this frame
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", passData.commonData.cloudsCB._PhysicallyBasedSun == 1);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._MaxZMaskTexture, passData.maxZMask);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._Worley128RGBA, passData.commonData.worley128RGBA);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._ErosionNoise, passData.commonData.erosionNoise);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudMapTexture, passData.commonData.cloudMapTexture);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudLutTexture, passData.commonData.cloudLutTexture);
-            cmd.SetComputeBufferParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, passData.ambientProbeBuffer);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._MaxZMaskTexture, passData.maxZMask);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._Worley128RGBA, passData.commonData.worley128RGBA);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._ErosionNoise, passData.commonData.erosionNoise);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudMapTexture, passData.commonData.cloudMapTexture);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudLutTexture, passData.commonData.cloudLutTexture);
+            cmd.SetComputeBufferParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, passData.ambientProbeBuffer);
 
             // Output buffers
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsLightingTextureRW, passData.intermediateLightingBuffer);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsDepthTextureRW, passData.intermediateDepthBuffer);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudsLightingTextureRW, passData.intermediateLightingBuffer);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudsDepthTextureRW, passData.intermediateDepthBuffer);
 
-            cmd.DispatchCompute(passData.commonData.volumetricCloudsCS, passData.renderKernel, traceTX, traceTY, 1);
+            cmd.DispatchCompute(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, traceTX, traceTY, 1);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
 
-            mpb.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, passData.intermediateLightingBuffer);
+            mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer);
             CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, miplevel: 2, cubemapFace: passData.cubemapFace);
             CoreUtils.DrawFullScreen(cmd, passData.cloudCombinePass, mpb, 3);
+
+            CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", false);
         }
 
         class VolumetricCloudsSkyHighPassData
@@ -244,25 +247,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the multi compile
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", passData.commonData.microErosion);
 
             // Bind the constant buffer
-            ConstantBuffer.Push(cmd, passData.commonData.cloudsCB, passData.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+            ConstantBuffer.Push(cmd, passData.commonData.cloudsCB, passData.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
 
             // Ray-march the clouds for this frame
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", passData.commonData.cloudsCB._PhysicallyBasedSun == 1);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._MaxZMaskTexture, passData.maxZMask);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._Worley128RGBA, passData.commonData.worley128RGBA);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._ErosionNoise, passData.commonData.erosionNoise);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudMapTexture, passData.commonData.cloudMapTexture);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudLutTexture, passData.commonData.cloudLutTexture);
-            cmd.SetComputeBufferParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, passData.ambientProbeBuffer);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._MaxZMaskTexture, passData.maxZMask);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._Worley128RGBA, passData.commonData.worley128RGBA);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._ErosionNoise, passData.commonData.erosionNoise);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudMapTexture, passData.commonData.cloudMapTexture);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudLutTexture, passData.commonData.cloudLutTexture);
+            cmd.SetComputeBufferParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._VolumetricCloudsAmbientProbeBuffer, passData.ambientProbeBuffer);
 
             // Output buffers
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsLightingTextureRW, passData.intermediateLightingBuffer0);
-            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsCS, passData.renderKernel, HDShaderIDs._CloudsDepthTextureRW, passData.intermediateDepthBuffer);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudsLightingTextureRW, passData.intermediateLightingBuffer0);
+            cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._CloudsDepthTextureRW, passData.intermediateDepthBuffer);
 
             // Trace the clouds
-            cmd.DispatchCompute(passData.commonData.volumetricCloudsCS, passData.renderKernel, finalTX, finalTY, 1);
+            cmd.DispatchCompute(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, finalTX, finalTY, 1);
 
             // Reset the multi compile
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
@@ -276,17 +280,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output the result into the output buffer
                 mpb.SetTexture(HDShaderIDs._CameraColorTexture, passData.intermediateLightingBuffer1);
-                mpb.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, passData.intermediateLightingBuffer0);
+                mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer0);
                 CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, 0, passData.cubemapFace);
                 CoreUtils.DrawFullScreen(cmd, passData.cloudCombinePass, mpb, 1);
             }
             else
             {
                 // Output the result into the output buffer
-                mpb.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, passData.intermediateLightingBuffer0);
+                mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer0);
                 CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, 0, passData.cubemapFace);
                 CoreUtils.DrawFullScreen(cmd, passData.cloudCombinePass, mpb, 2);
             }
+            CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", false);
         }
 
         class VolumetricCloudsPreUpscalePassData
@@ -389,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     intermediateCubemap = passData.output;
                 }
 
-                using (var builder = renderGraph.AddRenderPass<VolumetricCloudsUpscalePassData>("VolumetricCloudsUpscaleAndCombine", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine)))
+                using (var builder = renderGraph.AddRenderPass<VolumetricCloudsUpscalePassData>("VolumetricCloudsUpscale", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscale)))
                 {
                     passData.cloudCombinePass = m_CloudCombinePass;
                     passData.pixelCoordToViewDir = pixelCoordToViewDir;

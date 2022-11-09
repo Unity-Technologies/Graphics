@@ -120,8 +120,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int cameraSamples = 0;
                 if (msaaSamples == -1)
                 {
-                    RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
-                    cameraSamples = descriptor.msaaSamples;
+                    RTHandle sourceTex = source;
+                    cameraSamples = sourceTex.rt.antiAliasing;
                 }
                 else
                     cameraSamples = msaaSamples;

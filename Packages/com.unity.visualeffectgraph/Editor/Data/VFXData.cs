@@ -9,18 +9,9 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     // TODO Move this
-    // Must match enum in C++
-    enum VFXCoordinateSpace
-    {
-        Local = 0,
-        World = 1,
-        None = int.MaxValue
-    }
-
-    // TODO Move this
     interface ISpaceable
     {
-        VFXCoordinateSpace space { get; set; }
+        VFXSpace space { get; set; }
     }
 
     interface IVFXDataGetter

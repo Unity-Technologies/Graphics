@@ -45,11 +45,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if HAVE_VFX_MODIFICATION
         ${VFXLoadGraphValues}
 
+    #if VFX_LOCAL_SPACE
         ${VFXLoadParameter:{localToWorld}}
         vfxLocalToWorld = localToWorld;
 
         ${VFXLoadParameter:{worldToLocal}}
         vfxWorldToLocal = worldToLocal;
+    #else
+        vfxWorldToLocal = k_identity4x4;
+        vfxLocalToWorld = k_identity4x4;
+    #endif
 #endif
 
         uint indirectId = index + instancingBatchSize + instanceActiveIndex * RAW_CAPACITY;

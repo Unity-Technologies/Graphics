@@ -79,15 +79,16 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Path Tracing (Preview)", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Ray-Tracing-Path-Tracing")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
         /// Enables path tracing (thus disabling most other passes).
         /// </summary>
         [Tooltip("Enables path tracing (thus disabling most other passes).")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Defines the layers that path tracing should include.
@@ -384,13 +385,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
-            bool isDirty = false;
+            bool isCameraDirty = false;
             // Check resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
-                isDirty = true;
+                isCameraDirty = true;
             }
 
             // Check sky dirtiness
@@ -398,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
-                isDirty = true;
+                isCameraDirty = true;
             }
 
             // Check fog dirtiness
@@ -406,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
-                isDirty = true;
+                isCameraDirty = true;
             }
 
             // Check acceleration structure dirtiness
@@ -414,42 +415,35 @@ namespace UnityEngine.Rendering.HighDefinition
             if (accelSize != camData.accelSize)
             {
                 camData.accelSize = accelSize;
-                isDirty = true;
+                isCameraDirty = true;
             }
 
-            if (isDirty)
-            {
-                return ResetPathTracing(camID, camData);
-            }
-
+            bool isSceneDirty = false;
             // Check materials dirtiness
             if (GetMaterialDirtiness(hdCamera))
             {
                 ResetMaterialDirtiness(hdCamera);
-                ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check light or geometry transforms dirtiness
             if (GetTransformDirtiness(hdCamera))
             {
                 ResetTransformDirtiness(hdCamera);
-                ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check lights dirtiness
             if (m_CacheLightCount != m_RayTracingLights.lightCount)
             {
                 m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
-                ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // If nothing but the camera has changed, re-render the sky texture
@@ -457,6 +451,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RenderSky = true;
                 m_CameraID = camID;
+            }
+
+            if (isSceneDirty)
+            {
+                ResetPathTracing();
+                return camData;
+            }
+
+            if (isCameraDirty)
+            {
+                return ResetPathTracing(camID, camData);
             }
 
             return camData;
@@ -731,13 +736,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.SetCameraData(camID, camData);
             }
 
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
+            if (!hdCamera.ActiveRayTracingAccumulation())
             {
                 camData.ResetIteration();
                 m_SubFrameManager.subFrameCount = 1;
             }
-#endif
 
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {

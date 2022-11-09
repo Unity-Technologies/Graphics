@@ -9,6 +9,8 @@
             #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+            #pragma skip_variants INSTANCING_ON
+
 	        #if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
 	        #define USE_ALPHA_TEST 1
 	        #endif

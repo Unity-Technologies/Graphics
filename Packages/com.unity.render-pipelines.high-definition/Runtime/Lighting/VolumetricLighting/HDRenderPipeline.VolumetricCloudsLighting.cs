@@ -5,6 +5,10 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        // Setup to match FORWARD_ECCENTRICITY in VolumetricCloudsUtilies.hlsl
+        // Kinda empirical because they are not using the same phase function
+        const float m_VolumetricCloudsAnisotropy = 0.7f;
+
         // Buffers required to evaluate the probe
         internal GraphicsBuffer m_CloudsDynamicProbeBuffer = null;
         internal GraphicsBuffer m_CloudsStaticProbeBuffer = null;
@@ -32,15 +36,11 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsBuffer probeBuffer = staticSky ? m_CloudsStaticProbeBuffer : m_CloudsDynamicProbeBuffer;
             if (HasVolumetricClouds(hdCamera, in settings) && lightingSky.skyRenderer != null)
             {
-                using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.VolumetricCloudsAmbientProbe)))
-                {
-                    TextureHandle outputCubemap = renderGraph.CreateTexture(new TextureDesc(16, 16)
-                    { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
-
-                    outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, lightingSky, hdCamera, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
-                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, outputForClouds: true, null, null, probeBuffer, new Vector4(settings.ambientLightProbeDimmer.value, 0.0f, 0.0f, 0.0f), null);
-                }
+                // We include background clouds in the ambient probe because we assume they are located above the volumetric clouds (in the background) so they should block sky light
+                m_SkyManager.RenderSkyAmbientProbe(renderGraph, lightingSky, hdCamera, probeBuffer, renderBackgroundClouds: true, HDProfileId.VolumetricCloudsAmbientProbe,
+                    settings.ambientLightProbeDimmer.value, m_VolumetricCloudsAnisotropy);
             }
+
             return probeBuffer;
         }
     }

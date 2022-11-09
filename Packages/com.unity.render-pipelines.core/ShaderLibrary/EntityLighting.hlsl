@@ -217,6 +217,23 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #define LIGHTMAP_EXTRA_ARGS_USE uv
 #endif
 
+// For the built-in target, lightmaps are defined with half precision.
+// Unfortunately, TEXTURE2D_Half_PARAM is not defined.
+#ifdef BUILTIN_TARGET_API
+#undef TEXTURE2D_LIGHTMAP_PARAM
+#undef TEXTURE2D_LIGHTMAP_ARGS
+#undef SAMPLE_TEXTURE2D_LIGHTMAP
+
+#ifdef SHADER_API_GLES
+#define TEXTURE2D_LIGHTMAP_PARAM(textureName, samplerName) TEXTURE2D_HALF(textureName)
+#else
+#define TEXTURE2D_LIGHTMAP_PARAM(textureName, samplerName) TEXTURE2D_HALF(textureName), SAMPLER(samplerName)
+#endif
+
+#define TEXTURE2D_LIGHTMAP_ARGS TEXTURE2D_ARGS
+#define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D
+#endif
+
 real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool encodedLightmap, real4 decodeInstructions)
 {
     // transform is scale and bias

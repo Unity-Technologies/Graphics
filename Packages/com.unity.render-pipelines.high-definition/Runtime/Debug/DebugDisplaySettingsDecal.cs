@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip mipLevel = new() { name = "Mip Level", tooltip = "Use the slider to select the mip level for the decal atlas." };
         }
 
+        [DisplayInfo(name = "Decals", order = 5)]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Decals";
@@ -46,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         return true;
 #else
                             if (HDRenderPipelineGlobalSettings.instance != null)
-                                return HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                                return !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
                             return true;
 #endif
                     }

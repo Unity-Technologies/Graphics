@@ -1,12 +1,14 @@
 using UnityEngine.Rendering;
+using Unity.Collections;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
     static class HDShadowUtils
     {
-        public static readonly float k_MinShadowNearPlane = 0.01f;
-        public static readonly float k_MaxShadowNearPlane = 10.0f;
+        public const float k_MinShadowNearPlane = 0.01f;
+        public const float k_MaxShadowNearPlane = 10.0f;
 
         public static float Asfloat(uint val) { unsafe { return *((float*)&val); } }
         public static float Asfloat(int val) { unsafe { return *((float*)&val); } }
@@ -30,18 +32,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static void ExtractPointLightData(VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, HDShadowFilteringQuality filteringQuality,
-            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
+        public static void ExtractPointLightData(NativeArray<Matrix4x4> cubeMapFaces, VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, HDShadowFilteringQuality filteringQuality, bool reverseZ,
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
             float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 79.0f);
-            ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            ExtractPointLightMatrix(cubeMapFaces, visibleLight, faceIndex, nearPlane, guardAngle, reverseZ, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
-            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
+        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -53,21 +55,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 nearPlane = Mathf.Max(HDShadowUtils.k_MinShadowNearPlane, nearPlane);
 
             float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
-            ExtractSpotLightMatrix(visibleLight, forwardOffset: 0, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            ExtractSpotLightMatrix(visibleLight, forwardOffset: 0, spotAngle, nearPlane, guardAngle, aspectRatio, reverseZ, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
 
             if (shape == SpotLightShape.Box)
             {
                 projection = ExtractBoxLightProjectionMatrix(visibleLight.range, shapeWidth, shapeHeight, nearPlane);
-                deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
-                deviceProjectionYFlip = GL.GetGPUProjectionMatrix(projection, true);
+                Matrix4x4 deviceProjectionMatrix = GetGPUProjectionMatrix(projection, false, reverseZ);
+                deviceProjection = new Vector4(deviceProjectionMatrix.m00, deviceProjectionMatrix.m11, deviceProjectionMatrix.m22, deviceProjectionMatrix.m23);
+                deviceProjectionYFlip = GetGPUProjectionMatrix(projection, true, reverseZ);
                 InvertOrthographic(ref deviceProjectionYFlip, ref view, out invViewProjection);
+
                 splitData.cullingMatrix = projection * view;
                 splitData.cullingNearPlane = nearPlane;
             }
         }
 
+        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix, bool invertY, bool reverseZ)
+        {
+            float4x4 gpuProjectionMatrix = math.transpose(projectionMatrix);
+            if (invertY)
+            {
+                gpuProjectionMatrix.c1 = -gpuProjectionMatrix.c1;
+            }
+
+            // Now scale&bias to get Z range from -1..1 to 0..1 or 1..0
+            // matrix = scaleBias * matrix
+            //  1   0   0   0
+            //  0   1   0   0
+            //  0   0 0.5 0.5
+            //  0   0   0   1
+            float multiplier = reverseZ ? -0.5f : 0.5f;
+            gpuProjectionMatrix.c2 = gpuProjectionMatrix.c2 * multiplier + gpuProjectionMatrix.c3 * 0.5f;
+
+            return math.transpose(gpuProjectionMatrix);
+        }
+
         public static void ExtractDirectionalLightData(VisibleLight visibleLight, Vector2 viewportSize, uint cascadeIndex, int cascadeCount, float[] cascadeRatios, float nearPlaneOffset, CullingResults cullResults, int lightIndex,
-            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjectionMatrix, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -89,13 +113,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 ratios[i] = cascadeRatios[i];
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, (int)cascadeIndex, cascadeCount, ratios, (int)viewportSize.x, nearPlaneOffset, out view, out projection, out splitData);
             // and the compound (deviceProjection will potentially inverse-Z)
-            deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
+            deviceProjectionMatrix = GL.GetGPUProjectionMatrix(projection, false);
+            deviceProjection = new Vector4(deviceProjectionMatrix.m00, deviceProjectionMatrix.m11, deviceProjectionMatrix.m22, deviceProjectionMatrix.m23);
             deviceProjectionYFlip = GL.GetGPUProjectionMatrix(projection, true);
-            InvertOrthographic(ref deviceProjection, ref view, out invViewProjection);
+            InvertOrthographic(ref deviceProjectionMatrix, ref view, out invViewProjection);
         }
 
-        public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, float forwardOffset, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, HDAreaShadowFilteringQuality filteringQuality,
-            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
+        public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, float forwardOffset, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, bool reverseZ,
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
             float aspectRatio = shapeSize.x / shapeSize.y;
@@ -103,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             visibleLight.spotAngle = spotAngle;
             float guardAngle = CalcGuardAnglePerspective(visibleLight.spotAngle, viewportSize.x, 1, normalBiasMax, 180.0f - visibleLight.spotAngle);
 
-            ExtractSpotLightMatrix(visibleLight, forwardOffset, visibleLight.spotAngle, shadowNearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            ExtractSpotLightMatrix(visibleLight, forwardOffset, visibleLight.spotAngle, shadowNearPlane, guardAngle, aspectRatio, reverseZ,  out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
         }
 
         // Cubemap faces with flipped z coordinate.
@@ -249,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Ortho(-width / 2, width / 2, -height / 2, height / 2, nearPlane, range);
         }
 
-        static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float forwardOffset, float spotAngle, float nearPlane, float guardAngle, float aspectRatio, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float forwardOffset, float spotAngle, float nearPlane, float guardAngle, float aspectRatio, bool reverseZ, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
@@ -269,24 +294,66 @@ namespace UnityEngine.Rendering.HighDefinition
             proj = ExtractSpotLightProjectionMatrix(vl.range - forwardOffset, spotAngle, nearPlane - forwardOffset, aspectRatio, guardAngle);
 
             // and the compound (deviceProj will potentially inverse-Z)
-            deviceProj = GL.GetGPUProjectionMatrix(proj, false);
-            deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
-            InvertPerspective(ref deviceProj, ref view, out vpinverse);
+            Matrix4x4 deviceProjMatrix = GetGPUProjectionMatrix(proj, false, reverseZ);
+            deviceProjYFlip = GetGPUProjectionMatrix(proj, true, reverseZ);
+            InvertPerspective(ref deviceProjMatrix, ref view, out vpinverse);
+
+            deviceProj = new Vector4(deviceProjMatrix.m00, deviceProjMatrix.m11, deviceProjMatrix.m22, deviceProjMatrix.m23);
 
             Matrix4x4 viewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(proj, view);
-            SetSplitDataCullingPlanesFromViewProjMatrix(ref splitData, viewProj);
+            float4 planesLeft;
+            float4 planesRight;
+            float4 planesBottom;
+            float4 planesTop;
+            float4 planesNear;
+            float4 planesFar;
+            CalculateFrustumPlanes(viewProj, out planesLeft, out planesRight, out planesBottom, out planesTop, out planesNear, out planesFar);
+            // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes as we should have computed them with proj
+            if (reverseZ)
+            {
+                var tmpPlane = planesBottom;
+                planesBottom = planesTop;
+                planesTop = tmpPlane;
+            }
+            splitData.cullingPlaneCount = 6;
 
-            Matrix4x4 deviceViewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            Plane leftPlane = new Plane();
+            leftPlane.normal = planesLeft.xyz;
+            leftPlane.distance = planesLeft.w;
+            splitData.SetCullingPlane(0, leftPlane);
+
+            Plane rightPlane = new Plane();
+            rightPlane.normal = planesRight.xyz;
+            rightPlane.distance = planesRight.w;
+            splitData.SetCullingPlane(1, rightPlane);
+            Plane bottomPlane = new Plane();
+            bottomPlane.normal = planesBottom.xyz;
+            bottomPlane.distance = planesBottom.w;
+            splitData.SetCullingPlane(2, bottomPlane);
+            Plane topPlane = new Plane();
+            topPlane.normal = planesTop.xyz;
+            topPlane.distance = planesTop.w;
+            splitData.SetCullingPlane(3, topPlane);
+            Plane planeNear = new Plane();
+            planeNear.normal = planesNear.xyz;
+            planeNear.distance = planesNear.w;
+            splitData.SetCullingPlane(4, planeNear);
+            Plane planeFar = new Plane();
+            planeFar.normal = planesFar.xyz;
+            planeFar.distance = planesFar.w;
+            splitData.SetCullingPlane(5, planeFar);
+
+            Matrix4x4 deviceViewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProjMatrix, view);
 
             splitData.cullingMatrix = deviceViewProj;
             splitData.cullingNearPlane = nearPlane - forwardOffset;
             return deviceViewProj;
         }
 
-        static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        static unsafe void ExtractPointLightMatrix(NativeArray<Matrix4x4> cubemapFaces, VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, bool reverseZ, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 deviceProjection, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             if (faceIdx > (uint)CubemapFace.NegativeZ)
-                Debug.LogError("Tried to extract cubemap face " + faceIdx + ".");
+                Debug.LogError($"Tried to extract cubemap face {faceIdx}.");
 
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
@@ -295,36 +362,299 @@ namespace UnityEngine.Rendering.HighDefinition
             lightDir = vl.GetForward();
             // calculate the view matrices
             Vector3 lpos = vl.GetPosition();
-            view = kCubemapFaces[faceIdx];
-            Vector3 inverted_viewpos = kCubemapFaces[faceIdx].MultiplyPoint(-lpos);
+            view = cubemapFaces[(int)faceIdx];
+            Vector3 inverted_viewpos = cubemapFaces[(int)faceIdx].MultiplyPoint(-lpos);
             view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));
 
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
-            proj = Matrix4x4.Perspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
+            proj = SetPerspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
             // and the compound (deviceProj will potentially inverse-Z)
-            deviceProj = GL.GetGPUProjectionMatrix(proj, false);
-            deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
+            Matrix4x4 deviceProj = GetGPUProjectionMatrix(proj, false, reverseZ);
+            deviceProjection = new Vector4(deviceProj.m00, deviceProj.m11, deviceProj.m22, deviceProj.m23);
+            deviceProjYFlip = GetGPUProjectionMatrix(proj, true, reverseZ);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
             Matrix4x4 viewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(proj, view);
-            SetSplitDataCullingPlanesFromViewProjMatrix(ref splitData, viewProj);
+            SetSplitDataCullingPlanesFromViewProjMatrix(ref splitData, viewProj, reverseZ);
 
             Matrix4x4 deviceViewProj = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
 
             splitData.cullingMatrix = deviceViewProj;
             splitData.cullingNearPlane = nearZ;
-            return deviceViewProj;
         }
+
+        static Matrix4x4 SetPerspective(
+            float fovy,
+            float aspect,
+            float zNear,
+            float zFar)
+        {
+            float cotangent, deltaZ;
+            float radians = Deg2Rad(fovy / 2.0f);
+            cotangent = math.cos(radians) / math.sin(radians);
+            deltaZ = zNear - zFar;
+
+            float4x4 mat = default;
+            mat[0] = new float4(cotangent / aspect, 0f, 0f, 0f);
+            mat[1] = new float4(0f, cotangent, 0f, 0f);
+            mat[2] = new float4(0f, 0f, (zFar + zNear) / deltaZ, -1f);
+            mat[3] = new float4(0f, 0f, 2.0F * zNear * zFar / deltaZ, 0f);
+
+            return mat;
+        }
+
+        static float Deg2Rad(float deg)
+        {
+            const float kPI = 3.14159265358979323846264338327950288419716939937510F;
+            // TODO : should be deg * kDeg2Rad, but can't be changed,
+            // because it changes the order of operations and that affects a replay in some RegressionTests
+            return deg / 360.0F * 2.0F * kPI;
+        }
+
+         public static unsafe void CalculateFrustumPlanes(ref Matrix4x4 finalMatrix, Plane* outPlanes)
+         {
+            const int kPlaneFrustumLeft = 0;
+            const int kPlaneFrustumRight = 1;
+            const int kPlaneFrustumBottom = 2;
+            const int kPlaneFrustumTop = 3;
+            const int kPlaneFrustumNear = 4;
+            const int kPlaneFrustumFar = 5;
+
+            Vector4 tmpVec = default;
+            Vector4 otherVec = default;
+
+            tmpVec[0] = finalMatrix.m30;
+            tmpVec[1] = finalMatrix.m31;
+            tmpVec[2] = finalMatrix.m32;
+            tmpVec[3] = finalMatrix.m33;
+
+            otherVec[0] = finalMatrix.m00;
+            otherVec[1] = finalMatrix.m01;
+            otherVec[2] = finalMatrix.m02;
+            otherVec[3] = finalMatrix.m03;
+
+            // left & right
+            float leftNormalX = otherVec[0] + tmpVec[0];
+            float leftNormalY = otherVec[1] + tmpVec[1];
+            float leftNormalZ = otherVec[2] + tmpVec[2];
+            float leftDistance = otherVec[3] + tmpVec[3];
+            float leftDot = leftNormalX * leftNormalX + leftNormalY * leftNormalY + leftNormalZ * leftNormalZ;
+            float leftMagnitude = Mathf.Sqrt(leftDot);
+            float leftInvMagnitude = 1.0f / leftMagnitude;
+            leftNormalX *= leftInvMagnitude;
+            leftNormalY *= leftInvMagnitude;
+            leftNormalZ *= leftInvMagnitude;
+            leftDistance *= leftInvMagnitude;
+            outPlanes[kPlaneFrustumLeft].normal = new Vector3(leftNormalX, leftNormalY, leftNormalZ);
+            outPlanes[kPlaneFrustumLeft].distance = leftDistance;
+
+            float rightNormalX = -otherVec[0] + tmpVec[0];
+            float rightNormalY = -otherVec[1] + tmpVec[1];
+            float rightNormalZ = -otherVec[2] + tmpVec[2];
+            float rightDistance = -otherVec[3] + tmpVec[3];
+            float rightDot = rightNormalX * rightNormalX + rightNormalY * rightNormalY + rightNormalZ * rightNormalZ;
+            float rightMagnitude = Mathf.Sqrt(rightDot);
+            float rightInvMagnitude = 1.0f / rightMagnitude;
+            rightNormalX *= rightInvMagnitude;
+            rightNormalY *= rightInvMagnitude;
+            rightNormalZ *= rightInvMagnitude;
+            rightDistance *= rightInvMagnitude;
+            outPlanes[kPlaneFrustumRight].normal = new Vector3(rightNormalX, rightNormalY, rightNormalZ);
+            outPlanes[kPlaneFrustumRight].distance = rightDistance;
+
+            // bottom & top
+            otherVec[0] = finalMatrix.m10;
+            otherVec[1] = finalMatrix.m11;
+            otherVec[2] = finalMatrix.m12;
+            otherVec[3] = finalMatrix.m13;
+
+            float bottomNormalX = otherVec[0] + tmpVec[0];
+            float bottomNormalY = otherVec[1] + tmpVec[1];
+            float bottomNormalZ = otherVec[2] + tmpVec[2];
+            float bottomDistance = otherVec[3] + tmpVec[3];
+            float bottomDot = bottomNormalX * bottomNormalX + bottomNormalY * bottomNormalY + bottomNormalZ * bottomNormalZ;
+            float bottomMagnitude = Mathf.Sqrt(bottomDot);
+            float bottomInvMagnitude = 1.0f / bottomMagnitude;
+            bottomNormalX *= bottomInvMagnitude;
+            bottomNormalY *= bottomInvMagnitude;
+            bottomNormalZ *= bottomInvMagnitude;
+            bottomDistance *= bottomInvMagnitude;
+            outPlanes[kPlaneFrustumBottom].normal = new Vector3(bottomNormalX, bottomNormalY, bottomNormalZ);
+            outPlanes[kPlaneFrustumBottom].distance = bottomDistance;
+
+            float topNormalX = -otherVec[0] + tmpVec[0];
+            float topNormalY = -otherVec[1] + tmpVec[1];
+            float topNormalZ = -otherVec[2] + tmpVec[2];
+            float topDistance = -otherVec[3] + tmpVec[3];
+            float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
+            float topMagnitude = Mathf.Sqrt(topDot);
+            float topInvMagnitude = 1.0f / topMagnitude;
+            topNormalX *= topInvMagnitude;
+            topNormalY *= topInvMagnitude;
+            topNormalZ *= topInvMagnitude;
+            topDistance *= topInvMagnitude;
+            outPlanes[kPlaneFrustumTop].normal = new Vector3(topNormalX, topNormalY, topNormalZ);
+            outPlanes[kPlaneFrustumTop].distance = topDistance;
+
+            // near & far
+            otherVec[0] = finalMatrix.m20;
+            otherVec[1] = finalMatrix.m21;
+            otherVec[2] = finalMatrix.m22;
+            otherVec[3] = finalMatrix.m23;
+
+            float nearNormalX = otherVec[0] + tmpVec[0];
+            float nearNormalY = otherVec[1] + tmpVec[1];
+            float nearNormalZ = otherVec[2] + tmpVec[2];
+            float nearDistance = otherVec[3] + tmpVec[3];
+            float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
+            float nearMagnitude = Mathf.Sqrt(nearDot);
+            float nearInvMagnitude = 1.0f / nearMagnitude;
+            nearNormalX *= nearInvMagnitude;
+            nearNormalY *= nearInvMagnitude;
+            nearNormalZ *= nearInvMagnitude;
+            nearDistance *= nearInvMagnitude;
+            outPlanes[kPlaneFrustumNear].normal = new Vector3(nearNormalX, nearNormalY, nearNormalZ);
+            outPlanes[kPlaneFrustumNear].distance = nearDistance;
+
+            float farNormalX = -otherVec[0] + tmpVec[0];
+            float farNormalY = -otherVec[1] + tmpVec[1];
+            float farNormalZ = -otherVec[2] + tmpVec[2];
+            float farDistance = -otherVec[3] + tmpVec[3];
+            float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
+            float farMagnitude = Mathf.Sqrt(farDot);
+            float farInvMagnitude = 1.0f / farMagnitude;
+            farNormalX *= farInvMagnitude;
+            farNormalY *= farInvMagnitude;
+            farNormalZ *= farInvMagnitude;
+            farDistance *= farInvMagnitude;
+            outPlanes[kPlaneFrustumFar].normal = new Vector3(farNormalX, farNormalY, farNormalZ);
+            outPlanes[kPlaneFrustumFar].distance = farDistance;
+        }
+
+         public static unsafe void CalculateFrustumPlanes(float4x4 finalMatrix, out float4 outPlanesLeft, out float4 outPlanesRight, out float4 outPlanesBottom, out float4 outPlanesTop, out float4 outPlanesNear, out float4 outPlanesFar)
+         {
+            // const int kPlaneFrustumLeft = 0;
+            // const int kPlaneFrustumRight = 1;
+            // const int kPlaneFrustumBottom = 2;
+            // const int kPlaneFrustumTop = 3;
+            // const int kPlaneFrustumNear = 4;
+            // const int kPlaneFrustumFar = 5;
+
+            finalMatrix = math.transpose(finalMatrix);
+
+            float4 tmpVec = finalMatrix.c3;
+            float4 otherVec = finalMatrix.c0;
+            //
+            // tmpVec[0] = finalMatrix.m30;
+            // tmpVec[1] = finalMatrix.m31;
+            // tmpVec[2] = finalMatrix.m32;
+            // tmpVec[3] = finalMatrix.m33;
+            //
+            // otherVec[0] = finalMatrix.m00;
+            // otherVec[1] = finalMatrix.m01;
+            // otherVec[2] = finalMatrix.m02;
+            // otherVec[3] = finalMatrix.m03;
+
+            // left & right
+            float4 leftNormalAndDist = otherVec + tmpVec;
+            float4 leftNormalZeroedDist = math.asfloat(math.asuint(leftNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float leftDotProduct = math.dot(leftNormalZeroedDist, leftNormalZeroedDist);
+            float leftMagnitude = math.sqrt(leftDotProduct);
+            float leftInvMagnitude = 1.0f / leftMagnitude;
+            leftNormalAndDist *= leftInvMagnitude;
+            outPlanesLeft = leftNormalAndDist;
+
+            float4 rightNormalAndDist = -otherVec + tmpVec;
+            float4 rightNormalZeroedDist = math.asfloat(math.asuint(rightNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float rightDotProduct = math.dot(rightNormalZeroedDist, rightNormalZeroedDist);
+            float rightMagnitude = math.sqrt(rightDotProduct);
+            float rightInvMagnitude = 1.0f / rightMagnitude;
+            rightNormalAndDist *= rightInvMagnitude;
+            outPlanesRight = rightNormalAndDist;
+
+            // bottom & top
+            otherVec = finalMatrix.c1;
+            // otherVec[0] = finalMatrix.m10;
+            // otherVec[1] = finalMatrix.m11;
+            // otherVec[2] = finalMatrix.m12;
+            // otherVec[3] = finalMatrix.m13;
+
+            float4 bottomNormalAndDist = otherVec + tmpVec;
+            float4 bottomNormalZeroedDist = math.asfloat(math.asuint(bottomNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float bottomDotProduct = math.dot(bottomNormalZeroedDist, bottomNormalZeroedDist);
+            float bottomMagnitude = math.sqrt(bottomDotProduct);
+            float bottomInvMagnitude = math.rcp(bottomMagnitude);
+            bottomNormalAndDist *= bottomInvMagnitude;
+            outPlanesBottom = bottomNormalAndDist;
+
+            float4 topNormalAndDist = -otherVec + tmpVec;
+            float4 topNormalZeroedDist = math.asfloat(math.asuint(topNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float topDotProduct = math.dot(topNormalZeroedDist, topNormalZeroedDist);
+            // float topNormalX = -otherVec[0] + tmpVec[0];
+            // float topNormalY = -otherVec[1] + tmpVec[1];
+            // float topNormalZ = -otherVec[2] + tmpVec[2];
+            // float topDistance = -otherVec[3] + tmpVec[3];
+            //float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
+            float topMagnitude = math.sqrt(topDotProduct);
+            float topInvMagnitude = math.rcp(topMagnitude);
+            topNormalAndDist *= topInvMagnitude;
+            // topNormalX *= topInvMagnitude;
+            // topNormalY *= topInvMagnitude;
+            // topNormalZ *= topInvMagnitude;
+            // topDistance *= topInvMagnitude;
+            outPlanesTop = topNormalAndDist;
+
+            // near & far
+            otherVec = finalMatrix.c2;
+            // otherVec[0] = finalMatrix.m20;
+            // otherVec[1] = finalMatrix.m21;
+            // otherVec[2] = finalMatrix.m22;
+            // otherVec[3] = finalMatrix.m23;
+
+            float4 nearNormalAndDist = otherVec + tmpVec;
+            float4 nearNormalZeroedDist = math.asfloat(math.asuint(nearNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float nearDotProduct = math.dot(nearNormalZeroedDist, nearNormalZeroedDist);
+            // float nearNormalX = otherVec[0] + tmpVec[0];
+            // float nearNormalY = otherVec[1] + tmpVec[1];
+            // float nearNormalZ = otherVec[2] + tmpVec[2];
+            // float nearDistance = otherVec[3] + tmpVec[3];
+            // float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
+            float nearMagnitude = math.sqrt(nearDotProduct);
+            float nearInvMagnitude = math.rcp(nearMagnitude);
+            nearNormalAndDist *= nearInvMagnitude;
+            // nearNormalX *= nearInvMagnitude;
+            // nearNormalY *= nearInvMagnitude;
+            // nearNormalZ *= nearInvMagnitude;
+            // nearDistance *= nearInvMagnitude;
+            outPlanesNear = nearNormalAndDist;
+
+            float4 farNormalAndDist = -otherVec + tmpVec;
+            float4 farNormalZeroedDist = math.asfloat(math.asuint(farNormalAndDist) & new uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0));
+            float farDotProduct = math.dot(farNormalZeroedDist, farNormalZeroedDist);
+            // float farNormalX = -otherVec[0] + tmpVec[0];
+            // float farNormalY = -otherVec[1] + tmpVec[1];
+            // float farNormalZ = -otherVec[2] + tmpVec[2];
+            // float farDistance = -otherVec[3] + tmpVec[3];
+            // float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
+            float farMagnitude = math.sqrt(farDotProduct);
+            float farInvMagnitude = math.rcp(farMagnitude);
+            farNormalAndDist *= farInvMagnitude;
+            // farNormalX *= farInvMagnitude;
+            // farNormalY *= farInvMagnitude;
+            // farNormalZ *= farInvMagnitude;
+            // farDistance *= farInvMagnitude;
+            outPlanesFar = farNormalAndDist;
+         }
 
         static float CalcGuardAnglePerspective(float angleInDeg, float resolution, float filterWidth, float normalBiasMax, float guardAngleMaxInDeg)
         {
-            float angleInRad = angleInDeg * 0.5f * Mathf.Deg2Rad;
-            float res = 2.0f / resolution;
-            float texelSize = Mathf.Cos(angleInRad) * res;
-            float beta = normalBiasMax * texelSize * 1.4142135623730950488016887242097f;
-            float guardAngle = Mathf.Atan(beta);
-            texelSize = Mathf.Tan(angleInRad + guardAngle) * res;
-            guardAngle = Mathf.Atan((resolution + Mathf.Ceil(filterWidth)) * texelSize * 0.5f) * 2.0f * Mathf.Rad2Deg - angleInDeg;
+            float angleInRad  = angleInDeg * 0.5f * Mathf.Deg2Rad;
+            float res         = 2.0f / resolution;
+            float texelSize   = math.cos(angleInRad) * res;
+            float beta        = normalBiasMax * texelSize * 1.4142135623730950488016887242097f;
+            float guardAngle  = math.atan(beta);
+            texelSize   = math.tan(angleInRad + guardAngle) * res;
+            guardAngle  = math.atan((resolution + math.ceil(filterWidth)) * texelSize * 0.5f) * 2.0f * Mathf.Rad2Deg - angleInDeg;
             guardAngle *= 2.0f;
 
             return guardAngle < guardAngleMaxInDeg ? guardAngle : guardAngleMaxInDeg;
@@ -335,19 +665,83 @@ namespace UnityEngine.Rendering.HighDefinition
             return normalizedSlopeBias * baseBias;
         }
 
-        static void SetSplitDataCullingPlanesFromViewProjMatrix(ref ShadowSplitData splitData, Matrix4x4 matrix)
+        static void SetSplitDataCullingPlanesFromViewProjMatrix(ref ShadowSplitData splitData, Matrix4x4 matrix, bool reverseZ)
         {
-            GeometryUtility.CalculateFrustumPlanes(matrix, s_CachedPlanes);
+            float4 planesLeft;
+            float4 planesRight;
+            float4 planesBottom;
+            float4 planesTop;
+            float4 planesNear;
+            float4 planesFar;
+            CalculateFrustumPlanes(matrix, out planesLeft, out planesRight, out planesBottom, out planesTop, out planesNear, out planesFar);
 
-            if (SystemInfo.usesReversedZBuffer)
+            if (reverseZ)
             {
-                var tmpPlane = s_CachedPlanes[2];
-                s_CachedPlanes[2] = s_CachedPlanes[3];
-                s_CachedPlanes[3] = tmpPlane;
+                var tmpPlane = planesBottom;
+                planesBottom = planesTop;
+                planesTop = tmpPlane;
             }
             splitData.cullingPlaneCount = 6;
-            for (int i = 0; i < 6; i++)
-                splitData.SetCullingPlane(i, s_CachedPlanes[i]);
+
+            Plane leftPlane = new Plane();
+            leftPlane.normal = planesLeft.xyz;
+            leftPlane.distance = planesLeft.w;
+            splitData.SetCullingPlane(0, leftPlane);
+
+            Plane rightPlane = new Plane();
+            rightPlane.normal = planesRight.xyz;
+            rightPlane.distance = planesRight.w;
+            splitData.SetCullingPlane(1, rightPlane);
+            Plane bottomPlane = new Plane();
+            bottomPlane.normal = planesBottom.xyz;
+            bottomPlane.distance = planesBottom.w;
+            splitData.SetCullingPlane(2, bottomPlane);
+            Plane topPlane = new Plane();
+            topPlane.normal = planesTop.xyz;
+            topPlane.distance = planesTop.w;
+            splitData.SetCullingPlane(3, topPlane);
+            Plane planeNear = new Plane();
+            planeNear.normal = planesNear.xyz;
+            planeNear.distance = planesNear.w;
+            splitData.SetCullingPlane(4, planeNear);
+            Plane planeFar = new Plane();
+            planeFar.normal = planesFar.xyz;
+            planeFar.distance = planesFar.w;
+            splitData.SetCullingPlane(5, planeFar);
+        }
+
+        internal static float3 QuaternionToEulerZXY(quaternion q)
+        {
+            const float epsilon = 1e-6f;
+
+            //prepare the data
+            var qv = q.value;
+            var d1 = qv * qv.wwww * new float4(2.0f); //xw, yw, zw, ww
+            var d2 = qv * qv.yzxw * new float4(2.0f); //xy, yz, zx, ww
+            var d3 = qv * qv;
+            var euler = new float3(0.0f);
+
+            const float CUTOFF = (1.0f - 2.0f * epsilon) * (1.0f - 2.0f * epsilon);
+
+            var y1 = d2.y - d1.x;
+            if (y1 * y1 < CUTOFF)
+            {
+                var x1 = d2.x + d1.z;
+                var x2 = d3.y + d3.w - d3.x - d3.z;
+                var z1 = d2.z + d1.y;
+                var z2 = d3.z + d3.w - d3.x - d3.y;
+                euler = new float3(math.atan2(x1, x2), -math.asin(y1), math.atan2(z1, z2));
+            }
+            else //zxz
+            {
+                y1 = math.clamp(y1, -1.0f, 1.0f);
+                var abcd = new float4(d2.z, d1.y, d2.y, d1.x);
+                var x1 = 2.0f * (abcd.x * abcd.w + abcd.y * abcd.z); //2(ad+bc)
+                var x2 = math.csum(abcd * abcd * new float4(-1.0f, 1.0f, -1.0f, 1.0f));
+                euler = new float3(math.atan2(x1, x2), -math.asin(y1), 0.0f);
+            }
+
+            return euler.yzx;
         }
     }
 }

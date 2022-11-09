@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -30,7 +31,7 @@ namespace UnityEditor.VFX.Block
 
         protected override bool allowInvertedCollision { get { return false; } }
 
-        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
@@ -65,9 +66,9 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = CameraHelper.AddCameraExpressions(base.parameters, camera);
 
-                VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
+                VFXSpace systemSpace = ((VFXDataParticle)GetData()).space;
                 // in custom camera mode, camera space is already in system space (conversion happened in slot)
-                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, camera == CameraMode.Main ? VFXCoordinateSpace.World : systemSpace, systemSpace);
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, camera == CameraMode.Main ? VFXSpace.World : systemSpace, systemSpace);
 
                 // Filter unused expressions
                 expressions = expressions.Where(t =>

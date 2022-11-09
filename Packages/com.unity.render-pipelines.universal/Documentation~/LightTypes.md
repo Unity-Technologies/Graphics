@@ -58,7 +58,7 @@ Select the **Spot** Light type for great control over the angle and direction of
 
 | Property         | Function                                                     |
 | ---------------- | ------------------------------------------------------------ |
-| **Radius Inner** | Set the inner radius here or with the gizmo. Light within the inner radius will be at maximum [intensity](2DLightProperties#Intensity). |
+| **Radius Inner** | Set the inner radius here or with the gizmo. Light within the inner radius will be at maximum [intensity](2DLightProperties.md#intensity). |
 | **Radius Outer** | Set the outer radius here or with the gizmo. Light intensity decreases to zero as it approaches the outer radius. |
 | **Inner / Outer Spot Angle**  | Set the angles with this slider or with the gizmo. Light within the inner and outer angles will be at the intensity specified by inner and outer radius. |
 
@@ -70,4 +70,4 @@ Select the **Spot** Light type for great control over the angle and direction of
 
 ## Global
 
-Global Lights light all objects on the [targeted sorting layers](2DLightProperties.html#target-sorting-layers). Only one global Light can be used per [Blend Style](LightBlendStyles.md), and per sorting layer.
+Global Lights light all objects on the [targeted sorting layers](2DLightProperties.md#target-sorting-layers). Only one global Light can be used per [Blend Style](LightBlendStyles.md), and per sorting layer.

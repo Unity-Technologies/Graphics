@@ -270,9 +270,16 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     #ifdef _ENABLE_SHADOW_MATTE
     if (computeDirect)
     {
-        // Apply shadow matte if requested
-        float3 shadowColor = lerp(payload.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
         float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
+
+        // Shadow color's alpha has a slightly different meaning depending on whether the surface is transparent or opaque
+        #ifdef _SURFACE_TYPE_TRANSPARENT
+        float3 shadowColor = surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier();
+        builtinData.opacity = lerp(surfaceData.shadowTint.a, builtinData.opacity, visibility);
+        #else
+        float3 shadowColor = lerp(payload.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
+        #endif
+
         payload.value = lerp(shadowColor, payload.value, visibility);
     }
     #endif // _ENABLE_SHADOW_MATTE

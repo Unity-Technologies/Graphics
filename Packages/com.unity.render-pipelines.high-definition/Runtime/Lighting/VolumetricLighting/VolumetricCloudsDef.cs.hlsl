@@ -34,10 +34,13 @@ CBUFFER_START(ShaderVariablesClouds)
     float _MaxCloudDistance;
     float _DensityMultiplier;
     float _ShapeFactor;
-    float _ErosionFactor;
     float _ShapeScale;
+    float _ErosionFactor;
     float _ErosionScale;
-    float _TemporalAccumulationFactor;
+    float _MicroErosionFactor;
+    float _MicroErosionScale;
+    float _PaddingVC0;
+    float2 _ShadowRegionSize;
     float4 _ScatteringTint;
     float4 _FinalScreenSize;
     float4 _IntermediateScreenSize;
@@ -58,8 +61,6 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ShadowFallbackValue;
     int _ShadowCookieResolution;
     float _ShadowPlaneOffset;
-    float2 _ShadowRegionSize;
-    float2 _PaddingVC0;
     float4 _WorldSpaceShadowCenter;
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
@@ -72,7 +73,7 @@ CBUFFER_START(ShaderVariablesClouds)
     int _ValidMaxZMask;
     float _ImprovedTransmittanceBlend;
     float _CubicTransmittance;
-    int _Padding1;
+    float _TemporalAccumulationFactor;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 

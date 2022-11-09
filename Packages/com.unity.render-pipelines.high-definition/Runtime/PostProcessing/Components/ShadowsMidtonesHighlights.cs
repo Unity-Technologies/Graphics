@@ -5,8 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Shadows, Midtones, Highlights effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Shadows, Midtones, Highlights", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Shadows-Midtones-Highlights")]
+    [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Post-Processing-Shadows-Midtones-Highlights")]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

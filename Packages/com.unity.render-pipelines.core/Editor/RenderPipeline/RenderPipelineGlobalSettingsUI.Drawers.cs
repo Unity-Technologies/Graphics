@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering
             {
                 EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.exportShaderVariants, Styles.exportShaderVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripRuntimeDebugShadersLabel);
+
                 additionalShaderStrippingSettings?.Draw(serialized, owner);
             }
             EditorGUILayout.Space();

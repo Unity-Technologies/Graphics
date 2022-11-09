@@ -123,8 +123,9 @@ class VisualEffectAssetEditor : Editor
             if (window == null)
             {
                 window = VFXViewWindow.GetWindow(vfxAsset, true);
-                window.LoadAsset(vfxAsset, null);
             }
+
+            window.LoadAsset(vfxAsset, null);
             window.Focus();
             return true;
         }
@@ -171,7 +172,7 @@ class VisualEffectAssetEditor : Editor
 
         if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
         {
-            using var reporter = new VFXCompileErrorReporter(m_CurrentGraph.errorManager);
+            using var reporter = new VFXCompileErrorReporter(new VFXErrorManager());
             VFXGraph.compileReporter = reporter;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
             VFXGraph.compileReporter = null;
@@ -736,7 +737,11 @@ class VisualEffectAssetEditor : Editor
         //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
 
         bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
-            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+            .OfType<VFXBasicInitialize>()
+            .Select(x => x.GetData())
+            .OfType<VFXDataParticle>()
+            .Any(x => x.boundsMode == BoundsSettingMode.Automatic);
+
         using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
             EditorGUILayout.BeginHorizontal();

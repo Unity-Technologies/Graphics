@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEngine.UIElements;
 using System.Reflection;
@@ -66,7 +67,7 @@ namespace UnityEditor.VFX.UI
         protected struct Property
         {
             public string name;
-            public VFXCoordinateSpace space;
+            public VFXSpace space;
             public VFXSerializableObject value;
         }
 
@@ -140,7 +141,7 @@ namespace UnityEditor.VFX.UI
             public string[] enumValue;
             public string tooltip;
             public bool isOutput;
-            public VFXCoordinateSpace space;
+            public VFXSpace space;
             public ParameterNode[] nodes;
         }
 

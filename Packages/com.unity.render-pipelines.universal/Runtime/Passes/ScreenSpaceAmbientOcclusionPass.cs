@@ -308,6 +308,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal ScreenSpaceAmbientOcclusionSettings settings;
             internal RenderingData renderingData;
+            internal TextureHandle cameraColor;
             internal RTHandle[] ssaoTextures;
             internal Texture2D[] blueNoiseTextures;
             internal Material material;
@@ -347,7 +348,7 @@ namespace UnityEngine.Rendering.Universal
             data.blurRandomOffsetY = m_BlurRandomOffsetY;
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
@@ -360,10 +361,10 @@ namespace UnityEngine.Rendering.Universal
                                        out TextureHandle finalTexture);
 
             // Setup up keywords and parameters...
-            ExecuteSetupPass(renderGraph, ref renderingData);
+            ExecuteSetupPass(renderGraph, frameResources, ref renderingData);
 
             // Ambient Occlusion Pass...
-            ExecuteOcclusionPass(renderGraph, ref renderer, in aoTexture);
+            ExecuteOcclusionPass(renderGraph, frameResources, in aoTexture);
 
             // Blur & Upsample Passes...
             switch (m_BlurType)
@@ -386,17 +387,20 @@ namespace UnityEngine.Rendering.Universal
                 RenderGraphUtils.SetGlobalTexture(renderGraph,k_SSAOTextureName, finalTexture, "Set SSAO Texture");
         }
 
-        private void ExecuteSetupPass(RenderGraph renderGraph, ref RenderingData renderingData)
+        private void ExecuteSetupPass(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
             using (RenderGraphBuilder builder = renderGraph.AddRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
                 InitSetupPassData(ref passData);
                 passData.renderingData = renderingData;
+                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+                passData.cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
 
                 // Set up the builder
                 builder.SetRenderFunc((SetupPassData data, RenderGraphContext rgContext) =>
                 {
+                    PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
                     SetupKeywordsAndParameters(ref data, ref data.renderingData);
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
@@ -426,11 +430,10 @@ namespace UnityEngine.Rendering.Universal
             // Handles
             aoTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture0", false, FilterMode.Bilinear);
             blurTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, aoBlurDescriptor, "_SSAO_OcclusionTexture1", false, FilterMode.Bilinear);
-            finalTexture = m_CurrentSettings.AfterOpaque ? renderer.frameResources.cameraColor : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
-            PostProcessUtils.SetSourceSize(renderingData.commandBuffer, finalTextureDescriptor);
+            finalTexture = m_CurrentSettings.AfterOpaque ? renderer.activeColorTexture : UniversalRenderer.CreateRenderGraphTexture(renderGraph, finalTextureDescriptor, k_SSAOTextureName, false, FilterMode.Bilinear);
         }
 
-        private void ExecuteOcclusionPass(RenderGraph renderGraph, ref UniversalRenderer renderer, in TextureHandle aoTexture)
+        private void ExecuteOcclusionPass(RenderGraph renderGraph, FrameResources frameResources, in TextureHandle aoTexture)
         {
             using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
             {
@@ -442,12 +445,15 @@ namespace UnityEngine.Rendering.Universal
                 // Set up the builder
                 builder.UseColorBuffer(aoTexture, 0);
 
-                if (renderer.frameResources.cameraDepthTexture.IsValid())
-                    builder.ReadTexture(renderer.frameResources.cameraDepthTexture);
+                TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
+                TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+
+                if (cameraDepthTexture.IsValid())
+                    builder.ReadTexture(cameraDepthTexture);
 
                 if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
-                    if (renderer.frameResources.cameraNormalsTexture.IsValid())
-                        builder.ReadTexture(renderer.frameResources.cameraNormalsTexture);
+                    if (cameraNormalsTexture.IsValid())
+                        builder.ReadTexture(cameraNormalsTexture);
 
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
@@ -579,7 +585,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Allocate texture for the final SSAO results
             RenderingUtils.ReAllocateIfNeeded(ref m_PassData.ssaoTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
-            PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
+            PostProcessUtils.SetSourceSize(cmd, m_PassData.ssaoTextures[3]);
 
             // Configure targets and clear color
             ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTextures[3]);
@@ -606,6 +612,27 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextures[3]);
 
+                #if ENABLE_VR && ENABLE_XR_MODULE
+                    bool isFoveatedEnabled = false;
+                    if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                    {
+                        // If we are downsampling we can't use the VRS texture
+                        // If it's a non uniform raster foveated rendering has to be turned off because it will keep applying non uniform for the other passes.
+                        // When calculating normals from depth, this causes artifacts that are amplified from VRS when going to say 4x4. Thus we disable foveated because of that
+                        if (m_CurrentSettings.Downsample || SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.NonUniformRaster ||
+                            (SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.FoveationImage && m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth))
+                        {
+                            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                        }
+                        // If we aren't downsampling and it's a VRS texture we can apply foveation in this case
+                        else if (SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.FoveationImage)
+                        {
+                            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                            isFoveatedEnabled = true;
+                        }
+                    }
+                #endif
+
                 GetPassOrder(m_BlurType, m_CurrentSettings.AfterOpaque, out int[] textureIndices, out ShaderPasses[] shaderPasses);
 
                 // Execute the SSAO
@@ -622,6 +649,11 @@ namespace UnityEngine.Rendering.Universal
 
                 // Set the global SSAO Params
                 cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                #if ENABLE_VR && ENABLE_XR_MODULE
+                    // Cleanup, making sure it doesn't stay enabled for a pass after that should not have it on
+                    if (isFoveatedEnabled)
+                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                #endif
             }
         }
 

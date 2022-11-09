@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     ///
     [ExecuteAlways, DisallowMultipleComponent]
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : Light2DBase, ISerializationCallbackReceiver
@@ -94,10 +94,11 @@ namespace UnityEngine.Rendering.Universal
         private enum ComponentVersions
         {
             Version_Unserialized = 0,
-            Version_1 = 1
+            Version_1 = 1,
+            Version_2 = 2
         }
 
-        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_2;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
 
@@ -116,7 +117,9 @@ namespace UnityEngine.Rendering.Universal
 
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
-        [SerializeField] bool m_LightVolumeIntensityEnabled = false;
+
+        [FormerlySerializedAs("m_LightVolumeIntensityEnabled")]
+        [SerializeField] bool m_LightVolumeEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
@@ -142,9 +145,17 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] bool m_UseNormalMap = false;   // This is now deprecated. Keep it here for backwards compatibility.
 
-        [SerializeField] bool m_ShadowIntensityEnabled = false;
+        [FormerlySerializedAs("m_ShadowIntensityEnabled")]
+        [SerializeField] bool m_ShadowsEnabled = true;
+
         [Range(0, 1)]
         [SerializeField] float m_ShadowIntensity = 0.75f;
+
+        [Range(0, 1)]
+        [SerializeField] float m_ShadowSoftness = 0.3f;
+
+        [Range(0, 1)]
+        [SerializeField] float m_ShadowSoftnessFalloffIntensity = 0.5f;
 
         [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
         [Range(0, 1)]
@@ -214,10 +225,17 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public float shadowIntensity { get => m_ShadowIntensity; set => m_ShadowIntensity = Mathf.Clamp01(value); }
 
+
+        /// <summary>
+        /// Specifies the softness of the soft shadow
+        /// </summary>
+        public float shadowSoftness { get => m_ShadowSoftness; set => m_ShadowSoftness = value; }
+
+
         /// <summary>
         /// Specifies that the shadows are enabled
         /// </summary>
-        public bool shadowsEnabled { get => m_ShadowIntensityEnabled; set => m_ShadowIntensityEnabled = value; }
+        public bool shadowsEnabled { get => m_ShadowsEnabled; set => m_ShadowsEnabled = value; }
 
         /// <summary>
         /// Specifies the darkness of the shadow
@@ -250,18 +268,36 @@ namespace UnityEngine.Rendering.Universal
         /// Controls the visibility of the light's volume
         /// </summary>
         public float volumeIntensity => m_LightVolumeIntensity;
+
+
         /// <summary>
         /// Enables or disables the light's volume
         /// </summary>
-        public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
+        ///
+        [Obsolete]
+        public bool volumeIntensityEnabled { get => m_LightVolumeEnabled; set => m_LightVolumeEnabled = value; }
+
+
+        /// <summary>
+        /// Enables or disables the light's volume
+        /// </summary>
+        ///
+        public bool volumetricEnabled { get => m_LightVolumeEnabled; set => m_LightVolumeEnabled = value; }
+
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
         public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } set => m_LightCookieSprite = value; }
+
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
         public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
+
+        /// <summary>
+        /// Controls the falloff for soft shadows
+        /// </summary>
+        public float shadowSoftnessFalloffIntensity { get => m_ShadowSoftnessFalloffIntensity; set => m_ShadowSoftnessFalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
         /// <summary>
         /// Checks if the alpha overlap operation is alpha blend.
@@ -462,11 +498,16 @@ namespace UnityEngine.Rendering.Universal
             if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
             {
                 m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
-                m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
-                m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
+                m_ShadowsEnabled = m_ShadowIntensity > 0;
+                m_LightVolumeEnabled = m_LightVolumeIntensity > 0;
                 m_NormalMapQuality = !m_UseNormalMap ? NormalMapQuality.Disabled : m_NormalMapQuality;
                 m_OverlapOperation = m_AlphaBlendOnOverlap ? OverlapOperation.AlphaBlend : m_OverlapOperation;
                 m_ComponentVersion = ComponentVersions.Version_1;
+            }
+
+            if(m_ComponentVersion < ComponentVersions.Version_2)
+            {
+                m_ShadowSoftness = 0;
             }
         }
     }

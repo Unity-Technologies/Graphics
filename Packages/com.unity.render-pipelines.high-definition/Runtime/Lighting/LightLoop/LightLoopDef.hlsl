@@ -6,6 +6,19 @@
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
+// Depending if we are in ray tracing or not we need to use a different set of environement data
+#if defined(RAY_TRACING_ENVIRONMENT_DATA) || defined(SHADER_STAGE_RAY_TRACING)
+#define PLANAR_CAPTURE_VP _PlanarCaptureVPRT
+#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForwardRT
+#define PLANAR_SCALE_OFFSET _PlanarScaleOffsetRT
+#define CUBE_SCALE_OFFSET _CubeScaleOffsetRT
+#else
+#define PLANAR_CAPTURE_VP _PlanarCaptureVP
+#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForward
+#define PLANAR_SCALE_OFFSET _PlanarScaleOffset
+#define CUBE_SCALE_OFFSET _CubeScaleOffset
+#endif
+
 // Some file may not required HD shadow context at all. In this case provide an empty one
 // Note: if a double defintion error occur it is likely have include HDShadow.hlsl (and so HDShadowContext.hlsl) after lightloopdef.hlsl
 #ifndef HAVE_HD_SHADOW_CONTEXT
@@ -137,8 +150,8 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             //_ReflAtlasPlanarCaptureVP is in capture space
-            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _PlanarCaptureVP[index]);
-            float2 atlasCoords = GetReflectionAtlasCoordsPlanar(_PlanarScaleOffset[index], ndc.xy, lod);
+            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, PLANAR_CAPTURE_VP[index]);
+            float2 atlasCoords = GetReflectionAtlasCoordsPlanar(PLANAR_SCALE_OFFSET[index], ndc.xy, lod);
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
 #if UNITY_REVERSED_Z
@@ -149,7 +162,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 #else
             color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
 #endif
-            float3 capturedForwardWS = _PlanarCaptureForward[index].xyz;
+            float3 capturedForwardWS = PLANAR_CAPTURE_FORWARD[index].xyz;
             if (dot(capturedForwardWS, texCoord) < 0.0)
                 color.a = 0.0;
             else
@@ -175,7 +188,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-            float2 atlasCoords = GetReflectionAtlasCoordsCube(_CubeScaleOffset[index], texCoord, lod);
+            float2 atlasCoords = GetReflectionAtlasCoordsCube(CUBE_SCALE_OFFSET[index], texCoord, lod);
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
         }

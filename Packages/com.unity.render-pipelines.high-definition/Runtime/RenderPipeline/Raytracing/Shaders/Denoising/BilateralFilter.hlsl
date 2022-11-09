@@ -1,5 +1,8 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
 // Depth buffer of the current frame
 TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
 
 // ----------------------------------------------------------------------------
 // Denoising Kernel
@@ -26,8 +29,11 @@ struct BilateralData
     float  z01;
     float  zNF;
     float3 normal;
-    #ifdef BILATERAL_ROUGHNESS
+    #if defined(BILATERAL_ROUGHNESS)
     float roughness;
+    #endif
+    #if defined(BILATERLAL_UNLIT)
+    bool isUnlit;
     #endif
 };
 
@@ -42,6 +48,12 @@ BilateralData TapBilateralData(uint2 coordSS)
         key.z01 = Linear01Depth(posInput.deviceDepth, _ZBufferParams);
         key.zNF = LinearEyeDepth(posInput.deviceDepth, _ZBufferParams);
     }
+
+    // We need to define if this pixel is unlit
+    #if defined(BILATERLAL_UNLIT)
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, coordSS));
+    key.isUnlit = (stencilValue & STENCILUSAGE_IS_UNLIT) != 0;
+    #endif
 
     if (PLANE_WEIGHT > 0.0)
     {

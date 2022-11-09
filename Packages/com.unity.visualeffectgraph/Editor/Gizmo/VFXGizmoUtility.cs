@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.UI
             {
                 get;
             }
-            public abstract VFXCoordinateSpace space
+            public abstract VFXSpace space
             {
                 get;
             }
@@ -236,7 +236,6 @@ namespace UnityEditor.VFX.UI
                 gizmo.component = component;
                 gizmo.currentSpace = context.space;
                 gizmo.currentHashCode = context.GetHashCode();
-
                 gizmo.CallDrawGizmo(context.value);
                 gizmo.component = null;
             }

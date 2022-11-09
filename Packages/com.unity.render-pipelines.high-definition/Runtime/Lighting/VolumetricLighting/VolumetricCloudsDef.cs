@@ -66,17 +66,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MaxCloudDistance;
         // Global multiplier to the density
         public float _DensityMultiplier;
-        // Controls the amount of low frenquency noise
+        // Controls the amount of shaping
         public float _ShapeFactor;
 
-        // Controls the forward eccentricity of the clouds
-        public float _ErosionFactor;
         // Multiplier to shape tiling
         public float _ShapeScale;
+        // Controls the amount of erosion
+        public float _ErosionFactor;
         // Multiplier to erosion tiling
         public float _ErosionScale;
-        // Maximal temporal accumulation
-        public float _TemporalAccumulationFactor;
+        //  Controls the amount of micro details
+        public float _MicroErosionFactor;
+
+        // Multiplier to micro details tiling
+        public float _MicroErosionScale;
+        public float _PaddingVC0;
+        // The size of the shadow region (meters)
+        public Vector2 _ShadowRegionSize;
 
         // Scattering Tint
         public Vector4 _ScatteringTint;
@@ -124,10 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Offset applied of the plane receiving the center of the shadow
         public float _ShadowPlaneOffset;
 
-        // The size of the shadow region (meters)
-        public Vector2 _ShadowRegionSize;
-        public Vector2 _PaddingVC0;
-
         // World Camera Position used as the constant buffer has not been injected yet when this data is required, last channel is unused.
         public Vector4 _WorldSpaceShadowCenter;
 
@@ -152,7 +154,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _ImprovedTransmittanceBlend;
         // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
         public float _CubicTransmittance;
-        public int _Padding1;
+        // Maximal temporal accumulation
+        public float _TemporalAccumulationFactor;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

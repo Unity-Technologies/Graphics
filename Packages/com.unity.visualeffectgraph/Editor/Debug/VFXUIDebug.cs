@@ -888,16 +888,9 @@ namespace UnityEditor.VFX.UI
             {
                 models.Clear();
                 subgraph.controller.model.CollectDependencies(models, false);
-                var subSystems = models.OfType<VFXContext>()
-                    .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
-                    .Select(c => c.contextType == VFXContextType.Spawner ? c as VFXModel : c.GetData())
-                    .Distinct().ToList();
-                foreach (var subSystem in subSystems)
+                if (models.OfType<VFXData>().Any(x => m_View.controller.graph.systemNames.GetUniqueSystemName(x) == systemName))
                 {
-                    if (m_View.controller.graph.systemNames.GetUniqueSystemName(subSystem) == systemName)
-                    {
-                        return focus(subgraph);
-                    }
+                    return focus(subgraph);
                 }
             }
 
@@ -906,23 +899,23 @@ namespace UnityEditor.VFX.UI
 
         Action<EventBase> CapacitySetter(string systemName, out bool isSystemInSubGraph)
         {
-            var viewableSystems = m_View.GetAllContexts().Select(c => c.controller.model.GetData()).OfType<VFXDataParticle>();
+            var system = m_View.GetAllContexts()
+                .Select(x => x.controller.model.GetData())
+                .OfType<VFXDataParticle>()
+                .FirstOrDefault(x => m_Graph.systemNames.GetUniqueSystemName(x) == systemName);
 
-            foreach (var system in viewableSystems)
+            if (system != null)
             {
-                if (m_Graph.systemNames.GetUniqueSystemName(system) == systemName)
+                isSystemInSubGraph = true;
+                return (e) =>
                 {
-                    isSystemInSubGraph = true;
-                    return (e) =>
-                    {
-                        if (m_Graph.visualEffectResource != null && !m_Graph.visualEffectResource.IsAssetEditable())
-                            return; //The button should be disabled but state update can have a delay
+                    if (m_Graph.visualEffectResource != null && !m_Graph.visualEffectResource.IsAssetEditable())
+                        return; //The button should be disabled but state update can have a delay
 
-                        var button = e.currentTarget as Button;
-                        if (button != null)
-                            system.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
-                    };
-                }
+                    if (e.currentTarget is Button button)
+                        system.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
+                };
+
             }
             isSystemInSubGraph = false;
             return (e) => { };

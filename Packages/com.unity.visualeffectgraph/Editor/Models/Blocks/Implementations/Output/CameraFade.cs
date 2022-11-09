@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (affectShadows && Camera.allCamerasCount > 1)

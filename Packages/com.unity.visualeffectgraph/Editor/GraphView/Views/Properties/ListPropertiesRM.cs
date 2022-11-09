@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEditor.VFX;
@@ -143,7 +144,7 @@ namespace UnityEditor.VFX.UI
 
             bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
 
-            VFXCoordinateSpace IPropertyRMProvider.space { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            VFXSpace IPropertyRMProvider.space { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
             string IPropertyRMProvider.name => m_Index.ToString();
 

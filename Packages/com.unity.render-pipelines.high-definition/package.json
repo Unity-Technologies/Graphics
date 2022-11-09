@@ -6,6 +6,7 @@
   "displayName": "High Definition RP",
   "dependencies": {
     "com.unity.mathematics": "1.2.4",
+	"com.unity.collections": "1.4.0",
     "com.unity.burst": "1.7.2",
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -50,9 +51,9 @@
       "path": "Samples~/LensFlareSamples"
     },
     {
-      "displayName": "Local Volumetric 3D Texture Samples",
-      "description": "Adds a set of 3D mask textures to your project. These texture can be used for the Density Mask Texture input of the Local Volumetric Fog.",
-      "path": "Samples~/LocalVolumetricFogMasks"
+      "displayName": "Volumetric Samples",
+      "description": "Adds a set of 3D texture, procedural noises and Fog Volume Shadergraph to your project. A collection of prefabs shows how to use them with the Local Volumetric Fog.",
+      "path": "Samples~/VolumetricSamples"
     },
     {
       "displayName": "Fullscreen Samples",

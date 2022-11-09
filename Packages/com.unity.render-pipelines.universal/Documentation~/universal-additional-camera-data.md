@@ -12,7 +12,7 @@ If you are using scripts to control and customise URP, you can access a Camera's
 var cameraData = camera.GetUniversalAdditionalCameraData();
 ```
 
-For more information, see [the UniversalAdditionalCameraData API documentation](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html).
+For more information, see [the UniversalAdditionalCameraData API documentation](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData).
 
 If you need to access the Universal Additional Camera Data component frequently in a script, you should cache the reference to it to avoid unnecessary CPU work.
 

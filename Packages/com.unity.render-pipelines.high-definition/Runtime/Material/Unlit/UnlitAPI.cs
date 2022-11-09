@@ -18,7 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
 
             // All the bits exclusively related to lit are ignored inside the BaseLitGUI function.
-            BaseLitAPI.SetupStencil(material, receivesSSR: false, useSplitLighting: false);
+            bool receivesLighting = (material.HasProperty(kShadowMatteFilter) && material.GetFloat(kShadowMatteFilter) != 0);
+            BaseLitAPI.SetupStencil(material, receivesLighting: receivesLighting, receivesSSR: false, useSplitLighting: false);
         }
     }
 }

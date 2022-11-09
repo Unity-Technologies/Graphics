@@ -467,6 +467,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                yield return "VFX_IS_RAYTRACED";
                 yield return "VFX_RT_DECIMATION_FACTOR " + decimationFactor;
 
                 var particleData = GetData() as VFXDataParticle;
@@ -794,7 +795,7 @@ namespace UnityEditor.VFX
             return vertsCount != 0 && !isRayTraced;
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;

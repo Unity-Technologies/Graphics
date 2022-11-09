@@ -51,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.assetSupportsRayTracing)
             {
-                PropertyField(m_Enable);
+                PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
 
                 if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
                 {

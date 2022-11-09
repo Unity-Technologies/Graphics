@@ -95,6 +95,10 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFXEditor.VisualEffectImporter.GenerateAssetDataOneShader";
                 yield return "VFXEditor.VisualEffectResource.GetResourceAtPath";
                 yield return "VFXEditor.VisualEffectResource.GetResourceAtPath_Depoint";
+                yield return "VisualEffect.PrepareMaterial";
+                yield return "VisualEffect.Update";
+                yield return "VisualEffect.Simulate";
+                yield return "VisualEffect.Transfer";
             }
         }
 

@@ -11,6 +11,8 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+
 namespace UnityEditor.Rendering
 {
 #pragma warning disable 414
@@ -31,7 +33,7 @@ namespace UnityEditor.Rendering
         }
     }
 
-    sealed class DebugWindow : EditorWindow, IHasCustomMenu
+    sealed class DebugWindow : EditorWindowWithHelpButton, IHasCustomMenu
     {
         static Styles s_Styles;
         static GUIStyle s_SplitterLeft;
@@ -46,9 +48,6 @@ namespace UnityEditor.Rendering
 
         [SerializeField]
         DebugWindowSettings m_Settings;
-
-        [SerializeField]
-        int m_DebugTreeState;
 
         bool m_IsDirty;
 
@@ -71,6 +70,37 @@ namespace UnityEditor.Rendering
             }
         }
         static event Action<bool> OnDebugWindowToggled;
+
+        protected override void OnHelpButtonClicked()
+        {
+            //Deduce documentation url and open it in browser
+            var url = GetSpecificURL() ?? GetDefaultURL();
+            Application.OpenURL(url);
+        }
+    
+        string GetDefaultURL()
+        {
+            //Find package info of the current CoreRP package
+            return $"https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@{DocumentationInfo.version}/manual/Rendering-Debugger.html";
+        }
+
+        string GetSpecificURL()
+        {
+            //Find package info of the current RenderPipeline
+            var currentPipeline = GraphicsSettings.currentRenderPipeline;
+            if (currentPipeline == null)
+                return null;
+
+            if (!DocumentationUtils.TryGetPackageInfoForType(currentPipeline.GetType(), out var packageName, out var version))
+                return null;
+
+            return packageName switch
+            {
+                "com.unity.render-pipelines.universal" => $"https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@{version}/manual/features/rendering-debugger.html",
+                "com.unity.render-pipelines.high-definition" => $"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@{version}/manual/Render-Pipeline-Debug-Window.html",
+                _ => null
+            };
+        }
 
         [DidReloadScripts]
         static void OnEditorReload()
@@ -166,7 +196,6 @@ namespace UnityEditor.Rendering
             DebugManager.instance.onSetDirty += MarkDirty;
 
             // First init
-            m_DebugTreeState = DebugManager.instance.GetState();
             UpdateWidgetStates();
 
             EditorApplication.update -= Repaint;
@@ -209,7 +238,7 @@ namespace UnityEditor.Rendering
             if (m_WidgetStates == null)
                 return;
 
-            // Clear all the states from memory
+            // Clear states from memory that don't have a corresponding widget
             foreach (var state in m_WidgetStates)
             {
                 var widget = DebugManager.instance.GetItem(state.Key);
@@ -355,13 +384,10 @@ namespace UnityEditor.Rendering
                 m_Settings.selectedPanel = requestedPanelIndex.Value;
             }
 
-            int treeState = DebugManager.instance.GetState();
-
-            if (m_DebugTreeState != treeState || m_IsDirty)
+            if (m_IsDirty)
             {
                 UpdateWidgetStates();
                 ApplyStates();
-                m_DebugTreeState = treeState;
                 m_IsDirty = false;
             }
         }
@@ -576,6 +602,8 @@ namespace UnityEditor.Rendering
                 margin = new RectOffset(0, 0, 0, 0)
             };
 
+            public static GUIStyle labelWithZeroValueStyle { get; } = new GUIStyle(EditorStyles.label);
+
             public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
             public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");
             public readonly GUIStyle selected = "OL SelectedRow";
@@ -605,6 +633,8 @@ namespace UnityEditor.Rendering
                 sectionHeader.margin.left += 1;
                 sectionHeader.normal.textColor = EditorGUIUtility.isProSkin ? textColorDarkSkin : textColorLightSkin;
                 skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
+
+                labelWithZeroValueStyle.normal.textColor = Color.gray;
             }
         }
 

@@ -29,9 +29,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
+
+        // Water
         public SerializedProperty supportWater;
         public SerializedProperty waterSimulationResolution;
+        public SerializedProperty supportWaterDeformation;
+        public SerializedProperty deformationAtlasSize;
+        public SerializedProperty supportWaterExclusion;
         public SerializedProperty waterCPUSimulation;
+
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
@@ -59,6 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentDepthPostpass;
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
+        internal SerializedProperty supportProbeVolumeScenarios;
+        internal SerializedProperty supportProbeVolumeScenarioBlending;
         internal SerializedProperty probeVolumeBlendingTextureSize;
         internal SerializedProperty supportProbeVolumeStreaming;
         internal SerializedProperty probeVolumeSHBands;
@@ -100,6 +108,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Water data
             supportWater = root.Find((RenderPipelineSettings s) => s.supportWater);
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
+            supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
+            deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
+            supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
             waterCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterCPUSimulation);
 
             supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
@@ -126,6 +137,8 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
             lightProbeSystem = root.Find((RenderPipelineSettings s) => s.lightProbeSystem);
             probeVolumeTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeMemoryBudget);
+            supportProbeVolumeScenarios = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeScenarios);
+            supportProbeVolumeScenarioBlending = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeScenarioBlending);
             probeVolumeBlendingTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeBlendingMemoryBudget);
             supportProbeVolumeStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeStreaming);
             probeVolumeSHBands = root.Find((RenderPipelineSettings s) => s.probeVolumeSHBands);

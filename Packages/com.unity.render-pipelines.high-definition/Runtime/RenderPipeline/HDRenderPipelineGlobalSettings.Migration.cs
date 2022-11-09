@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableAutoRegistration,
             MoveDiffusionProfilesToVolume,
             GenericRenderingLayers,
+            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -47,10 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MovedSupportRuntimeDebugDisplayToGlobalSettings, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                var activePipeline = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-                if (activePipeline != null)
+                if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset activePipeline)
                 {
-                    data.supportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
+                    data.m_SupportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
                 }
 #pragma warning restore 618
             }),
@@ -62,10 +62,36 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
+                if (data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
+                    return;
+
+                var volumeProfile = data.GetOrCreateDefaultVolumeProfile();
+
+                #if UNITY_EDITOR
+                // Profile from resources is read only in released packages, so we have to copy it to the assets folder
+                if (data.IsVolumeProfileFromResources())
+                {
+                    string path = "Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath + '/' + volumeProfile.name + ".asset";
+                    if (!UnityEditor.AssetDatabase.IsValidFolder("Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath))
+                        UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
+
+                    //try load one if one already exist
+                    volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    if (volumeProfile == null || volumeProfile.Equals(null))
+                    {
+                        //else create it
+                        UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile), path);
+                        volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    }
+
+                    data.volumeProfile = volumeProfile;
+                }
+                #endif
+
+                var overrides = data.GetOrCreateDiffusionProfileList();
                 foreach (var profile in data.m_ObsoleteDiffusionProfileSettingsList)
                 {
                     bool found = false;
-                    var overrides = data.GetOrCreateDiffusionProfileList();
                     foreach (var profile2 in overrides.diffusionProfiles.value)
                     {
                         if (profile2 == profile)
@@ -104,6 +130,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_PrefixedRenderingLayerNames = null;
 
                 data.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).SetEnabled(FrameSettingsField.RenderingLayerMaskBuffer, true);
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.stripDebugVariants = !data.m_SupportRuntimeDebugDisplay; // Inversion logic
 #pragma warning restore 618
             })
         );

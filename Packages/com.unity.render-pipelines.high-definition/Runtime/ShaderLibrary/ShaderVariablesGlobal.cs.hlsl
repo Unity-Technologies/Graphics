@@ -31,6 +31,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _RTHandleScaleHistory;
     float4 _RTHandlePostProcessScale;
     float4 _RTHandlePostProcessScaleHistory;
+    float4 _DynamicResolutionFullscreenScale;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -78,9 +79,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _CachedShadowAtlasSize;
     float4 _CachedAreaShadowAtlasSize;
     int _SpecularFade;
+    uint _EnableRenderingLayers;
     int _UnusedPadding1;
     int _UnusedPadding2;
-    int _UnusedPadding3;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
@@ -125,6 +126,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
+    float4 _DualLobeAndDiffusePower[16];
     uint4 _DiffusionProfileHashTable[16];
     uint _EnableSubsurfaceScattering;
     uint _TexturingModeFlags;
@@ -148,10 +150,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _DeExposureMultiplier;
     float4 _ScreenSizeOverride;
     float4 _ScreenCoordScaleBias;
-    float _EnableRenderingLayers;
-    float _Pad1;
-    float _Pad2;
-    float _Pad3;
 CBUFFER_END
 
 

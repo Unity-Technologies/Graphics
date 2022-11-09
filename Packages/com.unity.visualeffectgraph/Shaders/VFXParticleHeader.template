@@ -17,7 +17,14 @@ ${VFXGlobalDeclaration}
 #endif
 
 #if VFX_USE_INSTANCING
-#define VFX_VERTEX_OUTPUT_INSTANCE_INDEX nointerpolation uint instanceActiveIndex : INDEX0;
+#define VFX_VERTEX_OUTPUT_INSTANCE_INDEX nointerpolation uint2 instanceIndices : INDEX0; //instanceCurrentIndex, instanceActiveIndex
+#define VFX_VARYINGS_INSTANCE_CURRENT_INDEX instanceIndices.x
+#define VFX_VARYINGS_INSTANCE_ACTIVE_INDEX instanceIndices.y
+#ifdef UNITY_INSTANCING_ENABLED
+    #define VFX_FRAG_SETUP_INSTANCE_ID(i) unity_InstanceID = i.VFX_VARYINGS_INSTANCE_CURRENT_INDEX
+#else
+    #define VFX_FRAG_SETUP_INSTANCE_ID(i)
+#endif
 #else
 #define VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 #endif

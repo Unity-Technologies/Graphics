@@ -189,22 +189,34 @@ namespace UnityEngine.Rendering.HighDefinition
             // Volumetric Clouds
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
             public ComputeShader volumetricCloudsCS;
+            [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsTrace.compute")]
+            public ComputeShader volumetricCloudsTraceCS;
             [Reload("Editor/Lighting/VolumetricClouds/CloudMapGenerator.compute")]
             public ComputeShader volumetricCloudMapGeneratorCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
             public Shader volumetricCloudsCombinePS;
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.compute")]
+            public ComputeShader volumetricCloudsCombineCS;
 
             // Water
-            [Reload("Runtime/Water/WaterSimulation.compute")]
+            [Reload("Runtime/Water/Shaders/WaterSimulation.compute")]
             public ComputeShader waterSimulationCS;
-            [Reload("Runtime/Water/FourierTransform.compute")]
+            [Reload("Runtime/Water/Shaders/FourierTransform.compute")]
             public ComputeShader fourierTransformCS;
+            [Reload("Runtime/Water/Shaders/WaterEvaluation.compute")]
+            public ComputeShader waterEvaluationCS;
             [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
             public Shader waterPS;
-            [Reload("Runtime/Water/WaterLighting.compute")]
+            [Reload("Runtime/Water/Shaders/WaterLighting.compute")]
             public ComputeShader waterLightingCS;
-            [Reload("Runtime/Water/WaterCaustics.shader")]
+            [Reload("Runtime/Water/Shaders/UnderWaterRendering.compute")]
+            public ComputeShader underWaterRenderingCS;
+            [Reload("Runtime/Water/Shaders/WaterCaustics.shader")]
             public Shader waterCausticsPS;
+            [Reload("Runtime/Water/Shaders/WaterDeformation.shader")]
+            public Shader waterDeformationPS;
+            [Reload("Runtime/Water/Shaders/WaterDeformation.compute")]
+            public ComputeShader waterDeformationCS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -221,6 +233,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader preIntegratedFiberScatteringCS;
             [Reload("Runtime/Material/VolumetricMaterial/VolumetricMaterial.compute")]
             public ComputeShader volumetricMaterialCS;
+            [Reload("Runtime/Material/Eye/EyeCausticLUTGen.compute")]
+            public ComputeShader eyeMaterialCS;
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
             public ComputeShader encodeBC6HCS;
@@ -434,6 +448,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
+            // Water Exclusion material
+            [Reload("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
+            public Material waterExclusionMaterial;
+            [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
+            public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
         }
 
         [Serializable, ReloadGroup]
@@ -538,10 +557,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh emissiveQuadMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
             public Mesh sphereMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugSphere.fbx")]
-            public Mesh probeDebugSphere;
-            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugPyramid.fbx")]
-            public Mesh pyramidMesh;
         }
 
         public ShaderResources shaders;

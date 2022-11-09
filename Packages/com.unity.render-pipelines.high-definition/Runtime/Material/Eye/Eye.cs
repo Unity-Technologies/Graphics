@@ -126,7 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed textures
         //-----------------------------------------------------------------------------
 
-        private Texture3D m_EyeCausticLUT;
+        private EyeCausticLUT m_EyeCausticLUT;
+
+        private Texture3D m_EyeCausticLUTTex;
 
         public static readonly int _PreIntegratedEyeCaustic = Shader.PropertyToID("_PreIntegratedEyeCaustic");
 
@@ -134,22 +136,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
-            m_EyeCausticLUT = defaultResources.textures.eyeCausticLUT;
+            m_EyeCausticLUTTex = defaultResources.textures.eyeCausticLUT;
+
+            m_EyeCausticLUT = new EyeCausticLUT();
         }
 
         public override void Cleanup()
         {
+            m_EyeCausticLUT.Cleanup();
             m_EyeCausticLUT = null;
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
-
+            if (m_EyeCausticLUTTex == null)
+            {
+                m_EyeCausticLUT.Create();
+            }
         }
 
         public override void Bind(CommandBuffer cmd)
         {
-            cmd.SetGlobalTexture(_PreIntegratedEyeCaustic, m_EyeCausticLUT);
+            if (m_EyeCausticLUTTex != null)
+            {
+                cmd.SetGlobalTexture(_PreIntegratedEyeCaustic, m_EyeCausticLUTTex);
+            }
+            else
+            {
+                m_EyeCausticLUT.Bind(cmd);
+            }
         }
 
         // Reuse GGX textures

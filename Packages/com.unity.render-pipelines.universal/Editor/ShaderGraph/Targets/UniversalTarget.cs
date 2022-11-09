@@ -1465,14 +1465,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
-        // SM20 SubShaders need to use SM35 for DOTS_INSTANCING_ON variants
-        private static PragmaDescriptor DOTSInstancingSM35 => Pragma.TargetForKeyword(ShaderModel.Target35, "DOTS_INSTANCING_ON");
-
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
-            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1480,9 +1475,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1490,10 +1483,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
-            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1507,45 +1498,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DefaultSM45 = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection InstancedSM45 = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection ForwardSM45 = new PragmaCollection
+        public static readonly PragmaCollection GBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection GBufferSM45 = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1571,6 +1530,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
         const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
 
+        // Files that are included with #include_with_pragmas
+        const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
+        const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
+
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
             { kColor, IncludeLocation.Pregraph },
@@ -1579,6 +1542,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
+        };
+
+        public static readonly IncludeCollection DOTSPregraph = new IncludeCollection
+        {
+            { kDOTS, IncludeLocation.Pregraph, true },
+        };
+
+        public static readonly IncludeCollection WriteRenderLayersPregraph = new IncludeCollection
+        {
+            { kRenderingLayers, IncludeLocation.Pregraph, true },
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
@@ -1595,6 +1568,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection DepthOnly = new IncludeCollection
         {
             // Pre-graph
+            { DOTSPregraph },
             { CorePregraph },
             { ShaderGraphPregraph },
 
@@ -1606,6 +1580,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection DepthNormalsOnly = new IncludeCollection
         {
             // Pre-graph
+            { DOTSPregraph },
+            { WriteRenderLayersPregraph },
             { CorePregraph },
             { ShaderGraphPregraph },
 
@@ -1617,6 +1593,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection ShadowCaster = new IncludeCollection
         {
             // Pre-graph
+            { DOTSPregraph },
             { CorePregraph },
             { ShaderGraphPregraph },
 
@@ -1881,16 +1858,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor WriteRenderingLayers = new KeywordDescriptor()
-        {
-            displayName = "Write Rendering Layers",
-            referenceName = "_WRITE_RENDERING_LAYERS",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-        };
-
         public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
         {
             displayName = "Render Pass Enabled",
@@ -2086,11 +2053,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordCollection ShadowCaster = new KeywordCollection
         {
             { CoreKeywordDescriptors.CastingPunctualLightShadow },
-        };
-
-        public static readonly KeywordCollection DOTSDepthNormal = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.WriteRenderingLayers },
         };
     }
     #endregion

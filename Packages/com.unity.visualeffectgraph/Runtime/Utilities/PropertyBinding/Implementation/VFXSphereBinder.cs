@@ -5,7 +5,7 @@ namespace UnityEngine.VFX.Utility
 {
     [AddComponentMenu("VFX/Property Binders/Sphere Collider Binder")]
     [VFXBinder("Collider/Sphere")]
-    class VFXSphereBinder : VFXBinderBase
+    class VFXSphereBinder : VFXSpaceableBinder
     {
         public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
 
@@ -45,13 +45,19 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            var center = Target.transform.position + Target.center;
-            if (component.HasVector3(m_New_Center))
+            var actualCenterProperty = m_New_Center;
+            if (!component.HasVector3(m_New_Center))
+                actualCenterProperty = m_Old_Center;
+
+            ApplySpaceTS(component, actualCenterProperty, Target.transform, out var transformCenter, out var transformScale);
+
+            var center = transformCenter + Target.center;
+            if (m_New_Center == actualCenterProperty)
                 component.SetVector3(m_New_Center, center);
             else
                 component.SetVector3(m_Old_Center, center);
 
-            component.SetFloat(m_Radius, Target.radius * GetSphereColliderScale(Target.transform.localScale));
+            component.SetFloat(m_Radius, Target.radius * GetSphereColliderScale(transformScale));
         }
 
         public float GetSphereColliderScale(Vector3 scale)

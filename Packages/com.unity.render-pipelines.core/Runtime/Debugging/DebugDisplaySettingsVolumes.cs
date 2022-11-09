@@ -196,38 +196,18 @@ namespace UnityEngine.Rendering
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
 
                 // First row for volume info
-                float timer = 0.0f, refreshRate = 0.2f;
                 var row = new DebugUI.Table.Row()
                 {
                     displayName = Strings.volumeInfo,
                     opened = true, // Open by default for the in-game view
-                    children = { new DebugUI.Value() {
-                                         displayName = Strings.interpolatedValue,
-                                         getter = () => {
-                                             // This getter is called first at each render
-                                             // It is used to update the volumes
-                                             bool refresh = timer >= refreshRate;
-                                             timer += Time.deltaTime;
-                                             if (!refresh) return string.Empty;
-                                             timer -= refreshRate;
-
-                                             if (data.volumeDebugSettings.selectedCamera != null)
-                                             {
-                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                                 {
-                                                     for (int i = 0; i < newVolumes.Length; i++)
-                                                     {
-                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                                         table.SetColumnVisibility(i + 1, visible);
-                                                     }
-                                                     return string.Empty;
-                                                 }
-                                             }
-                                             DebugManager.instance.ReDrawOnScreenDebug();
-                                             return string.Empty;
-                                         }
-                                     } }
+                    children =
+                    {
+                        new DebugUI.Value()
+                        {
+                             displayName = Strings.interpolatedValue,
+                             getter = () => string.Empty
+                        }
+                    }
                 };
 
                 // Second row, links to volume gameobjects
@@ -327,6 +307,36 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < volumes.Length; i++)
                     table.SetColumnVisibility(i + 1, data.volumeDebugSettings.VolumeHasInfluence(volumes[i]));
 
+                float timer = 0.0f, refreshRate = 0.2f;
+                table.isHiddenCallback = () =>
+                {
+                    timer += Time.deltaTime;
+                    if (timer >= refreshRate)
+                    {
+                        if (data.volumeDebugSettings.selectedCamera != null)
+                        {
+                            var newVolumes = data.volumeDebugSettings.GetVolumes();
+                            if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                            {
+                                for (int i = 0; i < newVolumes.Length; i++)
+                                {
+                                    var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                    table.SetColumnVisibility(i + 1, visible);
+                                }
+                            }
+
+                            if (!volumes.SequenceEqual(newVolumes))
+                            {
+                                volumes = newVolumes;
+                                DebugManager.instance.ReDrawOnScreenDebug();
+                            }
+                        }
+
+                        timer = 0.0f;
+                    }
+                    return false;
+                };
+
                 return table;
             }
         }
@@ -337,8 +347,8 @@ namespace UnityEngine.Rendering
             public SettingsPanel(DebugDisplaySettingsVolume data)
                 : base(data)
             {
-                AddWidget(WidgetFactory.CreateComponentSelector(this, (_, __) => Refresh()));
                 AddWidget(WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh()));
+                AddWidget(WidgetFactory.CreateComponentSelector(this, (_, __) => Refresh()));
             }
 
             DebugUI.Table m_VolumeTable = null;
@@ -373,24 +383,6 @@ namespace UnityEngine.Rendering
         /// Checks whether ANY of the debug settings are currently active.
         /// </summary>
         public bool AreAnySettingsActive => false; // Volume Debug Panel doesn't need to modify the renderer data, therefore this property returns false
-        /// <summary>
-        /// Checks whether the current state of these settings allows post-processing.
-        /// </summary>
-        public bool IsPostProcessingAllowed => true;
-        /// <summary>
-        /// Checks whether lighting is active for these settings.
-        /// </summary>
-        public bool IsLightingActive => true;
-
-        /// <summary>
-        /// Attempts to get the color used to clear the screen for this debug setting.
-        /// </summary>
-        /// <param name="color">A reference to the screen clear color to use.</param>
-        /// <returns>"true" if we updated the color, "false" if we didn't change anything.</returns>
-        public bool TryGetScreenClearColor(ref Color color)
-        {
-            return false;
-        }
 
         /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()

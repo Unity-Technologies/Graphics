@@ -82,7 +82,7 @@ void RayGenAreaShadowSingle()
 
     // Read the previous value of the buffer
     float2 previousValue = _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-    float2 currentSample = LOAD_TEXTURE2D_X(_RaytracedAreaShadowSample, currentPixelCoord);
+    float2 currentSample = LOAD_TEXTURE2D_X(_RaytracedAreaShadowSample, currentPixelCoord).xy;
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
@@ -174,7 +174,6 @@ void RayGenDirectionalShadowSingle()
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
-
     // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
@@ -190,13 +189,17 @@ void RayGenDirectionalShadowSingle()
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the ray distance
-    float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
+    float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
     float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
+
+    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
+    if (rayDirection.w <= 0.0)
+        return;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
     rayDescriptor.Origin = rayOrigin;
-    rayDescriptor.Direction = rayDirection;
+    rayDescriptor.Direction = rayDirection.xyz;
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = _DirectionalMaxRayLength;
 
@@ -260,13 +263,17 @@ void RayGenDirectionalColorShadowSingle()
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the ray distance
-    float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
+    float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
     float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
+
+    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
+    if (rayDirection.w <= 0.0)
+        return;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
     rayDescriptor.Origin = rayOrigin;
-    rayDescriptor.Direction = rayDirection;
+    rayDescriptor.Direction = rayDirection.xyz;
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = _DirectionalMaxRayLength;
 
@@ -286,7 +293,7 @@ void RayGenDirectionalColorShadowSingle()
     if (rayIntersection.color.x != 0.0)
     {
         rayDescriptor.Origin = rayOrigin;
-        rayDescriptor.Direction = rayDirection;
+        rayDescriptor.Direction = rayDirection.xyz;
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = _DirectionalMaxRayLength;
         rayIntersection.color = float3(1.0, 1.0, 1.0);

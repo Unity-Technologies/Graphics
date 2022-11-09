@@ -288,6 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal RTHandle[] volumetricHistoryBuffers; // Double-buffered; only used for reprojection
         // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
         internal uint cameraFrameCount = 0;
+        internal bool rayTracingAccumulation = true;
         internal bool animateMaterials;
         internal float lastTime;
 
@@ -377,6 +378,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float globalMipBias { set; get; } = 0.0f;
 
+        // Flag to track if a history buffer clear was requested
+        private bool m_ClearHistoryRequest;
+
         internal float deltaTime => time - lastTime;
 
         // Useful for the deterministic testing of motion vectors.
@@ -417,7 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType != CameraType.Reflection)
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView)
                     return HDAdditionalCameraData.ClearColorMode.Color;
 
                 if (m_AdditionalCameraData != null)
@@ -673,6 +677,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return cameraFrameCount;
         }
 
+        internal void SetRayTracingAccumulation(bool state)
+        {
+            rayTracingAccumulation = state;
+        }
+
+        internal bool ActiveRayTracingAccumulation()
+        {
+            return rayTracingAccumulation;
+        }
+
         internal struct DynamicResolutionRequest
         {
             public bool enabled;
@@ -719,6 +733,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthBufferMipChainInfo.Allocate();
 
+            // Initially, we don't want to clear any history buffer
+            m_ClearHistoryRequest = false;
+
             Reset();
         }
 
@@ -734,6 +751,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsPathTracingEnabled()
         {
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+                return false;
+
             var pathTracing = volumeStack.GetComponent<PathTracing>();
             return pathTracing ? pathTracing.enable.value : false;
         }
@@ -791,6 +812,16 @@ namespace UnityEngine.Rendering.HighDefinition
             bool c = frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
 
             return a && b && c;
+        }
+
+        internal void RequestClearHistoryBuffers()
+        {
+            m_ClearHistoryRequest = true;
+        }
+
+        private void ClearHistoryBuffer(CommandBuffer cmd)
+        {
+            m_HistoryRTSystem.ClearBuffers(cmd);
         }
 
         // Pass all the systems that may want to update per-camera data here.
@@ -1042,6 +1073,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
         internal void BeginRender(CommandBuffer cmd)
         {
+            // If a history buffer was requested, clear all the previously existing buffers and reset the flag
+            if (m_ClearHistoryRequest)
+            {
+                ClearHistoryBuffer(cmd);
+                m_ClearHistoryRequest = false;
+            }
+
             SetReferenceSize();
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
@@ -1146,6 +1184,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
             cb._RTHandlePostProcessScale = m_PostProcessRTScales;
             cb._RTHandlePostProcessScaleHistory = m_PostProcessRTScalesHistory;
+            cb._DynamicResolutionFullscreenScale = new Vector4(actualWidth / finalViewport.width, actualHeight / finalViewport.height, 0, 0);
         }
 
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
@@ -1233,12 +1272,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (xr.enabled)
             {
-                cmd.SetViewProjectionMatrices(m_XRViewConstants[0].viewMatrix, m_XRViewConstants[0].projMatrix);
+                cmd.SetViewProjectionMatrices(xr.GetViewMatrix(), xr.GetProjMatrix());
                 if (xr.singlePassEnabled)
                 {
                     for (int viewId = 0; viewId < viewCount; viewId++)
                     {
-                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(m_XRViewConstants[viewId].viewMatrix, m_XRViewConstants[viewId].projMatrix, true, viewId);
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(xr.GetViewMatrix(viewId), xr.GetProjMatrix(viewId), true, viewId);
                     }
                     XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                 }

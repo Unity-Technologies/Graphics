@@ -31,8 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, ScreenSpaceAmbientOcclusion ssoSettings)
         {
-            float remappedRayLength = (Mathf.Clamp(ssoSettings.rayLength, 1.25f, 1.5f) - 1.25f) / 0.25f;
-            return Mathf.Lerp(0.0f, 1.0f, 1.0f - remappedRayLength);
+            return ssoSettings.specularOcclusion.value;
         }
 
         static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -46,8 +45,6 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationBuffer,
             TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
-            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
-
             // Trace the signal
             var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
 
@@ -144,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Set the data for the ray generation
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.depthBuffer, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                         // Inject the ray-tracing sampling data
