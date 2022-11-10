@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
     {
         class Styles
