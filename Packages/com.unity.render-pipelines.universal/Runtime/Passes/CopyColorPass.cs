@@ -145,16 +145,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 source = renderingData.cameraData.renderer.cameraColorTargetHandle;
             }
 
+            bool xrEnabled = renderingData.cameraData.xr.enabled;
+            bool disableFoveatedRenderingForPass = xrEnabled && renderingData.cameraData.xr.supportsFoveatedRendering;
             ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            ExecutePass(m_PassData, source, destination, ref renderingData.commandBuffer, renderingData.cameraData.xr.enabled);
+            ExecutePass(m_PassData, source, destination, ref renderingData.commandBuffer, xrEnabled, disableFoveatedRenderingForPass);
         }
 
-        private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination, ref CommandBuffer cmd, bool useDrawProceduralBlit)
+        private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination, ref CommandBuffer cmd, bool useDrawProceduralBlit, bool disableFoveatedRenderingForPass)
         {
             var samplingMaterial = passData.samplingMaterial;
             var copyColorMaterial = passData.copyColorMaterial;
             var downsamplingMethod = passData.downsamplingMethod;
             var sampleOffsetShaderHandle = passData.sampleOffsetShaderHandle;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (disableFoveatedRenderingForPass)
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+#endif
 
             if (samplingMaterial == null)
             {
@@ -191,6 +198,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle destination;
             // internal RenderingData renderingData;
             internal bool useProceduralBlit;
+            internal bool disableFoveatedRenderingForPass;
             internal CommandBuffer cmd;
             internal Material samplingMaterial;
             internal Material copyColorMaterial;
@@ -212,6 +220,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.source = builder.ReadTexture(source);
                 passData.cmd = renderingData.commandBuffer;
                 passData.useProceduralBlit = renderingData.cameraData.xr.enabled;
+                passData.disableFoveatedRenderingForPass = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.supportsFoveatedRendering;
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
                 passData.downsamplingMethod = m_DownsamplingMethod;
@@ -222,7 +231,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    ExecutePass(data, data.source, data.destination, ref data.cmd, data.useProceduralBlit);
+                    ExecutePass(data, data.source, data.destination, ref data.cmd, data.useProceduralBlit, data.disableFoveatedRenderingForPass);
                 });
             }
 
