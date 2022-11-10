@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        private Func<ShadowResolutionRequest, ShadowResolutionRequest, int> m_CompareShadowResolutionRequest;
+
         /// <summary>
         /// x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights.
         /// w is perLightFirstShadowSliceIndex, used in Lighting shader to find if Additional light casts shadows.
@@ -146,6 +148,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_UnusedAtlasSquareAreas.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
                 m_ShadowResolutionRequests.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
             }
+
+            // Sort array in decreasing requestedResolution order,
+            // sub-sorting in "HardShadow > SoftShadow" and then "Spot > Point",
+            //   i.e place last requests that will be removed in priority to make room for the others,
+            //   because their resolution is too small to produce good-looking shadows ; or because they take relatively more space in the atlas )
+            // sub-sub-sorting in light distance to camera
+            // then grouping in increasing visibleIndex (and sub-sorting each group in ShadowSliceIndex order)
+            m_CompareShadowResolutionRequest = (ShadowResolutionRequest curr, ShadowResolutionRequest other) =>
+            {
+                return (((curr.requestedResolution > other.requestedResolution)
+                         || (curr.requestedResolution == other.requestedResolution && !curr.softShadow && other.softShadow)
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && !curr.pointLightShadow && other.pointLightShadow)
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && curr.pointLightShadow == other.pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] < m_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex])
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && curr.pointLightShadow == other.pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == m_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex] && curr.visibleLightIndex < other.visibleLightIndex)
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && curr.pointLightShadow == other.pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == m_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex] && curr.visibleLightIndex == other.visibleLightIndex && curr.perLightShadowSliceIndex < other.perLightShadowSliceIndex)))
+                    ? -1 : 1;
+            };
         }
 
         /// <summary>
@@ -281,37 +300,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             return fovBias;
-        }
-
-        // Adapted from InsertionSort() in com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDDynamicShadowAtlas.cs
-        // Sort array in decreasing requestedResolution order,
-        // sub-sorting in "HardShadow > SoftShadow" and then "Spot > Point", i.e place last requests that will be removed in priority to make room for the others, because their resolution is too small to produce good-looking shadows ; or because they take relatively more space in the atlas )
-        // sub-sub-sorting in light distance to camera
-        // then grouping in increasing visibleIndex (and sub-sorting each group in ShadowSliceIndex order)
-        internal void InsertionSort(ShadowResolutionRequest[] array, int startIndex, int lastIndex)
-        {
-            int i = startIndex + 1;
-
-            while (i < lastIndex)
-            {
-                var curr = array[i];
-                int j = i - 1;
-
-                // Sort in priority order
-                while ((j >= 0) && ((curr.requestedResolution > array[j].requestedResolution)
-                                    || (curr.requestedResolution == array[j].requestedResolution && !curr.softShadow && array[j].softShadow)
-                                    || (curr.requestedResolution == array[j].requestedResolution && curr.softShadow == array[j].softShadow && !curr.pointLightShadow && array[j].pointLightShadow)
-                                    || (curr.requestedResolution == array[j].requestedResolution && curr.softShadow == array[j].softShadow && curr.pointLightShadow == array[j].pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] < m_VisibleLightIndexToCameraSquareDistance[array[j].visibleLightIndex])
-                                    || (curr.requestedResolution == array[j].requestedResolution && curr.softShadow == array[j].softShadow && curr.pointLightShadow == array[j].pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == m_VisibleLightIndexToCameraSquareDistance[array[j].visibleLightIndex] && curr.visibleLightIndex < array[j].visibleLightIndex)
-                                    || (curr.requestedResolution == array[j].requestedResolution && curr.softShadow == array[j].softShadow && curr.pointLightShadow == array[j].pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == m_VisibleLightIndexToCameraSquareDistance[array[j].visibleLightIndex] && curr.visibleLightIndex == array[j].visibleLightIndex && curr.perLightShadowSliceIndex < array[j].perLightShadowSliceIndex)))
-                {
-                    array[j + 1] = array[j];
-                    j--;
-                }
-
-                array[j + 1] = curr;
-                i++;
-            }
         }
 
         int EstimateScaleFactorNeededToFitAllShadowsInAtlas(in ShadowResolutionRequest[] shadowResolutionRequests, int endIndex, int atlasWidth)
@@ -594,7 +582,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_SortedShadowResolutionRequests[shadowRequestIndex] = m_ShadowResolutionRequests[shadowRequestIndex];
             for (int sortedArrayIndex = totalShadowResolutionRequestsCount; sortedArrayIndex < m_SortedShadowResolutionRequests.Length; ++sortedArrayIndex)
                 m_SortedShadowResolutionRequests[sortedArrayIndex].requestedResolution = 0; // reset unused entries
-            InsertionSort(m_SortedShadowResolutionRequests, 0, totalShadowResolutionRequestsCount);
+
+            {
+                using var scope = new ProfilingScope(null, Sorting.s_QuickSortSampler);
+                Sorting.QuickSort(m_SortedShadowResolutionRequests, 0, totalShadowResolutionRequestsCount - 1, m_CompareShadowResolutionRequest);
+            }
 
             // To avoid visual artifacts when there is not enough place in the atlas, we remove shadow slices that would be allocated a too small resolution.
             // When not using structured buffers, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
