@@ -929,7 +929,8 @@ namespace UnityEditor.VFX.UI
             if (statUI[4] is TextElement maxAliveText)
             {
                 maxAliveText.SetEnabled(m_Graph.visualEffectResource != null && m_Graph.visualEffectResource.IsAssetEditable());
-                maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.aliveCount).ToString();
+                uint.TryParse(maxAliveText.text, out uint maxAlive);
+                maxAliveText.text = Math.Max(maxAlive, stat.aliveCount).ToString("D");
             }
             if (statUI[5] is TextElement efficiency)
             {
