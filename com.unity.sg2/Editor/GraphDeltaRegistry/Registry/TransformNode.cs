@@ -30,6 +30,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kInput = "In";
         public const string kOutput = "Out";
 
+        // Hidden ports for referables used by transform calculations
+        const string kWorldTangent = "WorldTangent";
+        const string kWorldBiTangent = "WorldBiTangent";
+        const string kWorldNormal = "WorldNormal";
+        const string kWorldPosition = "WorldPosition";
+
         // Fields
         const string kSourceSpace = "Source";
         const string kDestinationSpace = "Destination";
@@ -37,6 +43,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public RegistryKey GetRegistryKey() => new() {Name = "Transform", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+
+        static void AddVec3Referable(NodeHandler node, string portName, string contextEntryName, Registry registry)
+        {
+            var port = node.AddPort<GraphType>(portName, isInput: true, registry);
+            GraphTypeHelpers.InitGraphType(port.GetTypeField(), GraphType.Length.Three);
+            node.Owner.AddDefaultConnection(contextEntryName, port.ID, registry);
+        }
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
@@ -47,9 +60,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             GraphTypeHelpers.InitGraphType(outPort.GetTypeField(), GraphType.Length.Three, precisionDynamic: true);
             GraphTypeHelpers.ResolveDynamicPorts(node);
 
+            AddVec3Referable(node, kWorldTangent, "WorldSpaceTangent", registry);
+            AddVec3Referable(node, kWorldBiTangent, "WorldSpaceBiTangent", registry);
+            AddVec3Referable(node, kWorldNormal, "WorldSpaceNormal", registry);
+            AddVec3Referable(node, kWorldPosition, "WorldSpacePosition", registry);
+
             node.AddField(kSourceSpace, CoordinateSpace.Object, reconcretizeOnDataChange: true);
-            node.AddField(kDestinationSpace, CoordinateSpace.View, reconcretizeOnDataChange: true);
-            node.AddField(kType, ConversionType.Direction, reconcretizeOnDataChange: true);
+            node.AddField(kDestinationSpace, CoordinateSpace.Tangent, reconcretizeOnDataChange: true);
+            node.AddField(kType, ConversionType.Position, reconcretizeOnDataChange: true);
         }
 
         static SpaceTransform GetTransform(NodeHandler node)
@@ -74,8 +92,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 builder.AddParameter(param);
             }
 
-            // TODO: Implement the node!
-            SpaceTransformUtils.GenerateTransformCodeStatement(GetTransform(node), kInput, kOutput, builder);
+            var generationInfo = new TransformValues
+            {
+                Input = kInput,
+                OutputVariable = kOutput,
+                WorldTangent = kWorldTangent,
+                WorldBiTangent = kWorldBiTangent,
+                WorldNormal = kWorldNormal,
+                WorldPosition = kWorldPosition,
+            };
+
+            SpaceTransformUtils.GenerateTransform(GetTransform(node), generationInfo, builder);
             return builder.Build();
         }
     }
