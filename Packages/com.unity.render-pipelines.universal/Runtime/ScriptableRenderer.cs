@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            m_TextureHandles.TryAdd(GetKey(id), handle);
+            m_TextureHandles[GetKey(id)] = handle;
         }
     }
 

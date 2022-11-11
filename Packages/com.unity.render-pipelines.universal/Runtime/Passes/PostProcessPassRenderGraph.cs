@@ -1224,6 +1224,12 @@ namespace UnityEngine.Rendering.Universal
 
             material.shaderKeywords = null;
 
+            // TODO RENDERGRAPH: when we remove the old path we should review the naming of these variables...
+            // m_HasFinalPass is used to let FX passes know when they are not being called by the actual final pass, so they can skip any "final work"
+            m_HasFinalPass = false;
+            // m_IsFinalPass is used by effects called by RenderFinalPassRenderGraph, so we let them know that we are in a final PP pass
+            m_IsFinalPass = true;
+
             SetupGrain(ref cameraData, material);
             SetupDithering(ref cameraData, material);
 

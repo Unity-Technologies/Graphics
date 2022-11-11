@@ -194,7 +194,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {
                     if (data.copiedColor.IsValid())
-                        s_PassMaterial.SetTexture(Shader.PropertyToID("_BlitTexture"), data.copiedColor);
+                        s_PassMaterial.SetTexture(m_BlitTextureShaderID, data.copiedColor);
 
                     CoreUtils.DrawFullScreen(rgContext.cmd, s_PassMaterial, null, data.passIndex);
                 });
