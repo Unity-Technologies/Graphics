@@ -445,9 +445,13 @@ namespace UnityEngine.Rendering.Universal
 
             OnBeforeRendering(renderGraph, context, ref renderingData);
 
+            BeginRenderGraphXRRendering(renderGraph, ref renderingData);
+
             OnMainRendering(renderGraph, context, ref renderingData);
 
             OnAfterRendering(renderGraph, context, ref renderingData);
+
+            EndRenderGraphXRRendering(renderGraph, ref renderingData);
         }
 
         internal override void OnFinishRenderGraphRendering(ScriptableRenderContext context, ref RenderingData renderingData)

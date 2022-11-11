@@ -261,18 +261,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             ref var renderingData = ref data.m_RenderingData;
 
-            // TODO RENDERGRAPH figure out where to put XR proj flip logic so that it can be auto handled in render graph
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (renderingData.cameraData.xr.enabled)
-            {
-                // SetRenderTarget might alter the internal device state(winding order).
-                // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                bool renderIntoTexture = data.m_Albedo != renderingData.cameraData.xr.renderTarget;
-                renderingData.cameraData.PushBuiltinShaderConstantsXR(renderingData.commandBuffer, renderIntoTexture);
-                XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
-            }
-#endif
-
             // Currently we only need to call this additional pass when the user
             // doesn't want transparent objects to receive shadows
             if (!data.m_IsOpaque && !data.m_ShouldTransparentsReceiveShadows)

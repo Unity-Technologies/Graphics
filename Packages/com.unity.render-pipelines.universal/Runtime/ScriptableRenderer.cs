@@ -219,8 +219,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                cameraData.PushBuiltinShaderConstantsXR(cmd, false);
-                XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, false);
+                cameraData.PushBuiltinShaderConstantsXR(cmd, isTargetFlipped);
+                XRSystemUniversal.MarkShaderProperties(cmd, cameraData.xrUniversal, isTargetFlipped);
                 return;
             }
 #endif
@@ -992,7 +992,7 @@ namespace UnityEngine.Rendering.Universal
             public CameraData cameraData;
         };
 
-        private void BeginRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void BeginRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (!renderingData.cameraData.xr.enabled)
@@ -1031,7 +1031,7 @@ namespace UnityEngine.Rendering.Universal
             public CameraData cameraData;
         };
 
-        private void EndRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
+        internal void EndRenderGraphXRRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (!renderingData.cameraData.xr.enabled)
@@ -1087,11 +1087,7 @@ namespace UnityEngine.Rendering.Universal
 
             InitRenderGraphFrame(renderGraph, ref renderingData);
 
-            BeginRenderGraphXRRendering(renderGraph, ref renderingData);
-
             OnRecordRenderGraph(renderGraph, context, ref renderingData);
-
-            EndRenderGraphXRRendering(renderGraph, ref renderingData);
 
             m_Resources.EndFrame();
         }
