@@ -65,7 +65,7 @@ void EvaluateLitMaterialData(in PositionInputs posInput, in AttributeData attrib
     preLightData = (PreLightData)0;
 
     // Evaluate the input data
-    VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, 0);
+    VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, frontFace, 0);
 
     // Grab the current particle's AABB
     AABB particleAABB = FetchPrimitiveAABB(PrimitiveIndex(), VFX_AABB_COUNT, instanceIndex);

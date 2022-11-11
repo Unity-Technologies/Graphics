@@ -56,32 +56,6 @@ namespace UnityEditor.VFX
             FlipbookMotionBlend,
         }
 
-        public enum ZWriteMode
-        {
-            Default,
-            Off,
-            On
-        }
-        public enum CullMode
-        {
-            Default,
-            Front,
-            Back,
-            Off
-        }
-
-        public enum ZTestMode
-        {
-            Default,
-            Less,
-            Greater,
-            LEqual,
-            GEqual,
-            Equal,
-            NotEqual,
-            Always
-        }
-
         public enum SortActivationMode
         {
             Auto,
@@ -108,20 +82,15 @@ namespace UnityEditor.VFX
             None,
             Custom,
         }
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
-        protected CullMode cullMode = CullMode.Default;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether the particle is writing to the depth buffer.")]
-        protected ZWriteMode zWriteMode = ZWriteMode.Default;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle rendering is affected by the depth buffer. By default, particles render if they are closer to the camera than solid objects in the scene.")]
-        protected ZTestMode zTestMode = ZTestMode.Default;
 
         [VFXSetting, SerializeField, Tooltip("Specifies how particles are being colored in the pixel shader. They can either use the main texture, or their color and alpha can be remapped with a gradient based on the main texture values."), Header("Particle Options"), FormerlySerializedAs("colorMappingMode")]
         protected ColorMappingMode colorMapping;
 
         [VFXSetting, SerializeField, Tooltip("Specifies the UV mode used when sampling the texture on the particle. The UVs can encompass the whole particle by default, be resized and offset, or they can be segmented for use with a texture flipbook to simulate an animated texture."), FormerlySerializedAs("flipbookMode")]
         protected UVMode uvMode;
+
+        [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
+        protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
         [VFXSetting, SerializeField, Tooltip("When enabled, transparent particles fade out when near the surface of objects writing into the depth buffer (e.g. when intersecting with solid objects in the level).")]
         protected bool useSoftParticle = false;
@@ -152,9 +121,6 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, an exposure weight slider appears in the current output. The slider can be used to control how much influence exposure control will have on the particles.")]
         protected bool useExposureWeight = false;
-
-        [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
-        protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Ray Tracing"), Tooltip("When enabled, particles will participate in the ray-traced effects.")]
         protected bool enableRayTracing = false;
@@ -348,7 +314,7 @@ namespace UnityEditor.VFX
                                 mainTextureExp = slotExpressions.First(o =>
                                     (o.name == "mainTexture") | (o.name == "baseColorMap") |
                                     (o.name == "distortionBlurMap") | (o.name == "normalMap") |
-                                    (o.name == "emissiveMap") | (o.name == "positiveAxesLightMap"));
+                                    (o.name == "emissiveMap") | (o.name == "positiveAxesLightmap"));
                             }
                             catch (InvalidOperationException)
                             {

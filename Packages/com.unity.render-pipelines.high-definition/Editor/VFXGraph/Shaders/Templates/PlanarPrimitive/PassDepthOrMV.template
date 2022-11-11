@@ -48,8 +48,8 @@ struct ps_input
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(7,8)
 	#endif
 
-    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && IS_TRANSPARENT_PARTICLE
-    VFX_OPTIONAL_INTERPOLATION float4 alphaRemap : TEXCOORD9;
+    #if VFX_SIX_WAY_USE_ALPHA_REMAP
+    nointerpolation float4 alphaRemap : TEXCOORD9;
     #endif
 
     ${VFXAdditionalInterpolantsDeclaration}
@@ -92,7 +92,7 @@ struct ps_input
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
 #endif
 
-#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && IS_TRANSPARENT_PARTICLE
+#if VFX_SIX_WAY_USE_ALPHA_REMAP
     #define VFX_VARYING_ALPHA_REMAP alphaRemap
 #endif
 

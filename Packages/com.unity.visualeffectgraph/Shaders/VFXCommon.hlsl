@@ -642,9 +642,13 @@ struct VFXUVData
 
 float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
 {
+ #if USE_FLIPBOOK_INTERPOLATION
     float4 s0 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.xy);
     float4 s1 = SampleTexture(s, uvData.uvs.zw + uvData.mvs.zw);
     return lerp(s0, s1, uvData.blend);
+#else
+    return SampleTexture(s, uvData.uvs.xy);
+#endif
 }
 
 float4 SampleTexture(VFXSampler2DArray s, VFXUVData uvData) //For flipbook in array layout
