@@ -24,8 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DefaultWaterMaterial
-  m_Shader: {fileID: -6465566751694194690, guid: 3fda5e465882bec4d8e64161b681806c,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 3fda5e465882bec4d8e64161b681806c, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -58,8 +57,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FoamVolume:
-        m_Texture: {fileID: 2559123271469974466, guid: f752f0da5146d7346a325aecae2c7381,
-          type: 2}
+        m_Texture: {fileID: 2559123271469974466, guid: f752f0da5146d7346a325aecae2c7381, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture3D:

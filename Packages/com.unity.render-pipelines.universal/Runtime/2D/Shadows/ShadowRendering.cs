@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
             #if UNITY_EDITOR
                 return SceneVisibilityManager.instance == null ? true : !SceneVisibilityManager.instance.IsHidden(shadowCaster.gameObject);
             #else
-                return true;        
+                return true;
             #endif
         }
 
@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.Universal
                                     // Draw the projected shadows for the shadow caster group. Only writes the composite stencil bit
                                     RenderProjectedShadows(cmdBuffer, layerToRender, light, shadowCasters, projectedShadowMaterial, 0);
 
-                                    // Render self shadowing or non self shadowing 
+                                    // Render self shadowing or non self shadowing
                                     RenderSelfShadowOption(cmdBuffer, layerToRender, light, shadowCasters, projectedUnshadowMaterial, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial);
                                 }
                             }

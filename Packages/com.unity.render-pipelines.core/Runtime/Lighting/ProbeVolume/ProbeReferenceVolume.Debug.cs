@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
@@ -41,6 +42,24 @@ namespace UnityEngine.Rendering
         Size
     }
 
+    public enum ProbeSamplingDebugUpdate
+    {
+        Never,
+        Once,
+        Always
+    }
+
+    public class ProbeSamplingDebugData
+    {
+        public ProbeSamplingDebugUpdate update = ProbeSamplingDebugUpdate.Never; // When compute buffer should be updated
+        public Vector2 coordinates = new Vector2(0.5f, 0.5f);
+        public bool forceScreenCenterCoordinates = false; // use screen center instead of mouse position
+        public Camera camera = null; // useful in editor when multiple scene tabs are opened
+        public bool shortcutPressed = false;
+        public GraphicsBuffer positionNormalBuffer; // buffer storing position and normal
+    }
+
+
     class ProbeVolumeDebug
     {
         public bool drawProbes;
@@ -56,6 +75,8 @@ namespace UnityEngine.Rendering
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public int minSubdivToVisualize = 0;
         public float exposureCompensation;
+        public bool drawProbeSamplingDebug = false;
+        public float probeSamplingDebugSize = 0.3f;
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
@@ -119,6 +140,16 @@ namespace UnityEngine.Rendering
         DebugUI.Widget[] m_DebugItems;
         Mesh m_DebugMesh;
         Material m_DebugMaterial;
+
+        // Sample position debug
+        Mesh m_DebugProbeSamplingMesh; // mesh with 8 quads, 1 arrow and 2 locators
+        Material m_ProbeSamplingDebugMaterial; // Used to draw probe sampling information (quad with weight, arrow, locator)
+        Material m_ProbeSamplingDebugMaterial02; // Used to draw probe sampling information (shaded probes)
+
+        Texture m_displayNumbersTexture;
+
+        public static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
+
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
         Material m_DebugFragmentationMaterial;
@@ -155,6 +186,20 @@ namespace UnityEngine.Rendering
                 m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
                 m_DebugMaterial.enableInstancing = true;
 
+                // Probe Sampling Debug Mesh : usefull to show additional information concerning probe sampling for a specific fragment
+                // - Arrow : Debug fragment position and normal
+                // - Locator : Debug sampling position
+                // - 8 Quads : Debug probes weights
+                m_DebugProbeSamplingMesh = parameters.probeSamplingDebugMesh;
+                m_DebugProbeSamplingMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 9999999.9f); // dirty way of disabling culling (objects spawned at (0.0, 0.0, 0.0) but vertices moved in vertex shader)
+                m_ProbeSamplingDebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeSamplingDebugShader);
+                m_ProbeSamplingDebugMaterial02 = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
+                m_ProbeSamplingDebugMaterial02.enableInstancing = true;
+
+                probeSamplingDebugData.positionNormalBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vector4)));
+
+                m_displayNumbersTexture = parameters.probeSamplingDebugTexture;
+
                 m_DebugOffsetMesh = Resources.GetBuiltinResource<Mesh>("pyramid.fbx");
                 m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
                 m_DebugOffsetMaterial.enableInstancing = true;
@@ -183,8 +228,11 @@ namespace UnityEngine.Rendering
         {
             UnregisterDebug(true);
             CoreUtils.Destroy(m_DebugMaterial);
+            CoreUtils.Destroy(m_ProbeSamplingDebugMaterial);
+            CoreUtils.Destroy(m_ProbeSamplingDebugMaterial02);
             CoreUtils.Destroy(m_DebugOffsetMaterial);
             CoreUtils.Destroy(m_DebugFragmentationMaterial);
+            CoreUtils.SafeRelease(probeSamplingDebugData?.positionNormalBuffer);
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnClearLightingdata;
@@ -269,6 +317,27 @@ namespace UnityEngine.Rendering
             }
 
             probeContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Debug Probe Sampling",
+                tooltip = "Render the debug view displaying how probes are sampled for a selected pixel. Use the viewport overlay 'SelectPixel' button or Ctrl+Click on the viewport to select the debugged pixel",
+                getter = () => probeVolumeDebug.drawProbeSamplingDebug,
+                setter = value =>
+                {
+                    probeVolumeDebug.drawProbeSamplingDebug = value;
+                    probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Once;
+                    probeSamplingDebugData.forceScreenCenterCoordinates = true;
+                },
+                onValueChanged = RefreshDebug
+            });
+
+            if (probeVolumeDebug.drawProbeSamplingDebug)
+            {
+                var probeContainerChildren = new DebugUI.Container();
+                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Debug Size", tooltip = "The size of gizmos shown in the debug view.", getter = () => probeVolumeDebug.probeSamplingDebugSize, setter = value => probeVolumeDebug.probeSamplingDebugSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
+                probeContainer.children.Add(probeContainerChildren);
+            }
+
+                probeContainer.children.Add(new DebugUI.BoolField
             {
                 displayName = "Virtual Offset Debug",
                 tooltip = "Enable Virtual Offset debug visualization. Indicates the offsets applied to probe positions. These are used to capture lighting when probes are considered invalid.",
@@ -479,7 +548,7 @@ namespace UnityEngine.Rendering
             if (!enabledBySRP || !isInitialized)
                 return;
 
-            if (!probeVolumeDebug.drawProbes && !probeVolumeDebug.drawVirtualOffsetPush)
+            if (!probeVolumeDebug.drawProbes && !probeVolumeDebug.drawVirtualOffsetPush &&!probeVolumeDebug.drawProbeSamplingDebug)
                 return;
 
             GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
@@ -495,6 +564,24 @@ namespace UnityEngine.Rendering
             // they properly behave w.r.t fog.
             m_DebugMaterial.renderQueue = (int)RenderQueue.Transparent;
             m_DebugOffsetMaterial.renderQueue = (int)RenderQueue.Transparent;
+            m_ProbeSamplingDebugMaterial.renderQueue = (int)RenderQueue.Transparent;
+            m_ProbeSamplingDebugMaterial02.renderQueue = (int)RenderQueue.Transparent;
+
+            if (probeVolumeDebug.drawProbeSamplingDebug)
+            {
+                m_ProbeSamplingDebugMaterial.SetInt("_ShadingMode", (int)probeVolumeDebug.probeShading);
+                m_ProbeSamplingDebugMaterial.SetVector("_DebugArrowColor", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator01Color", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator02Color", new Vector4(0.3f, 0.3f, 0.3f, 1.0f));
+                m_ProbeSamplingDebugMaterial.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
+                m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_displayNumbersTexture);
+                m_ProbeSamplingDebugMaterial.SetInt("_ForceDebugNormalViewBias", 0); // Add a secondary locator to show intermediate position (with no Anti-Leak) when Anti-Leak is active
+
+                m_ProbeSamplingDebugMaterial.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
+
+                Graphics.DrawMesh(m_DebugProbeSamplingMesh, new Vector4(0.0f, 0.0f, 0.0f, 1.0f), Quaternion.identity, m_ProbeSamplingDebugMaterial, 0, camera);
+                Graphics.ClearRandomWriteTargets();
+            }
 
             // Sanitize the min max subdiv levels with what is available
             int minAvailableSubdiv = ProbeReferenceVolume.instance.cells.Count > 0 ? ProbeReferenceVolume.instance.GetMaxSubdivision()-1 : 0;
@@ -505,7 +592,6 @@ namespace UnityEngine.Rendering
 
             probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
             probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
-
 
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
@@ -532,7 +618,17 @@ namespace UnityEngine.Rendering
                     if (probeVolumeDebug.drawProbes)
                     {
                         var probeBuffer = debug.probeBuffers[i];
+                        m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
                         Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
+                    }
+
+                    if (probeVolumeDebug.drawProbeSamplingDebug)
+                    {
+                        var probeBuffer = debug.probeBuffers[i];
+                        m_ProbeSamplingDebugMaterial02.SetInt("_DebugProbeVolumeSampling", 1);
+                        props.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
+                        m_ProbeSamplingDebugMaterial02.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
+                        Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
 
                     if (probeVolumeDebug.drawVirtualOffsetPush)

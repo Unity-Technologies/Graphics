@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_WaterMaskDebugMode;
         SerializedProperty m_WaterCurrentDebugMode;
         SerializedProperty m_CurrentDebugMultiplier;
+        SerializedProperty m_WaterFoamDebugMode;
         SerializedProperty m_RenderingLayerMask;
 
         void OnEnableMiscellaneous(PropertyFetcher<WaterSurface> o)
@@ -21,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WaterMaskDebugMode = o.Find(x => x.waterMaskDebugMode);
             m_WaterCurrentDebugMode = o.Find(x => x.waterCurrentDebugMode);
             m_CurrentDebugMultiplier = o.Find(x => x.currentDebugMultiplier);
+            m_WaterFoamDebugMode = o.Find(x => x.waterFoamDebugMode);
             m_RenderingLayerMask = o.Find(x => x.renderingLayerMask);
         }
 
@@ -113,6 +115,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_CurrentDebugMultiplier, k_CurrentDebugMultiplier);
                     serialized.m_CurrentDebugMultiplier.floatValue = Mathf.Max(serialized.m_CurrentDebugMultiplier.floatValue, 0.1f);
                 }
+            }
+            else if (debugMode == WaterDebugMode.Foam)
+            {
+                EditorGUILayout.PropertyField(serialized.m_WaterFoamDebugMode, k_WaterFoamDebugMode);
             }
         }
 

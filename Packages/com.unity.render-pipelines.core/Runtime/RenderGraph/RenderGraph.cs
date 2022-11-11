@@ -671,10 +671,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Any pass writing to an imported graphics buffer will be considered having side effects and can't be automatically culled.
         /// </summary>
         /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
+        /// <param name="forceRelease">The imported graphics buffer will be released after usage.</param>
         /// <returns>A new GraphicsBufferHandle.</returns>
-        public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
+        public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
         {
-            return m_Resources.ImportBuffer(graphicsBuffer);
+            return m_Resources.ImportBuffer(graphicsBuffer, forceRelease);
         }
 
         /// <summary>
@@ -1430,6 +1431,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     CompiledResourceInfo resourceInfo = resourceInfos[i];
 
+                    bool sharedResource = m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i);
+                    bool forceRelease = m_Resources.IsRenderGraphResourceForceReleased((RenderGraphResourceType) type, i);
+
+                    // Imported resource needs neither creation nor release.
+                    if (resourceInfo.imported && !sharedResource && !forceRelease)
+                        continue;
+
                     // Resource creation
                     int firstWriteIndex = GetFirstValidWriteIndex(resourceInfo);
                     // Index -1 can happen for imported resources (for example an imported dummy black texture will never be written to but does not need creation anyway)
@@ -1475,22 +1483,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                                     firstWaitingPassIndex = m_CompiledPassInfos[currentPassIndex].syncFromPassIndex;
                             }
 
-                            // Finally add the release command to the pass before the first pass that waits for the compute pipe.
-                            ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[Math.Max(0, firstWaitingPassIndex - 1)];
-                            passInfo.resourceReleaseList[type].Add(i);
-
                             // Fail safe in case render graph is badly formed.
                             if (currentPassIndex == m_CompiledPassInfos.size)
                             {
-                                RenderGraphPass invalidPass = m_RenderPasses[lastReadPassIndex];
+                                // This is not true with passes with side effect as they are writing to a resource that may not be read by the render graph this frame and to no other resource.
+                                // In this case we extend the lifetime of resources to the end of the frame. It's not idea but it should not be the majority of cases.
+                                if (m_CompiledPassInfos[lastReadPassIndex].hasSideEffect)
+                                {
+                                    firstWaitingPassIndex = currentPassIndex;
+                                }
+                                else
+                                {
+                                    RenderGraphPass invalidPass = m_RenderPasses[lastReadPassIndex];
 
-                                var resName = "<unknown>";
+                                    var resName = "<unknown>";
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                                resName = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                                    resName = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
 #endif
-                                var msg = $"{(RenderGraphResourceType)type} resource '{resName}' in asynchronous pass '{invalidPass.name}' is missing synchronization on the graphics pipeline.";
-                                throw new InvalidOperationException(msg);
+                                    var msg = $"{(RenderGraphResourceType)type} resource '{resName}' in asynchronous pass '{invalidPass.name}' is missing synchronization on the graphics pipeline.";
+                                    throw new InvalidOperationException(msg);
+                                }
                             }
+
+                            // Finally add the release command to the pass before the first pass that waits for the compute pipe.
+                            ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[Math.Max(0, firstWaitingPassIndex - 1)];
+                            passInfo.resourceReleaseList[type].Add(i);
                         }
                         else
                         {
@@ -1499,8 +1516,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         }
                     }
 
-                    if (m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i)
-                        && (firstWriteIndex != -1 || lastReadPassIndex != -1)) // A shared resource is considered used if it's either read or written at any pass.
+                    if (sharedResource && (firstWriteIndex != -1 || lastReadPassIndex != -1)) // A shared resource is considered used if it's either read or written at any pass.
                     {
                         m_Resources.UpdateSharedResourceLastFrameIndex(type, i);
                     }

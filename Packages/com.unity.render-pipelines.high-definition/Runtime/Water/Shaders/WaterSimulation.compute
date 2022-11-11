@@ -116,15 +116,8 @@ void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
     // Compute the jacobian of this texel
     float jacobian = EvaluateJacobian(p0, p1, p2, pixelSize);
 
-    // Read the previous jacobian values
-    float4 additionalData = LOAD_TEXTURE2D_ARRAY(_PreviousWaterAdditionalDataBuffer, coord, bandIdx);
-
-    // Blend the jacobians
-    float surfaceJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - _JacobianDrag) + additionalData.z * _JacobianDrag);
-    float scatteringJacobian = _WaterInitialFrame ? jacobian : (jacobian * (1.0 - 0.97) + additionalData.w * 0.97);
-
     // Output the normal and foam
-    _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, surfaceJacobian, scatteringJacobian);
+    _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, jacobian, jacobian);
 }
 
 [numthreads(8, 8, 1)]

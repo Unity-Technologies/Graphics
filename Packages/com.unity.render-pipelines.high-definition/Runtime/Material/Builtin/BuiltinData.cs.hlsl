@@ -23,6 +23,7 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (113)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (114)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK (115)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_LINE_WIDTH (116)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+LightTransportData
 // PackingRules = Exact
@@ -53,6 +54,9 @@ struct BuiltinData
     float depthOffset;
     #if defined(UNITY_VIRTUAL_TEXTURING)
     real4 vtPackedFeedback;
+    #endif
+    #if defined(LINE_RENDERING_OFFSCREEN_SHADING)
+    real lineWidth;
     #endif
 };
 
@@ -116,6 +120,15 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
             break;
 #else
         case DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK:
+            result = 0;
+            break;
+#endif
+#if defined(LINE_RENDERING_OFFSCREEN_SHADING)
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_LINE_WIDTH:
+            result = builtindata.lineWidth.xxx;
+            break;
+#else
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_LINE_WIDTH:
             result = 0;
             break;
 #endif

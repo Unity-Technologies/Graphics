@@ -1,19 +1,15 @@
-#pragma kernel ClearIndirectArgs
-
-#pragma kernel LineEvaluation
-
-#pragma kernel ComplexPropagation
-
-#pragma kernel SimplePropagation
-
-#pragma kernel UnderWater
-
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
 
-// #pragma enable_d3d11_debug_symbols
+//#pragma enable_d3d11_debug_symbols
 
-#pragma multi_compile _ USE_APPEND_TILES
-#pragma multi_compile _ COMPRESSED_TILE_DATA
+// Line evaluation - Performance
+#pragma kernel ClearWaterLine
+#pragma kernel LineEvaluation1D
+#pragma kernel BoundsPropagation
+#pragma kernel LinePropagation1D
+
+// Underwater rendering
+#pragma kernel UnderWater
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -25,319 +21,139 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
-RWBuffer<uint> _IndirectBufferRW;
-
-[numthreads(2, 1, 1)]
-void ClearIndirectArgs(uint dispatchThreadId : SV_DispatchThreadID)
-{
-    _IndirectBufferRW[dispatchThreadId * 3    ] = 0;
-    _IndirectBufferRW[dispatchThreadId * 3 + 1] = 1;
-    _IndirectBufferRW[dispatchThreadId * 3 + 2] = 1;
-}
-
 TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X_UINT2(_StencilTexture);
 
-// Kernel properties
-#define DISPATCH_SIZE 16u
-#define TILE_SIZE DISPATCH_SIZE * DISPATCH_SIZE
-#define REGION_SIZE_1D (DISPATCH_SIZE + 2) // With a 16x16 group, we have a 18x18 region
-#define REGION_SIZE REGION_SIZE_1D * REGION_SIZE_1D
-#define HALF_REGION_SIZE REGION_SIZE / 2
-#define LAST_LINE_OFFSET DISPATCH_SIZE * (DISPATCH_SIZE - 1)
+RW_TEXTURE2D_X(uint, _WaterRegionTextureRW);
 
-// Tags that allow us to define the state of a given pixel
-#define WATER_REGION_TAG_FLAG 0x01u
-#define WATER_REGION_VALIDITY_FLAG 0x02u
-#define WATER_REGION_FLAGS (WATER_REGION_TAG_FLAG | WATER_REGION_VALIDITY_FLAG)
-#define WATER_LINE_FLAG 0x04u
-#define WATER_COMPLEMENT_FLAG 0x08u
+// 1D WaterLine Buffer, contains the vertical (along upVector) height of the water line
+// first two elements contains the horizontal min and max of the visible water line
+RWStructuredBuffer<uint> _WaterLine;
 
-// Region Area
-groupshared float gs_cacheLinearDepth[REGION_SIZE];
-groupshared int gs_cacheIsWater[REGION_SIZE];
-
-// Tile Area
-groupshared uint gs_cachePointCount;
-groupshared uint gs_cacheRegion[TILE_SIZE];
-groupshared uint gs_cacheComplementTag[TILE_SIZE];
-
-uint GetLDSIndex(int2 groupThreadId, int2 relativeCoord)
+[numthreads(8, 1, 1)]
+void ClearWaterLine(uint dispatchThreadId : SV_DispatchThreadID)
 {
-    int2 tapAddress = (groupThreadId + 1) + int2(relativeCoord.x, relativeCoord.y);
-    return uint(tapAddress.x) % REGION_SIZE_1D + tapAddress.y * REGION_SIZE_1D;
+    _WaterLine[dispatchThreadId] = 0;
 }
 
-float IsCloseToNearPlane(float linearDepth)
-{
-    return linearDepth < (_ProjectionParams.y * 5.0);
-}
-
-float IsFarFromNearPlane(float linearDepth)
-{
-    return linearDepth > (_ProjectionParams.y * 5.0);
-}
-
-void LoadDataToLDS(uint groupIndex, uint2 groupOrigin)
-{
-    int2 originXY = groupOrigin - int2(1, 1);
-    for (int i = 0; i < 2; ++i)
-    {
-        uint sampleID = i + (groupIndex * 2);
-        int offsetX = sampleID % REGION_SIZE_1D;
-        int offsetY = sampleID / REGION_SIZE_1D;
-        int2 tapCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
-        int2 sampleCoord = clamp(tapCoord, 0, _ScreenSize.xy - 1);
-        int LDSIndex = offsetX + offsetY * REGION_SIZE_1D;
-        gs_cacheLinearDepth[LDSIndex] = LinearEyeDepth(LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord).x, _ZBufferParams);
-        gs_cacheIsWater[LDSIndex] = (GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, sampleCoord)) & STENCILUSAGE_WATER_SURFACE) != 0;
-    }
-}
-
-struct TileData
-{
-    uint compressedTileData;
-};
-
-uint PackTileCoord(uint2 coord)
-{
-    return (coord.x << DISPATCH_SIZE) | coord.y;
-}
-
-uint2 UnpackTileCoord(TileData tile)
-{
-    uint pos = tile.compressedTileData;
-    return uint2((pos >> DISPATCH_SIZE) & 0xffff, pos & 0xffff);
-}
-
-// Output buffers
-RW_TEXTURE2D_X(uint, _WaterLineTextureRW);
-#if defined(USE_APPEND_TILES)
-AppendStructuredBuffer<TileData> _ComplexTileListRW;
-#endif
-
-#if defined(COMPRESSED_TILE_DATA)
-RWStructuredBuffer<uint2> _WaterLineTileDataBufferRW;
-#endif
-
-[numthreads(DISPATCH_SIZE, DISPATCH_SIZE, 1)]
-void LineEvaluation(uint3 currentCoord : SV_DispatchThreadID,
-    uint groupIndex : SV_GroupIndex,
-    uint2 groupThreadId : SV_GroupThreadID,
-    uint2 groupId : SV_GroupID)
+[numthreads(8, 8, 1)]
+void LineEvaluation1D(uint3 currentCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
 
-    if (groupIndex < HALF_REGION_SIZE)
-        LoadDataToLDS(groupIndex, groupId * DISPATCH_SIZE);
+    // Early exit pixels containing no water
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord.xy));
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        return;
 
-    if(groupIndex == 0)
-        gs_cachePointCount = 0;
+    // Output to the water line buffer
+    float2 upVector = float2(_UpDirectionX, _UpDirectionY);
+    float2 rightVector = float2(_UpDirectionY, -_UpDirectionX);
 
-    GroupMemoryBarrierWithGroupSync();
+    uint posX = round(dot((float2)currentCoord.xy, rightVector) - _BoundsSS.x);
+    uint posY = round(dot((float2)currentCoord.xy, upVector) - _BoundsSS.z);
 
-    float distanceToSurface = GetWaterCameraHeight();
+    // We use InterlockedMax with depth values on higher bits to find closest pixel to camera
+    // We store the pixel height as payload in the lower bits to retrieve the waterline height later
+    uint height = posY + 1; // Add one to make sure 0 means missing value
+    uint packedValue = PackFloatToUInt(depthValue, 16, 16) | (height & 0xFFFF);
 
-    // LDS index of the current pixel
-    uint ctLDSIndex = GetLDSIndex(groupThreadId, int2(0, 0));
-
-    gs_cacheRegion[groupIndex] = 0;
-    if (gs_cacheIsWater[ctLDSIndex] && IsCloseToNearPlane(gs_cacheLinearDepth[ctLDSIndex]))
-    {
-        int2 neighbor = (distanceToSurface > 0.0) ? int2(0, -1) : int2(0, 1);
-        int tapIdx = GetLDSIndex(groupThreadId, neighbor);
-        gs_cacheRegion[groupIndex] = !gs_cacheIsWater[tapIdx] || IsFarFromNearPlane(gs_cacheLinearDepth[tapIdx]) ? (WATER_REGION_TAG_FLAG | WATER_LINE_FLAG) : 0;
-    }
-
-    gs_cacheComplementTag[groupIndex] = 0;
-    /*
-    if (gs_cacheIsWater[ctLDSIndex] == 0 || IsFarFromNearPlane(gs_cacheLinearDepth[ctLDSIndex]))
-    {
-        int2 neighbor = (distanceToSurface > 0.0) ? int2(0, 1) : int2(0, -1);
-        int tapIdx = GetLDSIndex(groupThreadId, neighbor);
-        gs_cacheComplementTag[groupIndex] = (gs_cacheIsWater[tapIdx] && IsCloseToNearPlane(gs_cacheLinearDepth[tapIdx])) ? (WATER_REGION_TAG_FLAG | WATER_COMPLEMENT_FLAG) : 0;
-    }
-    */
-    if (gs_cacheRegion[groupIndex] != 0)
-    {
-        int lineSlotIndex = 0;
-        InterlockedAdd(gs_cachePointCount, 1, lineSlotIndex);
-    }
-
-    GroupMemoryBarrierWithGroupSync();
-
-    _WaterLineTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = gs_cacheRegion[groupIndex] | gs_cacheComplementTag[groupIndex];
-
-    if(groupIndex == 0)
-    {
-        #if defined(USE_APPEND_TILES)
-        if (gs_cachePointCount > 0)
-        {
-            // Far tile detected
-            TileData tileData = { PackTileCoord(groupId.xy) };
-            _ComplexTileListRW.Append(tileData);
-            InterlockedAdd(_IndirectBufferRW[0], 1);
-        }
-        #endif
-
-#if defined(COMPRESSED_TILE_DATA)
-        uint idx = groupId.x + groupId.y * _WaterLineTileCountX;
-        #if !defined(USE_APPEND_TILES)
-        idx += currentCoord.z * _WaterLineTileCountX * _WaterLineTileCountY;
-        #endif
-        _WaterLineTileDataBufferRW[idx] = uint2(0, 0);
-#endif
-    }
+    uint idx = min(posX + 2, _BufferStride) + currentCoord.z * _BufferStride;
+    InterlockedMax(_WaterLine[idx], packedValue);
 }
 
-// Complex propagtion LDS
-groupshared uint gs_cachePropagation[TILE_SIZE];
-groupshared uint gs_cacheValidity[TILE_SIZE];
-groupshared uint gs_cacheLineData[2];
-#if defined(USE_APPEND_TILES)
-groupshared uint2 gs_cacheTileCoord;
+#define GROUP_SIZE 128
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+groupshared uint2 gs_bounds[GROUP_SIZE];
 #endif
 
-// Input data
-ConsumeStructuredBuffer<TileData> _ComplexTileList;
-TEXTURE2D_X_UINT(_WaterLineTexture);
-
-#if defined(USE_APPEND_TILES)
-[numthreads(DISPATCH_SIZE * DISPATCH_SIZE, 1, 1)]
-void ComplexPropagation(uint groupThreadId : SV_GroupThreadID, uint groupIndex : SV_GroupIndex, uint3 groupId : SV_GroupID)
-#else
-[numthreads(DISPATCH_SIZE, DISPATCH_SIZE, 1)]
-void ComplexPropagation(uint2 groupThreadId : SV_GroupThreadID, uint groupIndex : SV_GroupIndex, uint3 groupId : SV_GroupID)
-#endif
+uint2 ParallelReduction(uint threadIdx, uint2 bounds)
 {
-#if defined(USE_APPEND_TILES)
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    return uint2(WaveActiveMin(bounds.x), WaveActiveMax(bounds.y));
+#else
+    gs_bounds[threadIdx] = bounds;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+    for (uint s = GROUP_SIZE / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_bounds[threadIdx] = uint2(
+                min(gs_bounds[threadIdx].x, gs_bounds[threadIdx + s].x),
+                max(gs_bounds[threadIdx].y, gs_bounds[threadIdx + s].y)
+            );
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    return gs_bounds[0];
+#endif
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void BoundsPropagation(uint2 currentCoord : SV_DispatchThreadID, uint groupThreadId : SV_GroupThreadID)
+{
+    // This kernel finds the leftmost and rightmost pixels containing water
+    uint coord = min(currentCoord.x + 2, _BufferStride) + currentCoord.y * _BufferStride;
+    uint packedValue = _WaterLine[coord];
+    uint2 bounds = packedValue == 0 ? uint2(0xFFFFFFFF, 0) : (uint2)currentCoord.x;
+    bounds = ParallelReduction(groupThreadId, bounds);
+
     if (groupThreadId == 0)
     {
-        TileData tileData = _ComplexTileList.Consume();
-        gs_cacheTileCoord = UnpackTileCoord(tileData);
+        InterlockedMax(_WaterLine[0 + currentCoord.y * _BufferStride], 0xFFFFFFFF - bounds.x);
+        InterlockedMax(_WaterLine[1 + currentCoord.y * _BufferStride], bounds.y);
     }
-    GroupMemoryBarrierWithGroupSync();
-#else
-    UNITY_XR_ASSIGN_VIEW_INDEX(groupId.z);
-    uint2 gs_cacheTileCoord = groupId.xy;
-#endif
 
-    // Evaluate the current dispatch coord
-    uint2 currentCoord = gs_cacheTileCoord * DISPATCH_SIZE + uint2(groupIndex % DISPATCH_SIZE, groupIndex / DISPATCH_SIZE);
-
-    // Initialize the propagation and validity LDS
-    gs_cachePropagation[groupIndex] = 0;
-    gs_cacheValidity[groupIndex] = 0;
-    gs_cacheRegion[groupIndex] = LOAD_TEXTURE2D_X(_WaterLineTexture, currentCoord);
-
-    GroupMemoryBarrierWithGroupSync();
-
-    int aboveWater = GetWaterCameraHeight() > 0.0 ? 1 : 0;
-    if (groupIndex < DISPATCH_SIZE)
+    if (packedValue == 0)
     {
-        int start = lerp(0, DISPATCH_SIZE - 1, aboveWater);
-        int end = lerp(DISPATCH_SIZE, -1, aboveWater);
-        int increment = lerp(1, -1, aboveWater);
-
-        int currentPropagation = 0;
-        int currentValidity = 0;
-        for (int i = start; i != end; i = i + increment)
-        {
-            int pixelIndex = groupIndex + i * DISPATCH_SIZE;
-
-            int currentTag = gs_cacheRegion[pixelIndex] & WATER_REGION_TAG_FLAG;
-
-            currentPropagation = currentPropagation ^ currentTag;
-            currentValidity = currentValidity | (currentTag != 0 ? WATER_REGION_VALIDITY_FLAG : 0);
-
-            gs_cachePropagation[pixelIndex] = currentPropagation;
-            gs_cacheValidity[pixelIndex] = currentValidity;
-        }
+        // Patch holes of less than GROUP_SIZE pixels
+        if (bounds.x != 0xFFFFFFFF) _WaterLine[coord] = _WaterLine[bounds.x + 2];
+        else if (bounds.y != 0    ) _WaterLine[coord] = _WaterLine[bounds.y + 2];
     }
-
-    GroupMemoryBarrierWithGroupSync();
-
-    _WaterLineTextureRW[COORD_TEXTURE2D_X(currentCoord)] = gs_cacheRegion[groupIndex] | gs_cachePropagation[groupIndex] | gs_cacheValidity[groupIndex];
-
-#if defined(COMPRESSED_TILE_DATA)
-    uint topLine = 0;
-    uint bottomLine = 0;
-    if (groupIndex < 2)
-    {
-        int lineData = 0;
-        for (uint i = 0; i < DISPATCH_SIZE; ++i)
-            lineData |= (gs_cachePropagation[i + LAST_LINE_OFFSET * groupIndex] | gs_cacheValidity[i + LAST_LINE_OFFSET * groupIndex]) << (2 * i);
-        gs_cacheLineData[groupIndex] = lineData;
-    }
-
-    GroupMemoryBarrierWithGroupSync();
-
-    if (groupIndex == 0)
-    {
-        uint idx = gs_cacheTileCoord.x + gs_cacheTileCoord.y * _WaterLineTileCountX;
-#if !defined(USE_APPEND_TILES)
-        idx += groupId.z * _WaterLineTileCountX * _WaterLineTileCountY;
-#endif
-        _WaterLineTileDataBufferRW[idx] = uint2(gs_cacheLineData[0], gs_cacheLineData[1]);
-    }
-#endif
 }
 
-RW_TEXTURE2D_X(uint, _WaterRegionTextureRW);
-StructuredBuffer<uint2> _WaterLineTileDataBuffer;
-groupshared uint gs_cacheComplexData[TILE_SIZE];
-groupshared uint gs_cacheLinePropagationData[DISPATCH_SIZE];
-
-// Need to be moved to a constant buffer
-[numthreads(DISPATCH_SIZE, DISPATCH_SIZE, 1)]
-void SimplePropagation(uint3 currentCoord : SV_DispatchThreadID,
-    uint groupIndex : SV_GroupIndex,
-    uint2 groupThreadId : SV_GroupThreadID,
-    uint2 groupId : SV_GroupID)
+[numthreads(16, 16, 1)]
+void LinePropagation1D(uint3 currentCoord : SV_DispatchThreadID)
 {
+    // This kernel converts the 1D buffer to a fullscreen texture
     UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
 
-    int aboveWater = GetWaterCameraHeight() > 0.0;
+    float distanceToSurface = GetWaterCameraHeight();
+    uint underWater = distanceToSurface > 0 ? 0 : 1;
 
-    uint regionStart = lerp(0, groupId.y + 1, aboveWater);
-    uint regionEnd = lerp(groupId.y, _WaterLineTileCountY, aboveWater);
-    uint regionSize = (regionEnd - regionStart);
-    int tapRow = lerp(DISPATCH_SIZE - 1, 0, aboveWater);
-
-#if defined(COMPRESSED_TILE_DATA)
-    if(groupIndex < regionSize)
+    if (abs(distanceToSurface) < _WaterTransitionSize)
     {
-        uint idx = groupId.x + (regionStart + groupIndex) * _WaterLineTileCountX;
-        #if !defined(USE_APPEND_TILES)
-        idx += currentCoord.z * _WaterLineTileCountX * _WaterLineTileCountY;
-        #endif
-        uint2 tileData = _WaterLineTileDataBuffer[idx];
-        gs_cacheComplexData[groupIndex] = aboveWater ? tileData.x : tileData.y;
+        float2 upVector = float2(_UpDirectionX, _UpDirectionY);
+        float2 rightVector = float2(_UpDirectionY, -_UpDirectionX);
+
+        // Find index to sample in 1D buffer
+        uint xr = currentCoord.z * _BufferStride;
+        uint2 boundsX = uint2(0xFFFFFFFF - _WaterLine[0 + xr], _WaterLine[1 + xr]);
+        uint posX = round(dot((float2)currentCoord.xy, rightVector) - _BoundsSS.x);
+        posX = clamp(posX, boundsX.x, boundsX.y);
+
+        // Decompress water line height
+        uint posY = round(dot((float2)currentCoord.xy, upVector) - _BoundsSS.z);
+        uint packedValue = _WaterLine[posX + 2 + xr] & 0xFFFF;
+        uint waterLine = packedValue - 1;
+
+        // For the columns with missing values, try to guess based on camera pos
+        uint minHeight = 0, maxHeight = round(_BoundsSS.w - _BoundsSS.z);
+        if (packedValue == 0)
+            waterLine = distanceToSurface < 0 ? maxHeight : minHeight;
+
+        underWater = posY <= waterLine;
     }
 
-    GroupMemoryBarrierWithGroupSync();
-#endif
-
-    if(groupIndex < DISPATCH_SIZE)
-    {
-        uint finalTag = 0;
-        for (uint y = 0; y < regionSize; ++y)
-        {
-#if defined(COMPRESSED_TILE_DATA)
-            uint pixelFlags = (gs_cacheComplexData[y] >> (2 * groupIndex)) & WATER_REGION_FLAGS;
-#else
-            uint2 tapCoord = int2(groupId.x, regionStart + y) * DISPATCH_SIZE + int2(groupIndex, tapRow);
-            uint pixelFlags = LOAD_TEXTURE2D_X(_WaterLineTexture, tapCoord) & WATER_REGION_FLAGS;
-#endif
-            if ((pixelFlags & WATER_REGION_TAG_FLAG) != 0)
-                finalTag = finalTag | pixelFlags;
-        }
-        gs_cacheLinePropagationData[groupIndex] = finalTag;
-    }
-
-    GroupMemoryBarrierWithGroupSync();
-
-    _WaterRegionTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = LOAD_TEXTURE2D_X(_WaterLineTexture, currentCoord.xy) | gs_cacheLinePropagationData[groupIndex % DISPATCH_SIZE];
+    _WaterRegionTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = underWater;
 }
 
 // Input color value
@@ -359,31 +175,21 @@ void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
     // Fetch the direct camera color
     float4 camColor = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord);
 
-    // Grab the vertical distance to the surface
-    float distanceToSurface = GetWaterCameraHeight();
-    // If the camera is under the water plane
-    if (distanceToSurface > _WaterTransitionSize)
+    // Only apply on pixels underwater
+    bool underWater = LOAD_TEXTURE2D_X(_WaterRegionTexture, currentCoord) == 1;
+    if (!underWater)
     {
         _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = camColor;
         return;
     }
+
+    // Grab the vertical distance to the surface
+    float distanceToSurface = GetWaterCameraHeight();
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
-
-    // We need to define if this pixel maps to a front or a back face.
-    bool frontFace = true;
-    DecodeWaterFrontFaceFromGBuffer(currentCoord, frontFace);
-
-    // If we are above the transition region (negative side), we need don't want to apply water front face pixels.
-    // Due to numerical imprecision, sometimes faces get flipped at grazing angles. This helps.
-    if (distanceToSurface > -_WaterTransitionSize && (stencilValue & STENCILUSAGE_WATER_SURFACE) != 0 && frontFace)
-    {
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = camColor;
-        return;
-    }
 
     // Approximate the pixel depth based on the distance from camera to surface
     float depth = max(-dot(posInput.positionWS, _WaterUpDirection.xyz) - distanceToSurface, 0);
@@ -405,15 +211,6 @@ void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
     const float3 clearColor = camColor.xyz * caustics;
     float3 underWaterColor = lerp(farColor, clearColor, waterAbsorption);
 
-    // Evaluate the vertical distance to the water surface
-    uint waterRegion = LOAD_TEXTURE2D_X(_WaterRegionTexture, currentCoord.xy) & WATER_REGION_FLAGS;
-    uint validRegion = (waterRegion & WATER_REGION_VALIDITY_FLAG) == WATER_REGION_VALIDITY_FLAG;
-    uint pixelFlag = (waterRegion & WATER_REGION_TAG_FLAG) != 0;
-    float underWaterBlend = distanceToSurface > 0.0 ? !pixelFlag : pixelFlag;
-
-    // Use (or do not use) the underwater color based on the vertical distance to the surface
-    float3 color = lerp(underWaterColor, camColor.xyz, underWaterBlend * underWaterBlend);
-
     // Output the camera color
-    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(color, 1.0);
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(underWaterColor, 1.0);
 }

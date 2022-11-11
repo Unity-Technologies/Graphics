@@ -41,7 +41,7 @@ void EvaluateForwardRayTracingLighting(PreLightData preLightData, PositionInputs
 
             // Build the transmitted ray structure
             RayDesc transmittedRay;
-            transmittedRay.Origin = pointWSPos + biasSign * geometryNormal * _RaytracingRayBias;
+            transmittedRay.Origin = pointWSPos + biasSign * geometryNormal * _RayTracingRayBias;
             transmittedRay.Direction = refractedDir;
             transmittedRay.TMin = 0;
             transmittedRay.TMax = _RaytracingRayMaxLength;
@@ -81,7 +81,7 @@ void EvaluateForwardRayTracingLighting(PreLightData preLightData, PositionInputs
 
             // Build the transmitted ray structure
             RayDesc transmittedRay;
-            transmittedRay.Origin = pointWSPos + biasSign * geometryNormal * _RaytracingRayBias;
+            transmittedRay.Origin = pointWSPos + biasSign * geometryNormal * _RayTracingRayBias;
             transmittedRay.Direction = -viewWS;
             transmittedRay.TMin = 0;
             transmittedRay.TMax = _RaytracingRayMaxLength;
@@ -120,7 +120,7 @@ void EvaluateForwardRayTracingLighting(PreLightData preLightData, PositionInputs
 
         // Build the reflected ray
         RayDesc reflectedRay;
-        reflectedRay.Origin = pointWSPos + biasSign * geometryNormal * _RaytracingRayBias;
+        reflectedRay.Origin = pointWSPos + biasSign * geometryNormal * _RayTracingRayBias;
         reflectedRay.Direction = reflectedDir;
         reflectedRay.TMin = 0;
         reflectedRay.TMax = _RaytracingRayMaxLength;

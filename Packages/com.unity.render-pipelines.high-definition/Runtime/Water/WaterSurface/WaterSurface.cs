@@ -243,6 +243,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.")]
         public float directLightBodyScattering = 0.4f;
+
+        /// <summary>
+        /// Specifies a maximum wave height that overrides the simulation to support scattering properly for deformers.
+        /// </summary>
+        [Tooltip("Specifies a maximum wave height that overrides the simulation to support scattering properly for deformers.")]
+        public float maximumHeightOverride = 0.0f;
         #endregion
 
         #region Water Caustics General
@@ -301,66 +307,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float virtualPlaneDistance = 5.0f;
         #endregion
 
-        #region Water Foam
-        /// <summary>
-        ///
-        /// </summary>
-        [Tooltip("")]
-        public bool foam = true;
-
-        /// <summary>
-        /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and choppiness values.
-        /// </summary>
-        [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and choppiness values.")]
-        public float simulationFoamAmount = 0.3f;
-
-        /// <summary>
-        /// Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.
-        /// </summary>
-        [Tooltip("Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.")]
-        public float simulationFoamDrag = 0.0f;
-
-        /// <summary>
-        /// Controls the simulation foam smoothness.
-        /// </summary>
-        [Tooltip("Controls the surface foam smoothness.")]
-        public float simulationFoamSmoothness = 1.0f;
-
-        /// <summary>
-        /// Set the texture used to attenuate or suppress the simulation foam.
-        /// </summary>
-        public Texture2D foamMask = null;
-
-        /// <summary>
-        /// Sets the extent of the foam mask in meters.
-        /// </summary>
-        [Tooltip("Sets the extent of the foam mask in meters.")]
-        public Vector2 foamMaskExtent = new Vector2(100.0f, 100.0f);
-
-        /// <summary>
-        /// Sets the offset of the foam mask in meters.
-        /// </summary>
-        [Tooltip("Sets the offset of the foam mask in meters.")]
-        public Vector2 foamMaskOffset = new Vector2(0.0f, 0.0f);
-
-        /// <summary>
-        /// Controls the foam amount depending on the wind speed.
-        /// </summary>
-        public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
-
-        /// <summary>
-        /// Set the texture used to attenuate or suppress the simulation foam.
-        /// </summary>
-        [Tooltip("Set the texture used to attenuate or suppress the simulation foam.")]
-        public Texture2D foamTexture = null;
-
-        /// <summary>
-        /// Set the per meter tiling for the foam texture.
-        /// </summary>
-        [Tooltip("Set the per meter tiling for the foam texture.")]
-        public float foamTextureTiling = 0.2f;
-        #endregion
-
         #region Water Miscellaneous
         /// <summary>
         /// Specifies the rendering layers that affect the water surface.
@@ -387,6 +333,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets a multiplier for the arrow density in the current debug mode.
         /// </summary>
         public float currentDebugMultiplier = 1.0f;
+
+        /// <summary>
+        /// Sets the water foam debug mode for a given water surface.
+        /// </summary>
+        public WaterFoamDebugMode waterFoamDebugMode = WaterFoamDebugMode.SurfaceFoam;
         #endregion
 
         #region Water Underwater
@@ -641,15 +592,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseResources()
         {
-            // Make sure to release the resources if they have been created (before HDRP destroys them)
-            if (simulation != null && simulation.AllocatedTextures())
-                simulation.ReleaseSimulationResources();
-            simulation = null;
-
-            // CPU Simulation textures
+            ReleaseSimulationResources();
             ReleaseCurrentMapResources();
             ReleaseDeformationResources();
             ReleaseWaterMaskResources();
+            ReleaseFoamResources();
         }
 
         void OnDestroy()

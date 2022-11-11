@@ -53,21 +53,17 @@ Material:
     m_Floats:
     - _AddPrecomputedVelocity: 0
     - _CullMode: 2
-    - _EditorExpendedAreas: 0
     - _EnableHeightBlend: 0
     - _EnableInstancedPerPixelNormal: 1
-    - _EnableMotionVectorForVertexAnimation: 0
     - _HeightTransition: 0
     - _ReceivesSSR: 1
     - _SpecularOcclusionMode: 1
     - _StencilRef: 0
     - _StencilRefDepth: 8
     - _StencilRefGBuffer: 10
-    - _StencilRefMV: 40
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskDepth: 9
+    - _StencilWriteMaskGBuffer: 15
     - _SupportDecals: 1
     - _TransparentZWrite: 0
     - _ZTestDepthEqualForOpaque: 3

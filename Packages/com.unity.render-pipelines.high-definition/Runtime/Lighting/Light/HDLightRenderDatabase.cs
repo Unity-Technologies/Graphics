@@ -518,7 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [BurstCompile]
         private struct GetDataIndicesFromHDLightRenderEntitiesHashmapJob : IJob
         {
-            [ReadOnly] public NativeHashMap<int, HDLightRenderEntity> lightEntityLookups;
+            [ReadOnly] public NativeParallelHashMap<int, HDLightRenderEntity> lightEntityLookups;
             [ReadOnly] public NativeArray<LightEntityInfo> lightEntityStorage;
             [WriteOnly] public NativeList<int> dataIndices;
 
@@ -544,7 +544,7 @@ namespace UnityEngine.Rendering.HighDefinition
             getDataIndicesJob.Run();
         }
 
-        public void GetDataIndicesFromEntities(NativeHashMap<int, HDLightRenderEntity> inLightEntities, NativeList<int> outDataIndices)
+        public void GetDataIndicesFromEntities(NativeParallelHashMap<int, HDLightRenderEntity> inLightEntities, NativeList<int> outDataIndices)
         {
             GetDataIndicesFromHDLightRenderEntitiesHashmapJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesHashmapJob()
             {

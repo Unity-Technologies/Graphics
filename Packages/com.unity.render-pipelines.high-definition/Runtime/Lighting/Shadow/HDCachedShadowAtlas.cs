@@ -51,14 +51,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Note: Some of these could be simple lists, but since we might need to search by index some of them and we want to avoid GC alloc, a dictionary is easier.
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
-        private NativeHashMap<int, CachedShadowRecord> m_PlacedShadows;
-        private NativeHashMap<int, CachedShadowRecord> m_ShadowsPendingRendering;
-        private NativeHashMap<int, int> m_ShadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
-        private NativeHashMap<int, HDLightRenderEntity> m_RegisteredLightDataPendingPlacement;
-        private NativeHashMap<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
+        private NativeParallelHashMap<int, CachedShadowRecord> m_PlacedShadows;
+        private NativeParallelHashMap<int, CachedShadowRecord> m_ShadowsPendingRendering;
+        private NativeParallelHashMap<int, int> m_ShadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
+        private NativeParallelHashMap<int, HDLightRenderEntity> m_RegisteredLightDataPendingPlacement;
+        private NativeParallelHashMap<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
                                                                                         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
-        private NativeHashMap<int, CachedTransform> m_TransformCaches;
+        private NativeParallelHashMap<int, CachedTransform> m_TransformCaches;
         private NativeList<CachedShadowRecord> m_TempListForPlacement;
         private NativeList<int> m_TempListForLightDataIndices;
 
@@ -72,17 +72,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ShadowType = type;
 
-            m_PlacedShadows = new NativeHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
-            m_ShadowsPendingRendering = new NativeHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
-            m_ShadowsWithValidData = new NativeHashMap<int, int>(s_InitialCapacity, Allocator.Persistent);
+            m_PlacedShadows = new NativeParallelHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
+            m_ShadowsPendingRendering = new NativeParallelHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
+            m_ShadowsWithValidData = new NativeParallelHashMap<int, int>(s_InitialCapacity, Allocator.Persistent);
 
             m_TempListForPlacement = new NativeList<CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
             m_TempListForLightDataIndices = new NativeList<int>(s_InitialCapacity, Allocator.Persistent);
 
-            m_RegisteredLightDataPendingPlacement = new NativeHashMap<int, HDLightRenderEntity>(s_InitialCapacity, Allocator.Persistent);
-            m_RecordsPendingPlacement = new NativeHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
+            m_RegisteredLightDataPendingPlacement = new NativeParallelHashMap<int, HDLightRenderEntity>(s_InitialCapacity, Allocator.Persistent);
+            m_RecordsPendingPlacement = new NativeParallelHashMap<int, CachedShadowRecord>(s_InitialCapacity, Allocator.Persistent);
 
-            m_TransformCaches = new NativeHashMap<int, CachedTransform>(s_InitialCapacity / 2, Allocator.Persistent);
+            m_TransformCaches = new NativeParallelHashMap<int, CachedTransform>(s_InitialCapacity / 2, Allocator.Persistent);
         }
 
         public override void InitAtlas(HDShadowAtlasInitParameters atlasInitParams)
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private unsafe void AddLightListToRecordList(NativeHashMap<int, HDLightRenderEntity> lightList, HDShadowInitParameters initParams, ref NativeList<CachedShadowRecord> recordList)
+        private unsafe void AddLightListToRecordList(NativeParallelHashMap<int, HDLightRenderEntity> lightList, HDShadowInitParameters initParams, ref NativeList<CachedShadowRecord> recordList)
         {
             if (HDLightRenderDatabase.instance.lightCount == 0)
                 return;

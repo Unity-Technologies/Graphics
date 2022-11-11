@@ -321,14 +321,20 @@
 #endif
 
 // ----------------------------------------------------------------------------
-// Global Constant buffers API definitions
+// Global resources API definitions for Ray Tracing
 // ----------------------------------------------------------------------------
 #if (SHADER_STAGE_RAY_TRACING && UNITY_RAY_TRACING_GLOBAL_RESOURCES)
     #define GLOBAL_RESOURCE(type, name, reg) type name : register(reg, space1);
     #define GLOBAL_CBUFFER_START(name, reg) cbuffer name : register(reg, space1) {
+    #define GLOBAL_TEXTURE2D(name, reg) TEXTURE2D(name) : register(reg, space1)
+    #define GLOBAL_TEXTURE2D_ARRAY(name, reg) TEXTURE2D_ARRAY(name) : register(reg, space1)
+    #define GLOBAL_TEXTURECUBE_ARRAY(name, reg) TEXTURECUBE_ARRAY(name) : register(reg, space1)
 #else
     #define GLOBAL_RESOURCE(type, name, reg) type name;
     #define GLOBAL_CBUFFER_START(name, reg) CBUFFER_START(name)
+    #define GLOBAL_TEXTURE2D(name, reg) TEXTURE2D(name)
+    #define GLOBAL_TEXTURE2D_ARRAY(name, reg) TEXTURE2D_ARRAY(name)
+    #define GLOBAL_TEXTURECUBE_ARRAY(name, reg) TEXTURECUBE_ARRAY(name)
 #endif
 
 // ----------------------------------------------------------------------------
@@ -879,6 +885,11 @@ float4x4 Inverse(float4x4 m)
     ret[3][3] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * idet;
 
     return ret;
+}
+
+float Remap(float origFrom, float origTo, float targetFrom, float targetTo, float value)
+{
+    return lerp(targetFrom, targetTo, (value - origFrom) / (origTo - origFrom));
 }
 
 // ----------------------------------------------------------------------------

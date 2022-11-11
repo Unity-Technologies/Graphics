@@ -264,6 +264,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return index <= m_RenderGraphResources[(int)type].sharedResourcesCount;
         }
 
+        internal bool IsRenderGraphResourceForceReleased(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_RenderGraphResources[(int) type].resourceArray[index].forceRelease;
+        }
+
         internal bool IsGraphicsResourceCreated(in ResourceHandle res)
         {
             CheckHandleValidity(res);
@@ -426,11 +432,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new RendererListHandle(newHandle);
         }
 
-        internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
+        internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
         {
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
             bufferResource.graphicsResource = graphicsBuffer;
             bufferResource.imported = true;
+            bufferResource.forceRelease = forceRelease;
 
             return new BufferHandle(newHandle);
         }
@@ -539,7 +546,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var resource = m_RenderGraphResources[type].resourceArray[index];
 
-            if (!resource.imported)
+            if (!resource.imported || resource.forceRelease)
             {
                 m_RenderGraphResources[type].releaseResourceCallback?.Invoke(rgContext, resource);
 

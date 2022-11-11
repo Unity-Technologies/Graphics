@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRSky = 2,
         RayTracing = 3,
         RayTracingLightLoop = 4,
+        RayTracingEnvLightReflectionData = 5,
         APV = APVConstantBufferRegister.GlobalRegister,
     }
 
@@ -158,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int _SpecularFade;
         public uint _EnableRenderingLayers;
-        public int _UnusedPadding1;
+        public int _ReflectionsMode;
         public int _UnusedPadding2;
 
         public uint _DirectionalLightCount;
@@ -247,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        public int _IndirectDiffuseMode; // Match IndirectDiffuseMode enum in LightLoop.cs
+        public int _IndirectDiffuseMode;
         public int _EnableRayTracedReflections;
         public int _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint _EnableRecursiveRayTracing;
@@ -262,5 +263,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // See ScreenCoordOverride.hlsl for details.
         public Vector4 _ScreenSizeOverride;
         public Vector4 _ScreenCoordScaleBias;
+
+        public uint _EnableComputeThickness;
+        public uint _Pad1;
+        public uint _Pad2;
+        public uint _Pad3;
     }
 }

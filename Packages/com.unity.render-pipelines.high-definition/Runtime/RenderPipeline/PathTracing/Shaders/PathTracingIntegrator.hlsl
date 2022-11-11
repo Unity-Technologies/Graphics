@@ -49,7 +49,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
     LightList lightList = CreateLightList(position, normal, RENDERING_LAYERS_MASK, withPoint, withArea, withDistant);
 
     RayDesc ray;
-    ray.Origin = position + normal * _RaytracingRayBias;
+    ray.Origin = position + normal * _RayTracingRayBias;
     ray.TMin = 0.0;
 
     // By default, full visibility
@@ -64,7 +64,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
         // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
         PathPayload payload;
         payload.segmentID = SEGMENT_ID_TRANSMISSION;
-        ray.TMax -= _RaytracingRayBias;
+        ray.TMax -= _RayTracingRayBias;
         payload.value = 1.0;
 
         // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
@@ -156,7 +156,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         MaterialResult mtlResult;
 
         RayDesc ray;
-        ray.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RaytracingRayBias;
+        ray.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RayTracingRayBias;
         ray.TMin = 0.0;
 
         PathPayload shadowPayload;
@@ -174,7 +174,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                     // Shoot a transmission ray
                     shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
                     shadowPayload.value = 1.0;
-                    ray.TMax -= _RaytracingRayBias;
+                    ray.TMax -= _RayTracingRayBias;
 
                     // FIXME: For the time being, there is no front/back face culling for shadows
                     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
@@ -208,7 +208,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
 
                 bool isSampleBelow = IsBelow(mtlData, ray.Direction);
 
-                ray.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RaytracingRayBias, isSampleBelow);
+                ray.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RayTracingRayBias, isSampleBelow);
                 ray.TMax = FLT_INF;
 
                 // Prepare our shadow payload with all required information
@@ -225,7 +225,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
                 if (computeDirect)
                 {
                     // Use the hit distance to know which lights are visible
-                    ray.TMax = shadowPayload.rayTHit + _RaytracingRayBias;
+                    ray.TMax = shadowPayload.rayTHit + _RayTracingRayBias;
                     float3 lightValue;
                     float lightPdf;
                     EvaluateLights(lightList, ray, lightValue, lightPdf);
@@ -300,7 +300,7 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
         shadowPayload.rayTHit = FLT_INF;
 
-        float bias = dot(WorldRayDirection(), shadingNormal) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+        float bias = dot(WorldRayDirection(), shadingNormal) > 0.0 ? _RayTracingRayBias : -_RayTracingRayBias;
 
         RayDesc ray;
         ray.Origin = shadingPosition + bias * shadingNormal;

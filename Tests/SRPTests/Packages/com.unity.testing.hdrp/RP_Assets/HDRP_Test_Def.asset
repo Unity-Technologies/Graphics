@@ -30,6 +30,11 @@ MonoBehaviour:
     supportWater: 0
     waterSimulationResolution: 128
     waterCPUSimulation: 0
+    supportComputeThickness: 1
+    computeThicknessResolution: 0
+    computeThicknessLayerMask:
+      serializedVersion: 2
+      m_Bits: 98304
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1

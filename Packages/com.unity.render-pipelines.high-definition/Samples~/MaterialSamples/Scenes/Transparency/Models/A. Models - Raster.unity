@@ -1589,13 +1589,13 @@ PrefabInstance:
 
 
         - Recursive
-        Rendering has access to the real geometry, so Planar and Sphere Refraction
-        Models will have the same result.
+        Rendering has access to the actual thickness and real geometry of the object.
+        So until Max Depth is reached, the Thickness material property is ignored
+        and Planar and Sphere Refraction Models have the same result.
 
-        - Recursive Rendering accounts
-        for the actual thickness of the objects, the material property is ignored.
-
-'
+        -
+        When Max Depth is reached, Recursive Rendering fallbacks to regular Refraction
+        Models using the Thickness material property.'
       objectReference: {fileID: 0}
     - target: {fileID: 277503375014339232, guid: 8f4d5b5d98b02f14fab41b6b082bc6af, type: 3}
       propertyPath: m_RootOrder
@@ -1644,22 +1644,6 @@ PrefabInstance:
     - target: {fileID: 3455952488216430123, guid: 8f4d5b5d98b02f14fab41b6b082bc6af, type: 3}
       propertyPath: m_Name
       value: Models
-      objectReference: {fileID: 0}
-    - target: {fileID: 6518685848216003881, guid: 8f4d5b5d98b02f14fab41b6b082bc6af, type: 3}
-      propertyPath: m_text
-      value: "<size=2>Limitations</size>\r\n\r\n<size=2>   Thin Refraction Model</size>\r\n\r\n-
-        Thin approximates the surface as a Planar Refraction Model with a fixed thickness
-        of 5mm.\r\n\r\n<size=2>   Reflection Probe and Proxy Volume </size>\r\n\r\nIf
-        the refractive object is within the bounds of a Reflection Probe, the Reflection
-        Probe Proxy Volume is used to approximate the shape of the environment. The
-        refracted ray is projected on the Proxy Volume to sample the color buffer.
-        If the ray ends up outside the screen, the Reflection Probe Cubemap is used
-        as a fallback.\r\n\r\nTo get a better understanding, select the Reflection
-        Probe in the scene and toggle the Use Influence Volume As Proxy Volume checkbox.\r\n\r\nIf
-        there is no Reflection Probe available: \r\n- For Planar Refraction Model,
-        a box shaped Proxy Volume the size of the object\u2019s bounding box is used.\r\n-
-        For Sphere Refraction Model, a sphere shaped Proxy Volume with a radius of
-        10m is used.\r\n"
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

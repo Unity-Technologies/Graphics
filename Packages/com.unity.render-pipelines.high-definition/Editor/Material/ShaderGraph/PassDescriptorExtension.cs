@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return pass.lightMode == HDShaderPassNames.s_ForwardOnlyStr
                 || pass.lightMode == HDShaderPassNames.s_ForwardStr
+                || pass.lightMode == HDShaderPassNames.s_LineRenderingOffscreenShading
                 || pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr;
         }
 

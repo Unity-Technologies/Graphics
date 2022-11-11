@@ -621,6 +621,20 @@ real3 CustomTonemap(real3 x, real3 curve, real4 toeSegmentA, real2 toeSegmentB, 
     return ret;
 }
 
+// Coming from STP, to replace when STP lands.
+#define SAT 8.0f
+real3 InvertibleTonemap(real3 x)
+{
+    real y = rcp(real(SAT) + Max3(x.r, x.g, x.b));
+    return saturate(x * real(y));
+}
+
+real3 InvertibleTonemapInverse(real3 x)
+{
+    float y = rcp(max(real(1.0 / 32768.0), saturate(real(1.0 / SAT) - Max3(x.r, x.g, x.b) * real(1.0 / SAT))));
+    return x * y;
+}
+
 // Filmic tonemapping (ACES fitting, unless TONEMAPPING_USE_FULL_ACES is set to 1)
 // Input is ACES2065-1 (AP0 w/ linear encoding)
 #ifndef TONEMAPPING_USE_FULL_ACES

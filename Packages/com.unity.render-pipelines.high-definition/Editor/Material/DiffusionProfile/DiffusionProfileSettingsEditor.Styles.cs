@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent profileScatteringColor = EditorGUIUtility.TrTextContent("Scattering Color", "Controls the shape of the Diffusion Profile, and should be similar to the diffuse color of the Material.");
             public static readonly GUIContent profileScatteringDistanceMultiplier = EditorGUIUtility.TrTextContent("Multiplier", "Acts as a multiplier on the scattering color to control how far light travels below the surface, and controls the effective radius of the filter.");
             public static readonly GUIContent profileTransmissionTint = EditorGUIUtility.TrTextContent("Transmission Tint", "Specifies the tint of the translucent lighting transmitted through objects.");
-            public static readonly GUIContent profileMaxRadius = EditorGUIUtility.TrTextContent("Max Radius", "The maximum radius of the effect you define in Scattering Color and Multiplier.");
+            public static readonly GUIContent profileMaxRadius = EditorGUIUtility.TrTextContent("Max Radius", "The maximum radius of the effect you define in Scattering Color and Multiplier.\nWhen the world scale is 1, this value is in millimeters.");
 
             public static readonly GUIContent profileWorldScale = EditorGUIUtility.TrTextContent("World Scale", "Controls the scale of Unity's world units for this Diffusion Profile.");
             public static readonly GUIContent profileIor = EditorGUIUtility.TrTextContent("Index of Refraction", "Controls the refractive behavior of the Material, where larger values increase the intensity of specular reflection.");

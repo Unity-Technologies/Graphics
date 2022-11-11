@@ -10,12 +10,17 @@
 #define WATER_IOR 1.3333
 #define WATER_INV_IOR 1.0 / WATER_IOR
 #define SURFACE_FOAM_BRIGHTNESS 1.0
-#define SCATTERING_FOAM_BRIGHTNESS 1.75
+#define SCATTERING_FOAM_BRIGHTNESS 2.0
 #define AMBIENT_SCATTERING_INTENSITY 0.25
 #define HEIGHT_SCATTERING_INTENSITY 0.25
 #define DISPLACEMENT_SCATTERING_INTENSITY 0.25
 #define UNDER_WATER_REFRACTION_DISTANCE 100.0
+#define WATER_SYSTEM_CHOPPINESS 2.25
+#define WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION 1.03
+
+#if !defined(IGNORE_WATER_DEFORMATION)
 #define SUPPORT_WATER_DEFORMATION
+#endif
 
 // Number of bands based on the multi compile
 #if defined(WATER_TWO_BANDS)
@@ -40,9 +45,10 @@ TEXTURE2D(_WaterMask);
 SAMPLER(sampler_WaterMask);
 
 // Foam textures
-Texture2D<float> _FoamTexture;
-TEXTURE2D(_FoamMask);
-SAMPLER(sampler_FoamMask);
+Texture2D<float2> _WaterFoamBuffer;
+TEXTURE2D(_SimulationFoamMask);
+SAMPLER(sampler_SimulationFoamMask);
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
 
 // Water deformation data
 Texture2D<float> _WaterDeformationBuffer;
@@ -344,11 +350,14 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
 
 void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
 {
+    #if !defined(IGNORE_WATER_FADE)
     // Evaluate the pre-displaced absolute position
     float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
-
     // Evaluate the distance to the camera
     float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+    #else
+    float distanceToCamera = FLT_MAX;
+    #endif
 
     // Attenuate using the water mask
     float2 maskUV = EvaluateWaterMaskUV(positionOS.xz);
@@ -403,7 +412,7 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
 #endif
 
     // We apply the choppiness to all bands
-    totalDisplacement.yz *= _Choppiness;
+    totalDisplacement.yz *= WATER_SYSTEM_CHOPPINESS;
 
     // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
     displacementData.lowFrequencyHeight = lowFrequencyHeight;
@@ -438,10 +447,16 @@ void PackWaterVertexData(float3 positionOS, float3 normalOS, float3 displacement
     packedWaterData.uv1 = float4(lowFrequencyHeight, length(float2(displacement.x, displacement.z)), 0.0, 0.0);
 }
 
+// UV to sample the foam mask
 float2 EvaluateFoamMaskUV(float2 foamUV)
 {
-    // Shift and scale
-    return float2(foamUV.x - _FoamMaskOffset.x, foamUV.y + _FoamMaskOffset.y) * _FoamMaskScale + 0.5f;
+    return float2(foamUV.x - _SimulationFoamMaskOffset.x, foamUV.y + _SimulationFoamMaskOffset.y) * _SimulationFoamMaskScale + 0.5f;
+}
+
+// UV to sample the foam simulation
+float2 EvaluateFoamUV(float2 positionOS)
+{
+    return float2(positionOS.x - _FoamRegionOffset.x, positionOS.y - _FoamRegionOffset.y) * _FoamRegionScale + 0.5f;
 }
 
 struct WaterAdditionalData
@@ -451,6 +466,11 @@ struct WaterAdditionalData
     float surfaceFoam;
     float deepFoam;
 };
+
+float2 EvaluateFoamTextureUV(float3 positionAWS)
+{
+    return (positionAWS.xz - OrientationToDirection(_PatchOrientation[0]) * _PatchCurrentSpeed[0] * _SimulationTime) * _FoamTilling;
+}
 
 #if !defined(WATER_SIMULATION)
 float3 ComputeDebugNormal(float3 worldPos)
@@ -484,8 +504,11 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
         // Read the raw additional data
         float4 additionalData = SampleAdditionalData(currentData.uv, bandIdx, texSize);
 
-        // Apply the global attenuations
-        additionalData *= waterMask[bandIdx] * currentData.blend;
+        // Apply the current blend (if any)
+        additionalData *= currentData.blend;
+
+        // Here we only apply the water mask to the surface gradient as the jacobian is not a linear profile.
+        additionalData.xy *= waterMask[bandIdx];
 
         // Add the jacobian contribution
         jcbSurface += additionalData.z;
@@ -505,16 +528,19 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
 
 void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
 {
+    #if !defined(IGNORE_WATER_FADE)
     // Evaluate the pre-displaced absolute position
     float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
+    // Evaluate the distance to the camera
+    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+    #else
+    float distanceToCamera = FLT_MAX;
+    #endif
 
     // Compute the texture size param for the filtering
     float4 texSize = 0.0;
     texSize.xy = _BandResolution;
     texSize.zw = 1.0f / _BandResolution;
-
-    // Evaluate the distance to the camera
-    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
 
     // Attenuate using the water mask
     float2 maskUV = EvaluateWaterMaskUV(positionOS.xz);
@@ -578,9 +604,11 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     jacobianDeep = jacobianDeep0 + jacobianDeep1;
     #endif
 
+    // Get the world space transformed postion
+    float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
+
 #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
-    float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
     float2 deformationUV = (transformedAWS.xz - _WaterDeformationCenter) / _WaterDeformationExtent;
     float2 deformationSG = SAMPLE_TEXTURE2D_LOD(_WaterDeformationSGBuffer, s_linear_clamp_sampler, deformationUV + 0.5f, 0);
     lFSurfaceGradient += deformationSG;
@@ -595,11 +623,25 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
     // Attenuate using the foam mask
     float2 foamMaskUV = EvaluateFoamMaskUV(positionOS.xz);
-    float foamMask = SAMPLE_TEXTURE2D(_FoamMask, sampler_FoamMask, foamMaskUV).x;
+    float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, foamMaskUV).x;
 
     // Evaluate the foam from the jacobian
-    waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS * _FoamIntensity * foamMask;
-    waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount) * SCATTERING_FOAM_BRIGHTNESS * _FoamIntensity * foamMask;
+    waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS * _SimulationFoamIntensity * foamMask * _SimulationFoamWindAttenuation;
+    waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount * WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION) * SCATTERING_FOAM_BRIGHTNESS * _SimulationFoamIntensity * foamMask * _SimulationFoamWindAttenuation;
+
+    float2 foamUV = EvaluateFoamUV(transformedAWS.xz);
+#if !defined(IGNORE_FOAM_REGION)
+    // Evaluate the foam region coordinates
+    if (_WaterFoamRegionResolution > 0 && all(foamUV > 0.0) && all(foamUV < 1.0))
+    {
+        float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, sampler_SimulationFoamMask, foamUV).xy;
+        waterAdditionalData.surfaceFoam += foamRegion.x;
+        waterAdditionalData.deepFoam += foamRegion.y;
+    }
+#endif
+
+    // Apply the texture
+    waterAdditionalData.deepFoam = DeepFoam(positionOS.xz, 1.0 - waterAdditionalData.deepFoam);
 }
 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
@@ -630,11 +672,6 @@ float3 BlendWaterNormal(float3 normalTS, float3 normalWS)
 }
 #endif
 
-float2 EvaluateFoamUV(float3 positionAWS)
-{
-    return (positionAWS.xz - OrientationToDirection(_PatchOrientation[0]) * _PatchCurrentSpeed[0] * _SimulationTime) * _FoamTilling;
-}
-
 struct FoamData
 {
     float smoothness;
@@ -643,15 +680,12 @@ struct FoamData
 
 void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionAWS, out FoamData foamData)
 {
-    // Compute the surface foam
-    float2 foamUV = EvaluateFoamUV(positionAWS);
-    float foamTex = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, foamUV).x;
-
     // Final foam value
-    foamData.foamValue = (surfaceFoam * _WindFoamAttenuation + customFoam) * foamTex;
+    float foamLifeTime = saturate(1.0 - (surfaceFoam + customFoam));
+    foamData.foamValue = SurfaceFoam(positionAWS.xz, foamLifeTime);
 
     // Blend the smoothness of the water and the foam
-    foamData.smoothness = lerp(_WaterSmoothness, _SimulationFoamSmoothness, saturate(foamData.foamValue * 10.0f));
+    foamData.smoothness = lerp(_WaterSmoothness, _FoamSmoothness, saturate(foamData.foamValue));
 }
 
 #define WATER_BACKGROUND_ABSORPTION_DISTANCE 1000.f
@@ -664,7 +698,7 @@ float EvaluateHeightBasedScattering(float lowFrequencyHeight)
 
 float EvaluateDisplacementScattering(float displacement)
 {
-    float displacementScatteringValue = lerp(0.0, DISPLACEMENT_SCATTERING_INTENSITY, displacement / (_ScatteringWaveHeight * _Choppiness));
+    float displacementScatteringValue = lerp(0.0, DISPLACEMENT_SCATTERING_INTENSITY, displacement / (_ScatteringWaveHeight * WATER_SYSTEM_CHOPPINESS));
     return lerp(0.0, displacementScatteringValue, _DisplacementScattering);
 }
 

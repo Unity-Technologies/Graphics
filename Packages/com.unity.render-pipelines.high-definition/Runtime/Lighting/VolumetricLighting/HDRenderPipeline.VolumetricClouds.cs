@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cloud preset maps
         Texture2D m_CustomPresetMap;
         Texture2D m_CustomLutPresetMap;
-        const int k_CustomLutMapResolution = 32;
+        const int k_CustomLutMapResolution = 64;
         readonly Color[] m_CustomLutColorArray = new Color[k_CustomLutMapResolution];
 
         // Prepass kernels
@@ -473,6 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool enableExposureControl;
             public bool localClouds;
             public bool microErosion;
+            public bool simplePreset;
 
             // Static textures
             public Texture3D worley128RGBA;
@@ -510,7 +511,8 @@ namespace UnityEngine.Rendering.HighDefinition
             commonData.volumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
 
             // Static textures
-            if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple)
+            commonData.simplePreset = settings.cloudControl.value == VolumetricClouds.CloudControl.Simple;
+            if (commonData.simplePreset)
             {
                 commonData.cloudMapTexture = GetPresetCloudMapTexture();
                 PrepareCustomLutData(settings);

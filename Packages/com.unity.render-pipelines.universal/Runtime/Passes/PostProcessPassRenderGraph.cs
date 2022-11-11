@@ -987,7 +987,7 @@ namespace UnityEngine.Rendering.Universal
         }
 #endregion
 
-#region LensFlare
+#region LensFlareDataDriven
         private class LensFlarePassData
         {
             internal TextureHandle destinationTexture;
@@ -1001,7 +1001,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderLensFlareDatadriven(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+            using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
             {
                 // Use WriteTexture here because DoLensFlareDataDrivenCommon will call SetRenderTarget internally.
                 // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
@@ -1051,6 +1051,105 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
         }
+#endregion
+
+#region LensFlareScreenSpace
+
+        private class LensFlareScreenSpacePassData
+        {
+            internal TextureHandle destinationTexture;
+            internal TextureHandle streakTmpTexture;
+            internal TextureHandle streakTmpTexture2;
+            internal TextureHandle bloomTexture;
+            internal RenderTextureDescriptor sourceDescriptor;
+            internal Camera camera;
+            internal Material material;
+            internal int downsample;
+        }
+
+        public void RenderLensFlareScreenSpace(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData, TextureHandle bloomTexture)
+        {
+            var downsample = (int) m_LensFlareScreenSpace.resolution.value;
+            int width = m_Descriptor.width / downsample;
+            int height = m_Descriptor.height / downsample;
+
+            var streakTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
+            var streakTmpTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
+            var streakTmpTexture2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
+
+            using (var builder = renderGraph.AddRenderPass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
+            {
+                // Use WriteTexture here because DoLensFlareScreenSpaceCommon will call SetRenderTarget internally.
+                // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
+                passData.destinationTexture = builder.WriteTexture(destination);
+                passData.streakTmpTexture = builder.ReadWriteTexture(streakTmpTexture);
+                passData.streakTmpTexture2 = builder.ReadWriteTexture(streakTmpTexture2);
+                passData.bloomTexture = builder.ReadTexture(bloomTexture);
+                passData.sourceDescriptor = m_Descriptor;
+                passData.camera = renderingData.cameraData.camera;
+                passData.material = m_Materials.lensFlareScreenSpace;
+                passData.downsample = downsample;
+
+                builder.SetRenderFunc((LensFlareScreenSpacePassData data, RenderGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    var camera = data.camera;
+                    var ratio = (int) m_LensFlareScreenSpace.resolution.value;
+
+                    LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
+                        m_Materials.lensFlareScreenSpace,
+                        camera,
+                        (float)data.sourceDescriptor.width,
+                        (float)data.sourceDescriptor.height,
+                        m_LensFlareScreenSpace.tintColor.value,
+                        data.bloomTexture,
+                        null, // We don't have any spectral LUT in URP
+                        data.streakTmpTexture,
+                        data.streakTmpTexture2,
+                        new Vector4(
+                            m_LensFlareScreenSpace.intensity.value,
+                            m_LensFlareScreenSpace.firstFlareIntensity.value,
+                            m_LensFlareScreenSpace.secondaryFlareIntensity.value,
+                            m_LensFlareScreenSpace.warpedFlareIntensity.value),
+                        new Vector4(
+                            Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                            m_LensFlareScreenSpace.startingPosition.value,
+                            m_LensFlareScreenSpace.scale.value,
+                            0), // Free slot, not used
+                        new Vector4(
+                            m_LensFlareScreenSpace.samples.value,
+                            m_LensFlareScreenSpace.sampleDimmer.value,
+                            m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                            0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
+                        new Vector4(
+                            m_LensFlareScreenSpace.streaksIntensity.value,
+                            m_LensFlareScreenSpace.streaksLength.value * 10,
+                            m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                            m_LensFlareScreenSpace.streaksThreshold.value),
+                        new Vector4(
+                            data.downsample,
+                            1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                            1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                            0), // Free slot, not used
+                        cmd,
+                        data.destinationTexture,
+                        ShaderConstants._LensFlareScreenSpaceBloomTexture,
+                        0, // No identifiers for SpectralLut Texture
+                        ShaderConstants._LensFlareScreenSpaceStreakTex,
+                        ShaderConstants._LensFlareScreenSpaceMipLevel,
+                        ShaderConstants._LensFlareScreenSpaceTintColor,
+                        ShaderConstants._LensFlareScreenSpaceParams1,
+                        ShaderConstants._LensFlareScreenSpaceParams2,
+                        ShaderConstants._LensFlareScreenSpaceParams3,
+                        ShaderConstants._LensFlareScreenSpaceParams4,
+                        ShaderConstants._LensFlareScreenSpaceParams5,
+                        false);
+                });
+
+                return;
+            }
+        }
+
 #endregion
 
 #region FinalPass
@@ -1408,6 +1507,7 @@ namespace UnityEngine.Rendering.Universal
             m_MotionBlur = stack.GetComponent<MotionBlur>();
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom = stack.GetComponent<Bloom>();
+            m_LensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
             m_LensDistortion = stack.GetComponent<LensDistortion>();
             m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
             m_Vignette = stack.GetComponent<Vignette>();
@@ -1432,6 +1532,7 @@ namespace UnityEngine.Rendering.Universal
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
             bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
+            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive();
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
@@ -1516,10 +1617,16 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bloom goes first
                 bool bloomActive = m_Bloom.IsActive();
-                if (bloomActive)
+                //Even if bloom is not active we need the texture if the lensFlareScreenSpace pass is active.
+                if (bloomActive || useLensFlareScreenSpace)
                 {
                     RenderBloomTexture(renderGraph, currentSource, out var BloomTexture, ref renderingData);
                     UberPostSetupBloomPass(renderGraph, in BloomTexture, m_Materials.uber);
+                }
+
+                if (useLensFlareScreenSpace)
+                {
+                    RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[m_LensFlareScreenSpace.bloomMip.value]);
                 }
 
                 // TODO RENDERGRAPH: Once we started removing the non-RG code pass in URP, we should move functions below to renderfunc so that material setup happens at

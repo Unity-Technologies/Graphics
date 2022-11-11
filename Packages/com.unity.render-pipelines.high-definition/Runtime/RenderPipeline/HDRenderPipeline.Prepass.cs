@@ -11,12 +11,21 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DecalNormalBufferMaterial;
         Material m_DownsampleDepthMaterialHalfresCheckerboard;
         Material m_DownsampleDepthMaterialGather;
+        Material[] m_ComputeThicknessOpaqueMaterial;
+        Material[] m_ComputeThicknessTransparentMaterial;
+        uint[] m_ComputeThicknessReindexMapData = new uint[HDComputeThickness.computeThicknessMaxLayer];
+        uint[] m_ComputeThicknessLayerMask = new uint[HDComputeThickness.computeThicknessMaxLayer];
+        bool[] m_ComputeThicknessReindexSolver = new bool[HDComputeThickness.computeThicknessMaxLayer];
+        ShaderTagId[] m_ComputeThicknessShaderTags = { HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_SRPDefaultUnlitName };
+        GraphicsBuffer m_ComputeThicknessReindexMap;
 
         // Need to cache to avoid alloc of arrays...
         GBufferOutput m_GBufferOutput;
         DBufferOutput m_DBufferOutput;
 
         GPUCopy m_GPUCopy;
+
+        const int m_MaxXRViewsCount = 4;
 
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
@@ -26,6 +35,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
+            m_ComputeThicknessOpaqueMaterial = new Material[m_MaxXRViewsCount];
+            m_ComputeThicknessTransparentMaterial = new Material[m_MaxXRViewsCount];
+            for (int viewId = 0; viewId < m_MaxXRViewsCount; ++viewId)
+            {
+                m_ComputeThicknessOpaqueMaterial[viewId] = CoreUtils.CreateEngineMaterial(defaultResources.shaders.ComputeThicknessPS);
+                m_ComputeThicknessOpaqueMaterial[viewId].SetInt(HDShaderIDs._ViewId, viewId);
+                m_ComputeThicknessTransparentMaterial[viewId] = CoreUtils.CreateEngineMaterial(defaultResources.shaders.ComputeThicknessPS);
+                m_ComputeThicknessTransparentMaterial[viewId].SetInt(HDShaderIDs._ViewId, viewId);
+            }
+            m_ComputeThicknessReindexMap = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)HDComputeThickness.computeThicknessMaxLayer, sizeof(uint));
 
             m_GBufferOutput = new GBufferOutput();
             m_GBufferOutput.mrt = new TextureHandle[RenderGraph.kMaxMRTCount];
@@ -43,6 +62,12 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterialHalfresCheckerboard);
             CoreUtils.Destroy(m_DownsampleDepthMaterialGather);
+            m_ComputeThicknessReindexMap.Dispose();
+            for (int viewId = 0; viewId < m_MaxXRViewsCount; ++viewId)
+            {
+                CoreUtils.Destroy(m_ComputeThicknessOpaqueMaterial[viewId]);
+                CoreUtils.Destroy(m_ComputeThicknessTransparentMaterial[viewId]);
+            }
         }
 
         bool NeedClearGBuffer(HDCamera hdCamera)
@@ -179,6 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepassOutput RenderPrepass(RenderGraph renderGraph,
             TextureHandle colorBuffer,
             TextureHandle sssBuffer,
+            TextureHandle thicknessTexture,
             TextureHandle vtFeedbackBuffer,
             CullingResults cullingResults,
             CullingResults customPassCullingResults,
@@ -240,6 +266,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
                 ApplyCameraMipBias(hdCamera);
+
+                if (IsComputeThicknessNeeded(hdCamera))
+                    // Compute thicknes for AllOpaque before the GBuffer without reading DepthBuffer
+                    RenderThickness(renderGraph, cullingResults, thicknessTexture, TextureHandle.nullHandle, hdCamera, HDRenderQueue.k_RenderQueue_AllOpaque, false);
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
 
@@ -680,6 +710,237 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         BindDBufferGlobalData(data.dBuffer, context);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+                    });
+            }
+        }
+
+        class ThicknessPassData
+        {
+            public TextureHandle finalTextureArrayRT;
+            public TextureHandle depthBuffer;
+            public BufferHandle reindexMap;
+            public HDCamera camera;
+
+            public List<RendererListHandle> rendererLists;
+
+            public int xrViewCount;
+            public int xrViewIdx;
+            public bool isXR;
+            public bool isXRSinglePass;
+            public bool readDepthBuffer;
+        };
+
+        bool IsComputeThicknessNeeded(HDCamera hdCamera)
+        {
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            FrameSettings frameSettings = hdCamera.frameSettings;
+
+            return frameSettings.IsEnabled(FrameSettingsField.ComputeThickness) &&
+                currentAsset.currentPlatformRenderPipelineSettings.supportComputeThickness &
+                HDComputeThickness.Instance.GetUsedLayersCount() > 0u;
+        }
+
+        TextureHandle CreateThicknessTexture(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            FrameSettings frameSettings = hdCamera.frameSettings;
+
+            HDComputeThickness.Instance.SetUsedLayersCount(0u);
+
+            if (!frameSettings.IsEnabled(FrameSettingsField.ComputeThickness) || !currentAsset.currentPlatformRenderPipelineSettings.supportComputeThickness)
+            {
+                HDComputeThickness.Instance.SetTextureArray(renderGraph.defaultResources.blackTextureArrayXR);
+                HDComputeThickness.Instance.SetReindexMap(m_ComputeThicknessReindexMap);
+                return TextureHandle.nullHandle;
+            }
+
+            TextureHandle thicknessTexture;
+
+            for (int i = 0; i < HDComputeThickness.computeThicknessMaxLayer; ++i)
+            {
+                m_ComputeThicknessReindexMapData[i] = HDComputeThickness.computeThicknessMaxLayer; // Incorrect index
+                m_ComputeThicknessReindexSolver[i] = false;
+                m_ComputeThicknessLayerMask[i] = 0;
+            }
+
+            uint requestedLayerMask = (uint)(int)currentAsset.currentPlatformRenderPipelineSettings.computeThicknessLayerMask;
+
+            bool isXR = hdCamera.xr.enabled;
+            int renderNeeded = 0;
+            for (int layerIdx = 0; layerIdx < HDComputeThickness.computeThicknessMaxLayer; ++layerIdx)
+            {
+                if (((1u << layerIdx) & requestedLayerMask) != 0u)
+                {
+                    m_ComputeThicknessReindexMapData[layerIdx] = (uint)renderNeeded;
+                    ++renderNeeded;
+                }
+            }
+
+            if (renderNeeded == 0)
+            {
+                HDComputeThickness.Instance.SetTextureArray(renderGraph.defaultResources.blackTextureArrayXR);
+                HDComputeThickness.Instance.SetReindexMap(m_ComputeThicknessReindexMap);
+                return TextureHandle.nullHandle;
+            }
+
+            HDComputeThickness.Instance.SetUsedLayersCount((uint)renderNeeded);
+
+            float downsizeScale;
+            if (currentAsset.currentPlatformRenderPipelineSettings.computeThicknessResolution == ComputeThicknessResolution.Half)
+                downsizeScale = 0.5f;
+            else if (currentAsset.currentPlatformRenderPipelineSettings.computeThicknessResolution == ComputeThicknessResolution.Quarter)
+                downsizeScale = 0.25f;
+            else
+                downsizeScale = 1.0f;
+
+            int usedLayerCount = renderNeeded;
+            if (isXR && hdCamera.xr.singlePassEnabled)
+            {
+                usedLayerCount = Mathf.Max(renderNeeded * hdCamera.xr.viewCount, 1);
+            }
+
+            // Red: Thickness world space, between [near; far] plane
+            // Green: Overlap Count (possible memory footprint optim use second texture with R8_UInt Texture: 256 layers max)
+            TextureDesc thicknessArrayRTDesc = new TextureDesc(Vector2.one * downsizeScale, true, false)
+            {
+                dimension = TextureDimension.Tex2DArray,
+                colorFormat = GraphicsFormat.R16G16_SFloat,
+                clearBuffer = true,
+                clearColor = Color.black,
+                slices = usedLayerCount,
+                enableRandomWrite = true,
+                name = "ThicknessArray"
+            };
+            thicknessTexture = renderGraph.CreateTexture(thicknessArrayRTDesc);
+
+            m_ComputeThicknessReindexMap.SetData(m_ComputeThicknessReindexMapData);
+            HDComputeThickness.Instance.SetTextureArray(thicknessTexture);
+            HDComputeThickness.Instance.SetReindexMap(m_ComputeThicknessReindexMap);
+
+            return thicknessTexture;
+        }
+
+        void RenderThickness(RenderGraph renderGraph, CullingResults cullingResults, TextureHandle thicknessTexture, TextureHandle depthBuffer, HDCamera hdCamera, RenderQueueRange renderQueue, bool readDepthBuffer)
+        {
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            FrameSettings frameSettings = hdCamera.frameSettings;
+
+            if (!frameSettings.IsEnabled(FrameSettingsField.ComputeThickness) || !currentAsset.currentPlatformRenderPipelineSettings.supportComputeThickness)
+            {
+                HDComputeThickness.Instance.SetTextureArray(renderGraph.defaultResources.blackTextureArrayXR);
+                HDComputeThickness.Instance.SetReindexMap(m_ComputeThicknessReindexMap);
+                return;
+            }
+
+            uint requestedLayerMask = (uint)(int)currentAsset.currentPlatformRenderPipelineSettings.computeThicknessLayerMask;
+            bool isXR = hdCamera.xr.enabled;
+
+            using (var builder = renderGraph.AddRenderPass<ThicknessPassData>("ComputeThickness", out var passData, ProfilingSampler.Get(HDProfileId.ComputeThickness)))
+            {
+                builder.AllowPassCulling(false);
+                builder.AllowRendererListCulling(false);
+
+                float downsizeScale;
+                if (currentAsset.currentPlatformRenderPipelineSettings.computeThicknessResolution == ComputeThicknessResolution.Half)
+                    downsizeScale = 0.5f;
+                else if (currentAsset.currentPlatformRenderPipelineSettings.computeThicknessResolution == ComputeThicknessResolution.Quarter)
+                    downsizeScale = 0.25f;
+                else
+                    downsizeScale = 1.0f;
+
+                for (int localViewId = 0; localViewId < m_MaxXRViewsCount; ++localViewId)
+                {
+                    m_ComputeThicknessOpaqueMaterial[localViewId].SetFloat(HDShaderIDs._DownsizeScale, Mathf.Round(1.0f / downsizeScale));
+                    m_ComputeThicknessTransparentMaterial[localViewId].SetFloat(HDShaderIDs._DownsizeScale, Mathf.Round(1.0f / downsizeScale));
+                }
+
+                passData.isXR = isXR;
+                passData.isXRSinglePass = hdCamera.xr.singlePassEnabled;
+                passData.xrViewCount = (isXR && hdCamera.xr.singlePassEnabled) ? hdCamera.xr.viewCount : 1;
+                passData.xrViewIdx = hdCamera.xr.multipassId;
+
+                passData.readDepthBuffer = readDepthBuffer;
+                if (readDepthBuffer)
+                {
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                }
+                passData.finalTextureArrayRT = builder.WriteTexture(thicknessTexture);
+                passData.reindexMap = renderGraph.ImportBuffer(m_ComputeThicknessReindexMap);
+
+                passData.rendererLists = ListPool<RendererListHandle>.Get();
+                passData.camera = hdCamera;
+
+                for (int k = 0; k < HDComputeThickness.computeThicknessMaxLayer; ++k)
+                {
+                    if (m_ComputeThicknessReindexMapData[k] >= HDComputeThickness.computeThicknessMaxLayer)
+                    {
+                        continue;
+                    }
+
+                    int maxLoop = (isXR && hdCamera.xr.singlePassEnabled) ? hdCamera.xr.viewCount : 1;
+                    // If XR create twice the same render lists for left & right eyes
+                    for (int viewId = 0; viewId < maxLoop; ++viewId)
+                    {
+                        RendererUtils.RendererListDesc rendererListOpaque = new RendererUtils.RendererListDesc(m_ComputeThicknessShaderTags, cullingResults, hdCamera.camera)
+                        {
+                            rendererConfiguration = PerObjectData.None,
+                            renderQueueRange = renderQueue,
+                            sortingCriteria = SortingCriteria.BackToFront,
+                            overrideMaterial = readDepthBuffer ? m_ComputeThicknessTransparentMaterial[viewId] : m_ComputeThicknessOpaqueMaterial[viewId],
+                            overrideMaterialPassIndex = readDepthBuffer ? 1 : 0,
+                            excludeObjectMotionVectors = false,
+                            layerMask = (1 << k)
+                        };
+
+                        passData.rendererLists.Add(builder.UseRendererList(renderGraph.CreateRendererList(rendererListOpaque)));
+                    }
+                }
+
+                builder.SetRenderFunc(
+                    (ThicknessPassData data, RenderGraphContext ctx) =>
+                    {
+                        int idx = 0;
+                        foreach (RendererListHandle rl in data.rendererLists)
+                        {
+                            int sliceIdx;
+                            if (!data.isXR)
+                            {
+                                sliceIdx = idx;
+                            }
+                            else
+                            {
+                                // Single Pass
+                                //      {Left:{Opaque, Transparent}, Right:{Opaque, Transparent}}
+                                // Multi Pass (one eye per camera)
+                                //      Left:{Opaque, Transparent} OR Right:{Opaque, Transparent}
+                                if (data.isXRSinglePass)
+                                    sliceIdx = idx / data.xrViewCount;
+                                else
+                                    sliceIdx = idx;
+                            }
+                            RTHandle rtHandle = (RTHandle)data.finalTextureArrayRT;
+                            if (!data.isXR)
+                            {
+                                CoreUtils.SetRenderTarget(ctx.cmd, rtHandle, ClearFlag.None, Color.black, 0, CubemapFace.Unknown, sliceIdx);
+                            }
+                            else
+                            {
+                                if (data.isXRSinglePass)
+                                {
+                                    int viewId = idx % data.xrViewCount;
+                                    CoreUtils.SetRenderTarget(ctx.cmd, rtHandle, ClearFlag.None, Color.black, 0, CubemapFace.Unknown, sliceIdx * data.xrViewCount + viewId);
+                                }
+                                else
+                                {
+                                    CoreUtils.SetRenderTarget(ctx.cmd, rtHandle, ClearFlag.None, Color.black, 0, CubemapFace.Unknown, sliceIdx);
+                                }
+                            }
+
+                            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, rl);
+                            ++idx;
+                        }
+
+                        ListPool<RendererListHandle>.Release(data.rendererLists);
                     });
             }
         }

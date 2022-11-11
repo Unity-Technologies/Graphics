@@ -50,6 +50,8 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIQuality = 1 << 33,
             SSGIQuality = 1 << 34,
             Water = 1 << 35,
+            ComputeThickness = 1 << 36,
+            HighQualityLineRendering = 1 << 37,
         }
 
         enum ExpandableShadows
@@ -121,7 +123,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.decalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
                     CED.FoldoutGroup(Styles.dynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
                     CED.FoldoutGroup(Styles.lowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings),
-                    CED.FoldoutGroup(Styles.waterSubTitle, Expandable.Water, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings)
+                    CED.FoldoutGroup(Styles.waterSubTitle, Expandable.Water, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings),
+                    CED.FoldoutGroup(Styles.computeThicknessSubTitle, Expandable.ComputeThickness, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionComputeThicknessSettings),
+                    CED.FoldoutGroup(Styles.highQualityLineRenderingSubTitle, Expandable.HighQualityLineRendering, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionHighQualityLineRenderingSettings)
                     ),
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
@@ -686,15 +690,47 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWater.boolValue))
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterSimulationResolution, Styles.waterSimulationResolutionContent);
+
+                // Deformation
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterDeformation, Styles.supportWaterDeformationContent);
+                ++EditorGUI.indentLevel;
                 using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDeformation.boolValue))
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.deformationAtlasSize, Styles.deformationAtlasSizeContent);
                 }
+                --EditorGUI.indentLevel;
+
+                // Foam
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterFoam, Styles.supportWaterFoamContent);
+                ++EditorGUI.indentLevel;
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDeformation.boolValue))
+                {
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.foamAtlasSize, Styles.foamAtlasSizeContent);
+                }
+                --EditorGUI.indentLevel;
+
+                // Exclusion
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterExclusion, Styles.supportWaterExclusionContent);
+
+                // CPU Simulation
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterCPUSimulation, Styles.cpuSimulationContent);
             }
             --EditorGUI.indentLevel;
+        }
+
+        static void Drawer_SectionHighQualityLineRenderingSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportHighQualityLineRendering, Styles.supportHighQualityLineRenderingContent);
+        }
+
+        static void Drawer_SectionComputeThicknessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportComputeThickness, Styles.computeThicknessEnableContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportComputeThickness.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.computeThicknessResolution, Styles.computeThicknessResolutionContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.computeThicknessLayerMask, Styles.computeThicknessLayerContent);
+            }
         }
 
         static void Drawer_SectionPostProcessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

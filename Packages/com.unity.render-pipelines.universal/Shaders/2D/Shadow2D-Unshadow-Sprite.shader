@@ -78,7 +78,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             Stencil
             {
                 Ref       0
-                Comp      Always  
+                Comp      Always
                 Pass      Replace
             }
 

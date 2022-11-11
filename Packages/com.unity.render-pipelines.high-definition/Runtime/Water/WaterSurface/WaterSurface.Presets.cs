@@ -53,12 +53,16 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.directLightTipScattering = 0.6f;
             waterSurface.directLightBodyScattering = 0.5f;
 
-            // Foam
+            waterSurface.foam = true;
+            waterSurface.foamResolution = WaterSurface.WaterFoamResolution.Resolution512;
+            waterSurface.foamAreaSize.Set(200f, 200f);
+            waterSurface.foamAreaOffset.Set(0, 0);
+            waterSurface.foamTextureTiling = 0.15f;
+            waterSurface.foamSmoothness = 1.0f;
+            waterSurface.simulationFoam = true;
             waterSurface.simulationFoamAmount = 0.2f;
-            waterSurface.simulationFoamDrag = 0.0f;
-            waterSurface.simulationFoamSmoothness = 1.0f;
-            waterSurface.foamTexture = null;
-            waterSurface.foamMask = null;
+            waterSurface.simulationFoamMask = null;
+            waterSurface.simulationFoamWindCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
 
             // Caustics
             waterSurface.caustics = false;
@@ -69,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.River;
-            waterSurface.geometryType = WaterGeometryType.Quad;
+            waterSurface.geometryType = WaterGeometryType.InstancedQuads;
             waterSurface.cpuSimulation = false;
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.waterMask = null;

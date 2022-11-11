@@ -11,10 +11,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Underwater kernels
         ComputeShader m_UnderWaterRenderingCS;
-        int m_WaterClearIndirectArgsKernel;
-        int m_WaterLineEvaluationKernel;
-        int m_WaterComplexPropagationKernel;
-        int m_WaterSimplePropagationKernel;
+        int m_ClearWaterLine;
+        int m_WaterLineEvaluation1D;
+        int m_WaterLineBoundsPropagation;
+        int m_WaterLinePropagation1D;
         int m_UnderWaterKernel;
 
         // Resolution of the binning tile
@@ -24,10 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Kernels
             m_UnderWaterRenderingCS = m_Asset.renderPipelineResources.shaders.underWaterRenderingCS;
-            m_WaterClearIndirectArgsKernel = m_UnderWaterRenderingCS.FindKernel("ClearIndirectArgs");
-            m_WaterLineEvaluationKernel = m_UnderWaterRenderingCS.FindKernel("LineEvaluation");
-            m_WaterComplexPropagationKernel = m_UnderWaterRenderingCS.FindKernel("ComplexPropagation");
-            m_WaterSimplePropagationKernel = m_UnderWaterRenderingCS.FindKernel("SimplePropagation");
+            m_ClearWaterLine = m_UnderWaterRenderingCS.FindKernel("ClearWaterLine");
+            m_WaterLineEvaluation1D = m_UnderWaterRenderingCS.FindKernel("LineEvaluation1D");
+            m_WaterLineBoundsPropagation = m_UnderWaterRenderingCS.FindKernel("BoundsPropagation");
+            m_WaterLinePropagation1D = m_UnderWaterRenderingCS.FindKernel("LinePropagation1D");
             m_UnderWaterKernel = m_UnderWaterRenderingCS.FindKernel("UnderWater");
         }
 
@@ -98,23 +98,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        float Min4(float a, float b, float c, float d) => Mathf.Min(Mathf.Min(a, b), Mathf.Min(c, d));
+        float Max4(float a, float b, float c, float d) => Mathf.Max(Mathf.Max(a, b), Mathf.Max(c, d));
+
+        Vector2 GetScreenSpaceBounds(Vector2 direction, HDCamera hdCamera)
+        {
+            float corner_1 = Vector2.Dot(direction, Vector2.zero);
+            float corner_2 = Vector2.Dot(direction, new Vector2(0, hdCamera.actualHeight));
+            float corner_3 = Vector2.Dot(direction, new Vector2(hdCamera.actualWidth, 0));
+            float corner_4 = Vector2.Dot(direction, new Vector2(hdCamera.actualWidth, hdCamera.actualHeight));
+
+            return new Vector2(Min4(corner_1, corner_2, corner_3, corner_4), Max4(corner_1, corner_2, corner_3, corner_4));
+        }
+
         class UnderWaterRenderingData
         {
             // Input data
-            public int width;
-            public int height;
             public int viewCount;
             public Vector2Int threadGroup8;
             public Vector2Int threadGroup16;
-            public bool compressedTileData;
-            public bool appendTiles;
 
             // Shader data
             public ComputeShader underWaterCS;
-            public int indirectClearKernel;
+            public int clearKernel;
             public int lineEvaluationKernel;
-            public int complexPropagationKernel;
-            public int simplePropagationKernel;
+            public int boundsPropagationKernel;
+            public int linePropagationKernel;
             public int underWaterKernel;
 
             // Constant buffers
@@ -124,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
+            public TextureHandle normalBuffer;
             public TextureHandle causticsData;
             public TextureHandle waterGBuffer3;
             public BufferHandle cameraHeightBuffer;
@@ -133,17 +144,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle waterLineDebugTexture2;
 
             // Water Line Data
-            public BufferHandle indirectArgsBuffer;
-            public BufferHandle appendTileBuffer;
-            public BufferHandle tileBuffer;
-            public TextureHandle lineTexture0;
-            public TextureHandle lineTexture1;
+            public BufferHandle waterLine;
+            public TextureHandle lineTexture;
+            public int waterLineBufferWidth;
+            public int reductionSize;
 
             // Water rendered to this buffer
             public TextureHandle outputColorBuffer;
         }
 
-        TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, WaterGBuffer waterGBuffer)
         {
             // Are we in the volume of any surface at all?
             if (m_UnderWaterSurfaceIndex == -1
@@ -161,49 +171,54 @@ namespace UnityEngine.Rendering.HighDefinition
                 WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
 
                 // Prepare all the parameters
-                passData.width = hdCamera.actualWidth;
-                passData.height = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-                passData.threadGroup8 = new Vector2Int((passData.width + 7) / 8, (passData.height + 7) / 8);
-                passData.threadGroup16 = new Vector2Int((passData.width + 15) / 16, (passData.height + 15) / 16);
-                passData.compressedTileData = passData.threadGroup16.x < 256u && passData.threadGroup16.y < 256u;
-                passData.appendTiles = !hdCamera.xr.singlePassEnabled;
+                passData.threadGroup8 = new Vector2Int(HDUtils.DivRoundUp(hdCamera.actualWidth, 8), HDUtils.DivRoundUp(hdCamera.actualHeight, 8));
+                passData.threadGroup16 = new Vector2Int(HDUtils.DivRoundUp(hdCamera.actualWidth, 16), HDUtils.DivRoundUp(hdCamera.actualHeight, 16));
 
                 // Shader data
                 passData.underWaterCS = m_UnderWaterRenderingCS;
-                passData.indirectClearKernel = m_WaterClearIndirectArgsKernel;
-                passData.lineEvaluationKernel = m_WaterLineEvaluationKernel;
-                passData.complexPropagationKernel = m_WaterComplexPropagationKernel;
-                passData.simplePropagationKernel = m_WaterSimplePropagationKernel;
                 passData.underWaterKernel = m_UnderWaterKernel;
+                passData.clearKernel = m_ClearWaterLine;
+                passData.lineEvaluationKernel = m_WaterLineEvaluation1D;
+                passData.boundsPropagationKernel = m_WaterLineBoundsPropagation;
+                passData.linePropagationKernel = m_WaterLinePropagation1D;
 
                 // All the required textures
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.cameraHeightBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterCameraHeightBuffer));
                 passData.waterGBuffer3 = builder.ReadTexture(waterGBuffer.waterGBuffer3);
 
-                // Water line
-                passData.tileBuffer = builder.CreateTransientBuffer(new BufferDesc(passData.threadGroup16.x * passData.threadGroup16.y * passData.viewCount, sizeof(uint) * 2, GraphicsBuffer.Target.Structured) { name = "Water Line Tile" });
-                passData.lineTexture0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "Water Line 0" });
-                passData.lineTexture1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "Water Line 1" });
-                if (passData.appendTiles)
-                {
-                    passData.indirectArgsBuffer = builder.CreateTransientBuffer(new BufferDesc(3 * 2, sizeof(uint), GraphicsBuffer.Target.IndirectArguments) { name = "Water Line Indirect" });
-                    passData.appendTileBuffer = builder.CreateTransientBuffer(new BufferDesc(passData.threadGroup16.x * passData.threadGroup16.y, sizeof(uint), GraphicsBuffer.Target.Append) { name = "Water Line Tile Append" });
-                }
+                int maxPixelCount = 2 + Mathf.CeilToInt(Mathf.Sqrt(hdCamera.actualWidth * hdCamera.actualWidth + hdCamera.actualHeight * hdCamera.actualHeight));
+                passData.waterLine = renderGraph.CreateBuffer(new BufferDesc(maxPixelCount * hdCamera.viewCount, sizeof(int), GraphicsBuffer.Target.Structured) { name = "Waterline" });
+                passData.waterLine = builder.WriteBuffer(passData.waterLine);
+                passData.lineTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "Water Line" });
+
+                var upVector = hdCamera.mainViewConstants.viewProjMatrix.MultiplyVector(waterSurface.UpVector());
+                upVector = new Vector2(upVector.x, -upVector.y).normalized;
+                var rightVector = new Vector2(upVector.y, -upVector.x);
+
+                Vector2 rightBounds = GetScreenSpaceBounds(rightVector, hdCamera);
+                Vector2 upBounds = GetScreenSpaceBounds(upVector, hdCamera);
+                var boundsSS = new float4(rightBounds.x, rightBounds.y, upBounds.x, upBounds.y);
+
+                passData.waterLineBufferWidth = maxPixelCount;
+                passData.reductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 128);
 
                 // Bind the caustics buffer that may be required
                 passData.causticsData = waterSurface.caustics ? renderGraph.ImportTexture(waterSurface.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
 
                 // Fill the under water CB
+                passData.underWaterCB._BufferStride = maxPixelCount;
+                passData.underWaterCB._BoundsSS = boundsSS;
+                passData.underWaterCB._UpDirectionX = upVector.x;
+                passData.underWaterCB._UpDirectionY = upVector.y;
                 passData.underWaterCB._MaxViewDistanceMultiplier = waterSurface.absorptionDistanceMultiplier;
                 passData.underWaterCB._WaterScatteringColor = waterSurface.underWaterScatteringColorMode == WaterSurface.UnderWaterScatteringColorMode.ScatteringColor ? waterSurface.scatteringColor : waterSurface.underWaterScatteringColor;
                 passData.underWaterCB._WaterRefractionColor = waterSurface.refractionColor;
                 passData.underWaterCB._OutScatteringCoeff = -Mathf.Log(0.02f) / waterSurface.absorptionDistance;
                 passData.underWaterCB._WaterTransitionSize = hdCamera.camera.nearClipPlane * 2.0f;
-                passData.underWaterCB._WaterLineTileCountX = (uint)passData.threadGroup16.x;
-                passData.underWaterCB._WaterLineTileCountY = (uint)passData.threadGroup16.y;
                 passData.underWaterCB._UnderWaterAmbientProbeContribution = waterSurface.underWaterAmbientProbeContribution;
 
                 // Fill the water rendering CB
@@ -231,67 +246,35 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.Push(ctx.cmd, data.waterRenderingCB, data.underWaterCS, HDShaderIDs._ShaderVariablesWaterRendering);
                         ConstantBuffer.Push(ctx.cmd, data.waterCB, data.underWaterCS, HDShaderIDs._ShaderVariablesWater);
 
-                        if (data.appendTiles)
-                        {
-                            // Reset the tile buffer counter
-                            ((GraphicsBuffer)data.appendTileBuffer).SetCounterValue(0u);
+                        // Clear water line buffer
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.clearKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.DispatchCompute(data.underWaterCS, data.clearKernel, HDUtils.DivRoundUp(data.waterLineBufferWidth * data.viewCount, 8), 1, 1);
 
-                            // Clear the indirect buffer argument
-                            ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.indirectClearKernel, HDShaderIDs._IndirectBufferRW, data.indirectArgsBuffer);
-                            ctx.cmd.DispatchCompute(data.underWaterCS, data.indirectClearKernel, 1, 1, 1);
-                        }
-
-                        // Clear the post complex propagation texture
-                        ctx.cmd.SetRenderTarget(data.lineTexture1);
-                        ctx.cmd.ClearRenderTarget(false, true, Color.clear);
-
-                        // Raise the compression flag
-                        CoreUtils.SetKeyword(ctx.cmd, "USE_APPEND_TILES", data.appendTiles);
-                        CoreUtils.SetKeyword(ctx.cmd, "COMPRESSED_TILE_DATA", data.compressedTileData);
-
-                        // Run the water line evaluation
+                        // Generate line buffer
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._WaterLineTextureRW, data.lineTexture0);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._ComplexTileListRW, data.appendTileBuffer);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._IndirectBufferRW, data.indirectArgsBuffer);
-                        if (data.compressedTileData)
-                            ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._WaterLineTileDataBufferRW, data.tileBuffer);
-                        ctx.cmd.DispatchCompute(data.underWaterCS, data.lineEvaluationKernel, data.threadGroup16.x, data.threadGroup16.y, data.viewCount);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.DispatchCompute(data.underWaterCS, data.lineEvaluationKernel, data.threadGroup8.x, data.threadGroup8.y, data.viewCount);
 
-                        // Run complex propagation on the relevant tiles
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.complexPropagationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.complexPropagationKernel, HDShaderIDs._ComplexTileList, data.appendTileBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.complexPropagationKernel, HDShaderIDs._WaterLineTexture, data.lineTexture0);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.complexPropagationKernel, HDShaderIDs._WaterLineTextureRW, data.lineTexture1);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.complexPropagationKernel, HDShaderIDs._WaterLineTileDataBufferRW, data.tileBuffer);
-                        if (data.appendTiles)
-                            ctx.cmd.DispatchCompute(data.underWaterCS, data.complexPropagationKernel, data.indirectArgsBuffer, 0);
-                        else
-                            ctx.cmd.DispatchCompute(data.underWaterCS, data.complexPropagationKernel, data.threadGroup16.x, data.threadGroup16.y, data.viewCount);
+                        // Determine line bounds
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.boundsPropagationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.DispatchCompute(data.underWaterCS, data.boundsPropagationKernel, data.reductionSize, data.viewCount, 1);
 
-                        // Run simple propagation on all tiles
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.simplePropagationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        if (data.compressedTileData)
-                            ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.simplePropagationKernel, HDShaderIDs._WaterLineTileDataBuffer, data.tileBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.simplePropagationKernel, HDShaderIDs._WaterLineTexture, data.lineTexture1);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.simplePropagationKernel, HDShaderIDs._WaterRegionTextureRW, data.lineTexture0);
-                        ctx.cmd.DispatchCompute(data.underWaterCS, data.simplePropagationKernel, data.threadGroup16.x, data.threadGroup16.y, data.viewCount);
-
-                        // Raise the compression flag
-                        CoreUtils.SetKeyword(ctx.cmd, "COMPRESSED_TILE_DATA", false);
-                        CoreUtils.SetKeyword(ctx.cmd, "USE_APPEND_TILES", false);
+                        // Produce fullscreen buffer
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.linePropagationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.linePropagationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.linePropagationKernel, HDShaderIDs._WaterRegionTextureRW, data.lineTexture);
+                        ctx.cmd.DispatchCompute(data.underWaterCS, data.linePropagationKernel, data.threadGroup16.x, data.threadGroup16.y, data.viewCount);
 
                         // Apply the under water post process.
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterGBufferTexture3, data.waterGBuffer3);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterCausticsDataBuffer, data.causticsData);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._CameraColorTexture, data.colorBuffer);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterRegionTexture, data.lineTexture0);
+                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterRegionTexture, data.lineTexture);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._CameraColorTextureRW, data.outputColorBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.DispatchCompute(data.underWaterCS, data.underWaterKernel, data.threadGroup8.x, data.threadGroup8.y, data.viewCount);
                     });
 

@@ -29,13 +29,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CreatePropertyGUI()
         {
             // Lit specific properties:
-            AddProperty(materialIDText, () => litData.materialType, (newValue) => litData.materialType = newValue);
+            AddProperty(materialIDText, () => litData.materialTypeMask, (newValue) => litData.materialTypeMask = newValue);
             AddProperty(rayTracingText, () => litData.rayTracing, (newValue) => litData.rayTracing = newValue);
 
             base.CreatePropertyGUI();
 
             AddProperty(Styles.enableClearCoat, () => litData.clearCoat, (newValue) => litData.clearCoat = newValue);
-            if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
+            if (litData.HasMaterialType(HDLitData.MaterialTypeMask.SubsurfaceScattering))
             {
                 AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
             }
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         AddHelpBox(RefractionUIBlock.Styles.refractionRenderingPassWarning, MessageType.Warning);
                 }
             }
-            if (litData.materialType == HDLitData.MaterialType.SpecularColor)
+            if (litData.HasMaterialType(HDLitData.MaterialTypeMask.SpecularColor))
             {
                 AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
             }

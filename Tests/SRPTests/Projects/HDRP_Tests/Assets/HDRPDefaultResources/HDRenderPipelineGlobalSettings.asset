@@ -19,7 +19,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1265449290956637
-      data2: 4539628880729669656
+      data2: 4575658777260261400
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -124,17 +124,10 @@ MonoBehaviour:
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 1
-  supportRuntimeDebugDisplay: 0
   autoRegisterDiffusionProfiles: 0
   apvScenesData:
-    serializedBounds: []
-    serializedHasVolumes: []
-    serializedProfiles: []
-    serializedBakeSettings: []
-    serializedBakingSets:
-    - name: Default
-      sceneGUIDs:
-      - fc784678bf952de4482e78aea61ccdc8
+    m_ObsoleteSerializedBakingSets:
+    - profile: {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
       settings:
         m_Version: 1
         dilationSettings:
@@ -152,10 +145,17 @@ MonoBehaviour:
           collisionMask:
             serializedVersion: 2
             m_Bits: 4294967291
-      profile: {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
+      sceneGUIDs:
+      - fc784678bf952de4482e78aea61ccdc8
       lightingScenarios:
       - Default
+    serializedBounds: []
+    serializedHasVolumes: []
+    bakingSets:
+    - {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
     m_LightingScenario: Default
-  m_Version: 6
+  m_Version: 7
   m_ShaderVariantLogLevel: 0
+  m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1
+  m_StripDebugVariants: 1

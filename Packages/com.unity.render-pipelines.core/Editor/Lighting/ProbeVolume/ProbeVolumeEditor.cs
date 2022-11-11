@@ -55,10 +55,10 @@ namespace UnityEditor.Rendering
                 drawInspector = false;
             }
 
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                if (renderPipelineAsset == null || renderPipelineAsset.GetType().Name != "HDRenderPipelineAsset")
+                var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+                if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
                 {
                     EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
                 }

@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
-using static UnityEditor.Rendering.HighDefinition.HDProbeUI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -145,6 +144,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Appearance
             OnEnableAppearance(o);
+
+            // Foam
+            OnEnableFoam(o);
 
             // Misc
             OnEnableMiscellaneous(o);
@@ -366,6 +368,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly string simulationHeader = "Simulation";
         public static readonly string deformationHeader = "Deformation";
         public static readonly string appearanceHeader = "Appearance";
+        public static readonly string foamHeader = "Foam";
         public static readonly string miscellaneousHeader = "Miscellaneous";
 
         enum Expandable
@@ -374,7 +377,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Simulation = 1 << 1,
             Deformation = 1 << 2,
             Appearance = 1 << 3,
-            Miscellaneous = 1 << 4,
+            Foam = 1 << 4,
+            Miscellaneous = 1 << 5,
         }
 
         internal enum AdditionalProperties
@@ -445,6 +449,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(simulationHeader, Expandable.Simulation, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceSimulationSection),
                 CED.FoldoutGroup(deformationHeader, Expandable.Deformation, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceDeformationSection),
                 CED.FoldoutGroup(appearanceHeader, Expandable.Appearance, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceAppearanceSection),
+                CED.FoldoutGroup(foamHeader, Expandable.Foam, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceFoamSection),
                 CED.FoldoutGroup(miscellaneousHeader, Expandable.Miscellaneous, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceMiscellaneousSection)
             );
         }

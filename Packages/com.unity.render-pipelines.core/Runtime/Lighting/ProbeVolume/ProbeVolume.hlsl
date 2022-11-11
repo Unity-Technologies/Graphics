@@ -450,7 +450,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
     return baseSample;
 }
 
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw)
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw, out float3 normalizedOffset, out float validityWeights[8])
 {
     float3 texCoordFloat = uvw * _PoolDim - .5f;
     int3 texCoordInt = texCoordFloat;
@@ -473,6 +473,7 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
         float validityWeight = GetValidityWeight(i, validityMask);
+        validityWeights[i] = validityWeight;
 
         float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
@@ -486,8 +487,16 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
         fracOffset += (float3)offset * weights[i] * rcp(totalW);
     }
 
-    uvw = uvw + fracOffset * _RcpPoolDim;
+    normalizedOffset = fracOffset + texFrac;
 
+    uvw = uvw + fracOffset * _RcpPoolDim;
+}
+
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw)
+{
+    float3 normalizedOffset;
+    float validityWeights[8];
+    WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
 }
 
 APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, float3 viewDir)

@@ -117,8 +117,19 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
             public static readonly GUIContent supportWaterDeformationContent = EditorGUIUtility.TrTextContent("Deformation", "When enabled, HDRP allocates additional memory to support water deformation.");
             public static readonly GUIContent deformationAtlasSizeContent = EditorGUIUtility.TrTextContent("Deformation Atlas Size", "Specifies the size of the atlas used to store texture water deformers.");
+            public static readonly GUIContent supportWaterFoamContent = EditorGUIUtility.TrTextContent("Foam", "When enabled, HDRP allocates additional memory to support water foam.");
+            public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");
             public static readonly GUIContent cpuSimulationContent = EditorGUIUtility.TrTextContent("Script Interactions", "When enabled, HDRP allocates memory for the water simulation on the CPU. This allows you to enable CPU simulation on water surfaces to query height information.");
+
+            // High Quality Line Rendering
+            public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");
+            public static readonly GUIContent supportHighQualityLineRenderingContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for high quality line rendering. This allows you to render lines with high quality anti-aliasing and transparency in your Unity Project.");
+            // Compute Thickness
+            public static readonly GUIContent computeThicknessSubTitle = EditorGUIUtility.TrTextContent("Compute Thickness");
+            public static readonly GUIContent computeThicknessEnableContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the Compute Thickness pass. For each Game Object layer selected in LayerMask, the thickness of all objects in that layer is written in a buffer. This buffer can be sampled only in Shader Graph via HDSampleBuffer node with the layer index as input.");
+            public static readonly GUIContent computeThicknessResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the Compute Thickness buffers. A higher resolution increases visual quality, but increases the cost.");
+            public static readonly GUIContent computeThicknessLayerContent = EditorGUIUtility.TrTextContent("Layer Mask", "Specifies the list of Game Objects layers included in the Thickness Compute pass. For each layer selected, HDRP allocated a Render Target. In VR, all layers will be computed into the same buffer.");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
@@ -163,7 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent supportVFXRayTracing = EditorGUIUtility.TrTextContent("Visual Effects Ray Tracing (Preview)", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
-            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12 and Playstation 5.", null, CoreEditorStyles.iconWarn);
+            public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12, Playstation 5 and Xbox Series X.", null, CoreEditorStyles.iconWarn);
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent waterMSAAUnsupported = EditorGUIUtility.TrTextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");

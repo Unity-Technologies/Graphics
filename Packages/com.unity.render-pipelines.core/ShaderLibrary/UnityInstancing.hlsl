@@ -232,6 +232,7 @@
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)   output.instanceID = UNITY_GET_INSTANCE_ID(input)
 #elif defined(SHADER_STAGE_RAY_TRACING)
     #define DEFAULT_UNITY_SETUP_INSTANCE_ID
+    #define UNITY_TRANSFER_INSTANCE_ID(input, output)
 #else
     #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)

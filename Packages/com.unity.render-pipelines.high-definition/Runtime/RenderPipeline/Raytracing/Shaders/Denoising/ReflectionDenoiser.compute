@@ -93,10 +93,10 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float2 currentUV = (mainCoord + 0.5f) * _ScreenSize.zw;
 
     // Fetch the current and history values and apply the exposition to it.
-    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).rgb * GetCurrentExposureMultiplier();
+    float3 currentColor = LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).xyz * GetCurrentExposureMultiplier();
     if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(currentColor * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
         _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = 1;
         return;
     }
@@ -115,53 +115,52 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float4 historyRaw = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyUV, 0);
     float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
 
+    // If the pixel was outside of the screen during the previous frame, invalidate the history
+    bool canBeReprojected = true;
+    if (historyTapCoord.x >= _CurrentEffectResolution.x || historyTapCoord.x < 0
+        || historyTapCoord.y >= _CurrentEffectResolution.y || historyTapCoord.y < 0)
+        canBeReprojected = false;
+
+#ifdef HALF_RESOLUTION
+    float2 historyDepthUV = ((float2)(mainCoord * 2.0 + 0.5f) - velocity * _CurrentEffectResolution.xy * 2.0f) * _HistoryBufferSize.xy;
+#else
+    float2 historyDepthUV = historyUV;
+#endif
+
+    // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
+    float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyDepthUV, 0).r;
+    if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
+        canBeReprojected = false;
+
+    // Compute the world space position
+    PositionInputs posInput = GetPositionInput(geometryCoords, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    // Compute the world space position (from previous frame)
+    float3 historyPositionWS = ComputeWorldSpacePosition(posInput.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
+
+    // Compute the max world radius that we consider acceptable for history reprojection
+    float maxRadius = ComputeMaxReprojectionWorldRadius(posInput.positionWS, normalData.normalWS, _PixelSpreadAngleTangent);
+
+    // Is it too far from the current position?
+    if (length(historyPositionWS - posInput.positionWS) > maxRadius)
+        canBeReprojected = false;
+
     // Depending on the roughness of the surface run one or the other temporal reprojection
     float3 result;
     if (normalData.perceptualRoughness > ROUGHNESS_ACCUMULATION_THRESHOLD)
     {
-        bool canBeReprojected = true;
 
-        float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
-
-        // If the pixel was outside of the screen during the previous frame, invalidate the history
-        if (historyTapCoord.x >= _CurrentEffectResolution.x || historyTapCoord.x < 0
-            || historyTapCoord.y >= _CurrentEffectResolution.y || historyTapCoord.y < 0)
-            canBeReprojected = false;
-
-    #ifdef HALF_RESOLUTION
-        float2 historyDepthUV = ((float2)(mainCoord * 2.0 + 0.5f) - velocity * _CurrentEffectResolution.xy * 2.0f) * _HistoryBufferSize.xy;
-    #else
-        float2 historyDepthUV = historyUV;
-    #endif
-
-        // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
-        float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyDepthUV, 0).r;
-        if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
-            canBeReprojected = false;
-
-        // Compute the world space position
-        PositionInputs posInput = GetPositionInput(geometryCoords, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-
-        // Compute the world space position (from previous frame)
-        float3 historyPositionWS = ComputeWorldSpacePosition(posInput.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
-
-        // Compute the max world radius that we consider acceptable for history reprojection
-        float maxRadius = ComputeMaxReprojectionWorldRadius(posInput.positionWS, normalData.normalWS, _PixelSpreadAngleTangent);
-
-        // Is it too far from the current position?
-        if (length(historyPositionWS - posInput.positionWS) > maxRadius)
-            canBeReprojected = false;
 
         float sampleCount = historyRaw.w;
         if (canBeReprojected && sampleCount != 0.0)
         {
             float accumulationFactor = sampleCount >= 8.0 ? 0.93 : (sampleCount / (sampleCount + 1.0));
-            result = (color * (1.0 - accumulationFactor) + history * accumulationFactor);
+            result = (currentColor * (1.0 - accumulationFactor) + history * accumulationFactor);
             sampleCount = max(sampleCount + 1.0, 8.0);
         }
         else
         {
-            result = color;
+            result = currentColor;
             sampleCount = 1.0;
         }
 
@@ -176,9 +175,9 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         topLeft *= exposureMultiplier;
         bottomRight *= exposureMultiplier;
 
-        float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+        float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * currentColor;
 
-        color = clamp(color, 0.0, CLAMP_MAX);
+        float3 color = clamp(currentColor, 0.0, CLAMP_MAX);
 
         float3 average = FastTonemap((corners + color) / 7.0);
 
@@ -209,7 +208,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
 
         color = FastTonemapInvert(lerp(color, history, feedback));
-        result = clamp(color, 0.0, CLAMP_MAX);
+        result = canBeReprojected ? clamp(color, 0.0, CLAMP_MAX) : currentColor;
         historyRaw.w = 0.0;
     }
 

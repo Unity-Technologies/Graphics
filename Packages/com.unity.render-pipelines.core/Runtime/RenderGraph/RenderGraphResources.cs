@@ -92,6 +92,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool shared;
         public bool sharedExplicitRelease;
         public bool requestFallBack;
+        public bool forceRelease;
         public uint writeCount;
         public int cachedHash;
         public int transientPassIndex;
@@ -109,6 +110,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             transientPassIndex = -1;
             sharedResourceLastFrameUsed = -1;
             requestFallBack = false;
+            forceRelease = false;
             writeCount = 0;
             version = 0;
 

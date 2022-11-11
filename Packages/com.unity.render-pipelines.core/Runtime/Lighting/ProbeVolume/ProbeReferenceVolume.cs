@@ -33,6 +33,18 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Shader probeDebugShader;
         /// <summary>
+        /// The shader used to visualize the way probes are sampled for a single pixel in the debug view.
+        /// </summary>
+        public Shader probeSamplingDebugShader;
+        /// <summary>
+        /// The debug texture used to display probe weight in the debug view.
+        /// </summary>
+        public Texture probeSamplingDebugTexture;
+        /// <summary>
+        /// The debug mesh used to visualize the way probes are sampled for a single pixel in the debug view.
+        /// </summary>
+        public Mesh probeSamplingDebugMesh;
+        /// <summary>
         /// The shader used to visualize probes virtual offset in the debug view.
         /// </summary>
         public Shader offsetDebugShader;

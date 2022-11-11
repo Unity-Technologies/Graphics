@@ -169,8 +169,8 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
                 string apvDisabledErrorMsg = "Probe Volumes are not enabled.";
-                var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+                var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+                if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
                     apvDisabledErrorMsg += " Make sure Light Probe System is set to Probe Volumes in the HDRP asset in use.";
 
                 EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
@@ -860,7 +860,7 @@ namespace UnityEngine.Rendering
 
         void RefreshSceneAssets()
         {
-            var sceneAssets = AssetDatabase.FindAssets("t:Scene", new string[] { "Assets/" });
+            var sceneAssets = AssetDatabase.FindAssets("t:Scene");
 
             m_ScenesInProject = sceneAssets.Select(s =>
             {
@@ -1116,6 +1116,8 @@ namespace UnityEngine.Rendering
             const string k_OverlayID = "APV Overlay";
 
             Label[] m_Labels = null;
+            GroupBox probeDistanceGroupBox = null;
+            GroupBox probeSamplingGroupBox = null;
 
             int maxSubdiv;
             float minDistance;
@@ -1141,11 +1143,15 @@ namespace UnityEngine.Rendering
             bool IsVisible()
             {
                 // Include some state tracking here because it's the only function called at each repaint
-                if (!ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks)
+                if (!ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks && !ProbeReferenceVolume.instance.probeVolumeDebug.drawProbeSamplingDebug)
                 {
                     m_Labels = null;
                     return false;
                 }
+
+                EnableGroupBox(probeDistanceGroupBox, ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks);
+                EnableGroupBox(probeSamplingGroupBox, ProbeReferenceVolume.instance.probeVolumeDebug.drawProbeSamplingDebug);
+
                 if (m_Labels == null) return true;
 
                 (int max, float min) = GetSettings();
@@ -1162,6 +1168,14 @@ namespace UnityEngine.Rendering
                         m_Labels[i].text = (minDistance * ProbeReferenceVolume.CellSize(i)) + " meters";
                 }
                 return true;
+            }
+
+            void EnableGroupBox(GroupBox groupBox, bool b)
+            {
+                if (groupBox == null)
+                    return;
+
+                groupBox.style.display = b ? DisplayStyle.Flex : DisplayStyle.None;
             }
 
             public override void OnCreated()
@@ -1185,17 +1199,21 @@ namespace UnityEngine.Rendering
 
             public override VisualElement CreatePanelContent()
             {
-                displayName = "Distance Between probes";
+                displayName = "Adaptive Probe Volumes";
                 maxSubdiv = 0;
                 minDistance = -1;
 
                 var root = new VisualElement();
 
+                // Distance Between Probes
+                probeDistanceGroupBox = new GroupBox();
+                probeDistanceGroupBox.text = "Distance Between probes";
+
                 m_Labels = new Label[6];
                 for (int i = 0; i < m_Labels.Length; i++)
                 {
                     var row = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
-                    root.Add(row);
+                    probeDistanceGroupBox.Add(row);
 
                     row.Add(CreateColorSwatch(ProbeReferenceVolume.instance.subdivisionDebugColors[i]));
 
@@ -1203,6 +1221,37 @@ namespace UnityEngine.Rendering
                     m_Labels[i].AddToClassList("unity-base-field__label");
                     row.Add(m_Labels[i]);
                 }
+
+                // Probe Sampling Select Pixel
+                probeSamplingGroupBox = new GroupBox();
+                probeSamplingGroupBox.text = "Probe Sampling";
+
+                var probeSampling_row = new VisualElement() { style = { flexDirection = FlexDirection.Column } };
+                probeSamplingGroupBox.Add(probeSampling_row);
+
+                var selectPixelButton = new Button();
+                selectPixelButton.clickable.activators.Clear();
+                selectPixelButton.text = "Select Pixel";
+                selectPixelButton.tooltip = "Use this button or Ctrl+Click on the viewport to select which pixel to debug for APV sampling";
+
+                Color buttonDefaultColor = new Color(0.250f, 0.250f, 0.250f);
+                Color buttonHoverColor = new Color(0.404f, 0.404f, 0.404f);
+                Color buttonPressedColor = new Color(0.133f, 0.133f, 0.133f);
+                selectPixelButton.style.backgroundColor = buttonDefaultColor;
+                selectPixelButton.RegisterCallback<MouseOverEvent>((type) => { selectPixelButton.style.backgroundColor = buttonHoverColor; });
+                selectPixelButton.RegisterCallback<MouseOutEvent>((type) => { selectPixelButton.style.backgroundColor = buttonDefaultColor; });
+                selectPixelButton.RegisterCallback<MouseDownEvent>((type) => { selectPixelButton.style.backgroundColor = buttonPressedColor; });
+                selectPixelButton.RegisterCallback<MouseUpEvent>((type) => { selectPixelButton.style.backgroundColor = buttonDefaultColor; });
+
+                selectPixelButton.RegisterCallback<MouseDownEvent>(e => ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Always);
+
+                probeSampling_row.Add(selectPixelButton);
+
+                probeDistanceGroupBox.style.display = DisplayStyle.None;
+                probeSamplingGroupBox.style.display = DisplayStyle.None;
+
+                root.Add(probeDistanceGroupBox);
+                root.Add(probeSamplingGroupBox);
 
                 return root;
             }

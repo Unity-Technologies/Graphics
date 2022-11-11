@@ -1,7 +1,6 @@
 * text=auto eol=lf
 
 # EOL
-
 *.py eol=lf
 *.pl eol=lf
 *.pm eol=lf
@@ -29,7 +28,6 @@ Makefile eol=lf
 Runtime/Export/common_* eol=lf
 Repositories.ini eol=lf
 .hgignore eol=lf
-
 # vs can handle these as lf, but really wants them as crlf
 *.vcproj eol=crlf
 *.vcxproj eol=crlf
@@ -42,14 +40,11 @@ Repositories.ini eol=lf
 *.bat eol=crlf
 *.cmd eol=crlf
 *.xaml eol=crlf
-
 # the templating parser will actually fail on lf, inexplicably setting every #line directive as '1'
 *.tt eol=crlf
 *.t4 eol=crlf
 *.ttinclude eol=crlf
-
 # LFS
-
 # archives and well-known binary formats
 *.[zZ][iI][pP] filter=lfs diff=lfs merge=lfs -text
 *.7[zZ] filter=lfs diff=lfs merge=lfs -text
@@ -62,7 +57,6 @@ Repositories.ini eol=lf
 *.[aA][pP][kK] filter=lfs diff=lfs merge=lfs -text
 *.[mM][sS][iI] filter=lfs diff=lfs merge=lfs -text
 *.[aA][rR][cC] filter=lfs diff=lfs merge=lfs -text
-
 # executables and libraries
 *.[aA] filter=lfs diff=lfs merge=lfs -text
 *.[oO] filter=lfs diff=lfs merge=lfs -text
@@ -73,7 +67,6 @@ Repositories.ini eol=lf
 *.[dD][yY][lL][iI][bB] filter=lfs diff=lfs merge=lfs -text
 *.[lL][iI][bB] filter=lfs diff=lfs merge=lfs -text
 *.[eE][xX][eE] filter=lfs diff=lfs merge=lfs -text
-
 # specific binaries in the unity codebase
 js filter=lfs diff=lfs merge=lfs -text
 p4 filter=lfs diff=lfs merge=lfs -text
@@ -142,7 +135,6 @@ OgreKit filter=lfs diff=lfs merge=lfs -text
 Projects/VisualStudio/ipch/middleman-2afd44a3/unitywebpluginax-eba8f4d1.ipch filter=lfs diff=lfs merge=lfs -text
 Editor/Resources/Common/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs merge=lfs -text
 Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs merge=lfs -text
-
 #SRP
 **/BatchRendererGroup_HDRP/**/*.bytes filter=lfs diff=lfs merge=lfs -text
 **/BatchRendererGroup_HDRP/**/*.cube filter=lfs diff=lfs merge=lfs -text
@@ -368,12 +360,10 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 **/UniversalUpgradeTest/**/*.tiff filter=lfs diff=lfs merge=lfs -text
 **/UniversalUpgradeTest/**/*.ttf filter=lfs diff=lfs merge=lfs -text
 **/UniversalUpgradeTest/**/*.vfx filter=lfs diff=lfs merge=lfs -text
-
 **/com.unity.template-hd/Assets/Scenes/SampleScene/LightingData.asset filter=lfs diff=lfs merge=lfs -text
 **/HDRP_PerformanceTests/Assets/Scenes/Lighting/Cloud.asset filter=lfs diff=lfs merge=lfs -text
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs merge=lfs -text
 **/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs merge=lfs -text
-
 #GfxTests
 **/GfxTestProjectFolder/**/*.[hH][dD][rR] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
@@ -391,3 +381,4 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 **/GfxTestProjectFolder/**/*.[cC][uU][bB][eE][mM][aA][pP] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[pP][rR][xX] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[dD][fF][oO][nN][tT] filter=lfs diff=lfs merge=lfs -text
+Tests/SRPTests/Projects/HDRP_Tests/Assets/GraphicTests/Scenes/8x_ShaderGraph/8213_Thickness/NotStanfordBunny.fbx filter=lfs diff=lfs merge=lfs -text

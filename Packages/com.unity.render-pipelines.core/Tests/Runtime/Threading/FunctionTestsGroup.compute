@@ -253,4 +253,3 @@ void kReadThreadFirst(Group group)
 
     _Output.Store(OUTPUT_ADDR, result);
 }
-

@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _CubeScaleOffset[s_MaxCubeReflections * 4];
     };
 
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.RayTracingEnvLightReflectionData)]
     unsafe struct EnvLightReflectionDataRT
     {
         public const int s_MaxPlanarReflections = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen;

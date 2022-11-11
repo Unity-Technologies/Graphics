@@ -52,6 +52,8 @@
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 #endif
 
+#define COMPUTE_THICKNESS_MAX_LAYER_COUNT 32
+
 // ----------------------------------------------------------------------------
 
 #ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
@@ -161,6 +163,9 @@ TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
 TEXTURE2D_X(_RenderingLayerMaskTexture);
+
+TEXTURE2D_ARRAY(_ThicknessTexture);
+StructuredBuffer<uint> _ThicknessReindexMap;
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
@@ -284,6 +289,38 @@ float4 LoadCustomColor(uint2 pixelCoords)
 float LoadCustomDepth(uint2 pixelCoords)
 {
     return LOAD_TEXTURE2D_X_LOD(_CustomDepthTexture, pixelCoords, 0).r;
+}
+
+float2 LoadThickness(uint2 pixelCoords, int renderLayerIdx)
+{
+    if (_EnableComputeThickness)
+    {
+        uint remapedIdx = INDEX_TEXTURE2D_ARRAY_X(_ThicknessReindexMap[renderLayerIdx]);
+        if (remapedIdx == COMPUTE_THICKNESS_MAX_LAYER_COUNT)
+            return -1.0f;
+        else
+            return LOAD_TEXTURE2D_ARRAY_LOD(_ThicknessTexture, pixelCoords, remapedIdx, 0).xy;
+    }
+    else
+    {
+        return 1.0f;
+    }
+}
+
+float2 SampleThickness(float2 uv, int renderLayerIdx)
+{
+    if (_EnableComputeThickness)
+    {
+        uint remapedIdx = INDEX_TEXTURE2D_ARRAY_X(_ThicknessReindexMap[renderLayerIdx]);
+        if (remapedIdx == COMPUTE_THICKNESS_MAX_LAYER_COUNT)
+            return -1.0f;
+        else
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_ThicknessTexture, s_linear_clamp_sampler, uv * _RTHandleScale.xy, remapedIdx, 0).xy;
+    }
+    else
+    {
+        return 1.0f;
+    }
 }
 
 float SampleCustomDepth(float2 uv)

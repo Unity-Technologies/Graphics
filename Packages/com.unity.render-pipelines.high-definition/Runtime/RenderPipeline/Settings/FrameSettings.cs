@@ -132,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render Transparent GameObjects.</summary>
         [FrameSettingsField(0, autoName: TransparentObjects, customOrderInGroup: 5, tooltip: "When enabled, Cameras using these Frame Settings render Transparent GameObjects.")]
         TransparentObjects = 3,
+        /// <summary>When enabled, Cameras using these Frame Settings allow generation of Texture of Thickness per GameObject.layer.</summary>
+        [FrameSettingsField(0, displayedName: "Compute Thickness", customOrderInGroup: 5, tooltip: "When enabled, Cameras using these Frame Settings compute Texture of thickness per Layer.")]
+        ComputeThickness = 119,
         /// <summary>When enabled, HDRP processes a decal render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: Decals, customOrderInGroup: 6, tooltip: "When enabled, HDRP processes a decal render pass for Cameras using these Frame Settings.")]
         Decals = 12,
@@ -165,12 +168,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
         [FrameSettingsField(0, autoName: Water, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
         Water = 99,
+
+
         /// <summary>When enabled, .</summary>
         [FrameSettingsField(0, autoName: WaterDeformation, positiveDependencies: new[] { Water }, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings will support water deformers.")]
         WaterDeformation = 102,
         /// <summary>When enabled, .</summary>
         [FrameSettingsField(0, autoName: WaterExclusion, positiveDependencies: new[] { Water }, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings will support water excluders.")]
         WaterExclusion = 101,
+        /// <summary>When enabled, HDRP renders line topology with high quality anti-aliasing and transparency.</summary>
+        [FrameSettingsField(0, autoName: HighQualityLineRendering, customOrderInGroup: 109, tooltip: "When enabled, HDRP ")]
+        HighQualityLineRendering = 103,
         /// <summary>When enabled, HDRP accounts for asymmetry in the projection matrix when evaluating the view direction based on pixel coordinates.</summary>
         [FrameSettingsField(0, displayedName: "Asymmetric Projection", customOrderInGroup: 107, tooltip: "When enabled HDRP will account for asymmetric projection when evaluating the view direction based on pixel coordinates.")]
         AsymmetricProjection = 78,
@@ -225,6 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP adds lens flare to Cameras.</summary>
         [FrameSettingsField(0, autoName: LensFlareDataDriven, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens flare to Cameras.")]
         LensFlareDataDriven = 97,
+        /// <summary>When enabled, HDRP adds Screen Space lens flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.</summary>
+        [FrameSettingsField(0, autoName: LensFlareScreenSpace, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds Screen Space Lens Flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.")]
+        LensFlareScreenSpace = 104,
         /// <summary>When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.</summary>
         [FrameSettingsField(0, autoName: LensDistortion, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.")]
         LensDistortion = 85,
@@ -473,6 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.Bloom,
                 (uint)FrameSettingsField.LensFlareDataDriven,
                 (uint)FrameSettingsField.LensDistortion,
+                (uint)FrameSettingsField.LensFlareScreenSpace,
                 (uint)FrameSettingsField.ChromaticAberration,
                 (uint)FrameSettingsField.Vignette,
                 (uint)FrameSettingsField.ColorGrading,
@@ -508,8 +520,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
+
                 (uint)FrameSettingsField.WaterDeformation,
                 (uint)FrameSettingsField.WaterExclusion,
+                (uint)FrameSettingsField.ComputeThickness
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
@@ -635,6 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
+
                 (uint)FrameSettingsField.WaterDeformation,
                 (uint)FrameSettingsField.WaterExclusion,
                 (uint)FrameSettingsField.ProbeVolume,
@@ -903,7 +918,6 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= renderPipelineSettings.supportWater && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterDeformation] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterDeformation;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterExclusion] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterExclusion;
 
             // We must take care of the scene view fog flags in the editor

@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DisplacementScattering;
         SerializedProperty m_DirectLightTipScattering;
         SerializedProperty m_DirectLightBodyScattering;
+        SerializedProperty m_MaximumHeightOverride;
 
         // Caustic parameters (Common)
         SerializedProperty m_Caustics;
@@ -67,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DisplacementScattering = o.Find(x => x.displacementScattering);
             m_DirectLightTipScattering = o.Find(x => x.directLightTipScattering);
             m_DirectLightBodyScattering = o.Find(x => x.directLightBodyScattering);
+            m_MaximumHeightOverride = o.Find(x => x.maximumHeightOverride);
 
             // Caustic parameters
             m_Caustics = o.Find(x => x.caustics);
@@ -225,6 +227,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (surfaceType != WaterSurfaceType.Pool)
                     serialized.m_DirectLightTipScattering.floatValue = EditorGUILayout.Slider(k_DirectLightTipScattering, serialized.m_DirectLightTipScattering.floatValue, 0.0f, 1.0f);
                 serialized.m_DirectLightBodyScattering.floatValue = EditorGUILayout.Slider(k_DirectLightBodyScattering, serialized.m_DirectLightBodyScattering.floatValue, 0.0f, 1.0f);
+
+                EditorGUILayout.PropertyField(serialized.m_MaximumHeightOverride);
+                serialized.m_MaximumHeightOverride.floatValue = Mathf.Max(serialized.m_MaximumHeightOverride.floatValue, 0.0f);
             }
 
             // Caustics

@@ -1,0 +1,86 @@
+#pragma kernel ClearCounters
+#pragma kernel ClearBins
+#pragma kernel ClearClusters
+#pragma kernel ComputeClusterRanges
+#pragma kernel ClearCountersPerRenderer
+#pragma kernel UpdateOffsets
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+
+RWByteAddressBuffer _ViewSpaceDepthRangeBuffer;
+RWByteAddressBuffer _CounterBuffer;
+RWByteAddressBuffer _BinIndicesBuffer;
+RWByteAddressBuffer _BinCountersBuffer;
+RWByteAddressBuffer _ClusterCountersBuffer;
+RWByteAddressBuffer _ClusterRangesBuffer;
+
+[numthreads(1, 1, 1)]
+void ClearCounters()
+{
+    _CounterBuffer.Store(COUNTER_BIN_RECORD,          0);
+    _CounterBuffer.Store(COUNTER_BIN_QUEUE_SIZE,      0);
+    _CounterBuffer.Store(COUNTER_BIN_QUEUE_INDEX,     0);
+    _CounterBuffer.Store(COUNTER_CLUSTER_QUEUE_SIZE,  0);
+    _CounterBuffer.Store(COUNTER_CLUSTER_QUEUE_INDEX, 0);
+    _CounterBuffer.Store(COUNTER_SHADING_SAMPLES,     0);
+    _CounterBuffer.Store(COUNTER_GROUP_SEG_OFFSET,    0);
+
+    // Reset depth range here too.
+    _ViewSpaceDepthRangeBuffer.Store(0 << 2, UINT_MAX);
+    _ViewSpaceDepthRangeBuffer.Store(1 << 2, 0);
+}
+
+[numthreads(1024, 1, 1)]
+void ClearBins(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_BinCount)
+        return;
+
+    _BinCountersBuffer.Store(dispatchThreadID.x << 2, 0);
+    _BinIndicesBuffer.Store(dispatchThreadID.x << 2, dispatchThreadID.x);
+}
+
+[numthreads(1024, 1, 1)]
+void ClearClusters(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_ClusterCount)
+        return;
+
+    _ClusterCountersBuffer.Store(dispatchThreadID.x << 2, 0);
+}
+
+groupshared float2 gs_ViewSpaceDepthRanges;
+
+[numthreads(64, 1, 1)]
+void ComputeClusterRanges(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+{
+    if (groupIndex == 0u)
+    {
+        gs_ViewSpaceDepthRanges = asfloat(_ViewSpaceDepthRangeBuffer.Load2(0));
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    if (dispatchThreadID.x >= (uint)_ClusterDepth)
+        return;
+
+    float2 clusterRange;
+    {
+        // ref: http://www.aortiz.me/2018/12/21/CG.html
+        clusterRange.x = gs_ViewSpaceDepthRanges.x * pow(max(gs_ViewSpaceDepthRanges.y / gs_ViewSpaceDepthRanges.x, 0), (dispatchThreadID.x + 0) / (float)_ClusterDepth);
+        clusterRange.y = gs_ViewSpaceDepthRanges.x * pow(max(gs_ViewSpaceDepthRanges.y / gs_ViewSpaceDepthRanges.x, 0), (dispatchThreadID.x + 1) / (float)_ClusterDepth);
+    }
+    _ClusterRangesBuffer.Store2(dispatchThreadID.x << 3, asuint(clusterRange));
+}
+
+[numthreads(1, 1, 1)]
+void ClearCountersPerRenderer()
+{
+    _CounterBuffer.Store(COUNTER_ACTIVE_SEGMENTS, 0);
+}
+
+[numthreads(1, 1, 1)]
+void UpdateOffsets()
+{
+    const uint activeSegments = _CounterBuffer.Load(COUNTER_ACTIVE_SEGMENTS);
+    _CounterBuffer.InterlockedAdd(COUNTER_GROUP_SEG_OFFSET, activeSegments);
+}

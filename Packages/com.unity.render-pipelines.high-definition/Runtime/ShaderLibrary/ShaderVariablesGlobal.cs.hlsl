@@ -80,7 +80,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _CachedAreaShadowAtlasSize;
     int _SpecularFade;
     uint _EnableRenderingLayers;
-    int _UnusedPadding1;
+    int _ReflectionsMode;
     int _UnusedPadding2;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
@@ -150,6 +150,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _DeExposureMultiplier;
     float4 _ScreenSizeOverride;
     float4 _ScreenCoordScaleBias;
+    uint _EnableComputeThickness;
+    uint _Pad1;
+    uint _Pad2;
+    uint _Pad3;
 CBUFFER_END
 
 

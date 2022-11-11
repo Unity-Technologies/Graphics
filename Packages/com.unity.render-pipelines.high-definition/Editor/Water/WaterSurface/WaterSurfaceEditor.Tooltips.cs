@@ -46,8 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SwellTotalAmplitude = EditorGUIUtility.TrTextContent("Total Amplitude", "Displays the current maximum amplitude of the swell. This is the sum of the first and second frequency bands.");
 
         // Swell Bands
-        static public readonly GUIContent k_SwellBand0Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Multiplier", "Controls the attenuation of amplitude on the first frequency band of the swell.");
-        static public readonly GUIContent k_SwellBand1Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Multiplier", "Controls the attenuation of amplitude on the second frequency band of the swell.");
+        static public readonly GUIContent k_SwellBand0Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the first frequency band of the swell.");
+        static public readonly GUIContent k_SwellBand1Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the second frequency band of the swell.");
         static public readonly GUIContent k_SwellFadeToggle = EditorGUIUtility.TrTextContent("Fade", "When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance.");
         static public readonly GUIContent k_SwellMaxAmplitude = EditorGUIUtility.TrTextContent("Max Amplitude", "Displays the current maximum amplitude of this frequency band.");
 
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_AgitationWindSpeed = EditorGUIUtility.TrTextContent("Distant Wind Speed", "Controls the speed of the distant wind in kilometers per hour that blowed over the water surface for a long period of time. This indirectly controls the maximum amplitude and shape of the agitation in a non-linear way.");
         static public readonly GUIContent k_AgitationOrientation = EditorGUIUtility.TrTextContent("Orientation", "Sets the orientation of distant wind in degrees in a counterclockwise fashion relative to the X world vector. This parameter only affects the agitation with a chaos value inferior to one. ");
         static public readonly GUIContent k_AgitationChaos = EditorGUIUtility.TrTextContent("Chaos", "Controls how directional the agitation is. The lower the value, the more the agitation waves are traveling in the Distant Wind Orientation.");
-        static public readonly GUIContent k_AgitationBandMutliplier = EditorGUIUtility.TrTextContent("Amplitude Multiplier", "Controls the attenuation of amplitude on the frequency band of the agitation.");
+        static public readonly GUIContent k_AgitationBandMutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the frequency band of the agitation.");
         static public readonly GUIContent k_AgitationTotalAmplitude = EditorGUIUtility.TrTextContent("Total Amplitude", "Displays the current maximum amplitude of the agitation.");
 
         // Fade parameters
@@ -113,12 +113,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_CausticsBandSwell = EditorGUIUtility.TrTextContent("Simulation Band", "Controls which simulation band is used for the caustics evaluation. The first (index 0) and second band (index 1) come from the swell simulation and the third (index 2) one from the ripples.");
         static public readonly GUIContent k_CausticsBandAgitation = EditorGUIUtility.TrTextContent("Simulation Band", "Controls which simulation band is used for the caustics evaluation. The first band (index 0) comes from the agitation simulation and the second one (index 1) from the ripples.");
 
-        static public readonly GUIContent k_SimulationFoamSmoothness = EditorGUIUtility.TrTextContent("Simulation Foam Smoothness", "Controls the simulation foam smoothness.");
-        static public readonly GUIContent k_SimulationFoamDrag = EditorGUIUtility.TrTextContent("Simulation Foam Drag", "Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.");
-        static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the Distant Wind Speed.");
-        static public readonly GUIContent k_FoamTexture = EditorGUIUtility.TrTextContent("Custom Texture", "Set the texture used to define a visual appearance for the foam.");
-        static public readonly GUIContent k_FoamTextureTiling = EditorGUIUtility.TrTextContent("Texture Tiling", "Set the per meter tiling for the foam texture.");
-        static public readonly GUIContent k_FoamMask = EditorGUIUtility.TrTextContent("Mask", "Sets the texture used to attenuate or suppress the simulation foam. The red channel of the texture is used for the masking.");
+        static public readonly GUIContent k_FoamSmoothness = EditorGUIUtility.TrTextContent("Smoothness", "Controls the simulation foam smoothness.");
+        static public readonly GUIContent k_FoamPersistenceMultiplier = EditorGUIUtility.TrTextContent("Persistence Multiplier", "Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.");
+        static public readonly GUIContent k_FoamTexture = EditorGUIUtility.TrTextContent("Custom Texture", "Sets the texture used to define a visual appearance for the foam.");
+        static public readonly GUIContent k_FoamTextureTiling = EditorGUIUtility.TrTextContent("Texture Tiling", "Sets the per meter tiling for the foam texture.");
+        static public readonly GUIContent k_SimulationFoam = EditorGUIUtility.TrTextContent("Simulation Foam", "When enabled, the water simulation will generate foam on the tip of the waves.");
+        static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the Distant Wind Speed.");
+        static public readonly GUIContent k_SimulationFoamMask = EditorGUIUtility.TrTextContent("Mask", "Sets the texture used to attenuate or suppress the simulation foam. The red channel of the texture is used for the masking.");
         static public readonly GUIContent k_WindFoamCurve = EditorGUIUtility.TrTextContent("Wind Speed Dimmer", "Controls the foam intensity depending on the normalized Distant Wind Speed. The X axis refers to the normalized Distant Wind Speed, the Y axis refers to the dimmer value.");
 
         // Underwater
@@ -136,5 +137,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_WaterMaskDebugMode = EditorGUIUtility.TrTextContent("Water Mask Mode", "Sets the water mask debug mode for a given water surface.");
         static public readonly GUIContent k_WaterCurrentDebugMode = EditorGUIUtility.TrTextContent("Water Current Mode", "Sets the water current debug mode for a given water surface.");
         static public readonly GUIContent k_CurrentDebugMultiplier = EditorGUIUtility.TrTextContent("Arrow Density Multiplier", "Sets a multiplier for the arrow density in the current debug mode.");
+        static public readonly GUIContent k_WaterFoamDebugMode = EditorGUIUtility.TrTextContent("Water Foam Mode", "Sets the water foam debug mode for a given water surface.");
     }
 }

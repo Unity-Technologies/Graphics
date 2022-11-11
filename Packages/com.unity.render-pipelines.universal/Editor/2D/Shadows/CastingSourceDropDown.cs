@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal
                     ProviderComparer providerComparer = new ProviderComparer();
                     List<ShapeProviderEditorUtility.ShadowShapeProviderData> castingSources = ShapeProviderEditorUtility.GetShadowShapeProviders(shadowCaster.gameObject);
                     castingSources.Sort(providerComparer);
-                    
+
                     for (int i = 0; i < castingSources.Count; i++)
                     {
                         string menuName = castingSources[i].provider.ProviderName(GetCompactTypeName(castingSources[i].component));

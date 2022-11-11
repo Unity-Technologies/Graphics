@@ -161,6 +161,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static CompareFunction GetTransparentZTest(this Material material)
             => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
 
+        public static bool GetAddPrecomputedVelocity(this Material material)
+            => material.HasProperty(kAddPrecomputedVelocity) ? material.GetInt(kAddPrecomputedVelocity) == 1 : false;
+
         public static void ResetMaterialCustomRenderQueue(this Material material)
         {
             // using GetOpaqueEquivalent / GetTransparentEquivalent allow to handle the case when we switch surfaceType

@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering
             url = attribute?.URL;
             return attribute != null;
         }
-        
+
 #if UNITY_EDITOR
         /// <summary>
         /// Obtain package informations from a specific type

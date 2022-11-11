@@ -44,6 +44,45 @@ Texture3D<float> _ErosionNoise;
 // Ambient probe. Contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 StructuredBuffer<float4> _VolumetricCloudsAmbientProbeBuffer;
 
+#define CLOUD_MAP_LUT_PRESET_SIZE 64
+groupshared float gs_cloudLutDensity[CLOUD_MAP_LUT_PRESET_SIZE];
+groupshared float gs_cloudLutErosion[CLOUD_MAP_LUT_PRESET_SIZE];
+groupshared float gs_cloudLutAO[CLOUD_MAP_LUT_PRESET_SIZE];
+
+void LoadCloudLutToLDS(uint groupThreadId)
+{
+    float3 densityErosionAO = LOAD_TEXTURE2D_LOD(_CloudLutTexture, int2(0, groupThreadId), 0);
+    gs_cloudLutDensity[groupThreadId] = densityErosionAO.x;
+    gs_cloudLutErosion[groupThreadId] = densityErosionAO.y;
+    gs_cloudLutAO[groupThreadId] = densityErosionAO.z;
+    GroupMemoryBarrierWithGroupSync();
+}
+
+float3 SampleCloudSliceLDS(float height)
+{
+    float tapCoord = clamp(height * CLOUD_MAP_LUT_PRESET_SIZE, 0, CLOUD_MAP_LUT_PRESET_SIZE - 1);
+    float floorTap = floor(tapCoord);
+    float ceilTap = ceil(tapCoord);
+    float interp = tapCoord - floorTap;
+    float3 floorData = float3(gs_cloudLutDensity[floorTap], gs_cloudLutErosion[floorTap], gs_cloudLutAO[floorTap]);
+    float3 ceilData = float3(gs_cloudLutDensity[ceilTap], gs_cloudLutErosion[ceilTap], gs_cloudLutAO[ceilTap]);
+    return lerp(floorData, ceilData, interp);
+}
+
+// Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
+float3 EvaluateVolumetricAmbientProbe(float3 normalWS)
+{
+    float4 SHCoefficients[7];
+    SHCoefficients[0] = _VolumetricCloudsAmbientProbeBuffer[0];
+    SHCoefficients[1] = _VolumetricCloudsAmbientProbeBuffer[1];
+    SHCoefficients[2] = _VolumetricCloudsAmbientProbeBuffer[2];
+    SHCoefficients[3] = _VolumetricCloudsAmbientProbeBuffer[3];
+    SHCoefficients[4] = _VolumetricCloudsAmbientProbeBuffer[4];
+    SHCoefficients[5] = _VolumetricCloudsAmbientProbeBuffer[5];
+    SHCoefficients[6] = _VolumetricCloudsAmbientProbeBuffer[6];
+    return SampleSH9(SHCoefficients, normalWS);
+}
+
 // Function that interects a ray with a sphere (optimized for very large sphere), returns up to two positives distances.
 int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
 {
@@ -375,7 +414,7 @@ bool GetCloudVolumeIntersection(float3 originWS, float3 dir, float insideClouds,
 struct CloudCoverageData
 {
     // From a top down view, in what proportions this pixel has clouds
-    float2 coverage;
+    float coverage;
     // From a top down view, in what proportions this pixel has clouds
     float rainClouds;
     // Value that allows us to request the cloudtype using the density
@@ -435,9 +474,12 @@ void GetCloudCoverageData(float3 positionPS, out CloudCoverageData data)
 {
     // Convert the position into dome space and center the texture is centered above (0, 0, 0)
     float2 normalizedPosition = AnimateCloudMapPosition(positionPS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw - 0.5;
-    // Read the data from the texture
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    float4 cloudMapData =  float4(0.9f, 0.0f, 0.25f, 1.0f);
+    #else
     float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition), 0);
-    data.coverage = float2(cloudMapData.x, cloudMapData.x * cloudMapData.x);
+    #endif
+    data.coverage = cloudMapData.x;
     data.rainClouds = cloudMapData.y;
     data.cloudType = cloudMapData.z;
     data.maxCloudHeight = cloudMapData.w;
@@ -484,7 +526,11 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
         return;
 
     // Read from the LUT
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    float3 densityErosionAO = SampleCloudSliceLDS(properties.height);
+    #else
     float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
+    #endif
 
     // Adjust the shape and erosion factor based on the LUT and the coverage
     float shapeFactor = lerp(0.1, 1.0, _ShapeFactor) * densityErosionAO.y;
@@ -496,7 +542,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     // Combine with the low frequency noise, we want less shaping for large clouds
     lowFrequencyNoise = lerp(1.0, lowFrequencyNoise, shapeFactor);
     float base_cloud = 1.0 - densityErosionAO.x * cloudCoverageData.coverage.x * (1.0 - shapeFactor);
-    base_cloud = saturate(DensityRemap(lowFrequencyNoise, base_cloud, 1.0, 0.0, 1.0)) * cloudCoverageData.coverage.y;
+    base_cloud = saturate(DensityRemap(lowFrequencyNoise, base_cloud, 1.0, 0.0, 1.0)) * cloudCoverageData.coverage.x * cloudCoverageData.coverage.x;
 
     // Weight the ambient occlusion's contribution
     properties.ambientOcclusion = densityErosionAO.z;

@@ -3,6 +3,7 @@
 
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflection.cs.hlsl"
 
 // Ambient Probe is preconvolved with clamped cosinus
 // In case we use a diffuse power, we have to edit the coefficients to change the convolution
@@ -168,13 +169,18 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we have SSGI/RTGI/Mixed enabled in which case we don't want to read Lightmaps/Lightprobe at all.
-    // This behavior only apply to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
+    // If we have SSGI/RTGI enabled in which case we don't want to read Lightmaps/Lightprobe at all.
+    // If we have Mixed RTR or GI enabled, we need to have the lightmap exported in the case of the gbuffer as they will be consumed and will be used if the pixel is ray marched.
+    // This behavior only applies to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
     // The check need to be here to work with both regular shader and shader graph
     // Note: With Probe volume the code is skip in the lightloop if any of those effects is enabled
     // We prevent to read GI only if we are not raytrace pass that are used to fill the RTGI/Mixed buffer need to be executed normaly
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
-    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
+    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
+        #if (SHADERPASS == SHADERPASS_GBUFER)
+            && _IndirectDiffuseMode != INDIRECTDIFFUSEMODE_MIXED && _ReflectionsMode != REFLECTIONSMODE_MIXED
+        #endif
+        )
         return;
 #endif
 

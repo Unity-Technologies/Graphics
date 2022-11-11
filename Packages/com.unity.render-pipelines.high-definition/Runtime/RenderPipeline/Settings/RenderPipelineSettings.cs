@@ -128,6 +128,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
 
+                supportComputeThickness = false,
+                computeThicknessResolution = ComputeThicknessResolution.Half,
+                computeThicknessLayerMask = 0,
+
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -149,7 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
                 supportWaterDeformation = false,
-                deformationAtlasSize = WaterDeformationAtlasSize.AtlasSize512,
+                deformationAtlasSize = WaterAtlasSize.AtlasSize512,
+                supportWaterFoam = false,
+                foamAtlasSize = WaterAtlasSize.AtlasSize512,
                 supportWaterExclusion = false,
                 waterCPUSimulation = false,
 
@@ -164,6 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportProbeVolumeStreaming = false,
                 supportProbeVolumeScenarios = false,
                 supportProbeVolumeScenarioBlending = true,
+                supportHighQualityLineRendering = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -253,14 +260,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
         public WaterSimulationResolution waterSimulationResolution;
-        /// <summary>Support Water Surfaces deformation.</summary>
-        public bool supportWaterExclusion;
         /// <summary>Support Water Surfaces exclusion.</summary>
+        public bool supportWaterExclusion;
+        /// <summary>Support Water Surfaces deformation.</summary>
         public bool supportWaterDeformation;
         /// <summary>Defines the resolution of the deformer atlas.</summary>
-        public WaterDeformationAtlasSize deformationAtlasSize;
+        public WaterAtlasSize deformationAtlasSize;
+        /// <summary>Support Water Surfaces foam.</summary>
+        public bool supportWaterFoam;
+        /// <summary>Defines the resolution of the foam system atlas.</summary>
+        public WaterAtlasSize foamAtlasSize;
         /// <summary>Enable water CPU simulation.</summary>
         public bool waterCPUSimulation;
+
+        // Compute Thickness
+        /// <summary>Sample Compute Thickness algorithm.</summary>
+        public bool supportComputeThickness;
+        /// <summary>Scale for compute thickness texture array.</summary>
+        public ComputeThicknessResolution computeThicknessResolution;
+        /// <summary>LayerMask used to render thickness.</summary>
+        public LayerMask computeThicknessLayerMask;
 
         /// <summary>Names for rendering layers.</summary>
         public string[] renderingLayerNames
@@ -317,6 +336,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSurfaceGradient;
         /// <summary>High precision normal buffer.</summary>
         public bool decalNormalBufferHP;
+        /// <summary>Support High Quality Line Rendering.</summary>
+        public bool supportHighQualityLineRendering;
 
         /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;

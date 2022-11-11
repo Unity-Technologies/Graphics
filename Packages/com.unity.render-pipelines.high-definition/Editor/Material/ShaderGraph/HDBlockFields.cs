@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [GenerateBlocks("High Definition Render Pipeline")]
-        public struct SurfaceDescription
+        public partial struct SurfaceDescription
         {
             public static string name = "SurfaceDescription";
 
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
             public static BlockFieldDescriptor IrisNormalWS = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormalWS", "Iris Normal (World Space)", "SURFACEDESCRIPTION_IRISNORMALWS",
                 new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
-            public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "SURFACEDESCRIPTION_IOR",
+            public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "Eye IOR", "SURFACEDESCRIPTION_IOR",
                 new FloatControl(1.4f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK",
                 new Vector2Control(new Vector2(1.0f, 0.0f)), ShaderStage.Fragment);
@@ -159,7 +159,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor Pheomelanin = new BlockFieldDescriptor(SurfaceDescription.name, "Pheomelanin", "Pheomelanin", "SURFACEDESCRIPTION_PHEOMELANIN",
                 new FloatControl(0.3f), ShaderStage.Fragment);
 
-
             // --------------------------------------------------
             // StackLit
 
@@ -199,6 +198,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor IridescenceCoatFixupTIRClamp = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceCoatFixupTIRClamp", "Iridescence Coat Fixup TIR Clamp", "SURFACEDESCRIPTION_IRIDESCENCECOATFIXUPTIRCLAMP",
                 new FloatControl(0.0f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
+            // Line Rendering
+
+            public static BlockFieldDescriptor LineWidth = new BlockFieldDescriptor(SurfaceDescription.name, "LineWidth",
+                "Width", "SURFACEDESCRIPTION_WIDTH", new FloatControl(1.0f), ShaderStage.Fragment);
         }
     }
 }

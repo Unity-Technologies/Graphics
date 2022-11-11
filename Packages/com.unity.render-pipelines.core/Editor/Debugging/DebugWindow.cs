@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering
             var url = GetSpecificURL() ?? GetDefaultURL();
             Application.OpenURL(url);
         }
-    
+
         string GetDefaultURL()
         {
             //Find package info of the current CoreRP package

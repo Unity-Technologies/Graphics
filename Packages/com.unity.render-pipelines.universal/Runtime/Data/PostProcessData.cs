@@ -114,6 +114,12 @@ namespace UnityEngine.Rendering.Universal
             public Shader LensFlareDataDrivenPS;
 
             /// <summary>
+            /// The Lens Flare Screen Space shader.
+            /// </summary>
+            [Reload("Shaders/PostProcessing/LensFlareScreenSpace.shader")]
+            public Shader LensFlareScreenSpacePS;
+
+            /// <summary>
             /// The Scaling Setup Post Processing shader.
             /// </summary>
             [Reload("Shaders/PostProcessing/ScalingSetup.shader")]

@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
         Toggle m_SupportVFXToggle;
-        Toggle m_SupportComputeForVertexSetupToggle;
+        Toggle m_SupportLineRenderingToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -70,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_ActiveSubTarget = value;
         }
 
-        public bool supportComputeForVertexSetup
+        public bool supportLineRendering
         {
-            get => m_SupportComputeForVertexSetup;
+            get => m_SupportLineRendering;
         }
 
         [SerializeField]
@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_SupportVFX;
 
         [SerializeField]
-        bool m_SupportComputeForVertexSetup;
+        bool m_SupportLineRendering;
 
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
@@ -237,12 +237,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             }
 
-            // TODO: Disable these right before merging PR and remove this comment.
-
-            m_SupportComputeForVertexSetupToggle = new Toggle("") { value = m_SupportComputeForVertexSetup };
-            context.AddProperty("Support Compute for Vertex Setup", "", 0, m_SupportComputeForVertexSetupToggle, (evt) =>
+            m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
+            context.AddProperty("Support High Quality Line Rendering", "", 0, m_SupportLineRenderingToggle, (evt) =>
             {
-                m_SupportComputeForVertexSetup = m_SupportComputeForVertexSetupToggle.value;
+                m_SupportLineRendering = m_SupportLineRenderingToggle.value;
                 onChange();
             });
         }
@@ -854,6 +852,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMask,
+                Ref = Uniforms.stencilRef,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static RenderStateCollection LineRendering = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull("Off") },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ZTest("Always") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMask,
@@ -1636,6 +1649,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "EDITOR_VISUALIZATION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ForceEnableTransparent = new KeywordDescriptor
+        {
+            displayName = "Force Enable Transparent",
+            referenceName = "_SURFACE_TYPE_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor LineRenderingOffscreenShading = new KeywordDescriptor
+        {
+            displayName = "Line Rendering Offscreen Shading",
+            referenceName = "LINE_RENDERING_OFFSCREEN_SHADING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
     }

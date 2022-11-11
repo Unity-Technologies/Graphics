@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.Operator
                 m_targetSpace = VFXSpace.None;
             }
         }
-        
+
         internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (m_targetSpace == inputSlots[0].space)

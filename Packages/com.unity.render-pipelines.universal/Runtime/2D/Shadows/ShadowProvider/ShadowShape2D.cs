@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     internal abstract class ShadowShape2D
     {
         /// <summary>
-        /// Used when calling SetShape to describe the supplied indicies 
+        /// Used when calling SetShape to describe the supplied indicies
         /// </summary>
         public enum OutlineTopology
         {

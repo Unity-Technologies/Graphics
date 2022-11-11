@@ -358,7 +358,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_HtIs = null;
         RTHandle m_FFTRowPassRs = null;
         RTHandle m_FFTRowPassIs = null;
-        RTHandle m_AdditionalData = null;
 
         WaterSimulationResolution m_WaterBandResolution = WaterSimulationResolution.Medium128;
 
@@ -387,14 +386,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HtIs = RTHandles.Alloc(textureRes, textureRes, maxBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             m_FFTRowPassRs = RTHandles.Alloc(textureRes, textureRes, maxBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             m_FFTRowPassIs = RTHandles.Alloc(textureRes, textureRes, maxBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            m_AdditionalData = RTHandles.Alloc(textureRes, textureRes, maxBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
         }
 
 
         void ReleaseWaterSimulation()
         {
             // Release all the RTHandles
-            RTHandles.Release(m_AdditionalData);
             RTHandles.Release(m_FFTRowPassIs);
             RTHandles.Release(m_FFTRowPassRs);
             RTHandles.Release(m_HtIs);
@@ -452,14 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Evaluate water surface additional data (combining it with the previous values)
                 cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterDisplacementBuffer, currentWater.simulation.gpuBuffers.displacementBuffer);
-                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._PreviousWaterAdditionalDataBuffer, currentWater.simulation.gpuBuffers.additionalDataBuffer);
-                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterAdditionalDataBufferRW, m_AdditionalData);
+                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 cmd.DispatchCompute(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, tileCount, tileCount, bandCount);
-
-                // Copy the result back into the water surface's texture
-                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_CopyAdditionalDataKernel, HDShaderIDs._WaterAdditionalDataBuffer, m_AdditionalData);
-                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_CopyAdditionalDataKernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.gpuBuffers.additionalDataBuffer);
-                cmd.DispatchCompute(m_WaterSimulationCS, m_CopyAdditionalDataKernel, tileCount, tileCount, bandCount);
 
                 // Make sure the mip-maps are generated
                 currentWater.simulation.gpuBuffers.additionalDataBuffer.rt.GenerateMips();

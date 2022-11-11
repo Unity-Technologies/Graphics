@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Simulation buffers
             public TextureHandle displacementBuffer;
+            public TextureHandle additionalDataBuffer;
             public TextureHandle deformationBuffer;
 
             // Output buffers
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterDebugCB._WaterMaskDebugMode = (int) currentWater.waterMaskDebugMode;
                 passData.waterDebugCB._WaterCurrentDebugMode = (int)currentWater.waterCurrentDebugMode;
                 passData.waterDebugCB._CurrentDebugMultiplier = currentWater.currentDebugMultiplier;
+                passData.waterDebugCB._WaterFoamDebugMode = (int)currentWater.waterFoamDebugMode;
 
                 // Allocate all the intermediate textures
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
@@ -68,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Import all the textures into the system
                 passData.displacementBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
+                passData.additionalDataBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 passData.deformationBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationBuffer) : renderGraph.defaultResources.blackTexture;
 
                 // Request the output textures
@@ -82,11 +85,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Prepare the material property block for the rendering
                         data.parameters.mbp.SetTexture(HDShaderIDs._WaterDisplacementBuffer, data.displacementBuffer);
+                        data.parameters.mbp.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, data.additionalDataBuffer);
                         data.parameters.mbp.SetTexture(HDShaderIDs._WaterDeformationBuffer, data.deformationBuffer);
 
                         // Bind the global water textures
                         data.parameters.mbp.SetTexture(HDShaderIDs._WaterMask, data.parameters.waterMask);
-                        data.parameters.mbp.SetTexture(HDShaderIDs._FoamMask, data.parameters.foamMask);
+                        data.parameters.mbp.SetTexture(HDShaderIDs._SimulationFoamMask, data.parameters.simulationFoamMask);
                         if (data.parameters.activeCurrent)
                         {
                             data.parameters.mbp.SetTexture(HDShaderIDs._Group0CurrentMap, data.parameters.largeCurrentMap);

@@ -517,14 +517,14 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct HDCachedShadowAtlasDataForShadowRequestUpdateJob
     {
         [WriteOnly] public NativeList<HDShadowRequestHandle> shadowRequests;
-        public NativeHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> placedShadows;
-        public NativeHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> shadowsPendingRendering;
-        [WriteOnly] public NativeHashMap<int, int> shadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
-        [ReadOnly] public NativeHashMap<int, HDLightRenderEntity> registeredLightDataPendingPlacement;
-        [ReadOnly] public NativeHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> recordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
+        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> placedShadows;
+        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> shadowsPendingRendering;
+        [WriteOnly] public NativeParallelHashMap<int, int> shadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
+        [ReadOnly] public NativeParallelHashMap<int, HDLightRenderEntity> registeredLightDataPendingPlacement;
+        [ReadOnly] public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> recordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
-        public NativeHashMap<int, HDCachedShadowAtlas.CachedTransform> transformCaches;
+        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedTransform> transformCaches;
         [ReadOnly] public NativeList<HDCachedShadowAtlas.CachedShadowRecord> tempListForPlacement;
         internal bool LightIsPendingPlacement(int lightIdxForCachedShadows)
         {

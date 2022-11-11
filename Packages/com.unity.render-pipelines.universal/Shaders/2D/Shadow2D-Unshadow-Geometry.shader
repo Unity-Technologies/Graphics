@@ -65,7 +65,7 @@ Shader "Hidden/Shadow2DUnshadowGeometry"
             Stencil
             {
                 Ref       0
-                Comp      Always  
+                Comp      Always
                 Pass      Replace
             }
 

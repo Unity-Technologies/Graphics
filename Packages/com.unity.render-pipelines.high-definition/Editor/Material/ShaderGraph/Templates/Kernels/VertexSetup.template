@@ -1,5 +1,6 @@
-﻿// Pragmas
-$splice(PassPragmas)
+﻿$splice(PassPragmas)
+
+#pragma multi_compile _FORCE_DISABLE_TANGENT_STREAM
 
 // TODO: Keywords (shader_feature) incompatible with compute
 $splice(GraphKeywords)
@@ -14,8 +15,12 @@ $splice(GraphKeywords)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
 
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+
 // --------------------------------------------------
 // Defines
+
+#define _WRITE_TRANSPARENT_MOTION_VECTOR
 
 // Attribute
 $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
@@ -85,13 +90,17 @@ $features.graphVertex:  $include("Vertex.template.hlsl")
 // --------------------------------------------------
 // Main
 
-// For now don't include the pass, we just call VertMesh directly.
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+// Required to compile since we have to include the pass.
+void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
+{
+    ZERO_INITIALIZE(SurfaceData, surfaceData);
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+}
+
+$splice(PostGraphIncludes)
 
 // --------------------------------------------------
 // Kernel
-
-int _VertexCount;
 
 #define DECLARE_ATTRIBUTE_BUFFER(attr)     \
     ByteAddressBuffer _VertexBuffer##attr; \
@@ -113,15 +122,50 @@ DECLARE_ATTRIBUTE_BUFFER(TexCoord7)
 DECLARE_ATTRIBUTE_BUFFER(BlendWeight)
 DECLARE_ATTRIBUTE_BUFFER(BlendIndices)
 
+#define LOAD_ATTRIBUTE_FLOAT(attr, i)\
+    asfloat(_VertexBuffer##attr.Load((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset))
+
 #define LOAD_ATTRIBUTE_FLOAT3(attr, i)\
-    asfloat(_VertexBuffer##attr.Load3((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset));
+    asfloat(_VertexBuffer##attr.Load3((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset))
 
 #define LOAD_ATTRIBUTE_FLOAT4(attr, i)\
-    asfloat(_VertexBuffer##attr.Load4((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset));
+    asfloat(_VertexBuffer##attr.Load4((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset))
 
-RWByteAddressBuffer _PostTransformVertexBuffer;
+#define LOAD_ATTRIBUTE_UINT(attr, i)\
+    (_VertexBuffer##attr.Load((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset))
 
-[numthreads(64, 1, 1)]
+#define LOAD_ATTRIBUTE_UINT3(attr, i)\
+    (_VertexBuffer##attr.Load3((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset))
+
+#define LOAD_ATTRIBUTE_UINT4(attr, i)\
+    (_VertexBuffer##attr.Load4((_VertexBuffer##attr##Stride * i) + _VertexBuffer##attr##Offset)
+
+RWByteAddressBuffer _Vertex0RecordBuffer;
+RWByteAddressBuffer _Vertex1RecordBuffer;
+RWByteAddressBuffer _Vertex2RecordBuffer;
+RWByteAddressBuffer _Vertex3RecordBuffer;
+
+RWByteAddressBuffer _CounterBuffer;
+
+void BuildStrandBasis(uint i, float3 positionOS, out float3 normalOS, out float4 tangentOS)
+{
+#if !defined(_FORCE_DISABLE_TANGENT_STREAM)
+    // TODO: Handle tangent flip
+	float3 vertexBitangentOS = normalize(LOAD_ATTRIBUTE_FLOAT4(Tangent, i).xyz);
+	tangentOS = float4(normalize(cross(vertexBitangentOS, GetWorldSpaceNormalizeViewDir(positionOS))), 0);
+	normalOS = cross(tangentOS.xyz, vertexBitangentOS);
+#else
+    // Force disable attribute loading for streams that do not exist in the mesh.
+    // We need to do it like this instead of #undef ATTRIBUTE_TANGENT etc. because the user shader graph might later override
+    // the tangent or normal.
+    tangentOS = float4(1, 0, 0, 0);
+    normalOS  = float3(0, 0, 1);
+#endif
+}
+
+int _VertexOffset;
+
+[numthreads(128, 1, 1)]
 void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadID.x;
@@ -134,17 +178,25 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
     {
         ZERO_INITIALIZE(AttributesMesh, inputMesh);
         inputMesh.positionOS = LOAD_ATTRIBUTE_FLOAT3(Position, i);
-#ifdef ATTRIBUTES_NEED_NORMAL
-    // TODO
-#endif
-#ifdef ATTRIBUTES_NEED_TANGENT
-    // TODO
+#if defined(ATTRIBUTES_NEED_NORMAL) || defined(ATTRIBUTES_NEED_TANGENT)
+        BuildStrandBasis(i, inputMesh.positionOS, inputMesh.normalOS, inputMesh.tangentOS);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
-        inputMesh.uv0 = LOAD_ATTRIBUTE_FLOAT4(TexCoord0, i);
+        inputMesh.uv0 = LOAD_ATTRIBUTE_FLOAT(TexCoord0, i);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD1
-        inputMesh.uv1 = LOAD_ATTRIBUTE_FLOAT4(TexCoord1, i);
+    //   // Demo team hair package stores the UV in the upper 16 bits.
+    //   const uint mask = 0xFFFF << 16;
+
+    //   // Manually decode the UNORM value back into a float.
+    //   uint texCoord1 = LOAD_ATTRIBUTE_UINT(TexCoord1, i);
+
+    //   // Mask out the lower bits.
+    //   texCoord1 &= mask;
+
+    //   // Retrieve a decimal value.
+    //   inputMesh.uv1 = texCoord1 / float(mask);
+        inputMesh.uv1 = LOAD_ATTRIBUTE_FLOAT(TexCoord1, i);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD2
     // TODO
@@ -157,9 +209,50 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
 #endif
     }
 
-    // Invoke the HDRP vertex setup.
-    VaryingsMeshType vmesh = VertMesh(inputMesh);
+    AttributesPass inputPass;
+    ZERO_INITIALIZE(AttributesPass, inputPass);
+
+    VaryingsType output;
+    ZERO_INITIALIZE(VaryingsType, output);
+
+    output.vmesh = VertMesh(inputMesh);
+    output = MotionVectorVS_Internal(output, inputMesh, inputPass);
 
     // Store the clip space position for now (should be every interpolator).
-    _PostTransformVertexBuffer.Store4(16 * i, asuint(vmesh.positionCS));
+    VertexRecord vertexRecord;
+    ZERO_INITIALIZE(VertexRecord, vertexRecord);
+    {
+        vertexRecord.positionCS = output.vpass.positionCS;
+
+        // Have to manually provide a previous position that will result in a zero length movec for force disable.
+        if (unity_MotionVectorsParams.y == 0)
+            vertexRecord.previousPositionCS = output.vpass.positionCS;
+        else
+            vertexRecord.previousPositionCS = output.vpass.previousPositionCS;
+
+#ifdef VARYINGS_NEED_TEXCOORD0
+        vertexRecord.texCoord0 = output.vmesh.texCoord0.x;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD1
+        vertexRecord.texCoord1 = output.vmesh.texCoord1.y;
+#endif
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+        vertexRecord.normalWS  = output.vmesh.normalWS;
+        vertexRecord.tangentWS = output.vmesh.tangentWS.xyz;
+#endif
+    }
+
+    const uint offset = _VertexOffset + i;
+    _Vertex0RecordBuffer.Store4(offset << 4, asuint(vertexRecord.positionCS));
+    _Vertex1RecordBuffer.Store4(offset << 4, asuint(vertexRecord.previousPositionCS));
+
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    const uint2 encodedN = asuint(PackNormalOctQuadEncode(vertexRecord.normalWS));
+    const uint2 encodedT = asuint(PackNormalOctQuadEncode(vertexRecord.tangentWS));
+    _Vertex2RecordBuffer.Store4(offset << 4, uint4(encodedN, encodedT));
+#endif
+
+#if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_NEED_TEXCOORD1)
+    _Vertex3RecordBuffer.Store2(8 * offset, asuint(float2(vertexRecord.texCoord0, vertexRecord.texCoord1)));
+#endif
 }

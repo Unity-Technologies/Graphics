@@ -57,19 +57,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_RipplesFadeDistance;
         #endregion
 
-        #region Foam
-        SerializedProperty m_Foam;
-        SerializedProperty m_SimulationFoamAmount;
-        SerializedProperty m_SimulationFoamDrag;
-        SerializedProperty m_SimulationFoamSmoothness;
-        SerializedProperty m_FoamTextureTiling;
-        SerializedProperty m_FoamTexture;
-        SerializedProperty m_FoamMask;
-        SerializedProperty m_FoamMaskExtent;
-        SerializedProperty m_FoamMaskOffset;
-        SerializedProperty m_WindFoamCurve;
-        #endregion
-
         void OnEnableSimulation(PropertyFetcher<WaterSurface> o)
         {
             #region Masking
@@ -123,19 +110,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RipplesFadeToggle = o.Find(x => x.ripplesFadeToggle);
             m_RipplesFadeStart = o.Find(x => x.ripplesFadeStart);
             m_RipplesFadeDistance = o.Find(x => x.ripplesFadeDistance);
-            #endregion
-
-            #region Foam
-            m_Foam = o.Find(x => x.foam);
-            m_SimulationFoamAmount = o.Find(x => x.simulationFoamAmount);
-            m_SimulationFoamDrag = o.Find(x => x.simulationFoamDrag);
-            m_SimulationFoamSmoothness = o.Find(x => x.simulationFoamSmoothness);
-            m_FoamTextureTiling = o.Find(x => x.foamTextureTiling);
-            m_FoamTexture = o.Find(x => x.foamTexture);
-            m_FoamMask = o.Find(x => x.foamMask);
-            m_FoamMaskExtent = o.Find(x => x.foamMaskExtent);
-            m_FoamMaskOffset = o.Find(x => x.foamMaskOffset);
-            m_WindFoamCurve = o.Find(x => x.windFoamCurve);
             #endregion
         }
 
@@ -459,45 +433,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     WaterSurfaceSimulationSection_Pool(serialized, owner);
                 break;
             };
-
-            // We only support foam for oceans and rivers
-            if (surfaceType == WaterSurfaceType.Pool)
-            {
-                EditorGUILayout.LabelField("Foam", EditorStyles.boldLabel);
-                EditorGUILayout.HelpBox("Foam rendering is currently not supported for Pools.", MessageType.Info, wide: true);
-            }
-            else
-            {
-                // Surface foam
-                using (new BoldLabelScope())
-                    EditorGUILayout.PropertyField(serialized.m_Foam);
-
-                if (serialized.m_Foam.boolValue)
-                {
-                    using (new IndentLevelScope())
-                    {
-                        serialized.m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, serialized.m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
-                        // serialized.m_SimulationFoamDrag.floatValue = EditorGUILayout.Slider(k_SimulationFoamDrag, serialized.m_SimulationFoamDrag.floatValue, 0.0f, 1.0f);
-                        serialized.m_SimulationFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SimulationFoamSmoothness, serialized.m_SimulationFoamSmoothness.floatValue, 0.0f, 1.0f);
-
-                        // Foam texture
-                        EditorGUILayout.PropertyField(serialized.m_FoamTextureTiling, k_FoamTextureTiling);
-                        EditorGUILayout.PropertyField(serialized.m_FoamTexture, k_FoamTexture);
-
-                        // Foam masking
-                        EditorGUILayout.PropertyField(serialized.m_FoamMask, k_FoamMask);
-                        if (serialized.m_FoamMask.objectReferenceValue != null)
-                        {
-                            using (new IndentLevelScope())
-                            {
-                                EditorGUILayout.PropertyField(serialized.m_FoamMaskExtent);
-                                EditorGUILayout.PropertyField(serialized.m_FoamMaskOffset);
-                            }
-                        }
-                        EditorGUILayout.PropertyField(serialized.m_WindFoamCurve, k_WindFoamCurve);
-                    }
-                }
-            }
         }
     }
 }

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool stripDebugVariants
         {
             get => m_StripDebugVariants;
-            set => m_StripDebugVariants = value; 
+            set => m_StripDebugVariants = value;
         }
     }
 }

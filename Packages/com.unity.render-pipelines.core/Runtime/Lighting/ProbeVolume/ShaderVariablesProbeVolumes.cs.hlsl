@@ -12,7 +12,7 @@
 
 // Generated from UnityEngine.Rendering.ShaderVariablesProbeVolumes
 // PackingRules = Exact
-GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
+GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b6)
     float4 _PoolDim_CellInMeters;
     float4 _RcpPoolDim_Padding;
     float4 _MinEntryPos_Noise;

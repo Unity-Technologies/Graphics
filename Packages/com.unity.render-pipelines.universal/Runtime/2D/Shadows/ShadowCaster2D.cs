@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 ShadowMesh2D newShadowMesh = new ShadowMesh2D();
-                newShadowMesh.CopyFrom(m_ShadowMesh);  
+                newShadowMesh.CopyFrom(m_ShadowMesh);
                 m_ShadowMesh = newShadowMesh;
             }
 #endif
@@ -522,7 +522,7 @@ namespace UnityEngine.Rendering.Universal
         internal void DrawPreviewOutline()
         {
             if (m_ShadowMesh != null && mesh != null && m_ShadowCastingSource != ShadowCastingSources.None && enabled)
-            {                                                                                     
+            {
                 if (edgeProcessing == EdgeProcessing.None)
                     DrawPreviewOutline(transform, trimEdge);
                 else

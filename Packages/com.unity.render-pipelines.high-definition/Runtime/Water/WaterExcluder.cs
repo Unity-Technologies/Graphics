@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Mesh that shall be used to exclude water
         [SerializeField]
         internal Mesh m_InternalMesh = null;
+        [SerializeField]
         internal GameObject m_ExclusionRenderer = null;
 
         /// <summary>

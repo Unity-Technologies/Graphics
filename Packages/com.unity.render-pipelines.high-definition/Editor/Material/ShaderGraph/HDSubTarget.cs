@@ -285,13 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
 
-        protected IEnumerable<KernelDescriptor> EnumerateKernels()
-        {
-            if (target.supportComputeForVertexSetup)
-            {
-                yield return PostProcessKernel(HDShaderKernels.GenerateVertexSetup());
-            }
-        }
+        protected abstract IEnumerable<KernelDescriptor> EnumerateKernels();
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {

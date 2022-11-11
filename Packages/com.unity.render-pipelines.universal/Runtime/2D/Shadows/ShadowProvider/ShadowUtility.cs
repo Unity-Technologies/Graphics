@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 int nextEdgeIndex = (i - shapeStart + 1) % shapeSize + shapeStart;
-                int prevEdgeIndex = (i - shapeStart + shapeSize - 1) % shapeSize + shapeStart;  
+                int prevEdgeIndex = (i - shapeStart + shapeSize - 1) % shapeSize + shapeStart;
 
 
                 int v0 = inEdges[i].v0;
@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ProjectionInfo> meshProjectionInfo = new NativeArray<ProjectionInfo>(meshVertexCount, Allocator.Persistent);
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Persistent);
             NativeArray<ShadowMeshVertex> meshVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Persistent);
-            
+
             CalculateProjectionInfo(inVertices, inEdges, inShapeStartingEdge, inShapeIsClosedArray, ref meshProjectionInfo);
             CalculateVertices(inVertices, inEdges, meshProjectionInfo, ref meshVertices);
             CalculateTriangles(inVertices, inEdges, inShapeStartingEdge, inShapeIsClosedArray, ref meshIndices);
@@ -744,7 +744,7 @@ namespace UnityEngine.Rendering.Universal
                 outVertices = new NativeArray<Vector3>(offsetSolution.points.Length + openPathArrayCount, k_ClippingAllocator);
                 outEdges = new NativeArray<ShadowEdge>(offsetSolution.points.Length + openPathArrayCount, k_ClippingAllocator);
                 outShapeStartingEdge = new NativeArray<int>(solutionPathLens, k_ClippingAllocator);
-                
+
                 // Copy out the solution first..
                 for (int i = 0; i < offsetSolution.points.Length; i++)
                     outVertices[vertexPos++] = offsetSolution.points[i];

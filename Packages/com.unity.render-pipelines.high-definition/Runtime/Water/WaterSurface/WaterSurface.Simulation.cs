@@ -401,8 +401,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Make sure the matrices are evaluated
             EvaluateWaterSurfaceMatrices(IsInstancedQuads(), transform.position, transform.rotation, ref rendering.waterToWorldMatrix, ref rendering.worldToWaterMatrix);
-
             return rendering;
+        }
+
+        internal void ReleaseSimulationResources()
+        {
+            // Make sure to release the resources if they have been created (before HDRP destroys them)
+            if (simulation != null && simulation.AllocatedTextures())
+                simulation.ReleaseSimulationResources();
+            simulation = null;
         }
     }
 }

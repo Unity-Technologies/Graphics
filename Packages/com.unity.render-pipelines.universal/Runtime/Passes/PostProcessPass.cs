@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_EdgeStencilTexture;
         RTHandle m_TempTarget;
         RTHandle m_TempTarget2;
+        RTHandle m_StreakTmpTexture;
+        RTHandle m_StreakTmpTexture2;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -43,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
         // Builtin effects settings
         DepthOfField m_DepthOfField;
         MotionBlur m_MotionBlur;
+        ScreenSpaceLensFlare m_LensFlareScreenSpace;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         LensDistortion m_LensDistortion;
@@ -200,6 +203,8 @@ namespace UnityEngine.Rendering.Universal
             m_EdgeStencilTexture?.Release();
             m_TempTarget?.Release();
             m_TempTarget2?.Release();
+            m_StreakTmpTexture?.Release();
+            m_StreakTmpTexture2?.Release();
         }
 
         /// <summary>
@@ -292,6 +297,7 @@ namespace UnityEngine.Rendering.Universal
             var stack = VolumeManager.instance.stack;
             m_DepthOfField = stack.GetComponent<DepthOfField>();
             m_MotionBlur = stack.GetComponent<MotionBlur>();
+            m_LensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom = stack.GetComponent<Bloom>();
             m_LensDistortion = stack.GetComponent<LensDistortion>();
@@ -361,6 +367,7 @@ namespace UnityEngine.Rendering.Universal
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
             bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
+            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive();
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
@@ -526,10 +533,22 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bloom goes first
                 bool bloomActive = m_Bloom.IsActive();
-                if (bloomActive)
+                bool lensFlareScreenSpaceActive = m_LensFlareScreenSpace.IsActive();
+
+                // We need to still do the bloom pass if lens flare screen space is active because it uses _Bloom_Texture.
+                if (bloomActive || lensFlareScreenSpaceActive)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
                         SetupBloom(cmd, GetSource(), m_Materials.uber);
+                }
+
+                // Lens Flare Screen Space
+                if (useLensFlareScreenSpace)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
+                    {
+                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[m_LensFlareScreenSpace.bloomMip.value]);
+                    }
                 }
 
                 // Setup other effects constants
@@ -888,6 +907,73 @@ namespace UnityEngine.Rendering.Universal
                 ShaderConstants._FlareOcclusionRemapTex, ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 0, 0,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
+                false);
+        }
+
+        #endregion
+
+        #region LensFlareScreenSpace
+
+        void DoLensFlareScreenSpace(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RTHandle bloomTexture)
+        {
+            cmd.SetGlobalTexture(ShaderConstants._LensFlareScreenSpaceBloomTexture, bloomTexture);
+
+            int ratio = (int)m_LensFlareScreenSpace.resolution.value;
+
+            int width = Mathf.Max(1, (int)m_Descriptor.width / ratio);
+            int height = Mathf.Max(1, (int)m_Descriptor.height / ratio);
+            var desc = GetCompatibleDescriptor(width, height, m_DefaultHDRFormat);
+
+            RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture");
+            RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture2, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture2");
+
+            LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
+                m_Materials.lensFlareScreenSpace,
+                camera,
+                (float)m_Descriptor.width,
+                (float)m_Descriptor.height,
+                m_LensFlareScreenSpace.tintColor.value,
+                bloomTexture,
+                null, // We don't have any spectral LUT in URP
+                m_StreakTmpTexture,
+                m_StreakTmpTexture2,
+                new Vector4(
+                    m_LensFlareScreenSpace.intensity.value,
+                    m_LensFlareScreenSpace.firstFlareIntensity.value,
+                    m_LensFlareScreenSpace.secondaryFlareIntensity.value,
+                    m_LensFlareScreenSpace.warpedFlareIntensity.value),
+                new Vector4(
+                    Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                    m_LensFlareScreenSpace.startingPosition.value,
+                    m_LensFlareScreenSpace.scale.value,
+                    0), // Free slot, not used
+                new Vector4(
+                    m_LensFlareScreenSpace.samples.value,
+                    m_LensFlareScreenSpace.sampleDimmer.value,
+                    m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                    0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
+                new Vector4(
+                    m_LensFlareScreenSpace.streaksIntensity.value,
+                    m_LensFlareScreenSpace.streaksLength.value * 10,
+                    m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                    m_LensFlareScreenSpace.streaksThreshold.value),
+                new Vector4(
+                    ratio,
+                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                    0), // Free slot, not used
+                cmd,
+                source,
+                ShaderConstants._LensFlareScreenSpaceBloomTexture,
+                0, // No identifiers for SpectralLut Texture
+                ShaderConstants._LensFlareScreenSpaceStreakTex,
+                ShaderConstants._LensFlareScreenSpaceMipLevel,
+                ShaderConstants._LensFlareScreenSpaceTintColor,
+                ShaderConstants._LensFlareScreenSpaceParams1,
+                ShaderConstants._LensFlareScreenSpaceParams2,
+                ShaderConstants._LensFlareScreenSpaceParams3,
+                ShaderConstants._LensFlareScreenSpaceParams4,
+                ShaderConstants._LensFlareScreenSpaceParams5,
                 false);
         }
 
@@ -1475,6 +1561,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly Material uber;
             public readonly Material finalPass;
             public readonly Material lensFlareDataDriven;
+            public readonly Material lensFlareScreenSpace;
 
             public MaterialLibrary(PostProcessData data)
             {
@@ -1491,6 +1578,7 @@ namespace UnityEngine.Rendering.Universal
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
+                lensFlareScreenSpace = Load(data.shaders.LensFlareScreenSpacePS);
             }
 
             Material Load(Shader shader)
@@ -1581,6 +1669,16 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
             public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
+
+            public static readonly int _LensFlareScreenSpaceBloomTexture = Shader.PropertyToID("_BloomTexture");
+            public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
+            public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
+            public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
+            public static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
+            public static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
+            public static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
+            public static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
+            public static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 

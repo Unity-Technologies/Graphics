@@ -11,9 +11,51 @@
 
         if (!ShouldCull(o))
         {
-            float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
-            o.vertex = mul(UNITY_MATRIX_VP, wsPos);
-            o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
+            if (_DebugProbeVolumeSampling) // Only sampled probes (8 of them) should be shown, the other should be culled
+            {
+                float4 debugPosition = _positionNormalBuffer[0];
+                float4 debugNormal = _positionNormalBuffer[1];
+
+                float3 snappedProbePosition_WS; // worldspace position of main probe (a corner of the 8 probes cube)
+                float3 samplingPositionNoAntiLeak_WS; // // worldspace sampling position after applying 'NormalBias', 'ViewBias'
+                float3 samplingPosition_WS; // worldspace sampling position after applying 'NormalBias', 'ViewBias' and 'ValidityAndNormalBased Leak Reduction'
+                float probeDistance;
+                float3 normalizedOffset; // normalized offset between sampling position and snappedProbePosition
+                float validityWeight[8];
+
+                FindSamplingData(debugPosition.xyz, debugNormal.xyz, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeight);
+
+                float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+                float3 cameraPosition_WS = _WorldSpaceCameraPos;
+                probePosition_WS += cameraPosition_WS;
+
+                float samplingFactor = ComputeSamplingFactor(probePosition_WS, snappedProbePosition_WS, normalizedOffset, probeDistance);
+
+                // Let's cull probes that are not sampled
+                if (samplingFactor == 0.0)
+                {
+                    DoCull(o);
+                    return o;
+                }
+
+                float4 wsPos = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f));
+                wsPos += normalize(mul(UNITY_MATRIX_M, float4((v.vertex.xyz), 0.0f))) * _ProbeSize * 0.3f; // avoid scale from transformation matrix to be effective (otherwise some probes are bigger than others)
+
+                float4 pos = mul(UNITY_MATRIX_VP, wsPos);
+                float remappedDepth = Remap(-1.0f, 1.0f, 0.6f, 1.0f, pos.z); // remapped depth to draw gizmo on top of most other objects
+                o.vertex = float4(pos.x, pos.y, remappedDepth * pos.w, pos.w);
+                o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
+                o.color = v.color;
+                o.texCoord = v.texCoord;
+                o.samplingFactor_ValidityWeight = float2(samplingFactor, 1.0f);
+            }
+
+            else
+            {
+                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
+                o.vertex = mul(UNITY_MATRIX_VP, wsPos);
+                o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
+            }
         }
 
         return o;

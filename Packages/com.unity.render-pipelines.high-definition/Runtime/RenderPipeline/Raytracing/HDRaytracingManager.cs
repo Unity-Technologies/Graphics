@@ -55,7 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Denoisers
         HDTemporalFilter m_TemporalFilter;
-        HDSimpleDenoiser m_SimpleDenoiser;
         HDDiffuseDenoiser m_DiffuseDenoiser;
         HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
@@ -170,8 +169,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ReflectionDenoiser.Release();
             if (m_TemporalFilter != null)
                 m_TemporalFilter.Release();
-            if (m_SimpleDenoiser != null)
-                m_SimpleDenoiser.Release();
             if (m_DiffuseShadowDenoiser != null)
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
@@ -954,16 +951,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TemporalFilter.Init(m_GlobalSettings.renderPipelineResources);
             }
             return m_TemporalFilter;
-        }
-
-        internal HDSimpleDenoiser GetSimpleDenoiser()
-        {
-            if (m_SimpleDenoiser == null)
-            {
-                m_SimpleDenoiser = new HDSimpleDenoiser();
-                m_SimpleDenoiser.Init(m_GlobalSettings.renderPipelineRayTracingResources);
-            }
-            return m_SimpleDenoiser;
         }
 
         internal HDDiffuseDenoiser GetDiffuseDenoiser()

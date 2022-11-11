@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Global register
         /// </summary>
-        GlobalRegister = 5
+        GlobalRegister = 6
     }
 
     /// <summary>

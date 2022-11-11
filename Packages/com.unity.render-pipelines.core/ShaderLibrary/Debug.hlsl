@@ -172,6 +172,19 @@ float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float o
     return color;
 }
 
+// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// where values at or above maxN receive strong red background color.
+float4 OverlayHeatMapNoNumber(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+{
+    int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
+    colorIndex = clamp(colorIndex, 0, DEBUG_COLORS_COUNT-1);
+    float4 col = kDebugColorGradient[colorIndex];
+
+    int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
+
+    return float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+}
+
 float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
 {
     // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)

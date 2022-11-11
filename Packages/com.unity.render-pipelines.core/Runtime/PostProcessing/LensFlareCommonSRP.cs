@@ -1195,6 +1195,151 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Effective Job of drawing Lens Flare Screen Space.
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="bloomTexture">bloom texture used as data for the effect</param>
+        /// <param name="spectralLut">spectralLut used for chromatic aberration effect</param>
+        /// <param name="streakTextureTmp">Texture used for the multiple pass streaks effect</param>
+        /// <param name="streakTextureTmp2">Texture used for the multiple pass streaks effect</param>
+        /// <param name="parameters1">user parameter1 for the effect</param>
+        /// <param name="parameters2">user parameter2 for the effect</param>
+        /// <param name="parameters3">user parameter3 for the effect</param>
+        /// <param name="parameters3">user parameter4 for the effect</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
+        /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
+        /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceFlares streak temp texture</param>
+        /// <param name="_LensFlareScreenSpaceParams1">ShaderID for the LensFlareScreenSpaceParams1</param>
+        /// <param name="_LensFlareScreenSpaceParams2">ShaderID for the LensFlareScreenSpaceParams2</param>
+        /// <param name="_LensFlareScreenSpaceParams3">ShaderID for the LensFlareScreenSpaceParams3</param>
+        /// <param name="_LensFlareScreenSpaceParams4">ShaderID for the LensFlareScreenSpaceParams4</param>
+        /// <param name="debugView">Information if we are in debug mode or not</param>
+        static public void DoLensFlareScreenSpaceCommon(
+            Material lensFlareShader,
+            Camera cam,
+            float actualWidth,
+            float actualHeight,
+            Color tintColor,
+            Texture bloomTexture,
+            Texture spectralLut,
+            Texture streakTextureTmp,
+            Texture streakTextureTmp2,
+            Vector4 parameters1,
+            Vector4 parameters2,
+            Vector4 parameters3,
+            Vector4 parameters4,
+            Vector4 parameters5,
+            Rendering.CommandBuffer cmd,
+            Rendering.RenderTargetIdentifier colorBuffer,
+            int _BloomTexture,
+            int _LensFlareScreenSpaceSpectralLut,
+            int _LensFlareScreenSpaceStreakTex,
+            int _LensFlareScreenSpaceMipLevel,
+            int _LensFlareScreenSpaceTintColor,
+            int _LensFlareScreenSpaceParams1,
+            int _LensFlareScreenSpaceParams2,
+            int _LensFlareScreenSpaceParams3,
+            int _LensFlareScreenSpaceParams4,
+            int _LensFlareScreenSpaceParams5,
+            bool debugView)
+        {
+            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+
+            cmd.SetViewport(new Rect() { width = actualWidth, height = actualHeight });
+            if (debugView)
+            {
+                // Background pitch black to see only the flares
+                cmd.ClearRenderTarget(false, true, Color.black);
+            }
+
+#if UNITY_EDITOR
+            if (cam.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "Flare" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == cam && !sv.sceneViewState.flaresEnabled)
+                    {
+                        return;
+                    }
+                }
+            }
+#endif
+
+            // Multiple scaleX by aspect ratio so that default 1:1 scale for warped flare stays circular (as in data driven lens flare)
+            parameters5.y *= actualWidth / actualHeight;
+            // This is to make sure the streak length is the same in all resolutions
+            parameters4.y *= actualWidth * 0.0005f;
+
+            int prefilterPass = 0;
+            int downSamplePass = 1;
+            int upSamplePass = 2;
+            int compositionPass = 3;
+
+            // Setting the input textures
+            cmd.SetGlobalTexture(_BloomTexture, bloomTexture);
+            cmd.SetGlobalTexture(_LensFlareScreenSpaceSpectralLut, spectralLut);
+
+            // Setting parameters of the effects
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams1, parameters1);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams2, parameters2);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams3, parameters3);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams4, parameters4);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams5, parameters5);
+            cmd.SetGlobalColor(_LensFlareScreenSpaceTintColor, tintColor);
+
+            // We only do the first 3 pass if StreakIntensity (parameters4.x) is set to something above 0 to save costs
+            if (parameters4.x > 0)
+            {
+                // Prefilter
+                Rendering.CoreUtils.SetRenderTarget(cmd, streakTextureTmp);
+                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, prefilterPass);
+
+                int maxLevel = Mathf.FloorToInt(Mathf.Log(Mathf.Max(actualHeight, actualWidth), 2.0f));
+                int maxLevelDownsample = maxLevel;
+                int maxLevelUpsample = 2;
+                int startIndex = 0;
+                bool even = false;
+
+                // Downsample
+                for (int i = 0; i < maxLevelDownsample; i++)
+                {
+                    even = (i % 2 == 0);
+                    cmd.SetGlobalInt(_LensFlareScreenSpaceMipLevel, i);
+                    cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp : streakTextureTmp2);
+                    Rendering.CoreUtils.SetRenderTarget(cmd, even ? streakTextureTmp2 : streakTextureTmp);
+
+                    UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, downSamplePass);
+                }
+
+                //Since we do a ping pong between streakTextureTmp & streakTextureTmp2, we need to know which texture is the last;
+                if (even)
+                    startIndex = 1;
+
+                //Upsample
+                for (int i = startIndex; i < (startIndex + maxLevelUpsample); i++)
+                {
+                    even = (i % 2 == 0);
+                    cmd.SetGlobalInt(_LensFlareScreenSpaceMipLevel, (i - startIndex));
+                    cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp : streakTextureTmp2);
+                    Rendering.CoreUtils.SetRenderTarget(cmd, even ? streakTextureTmp2 : streakTextureTmp);
+
+                    UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, upSamplePass);
+                }
+
+                cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp2 : streakTextureTmp);
+            }
+
+            //Final Composition (Flares + Streaks)
+            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+            UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, compositionPass);
+        }
 
         #region Panini Projection
         static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance)

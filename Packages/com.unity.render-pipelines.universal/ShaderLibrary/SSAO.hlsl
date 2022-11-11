@@ -364,7 +364,7 @@ half4 SSAO(Varyings input) : SV_Target
 
     // Normal for this fragment
     half3 normal_o = SampleNormal(uv, linearDepth_o, pixelDensity);
-    
+
     // View position for this fragment
     float3 vpos_o = ReconstructViewPos(uv, linearDepth_o);
 

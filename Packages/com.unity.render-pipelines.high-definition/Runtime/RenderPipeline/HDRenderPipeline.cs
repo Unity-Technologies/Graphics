@@ -123,6 +123,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
         int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
+        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        int m_ClearBuffer2DKernel = -1;
+
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
 
@@ -436,6 +439,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug");
             m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug");
 
+            m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
+
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
@@ -480,6 +485,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
+                    probeSamplingDebugShader = defaultResources.shaders.probeVolumeSamplingDebugShader,
+                    probeSamplingDebugMesh = defaultResources.assets.probeSamplingDebugMesh,
+                    probeSamplingDebugTexture = defaultResources.textures.numbersDisplayTex,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
@@ -498,6 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
+            InitializeLineRendering();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettings.RegisterDebug();
@@ -847,6 +856,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
             ReleaseWaterSystem();
+            CleanupLineRendering();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -974,6 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalComputeThickness(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
@@ -1008,6 +1019,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
             m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
+            m_ShaderVariablesGlobalCB._ReflectionsMode = (int)GetReflectionsMode(hdCamera);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
@@ -1048,7 +1060,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ScreenSpaceReflection screenSpaceReflection = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
             // Those are globally set parameters. The others are set per effect and will update the constant buffer as we render.
-            m_ShaderVariablesRayTracingCB._RaytracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayTracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayTracingDistantRayBias = rayTracingSettings.distantRayBias.value;
             m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
             m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
             m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
@@ -1886,11 +1899,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 CommandBufferPool.Release(commandBuffer);
             }
 
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
             {
                 HDDebugDisplaySettings.Instance.UpdateDisplayStats();
@@ -2196,7 +2211,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
+#endif
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 
@@ -2743,6 +2760,18 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 cb._EnableDecals = 0;
+            }
+        }
+
+        void UpdateShaderVariablesGlobalComputeThickness(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeThickness) && HDUtils.hdrpSettings.supportComputeThickness)
+            {
+                cb._EnableComputeThickness = 1;
+            }
+            else
+            {
+                cb._EnableComputeThickness = 0;
             }
         }
 

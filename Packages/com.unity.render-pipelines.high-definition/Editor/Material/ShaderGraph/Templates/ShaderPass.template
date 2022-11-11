@@ -144,6 +144,11 @@ Pass
     #endif
     #endif
 
+    // See Lit.shader
+    #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+        #define WRITE_DECAL_BUFFER
+    #endif
+
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
@@ -332,6 +337,10 @@ Pass
         // This is a limitation of the current MRT approach.
         #ifdef UNITY_VIRTUAL_TEXTURING
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+        #endif
+
+        #ifdef LINE_RENDERING_OFFSCREEN_SHADING
+        $SurfaceDescription.LineWidth: builtinData.lineWidth = surfaceDescription.LineWidth;
         #endif
 
         #if _DEPTHOFFSET_ON
