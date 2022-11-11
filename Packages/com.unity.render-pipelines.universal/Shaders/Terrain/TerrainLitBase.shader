@@ -123,6 +123,8 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 
             // -------------------------------------
             // Unity defined keywords
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
