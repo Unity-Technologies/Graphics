@@ -9,10 +9,6 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
             // Lightmode tag required setup motion vector parameters by C++ (legacy Unity)
             Tags{ "LightMode" = "MotionVectors" }
 
-            // Reuse existing depth. (We don't draw more than the base scene)
-            // TODO: Transparent motion vector override would draw extra and need Z writes.
-            ZWrite Off
-
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x
             #pragma target 3.5

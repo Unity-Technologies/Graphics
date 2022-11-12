@@ -8,12 +8,16 @@ namespace UnityEngine.Rendering.Universal
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
         #region Fields
-        const string kPreviousViewProjectionNoJitter = "_PrevViewProjMatrix";
-        const string kViewProjectionNoJitter = "_NonJitteredViewProjMatrix";
+        const string k_PreviousViewProjectionNoJitter = "_PrevViewProjMatrix";
+        const string k_ViewProjectionNoJitter = "_NonJitteredViewProjMatrix";
 #if ENABLE_VR && ENABLE_XR_MODULE
-        const string kPreviousViewProjectionNoJitterStereo = "_PrevViewProjMatrixStereo";
-        const string kViewProjectionNoJitterStereo = "_NonJitteredViewProjMatrixStereo";
+        const string k_PreviousViewProjectionNoJitterStereo = "_PrevViewProjMatrixStereo";
+        const string k_ViewProjectionNoJitterStereo = "_NonJitteredViewProjMatrixStereo";
 #endif
+
+        internal const string k_MotionVectorTextureName = "_MotionVectorTexture";
+        internal const string k_MotionVectorDepthTextureName = "_MotionVectorDepthTexture";
+
         internal const GraphicsFormat k_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
@@ -52,6 +56,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(m_Color.name, m_Color.nameID);
             cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
             ConfigureTarget(m_Color, m_Depth);
+            ConfigureClear(ClearFlag.Color | ClearFlag.Depth, Color.black);
+
+            // Can become a Store based on 'StoreActionsOptimization.Auto' and/or if a user RendererFeature is added.
+            // We need to keep the MotionVecDepth in case of a user wants to extend the motion vectors
+            // using a custom RendererFeature.
+            ConfigureDepthStoreAction(RenderBufferStoreAction.DontCare);
         }
 
         #endregion
@@ -91,15 +101,15 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {
-                    cmd.SetGlobalMatrixArray(kPreviousViewProjectionNoJitterStereo, motionData.previousViewProjectionStereo);
-                    cmd.SetGlobalMatrixArray(kViewProjectionNoJitterStereo, motionData.viewProjectionStereo);
+                    cmd.SetGlobalMatrixArray(k_PreviousViewProjectionNoJitterStereo, motionData.previousViewProjectionStereo);
+                    cmd.SetGlobalMatrixArray(k_ViewProjectionNoJitterStereo, motionData.viewProjectionStereo);
                 }
                 else
 #endif
                 {
                     // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
-                    cmd.SetGlobalMatrix(kPreviousViewProjectionNoJitter, motionData.previousViewProjectionStereo[passID]);
-                    cmd.SetGlobalMatrix(kViewProjectionNoJitter, motionData.viewProjectionStereo[passID]);
+                    cmd.SetGlobalMatrix(k_PreviousViewProjectionNoJitter, motionData.previousViewProjectionStereo[passID]);
+                    cmd.SetGlobalMatrix(k_ViewProjectionNoJitter, motionData.viewProjectionStereo[passID]);
                 }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
@@ -191,8 +201,8 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
 
-            RenderGraphUtils.SetGlobalTexture(renderGraph,"_MotionVectorTexture", motionVectorColor, "Set Motion Vector Color Texture");
-            RenderGraphUtils.SetGlobalTexture(renderGraph,"_MotionVectorDepthTexture", motionVectorDepth, "Set Motion Vector Depth Texture");
+            RenderGraphUtils.SetGlobalTexture(renderGraph,k_MotionVectorTextureName, motionVectorColor, "Set Motion Vector Color Texture");
+            RenderGraphUtils.SetGlobalTexture(renderGraph,k_MotionVectorDepthTextureName, motionVectorDepth, "Set Motion Vector Depth Texture");
         }
     }
 }

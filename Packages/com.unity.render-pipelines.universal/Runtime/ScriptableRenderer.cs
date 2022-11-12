@@ -346,6 +346,9 @@ namespace UnityEngine.Rendering.Universal
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
+            // Temporal Anti-aliasing can use negative mip bias to increase texture sharpness and new information for the jitter.
+            float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
+            mipBias = Math.Min(mipBias, taaMipBias);
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
 
             //Set per camera matrices.

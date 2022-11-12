@@ -30,15 +30,6 @@ public class SimplePosAnim : MonoBehaviour
         frame = 0;
         pause = false;
         timeBased = false;
-
-#if URP_EXPERIMENTAL_TAA_ENABLE
-        // Reset postprocess history to ensure consistent state.
-        var mainCam = Camera.main;
-        if (mainCam.TryGetComponent<UniversalAdditionalCameraData>(out var data))
-        {
-            data.resetHistory = true;
-        }
-#endif
     }
 
     int LoopIndex(int index, int length)
@@ -95,7 +86,7 @@ public class SimplePosAnim : MonoBehaviour
                 frame = Time.frameCount - firstFrame;
             frame %= Mathf.Max(loopFrames, 1);
 
-            t = frame / (float)loopFrames;
+            t = frame / (float)Mathf.Max(loopFrames, 1);
         }
 
         if (animPositions == null || animPositions.Length <= 0)

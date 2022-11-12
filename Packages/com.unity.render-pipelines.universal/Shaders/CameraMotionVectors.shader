@@ -8,7 +8,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
 
             Cull Off
             ZWrite On
-            ZTest Always  // TODO: won't work for camera stacking
 
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x

@@ -1035,11 +1035,14 @@ namespace UnityEngine.Rendering.Universal
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
+                colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorTextureName);
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
+                depthDescriptor.depthBufferBits = cameraTargetDescriptor.depthBufferBits;
+                depthDescriptor.msaaSamples = 1;
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
 
                 m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
                 EnqueuePass(m_MotionVectorPass);
@@ -1081,9 +1084,11 @@ namespace UnityEngine.Rendering.Universal
             //    to add additional render passes after post processing occurs, we can't run FXAA until all of those passes complete as well.
             //    The FinalPost pass is guaranteed to execute after user authored passes so FXAA is always run inside of it.
             // 2. UberPost can only handle upscaling with linear filtering. All other filtering methods require the FinalPost pass.
+            // 3. TAA sharpening using standalone RCAS pass is required. (When upscaling is not enabled).
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                 ((renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-                 ((renderingData.cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (renderingData.cameraData.upscalingFilter != ImageUpscalingFilter.Linear)));
+                 ((renderingData.cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (renderingData.cameraData.upscalingFilter != ImageUpscalingFilter.Linear)) ||
+                 (renderingData.cameraData.IsTemporalAAEnabled() && renderingData.cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f));
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConversion etc)

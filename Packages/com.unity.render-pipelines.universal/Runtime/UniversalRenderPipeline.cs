@@ -608,13 +608,6 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 
-                var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref renderingData);
-#endif
-
                 // Update camera motion tracking (prev matrices) from cameraData.
                 // Called and updated only once, as the same camera can be rendered multiple times.
                 // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
@@ -629,6 +622,15 @@ namespace UnityEngine.Rendering.Universal
                     UpdateTemporalAATargets(ref cameraData);
 
                 RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+
+                // Do NOT use cameraData after 'InitializeRenderingData'. CameraData state may diverge otherwise.
+                // RenderingData takes a copy of the CameraData.
+                var cullResults = context.Cull(ref cullingParameters);
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+                if (asset.useAdaptivePerformance)
+                    ApplyAdaptivePerformance(ref renderingData);
+#endif
 
                 renderer.AddRenderPasses(ref renderingData);
 
@@ -1211,22 +1213,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = false;
             }
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
-            // NOTE: depends on XR modifications of cameraTargetDescriptor.
+            // NOTE: TAA depends on XR modifications of cameraTargetDescriptor.
             if (additionalCameraData != null)
-            {
-                // Initialize shared TAA target desc.
-                ref var desc = ref cameraData.cameraTargetDescriptor;
-                cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
-                cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
-
-                ref var taaSettings = ref additionalCameraData.taaSettings;
-                cameraData.taaSettings = taaSettings;
-
-                // Decrease history clear counter. Typically clear is only 1 frame, but can be many for XR multipass eyes!
-                taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0;
-            }
-#endif
+                UpdateTemporalAAData(ref cameraData, additionalCameraData);
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 
@@ -1242,6 +1231,10 @@ namespace UnityEngine.Rendering.Universal
                 float newCotangent = cotangent / cameraData.aspectRatio;
                 projectionMatrix.m00 = newCotangent;
             }
+
+            // TAA debug settings
+            // Affects the jitter set just below. Do not move.
+            ApplyTaaRenderingDebugOverrides(ref cameraData.taaSettings);
 
             // Depends on the cameraTargetDesc, size and MSAA also XR modifications of those.
             Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(ref cameraData);
@@ -1433,6 +1426,42 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
+        }
+
+        private static void ApplyTaaRenderingDebugOverrides(ref TemporalAA.Settings taaSettings)
+        {
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
+            switch (renderingSettings.taaDebugMode)
+            {
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowClampedHistory:
+                    taaSettings.frameInfluence = 0;
+                    break;
+
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrame:
+                    taaSettings.frameInfluence = 1;
+                    break;
+
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrameNoJitter:
+                    taaSettings.frameInfluence = 1;
+                    taaSettings.jitterScale = 0;
+                    break;
+            }
+        }
+
+        private static void UpdateTemporalAAData(ref CameraData cameraData, UniversalAdditionalCameraData additionalCameraData)
+        {
+            // Initialize shared TAA target desc.
+            ref var desc = ref cameraData.cameraTargetDescriptor;
+            cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
+            cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
+
+            // Update TAA settings
+            ref var taaSettings = ref additionalCameraData.taaSettings;
+            cameraData.taaSettings = taaSettings;
+
+            // Decrease history clear counter. Typically clear is only 1 frame, but can be many for XR multipass eyes!
+            taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0;
         }
 
         private static void UpdateTemporalAATargets(ref CameraData cameraData)

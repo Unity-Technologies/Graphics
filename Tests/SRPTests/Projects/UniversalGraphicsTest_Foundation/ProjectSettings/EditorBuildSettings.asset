@@ -315,6 +315,9 @@ EditorBuildSettings:
     path: Assets/Scenes/208_Motion_Vectors_Direction_Y_Camera_Only.unity
     guid: d5f9aa5daaf784392888cbd857f3d3bf
   - enabled: 1
+    path: Assets/Scenes/209_Motion_Vectors_Camera_And_Objects.unity
+    guid: d84ff56928dab4734b69906d7e13638d
+  - enabled: 1
     path: Assets/Scenes/250_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1

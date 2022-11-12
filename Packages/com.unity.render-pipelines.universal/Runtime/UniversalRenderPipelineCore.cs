@@ -469,7 +469,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsTemporalAAEnabled()
         {
-            #if URP_EXPERIMENTAL_TAA_ENABLE
             UniversalAdditionalCameraData additionalCameraData;
             camera.TryGetComponent(out additionalCameraData);
 
@@ -477,10 +476,8 @@ namespace UnityEngine.Rendering.Universal
                    && (taaPersistentData != null)                                                                                     // Initialized
                    && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
                    && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
-                   && !camera.allowDynamicResolution;                                                                                 // No Dynamic Resolution
-            #else
-            return false;
-            #endif
+                   && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
+                   && postProcessEnabled;                                                                                             // No Postprocessing
         }
 
         /// <summary>

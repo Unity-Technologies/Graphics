@@ -1541,10 +1541,8 @@ namespace UnityEngine.Rendering.Universal
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
-#if URP_EXPERIMENTAL_TAA_ENABLE
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
                 TemporalAA.ValidateAndWarn(ref cameraData);
-#endif
 
             using (var builder = renderGraph.AddRenderPass<PostFXSetupPassData>("Setup PostFX passes", out var passData,
                 ProfilingSampler.Get(URPProfileId.RG_SetupPostFX)))

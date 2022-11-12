@@ -26,13 +26,11 @@ public class TestObjectMotion : MonoBehaviour
         pause = false;
         timeBased = false;
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
         var mainCam = Camera.main;
         if (mainCam.TryGetComponent<UniversalAdditionalCameraData>(out var data))
         {
             data.resetHistory = true;
         }
-#endif
     }
 
     // Update is called once per frame
@@ -53,7 +51,7 @@ public class TestObjectMotion : MonoBehaviour
                 frame = Time.frameCount - firstFrame;
             frame %= Mathf.Max(loopFrames, 1);
 
-            t = frame / (float)loopFrames;
+            t = frame / (float)Mathf.Max(loopFrames, 1);
         }
 
         if (objCross.TryGetComponent(out Transform objTr))

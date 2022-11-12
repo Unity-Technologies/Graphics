@@ -375,10 +375,8 @@ namespace UnityEngine.Rendering.Universal
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
-#if URP_EXPERIMENTAL_TAA_ENABLE
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
                 TemporalAA.ValidateAndWarn(ref cameraData);
-#endif
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
@@ -473,6 +471,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
                 {
+
                     TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref cameraData, source, destination, m_MotionVectors.rt);
                     Swap(ref renderer);
                 }
@@ -981,10 +980,10 @@ namespace UnityEngine.Rendering.Universal
 
         #region Motion Blur
 
-        public static readonly int kShaderPropertyId_ViewProjM = Shader.PropertyToID("_ViewProjM");
-        public static readonly int kShaderPropertyId_PrevViewProjM = Shader.PropertyToID("_PrevViewProjM");
-        public static readonly int kShaderPropertyId_ViewProjMStereo = Shader.PropertyToID("_ViewProjMStereo");
-        public static readonly int kShaderPropertyId_PrevViewProjMStereo = Shader.PropertyToID("_PrevViewProjMStereo");
+        internal static readonly int k_ShaderPropertyId_ViewProjM = Shader.PropertyToID("_ViewProjM");
+        internal static readonly int k_ShaderPropertyId_PrevViewProjM = Shader.PropertyToID("_PrevViewProjM");
+        internal static readonly int k_ShaderPropertyId_ViewProjMStereo = Shader.PropertyToID("_ViewProjMStereo");
+        internal static readonly int k_ShaderPropertyId_PrevViewProjMStereo = Shader.PropertyToID("_PrevViewProjMStereo");
 
         internal static void UpdateMotionBlurMatrices(ref Material material, Camera camera, XRPass xr)
         {
@@ -999,8 +998,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
             {
-                material.SetMatrixArray(kShaderPropertyId_PrevViewProjMStereo, motionData.previousViewProjectionStereo);
-                material.SetMatrixArray(kShaderPropertyId_ViewProjMStereo, motionData.viewProjectionStereo);
+                material.SetMatrixArray(k_ShaderPropertyId_PrevViewProjMStereo, motionData.previousViewProjectionStereo);
+                material.SetMatrixArray(k_ShaderPropertyId_ViewProjMStereo, motionData.viewProjectionStereo);
             }
             else
 #endif
@@ -1012,8 +1011,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
-                material.SetMatrix(kShaderPropertyId_PrevViewProjM, motionData.previousViewProjectionStereo[viewProjMIdx]);
-                material.SetMatrix(kShaderPropertyId_ViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
+                material.SetMatrix(k_ShaderPropertyId_PrevViewProjM, motionData.previousViewProjectionStereo[viewProjMIdx]);
+                material.SetMatrix(k_ShaderPropertyId_ViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
             }
         }
 
@@ -1406,11 +1405,16 @@ namespace UnityEngine.Rendering.Universal
 
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
+            // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
+            bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+
+            // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
+            // This avoids the cost of EASU and is available for other upscaling options.
+            // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
+            bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !isFsrEnabled;
+
             if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
-                // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
-                bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
-
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
                 // situations where the input and output resolutions do not match.
                 // When FSR is active, we always need an additional pass since it has a very particular color encoding requirement.
@@ -1460,7 +1464,9 @@ namespace UnityEngine.Rendering.Universal
                         {
                             case ImageUpscalingFilter.Point:
                             {
-                                material.EnableKeyword(ShaderKeywordStrings.PointSampling);
+                                // TAA post sharpening is an RCAS pass, avoid overriding it with point sampling.
+                                if(!isTaaSharpeningEnabled)
+                                    material.EnableKeyword(ShaderKeywordStrings.PointSampling);
                                 break;
                             }
 
@@ -1514,6 +1520,9 @@ namespace UnityEngine.Rendering.Universal
                         // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
                         // and it's already the default option in the shader.
 
+                        // Also disable TAA post sharpening pass when downscaling.
+                        isTaaSharpeningEnabled = false;
+
                         break;
                     }
                 }
@@ -1524,6 +1533,13 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
             }
 
+            // Reuse RCAS as a standalone sharpening filter for TAA.
+            // If FSR is enabled then it overrides the TAA setting and we skip it.
+            if(isTaaSharpeningEnabled)
+            {
+                material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
+            }
 
             // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
             // Overlay cameras need to output to the target described in the base camera while doing camera stack.
