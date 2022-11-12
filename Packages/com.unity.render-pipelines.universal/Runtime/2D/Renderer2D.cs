@@ -4,17 +4,20 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class Renderer2D : ScriptableRenderer
+    internal sealed partial class Renderer2D : ScriptableRenderer
     {
         #if UNITY_SWITCH
+        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
         internal const int k_DepthBufferBits = 24;
         #else
+        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         internal const int k_DepthBufferBits = 32;
         #endif
 
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
+        CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
         FinalBlitPass m_FinalBlitPass;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
@@ -25,8 +28,8 @@ namespace UnityEngine.Rendering.Universal
 
         // We probably should declare these names in the base class,
         // as they must be the same across all ScriptableRenderer types for camera stacking to work.
-        RTHandle m_ColorTextureHandle;
-        RTHandle m_DepthTextureHandle;
+        internal RTHandle m_ColorTextureHandle;
+        internal RTHandle m_DepthTextureHandle;
 
         Material m_BlitMaterial;
         Material m_SamplingMaterial;
@@ -58,6 +61,7 @@ namespace UnityEngine.Rendering.Universal
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
+            m_CopyCameraSortingLayerPass = new CopyCameraSortingLayerPass(m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             var ppParams = PostProcessParams.Create();
@@ -85,6 +89,8 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+
+            CleanupRenderGraphResources();
         }
 
         public Renderer2DData GetRenderer2DData()

@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
                 ReloadAllNullProperties();
             }
 #endif
+
             return new Renderer2D(this);
         }
 

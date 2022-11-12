@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = blitMaterial;
             m_SamplingMaterial = samplingMaterial;
 
-            m_CameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+            m_CameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
         }
 
         internal void Setup(bool useDepth)
@@ -100,12 +100,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
-        private short GetCameraSortingLayerBoundsIndex()
+        public static short GetCameraSortingLayerBoundsIndex(Renderer2DData rendererData)
         {
             SortingLayer[] sortingLayers = Light2DManager.GetCachedSortingLayer();
             for (short i = 0; i < sortingLayers.Length; i++)
             {
-                if (sortingLayers[i].id == m_Renderer2DData.cameraSortingLayerTextureBound)
+                if (sortingLayers[i].id == rendererData.cameraSortingLayerTextureBound)
                     return (short)sortingLayers[i].value;
             }
 
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Renderer2DData.useCameraSortingLayerTexture)
             {
-                var cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+                var cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
                 var copyBatch = -1;
                 for (int i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
 
-                        short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+                        short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
 
                         RenderBufferStoreAction copyStoreAction;
                         if (msaaEnabled)
@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                this.SetShapeLightShaderGlobals(cmd);
+                RendererLighting.SetShapeLightShaderGlobals(m_Renderer2DData, cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
 
@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var i = 0; i < batchCount; i += batchesDrawn)
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
-                this.DisableAllKeywords(cmd);
+                RendererLighting.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                this.DisableAllKeywords(cmd);
+                RendererLighting.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
