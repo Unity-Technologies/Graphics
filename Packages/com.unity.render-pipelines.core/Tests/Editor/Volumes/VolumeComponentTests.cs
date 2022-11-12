@@ -43,19 +43,25 @@ namespace UnityEngine.Rendering.Tests
             public FloatParameter parameter4 = new MinFloatParameter(0f, 0f);
         }
 
-        private void CreateEditorAndComponent(Type volumeComponentType, ref VolumeComponent component, ref VolumeComponentEditor editor)
+
+        private (VolumeComponent, VolumeComponentEditor) CreateEditorAndComponent(Type volumeComponentType)
         {
-            component = (VolumeComponent)ScriptableObject.CreateInstance(volumeComponentType);
-            editor = (VolumeComponentEditor)Editor.CreateEditor(component);
+            var component = (VolumeComponent)ScriptableObject.CreateInstance(volumeComponentType);
+            var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
             editor.Invoke("Init");
+            return (component, editor);
+        }
+
+        private void DestroyEditorAndComponent(VolumeComponent component, VolumeComponentEditor editor)
+        {
+            ScriptableObject.DestroyImmediate(editor);
+            ScriptableObject.DestroyImmediate(component);
         }
 
         [Test]
         public void TestOverridesChanges()
         {
-            VolumeComponent component = null;
-            VolumeComponentEditor editor = null;
-            CreateEditorAndComponent(typeof(VolumeComponentMixedAdditionalAttributes), ref component, ref editor);
+            (VolumeComponent component, VolumeComponentEditor editor) = CreateEditorAndComponent(typeof(VolumeComponentMixedAdditionalAttributes));
 
             component.SetAllOverridesTo(false);
             bool allOverridesState = (bool)editor.Invoke("AreAllOverridesTo", false);
@@ -83,7 +89,7 @@ namespace UnityEngine.Rendering.Tests
             allOverridesState = (bool)editor.Invoke("AreAllOverridesTo", true);
             Assert.False(allOverridesState);
 
-            ScriptableObject.DestroyImmediate(component);
+            DestroyEditorAndComponent(component, editor);
         }
 
         static TestCaseData[] s_AdditionalAttributesTestCaseDatas =
@@ -102,9 +108,7 @@ namespace UnityEngine.Rendering.Tests
         [Test, TestCaseSource(nameof(s_AdditionalAttributesTestCaseDatas))]
         public string[] AdditionalProperties(Type volumeComponentType)
         {
-            VolumeComponent component = null;
-            VolumeComponentEditor editor = null;
-            CreateEditorAndComponent(volumeComponentType, ref component, ref editor);
+            (VolumeComponent component, VolumeComponentEditor editor) = CreateEditorAndComponent(volumeComponentType);
 
             var fields = component
                 .GetFields()
@@ -115,7 +119,7 @@ namespace UnityEngine.Rendering.Tests
             var notAdditionalParameters = editor.GetField("m_VolumeNotAdditionalParameters") as List<VolumeParameter>;
             Assert.True(fields.Count() + notAdditionalParameters.Count == component.parameters.Count);
 
-            ScriptableObject.DestroyImmediate(component);
+            DestroyEditorAndComponent(component, editor);
 
             return fields;
         }
@@ -145,9 +149,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void TestHandleParameterDecorators()
         {
-            VolumeComponent component = null;
-            VolumeComponentEditor editor = null;
-            CreateEditorAndComponent(typeof(VolumeComponentDecorators), ref component, ref editor);
+            (VolumeComponent component, VolumeComponentEditor editor) = CreateEditorAndComponent(typeof(VolumeComponentDecorators));
 
             var parameters =
                 editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder,
@@ -166,7 +168,7 @@ namespace UnityEngine.Rendering.Tests
                 Assert.True(k_ExpectedResults[i].tooltip == title.tooltip);
             }
 
-            ScriptableObject.DestroyImmediate(component);
+            DestroyEditorAndComponent(component, editor);
         }
 
         #endregion

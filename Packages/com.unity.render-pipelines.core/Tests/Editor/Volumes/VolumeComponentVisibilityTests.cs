@@ -98,7 +98,10 @@ namespace UnityEngine.Rendering.Tests
             var component = (VolumeComponent)ScriptableObject.CreateInstance(volumeComponentType);
             var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
             editor.DetermineVisibility();
-            return editor.visible;
+            bool visible = editor.visible;
+            ScriptableObject.DestroyImmediate(editor);
+            ScriptableObject.DestroyImmediate(component);
+            return visible;
         }
     }
 }
