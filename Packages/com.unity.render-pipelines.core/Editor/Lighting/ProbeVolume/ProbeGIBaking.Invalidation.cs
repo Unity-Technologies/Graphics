@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
             var prv = ProbeReferenceVolume.instance;
 
-            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
+            var touchupVolumes = GameObject.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID);
             var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {

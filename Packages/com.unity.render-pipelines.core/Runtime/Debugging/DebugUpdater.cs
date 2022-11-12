@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering
 
         void EnsureExactlyOneEventSystem()
         {
-            var eventSystems = FindObjectsOfType<EventSystem>();
+            var eventSystems = FindObjectsByType<EventSystem>(FindObjectsSortMode.None);
             var debugEventSystem = GetComponent<EventSystem>();
 
             if (eventSystems.Length > 1 && debugEventSystem != null)

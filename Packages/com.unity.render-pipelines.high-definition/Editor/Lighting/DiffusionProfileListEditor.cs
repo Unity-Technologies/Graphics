@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Get all mesh renderers that are within the current volume
             var diffusionProfiles = new List<DiffusionProfileSettings>();
-            foreach (var meshRenderer in Object.FindObjectsOfType<MeshRenderer>())
+            foreach (var meshRenderer in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.InstanceID))
             {
                 var colliders = Physics.OverlapBox(meshRenderer.bounds.center, meshRenderer.bounds.size / 2);
                 if (colliders.Contains(volumeCollider))

@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
 
             // Scene may contain unwanted colliders (like Volumes for example)
             // So we disable any collider not attached to a MeshRenderer before doing the baking. Otherwise it will mess up with virtual offset and validity.
-            var colliderObjects = Object.FindObjectsOfType<Collider>(includeInactive: false);
+            var colliderObjects = Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
             foreach (var collider in colliderObjects)
             {
                 if (collider.enabled && !collider.TryGetComponent<MeshRenderer>(out var _))
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering
             // Because we need to trigger physics update to update the physics search tree when adding new occluders
             // rigid bodies might end up triggering the simulation, which is something we do not want.  Therefore we force
             // them to be kinematic and therefore blocking the forces for being applied.
-            var rigidbodies = Object.FindObjectsOfType<Rigidbody>(includeInactive: false);
+            var rigidbodies = Object.FindObjectsByType<Rigidbody>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
             foreach (var rigidBody in rigidbodies)
             {
                 if (!rigidBody.isKinematic)
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering
             hasAppliers = false;
 
             Dictionary<int, TouchupsPerCell> cellToVolumes = new();
-            foreach (var touchup in Object.FindObjectsOfType<ProbeTouchupVolume>())
+            foreach (var touchup in Object.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID))
             {
                 if (!touchup.isActiveAndEnabled || (touchup.mode != ProbeTouchupVolume.Mode.ApplyVirtualOffset && touchup.mode != ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings))
                     continue;

@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering
 
                 if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
-                    var probeVolume = GameObject.FindObjectOfType<ProbeVolume>();
+                    var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
                     if (probeVolume == null || !probeVolume.isActiveAndEnabled || ProbeReferenceVolume.instance.sceneData == null)
                         return;
 

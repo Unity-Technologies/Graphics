@@ -32,7 +32,7 @@ public class LinkDirectionalToCustomNightSky : MonoBehaviour
 
     void findDirLight()
     {
-        foreach (Light light in GameObject.FindObjectsOfType<Light>())
+        foreach (Light light in GameObject.FindObjectsByType<Light>(FindObjectsSortMode.InstanceID))
             {
                 if(light.type == LightType.Directional)
                 {

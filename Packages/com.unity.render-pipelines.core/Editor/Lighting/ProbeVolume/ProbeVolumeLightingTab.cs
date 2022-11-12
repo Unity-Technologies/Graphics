@@ -1128,7 +1128,7 @@ namespace UnityEngine.Rendering
             {
                 if (ProbeReferenceVolume.instance.probeVolumeDebug.realtimeSubdivision && ProbeReferenceVolume.instance.sceneData != null)
                 {
-                    var probeVolume = GameObject.FindObjectOfType<ProbeVolume>();
+                    var probeVolume = GameObject.FindFirstObjectByType<ProbeVolume>();
                     if (probeVolume != null && probeVolume.isActiveAndEnabled)
                     {
                         var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(probeVolume.gameObject.scene);

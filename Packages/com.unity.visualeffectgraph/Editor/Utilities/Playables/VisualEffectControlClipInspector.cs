@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
                 serializedObject.ApplyModifiedProperties();
 
                 //Modification on tracks doesn't trigger a refresh, calling manually the director refresh
-                var allDirectors = FindObjectsOfType<UnityEngine.Playables.PlayableDirector>(false);
+                var allDirectors = FindObjectsByType<UnityEngine.Playables.PlayableDirector>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
                 foreach (var director in allDirectors)
                 {
                     director.RebuildGraph();

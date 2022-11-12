@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
-            var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
+            var lights = UnityObject.FindObjectsByType<Light>(FindObjectsSortMode.InstanceID);
 
             foreach (var light in lights)
             {
@@ -235,7 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
         //[MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
-            var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
+            var cameras = UnityObject.FindObjectsByType<Camera>(FindObjectsSortMode.InstanceID);
 
             foreach (var camera in cameras)
             {
@@ -427,8 +427,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Flag that holds
             bool generalErrorFlag = false;
-            var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
-            var lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
+            var rendererArray = UnityEngine.GameObject.FindObjectsByType<Renderer>(FindObjectsSortMode.InstanceID);
+            var lodGroupArray = UnityEngine.GameObject.FindObjectsByType<LODGroup>(FindObjectsSortMode.InstanceID);
             List<Material> materialArray = new List<Material>(32);
             ReflectionProbe reflectionProbe = new ReflectionProbe();
 

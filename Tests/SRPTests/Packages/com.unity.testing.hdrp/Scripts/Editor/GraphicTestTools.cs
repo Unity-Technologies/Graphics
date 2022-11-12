@@ -33,7 +33,7 @@ public class GraphicTestTools
     [MenuItem("Internal/GraphicTest Tools/Update All Material Placers")]
     public static void UpdateAllPlacers()
     {
-        MultiMaterialPlacer[] placers = Object.FindObjectsOfType<MultiMaterialPlacer>();
+        MultiMaterialPlacer[] placers = Object.FindObjectsByType<MultiMaterialPlacer>(FindObjectsSortMode.InstanceID);
 
         for (int i = 0; i < placers.Length; ++i)
         {

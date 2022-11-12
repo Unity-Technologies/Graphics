@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering
 
         internal static List<ProbeVolume> GetProbeVolumeList()
         {
-            var fullPvList = GameObject.FindObjectsOfType<ProbeVolume>();
+            var fullPvList = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             List<ProbeVolume> usedPVList;
 
             if (isBakingSceneSubset)
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering
 
             ProbeReferenceVolume.instance.Clear();
 
-            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             foreach (var probeVolume in probeVolumes)
                 probeVolume.OnLightingDataAssetCleared();
         }
@@ -808,7 +808,7 @@ namespace UnityEngine.Rendering
             var virtualOffsets = m_BakingBatch.virtualOffsets;
 
             // This is slow, but we should have very little amount of touchup volumes.
-            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
+            var touchupVolumes = GameObject.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID);
             var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {

@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DecalEntityManager = new DecalEntityManager();
 
-                var decalProjectors = GameObject.FindObjectsOfType<DecalProjector>();
+                var decalProjectors = GameObject.FindObjectsByType<DecalProjector>(FindObjectsSortMode.InstanceID);
                 foreach (var decalProjector in decalProjectors)
                 {
                     if (!decalProjector.isActiveAndEnabled || m_DecalEntityManager.IsValid(decalProjector.decalEntity))

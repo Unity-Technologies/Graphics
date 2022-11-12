@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering
 
         internal void UpdateSceneBounds(Scene scene)
         {
-            var volumes = Object.FindObjectsOfType<ProbeVolume>();
+            var volumes = Object.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             int prevMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
 
