@@ -307,7 +307,8 @@ namespace UnityEngine.Rendering.Universal
 #if RENDER_GRAPH_ENABLED
             useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
 #else
-            useRenderGraph = RenderGraphGraphicsAutomatedTests.enabled;
+            if (RenderGraphGraphicsAutomatedTests.enabled)
+                asset.enableRenderGraph = useRenderGraph = true;
 #endif
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
