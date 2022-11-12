@@ -445,6 +445,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -493,6 +495,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -543,6 +547,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -593,6 +599,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

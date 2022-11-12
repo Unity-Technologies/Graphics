@@ -505,10 +505,10 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus))
                 return true;
 
-            // Strip Foveated Rendering variants on all platforms (except PS5)
+            // Strip Foveated Rendering variants on all platforms (except PS5 and Metal)
             // TODO: add a way to communicate this requirement from the xr plugin directly
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC)
+            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.PS5NGGC && compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Metal)
 #endif
             {
                 if (compilerData.shaderKeywordSet.IsEnabled(m_FoveatedRenderingNonUniformRaster))

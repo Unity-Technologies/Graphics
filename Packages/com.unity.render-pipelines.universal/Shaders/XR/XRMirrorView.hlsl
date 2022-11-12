@@ -47,7 +47,7 @@ float4 FragBilinear(Varyings input) : SV_Target
 
 #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
     uv = RemapFoveatedRenderingResolve(input.texcoord.xy);
-#endif
+#endif // _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
 #if SRC_TEXTURE2D_X_ARRAY
     outColor = SAMPLE_TEXTURE2D_ARRAY(_SourceTex, sampler_LinearClamp, uv, _SourceTexArraySlice);

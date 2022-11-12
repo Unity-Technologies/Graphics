@@ -184,6 +184,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma fragment FragPrefilter
                 #pragma multi_compile_local _ _BLOOM_HQ
                 #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                // Foveated rendering currently not supported in dxc on metal
+                #pragma never_use_dxc metal
             ENDHLSL
         }
 
