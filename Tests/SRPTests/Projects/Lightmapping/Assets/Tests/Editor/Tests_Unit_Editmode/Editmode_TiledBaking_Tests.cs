@@ -10,191 +10,12 @@ public class Editmode_TiledBaking_Tests
     //https://stackoverflow.com/questions/32809888/how-can-i-save-unity-statistics-or-unity-profiler-statistics-stats-on-cpu-rend
 
     [UnityTest]
-    public IEnumerator TiledBaking_GPU_1k_lightmap_4_tiles_2_Empty_Tiles()
-    {
-        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/TwoPlanes.unity", OpenSceneMode.Single);
-        yield return null;
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-
-        lightingSettings.tiledBaking = LightingSettings.TiledBaking.Quarter;
-
-        Lightmapping.Clear();
-        Lightmapping.Bake();
-
-        LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        Assert.That(lc.GetTileCount(), Is.EqualTo(4), "Max tiling pass num should be 4");
-
-        while (Lightmapping.isRunning)
-        {
-            yield return null;
-        }
-
-        Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();
-    }
-
-    [UnityTest]
-    public IEnumerator TiledBaking_GPU_1k_lightmap_4_tiles_1_Empty_Tile()
-    {
-        EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/ThreePlanes.unity", OpenSceneMode.Single);
-        yield return null;
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-
-        lightingSettings.tiledBaking = LightingSettings.TiledBaking.Quarter;
-
-        Lightmapping.Clear();
-        Lightmapping.Bake();
-
-        LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        Assert.That(lc.GetTileCount(), Is.EqualTo(4), "Max tiling pass num should be 4");
-
-        while (Lightmapping.isRunning)
-        {
-            yield return null;
-        }
-
-        Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();
-    }
-
-    public string scenePath = "Assets/Tests/Editor/Tests_Unit_Editmode/OnePlane.unity";
-
-    [UnityTest]
-    public IEnumerator TiledBaking_GPU_1k_lightmap_4_tiles()
-    {
-        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-        yield return null;
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-
-        lightingSettings.tiledBaking = LightingSettings.TiledBaking.Quarter;
-        lightingSettings.lightmapResolution = 100;
-        lightingSettings.lightmapMaxSize = 1024;
-
-        Lightmapping.Clear();
-        Lightmapping.Bake();
-
-        LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        Assert.That(lc.GetTileCount(), Is.EqualTo(4), "Max tiling pass num should be 4");
-
-        while (Lightmapping.isRunning)
-        {
-            yield return null;
-        }
-
-        Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();
-    }
-
-    [UnityTest]
-    public IEnumerator TiledBaking_GPU_1k_lightmap_16_tiles()
-    {
-        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-        yield return null;
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-
-        lightingSettings.tiledBaking = LightingSettings.TiledBaking.Sixtenth;
-        lightingSettings.lightmapResolution = 100;
-        lightingSettings.lightmapMaxSize = 1024;
-
-        Lightmapping.Clear();
-        Lightmapping.Bake();
-
-        LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        Assert.That(lc.GetTileCount(), Is.EqualTo(16), "Max tiling pass num should be 16");
-
-        while (Lightmapping.isRunning)
-        {
-            yield return null;
-        }
-
-        Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();
-    }
-
-    [UnityTest]
-    public IEnumerator TiledBaking_GPU_1k_lightmap_64_tiles()
-    {
-        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-        yield return null;
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-
-        lightingSettings.tiledBaking = LightingSettings.TiledBaking.SixtyFourth;
-        lightingSettings.lightmapResolution = 100;
-        lightingSettings.lightmapMaxSize = 1024;
-
-        Lightmapping.Clear();
-        Lightmapping.Bake();
-
-        LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        Assert.That(lc.GetTileCount(), Is.EqualTo(64), "Max tiling pass num should be 64");
-
-        while (Lightmapping.isRunning)
-        {
-            yield return null;
-        }
-
-        Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();
-    }
-
-    [UnityTest]
-    public IEnumerator TiledBaking_GPU_1k_lightmap_256_tiles()
-    {
-        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-        yield return null;
-
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
-
-        Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
-
-        lightingSettings.tiledBaking = LightingSettings.TiledBaking.TwoHundredFiftySixth;
-        lightingSettings.lightmapResolution = 100;
-        lightingSettings.lightmapMaxSize = 1024;
-
-        Lightmapping.Clear();
-        Lightmapping.Bake();
-
-        LightmapConvergence lc = Lightmapping.GetLightmapConvergence(0);
-        Assert.That(lc.GetTileCount(), Is.EqualTo(256), "Max tiling pass num should be 256");
-
-        while (Lightmapping.isRunning)
-        {
-            yield return null;
-        }
-
-        Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();
-    }
-
-    [UnityTest]
     public IEnumerator Extract_AO_With_Tiled_Baking_On()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/AOTestScene.unity", OpenSceneMode.Single);
         yield return null;
 
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
+        Lightmapping.TryGetLightingSettings(out var lightingSettings);
 
         Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
 
@@ -227,13 +48,13 @@ public class Editmode_TiledBaking_Tests
     }
 
     [UnityTest]
+    [Ignore("We need to decide if we want to continue supporting the 'export training data' feature. This is tracked by https://jira.unity3d.com/browse/LIGHT-1034")]
     public IEnumerator Export_Training_Data_With_Tiled_Baking_On()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/ExtractTrainingDataScene.unity", OpenSceneMode.Single);
         yield return null;
 
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
+        Lightmapping.TryGetLightingSettings(out var lightingSettings);
 
         Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
 
@@ -274,13 +95,13 @@ public class Editmode_TiledBaking_Tests
     }
 
     [UnityTest]
+    [Ignore("We need to decide if we want to continue supporting the 'export training data' feature. This is tracked by https://jira.unity3d.com/browse/LIGHT-1034")]
     public IEnumerator Export_Training_Data_With_AO_And_Tiled_Baking_On()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/ExtractTrainingDataScene.unity", OpenSceneMode.Single);
         yield return null;
 
-        LightingSettings lightingSettings = null;
-        Lightmapping.TryGetLightingSettings(out lightingSettings);
+        Lightmapping.TryGetLightingSettings(out var lightingSettings);
 
         Assert.That(lightingSettings, !Is.EqualTo(null), "LightingSettings is null");
 
