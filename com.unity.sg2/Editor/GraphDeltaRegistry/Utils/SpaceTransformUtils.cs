@@ -148,11 +148,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 sb.AddLine("// Converting ", xform.type.ToString(), " from ", xform.from.ToString(), " to ", xform.to.ToString(), " via world space");
                 sb.DeclareVariable(vectorType, "world");
 
-                var toWorldInfo = genArgs;
+                var toWorldInfo = genArgs; // copy
                 toWorldInfo.OutputVariable = "world";
                 GenerateTransform(toWorld, toWorldInfo, sb);
 
-                var fromWorldInfo = genArgs;
+                var fromWorldInfo = genArgs; // copy
                 fromWorldInfo.Input = "world";
                 GenerateTransform(fromWorld, fromWorldInfo, sb);
             }
