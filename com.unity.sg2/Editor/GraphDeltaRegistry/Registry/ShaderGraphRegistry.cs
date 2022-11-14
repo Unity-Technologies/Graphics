@@ -117,6 +117,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Register(new MultiplyNode(), new MultiplyNodeUI());
             Register(new SwizzleNode(), new SwizzleNodeUI());
             Register(new SampleGradientNode(), new StaticNodeUIDescriptorBuilder(SampleGradientNode.kUIDescriptor));
+            Register(new TransformNode(), new TransformNodeUI());
             #endregion
 
             // TODO: remove these, but keep until equivalents are working correctly.
