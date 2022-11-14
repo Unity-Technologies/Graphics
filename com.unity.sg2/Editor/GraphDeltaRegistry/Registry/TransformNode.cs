@@ -44,10 +44,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public RegistryKey GetRegistryKey() => new() {Name = "Transform", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-        static void AddVec3Referable(NodeHandler node, string portName, string contextEntryName, Registry registry)
+        static void AddLocalReferable(NodeHandler node, string portName, string contextEntryName, Registry registry)
         {
             var port = node.AddPort<GraphType>(portName, isInput: true, registry);
-            GraphTypeHelpers.InitGraphType(port.GetTypeField(), GraphType.Length.Three);
+            var typeField = port.GetTypeField();
+            typeField.AddSubField("IsLocal", true);
+            GraphTypeHelpers.InitGraphType(typeField, GraphType.Length.Three);
             node.Owner.AddDefaultConnection(contextEntryName, port.ID, registry);
         }
 
@@ -56,17 +58,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var inPort = node.AddPort<GraphType>(kInput, isInput: true, registry);
             var outPort = node.AddPort<GraphType>(kOutput, isInput: false, registry);
 
-            GraphTypeHelpers.InitGraphType(inPort.GetTypeField(), GraphType.Length.Three, precisionDynamic: true);
-            GraphTypeHelpers.InitGraphType(outPort.GetTypeField(), GraphType.Length.Three, precisionDynamic: true);
+            GraphTypeHelpers.InitGraphType(inPort.GetTypeField(), GraphType.Length.Three);
+            GraphTypeHelpers.InitGraphType(outPort.GetTypeField(), GraphType.Length.Three);
             GraphTypeHelpers.ResolveDynamicPorts(node);
 
-            AddVec3Referable(node, kWorldTangent, "WorldSpaceTangent", registry);
-            AddVec3Referable(node, kWorldBiTangent, "WorldSpaceBiTangent", registry);
-            AddVec3Referable(node, kWorldNormal, "WorldSpaceNormal", registry);
-            AddVec3Referable(node, kWorldPosition, "WorldSpacePosition", registry);
+            AddLocalReferable(node, kWorldTangent, "WorldSpaceTangent", registry);
+            AddLocalReferable(node, kWorldBiTangent, "WorldSpaceBiTangent", registry);
+            AddLocalReferable(node, kWorldNormal, "WorldSpaceNormal", registry);
+            AddLocalReferable(node, kWorldPosition, "WorldSpacePosition", registry);
 
             node.AddField(kSourceSpace, CoordinateSpace.Object, reconcretizeOnDataChange: true);
-            node.AddField(kDestinationSpace, CoordinateSpace.Tangent, reconcretizeOnDataChange: true);
+            node.AddField(kDestinationSpace, CoordinateSpace.World, reconcretizeOnDataChange: true);
             node.AddField(kType, ConversionType.Position, reconcretizeOnDataChange: true);
         }
 
@@ -92,7 +94,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 builder.AddParameter(param);
             }
 
-            var generationInfo = new TransformValues
+            var generationInfo = new SpaceTransformUtils.GenerationArgs
             {
                 Input = kInput,
                 OutputVariable = kOutput,

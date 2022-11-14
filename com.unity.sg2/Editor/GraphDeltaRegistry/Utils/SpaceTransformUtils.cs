@@ -1,8 +1,5 @@
 using UnityEditor.ShaderFoundry;
 
-// TODO: Remove hardcoded float precision
-// TODO: Once this works, see how it can be simplified to better fit in SG2
-
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     enum CoordinateSpace
@@ -46,21 +43,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
     }
 
-    struct TransformValues
-    {
-        public string Input, WorldTangent, WorldBiTangent, WorldNormal, WorldPosition;
-        public string OutputVariable;
-    }
-
     static class SpaceTransformUtils
     {
-        delegate void TransformFunction(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb);
+        internal struct GenerationArgs
+        {
+            public string Input, WorldTangent, WorldBiTangent, WorldNormal, WorldPosition;
+            public string OutputVariable;
+        }
+
+        // This could be a part of GenerationArgs if it ends up being useful to change.
+        const string k_TempVariableScalarTypeName = "float";
+
+        delegate void TransformFunction(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb);
 
         static string GenerateTangentTransform(ShaderFunction.Builder sb, string tangentVec, string biTangentVec, string normalVec)
         {
             const string name = "tangentTransform";
 
-            var scalarType = ShaderType.Scalar(sb.Container, "float"); // TODO: precision?
+            var scalarType = ShaderType.Scalar(sb.Container, k_TempVariableScalarTypeName);
             var matrixType = ShaderType.Matrix(sb.Container, scalarType, 3, 3);
             var value = $"{{{tangentVec}, {biTangentVec}, {normalVec}}}";
 
@@ -68,16 +68,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return name;
         }
 
-        static void Identity(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void Identity(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             // identity didn't normalize before version 2
             if ((xform.version > 1) && xform.normalize && (xform.type != ConversionType.Position))
-                sb.AddLine(transformValues.OutputVariable, " = SafeNormalize(", transformValues.Input, ");");
+                sb.AddLine(genArgs.OutputVariable, " = SafeNormalize(", genArgs.Input, ");");
             else
-                sb.AddLine(transformValues.OutputVariable, " = ", transformValues.Input, ";");
+                sb.AddLine(genArgs.OutputVariable, " = ", genArgs.Input, ";");
         }
 
-        static void ViaWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void ViaWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             // should never be calling this if one of the spaces is already world space (silly, and could lead to infinite recursions)
             if ((xform.from == CoordinateSpace.World) || (xform.to == CoordinateSpace.World))
@@ -117,6 +117,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 if (xform.version == 1)
                                     toWorld.version = 2;
                             }
+
                             break;
                         case CoordinateSpace.View:
                             if ((xform.to == CoordinateSpace.Tangent) || (xform.to == CoordinateSpace.AbsoluteWorld))
@@ -124,6 +125,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 // these transforms erroneously used the position view-to-world transform
                                 toWorld.type = ConversionType.Position;
                             }
+
                             break;
                         case CoordinateSpace.Tangent:
                             if ((xform.to == CoordinateSpace.Object) || (xform.to == CoordinateSpace.View) || (xform.to == CoordinateSpace.AbsoluteWorld))
@@ -132,6 +134,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 toWorld.type = ConversionType.Normal;
                                 toWorld.version = 2;
                             }
+
                             break;
                     }
                 }
@@ -139,41 +142,41 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             using (sb.BlockScope())
             {
-                var scalarType = ShaderType.Scalar(sb.Container, "float"); // TODO: precision?
+                var scalarType = ShaderType.Scalar(sb.Container, k_TempVariableScalarTypeName);
                 var vectorType = ShaderType.Vector(sb.Container, scalarType, 3);
 
                 sb.AddLine("// Converting ", xform.type.ToString(), " from ", xform.from.ToString(), " to ", xform.to.ToString(), " via world space");
                 sb.DeclareVariable(vectorType, "world");
 
-                var toWorldInfo = transformValues;
+                var toWorldInfo = genArgs;
                 toWorldInfo.OutputVariable = "world";
                 GenerateTransform(toWorld, toWorldInfo, sb);
 
-                var fromWorldInfo = transformValues;
+                var fromWorldInfo = genArgs;
                 fromWorldInfo.Input = "world";
                 GenerateTransform(fromWorld, fromWorldInfo, sb);
             }
         }
 
-        static void WorldToObject(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void WorldToObject(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformWorldToObject(", transformValues.Input, ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformWorldToObject(", genArgs.Input, ");");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = true;
-                    sb.AddLine(transformValues.OutputVariable, " = TransformWorldToObjectDir(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformWorldToObjectDir(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformWorldToObjectNormal(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformWorldToObjectNormal(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
             }
         }
 
-        static void WorldToTangent(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void WorldToTangent(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             if (xform.version <= 1)
             {
@@ -184,42 +187,42 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             using (sb.BlockScope())
             {
-                string tangentTransform = GenerateTangentTransform(sb, transformValues.WorldTangent, transformValues.WorldBiTangent, transformValues.WorldNormal);
+                string tangentTransform = GenerateTangentTransform(sb, genArgs.WorldTangent, genArgs.WorldBiTangent, genArgs.WorldNormal);
 
                 switch (xform.type)
                 {
                     case ConversionType.Position:
-                        sb.AddLine(transformValues.OutputVariable, " = TransformWorldToTangentDir(", transformValues.Input, " - ", transformValues.WorldPosition, ", ", tangentTransform, ", false);");
+                        sb.AddLine(genArgs.OutputVariable, " = TransformWorldToTangentDir(", genArgs.Input, " - ", genArgs.WorldPosition, ", ", tangentTransform, ", false);");
                         break;
                     case ConversionType.Direction:
-                        sb.AddLine(transformValues.OutputVariable, " = TransformWorldToTangentDir(", transformValues.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
+                        sb.AddLine(genArgs.OutputVariable, " = TransformWorldToTangentDir(", genArgs.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
                         break;
                     case ConversionType.Normal:
-                        sb.AddLine(transformValues.OutputVariable, " = TransformWorldToTangent(", transformValues.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
+                        sb.AddLine(genArgs.OutputVariable, " = TransformWorldToTangent(", genArgs.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
                         break;
                 }
             }
         }
 
-        static void WorldToView(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void WorldToView(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformWorldToView(", transformValues.Input, ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformWorldToView(", genArgs.Input, ");");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = false;
-                    sb.AddLine(transformValues.OutputVariable, " = TransformWorldToViewDir(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformWorldToViewDir(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformWorldToViewNormal(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformWorldToViewNormal(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
             }
         }
 
-        static void WorldToAbsoluteWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void WorldToAbsoluteWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             // prior to version 2 always used Position transform
             if (xform.version <= 1)
@@ -228,56 +231,56 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(transformValues.OutputVariable, " = GetAbsolutePositionWS(", transformValues.Input, ");");
+                    sb.AddLine(genArgs.OutputVariable, " = GetAbsolutePositionWS(", genArgs.Input, ");");
                     break;
                 case ConversionType.Direction:
                 case ConversionType.Normal:
                     // both normal and direction are unchanged
                     if (xform.normalize)
-                        sb.AddLine(transformValues.OutputVariable, " = SafeNormalize(", transformValues.Input, ");");
+                        sb.AddLine(genArgs.OutputVariable, " = SafeNormalize(", genArgs.Input, ");");
                     else
-                        sb.AddLine(transformValues.OutputVariable, " = ", transformValues.Input, ";");
+                        sb.AddLine(genArgs.OutputVariable, " = ", genArgs.Input, ";");
                     break;
             }
         }
 
-        static void ObjectToWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void ObjectToWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformObjectToWorld(", transformValues.Input, ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformObjectToWorld(", genArgs.Input, ");");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = true;
-                    sb.AddLine(transformValues.OutputVariable, " = TransformObjectToWorldDir(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformObjectToWorldDir(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformObjectToWorldNormal(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformObjectToWorldNormal(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
             }
         }
 
-        static void ObjectToAbsoluteWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void ObjectToAbsoluteWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    ViaWorld(xform, transformValues, sb);
+                    ViaWorld(xform, genArgs, sb);
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = true;
-                    sb.AddLine(transformValues.OutputVariable, " = TransformObjectToWorldDir(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformObjectToWorldDir(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformObjectToWorldNormal(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformObjectToWorldNormal(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
             }
         }
 
-        static void TangentToWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void TangentToWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             // prior to version 2 all transforms were Normal, and directional transforms were normalized
             if (xform.version <= 1)
@@ -289,41 +292,41 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             using (sb.BlockScope())
             {
-                string tangentTransform = GenerateTangentTransform(sb, transformValues.WorldTangent, transformValues.WorldBiTangent, transformValues.WorldNormal);
+                string tangentTransform = GenerateTangentTransform(sb, genArgs.WorldTangent, genArgs.WorldBiTangent, genArgs.WorldNormal);
                 switch (xform.type)
                 {
                     case ConversionType.Position:
-                        sb.AddLine(transformValues.OutputVariable, " = TransformTangentToWorldDir(", transformValues.Input, ", ", tangentTransform, ", false).xyz + ", transformValues.WorldPosition, ";");
+                        sb.AddLine(genArgs.OutputVariable, " = TransformTangentToWorldDir(", genArgs.Input, ", ", tangentTransform, ", false).xyz + ", genArgs.WorldPosition, ";");
                         break;
                     case ConversionType.Direction:
-                        sb.AddLine(transformValues.OutputVariable, " = TransformTangentToWorldDir(", transformValues.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ").xyz;");
+                        sb.AddLine(genArgs.OutputVariable, " = TransformTangentToWorldDir(", genArgs.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ").xyz;");
                         break;
                     case ConversionType.Normal:
-                        sb.AddLine(transformValues.OutputVariable, " = TransformTangentToWorld(", transformValues.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
+                        sb.AddLine(genArgs.OutputVariable, " = TransformTangentToWorld(", genArgs.Input, ", ", tangentTransform, ", ", xform.NormalizeString(), ");");
                         break;
                 }
             }
         }
 
-        static void ViewToWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void ViewToWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformViewToWorld(", transformValues.Input, ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformViewToWorld(", genArgs.Input, ");");
                     break;
                 case ConversionType.Direction:
                     if (xform.version <= 1)
                         xform.normalize = false;
-                    sb.AddLine(transformValues.OutputVariable, " = TransformViewToWorldDir(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformViewToWorldDir(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
                 case ConversionType.Normal:
-                    sb.AddLine(transformValues.OutputVariable, " = TransformViewToWorldNormal(", transformValues.Input, ", ", xform.NormalizeString(), ");");
+                    sb.AddLine(genArgs.OutputVariable, " = TransformViewToWorldNormal(", genArgs.Input, ", ", xform.NormalizeString(), ");");
                     break;
             }
         }
 
-        static void AbsoluteWorldToWorld(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        static void AbsoluteWorldToWorld(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             // prior to version 2, always used position transform
             if (xform.version <= 1)
@@ -332,15 +335,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             switch (xform.type)
             {
                 case ConversionType.Position:
-                    sb.AddLine(transformValues.OutputVariable, " = GetCameraRelativePositionWS(", transformValues.Input, ");");
+                    sb.AddLine(genArgs.OutputVariable, " = GetCameraRelativePositionWS(", genArgs.Input, ");");
                     break;
                 case ConversionType.Direction:
                 case ConversionType.Normal:
                     // both normal and direction are unchanged
                     if (xform.normalize)
-                        sb.AddLine(transformValues.OutputVariable, " = SafeNormalize(", transformValues.Input, ");");
+                        sb.AddLine(genArgs.OutputVariable, " = SafeNormalize(", genArgs.Input, ");");
                     else
-                        sb.AddLine(transformValues.OutputVariable, " = ", transformValues.Input, ";");
+                        sb.AddLine(genArgs.OutputVariable, " = ", genArgs.Input, ";");
                     break;
             }
         }
@@ -384,10 +387,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         };
 
-        public static void GenerateTransform(SpaceTransform xform, TransformValues transformValues, ShaderFunction.Builder sb)
+        public static void GenerateTransform(SpaceTransform xform, GenerationArgs genArgs, ShaderFunction.Builder sb)
         {
             var func = k_TransformFunctions[(int)xform.from, (int)xform.to];
-            func(xform, transformValues, sb);
+            func(xform, genArgs, sb);
         }
     }
 }
