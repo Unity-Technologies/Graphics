@@ -49,6 +49,7 @@ namespace UnityEditor.ShaderFoundry
 
             TargetSetupContext context = new TargetSetupContext(m_assetCollection);
             LegacyTarget.Setup(ref context);
+            context.SetupFinalize();
 
             var subShaderIndex = 0;
             foreach (var subShader in context.subShaders)
@@ -86,16 +87,48 @@ namespace UnityEditor.ShaderFoundry
             foreach (var pass in subShaderDescriptor.passes)
             {
                 var legacyPassDescriptor = pass.descriptor;
-                var passBuilder = new TemplatePass.Builder(Container);
-                passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
-                passBuilder.DisplayName = legacyPassDescriptor.displayName;
-                passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
-                ++subPassIndex;
-
-                BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
-
-                builder.AddPass(passBuilder.Build());
+                var templatePass = BuildTemplatePass(legacyPassDescriptor, subShaderIndex, subPassIndex, vertexCustomizationPoint, surfaceCustomizationPoint);
+                subPassIndex++;
+                builder.AddPass(templatePass);
             }
+
+            builder.AdditionalShaderID = subShaderDescriptor.additionalShaderID;
+            builder.ShaderFallback = subShaderDescriptor.shaderFallback ?? "Hidden/Shader Graph/FallbackError";
+
+            if (subShaderDescriptor.usePassList != null)
+            {
+                foreach (var usePass in subShaderDescriptor.usePassList)
+                    builder.AddUsePass(usePass);
+            }
+
+            if (subShaderDescriptor.shaderDependencies != null)
+            {
+                foreach (var dependency in subShaderDescriptor.shaderDependencies)
+                    builder.AddShaderDependency(dependency.dependencyName, dependency.shaderName);
+            }
+
+            string shaderGUI = null;
+            string rpAssetType = null;
+
+            // TODO: we might just be able to get rid of subShaderDescriptor.shaderCustomEditor,
+            // I don't believe anyone is still using it...
+            if (!string.IsNullOrWhiteSpace(subShaderDescriptor.shaderCustomEditor))
+            {
+                shaderGUI = subShaderDescriptor.shaderCustomEditor;
+                rpAssetType = null;
+            }
+
+            if (subShaderDescriptor.shaderCustomEditors != null)
+            {
+                foreach (var customEditor in subShaderDescriptor.shaderCustomEditors)
+                {
+                    shaderGUI = customEditor.shaderGUI;
+                    rpAssetType = customEditor.renderPipelineAssetType;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(shaderGUI))
+                builder.SetCustomEditor(shaderGUI, rpAssetType);
 
             return builder.Build();
         }
@@ -110,6 +143,8 @@ namespace UnityEditor.ShaderFoundry
 
             vertexCustomizationPoint = BuildVertexCustomizationPoint(vertexContext);
             surfaceCustomizationPoint = BuildFragmentCustomizationPoint(fragmentContext);
+            builder.AddCustomizationPoint(vertexCustomizationPoint);
+            builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
 
         CustomizationPoint BuildVertexCustomizationPoint(PostFieldsContext context)
@@ -123,10 +158,10 @@ namespace UnityEditor.ShaderFoundry
             nameMappings.Add(new NameOverride { Source = "ObjectSpaceTangent", Destination = "Tangent" });
             var defaultVariableValues = new Dictionary<string, string>();
             var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues, context.Fields);
-            var vertexMainBlockInstance = new BlockInstance.Builder(Container, vertexMainBlock).Build();
+            var vertexMainBlockElement = new BlockSequenceElement.Builder(Container, vertexMainBlock).Build();
 
             var vertexBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.VertexDescriptionCPName);
-            return BuildCustomizationPoint(vertexBuilder, vertexPreBlock, vertexPostBlock, new List<BlockInstance> { vertexMainBlockInstance });
+            return BuildCustomizationPoint(vertexBuilder, vertexPreBlock, vertexPostBlock, new List<BlockSequenceElement> { vertexMainBlockElement });
         }
 
         CustomizationPoint BuildFragmentCustomizationPoint(PostFieldsContext context)
@@ -141,10 +176,10 @@ namespace UnityEditor.ShaderFoundry
             // Need to create the default outputs for the fragment output. This isn't currently part of the field descriptors.
             var defaultVariableValues = new Dictionary<string, string>();
             var fragmentMainBlock = BuildMainBlock(LegacyCustomizationPoints.SurfaceDescriptionFunctionName, fragmentPreBlock, fragmentPostBlock, nameMappings, defaultVariableValues, context.Fields);
-            var fragmentMainBlockInstance = new BlockInstance.Builder(Container, fragmentMainBlock).Build();
+            var fragmentMainBlockElement = new BlockSequenceElement.Builder(Container, fragmentMainBlock).Build();
 
             var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
-            return BuildCustomizationPoint(fragmentBuilder, fragmentPreBlock, fragmentPostBlock, new List<BlockInstance> { fragmentMainBlockInstance });
+            return BuildCustomizationPoint(fragmentBuilder, fragmentPreBlock, fragmentPostBlock, new List<BlockSequenceElement> { fragmentMainBlockElement });
         }
 
         void BuildLegacyTemplateEntryPoints(PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
@@ -155,6 +190,18 @@ namespace UnityEditor.ShaderFoundry
 
             ExtractVertex(passBuilder, vertexCustomizationPoint, vertexContext.Fields);
             ExtractFragment(passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
+        }
+
+        TemplatePass BuildTemplatePass(PassDescriptor legacyPassDescriptor, int subShaderIndex, int subPassIndex, CustomizationPoint vertexCustomizationPoint, CustomizationPoint fragmentCustomizationPoint)
+        {
+            var passBuilder = new TemplatePass.Builder(Container);
+            passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
+            passBuilder.DisplayName = legacyPassDescriptor.displayName;
+
+            passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
+
+            BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, fragmentCustomizationPoint);
+            return passBuilder.Build();
         }
 
         // Context object for collecting the "post fields" from a pass.
@@ -189,9 +236,9 @@ namespace UnityEditor.ShaderFoundry
             ExtractContext(targetActiveBlockContext, legacyPassDescriptor.validPixelBlocks, fragmentContext);
         }
 
-        BlockInstance BuildSimpleBlockInstance(Block block)
+        BlockSequenceElement BuildSimpleBlockSequenceElement(Block block)
         {
-            var builder = new BlockInstance.Builder(Container, block);
+            var builder = new BlockSequenceElement.Builder(Container, block);
             return builder.Build();
         }
 
@@ -258,14 +305,14 @@ namespace UnityEditor.ShaderFoundry
             return builder.Build();
         }
 
-        CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock, List<BlockInstance> defaultBlockInstances)
+        CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock, List<BlockSequenceElement> defaultBlockSequenceElements)
         {
             foreach (var output in preBlock.Outputs)
                 builder.AddInput(CloneVariable(output));
             foreach (var input in postBlock.Inputs)
                 builder.AddOutput(CloneVariable(input));
-            foreach (var blockInstance in defaultBlockInstances)
-                builder.AddDefaultBlockInstance(blockInstance);
+            foreach (var blockSequenceElement in defaultBlockSequenceElements)
+                builder.AddDefaultBlockSequenceElement(blockSequenceElement);
             return builder.Build();
         }
 
@@ -361,24 +408,26 @@ namespace UnityEditor.ShaderFoundry
 
         void ExtractVertex(TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
-            var stageType = UnityEditor.Rendering.ShaderType.Vertex;
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
 
-            passBuilder.AppendBlockInstance(BuildSimpleBlockInstance(vertexPreBlock), stageType);
-            passBuilder.AppendCustomizationPoint(vertexCustomizationPoint, stageType);
-            passBuilder.AppendBlockInstance(BuildSimpleBlockInstance(vertexPostBlock), stageType);
+            var stageDescriptionBuilder = new StageDescription.Builder(Container, PassStageType.Vertex);
+            stageDescriptionBuilder.AddElement(BuildSimpleBlockSequenceElement(vertexPreBlock));
+            stageDescriptionBuilder.AddElement(new BlockSequenceElement.Builder(Container, vertexCustomizationPoint).Build());
+            stageDescriptionBuilder.AddElement(BuildSimpleBlockSequenceElement(vertexPostBlock));
+            passBuilder.SetStageDescription(stageDescriptionBuilder.Build());
         }
 
         void ExtractFragment(TemplatePass.Builder passBuilder, CustomizationPoint surfaceCustomizationPoint, List<FieldDescriptor> fragmentFields)
         {
-            var stageType = UnityEditor.Rendering.ShaderType.Fragment;
             var fragmentPreBlock = BuildFragmentPreBlock();
             var fragmentPostBlock = BuildFragmentPostBlock(fragmentFields);
 
-            passBuilder.AppendBlockInstance(BuildSimpleBlockInstance(fragmentPreBlock), stageType);
-            passBuilder.AppendCustomizationPoint(surfaceCustomizationPoint, stageType);
-            passBuilder.AppendBlockInstance(BuildSimpleBlockInstance(fragmentPostBlock), stageType);
+            var stageDescriptionBuilder = new StageDescription.Builder(Container, PassStageType.Fragment);
+            stageDescriptionBuilder.AddElement(BuildSimpleBlockSequenceElement(fragmentPreBlock));
+            stageDescriptionBuilder.AddElement(new BlockSequenceElement.Builder(Container, surfaceCustomizationPoint).Build());
+            stageDescriptionBuilder.AddElement(BuildSimpleBlockSequenceElement(fragmentPostBlock));
+            passBuilder.SetStageDescription(stageDescriptionBuilder.Build());
         }
 
         // BlockFields don't have types set. We need this temporarily to resolve them

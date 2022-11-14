@@ -75,6 +75,13 @@ namespace UnityEditor.ShaderFoundry
             result = value;
         }
 
+        public static void ParseFloat(ShaderAttributeParam attributeParam, int parameterIndex, ref float result)
+        {
+            if (!float.TryParse(attributeParam.Value, out float value))
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an float.");
+            result = value;
+        }
+
         public static void ParseEnum<EnumType>(ShaderAttributeParam attributeParam, int parameterIndex, ref EnumType result) where EnumType : struct, Enum
         {
             if (!Enum.TryParse(attributeParam.Value, out EnumType value))
