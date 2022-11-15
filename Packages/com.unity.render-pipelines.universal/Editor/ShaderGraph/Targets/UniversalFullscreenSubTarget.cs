@@ -22,8 +22,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         protected override string pipelineTag => UniversalTarget.kPipelineTag;
 
+        const string kURPInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl";
+
         protected override IncludeCollection pregraphIncludes => new IncludeCollection
         {
+            { kURPInput, IncludeLocation.Pregraph }, // Include before kInstancing
             { kInstancing, IncludeLocation.Pregraph }, // For VR
             { CoreIncludes.CorePregraph },
             { CoreIncludes.ShaderGraphPregraph },
