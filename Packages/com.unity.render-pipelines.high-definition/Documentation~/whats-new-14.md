@@ -8,11 +8,11 @@ This page contains an overview of new features, improvements, and issues resolve
 
 In HDRP 14, the [Ray Tracing Settings](Ray-Tracing-Settings.md) volume includes new **Culling Mode** properties to define the algorithm that performs Ray Tracing culling. You can use these settings to optimise how HDRP builds the ray tracing acceleration structure.
 
-![An animated example of how the frustum size extends.](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/RayTracingSettings_extended_frustum.gif)
+![An animated example of how the frustum size extends.](Images/RayTracingSettings_extended_frustum.gif)
 
 ### Fullscreen Shader Graph
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/HDRP-Fullscreen-Frost-Effect.png)
+![](Images/HDRP-Fullscreen-Frost-Effect.png)
 
 HDRP 14 introduces a new **Fullscreen** Material type in ShaderGraph.
 You can use Fullscreen shaders in fullscreen custom passes, custom post processes and C# scripting.
@@ -21,7 +21,7 @@ For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](
 
 #### Fullscreen Sample set
 
-![Fullscreen Samples](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/FullscreenSamples.png)
+![Fullscreen Samples](Images/FullscreenSamples.png)
 
 HDRP 14 includes a Fullscreen Shadergraph sample set which you can download from the Package Manager.
 Each shader is associated with a prefab that demonstrates how to implement it in the scene in the following ways:
@@ -32,8 +32,8 @@ Each shader is associated with a prefab that demonstrates how to implement it in
 
 ### Transparency Material Sample Scene
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/HDRP-MaterialSample-ShadowsTransparency.png)
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/HDRP-MaterialSample-StackingTransparency.png)
+![](Images/HDRP-MaterialSample-ShadowsTransparency.png)
+![](Images/HDRP-MaterialSample-StackingTransparency.png)
 
 HDRP 14 includes new sample scenes that demonstrates transparent Materials using different rendering methods:
 
@@ -56,15 +56,15 @@ HDRP 14 includes a set of industry-standard color monitors that you can use to c
 You can find these monitors in the Rendering Debugger window (menu: **Windows > Analysis > Rendering Debugger**) in the **Rendering** tab.
 
 - **Waveform**: Displays the full range of luma information in the render
-  ![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/new_waveform.png)
+  ![](Images/new_waveform.png)
 - **Parade**: Splits the image into red, green and blue separately
-  ![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/new_waveform_parade.png)
+  ![](Images/new_waveform_parade.png)
 - **Vectorscope**: Measures the overall range of hue and saturation within the image
-  ![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/new_vectorscope.png)
+  ![](Images/new_vectorscope.png)
 
 ### Denoising in Path Tracing
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/Path-Tracing-Denoise-banner.png)
+![](Images/Path-Tracing-Denoise-banner.png)
 
 HDRP 14 adds denoising for frames that use path tracing. You can choose from the following denoising methods:
 
@@ -76,7 +76,7 @@ HDRP 14 adds denoising for frames that use path tracing. You can choose from the
 in HDRP 14, Local Volumetric Fog volume supports Materials you create in ShaderGraph.
 
 You can use this to create dynamic fog effects. For more information, see [Volumetric Material](Volumetric-Material.md)
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/Aurora_Fog.png)
+![](Images/Aurora_Fog.png)
 
 ### Local Volumetric Fog blending
 
@@ -88,7 +88,7 @@ This version also adds a **Priority** property that you can use to control the o
 
 ### Screen Space Reflection
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/ScreenSpaceReflection_SpeedRejection_Debug_whatsnew.png)
+![](Images/ScreenSpaceReflection_SpeedRejection_Debug_whatsnew.png)
 
 HDRP 14 adds new properties to the Screen Space Reflection component that you can use to control how the PBR Accumulation SSR algorithm behaves. For example, enable **World Space Speed Rejection** to reject samples based on speed in world space.
 
@@ -135,7 +135,7 @@ From HDRP 14, the [Lit Material](Lit-Shader.md) options include the **Emission U
 
 #### Hair Material Samples
 
-![Hair Samples](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/HairSamples.png)
+![Hair Samples](Images/HairSamples.png)
 
 HDRP 14 updates the Hair Sample scene to include the new Physical Hair Shader.
 
@@ -168,7 +168,7 @@ HDRP 14 makes the following improvements to the [Cloud Layer](Override-Cloud-Lay
 - Changes the **Distortion** property name to **Wind**.
 - Changes the raymarching algorithm to improve scattering, and to give more consistent results when you change the number of steps. Depending on your lighting conditions, you might have to tweak the **Density** and **Exposure** sliders to get the same result as earlier HDRP versions.
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/cl-whats-new.png)
+![](Images/cl-whats-new.png)
 
 ### Renderer bounds access in ShaderGraph
 
@@ -182,7 +182,7 @@ HDRP 14 adds the **Occlusion remap Curve** property to the Lens Flare component.
 
 ### New Eye Shader Subtype
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/EyeCaustic.gif)
+![](Images/EyeCaustic.gif)
 
 HDRP 14.0 includes a new Eye Shader type called **Eye Cinematic with Caustic**. This Eye Shader uses caustics to give a more realistic effect. This makes it more resource-intensive than other HDRP Eye Shaders.
 
@@ -198,7 +198,7 @@ HDRP 14 adds a node to Shader Graph that you can use to strip `FragInputs`. This
 
 ### Adaptive Probe Volume
 
-![Tech behind Enemies](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/APV-enemies-tech.png)
+![Tech behind Enemies](Images/APV-enemies-tech.png)
 
 HDRP 14 makes the following changes to Adaptive Probe Volume (APV):
 
@@ -220,7 +220,7 @@ HDRP 14 improves the precision of the Decal Projector's **Angle Fade** property.
 
 ### Improve area light soft shadows
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/SoftAreaShadowImrpovements.png)
+![](Images/SoftAreaShadowImrpovements.png)
 
 In HDRP 14, soft area shadows are more accurate to the raytraced reference. This version also makes the following changes:
 
@@ -229,7 +229,7 @@ In HDRP 14, soft area shadows are more accurate to the raytraced reference. This
 
 ### Ray-Tracing and Terrain
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/DXRTerrain.png)
+![](Images/DXRTerrain.png)
 
 From HDRP 14, all raytracing effects support Terrain.
 
@@ -241,7 +241,7 @@ HDRP 14 adds the **Time slicing** property to the [Reflection Probe](Reflection-
 
 #### Reflection probe atlas
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/HDRPAtlasCubemap.png)
+![](Images/HDRPAtlasCubemap.png)
 
 HDRP 14 replaces the cube reflection probe cache array with a 2D texture atlas cache in octahedral projection.
 
@@ -249,7 +249,7 @@ Planar reflection probes now use the same 2D texture cache. This means you can c
 
 ### Water System
 
-![](C:/UnitySrc/docs/main/Packages/com.unity.render-pipelines.high-definition/Documentation~/Images/WaterSystem2022-2.png)
+![](Images/WaterSystem2022-2.png)
 
 HDRP 14 introduces the Water System. This feature allows you to render highly realistic water surfaces and interact with them. Among the various features that this version includes:
 
