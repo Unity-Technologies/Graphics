@@ -960,9 +960,9 @@ namespace UnityEngine.Rendering.Universal
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 
-            // Render scale is not intended to affect the scene view so override the scale to 1.0 when it's rendered.
-            bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
-            float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
+            // Render scale is not intended to affect the scene or preview cameras so override the scale to 1.0 when it's rendered.
+            bool isSceneOrPreviewCamera = camera.cameraType == CameraType.SceneView || cameraData.cameraType == CameraType.Preview;
+            float renderScale = isSceneOrPreviewCamera ? 1.0f : cameraData.renderScale;
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
