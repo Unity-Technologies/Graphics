@@ -1,3 +1,4 @@
+using System.Reflection;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 using Unity.CommandStateObserver;
@@ -15,8 +16,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphElementModel owner,
             ICommandTarget commandTarget,
             int size,
+            FieldInfo inspectedField,
             string label = null)
-            : base(commandTarget, label)
+            : base(commandTarget, label, inspectedField)
         {
             m_ConstantModel = constantModel;
 

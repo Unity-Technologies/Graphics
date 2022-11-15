@@ -76,10 +76,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             using var selectionUpdater = selectionState.UpdateScope;
             using var graphUpdater = graphModelState.UpdateScope;
+            using (var changeScope = graphModelState.GraphModel.ChangeDescriptionScope)
             {
                 foreach (var model in nonRedirects)
                 {
-                    if (!model.IsDeletable()) continue;
+                    if (!model.IsDeletable())
+                        continue;
 
                     switch (model)
                     {
@@ -95,23 +97,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
 
-                // Bypass redirects in a similar manner to GTF's BypassNodesCommand.
-                var deletedModels = HandleRedirectNodes(redirects, graphModel, graphUpdater);
-
                 // Delete everything else as usual.
-                deletedModels.AddRange(graphModel.DeleteElements(nonRedirects).DeletedModels);
+                graphModel.DeleteElements(nonRedirects);
 
-                var selectedModels = deletedModels.Where(m => selectionState.IsSelected(m)).ToList();
+                // Remove any isolated redirect nodes.
+                HandleRedirectNodes(redirects, graphModel, graphUpdater);
+
+                var selectedModels = changeScope.ChangeDescription.DeletedModels
+                    .Where(m => selectionState.IsSelected(m)).ToList();
                 if (selectedModels.Any())
                 {
                     selectionUpdater.SelectElements(selectedModels, false);
                 }
-
-                graphUpdater.MarkDeleted(deletedModels);
+                
+                graphUpdater.MarkUpdated(changeScope.ChangeDescription);
             }
         }
 
-        static List<GraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
+        static void HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
         {
             foreach (var redirect in redirects)
             {
@@ -121,23 +124,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModel.DeleteWire(inputEdgeModel);
                 graphModel.DeleteWires(outputEdgeModels);
 
-                graphUpdater.MarkDeleted(inputEdgeModel);
-                graphUpdater.MarkDeleted(outputEdgeModels);
-
                 if (inputEdgeModel == null || !outputEdgeModels.Any()) continue;
 
                 foreach (var outputEdgeModel in outputEdgeModels)
                 {
                     var edge = graphModel.CreateWire(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
-                    graphUpdater.MarkNew(edge);
                 }
             }
 
             // Don't delete connections for redirects, because we may have made
             // edges we want to preserve. Edges we don't need were already
             // deleted in the above loop.
-            var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
-            return deletedModels;
+            graphModel.DeleteNodes(redirects, false);
         }
 
         internal static void HandlePasteSerializedData(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState, PasteSerializedDataCommand command)

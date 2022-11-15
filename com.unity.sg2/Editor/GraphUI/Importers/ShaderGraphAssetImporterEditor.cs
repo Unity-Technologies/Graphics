@@ -77,42 +77,14 @@ namespace UnityEditor.ShaderGraph
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            if (!graphAsset)
-            {
-                return false;
-            }
             return ShowWindow(path, graphAsset);
         }
 
+        // TODO (Brett) Dedup with ShaderSubGraphAssetImporter
         private static bool ShowWindow(string path, ShaderGraphAsset model)
         {
-            ShaderGraphEditorWindow shaderGraphEditorWindow = null;
-
-            // Prevents the same graph asset from being opened in two separate editor windows
-            var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
-            foreach (var existingEditorWindow in existingEditorWindows)
-            {
-                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), model))
-                {
-                    shaderGraphEditorWindow = existingEditorWindow;
-                    break;
-                }
-            }
-
-            if(shaderGraphEditorWindow == null)
-            {
-                shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
-                if (shaderGraphEditorWindow == null)
-                {
-                    return false;
-                }
-                AssetDatabase.ImportAsset(path);
-            }
-
-            shaderGraphEditorWindow.Show();
-            shaderGraphEditorWindow.Focus();
-            shaderGraphEditorWindow.SetCurrentSelection(model, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            return true;
+            var window = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(model);
+            return window != null;
         }
     }
 }

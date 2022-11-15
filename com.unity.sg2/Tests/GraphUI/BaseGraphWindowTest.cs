@@ -144,10 +144,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
 
             var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
+
             CreateWindow();
-            m_Window.Show();
-            m_Window.Focus();
-            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            // this sets the selected window
+            GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<TestEditorWindow>(graphAsset);
 
             // Wait till the graph model is loaded back up
             while (m_Window.GraphView.GraphModel == null)

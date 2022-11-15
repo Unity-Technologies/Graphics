@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Configuration
             foreach(var template in templateProvider.GetTemplates(new ShaderContainer()))
             {
                 var cpDescs = new List<CPDataDescriptor>();
-                foreach(var cp in template.CustomizationPoints())
+                foreach(var cp in template.CustomizationPoints)
                 {
                     var inputs = new List<CPEntryDescriptor>();
                     var outputs = new List<CPEntryDescriptor>();

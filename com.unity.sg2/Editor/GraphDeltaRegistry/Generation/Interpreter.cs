@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
 
             //Should this also take in the customization point? Then we can provide the known customization point inputs to the variable references. We still gather them at a later point anyways, but would
-            //largely be a redundancy 
+            //largely be a redundancy
             public ProcessingResult Process(NodeHandler node)
             {
                 //starting with root node, gather all leaf nodes. //Create iterator of leaf first traversal
@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     initialization = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
                 }
-                //generally, inlining values makes more readable code unless the same value is being used in multiple places. 
+                //generally, inlining values makes more readable code unless the same value is being used in multiple places.
                 bool inline = port.IsInput;
                 string desiredName = $"{function.Name}_{param.Name}";
                 VariableData data = new VariableData
@@ -450,7 +450,7 @@ namespace UnityEditor.ShaderGraph.Generation
             sb.AppendLine("}");
         }
 
-        internal static string GetShaderBlockInHumanReadableForm(BlockInstance block)
+        internal static string GetShaderBlockInHumanReadableForm(BlockSequenceElement block)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("//INCLUDES------");
@@ -470,7 +470,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     GetShaderFunctionInHumanReadableForm(ref sb, function);
                 }
             }
-            
+
             sb.AppendLine();
             sb.AppendLine();
 
@@ -498,8 +498,8 @@ namespace UnityEditor.ShaderGraph.Generation
         //private struct WorkUnit
         //{
         //    //The overarching shader foundary container. Everything gets created and managed through this.
-        //    public ShaderContainer container; 
-        //    //The builder for an individual shader block. 
+        //    public ShaderContainer container;
+        //    //The builder for an individual shader block.
         //    public Block.Builder builder;
         //    //Every shader block needs an "entry point function" - this is the main code for the block
         //    public ShaderFunction.Builder mainBodyFunctionBuilder;
@@ -516,7 +516,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return GetShaderBlockInHumanReadableForm(GetShaderBlockForNode(node, registry, new ShaderContainer()));
         }
 
-        internal static BlockInstance GetShaderBlockForNode(NodeHandler node, Registry registry, ShaderContainer shaderContainer)
+        internal static BlockSequenceElement GetShaderBlockForNode(NodeHandler node, Registry registry, ShaderContainer shaderContainer)
         {
             Block.Builder builder = new Block.Builder(shaderContainer, $"{node.ID.LocalPath}_NODE_BLOCK");
             ShaderFunction.Builder mainFunctionBuilder = new ShaderFunction.Builder(builder, $"{node.ID.LocalPath}_MAIN_FUNCTION");
@@ -540,54 +540,9 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             builder.SetEntryPointFunction(workunit.entryPointFunction);
             var block = builder.Build();
-            var blockDescBuilder = new BlockInstance.Builder(shaderContainer, block);
+            var blockDescBuilder = new BlockSequenceElement.Builder(shaderContainer, block);
             return blockDescBuilder.Build();
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         private class ShaderFunctionRegistry : List<ShaderFunction>
         {
@@ -680,7 +635,6 @@ namespace UnityEditor.ShaderGraph.Generation
         public static string GetFunctionCode(NodeHandler node, Registry registry)
         {
             var builder = new ShaderBuilder();
-            //List<ShaderFunction> dependencies = new();
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry, out var dependencies);
             builder.AddDeclarationString(func);
             if (dependencies.localFunctions != null)
@@ -693,15 +647,11 @@ namespace UnityEditor.ShaderGraph.Generation
 
         public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry registry, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
-            var builder = new ShaderBuilder();
             var container = new ShaderContainer();
-            var scpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
-            var vcpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
+            var scpBuilder = new CustomizationPointImplementation.Builder(container, CustomizationPoint.Invalid);
+            var vcpBuilder = new CustomizationPointImplementation.Builder(container, CustomizationPoint.Invalid);
             EvaluateGraphAndPopulateDescriptors(node, graph, container, registry,ref vcpBuilder, ref scpBuilder, ref defaultTextures, null, null);
-            foreach (var b in scpBuilder.BlockInstances)
-                foreach(var func in b.Block.Functions)
-                    builder.AddDeclarationString(func);
-            return builder.ConvertToString();
+            return GetShaderBlockInHumanReadableForm(GetShaderBlockForNode(node, registry, container));
         }
 
         private static void GetBlocks(ShaderContainer    container,
@@ -711,13 +661,13 @@ namespace UnityEditor.ShaderGraph.Generation
                               GraphHandler graph,
                               Registry registry,
                               ref List<(string, UnityEngine.Texture)> defaultTextures,
-                          out CustomizationPointInstance vertexCPDesc,
-                          out CustomizationPointInstance surfaceCPDesc)
+                          out CustomizationPointImplementation vertexCPDesc,
+                          out CustomizationPointImplementation surfaceCPDesc)
         {
-            vertexCPDesc = CustomizationPointInstance.Invalid; // we currently do not use the vertex customization point
+            vertexCPDesc = CustomizationPointImplementation.Invalid; // we currently do not use the vertex customization point
 
-            var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
-            var vertexDescBuilder = new CustomizationPointInstance.Builder(container, vertexCP);
+            var surfaceDescBuilder = new CustomizationPointImplementation.Builder(container, surfaceCP);
+            var vertexDescBuilder = new CustomizationPointImplementation.Builder(container, vertexCP);
             EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexCP.Name, surfaceCP.Name);
             surfaceCPDesc = surfaceDescBuilder.Build();
             //vertexCPDesc = vertexDescBuilder.Build();
@@ -728,7 +678,7 @@ namespace UnityEditor.ShaderGraph.Generation
         internal static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures, Target target = null, string shaderName = null)
         {
             List<(string, UnityEngine.Texture)> defaults = new();
-            void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
+            void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointImplementation vertexCPDesc, out CustomizationPointImplementation fragmentCPDesc)
                 => GetBlocks(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
             var shader = SimpleSampleBuilder.Build(new ShaderContainer(), target ?? SimpleSampleBuilder.GetTarget(), shaderName ?? node.ID.LocalPath, lambda, String.Empty);
 
@@ -867,8 +817,8 @@ namespace UnityEditor.ShaderGraph.Generation
                 GraphHandler shaderGraph,
                 ShaderContainer container,
                 Registry registry,
-                ref CustomizationPointInstance.Builder vertexDescBuilder,
-                ref CustomizationPointInstance.Builder surfaceDescBuilder,
+                ref CustomizationPointImplementation.Builder vertexDescBuilder,
+                ref CustomizationPointImplementation.Builder surfaceDescBuilder,
                 ref List<(string, UnityEngine.Texture)> defaultTextures,
                 string vertexName,
                 string surfaceName,
@@ -1002,19 +952,16 @@ namespace UnityEditor.ShaderGraph.Generation
             mainBodyFunctionBuilder.AddInput(inputType, "In");
             blockBuilder.SetEntryPointFunction(mainBodyFunctionBuilder.Build());
             var block = blockBuilder.Build();
-            var blockDescBuilder = new BlockInstance.Builder(container, block);
+            var blockDescBuilder = new BlockSequenceElement.Builder(container, block);
             var blockDesc = blockDescBuilder.Build();
             var cpName = rootNode.GetField<string>("_CustomizationPointName");
             if (!isContext || cpName == null || (cpName != null && cpName.GetData().Equals(surfaceName)))
             {
-                // Prevent duplicates-- by why are we even getting any?
-                if (!surfaceDescBuilder.BlockInstances.Any(e => e.Block.Name == blockDesc.Block.Name))
-                    surfaceDescBuilder.BlockInstances.Add(blockDesc);
+                surfaceDescBuilder.AddBlockSequenceElement(blockDesc);
             }
             else if(isContext && cpName != null && cpName.GetData().Equals(vertexName))
             {
-                if (!vertexDescBuilder.BlockInstances.Any(e => e.Block.Name == blockDesc.Block.Name))
-                    vertexDescBuilder.BlockInstances.Add(blockDesc);
+                vertexDescBuilder.AddBlockSequenceElement(blockDesc);
             }
 
             //if the root node was not a context node, then we need to remap an output to the expected customization point output
@@ -1047,12 +994,11 @@ namespace UnityEditor.ShaderGraph.Generation
                 remapBuilder.SetEntryPointFunction(remapMainBodyFunctionBuilder.Build());
 
                 var remapBlock = remapBuilder.Build();
-                var remapBlockDescBuilder = new BlockInstance.Builder(container, remapBlock);
+                var remapBlockDescBuilder = new BlockSequenceElement.Builder(container, remapBlock);
                 var remapBlockDesc = remapBlockDescBuilder.Build();
-                surfaceDescBuilder.BlockInstances.Add(remapBlockDesc);
+                surfaceDescBuilder.AddBlockSequenceElement((remapBlockDesc));
 
             }
-
         }
 
         private static void EvaluateContextOutputInitialization(ShaderFunction.Builder mainBodyFunctionBuilder, PortHandler port, string name, Registry registry)
