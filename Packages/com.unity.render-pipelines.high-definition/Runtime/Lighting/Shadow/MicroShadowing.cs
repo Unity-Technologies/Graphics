@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// When enabled, HDRP processes Micro Shadows for this Volume.
         /// </summary>
         [Tooltip("Enables micro shadows for directional lights.")]
-        public BoolParameter enable = new BoolParameter(false);
+        [DisplayInfo(name = "State")]
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Controls the opacity of the micro shadows.

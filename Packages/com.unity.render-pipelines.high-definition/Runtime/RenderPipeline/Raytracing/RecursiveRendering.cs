@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Enables recursive rendering.
         /// </summary>
         [Tooltip("Enable. Enables recursive rendering.")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Layer mask used to include the objects for recursive rendering.

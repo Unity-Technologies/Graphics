@@ -391,7 +391,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
             PropertyField(m_LocalClouds);
             if (m_LocalClouds.value.boolValue)
                 EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);

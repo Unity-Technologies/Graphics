@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// When enabled, the water surfaces are rendered.
         /// </summary>
         [Tooltip("When enabled, the water surfaces are rendered.")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Sets the size of the water grids in meters.
