@@ -303,7 +303,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
                     Disconnect(sourcePort, destPort);
             }
-            // return base.DeleteWires(edgeModels);
+            base.DeleteWires(edgeModels);
         }
 
         public override void DeleteVariableDeclarations(IReadOnlyCollection<VariableDeclarationModel> variableModels, bool deleteUsages = true)

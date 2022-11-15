@@ -44,9 +44,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (modelsToDelete.Count == 0)
                 return;
 
-            // We want to override base handling here
-            // DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
-
             using (var undoStateUpdater = undoState.UpdateScope)
             {
                 undoStateUpdater.SaveStates(graphModelState, selectionState);
@@ -103,13 +100,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Remove any isolated redirect nodes.
                 HandleRedirectNodes(redirects, graphModel, graphUpdater);
 
+                // Deselect anything that is deleted and selected
                 var selectedModels = changeScope.ChangeDescription.DeletedModels
                     .Where(m => selectionState.IsSelected(m)).ToList();
                 if (selectedModels.Any())
                 {
                     selectionUpdater.SelectElements(selectedModels, false);
                 }
-                
+
                 graphUpdater.MarkUpdated(changeScope.ChangeDescription);
             }
         }
