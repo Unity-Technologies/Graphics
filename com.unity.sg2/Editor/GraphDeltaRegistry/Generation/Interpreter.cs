@@ -825,6 +825,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 ref CustomizationPointImplementation.Builder vertexDescBuilder,
                 ref CustomizationPointImplementation.Builder surfaceDescBuilder,
                 ref List<(string, UnityEngine.Texture)> defaultTextures,
+                //TODO: Liz, figure out why we are generating duplicate blocks to begin with
                 ref HashSet<string> includedFragBlocks,
                 ref HashSet<string> includedVertBlocks,
                 string vertexName,
