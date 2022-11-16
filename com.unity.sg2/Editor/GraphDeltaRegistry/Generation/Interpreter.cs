@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor.ContextLayeredDataStorage;
@@ -650,7 +651,9 @@ namespace UnityEditor.ShaderGraph.Generation
             var container = new ShaderContainer();
             var scpBuilder = new CustomizationPointImplementation.Builder(container, CustomizationPoint.Invalid);
             var vcpBuilder = new CustomizationPointImplementation.Builder(container, CustomizationPoint.Invalid);
-            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry,ref vcpBuilder, ref scpBuilder, ref defaultTextures, null, null);
+            var fragBlockSet = new HashSet<string>();
+            var vertBlockSet = new HashSet<string>();
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry,ref vcpBuilder, ref scpBuilder, ref defaultTextures, ref fragBlockSet, ref vertBlockSet, null, null);
             return GetShaderBlockInHumanReadableForm(GetShaderBlockForNode(node, registry, container));
         }
 
@@ -668,7 +671,9 @@ namespace UnityEditor.ShaderGraph.Generation
 
             var surfaceDescBuilder = new CustomizationPointImplementation.Builder(container, surfaceCP);
             var vertexDescBuilder = new CustomizationPointImplementation.Builder(container, vertexCP);
-            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexCP.Name, surfaceCP.Name);
+            var fragBlockSet = new HashSet<string>();
+            var vertBlockSet = new HashSet<string>();
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, ref fragBlockSet, ref vertBlockSet, vertexCP.Name, surfaceCP.Name);
             surfaceCPDesc = surfaceDescBuilder.Build();
             //vertexCPDesc = vertexDescBuilder.Build();
         }
@@ -820,6 +825,8 @@ namespace UnityEditor.ShaderGraph.Generation
                 ref CustomizationPointImplementation.Builder vertexDescBuilder,
                 ref CustomizationPointImplementation.Builder surfaceDescBuilder,
                 ref List<(string, UnityEngine.Texture)> defaultTextures,
+                ref HashSet<string> includedFragBlocks,
+                ref HashSet<string> includedVertBlocks,
                 string vertexName,
                 string surfaceName,
                 Dictionary<ElementID, HashSet<ElementID>> depList = null
@@ -868,7 +875,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!node.ID.Equals(rootNode.ID))
                     {
                         //evaluate the upstream context's block
-                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexName, surfaceName, depList);
+                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, ref includedFragBlocks, ref includedVertBlocks, vertexName, surfaceName, depList);
                         //create inputs to our block based on the upstream context's outputs
                         foreach (var port in node.GetPorts())
                         {
@@ -957,11 +964,19 @@ namespace UnityEditor.ShaderGraph.Generation
             var cpName = rootNode.GetField<string>("_CustomizationPointName");
             if (!isContext || cpName == null || (cpName != null && cpName.GetData().Equals(surfaceName)))
             {
-                surfaceDescBuilder.AddBlockSequenceElement(blockDesc);
+                if (!includedFragBlocks.Contains(blockDesc.Block.Name))
+                {
+                    surfaceDescBuilder.AddBlockSequenceElement(blockDesc);
+                    includedFragBlocks.Add(blockDesc.Block.Name);
+                }
             }
             else if(isContext && cpName != null && cpName.GetData().Equals(vertexName))
             {
-                vertexDescBuilder.AddBlockSequenceElement(blockDesc);
+                if (!includedVertBlocks.Contains(blockDesc.Block.Name))
+                {
+                    vertexDescBuilder.AddBlockSequenceElement(blockDesc);
+                    includedVertBlocks.Add(blockDesc.Block.Name);
+                }
             }
 
             //if the root node was not a context node, then we need to remap an output to the expected customization point output
