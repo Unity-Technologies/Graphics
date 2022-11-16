@@ -366,7 +366,13 @@ namespace UnityEditor.ShaderGraph.Generation
 
             private VariableData CreateCastVariableData(VariableData data, ShaderType type)
             {
-                throw new NotImplementedException();
+                return new VariableData()
+                {
+                    desiredVariableName = $"Cast_{data.actualVariableName ?? data.desiredVariableName}",
+                    initializationString = "CAST_TODO",
+                    shaderType = type,
+                    inlineInitialization = true
+                };
             }
 
             private FunctionReference? RegisterNodeDependencies(NodeHandler workunit)
