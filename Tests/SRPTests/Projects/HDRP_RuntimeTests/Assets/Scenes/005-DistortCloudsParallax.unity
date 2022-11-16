@@ -1944,7 +1944,7 @@ MonoBehaviour:
       m_Calls: []
   captureFramerate: 0
   waitFrames: 150
-  xrCompatible: 0
+  xrCompatible: 1
   xrThresholdMultiplier: 5
   checkMemoryAllocation: 0
   renderPipelineAsset: {fileID: 11400000, guid: bf08b3ceba5e80046afeaa3a6f108557,
