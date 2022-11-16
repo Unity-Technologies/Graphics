@@ -75,12 +75,11 @@ namespace UnityEditor.ShaderGraph
         [OnOpenAsset(0)]
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
-            string path = AssetDatabase.GetAssetPath(instanceID);
+            var path = AssetDatabase.GetAssetPath(instanceID);
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            return ShowWindow(path, graphAsset);
+            return graphAsset && ShowWindow(path, graphAsset);
         }
 
-        // TODO (Brett) Dedup with ShaderSubGraphAssetImporter
         private static bool ShowWindow(string path, ShaderGraphAsset model)
         {
             var window = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(model);
