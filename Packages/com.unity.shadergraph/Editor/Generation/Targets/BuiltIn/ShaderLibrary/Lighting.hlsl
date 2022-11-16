@@ -15,7 +15,7 @@
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
 // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-    #if defined(SHADER_API_GLES) || !defined(_NORMALMAP)
+    #if !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
     #elif !SHADER_HINT_NICE_QUALITY
@@ -221,7 +221,7 @@ int GetPerObjectLightIndex(uint index)
 // Even trying to reinterpret cast the unity_LightIndices to float[] won't work             /
 // it will cast to float4[] and create extra register pressure. :(                          /
 /////////////////////////////////////////////////////////////////////////////////////////////
-#elif !defined(SHADER_API_GLES)
+#else
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
 
@@ -230,14 +230,6 @@ int GetPerObjectLightIndex(uint index)
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
     // This increases both arithmetic and register pressure.
     return unity_LightIndices[index / 4][index % 4];
-#else
-    // Fallback to GLES2. No bitfield magic here :(.
-    // We limit to 4 indices per object and only sample unity_4LightIndices0.
-    // Conditional moves are branch free even on mali-400
-    // small arithmetic cost but no extra register pressure from ImmCB_0_0_0 matrix.
-    half2 lightIndex2 = (index < 2.0h) ? unity_LightIndices[0].xy : unity_LightIndices[0].zw;
-    half i_rem = (index < 2.0h) ? index : index - 2.0h;
-    return (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
 #endif
 #else
     return 0;
@@ -305,11 +297,7 @@ struct BRDFData
 
 half ReflectivitySpecular(half3 specular)
 {
-#if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
-#else
     return Max3(specular.r, specular.g, specular.b);
-#endif
 }
 
 half OneMinusReflectivityMetallic(half metallic)

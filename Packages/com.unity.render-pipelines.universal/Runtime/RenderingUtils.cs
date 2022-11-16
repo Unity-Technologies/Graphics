@@ -90,8 +90,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool SupportsLightLayers(GraphicsDeviceType type)
         {
-            // GLES2 does not support bitwise operations.
-            return type != GraphicsDeviceType.OpenGLES2;
+            return true;
         }
 
         static Material s_ErrorMaterial;

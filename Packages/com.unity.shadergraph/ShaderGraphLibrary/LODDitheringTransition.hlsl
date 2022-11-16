@@ -40,7 +40,7 @@ uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
 #endif
 void LODDitheringTransitionSG_float(float3 viewDirWS, float4 screenPos, out float multiplyAlpha)
 {
-#if !defined (SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
+#if !defined(SHADER_STAGE_RAY_TRACING)
     float p = GenerateHashedRandomFloat(ComputeFadeMaskSeed(viewDirWS, screenPos.xy));
     float f = unity_LODFade.x - CopySign(p, unity_LODFade.x);
         multiplyAlpha = f < 0 ? 0.0f : 1.0f;
@@ -48,7 +48,7 @@ void LODDitheringTransitionSG_float(float3 viewDirWS, float4 screenPos, out floa
 }
 void DoLODCrossFade_half(float3 viewDirWS, float4 screenPos, out half halfAlpha)
 {
-#if !defined (SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
+#if !defined(SHADER_STAGE_RAY_TRACING)
     float p = GenerateHashedRandomFloat(ComputeFadeMaskSeed(viewDirWS, screenPos.xy));
     float f = unity_LODFade.x - CopySign(p, unity_LODFade.x);
     float multiplyAlpha = f < 0 ? 0.0f : 1.0f;

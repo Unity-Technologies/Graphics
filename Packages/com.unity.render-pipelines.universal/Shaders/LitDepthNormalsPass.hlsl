@@ -10,8 +10,7 @@
 #define _DETAIL
 #endif
 
-// GLES2 has limited amount of interpolators
-#if defined(_PARALLAXMAP) && !defined(SHADER_API_GLES)
+#if defined(_PARALLAXMAP)
 #define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
 #endif
 

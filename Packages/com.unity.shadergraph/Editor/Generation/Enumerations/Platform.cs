@@ -7,7 +7,6 @@ namespace UnityEditor.ShaderGraph
     {
         D3D11,
         GLCore,
-        GLES,
         GLES3,
         Metal,
         Vulkan,
@@ -31,8 +30,6 @@ namespace UnityEditor.ShaderGraph
                     return "d3d11";
                 case Platform.GLCore:
                     return "glcore";
-                case Platform.GLES:
-                    return "gles";
                 case Platform.GLES3:
                     return "gles3";
                 case Platform.Metal:

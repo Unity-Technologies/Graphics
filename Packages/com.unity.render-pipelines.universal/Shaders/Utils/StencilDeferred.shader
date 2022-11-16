@@ -393,7 +393,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_vertex _ _SPOT
@@ -428,7 +428,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -478,7 +478,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -527,7 +527,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -579,7 +579,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -621,7 +621,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile _FOG
@@ -659,7 +659,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile _CLEAR_STENCIL_PARTIAL
@@ -684,7 +684,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_vertex _SSAO_ONLY

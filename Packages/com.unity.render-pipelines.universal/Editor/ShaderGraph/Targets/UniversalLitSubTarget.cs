@@ -492,7 +492,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            // Deferred only in SM4.5, MRT not supported in GLES2
+            // Deferred only in SM4.5
             public static PassDescriptor GBuffer(UniversalTarget target, WorkflowMode workflowMode, bool blendModePreserveSpecular)
             {
                 var result = new PassDescriptor

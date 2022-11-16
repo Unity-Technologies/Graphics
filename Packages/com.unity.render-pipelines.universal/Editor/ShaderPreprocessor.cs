@@ -222,9 +222,7 @@ namespace UnityEditor.Rendering.Universal
 
         bool IsGLDevice(ShaderCompilerData compilerData)
         {
-            return compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20 ||
-                compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES3x ||
-                compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.OpenGLCore;
+            return compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES3x || compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.OpenGLCore;
         }
 
         bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
@@ -242,9 +240,7 @@ namespace UnityEditor.Rendering.Universal
                     return true;
 
             // Do not strip GL passes as there are only screen space forward
-            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x &&
-                compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES20 &&
-                compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.OpenGLCore)
+            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x && compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.OpenGLCore)
             {
                 // DBuffer
                 if (snippetData.passName == DecalShaderPassNames.DBufferMesh || snippetData.passName == DecalShaderPassNames.DBufferProjector ||
@@ -441,17 +437,8 @@ namespace UnityEditor.Rendering.Universal
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
-            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
-            {
-                // GLES2 does not support bitwise operations.
-                if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers))
-                    return true;
-            }
-            else
-            {
-                if (stripTool.StripMultiCompile(m_LightLayers, ShaderFeatures.LightLayers))
-                    return true;
-            }
+            if (stripTool.StripMultiCompile(m_LightLayers, ShaderFeatures.LightLayers))
+                return true;
 
             if (stripTool.StripMultiCompile(m_RenderPassEnabled, ShaderFeatures.RenderPassEnabled))
                 return true;
@@ -670,26 +657,6 @@ namespace UnityEditor.Rendering.Universal
                 !(compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) ||
                   compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
                 return true;
-
-            // As GLES2 has low amount of registers, we strip:
-            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
-            {
-                // Cascade shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
-                    return true;
-
-                // Screen space shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                    return true;
-
-                // Detail
-                if (compilerData.shaderKeywordSet.IsEnabled(m_LocalDetailMulx2) || compilerData.shaderKeywordSet.IsEnabled(m_LocalDetailScaled))
-                    return true;
-
-                // Clear Coat
-                if (compilerData.shaderKeywordSet.IsEnabled(m_LocalClearCoat) || compilerData.shaderKeywordSet.IsEnabled(m_LocalClearCoatMap))
-                    return true;
-            }
 
             // Editor visualization is only used in scene view debug modes.
             if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))

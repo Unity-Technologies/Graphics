@@ -5,7 +5,6 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
         Tags{ "RenderPipeline" = "UniversalPipeline" }
 
         HLSLINCLUDE
-            #pragma exclude_renderers gles
             // Foveated rendering currently not supported in dxc on metal
             #pragma never_use_dxc metal
         ENDHLSL

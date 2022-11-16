@@ -148,10 +148,7 @@ namespace UnityEngine.Rendering.Universal
 
         bool IsGLDevice()
         {
-            return
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
         }
     }
 }

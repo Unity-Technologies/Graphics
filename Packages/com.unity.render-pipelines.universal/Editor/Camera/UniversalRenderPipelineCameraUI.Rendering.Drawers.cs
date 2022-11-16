@@ -84,10 +84,6 @@ namespace UnityEditor.Rendering.Universal
                     CameraUI.Rendering.Drawer_Rendering_StopNaNs
                     ),
                 PostProcessingStopNaNsWarningDrawer,
-                CED.Conditional(
-                    (serialized, owner) => serialized.stopNaNs.boolValue && CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2),
-                    (serialized, owner) => EditorGUILayout.HelpBox(Styles.stopNaNsMessage, MessageType.Warning)
-                    ),
                 CED.Group(
                     CameraUI.Rendering.Drawer_Rendering_Dithering
                     ),
@@ -228,9 +224,6 @@ namespace UnityEditor.Rendering.Universal
             static void DrawerRenderingSMAAQuality(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.antialiasingQuality, Styles.antialiasingQuality);
-
-                if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
-                    EditorGUILayout.HelpBox(Styles.SMAANotSupported, MessageType.Warning);
             }
 
             static void DrawerRenderingTAAQuality(UniversalRenderPipelineSerializedCamera p, Editor owner)

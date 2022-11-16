@@ -38,9 +38,7 @@ half4 _SSAOBlueNoiseParams;
 #define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
 #endif
 
-#if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-    static const int SAMPLE_COUNT = 3;
-#elif defined(_SAMPLE_COUNT_HIGH)
+#if defined(_SAMPLE_COUNT_HIGH)
     static const int SAMPLE_COUNT = 12;
 #elif defined(_SAMPLE_COUNT_MEDIUM)
     static const int SAMPLE_COUNT = 8;

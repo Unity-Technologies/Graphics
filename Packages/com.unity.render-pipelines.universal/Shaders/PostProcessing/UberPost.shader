@@ -1,7 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/UberPost"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers gles
         #pragma multi_compile_local_fragment _ _DISTORTION
         #pragma multi_compile_local_fragment _ _CHROMATIC_ABERRATION
         #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
@@ -168,7 +167,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                     uvBloom = RemapFoveatedRenderingDistort(uvBloom);
                 #endif
 
-                #if _BLOOM_HQ && !defined(SHADER_API_GLES)
+                #if _BLOOM_HQ
                 half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom), _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
                 #else
                 half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom));

@@ -244,7 +244,6 @@ namespace UnityEngine.Rendering.Universal
 #else
                     switch (SystemInfo.graphicsDeviceType)
                     {
-                        case GraphicsDeviceType.OpenGLES2:
                         case GraphicsDeviceType.OpenGLES3:
                         case GraphicsDeviceType.Vulkan:
                             return panel.data.wireframeMode == DebugWireframeMode.None;

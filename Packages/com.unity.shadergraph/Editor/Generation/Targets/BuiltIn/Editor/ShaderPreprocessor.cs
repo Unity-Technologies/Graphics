@@ -227,18 +227,6 @@ namespace UnityEditor.Rendering.BuiltIn
                   compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
                 return true;
 
-            // As GLES2 has low amount of registers, we strip:
-            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
-            {
-                // Cascade shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
-                    return true;
-
-                // Screen space shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                    return true;
-            }
-
             // Editor visualization is only used in scene view debug modes.
             if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
                 return true;

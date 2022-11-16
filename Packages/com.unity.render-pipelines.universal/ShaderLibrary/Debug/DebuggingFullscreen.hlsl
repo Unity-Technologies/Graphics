@@ -67,7 +67,6 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
     {
         case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
         {
-#if !defined (SHADER_API_GLES)
             if (AnyIsNaN(color))
             {
                 debugColor = half4(1, 0, 0, 1);
@@ -76,9 +75,7 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
             {
                 debugColor = half4(0, 1, 0, 1);
             }
-            else
-#endif
-            if (color.r < 0 || color.g < 0 || color.b < 0 || color.a < 0)
+            else if (color.r < 0 || color.g < 0 || color.b < 0 || color.a < 0)
             {
                 debugColor = half4(0, 0, 1, 1);
             }

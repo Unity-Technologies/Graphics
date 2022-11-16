@@ -408,9 +408,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var format = Experimental.Rendering.GraphicsFormatUtility.GetDepthStencilFormat(bits, 0);
             RenderTextureDescriptor rtd = new RenderTextureDescriptor(width, height, Experimental.Rendering.GraphicsFormat.None, format);
-            rtd.shadowSamplingMode = (RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
-                                      && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)) ?
-                ShadowSamplingMode.CompareDepths : ShadowSamplingMode.None;
+            rtd.shadowSamplingMode = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap) ? ShadowSamplingMode.CompareDepths : ShadowSamplingMode.None;
             return rtd;
         }
 

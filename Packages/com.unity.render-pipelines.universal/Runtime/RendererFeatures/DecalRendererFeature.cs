@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
         public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
         public float maxDrawDistance = 1000f;
 #if UNITY_EDITOR
-        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalLayers)]
 #endif
         public bool decalLayers = false;
@@ -303,12 +303,6 @@ namespace UnityEngine.Rendering.Universal
 
         private DecalTechnique GetTechnique(bool isDeferred)
         {
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
-            {
-                Debug.LogError("Decals are not supported with OpenGLES2.");
-                return DecalTechnique.Invalid;
-            }
-
             DecalTechnique technique = DecalTechnique.Invalid;
             switch (m_Settings.technique)
             {

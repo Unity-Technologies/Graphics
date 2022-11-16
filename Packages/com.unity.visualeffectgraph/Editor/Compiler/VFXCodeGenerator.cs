@@ -796,7 +796,6 @@ namespace UnityEditor.VFX
         {
             GraphicsDeviceType.Direct3D11 => "d3d11",
             GraphicsDeviceType.OpenGLCore => "glcore",
-            GraphicsDeviceType.OpenGLES2 => "gles",
             GraphicsDeviceType.OpenGLES3 => "gles3",
             GraphicsDeviceType.Metal => "metal",
             GraphicsDeviceType.Vulkan => "vulkan",

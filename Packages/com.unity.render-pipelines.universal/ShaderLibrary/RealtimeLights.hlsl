@@ -18,14 +18,6 @@ struct Light
     uint    layerMask;
 };
 
-// WebGL1 does not support the variable conditioned for loops used for additional lights
-#if !defined(_USE_WEBGL1_LIGHTS) && defined(UNITY_PLATFORM_WEBGL) && !defined(SHADER_API_GLES3)
-    #define _USE_WEBGL1_LIGHTS 1
-    #define _WEBGL1_MAX_LIGHTS 8
-#else
-    #define _USE_WEBGL1_LIGHTS 0
-#endif
-
 #if USE_FORWARD_PLUS && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
 #define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK if (_AdditionalLightsColor[lightIndex].a > 0.0h) continue;
 #else
@@ -40,17 +32,9 @@ struct Light
         lightIndex += URP_FP_DIRECTIONAL_LIGHTS_COUNT; \
         FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
     #define LIGHT_LOOP_END } }
-#elif !_USE_WEBGL1_LIGHTS
+#else
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
-
-    #define LIGHT_LOOP_END }
-#else
-    // WebGL 1 doesn't support variable for loop conditions
-    #define LIGHT_LOOP_BEGIN(lightCount) \
-    for (int lightIndex = 0; lightIndex < _WEBGL1_MAX_LIGHTS; ++lightIndex) { \
-        if (lightIndex >= (int)lightCount) break;
-
     #define LIGHT_LOOP_END }
 #endif
 
@@ -218,7 +202,7 @@ int GetPerObjectLightIndex(uint index)
 // Even trying to reinterpret cast the unity_LightIndices to float[] won't work             /
 // it will cast to float4[] and create extra register pressure. :(                          /
 /////////////////////////////////////////////////////////////////////////////////////////////
-#elif !defined(SHADER_API_GLES)
+#else
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
 
@@ -232,15 +216,6 @@ int GetPerObjectLightIndex(uint index)
     // It appears indexing half4 as min16float4 on DX11 can fail. (dp4 {min16f})
     float4 tmp = unity_LightIndices[index / 4];
     return int(tmp[index % 4]);
-#else
-    // Fallback to GLES2. No bitfield magic here :(.
-    // We limit to 4 indices per object and only sample unity_4LightIndices0.
-    // Conditional moves are branch free even on mali-400
-    // small arithmetic cost but no extra register pressure from ImmCB_0_0_0 matrix.
-    half indexHalf = half(index);
-    half2 lightIndex2 = (indexHalf < half(2.0)) ? unity_LightIndices[0].xy : unity_LightIndices[0].zw;
-    half i_rem = (indexHalf < half(2.0)) ? indexHalf : indexHalf - half(2.0);
-    return int((i_rem < half(1.0)) ? lightIndex2.x : lightIndex2.y);
 #endif
 }
 

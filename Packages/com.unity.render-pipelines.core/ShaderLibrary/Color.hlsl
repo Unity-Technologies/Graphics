@@ -1,7 +1,7 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -492,7 +492,6 @@ real4 FastTonemapInvert(real4 c)
     return real4(FastTonemapInvert(c.rgb), c.a);
 }
 
-#ifndef SHADER_API_GLES
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
 real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), float3 uvw, float2 scaleOffset)
@@ -500,7 +499,6 @@ real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), float3 uvw, float2 scaleOffse
     uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
     return SAMPLE_TEXTURE3D_LOD(tex, samplerTex, uvw, 0.0).rgb;
 }
-#endif
 
 // 2D LUT grading
 // scaleOffset = (1 / lut_width, 1 / lut_height, lut_height - 1)
@@ -738,7 +736,7 @@ half3 DecodeRGBM(half4 rgbm)
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

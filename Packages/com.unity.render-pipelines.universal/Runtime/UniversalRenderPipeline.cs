@@ -123,9 +123,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static int maxPerObjectLights
         {
-            // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
-            // Check Lighting.hlsl for more details.
-            get => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ? 4 : 8;
+            get => 8;
         }
 
         // These limits have to match same limits in Input.hlsl
@@ -142,11 +140,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Must match: Input.hlsl, MAX_VISIBLE_LIGHTS
                 bool isMobile = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
-                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30)))
+                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30))
                     return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
-                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                     ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
@@ -752,9 +750,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Post-processing not supported in GLES2.
-            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             // Prepare XR rendering
@@ -1199,9 +1194,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.screenCoordScaleBias = Vector2.one;
             }
 
-            // Disables post if GLes2
-            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
             cameraData.requiresDepthTexture |= isSceneViewCamera;
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(ref cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
@@ -1352,8 +1344,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.requiresScreenSpaceShadowResolve = false;
 #pragma warning restore 0618
 
-            // On GLES2 we strip the cascade keywords from the lighting shaders, so for consistency we force disable the cascades here too
-            shadowData.mainLightShadowCascadesCount = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ? 1 : settings.shadowCascadeCount;
+            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 

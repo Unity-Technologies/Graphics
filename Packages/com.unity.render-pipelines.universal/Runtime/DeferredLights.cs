@@ -248,9 +248,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
-            DeferredConfig.IsOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
-                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
-                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+            DeferredConfig.IsOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 
             // Cachre result for DX10 platform too. Same reasons as above.
             DeferredConfig.IsDX10 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsShaderLevel <= 40;

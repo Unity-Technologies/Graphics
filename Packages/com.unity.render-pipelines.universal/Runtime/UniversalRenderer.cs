@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
             this.m_RenderingMode = data.renderingMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.m_CopyDepthMode = data.copyDepthMode;
-            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            useRenderPassEnabled = data.useNativeRenderPass;
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
             this.m_DepthPrimingRecommended = false;
@@ -347,7 +347,6 @@ namespace UnityEngine.Rendering.Universal
                 unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[]
                 {
                     GraphicsDeviceType.OpenGLCore,
-                    GraphicsDeviceType.OpenGLES2,
                     GraphicsDeviceType.OpenGLES3
                 };
             }
@@ -476,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
 
         bool IsGLESDevice()
         {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
         bool IsGLDevice()

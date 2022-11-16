@@ -416,16 +416,7 @@ namespace UnityEngine.Rendering.Universal
         private const bool k_RendererFeatureDefaults = true;
 
         // Platform specific filtering overrides
-
-        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES2)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.LightLayers)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings._DETAIL_MULX2, ShaderKeywordStrings._DETAIL_SCALED})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings._CLEARCOAT, ShaderKeywordStrings._CLEARCOATMAP})]
-        private const bool k_GLES2Defaults = true;
-
-        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
+        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
         private const bool k_CommonGLDefaults = true;
 #endif

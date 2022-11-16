@@ -14,13 +14,7 @@
 #pragma warning (disable : 3206) // implicit truncation of vector type
 #endif
 
-#if !defined(SHADER_API_GLES)
-    // all platforms except GLES2.0 have built-in shadow comparison samplers
-    #define SHADOWS_NATIVE
-#elif defined(SHADER_API_GLES) && defined(UNITY_ENABLE_NATIVE_SHADOW_LOOKUPS)
-    // GLES2.0 also has built-in shadow comparison samplers, but only on platforms where we pass UNITY_ENABLE_NATIVE_SHADOW_LOOKUPS from the editor
-    #define SHADOWS_NATIVE
-#endif
+#define SHADOWS_NATIVE
 
 #define fixed real
 #define fixed2 real2
@@ -117,7 +111,7 @@
 #define UNITY_SAMPLE_SHADOW_PROJ(tex,coord) SAMPLE_TEXTURE2D_SHADOW(tex, sampler##tex, (coord.xyz / coord.w))
 
 #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
-    // GLSL does not have textureLod(samplerCubeShadow, ...) support. GLES2 does not have core support for samplerCubeShadow, so we ignore it.
+    // GLSL does not have textureLod(samplerCubeShadow, ...) support.
     #define UNITY_SAMPLE_TEXCUBE_SHADOW(tex,coord) tex.SampleCmp (sampler##tex,(coord).xyz,(coord).w)
 #else
     #define UNITY_SAMPLE_TEXCUBE_SHADOW(tex,coord) SAMPLE_TEXTURECUBE_SHADOW(tex, sampler##tex, coord)
@@ -254,7 +248,7 @@ min16float4 texCUBEproj(samplerCUBE_h s, in float4 t)   { return texCUBE(s, t.xy
 
 // Define "fixed" precision to be half on non-GLSL platforms,
 // and sampler*_prec to be just simple samplers.
-#if !defined(SHADER_API_GLES) && !defined(SHADER_API_PSSL) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
+#if !defined(SHADER_API_PSSL) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
 #define UNITY_FIXED_IS_HALF 1
 #define sampler1D_half sampler1D
 #define sampler1D_float sampler1D

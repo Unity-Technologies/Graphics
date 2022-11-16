@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             ResetNativeRenderPassFrameData();
-            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            useRenderPassEnabled = data.useNativeRenderPass;
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 

@@ -52,13 +52,8 @@ VaryingsEdge VertEdge(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if SHADER_API_GLES
-    float4 pos = input.positionOS;
-    float2 uv  = input.uv;
-#else
     float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
-#endif
 
     output.positionCS = pos;
     output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
@@ -91,13 +86,8 @@ VaryingsBlend VertBlend(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if SHADER_API_GLES
-    float4 pos = input.positionOS;
-    float2 uv  = input.uv;
-#else
     float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
-#endif
 
     output.positionCS = pos;
     output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
@@ -129,13 +119,8 @@ VaryingsNeighbor VertNeighbor(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if SHADER_API_GLES
-    float4 pos = input.positionOS;
-    float2 uv  = input.uv;
-#else
     float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
     float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
-#endif
 
     output.positionCS = pos;
     output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;

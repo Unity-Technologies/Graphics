@@ -1,7 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers gles
         #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
