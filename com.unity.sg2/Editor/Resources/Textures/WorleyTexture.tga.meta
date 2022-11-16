@@ -5,7 +5,7 @@ TextureImporter:
   externalObjects: {}
   serializedVersion: 12
   mipmaps:
-    mipMapMode: 0
+    mipMapMode: 1
     enableMipMap: 0
     sRGBTexture: 0
     linearTexture: 0
@@ -54,9 +54,9 @@ TextureImporter:
   alphaUsage: 1
   alphaIsTransparency: 0
   spriteTessellationDetail: -1
-  textureType: 0
+  textureType: 10
   textureShape: 1
-  singleChannelComponent: 0
+  singleChannelComponent: 1
   flipbookRows: 1
   flipbookColumns: 1
   maxTextureSizeSet: 0
