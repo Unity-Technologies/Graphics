@@ -150,21 +150,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ValueFBM",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         valueNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += x*amp;
 	    freq *= Lacunarity;
 	    amp *= Gain;
     }
-    Out = pow(sum*0.5+0.5, 2.2);",
+    Out = sum+0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -175,21 +179,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ValueTurbulence",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         valueNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += abs(x)*amp;
         freq *= Lacunarity;
         amp *= Gain;
     }
-   Out = sum*0.5;",
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {1.0f}),
@@ -200,7 +208,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ValueRidgedMF",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         valueNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         ridge(x, Offset, n);
@@ -209,15 +218,18 @@ namespace UnityEditor.ShaderGraph.Defs
 		freq *= Lacunarity;
 		amp *= Gain;
 	}
-	Out = sum;",
+	Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] {1.0f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -230,21 +242,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "GradientFBM",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         gradientNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += x*amp;
 	    freq *= Lacunarity;
 	    amp *= Gain;
     }
-    Out = pow(sum+0.5, 2.2);",
+    Out = sum+0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -255,21 +271,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "GradientTurbulence",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         gradientNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += abs(x)*amp;
         freq *= Lacunarity;
         amp *= Gain;
     }
-   Out = sum;",
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {1.0f}),
@@ -280,7 +300,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "GradientRidgedMF",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         gradientNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         ridge(x, Offset, n);
@@ -289,15 +310,18 @@ namespace UnityEditor.ShaderGraph.Defs
 		freq *= Lacunarity;
 		amp *= Gain;
 	}
-    Out = pow(sum, 2.2);",
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] {1.0f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -311,21 +335,25 @@ namespace UnityEditor.ShaderGraph.Defs
 
                 new(
                     "WorleyFBM",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         worleyNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += x*amp;
 	    freq *= Lacunarity;
 	    amp *= Gain;
     }
-    Out = sum+0.6;",
+    Out = sum*0.5+0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -336,21 +364,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "WorleyTurbulence",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         worleyNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += abs(x)*amp;
         freq *= Lacunarity;
         amp *= Gain;
     }
-   Out = sum*0.5;",
+    Out = sum*0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {1.0f}),
@@ -361,7 +393,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "WorleyRidgedMF",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         worleyNoise(UV*freq, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         ridge(x, Offset, n);
@@ -370,15 +403,18 @@ namespace UnityEditor.ShaderGraph.Defs
 		freq *= Lacunarity;
 		amp *= Gain;
 	}
-	Out = sum;",
+	Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] {1.0f}),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -392,22 +428,26 @@ namespace UnityEditor.ShaderGraph.Defs
 
                 new(
                     "ValueTexFBM",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         valueTextureNoise(UV*freq, NoiseHashTexture, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += x*amp;
 	    freq *= Lacunarity;
 	    amp *= Gain;
     }
-    Out = pow(sum*0.5+0.5, 2.2);",
+    Out = sum+0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("NoiseHashTexture", TYPE.Texture2D, Usage.In),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -418,22 +458,26 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ValueTexTurbulence",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         valueTextureNoise(UV*freq, NoiseHashTexture, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         sum += abs(x)*amp;
 	    freq *= Lacunarity;
 	    amp *= Gain;
     }
-    Out = sum*0.5;",
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("NoiseHashTexture", TYPE.Texture2D, Usage.In),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {1.0f}),
@@ -444,7 +488,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "ValueTexRidgedMF",
-@"    for(int i=0; i<Octaves; i++) {
+@"   UV *= Scale;
+    for(int i=0; i<Octaves; i++) {
         valueTextureNoise(UV*freq, NoiseHashTexture, x);
         if (RotateOctaves) UV = mul(UV, randRotMat);
         ridge(x, Offset, n);
@@ -453,16 +498,19 @@ namespace UnityEditor.ShaderGraph.Defs
 		freq *= Lacunarity;
 		amp *= Gain;
 	}
-	Out = sum;",
+	Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] {1.0f}),
                         new ParameterDescriptor("NoiseHashTexture", TYPE.Texture2D, Usage.In),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -475,22 +523,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "GradientTexFBM",
-@"    UV*=0.1; //adjust for texture scale - so it matches the others
+@"    UV = 0.1 * UV * Scale; //adjust for texture scale - so it matches the others
     for(int i=0; i<Octaves; i++) {
         sum += (SAMPLE_TEXTURE2D_LOD(GradientTexture.tex, GradientTexture.samplerstate, UV*freq, 0).x * 2 -1) * amp;
         if (RotateOctaves) UV = mul(UV, randRotMat);
 	    freq *= Lacunarity;
 	    amp *= Gain;
     }
-    Out = pow(sum+0.5, 2.2);",
+    Out = sum+0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("GradientTexture", TYPE.Texture2D, Usage.In),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -501,22 +552,25 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "GradientTexTurbulence",
-@"    UV*=0.1; //adjust for texture scale - so it matches the others
+@"    UV = 0.1 * UV * Scale; //adjust for texture scale - so it matches the others
     for(int i=0; i<Octaves; i++) {
         sum += abs(SAMPLE_TEXTURE2D_LOD(GradientTexture.tex, GradientTexture.samplerstate, UV*freq, 0).x * 2 -1)*amp;
         if (RotateOctaves) UV = mul(UV, randRotMat);
         freq *= Lacunarity;
         amp *= Gain;
     }
-   Out = sum;",
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("GradientTexture", TYPE.Texture2D, Usage.In),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {1.0f}),
@@ -527,7 +581,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "GradientTexRidgedMF",
-@"    UV*=0.1; //adjust for texture scale - so it matches the others
+@"    UV = 0.1 * UV * Scale; //adjust for texture scale - so it matches the others
     for(int i=0; i<Octaves; i++) {
         ridge(SAMPLE_TEXTURE2D_LOD(GradientTexture.tex, GradientTexture.samplerstate, UV*freq, 0).x * 2 -1, Offset, n);
         if (RotateOctaves) UV = mul(UV, randRotMat);
@@ -536,16 +590,19 @@ namespace UnityEditor.ShaderGraph.Defs
 		freq *= Lacunarity;
 		amp *= Gain;
 	}
-    Out = pow(sum, 2.2);",
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
                     new ParameterDescriptor[]
                     {
                         new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] { 10.0f, 10.0f }),
                         new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
                         new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
                         new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
                         new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] {1.0f}),
                         new ParameterDescriptor("GradientTexture", TYPE.Texture2D, Usage.In),
                         new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat2, Usage.Local, new float[] { 0.7986f, -0.6018f, 0.6018f, 0.7986f }),//matrix rotates 37 degrees
                         new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
                         new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
@@ -585,11 +642,15 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "GradientTexRidgedMF", "Gradient Texture Ridged Multifractal" }
             },
             functionSelectorLabel: "Noise Type",
-            parameters: new ParameterUIDescriptor[9] {
+            parameters: new ParameterUIDescriptor[11] {
                 new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the coordinates used to create the noise",
                     options: REF.OptionList.UVs
+                ),
+                new ParameterUIDescriptor(
+                    name: "Scale",
+                    tooltip: "controls the size of the noise"
                 ),
                 new ParameterUIDescriptor(
                     name: "Ocataves",
@@ -621,6 +682,11 @@ namespace UnityEditor.ShaderGraph.Defs
                     name: "RotateOctaves",
                     displayName: "Random Octave Rotation",
                     tooltip: "when true, each octave is rotated slightly to create better variation"
+                ),
+                new ParameterUIDescriptor(
+                    name: "sRGBOutput",
+                    displayName: "sRGB",
+                    tooltip: "when true, the output is in sRGB space instead of linear"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
