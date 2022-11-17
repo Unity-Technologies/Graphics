@@ -13,10 +13,11 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new (
                     "Hash21",
-                    @"    Hash_Tchou_2_1_float(In, Out);",
+                    @"    Hash_Tchou_2_1_float(UV*Scale, Out);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] {10.0f, 10.0f}),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                     },
                     new string[]
@@ -26,10 +27,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "Hash23",
-                    @"    Hash_Tchou_2_3_float(In, Out);",
+                    @"    Hash_Tchou_2_3_float(UV*Scale, Out);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] {10.0f, 10.0f}),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                     },
                     new string[]
@@ -39,10 +41,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "Hash22",
-                    @"    Hash_Tchou_2_2_float(In, Out);",
+                    @"    Hash_Tchou_2_2_float(UV*Scale, Out);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
+                        new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
+                        new ParameterDescriptor("Scale", TYPE.Vec2, Usage.In, new float[] {10.0f, 10.0f}),
                         new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out),
                     },
                     new string[]
@@ -52,10 +55,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new (
                     "Hash31",
-                    @"    Hash_Tchou_3_1_float(In, Out);",
+                    @"    Hash_Tchou_3_1_float(Position*Scale, Out);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Scale", TYPE.Vec3, Usage.In, new float[] {10.0f, 10.0f, 10.0f}),
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                     },
                     new string[]
@@ -65,10 +69,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Hash33",
-                    @"    Hash_Tchou_3_3_float(In, Out);",
+                    @"    Hash_Tchou_3_3_float(Position*Scale, Out);",
                     new ParameterDescriptor[]
                     {
-                        new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Scale", TYPE.Vec3, Usage.In, new float[] {10.0f, 10.0f, 10.0f}),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                     }
                 )
@@ -77,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "",
+            tooltip: "generates a random value based on the input",
             category: "Procedural/Noise",
             displayName: "Noise Hash",
             synonyms: new string[0] {  },
@@ -90,11 +95,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Hash33", "Vec3 to Vec3" }
             },
             functionSelectorLabel: "Hash Type",
-            parameters: new ParameterUIDescriptor[2] {
+            parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
-                    name: "In",
+                    name: "UV",
+                    tooltip: "the hash seed value",
+                    options: REF.OptionList.UVs
+                ),
+                new ParameterUIDescriptor(
+                    name: "Position",
                     tooltip: "the hash seed value",
                     options: REF.OptionList.Positions
+                ),
+                new ParameterUIDescriptor(
+                    name: "Scale",
+                    tooltip: "controls the size of the hash"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
