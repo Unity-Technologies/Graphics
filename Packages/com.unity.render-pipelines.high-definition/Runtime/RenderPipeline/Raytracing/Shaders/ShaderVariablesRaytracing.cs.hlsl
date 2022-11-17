@@ -7,7 +7,7 @@
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesRaytracing
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
-    float _RaytracingRayBias;
+    float _RayTracingPadding0;
     float _RaytracingRayMaxLength;
     int _RaytracingNumSamples;
     int _RaytracingSampleIndex;
@@ -28,9 +28,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     int _RayTracingClampingFlag;
     float _RayTracingAmbientProbeDimmer;
     int _RayTracingAPVRayMiss;
+    float _RayTracingRayBias;
+    float _RayTracingDistantRayBias;
     int _PaddingRT0;
-    int _PaddingRT1;
-    int _PaddingRT2;
 CBUFFER_END
 
 

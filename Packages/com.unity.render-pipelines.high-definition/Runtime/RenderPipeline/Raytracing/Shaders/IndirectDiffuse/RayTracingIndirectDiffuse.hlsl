@@ -32,6 +32,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RaytracingHelpers.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
@@ -101,7 +102,6 @@ void RayGenIntegration()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    ApplyRayTracingDepthOffset(depthValue);
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
     // This point is part of the background or is unlit, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || (stencilValue & STENCILUSAGE_IS_UNLIT) != 0)
@@ -132,6 +132,9 @@ void RayGenIntegration()
         _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + _RaytracingNumSamples;
     }
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Loop through the samples and add their contribution
     for (int sampleIndex = 0; sampleIndex < _RaytracingNumSamples; ++sampleIndex)
     {
@@ -148,7 +151,7 @@ void RayGenIntegration()
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = positionWS + normalData.normalWS * rayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0f;
         rayDescriptor.TMax = _RaytracingRayMaxLength;

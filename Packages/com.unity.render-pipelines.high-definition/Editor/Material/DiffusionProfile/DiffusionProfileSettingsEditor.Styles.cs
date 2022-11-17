@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent profileScatteringColor = new GUIContent("Scattering Color", "Determines the shape of the profile. It should be similar to the diffuse color of the material.");
             public readonly GUIContent profileScatteringDistanceMultiplier = new GUIContent("Multiplier", "Multiplier applied to the Scattering Color. Determines the effective radius of the filter.");
             public readonly GUIContent profileTransmissionTint = new GUIContent("Transmission tint", "Color which tints transmitted light. Alpha is ignored.");
-            public readonly GUIContent profileMaxRadius = new GUIContent("Max Radius", "Effective radius of the filter (in millimeters). The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Reducing the distance increases the sharpness of the result.");
+            public readonly GUIContent profileMaxRadius = new GUIContent("Max Radius", "The maximum radius of the effect you define in Scattering Color and Multiplier.\nWhen the world scale is 1, this value is in millimeters.");
             public readonly GUIContent texturingMode = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
             public readonly GUIContent[] texturingModeOptions = new GUIContent[2]
             {

@@ -15,6 +15,16 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRAccumulation
     }
 
+    [GenerateHLSL]
+    // Define if we use SSR, RTR, Mixed or none
+    enum ReflectionsMode
+    {
+        Off,
+        ScreenSpace,
+        RayTraced,
+        Mixed
+    }
+
     /// <summary>
     /// Screen Space Reflection Algorithm Type volume parameter.
     /// </summary>

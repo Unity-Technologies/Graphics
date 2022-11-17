@@ -223,8 +223,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MaterialFullScreenDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
-        static GUIContent[] s_CameraNamesStrings = null;
-        static int[] s_CameraNamesValues = null;
+        static GUIContent[] s_CameraNamesStrings = { new ("No Visible Camera") };
+        static int[] s_CameraNamesValues = { 0 };
 
         static bool needsRefreshingCameraFreezeList = true;
 
