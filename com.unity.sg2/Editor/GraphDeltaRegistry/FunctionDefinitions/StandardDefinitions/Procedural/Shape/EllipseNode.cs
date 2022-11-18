@@ -37,13 +37,13 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "circle" },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
-                    name: "Width",
-                    tooltip: "ellipse width"
-                ),
-                new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV",
                     options: REF.OptionList.UVs
+                ),
+                new ParameterUIDescriptor(
+                    name: "Width",
+                    tooltip: "ellipse width"
                 ),
                 new ParameterUIDescriptor(
                     name: "Height",

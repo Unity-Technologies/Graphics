@@ -44,10 +44,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent,
                 previewUpdateDispatcher);
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetSwizzleMaskCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetSwizzleMaskCommand>(
                 SetSwizzleMaskCommand.DefaultCommandHandler,
                 undoStateComponent,
-                graphModelStateComponent);
+                graphModelStateComponent,
+                previewUpdateDispatcher);
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,

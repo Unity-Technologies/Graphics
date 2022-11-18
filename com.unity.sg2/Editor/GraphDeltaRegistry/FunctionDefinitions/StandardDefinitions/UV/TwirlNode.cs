@@ -38,13 +38,13 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
-                    name: "Center",
-                    tooltip: "center reference point"
-                ),
-                new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV",
                     options: REF.OptionList.UVs
+                ),
+                new ParameterUIDescriptor(
+                    name: "Center",
+                    tooltip: "center reference point"
                 ),
                 new ParameterUIDescriptor(
                     name: "Strength",
