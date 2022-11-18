@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1627.76, g: 1811.01, b: 2262.9827, a: 1}
+  m_IndirectSpecularColor: {r: 1626.801, g: 1809.7991, b: 2261.6487, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -21061,7 +21061,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 33.398487
+  field of view: 33.39849
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
