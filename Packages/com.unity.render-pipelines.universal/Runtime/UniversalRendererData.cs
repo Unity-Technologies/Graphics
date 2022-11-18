@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System;
 using UnityEngine.Scripting.APIUpdating;
@@ -100,8 +101,20 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;
+#if UNITY_EDITOR
+        // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.Vulkan)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings._GBUFFER_NORMALS_OCT)]
+#endif
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
+#if UNITY_EDITOR
+        // NOTE: Atm clustered enabled only makes sense when rendering mode is forward. This filter attribute
+        // only considers this boolean here. So it is up to the rest of the system to ensure that rendering mode is forward.
+        // Maybe it would make sense to merge clustered state into the RenderingMode enum by adding ForwardPlus etc there?
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ClusteredRendering)]
+        [ShaderKeywordFilter.RemoveIf(true, overridePriority: true, keywordNames: new string[] {ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
+#endif
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;

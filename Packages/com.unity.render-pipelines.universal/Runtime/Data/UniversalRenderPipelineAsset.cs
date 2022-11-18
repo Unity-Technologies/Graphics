@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
 using UnityEditorInternal;
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System.ComponentModel;
 using System.Linq;
@@ -153,8 +154,36 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [ExcludeFromPreset]
+#if UNITY_EDITOR
+    [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
+#endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
+#if UNITY_EDITOR
+        // Defaults for renderer features that are not dependent on other settings.
+        // These are the filter rules if no such renderer features are present.
+
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
+
+        // TODO: decal settings needs some rework before we can filter DBufferMRT/DecalNormalBlend.
+        // Atm the setup depends on the technique but settings are present for both at the same time.
+        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DBufferMRT1, ShaderKeywordStrings.DBufferMRT2, ShaderKeywordStrings.DBufferMRT3})]
+        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DecalNormalBlendLow, ShaderKeywordStrings.DecalNormalBlendMedium, ShaderKeywordStrings.DecalNormalBlendHigh})]
+        private const bool k_RendererFeatureDefaults = true;
+
+        // Platform specific filtering overrides
+
+        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES2)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.LightLayers)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings._DETAIL_MULX2, ShaderKeywordStrings._DETAIL_SCALED})]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings._CLEARCOAT, ShaderKeywordStrings._CLEARCOATMAP})]
+        private const bool k_GLES2Defaults = true;
+
+        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
+        private const bool k_CommonGLDefaults = true;
+#endif
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -165,6 +194,7 @@ namespace UnityEngine.Rendering.Universal
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use m_RendererDataList instead.")]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
@@ -189,12 +219,31 @@ namespace UnityEngine.Rendering.Universal
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
+
+#if UNITY_EDITOR // multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+        // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
+        // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
+        // NOTE: off variants are atm always removed when shadows are supported
+        [ShaderKeywordFilter.SelectIf(true, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
+#endif
         [SerializeField] bool m_MainLightShadowsSupported = true;
         [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
 
         // Additional lights settings
+#if UNITY_EDITOR // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+        // clustered renderer can override PerVertex/PerPixel to be disabled
+        // NOTE: off variants are atm always kept when additional lights are enabled due to XR perf reasons
+        [ShaderKeywordFilter.SelectIf(LightRenderingMode.PerVertex, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex})]
+        [ShaderKeywordFilter.RemoveIf(LightRenderingMode.PerVertex, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+        [ShaderKeywordFilter.SelectIf(LightRenderingMode.PerPixel, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsPixel})]
+        [ShaderKeywordFilter.RemoveIf(LightRenderingMode.Disabled, keywordNames: new string[] {ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
+#endif
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
+#if UNITY_EDITOR // multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+#endif
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
 
@@ -203,7 +252,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
         // Reflection Probes
+#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBlending)]
+#endif
         [SerializeField] bool m_ReflectionProbeBlending = false;
+#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBoxProjection)]
+#endif
         [SerializeField] bool m_ReflectionProbeBoxProjection = false;
 
         // Shadows Settings
@@ -215,6 +270,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_CascadeBorder = 0.2f;
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
+#if UNITY_EDITOR // multi_compile_fragment _ _SHADOWS_SOFT
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.SoftShadows)]
+        [SerializeField] bool m_AnyShadowsSupported = true;
+
+        // No option to force soft shadows -> we'll need to keep the off variant around
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.SoftShadows)]
+#endif
         [SerializeField] bool m_SoftShadowsSupported = false;
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
@@ -226,7 +288,18 @@ namespace UnityEngine.Rendering.Universal
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
+#if UNITY_EDITOR
+        // multi_compile _ LIGHTMAP_SHADOW_MIXING
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LightmapShadowMixing)]
+        // multi_compile _ SHADOWS_SHADOWMASK
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.ShadowsShadowMask)]
+#endif
         [SerializeField] bool m_MixedLightingSupported = true;
+#if UNITY_EDITOR
+        // multi_compile_fragment _ _LIGHT_LAYERS
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
+        // TODO: Filtering WriteRenderingLayers requires different filter triggers for different passes (i.e. per-pass filter attributes)
+#endif
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
 
@@ -236,6 +309,9 @@ namespace UnityEngine.Rendering.Universal
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
+#if UNITY_EDITOR // multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.UseFastSRGBLinearConversion)]
+#endif
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
 
         // Deprecated settings
@@ -720,7 +796,12 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMainLightShadows
         {
             get { return m_MainLightShadowsSupported; }
-            internal set { m_MainLightShadowsSupported = value; }
+            internal set {
+                m_MainLightShadowsSupported = value;
+#if UNITY_EDITOR
+                m_AnyShadowsSupported = m_MainLightShadowsSupported || m_AdditionalLightShadowsSupported;
+#endif
+            }
         }
 
         public int mainLightShadowmapResolution
@@ -744,7 +825,12 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsAdditionalLightShadows
         {
             get { return m_AdditionalLightShadowsSupported; }
-            internal set { m_AdditionalLightShadowsSupported = value; }
+            internal set {
+                m_AdditionalLightShadowsSupported = value;
+#if UNITY_EDITOR
+                m_AnyShadowsSupported = m_MainLightShadowsSupported || m_AdditionalLightShadowsSupported;
+#endif
+            }
         }
 
         public int additionalLightsShadowmapResolution
@@ -1157,7 +1243,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_RendererType == RendererType.Custom)
                 {
+#pragma warning disable 618 // Obsolete warning
                     m_RendererDataList[0] = m_RendererData;
+#pragma warning restore 618 // Obsolete warning
                 }
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 5;
@@ -1239,7 +1327,9 @@ namespace UnityEngine.Rendering.Universal
                     {
                         asset.LoadBuiltinRendererData();
                     }
+#pragma warning disable 618 // Obsolete warning
                     asset.m_RendererData = null; // Clears the old renderer
+#pragma warning restore 618 // Obsolete warning
                 }
 
                 asset.k_AssetPreviousVersion = 5;
