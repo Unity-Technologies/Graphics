@@ -21,15 +21,19 @@
 
 // Match with values in UniversalRenderPipeline.cs
 #define MAX_ZBIN_VEC4S 1024
-#if MAX_VISIBLE_LIGHTS <= 32
+#if MAX_VISIBLE_LIGHTS <= 16
     #define MAX_LIGHTS_PER_TILE 32
     #define MAX_TILE_VEC4S 1024
+    #define MAX_REFLECTION_PROBES 16
+#elif MAX_VISIBLE_LIGHTS <= 32
+    #define MAX_LIGHTS_PER_TILE 32
+    #define MAX_TILE_VEC4S 1024
+    #define MAX_REFLECTION_PROBES 32
 #else
     #define MAX_LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
     #define MAX_TILE_VEC4S 4096
+    #define MAX_REFLECTION_PROBES 64
 #endif
-
-#define MAX_REFLECTION_PROBES (min(MAX_VISIBLE_LIGHTS, 64))
 
 struct InputData
 {
