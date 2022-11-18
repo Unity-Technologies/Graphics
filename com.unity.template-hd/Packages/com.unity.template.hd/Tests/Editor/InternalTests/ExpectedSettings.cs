@@ -152,7 +152,10 @@ namespace Tests
                 }
                 else
                 {
-                    throw new Exception($"Unexpected file found {settingsFile}");
+                    if (!settingsFilename.Equals("SceneTemplateSettings.json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new Exception($"Unexpected file found {settingsFile}");
+                    }
                 }
             }
         }
