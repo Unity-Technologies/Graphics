@@ -104,7 +104,27 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Rendering Layers Texture. Can be written to by the DrawOpaques pass or DepthNormals prepass based on settings.
         /// </summary>
-        RenderingLayersTexture
+        RenderingLayersTexture,
+
+        // decals
+
+        /// <summary>
+        /// DBuffer0. Written to by the Decals pass.
+        /// </summary>
+        DBuffer0,
+        /// <summary>
+        /// DBuffer1. Written to by the Decals pass.
+        /// </summary>
+        DBuffer1,
+        /// <summary>
+        /// DBuffer2. Written to by the Decals pass.
+        /// </summary>
+        DBuffer2,
+
+        /// <summary>
+        /// DBufferDepth. Written to by the Decals pass.
+        /// </summary>
+        DBufferDepth
     }
 
     public sealed partial class UniversalRenderer
@@ -171,47 +191,6 @@ namespace UnityEngine.Rendering.Universal
         private bool m_RenderingLayerProvidesRenderObjectPass;
         private bool m_RenderingLayerProvidesByDepthNormalPass;
         private string m_RenderingLayersTextureName;
-
-        internal class RenderGraphFrameResources
-        {
-            // backbuffer
-            //internal TextureHandle backBufferColor;
-            //internal TextureHandle backBufferDepth;
-
-            // intermediate camera targets
-            //internal TextureHandle cameraColor;
-            //internal TextureHandle cameraDepth;
-
-            //internal TextureHandle mainShadowsTexture;
-            //internal TextureHandle additionalShadowsTexture;
-
-            // gbuffer targets
-
-            //internal TextureHandle[] gbuffer;
-
-            // camear opaque/depth/normal
-            //internal TextureHandle cameraOpaqueTexture;
-            //internal TextureHandle cameraDepthTexture;
-            //internal TextureHandle cameraNormalsTexture;
-
-            // motion vector
-            //internal TextureHandle motionVectorColor;
-            //internal TextureHandle motionVectorDepth;
-
-            // postFx
-            //internal TextureHandle internalColorLut;
-
-            // rendering layers
-            //internal TextureHandle renderingLayersTexture;
-
-            // TODO RENDERGRAPH: move decals frame resources to the new FrameResources manager
-            // dbuffer
-            internal TextureHandle[] dbuffer;
-            internal TextureHandle dbufferDepth;
-
-            //internal TextureHandle afterPostProcessColor;
-        };
-        internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
         private void CleanupRenderGraphResources()
         {
@@ -324,7 +303,7 @@ namespace UnityEngine.Rendering.Universal
                 targetId = cameraData.xr.renderTarget;
 #endif
             resources.SetTexture(UniversalResource.BackBufferColor, renderGraph.ImportBackbuffer(targetId));
-            //m_FrameResources.SetTexture(UniversalResources.BackBufferDepth, renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth));
+            //resources.SetTexture(UniversalResource.BackBufferDepth, renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth));
 
             #region Intermediate Camera Target
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
@@ -948,6 +927,7 @@ namespace UnityEngine.Rendering.Universal
     {
         static private ProfilingSampler s_SetGlobalTextureProfilingSampler = new ProfilingSampler("Set Global Texture");
 
+        internal const int DBufferSize = 3;
         private class PassData
         {
             internal TextureHandle texture;

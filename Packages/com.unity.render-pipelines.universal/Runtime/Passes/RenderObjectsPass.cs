@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
@@ -275,15 +276,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (additionalShadowsTexture.IsValid())
                     builder.ReadTexture(additionalShadowsTexture);
 
-                // TODO RENDERGRAPH: move decals frame resources to the new FrameResources manager
-
-                if (renderer.frameResources.dbuffer != null)
+                for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
                 {
-                    foreach (var dbuffer in renderer.frameResources.dbuffer)
-                    {
-                        if (dbuffer.IsValid())
-                            builder.ReadTexture(dbuffer);
-                    }
+                    var dbuffer = frameResources.GetTexture((UniversalResource) (UniversalResource.DBuffer0 + i));
+                    if (dbuffer.IsValid())
+                        builder.ReadTexture(dbuffer);
                 }
 
                 builder.AllowPassCulling(false);

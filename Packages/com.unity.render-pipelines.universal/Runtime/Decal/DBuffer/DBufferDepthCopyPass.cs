@@ -29,8 +29,7 @@ namespace UnityEngine.Rendering.Universal
             if (renderer.renderingModeActual == RenderingMode.Deferred)
                 depthTexture = cameraDepthTexture;
 
-            UniversalRenderer.RenderGraphFrameResources resources = renderer.frameResources;
-            resources.dbufferDepth = depthTexture;
+            frameResources.SetTexture(UniversalResource.DBufferDepth, depthTexture);
 
             TextureHandle depthTarget = (renderer.renderingModeActual == RenderingMode.Deferred) ? renderer.activeDepthTexture : cameraDepthTexture;
 
