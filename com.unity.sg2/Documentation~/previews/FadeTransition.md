@@ -6,5 +6,5 @@ Adds noise for variation while a function transitions from on to off in a graph.
 **Fade Value** - The amount of transition to apply.
 **Fade Contrast** - The contrast at which a single pixel goes from fully transparent to fully opaque.
 
-## Output
+## Outputs
 **Fade** - Noise to add variation while a function transitions from on to off.
