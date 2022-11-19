@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     class UniversalGlobalSettingsPanelProvider : RenderPipelineGlobalSettingsProvider<UniversalRenderPipeline, UniversalRenderPipelineGlobalSettings>
     {
         public UniversalGlobalSettingsPanelProvider()
