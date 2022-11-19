@@ -689,6 +689,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
 
+            int rendererCount = asset.m_RendererDataList.Length;
+
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
             // necessarily the last active one as it users might disable it.
@@ -712,6 +714,15 @@ namespace UnityEngine.Rendering.Universal
                     if (currCamera.isActiveAndEnabled)
                     {
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
+
+                        for (int j = 0; j < rendererCount; ++j)
+                        {
+                            var currRenderer = asset.GetRenderer(j);
+                            if (!currRenderer.hasReleasedRTs && currRenderer != renderer && currRenderer != data.scriptableRenderer)
+                            {
+                                currRenderer.ReleaseRenderTargets();
+                            }
+                        }
 
                         // Checking if the base and the overlay camera is of the same renderer type.
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
@@ -805,6 +816,18 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
+
+                if (!isStackedRendering)
+                {
+                    for (int i = 0; i < rendererCount; ++i)
+                    {
+                        var currRenderer = asset.GetRenderer(i);
+                        if (baseCameraData.renderer != null && !currRenderer.hasReleasedRTs && baseCameraData.renderer != currRenderer)
+                        {
+                            currRenderer.ReleaseRenderTargets();
+                        }
+                    }
+                }
 
                 RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
                 using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
