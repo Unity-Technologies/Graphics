@@ -424,6 +424,8 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
                 }
+
+                cameraData.taaPersistentData.SetLastAccumFrameIndex(multipassId, Time.frameCount);
             }
         }
     }

@@ -114,3 +114,44 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-15406
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3b35fafd77d2d4677aeb56ab2ba0f743, type: 3}
+    - {fileID: 102900000, guid: 7ee1f814cdfbc448698426c3bca01456, type: 3}
+    - {fileID: 102900000, guid: b0ed636683cdd4eeb813562e252fa9e4, type: 3}
+    - {fileID: 102900000, guid: 000d60d91b3e24c929600ed2c96ef9af, type: 3}
+    - {fileID: 102900000, guid: 6f86c8d18eceb4d64a47c435c0f69745, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
+      TAA is broken)
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3b35fafd77d2d4677aeb56ab2ba0f743, type: 3}
+    - {fileID: 102900000, guid: 7ee1f814cdfbc448698426c3bca01456, type: 3}
+    - {fileID: 102900000, guid: b0ed636683cdd4eeb813562e252fa9e4, type: 3}
+    - {fileID: 102900000, guid: 000d60d91b3e24c929600ed2c96ef9af, type: 3}
+    - {fileID: 102900000, guid: 6f86c8d18eceb4d64a47c435c0f69745, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
+      TAA is broken)
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3b35fafd77d2d4677aeb56ab2ba0f743, type: 3}
+    - {fileID: 102900000, guid: 7ee1f814cdfbc448698426c3bca01456, type: 3}
+    - {fileID: 102900000, guid: b0ed636683cdd4eeb813562e252fa9e4, type: 3}
+    - {fileID: 102900000, guid: 000d60d91b3e24c929600ed2c96ef9af, type: 3}
+    - {fileID: 102900000, guid: 6f86c8d18eceb4d64a47c435c0f69745, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: MacOS11 https://jira.unity3d.com/browse/UUM-19249
