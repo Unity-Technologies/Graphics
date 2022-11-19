@@ -59,19 +59,11 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                 // Jittered. Match the frame.
                 output.positionCS = vertexInput.positionCS;
 
-                // TODO: is this still required?
-                // this works around an issue with dynamic batching
-                // potentially remove in 5.4 when we use instancing
-                //
-                // Update:
-                // SRP technically supports "dynamic batching", but it's not beneficial typically.
-                // Hybrid renderer doesn't support it.
-                #if 0
-                    #if defined(UNITY_REVERSED_Z)
-                        output.positionCS.z -= unity_MotionVectorsParams.z * output.positionCS.w;
-                    #else
-                        output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
-                    #endif
+                // This is required to avoid artifacts ("gaps" in the _MotionVectorTexture) on some platforms
+                #if defined(UNITY_REVERSED_Z)
+                    output.positionCS.z -= unity_MotionVectorsParams.z * output.positionCS.w;
+                #else
+                    output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
                 #endif
 
                 output.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, mul(UNITY_MATRIX_M, input.position));
