@@ -63,7 +63,13 @@ namespace UnityEngine.Rendering
             {
                 foreach (T additionalCameraData in additionalCameraDatas)
                 {
-                    yield return additionalCameraData.GetComponent<Camera>();
+                    if (additionalCameraData == null)
+                        continue;
+
+                    if (!additionalCameraData.TryGetComponent<Camera>(out var camera))
+                        continue;
+
+                    yield return camera;
                 }
             }
         }
