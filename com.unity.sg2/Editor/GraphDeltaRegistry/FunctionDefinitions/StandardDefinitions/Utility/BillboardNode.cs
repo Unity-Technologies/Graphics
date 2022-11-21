@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("UpDir", TYPE.Vec4, GraphType.Usage.Local, new float[] {0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("rotationMatrix", TYPE.Mat4, GraphType.Usage.Local),
                     new ParameterDescriptor("Scaled_Pos", TYPE.Vec4, GraphType.Usage.Local),
-                    new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Static, REF.ObjectSpace_Position),
+                    new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Local, REF.ObjectSpace_Position),
                     new ParameterDescriptor("Spherical", TYPE.Vec3, GraphType.Usage.Out),
                     new ParameterDescriptor("Cylindrical", TYPE.Vec3, GraphType.Usage.Out)
                 }
@@ -49,11 +49,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Billboard",
-            tooltip: "Rotate the vertex posiiton to align all three axes with the camera or only the x and z axes.",
-            category: "Utility",
+            tooltip: "Rotates the vertex posiiton to align all three axes with the camera or only the x and z axes.",
+            category: "Input/Mesh Deformation",
             hasPreview: false,
-            synonyms: new string[1] { "" },
-            functionSelectorLabel: "Mode",
+            synonyms: new string[] { "align, facing, rotate, pivot" },
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "Spherical",
