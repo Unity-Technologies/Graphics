@@ -173,7 +173,7 @@ The **Object ID Custom Pass** draws GameObjects in the scene with a unique color
 
 You can configure an Object ID Custom Pass in the **Custom Passes** panel using the following properties:
 
-![](C:/Users/Vic%20Cooper/Documents/GitHub/Graphics/com.unity.render-pipelines.high-definition/Documentation~/Images/Custom_Pass_ObjectID.png)
+![](Images/Custom_Pass_ObjectID.png)
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |

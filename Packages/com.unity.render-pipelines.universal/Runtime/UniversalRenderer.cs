@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class UniversalRenderer : ScriptableRenderer
     {
-        #if UNITY_SWITCH
+        #if UNITY_SWITCH || UNITY_ANDROID
         internal const int k_DepthStencilBufferBits = 24;
         #else
         internal const int k_DepthStencilBufferBits = 32;

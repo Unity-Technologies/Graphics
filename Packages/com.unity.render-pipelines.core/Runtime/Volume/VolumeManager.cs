@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
         public VolumeStack CreateStack()
         {
             var stack = new VolumeStack();
-            stack.Reload(baseComponentTypeArray);
+            stack.Reload(m_ComponentsDefaultState);
             return stack;
         }
 
@@ -243,21 +243,16 @@ namespace UnityEngine.Rendering
         }
 
         // Faster version of OverrideData to force replace values in the global state
-        void ReplaceData(VolumeStack stack, List<VolumeComponent> components)
+        void ReplaceData(VolumeStack stack)
         {
-            foreach (var component in components)
+            var resetParameters = stack.defaultParameters;
+            var resetParametersCount = resetParameters.Length;
+            for (int i = 0; i < resetParametersCount; i++)
             {
-                var target = stack.GetComponent(component.GetType());
-                int count = component.parameters.Count;
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (target.parameters[i] != null)
-                    {
-                        target.parameters[i].overrideState = false;
-                        target.parameters[i].SetValue(component.parameters[i]);
-                    }
-                }
+                var resetParam = resetParameters[i];
+                var targetParam = resetParam.parameter;
+                targetParam.overrideState = false;
+                targetParam.SetValue(resetParam.defaultValue);
             }
         }
 
@@ -287,7 +282,7 @@ namespace UnityEngine.Rendering
 
             if (components == null)
             {
-                stack.Reload(baseComponentTypeArray);
+                stack.Reload(m_ComponentsDefaultState);
                 return;
             }
 
@@ -295,10 +290,31 @@ namespace UnityEngine.Rendering
             {
                 if (kvp.Key == null || kvp.Value == null)
                 {
-                    stack.Reload(baseComponentTypeArray);
+                    stack.Reload(m_ComponentsDefaultState);
                     return;
                 }
             }
+        }
+
+        // Returns true if must execute Update() in full, and false if we can early exit.
+        bool CheckUpdateRequired(VolumeStack stack)
+        {
+            if (m_Volumes.Count == 0)
+            {
+                if (stack.requiresReset)
+                {
+                    // Update the stack one more time in case there was a volume that just ceased to exist. This ensures
+                    // the stack will return to default values correctly.
+                    stack.requiresReset = false;
+                    return true;
+                }
+
+                // There were no volumes last frame either, and stack has been returned to defaults, so no update is
+                // needed and we can early exit from Update().
+                return false;
+            }
+            stack.requiresReset = true; // Stack must be reset every frame whenever there are volumes present
+            return true;
         }
 
         /// <summary>
@@ -330,8 +346,11 @@ namespace UnityEngine.Rendering
             CheckBaseTypes();
             CheckStack(stack);
 
+            if (!CheckUpdateRequired(stack))
+                return;
+
             // Start by resetting the global state to default values
-            ReplaceData(stack, m_ComponentsDefaultState);
+            ReplaceData(stack);
 
             bool onlyGlobal = trigger == null;
             var triggerPos = onlyGlobal ? Vector3.zero : trigger.position;
