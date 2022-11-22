@@ -250,9 +250,17 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     // Apply shadow matte if requested
     #ifdef _ENABLE_SHADOW_MATTE
-    float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
-    float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
-    pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
+	float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
+    
+	// Shadow color's alpha has a slightly different meaning depending on whether the surface is transparent or opaque
+	#ifdef _SURFACE_TYPE_TRANSPARENT
+	float3 shadowColor = surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier();
+	builtinData.opacity = lerp(surfaceData.shadowTint.a, builtinData.opacity, visibility);
+	#else
+	float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
+	#endif
+	
+	pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
     #endif
 
     // Simulate opacity blending by simply continuing along the current ray

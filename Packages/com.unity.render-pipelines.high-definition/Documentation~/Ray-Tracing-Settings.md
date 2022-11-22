@@ -28,7 +28,7 @@ public class ManualRTASManager : MonoBehaviour
     void Update()
     {
         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline is HDRenderPipeline ? (HDRenderPipeline)RenderPipelineManager.currentPipeline : null;
-        if (hdrp != null)
+        if (hdrp != null && rtas != null)
         {
             // Get the HDCamera for the current camera
             var hdCamera = HDCamera.GetOrCreate(GetComponent<Camera>());
@@ -36,12 +36,8 @@ public class ManualRTASManager : MonoBehaviour
             // Evaluate the effect params
             HDEffectsParameters hdEffectParams = HDRenderPipeline.EvaluateEffectsParameters(hdCamera, true, false);
 
-            // Clear the rtas from the previous frame
-            if (rtas != null)
-                rtas.Dispose();
-
-            // Create the RTAS
-            rtas = new RayTracingAccelerationStructure();
+            // Clear the contents of rtas from the previous frame
+            rtas.ClearInstances();
 
             // Add all the objects individually
             int numGameObjects = gameObjects.Count;
@@ -54,6 +50,12 @@ public class ManualRTASManager : MonoBehaviour
             // Assign it to the camera
             hdCamera.rayTracingAccelerationStructure = rtas;
         }
+    }
+
+    void Start()
+    {
+        if (rtas == null)
+            rtas = new RayTracingAccelerationStructure();
     }
 
     void OnDestroy()
