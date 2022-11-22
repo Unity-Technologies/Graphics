@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.Universal;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.XR;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -91,19 +92,6 @@ namespace UnityEditor.Rendering.Universal
         {
             if (generationMode.IsPreview())
                 return;
-
-            if (bufferType == BufferType.BlitSource)
-            {
-                properties.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    // Make it compatible with Blitter.cs calls
-                    overrideReferenceName = "_BlitTexture",
-                    displayName = "_BlitTexture",
-                    hidden = true,
-                    generatePropertyBlock = true,
-                    isMainTexture = true,
-                });
-            }
         }
 
         string GetFunctionName() => $"Unity_Universal_SampleBuffer_{bufferType}_$precision";
@@ -117,6 +105,11 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (bufferType == BufferType.MotionVectors)
                         s.AppendLine("TEXTURE2D(_MotionVectorTexture);");
+
+                    if (bufferType == BufferType.BlitSource)
+                    {
+                        s.AppendLine("TEXTURE2D_X(_BlitTexture);");
+                    }
 
                     s.AppendLine("$precision{1} {0}($precision2 uv)", GetFunctionName(), channelCount);
                     using (s.BlockScope())

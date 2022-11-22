@@ -234,6 +234,7 @@ A_STATIC void FsrEasuConOffset(
  AF4 FsrEasuRF(AF2 p);
  AF4 FsrEasuGF(AF2 p);
  AF4 FsrEasuBF(AF2 p);
+ void FsrEasuProcessInput(inout AF4 r, inout AF4 g, inout AF4 b);
 //------------------------------------------------------------------------------------------------------------------------------
  // Filtering for a given tap for the scalar.
  void FsrEasuTapF(
@@ -349,15 +350,19 @@ A_STATIC void FsrEasuConOffset(
   AF4 bczzR=FsrEasuRF(p0);
   AF4 bczzG=FsrEasuGF(p0);
   AF4 bczzB=FsrEasuBF(p0);
+  FsrEasuProcessInput(bczzR, bczzG, bczzB);
   AF4 ijfeR=FsrEasuRF(p1);
   AF4 ijfeG=FsrEasuGF(p1);
   AF4 ijfeB=FsrEasuBF(p1);
+  FsrEasuProcessInput(ijfeR, ijfeG, ijfeB);
   AF4 klhgR=FsrEasuRF(p2);
   AF4 klhgG=FsrEasuGF(p2);
   AF4 klhgB=FsrEasuBF(p2);
+  FsrEasuProcessInput(klhgR, klhgG, klhgB);
   AF4 zzonR=FsrEasuRF(p3);
   AF4 zzonG=FsrEasuGF(p3);
   AF4 zzonB=FsrEasuBF(p3);
+  FsrEasuProcessInput(zzonR, zzonG, zzonB);
 //------------------------------------------------------------------------------------------------------------------------------
   // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
   AF4 bczzL=bczzB*AF4_(0.5)+(bczzR*AF4_(0.5)+bczzG);
@@ -447,6 +452,7 @@ A_STATIC void FsrEasuConOffset(
  AH4 FsrEasuRH(AF2 p);
  AH4 FsrEasuGH(AF2 p);
  AH4 FsrEasuBH(AF2 p);
+ void FsrEasuProcessInput(inout AH4 r, inout AH4 g, inout AH4 b);
 //------------------------------------------------------------------------------------------------------------------------------
  // This runs 2 taps in parallel.
  void FsrEasuTapH(
@@ -522,15 +528,19 @@ A_STATIC void FsrEasuConOffset(
   AH4 bczzR=FsrEasuRH(p0);
   AH4 bczzG=FsrEasuGH(p0);
   AH4 bczzB=FsrEasuBH(p0);
+  FsrEasuProcessInput(bczzR, bczzG, bczzB);
   AH4 ijfeR=FsrEasuRH(p1);
   AH4 ijfeG=FsrEasuGH(p1);
   AH4 ijfeB=FsrEasuBH(p1);
+  FsrEasuProcessInput(ijfeR, ijfeG, ijfeB);
   AH4 klhgR=FsrEasuRH(p2);
   AH4 klhgG=FsrEasuGH(p2);
   AH4 klhgB=FsrEasuBH(p2);
+  FsrEasuProcessInput(klhgR, klhgG, klhgB);
   AH4 zzonR=FsrEasuRH(p3);
   AH4 zzonG=FsrEasuGH(p3);
   AH4 zzonB=FsrEasuBH(p3);
+  FsrEasuProcessInput(zzonR, zzonG, zzonB);
 //------------------------------------------------------------------------------------------------------------------------------
   AH4 bczzL=bczzB*AH4_(0.5)+(bczzR*AH4_(0.5)+bczzG);
   AH4 ijfeL=ijfeB*AH4_(0.5)+(ijfeR*AH4_(0.5)+ijfeG);

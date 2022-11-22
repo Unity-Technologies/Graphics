@@ -15,6 +15,16 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRAccumulation
     }
 
+    [GenerateHLSL]
+    // Define if we use SSR, RTR, Mixed or none
+    enum ReflectionsMode
+    {
+        Off,
+        ScreenSpace,
+        RayTraced,
+        Mixed
+    }
+
     /// <summary>
     /// Screen Space Reflection Algorithm Type volume parameter.
     /// </summary>
@@ -53,11 +63,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #region General
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
-        public BoolParameter enabled = new BoolParameter(true);
+        public BoolParameter enabled = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>Enable Transparent Screen Space Reflections.</summary>
         [Tooltip("Enable Transparent Screen Space Reflections.")]
-        public BoolParameter enabledTransparent = new BoolParameter(true);
+        public BoolParameter enabledTransparent = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// </summary>

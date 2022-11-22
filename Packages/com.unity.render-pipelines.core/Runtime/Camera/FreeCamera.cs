@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering
             inputRotateAxisX = lookDelta.x * m_LookSpeedMouse * k_MouseSensitivityMultiplier;
             inputRotateAxisY = lookDelta.y * m_LookSpeedMouse * k_MouseSensitivityMultiplier;
 
-            leftShift = Keyboard.current.leftShiftKey.isPressed;
+            leftShift = Keyboard.current?.leftShiftKey?.isPressed ?? false;
             fire1 = Mouse.current?.leftButton?.isPressed == true || Gamepad.current?.xButton?.isPressed == true;
 
             inputChangeSpeed = speedAction.ReadValue<Vector2>().y;

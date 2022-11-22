@@ -2,12 +2,12 @@
   "Exceptions": [
     {
       "ValidationTest": "Package Lifecycle Validation",
-      "ExceptionError": "Package com.unity.render-pipelines.universal@14.0.3 depends on package com.unity.burst@1.5.0 which is in an invalid track for release purposes. Release versions can only depend on Release versions.",
-      "PackageVersion": "14.0.3"
+      "ExceptionError": "Package com.unity.render-pipelines.universal@14.0.4 depends on package com.unity.burst@1.5.0 which is in an invalid track for release purposes. Release versions can only depend on Release versions.",
+      "PackageVersion": "14.0.4"
     },
     {
       "ValidationTest": "API Updater Configuration Validation",
-      "PackageVersion": "14.0.3"
+      "PackageVersion": "14.0.4"
     }
   ]
 }

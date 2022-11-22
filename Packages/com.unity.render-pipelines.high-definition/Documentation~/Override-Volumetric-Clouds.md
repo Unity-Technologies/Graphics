@@ -69,7 +69,7 @@ When importing these two map Textures, disable **sRGB**. For best results, do no
 
 | **Property** | **Description**                                       |
 | ------------ | ----------------------------------------------------- |
-| **Enable**       | Indicates whether to render volumetric clouds or not. |
+| **State**        | When set to **Enabled**, HDRP renders volumetric clouds. |
 | **Local Clouds** | Indicates whether the clouds are part of the scene or rendered into the skybox. When enabled, clouds are part of the scene and you can interact with them. This means, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This means the clouds and their shadows appear relative to the Camera and always appear behind geometry. |
 
 ### Shape

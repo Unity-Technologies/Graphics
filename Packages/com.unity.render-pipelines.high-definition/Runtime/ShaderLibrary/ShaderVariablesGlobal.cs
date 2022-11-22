@@ -71,6 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _RTHandlePostProcessScale;           // { postProcessWidth / RTHandle.maxWidth, postProcessWidth / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
         public Vector4 _RTHandlePostProcessScaleHistory;    // Same as above but the RTHandle handle size for post process is that of the history buffer
 
+        public Vector4 _DynamicResolutionFullscreenScale;   // Represent the scale between dynamic resolution and the final camera viewport resolution
+
         // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
         // x = 1 - f/n
         // y = f/n
@@ -159,6 +161,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
 
+        public int _ReflectionsMode;
+        public int _UnusedPadding0;
+        public int _UnusedPadding1;
+        public int _UnusedPadding2;
+
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
         public uint _AreaLightCount;
@@ -243,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        public int _IndirectDiffuseMode; // Match IndirectDiffuseMode enum in LightLoop.cs
+        public int _IndirectDiffuseMode;
         public int _EnableRayTracedReflections;
         public int _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint _EnableRecursiveRayTracing;

@@ -29,6 +29,8 @@
     #define MAX_TILE_VEC4S 4096
 #endif
 
+#define MAX_REFLECTION_PROBES (min(MAX_VISIBLE_LIGHTS, 64))
+
 struct InputData
 {
     float3  positionWS;
@@ -91,6 +93,7 @@ float2 _GlobalMipBias;
 float _AlphaToMaskAvailable;
 
 float4 _MainLightPosition;
+// In Forward+, .a stores whether the main light is using subtractive mixed mode.
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 uint _MainLightLayerMask;
@@ -109,17 +112,20 @@ float4 _ScreenCoordScaleBias;
 float4 _ScreenSizeOverride;
 
 #if USE_FORWARD_PLUS
+float4 _FPParams0;
+float4 _FPParams1;
+
+#define URP_FP_ZBIN_SCALE (_FPParams0.x)
+#define URP_FP_ZBIN_OFFSET (_FPParams0.y)
+#define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
-uint _AdditionalLightsDirectionalCount;
-// Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
-float2 _AdditionalLightsTileScale;
-uint _AdditionalLightsTileCountX;
-uint _AdditionalLightsWordsPerTile;
-float4 _AdditionalLightsParams0;
+#define URP_FP_DIRECTIONAL_LIGHTS_COUNT ((uint)_FPParams0.w)
 
-#define URP_ADDITIONAL_LIGHTS_ZBIN_SCALE _AdditionalLightsParams0.x
-#define URP_ADDITIONAL_LIGHTS_ZBIN_OFFSET _AdditionalLightsParams0.y
+// Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
+#define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
+#define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+#define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
 
 #endif
 
@@ -132,6 +138,7 @@ StructuredBuffer<int> _AdditionalLightsIndices;
 CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
+// In Forward+, .a stores whether the light is using subtractive mixed mode.
 half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
@@ -144,12 +151,29 @@ CBUFFER_END
 
 #if USE_FORWARD_PLUS
 
-CBUFFER_START(AdditionalLightsZBins)
-        float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+CBUFFER_START(URP_ZBinBuffer)
+        float4 URP_ZBins[MAX_ZBIN_VEC4S];
 CBUFFER_END
-CBUFFER_START(AdditionalLightsTiles)
-        float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
+CBUFFER_START(URP_TileBuffer)
+        float4 URP_Tiles[MAX_TILE_VEC4S];
 CBUFFER_END
+
+TEXTURE2D(URP_ReflProbes_Atlas);
+SAMPLER(samplerURP_ReflProbes_Atlas);
+float URP_ReflProbes_Count;
+
+#ifndef SHADER_API_GLES3
+CBUFFER_START(URP_ReflectionProbeBuffer)
+#endif
+half4 URP_ReflProbes_HDR[MAX_REFLECTION_PROBES];
+float4 URP_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
+float4 URP_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
+float4 URP_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
+float4 URP_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
+#ifndef SHADER_API_GLES3
+CBUFFER_END
+#endif
+
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

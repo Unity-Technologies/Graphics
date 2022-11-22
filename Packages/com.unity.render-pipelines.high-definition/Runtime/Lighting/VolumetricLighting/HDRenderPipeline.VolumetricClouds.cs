@@ -584,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // If the current volume does not enable the feature, quit right away.
-            if (!HasVolumetricClouds(hdCamera, in settings))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || !HasVolumetricClouds(hdCamera, in settings))
                 return renderGraph.defaultResources.whiteTextureXR;
 
             // Make sure the volumetric clouds are animated properly

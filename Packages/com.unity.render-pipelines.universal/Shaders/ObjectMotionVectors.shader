@@ -24,6 +24,14 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+#ifndef HAVE_VFX_MODIFICATION
+    #pragma multi_compile _ DOTS_INSTANCING_ON
+    #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
+        #pragma target 3.5 DOTS_INSTANCING_ON
+    #else
+        #pragma target 4.5 DOTS_INSTANCING_ON
+    #endif
+#endif // HAVE_VFX_MODIFICATION
 
 #if defined(USING_STEREO_MATRICES)
         float4x4 _PrevViewProjMStereo[2];
@@ -73,7 +81,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                 output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
 
                 const float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
-                output.previousPositionVP = mul(_PrevViewProjM, mul(unity_MatrixPreviousM, prevPos));
+                output.previousPositionVP = mul(_PrevViewProjM, mul(UNITY_PREV_MATRIX_M, prevPos));
 
                 return output;
             }

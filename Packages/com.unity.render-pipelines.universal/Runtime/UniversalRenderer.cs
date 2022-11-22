@@ -393,15 +393,35 @@ namespace UnityEngine.Rendering.Universal
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent))
+                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent) &&
+                    (fullScreenDebugMode != DebugFullScreenMode.ReflectionProbeAtlas || m_Clustering))
                 {
                     Camera camera = cameraData.camera;
                     float screenWidth = camera.pixelWidth;
                     float screenHeight = camera.pixelHeight;
-                    float height = Mathf.Clamp01(textureHeightPercent / 100f) * screenHeight;
-                    float width = height * (screenWidth / screenHeight);
+
+                    var relativeSize = Mathf.Clamp01(textureHeightPercent / 100f);
+                    var height = relativeSize * screenHeight;
+                    var width = relativeSize * screenWidth;
+
+                    if (fullScreenDebugMode == DebugFullScreenMode.ReflectionProbeAtlas)
+                    {
+                        // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
+                        var texture = m_ForwardLights.reflectionProbeManager.atlasRT;
+                        var targetWidth = height * texture.width / texture.height;
+                        if (targetWidth > width)
+                        {
+                            height = width * texture.height / texture.width;
+                        }
+                        else
+                        {
+                            width = targetWidth;
+                        }
+                    }
+
                     float normalizedSizeX = width / screenWidth;
                     float normalizedSizeY = height / screenHeight;
+
                     Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
 
                     switch (fullScreenDebugMode)
@@ -419,6 +439,11 @@ namespace UnityEngine.Rendering.Universal
                         case DebugFullScreenMode.MainLightShadowMap:
                         {
                             DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect, false);
+                            break;
+                        }
+                        case DebugFullScreenMode.ReflectionProbeAtlas:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRT, normalizedRect, false);
                             break;
                         }
                         default:
@@ -462,7 +487,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.ProcessLights(ref renderingData);
+            m_ForwardLights.PreSetup(ref renderingData);
 
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
@@ -512,7 +537,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
             bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer &&
-                this.renderingModeActual == RenderingMode.Forward && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
+                this.renderingModeActual != RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
             bool renderingLayerProvidesGBufferPass = requiresRenderingLayer &&
                 this.renderingModeActual == RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
 
@@ -1168,9 +1193,10 @@ namespace UnityEngine.Rendering.Universal
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
-            // {
-            //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
-            // }
+            if (renderingModeActual == RenderingMode.ForwardPlus)
+            {
+                cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            }
 
             // We disable shadow casters if both shadow casting modes are turned off
             // or the shadow distance has been turned down to zero

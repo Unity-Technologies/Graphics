@@ -146,12 +146,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             builtinData.bakeDiffuseLighting = EvaluateAmbientProbe(bsdfData.normalWS) * _RayTracingAmbientProbeDimmer;
             builtinData.backBakeDiffuseLighting = EvaluateAmbientProbe(-bsdfData.normalWS) * _RayTracingAmbientProbeDimmer;
         }
-    }
-#endif
 
-#ifdef  MODIFY_BAKED_DIFFUSE_LIGHTING
-    // Make sure the baked diffuse lighting is tinted with the diffuse color
-    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+    #ifdef  MODIFY_BAKED_DIFFUSE_LIGHTING
+        // Make sure the baked diffuse lighting is tinted with the diffuse color
+        ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+    #endif
+    }
 #endif
 
     // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting

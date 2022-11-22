@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 4d4f44a4f43b842e0a0f586d73f63c6e
+=======
+guid: ad858fbefad5148cab903465ce3ce697
+>>>>>>> 0f828a87cc9c (Enable Fullscreen pass tests)
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}

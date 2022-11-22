@@ -46,8 +46,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     // - It is enabled in the volume
                     // - The RTAS has been build validated
                     // - The RTLightCluster has been validated
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching && GetRayTracingState() && GetRayTracingClusterState();
-                    mode = raytracing ? IndirectDiffuseMode.Raytrace : (allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off);
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                        && settings.tracing.value != RayCastingMode.RayMarching
+                        && GetRayTracingState();
+                    if (raytracing)
+                        mode = settings.tracing.value == RayCastingMode.RayTracing ? IndirectDiffuseMode.RayTraced : IndirectDiffuseMode.Mixed;
+                    else
+                        mode = allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off;
                 }
             }
             return mode;
@@ -461,7 +466,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
                     break;
 
-                case IndirectDiffuseMode.Raytrace:
+                case IndirectDiffuseMode.RayTraced:
+                case IndirectDiffuseMode.Mixed:
                     result = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
                         prepassOutput, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
                         m_ShaderVariablesRayTracingCB);

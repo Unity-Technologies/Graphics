@@ -1,12 +1,8 @@
-using System.Collections;
-using System.Linq;
 using System.IO;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
-using UnityEditor;
-using UnityEditor.VFX.UI;
 using UnityEditor.ProjectWindowCallback;
 
 using UnityObject = UnityEngine.Object;
@@ -65,8 +61,14 @@ namespace UnityEditor
         [MenuItem("GameObject/Visual Effects/Visual Effect", priority = 12)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
-            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null, "Visual Effect"));
-            GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
+            var parent = menuCommand.context as GameObject;
+            if (parent == null && SceneView.GetDefaultParentObjectIfSet() is { } parentTransform)
+            {
+                parent = parentTransform.gameObject;
+            }
+
+            var go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, "Visual Effect"));
+            GameObjectUtility.SetParentAndAlign(go, parent);
             var vfxComp = go.AddComponent<VisualEffect>();
 
             if (Selection.activeObject != null && Selection.activeObject is VisualEffectAsset)

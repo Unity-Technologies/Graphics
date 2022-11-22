@@ -36,6 +36,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _RTHandleScaleHistory;
     float4 _RTHandlePostProcessScale;
     float4 _RTHandlePostProcessScaleHistory;
+    float4 _DynamicResolutionFullscreenScale;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -82,6 +83,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _AreaShadowAtlasSize;
     float4 _CachedShadowAtlasSize;
     float4 _CachedAreaShadowAtlasSize;
+    int _ReflectionsMode;
+    int _UnusedPadding0;
+    int _UnusedPadding1;
+    int _UnusedPadding2;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

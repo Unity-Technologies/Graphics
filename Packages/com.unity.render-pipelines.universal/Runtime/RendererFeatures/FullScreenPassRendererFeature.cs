@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.XR;
 
 public class FullScreenPassRendererFeature : ScriptableRendererFeature
 {
@@ -71,6 +72,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
         private PassData m_PassData;
         private ProfilingSampler m_ProfilingSampler;
         private RTHandle m_CopiedColor;
+        private static readonly int m_BlitTextureShaderID = Shader.PropertyToID("_BlitTexture");
 
         public void Setup(Material mat, int index, bool requiresColor, bool isBeforeTransparents, string featureName, in RenderingData renderingData)
         {
@@ -139,7 +141,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
                     var source = isBeforeTransparents ? cameraData.renderer.GetCameraColorBackBuffer(cmd) : cameraData.renderer.cameraColorTargetHandle;
 
                     Blitter.BlitCameraTexture(cmd, source, copiedColor);
-                    passMaterial.SetTexture(Shader.PropertyToID("_BlitTexture"), copiedColor);
+                    passMaterial.SetTexture(m_BlitTextureShaderID, copiedColor);
                 }
 
                 CoreUtils.SetRenderTarget(cmd, cameraData.renderer.GetCameraColorBackBuffer(cmd));

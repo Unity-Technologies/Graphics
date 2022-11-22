@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Yellow
   m_EditorClassIdentifier: 
   profile:
-    name: Diffusion Profile
-    scatteringDistance: {r: 1, g: 1, b: 0, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.7490196, b: 0, a: 1}
+    scatteringDistanceMultiplier: 1.3350785
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 1
@@ -22,5 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1074435566
-  m_Version: 1
-  profiles: []
+  m_Version: 2

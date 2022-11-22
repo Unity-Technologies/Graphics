@@ -156,7 +156,7 @@ float GetOcclusion(float ratio)
         }
     }
 
-    contrib = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionRemapTex, sampler_FlareOcclusionRemapTex, float2(saturate(contrib), 0.0f), 0.0f).x;
+    contrib = SAMPLE_TEXTURE2D_LOD(_FlareOcclusionRemapTex, sampler_FlareOcclusionRemapTex, float2(saturate(contrib), 0.0f), 0.0f).x;
     contrib = saturate(contrib);
 
     return contrib;

@@ -111,19 +111,20 @@ void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
     #endif
 
     #ifdef ATTRIBUTES_NEED_TEXCOORD1
-    outVertex.texCoord1  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord1);
+
+    outVertex.texCoord1  = UnityRayTracingFetchVertexAttribute4(vertexIndex, UnityRayTracingHasVertexAttribute(kVertexAttributeTexCoord1) ? kVertexAttributeTexCoord1 : kVertexAttributeTexCoord0);
     #else
     outVertex.texCoord1  = 0.0;
     #endif
 
     #ifdef ATTRIBUTES_NEED_TEXCOORD2
-    outVertex.texCoord2  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord2);
+    outVertex.texCoord2  = UnityRayTracingFetchVertexAttribute4(vertexIndex, UnityRayTracingHasVertexAttribute(kVertexAttributeTexCoord2) ? kVertexAttributeTexCoord2 : kVertexAttributeTexCoord0);
     #else
     outVertex.texCoord2  = 0.0;
     #endif
 
     #ifdef ATTRIBUTES_NEED_TEXCOORD3
-    outVertex.texCoord3  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord3);
+    outVertex.texCoord3  = UnityRayTracingFetchVertexAttribute4(vertexIndex, UnityRayTracingHasVertexAttribute(kVertexAttributeTexCoord3) ? kVertexAttributeTexCoord3 : kVertexAttributeTexCoord0);
     #else
     outVertex.texCoord3  = 0.0;
     #endif

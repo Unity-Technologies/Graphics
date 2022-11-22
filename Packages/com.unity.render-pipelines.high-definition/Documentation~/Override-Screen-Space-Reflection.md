@@ -44,14 +44,14 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 </thead>
 <tbody>
   <tr>
-    <td><strong>Enable (Opaque)</strong></td>
+    <td><strong>State (Opaque)</strong></td>
     <td></td>
-    <td>Indicates whether HDRP processes SSR on opaque objects for Cameras in the influence of this effect's Volume.</td>
+    <td>When set to <strong>Enabled</strong>, HDRP processes SSR on opaque objects for Cameras in the influence of this effect's Volume.</td>
   </tr>
   <tr>
-    <td><strong>Enable (Transparent)</strong></td>
+    <td><strong>State (Transparent)</strong></td>
     <td></td>
-    <td>Indicates whether HDRP processes SSR on transparent objects for Cameras in the influence of this effect's Volume.</td>
+    <td>When set to <strong>Enabled</strong>, HDRP processes SSR on transparent objects for Cameras in the influence of this effect's Volume.</td>
   </tr>
   <tr>
     <td><strong>Tracing</strong></td>

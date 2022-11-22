@@ -5,21 +5,14 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    struct LightMinMaxZ
-    {
-        public float minZ;
-        public float maxZ;
-    }
-
     [BurstCompile]
-    struct MinMaxZJob : IJobFor
+    struct LightMinMaxZJob : IJobFor
     {
         public float4x4 worldToViewMatrix;
 
         [ReadOnly]
         public NativeArray<VisibleLight> lights;
-        public NativeArray<LightMinMaxZ> minMaxZs;
-        public NativeArray<float> meanZs;
+        public NativeArray<float2> minMaxZs;
 
         public void Execute(int index)
         {
@@ -29,11 +22,7 @@ namespace UnityEngine.Rendering.Universal
             var originVS = math.mul(worldToViewMatrix, math.float4(originWS, 1)).xyz;
             originVS.z *= -1;
 
-            var minMax = new LightMinMaxZ
-            {
-                minZ = originVS.z - light.range,
-                maxZ = originVS.z + light.range
-            };
+            var minMax = math.float2(originVS.z - light.range, originVS.z + light.range);
 
             if (light.lightType == LightType.Spot)
             {
@@ -52,14 +41,13 @@ namespace UnityEngine.Rendering.Universal
 
                 // `-a.z` and `a.z` is `dot(a, {0, 0, -1}).z` and `dot(a, {0, 0, 1}).z` optimized
                 // `cosAngleA` is multiplied by `coneHeight` to avoid normalizing `a`, which we know has length `coneHeight`
-                if (-a.z < coneHeight * cosAngleA) minMax.minZ = math.min(originVS.z, endPointVS.z - e * coneRadius);
-                if (a.z < coneHeight * cosAngleA) minMax.maxZ = math.max(originVS.z, endPointVS.z + e * coneRadius);
+                if (-a.z < coneHeight * cosAngleA) minMax.x = math.min(originVS.z, endPointVS.z - e * coneRadius);
+                if (a.z < coneHeight * cosAngleA) minMax.y = math.max(originVS.z, endPointVS.z + e * coneRadius);
             }
 
-            minMax.minZ = math.max(minMax.minZ, 0);
-            minMax.maxZ = math.max(minMax.maxZ, 0);
+            minMax.x = math.max(minMax.x, 0);
+            minMax.y = math.max(minMax.y, 0);
             minMaxZs[index] = minMax;
-            meanZs[index] = (minMax.minZ + minMax.maxZ) / 2.0f;
         }
     }
 }

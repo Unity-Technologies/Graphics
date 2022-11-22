@@ -28,7 +28,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, select Add Override > Ray Tracing > Path Tracing.
-3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
+3. In the Inspector for the Path Tracing Volume Override, set **State** to **Enabled**. If you don't see **State**, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
 4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
 
 
@@ -38,6 +38,8 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 | Property                    | Description                                                  |
 | --------------------------- | ------------------------------------------------------------ |
+| **State**                   | When set to **Enabled**, HDRP uses path tracing. |
+| **LayerMask**               | Specifies the layers that path tracing includes. |
 | **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
 | **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |

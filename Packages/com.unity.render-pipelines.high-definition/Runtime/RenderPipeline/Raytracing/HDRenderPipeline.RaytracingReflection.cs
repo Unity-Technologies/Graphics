@@ -65,6 +65,34 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask);
         }
 
+        ReflectionsMode GetReflectionsMode(HDCamera hdCamera)
+        {
+            ReflectionsMode mode = ReflectionsMode.Off;
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+            {
+                var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+                if (settings.enabled.value)
+                {
+                    bool allowSSR = hdCamera.colorPyramidHistoryIsValid && !hdCamera.isFirstFrame;
+
+                    // We can use the ray tracing version of the effect if:
+                    // - It is enabled in the frame settings
+                    // - It is enabled in the volume
+                    // - The RTAS has been build validated
+                    // - The RTLightCluster has been validated
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                        && settings.tracing.value != RayCastingMode.RayMarching
+                        && GetRayTracingState();
+                    if (raytracing)
+                        mode = settings.tracing.value == RayCastingMode.RayTracing ? ReflectionsMode.RayTraced : ReflectionsMode.Mixed;
+                    else
+                        mode = allowSSR ? ReflectionsMode.ScreenSpace : ReflectionsMode.Off;
+                }
+            }
+            return mode;
+        }
+
         #region Direction Generation
         class DirGenRTRPassData
         {

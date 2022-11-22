@@ -646,12 +646,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
-//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-    half3 irradiance = encodedIrradiance.rgb;
-#else
     half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif
 
     return irradiance * occlusion;
 #endif // GLOSSY_REFLECTIONS

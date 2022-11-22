@@ -412,11 +412,16 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clearDepth : camera.clearFlags != CameraClearFlags.Nothing; }
         }
 
+        internal bool CameraIsSceneFiltering()
+        {
+            return CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView;
+        }
+
         internal HDAdditionalCameraData.ClearColorMode clearColorMode
         {
             get
             {
-                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView)
+                if (CameraIsSceneFiltering())
                     return HDAdditionalCameraData.ClearColorMode.Color;
 
                 if (m_AdditionalCameraData != null)
@@ -1143,6 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
             cb._RTHandlePostProcessScale = m_PostProcessRTScales;
             cb._RTHandlePostProcessScaleHistory = m_PostProcessRTScalesHistory;
+            cb._DynamicResolutionFullscreenScale = new Vector4(actualWidth / finalViewport.width, actualHeight / finalViewport.height, 0, 0);
         }
 
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)

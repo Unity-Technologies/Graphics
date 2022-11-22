@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
             EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component
@@ -198,12 +198,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
 
-                    using (new IndentLevelScope())
+                    if (showAdditionalProperties)
                     {
-                        EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                        PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
-                        PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
-                        PropertyField(m_AmbientProbeDimmer);
+                        using (new IndentLevelScope())
+                        {
+                            EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                            PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                            PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                            PropertyField(m_AmbientProbeDimmer);
+                        }
                     }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)

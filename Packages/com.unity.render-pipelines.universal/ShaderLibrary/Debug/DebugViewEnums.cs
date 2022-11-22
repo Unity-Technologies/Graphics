@@ -93,6 +93,10 @@ namespace UnityEngine.Rendering.Universal
         AdditionalLightsShadowMap,
         /// <summary>Display the main shadow map.</summary>
         MainLightShadowMap,
+        /// <summary>
+        /// Display the reflection probe atlas used for the Forward+ rendering path.
+        /// </summary>
+        ReflectionProbeAtlas,
     }
 
     /// <summary>
