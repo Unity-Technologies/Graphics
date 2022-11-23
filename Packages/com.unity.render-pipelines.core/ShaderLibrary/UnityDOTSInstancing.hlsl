@@ -132,7 +132,7 @@ for t, c, sz in (
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
-    float4 unity_DOTSInstanceDataRaw[4096];
+    float4 unity_DOTSInstanceDataRaw[1024];
 CBUFFER_END
 #else
 ByteAddressBuffer unity_DOTSInstanceData;
