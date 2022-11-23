@@ -61,6 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set {
                 if (IsInitialized)
                 {
+                    OwnerModel?.GraphModel?.CurrentGraphChangeDescription?.AddChangedModel(OwnerModel, ChangeHint.Data);
                     SetValue(value);
                 }
             }

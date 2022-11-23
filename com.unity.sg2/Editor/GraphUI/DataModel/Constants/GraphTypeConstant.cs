@@ -159,16 +159,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case GraphType.Length.One:
                     switch (GetPrimitive())
                     {
-                        case GraphType.Primitive.Int: GraphTypeHelpers.SetAsInt(GetField(), Convert.ToInt32(value)); break;
-                        case GraphType.Primitive.Bool: GraphTypeHelpers.SetAsBool(GetField(), Convert.ToBoolean(value)); break;
+                        case GraphType.Primitive.Int:
+                            GraphTypeHelpers.SetAsInt(GetField(), Convert.ToInt32(value));
+                            break;
+                        case GraphType.Primitive.Bool:
+                            GraphTypeHelpers.SetAsBool(GetField(), Convert.ToBoolean(value));
+                            break;
                         case GraphType.Primitive.Float:
-                        default: GraphTypeHelpers.SetAsFloat(GetField(), Convert.ToSingle(value)); break;
+                        default:
+                            GraphTypeHelpers.SetAsFloat(GetField(), Convert.ToSingle(value));
+                            break;
                     }
+
                     break;
 
-                case GraphType.Length.Two: GraphTypeHelpers.SetAsVec2(GetField(), (Vector2)value); break;
-                case GraphType.Length.Three: GraphTypeHelpers.SetAsVec3(GetField(), (Vector3)value); break;
-                case GraphType.Length.Four: GraphTypeHelpers.SetAsVec4(GetField(), (Vector4)value); break;
+                case GraphType.Length.Two:
+                    GraphTypeHelpers.SetAsVec2(GetField(), (Vector2)value);
+                    break;
+                case GraphType.Length.Three:
+                    GraphTypeHelpers.SetAsVec3(GetField(), (Vector3)value);
+                    break;
+                case GraphType.Length.Four:
+                    GraphTypeHelpers.SetAsVec4(GetField(), (Vector4)value);
+                    break;
             }
         }
         public override object DefaultValue => Activator.CreateInstance(Type);
