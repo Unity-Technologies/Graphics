@@ -413,6 +413,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
+        internal bool resolveToScreen => targetTexture == null && resolveFinalTarget && (cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+
+        /// <summary>
+        /// True if the Camera should output to an HDR display.
+        /// </summary>
+        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && isHdrEnabled && resolveToScreen;
+
+        /// <summary>
+        /// True if the Camera should render overlay UI.
+        /// </summary>
+        public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
+
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
@@ -847,6 +859,10 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly int renderingLayerMaxInt = Shader.PropertyToID("_RenderingLayerMaxInt");
         public static readonly int renderingLayerRcpMaxInt = Shader.PropertyToID("_RenderingLayerRcpMaxInt");
+
+        public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
+        public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");
+        public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
     }
 
     /// <summary>
@@ -1590,6 +1606,7 @@ namespace UnityEngine.Rendering.Universal
         // DrawObjectsPass
         DrawOpaqueObjects,
         DrawTransparentObjects,
+        DrawScreenSpaceUI,
 
         // RenderObjectsPass
         //RenderObjects,

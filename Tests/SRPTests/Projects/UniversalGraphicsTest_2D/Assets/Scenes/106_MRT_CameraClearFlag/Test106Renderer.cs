@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
             m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(copyToViewportMaterial);
 
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial, null);
         }
 
         string m_profilerTag = "Test 106 Renderer";

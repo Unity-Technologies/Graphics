@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering.Universal
         /// After Post Process Color. Stores the contents of the main color target after the post processing passes.
         /// </summary>
         AfterPostProcessColor,
+        /// <summary>
+        /// Overlay UI Texture. The DrawScreenSpaceUI pass writes to this texture when rendering off-screen.
+        /// </summary>
+        OverlayUITexture,
 
         // rendering layers
 
@@ -722,7 +726,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (!isActiveTargetBackBuffer && renderingData.cameraData.resolveFinalTarget && !cameraTargetResolved)
             {
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, resources.GetTexture(UniversalResource.CameraColor), resources.GetTexture(UniversalResource.BackBufferColor));
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, resources.GetTexture(UniversalResource.CameraColor), resources.GetTexture(UniversalResource.BackBufferColor), resources.GetTexture(UniversalResource.OverlayUITexture));
                 m_ActiveColorID = UniversalResource.BackBufferColor;
                 m_ActiveDepthID = UniversalResource.BackBufferColor;
             }

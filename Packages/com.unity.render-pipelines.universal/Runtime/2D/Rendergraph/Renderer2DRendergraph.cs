@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle afterPostProcessColor;
             internal TextureHandle upscaleTexture;
             internal TextureHandle cameraSortingLayerTexture;
+
+            internal TextureHandle overlayUITexture;
         }
 
         private Attachments m_Attachments = new Attachments();
@@ -305,7 +307,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, finalTextureHandle, m_Attachments.backBufferColor);
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, finalTextureHandle, m_Attachments.backBufferColor, m_Attachments.overlayUITexture);
             }
 
             if (drawGizmos)

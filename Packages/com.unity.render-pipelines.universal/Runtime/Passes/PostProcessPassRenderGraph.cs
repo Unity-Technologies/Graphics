@@ -1337,8 +1337,10 @@ namespace UnityEngine.Rendering.Universal
 
             GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
 
-            bool performFxaa = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
-            bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+            // TODO: Investigate how to make FXAA and FSR work with HDR output.
+            bool outputToHDR = cameraData.isHDROutputActive;
+            bool performFxaa = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) && !outputToHDR;
+            bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)) && !outputToHDR;
             bool isScaling = cameraData.imageScalingMode != ImageScalingMode.None;
 
             var tempRtDesc = cameraData.cameraTargetDescriptor;

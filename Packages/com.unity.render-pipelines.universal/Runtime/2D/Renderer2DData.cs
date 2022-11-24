@@ -72,6 +72,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField, Reload("Shaders/Utils/CoreBlit.shader")]
         Shader m_CoreBlitShader = null;
+        
+        [SerializeField, Reload("Shaders/Utils/BlitHDROverlay.shader")]
+        Shader m_BlitHDROverlay;
 
         [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
         Shader m_SamplingShader = null;
@@ -118,6 +121,7 @@ namespace UnityEngine.Rendering.Universal
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_CoreBlitShader;
+        internal Shader blitHDROverlay => m_BlitHDROverlay;
         internal Shader samplingShader => m_SamplingShader;
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal Shader spriteShadowShader => m_SpriteShadowShader;

@@ -222,6 +222,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                         case TonemappingMode.ACES: material.EnableKeyword(allowColorGradingACESHDR ? ShaderKeywordStrings.TonemapACES : ShaderKeywordStrings.TonemapNeutral); break;
                         default: break; // None
                     }
+
+                    // HDR output is active
+                    if (renderingData.cameraData.isHDROutputActive)
+                    {
+                        Vector4 hdrOutputLuminanceParams;
+                        Vector4 hdrOutputGradingParams;
+                        UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out hdrOutputLuminanceParams);
+                        UniversalRenderPipeline.GetHDROutputGradingParameters(tonemapping, out hdrOutputGradingParams);
+
+                        material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
+                        material.SetVector(ShaderPropertyId.hdrOutputGradingParams, hdrOutputGradingParams);
+
+                        HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
+                    }
                 }
 
                 renderingData.cameraData.xr.StopSinglePass(cmd);

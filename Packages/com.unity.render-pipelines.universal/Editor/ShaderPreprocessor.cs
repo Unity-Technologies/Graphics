@@ -680,6 +680,10 @@ namespace UnityEditor.Rendering.Universal
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
+            // HDR Output
+            if (!HDROutputUtils.IsShaderVariantValid(compilerData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+                return true;
+
             return false;
         }
 

@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.Universal
                 public static readonly string noRendererError = L10n.Tr("There are no valid Renderers available on the Universal Render Pipeline asset.");
                 public static readonly string missingRendererWarning = L10n.Tr("The currently selected Renderer is missing from the Universal Render Pipeline asset.");
                 public static readonly string disabledPostprocessing = L10n.Tr("Post Processing is currently disabled on the current Universal Render Pipeline renderer.");
+                public static readonly string unsupportedFXAAWithHDROutputWarning = L10n.Tr("Unity does not support FXAA with HDR display output.");
                 public static readonly string selectRenderPipelineAsset = L10n.Tr("Select Render Pipeline Asset");
                 public static readonly string disabledPostprocessingAntiAliasWarning = L10n.Tr("Post Processing based Anti-aliasing requires Post Processing enabled to function.");
             }
