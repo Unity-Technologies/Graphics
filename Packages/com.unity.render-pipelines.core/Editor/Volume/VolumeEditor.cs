@@ -168,26 +168,31 @@ namespace UnityEditor.Rendering
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
             var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            GUIContent guiContent = actualTarget.HasInstantiatedProfile() ? Styles.profileInstance : Styles.profile;
-
-            EditorGUI.PrefixLabel(labelRect, guiContent);
-
-            using (new EditorGUI.PropertyScope(fieldRect, GUIContent.none, m_Profile))
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                var profile = actualTarget.HasInstantiatedProfile()
-                    ? actualTarget.profile
-                    : m_Profile.objectReferenceValue;
+                var isProfileInstance = actualTarget.HasInstantiatedProfile();
+                VolumeProfile editedProfile;
+                if (isProfileInstance)
+                {
+                    using var mixed = new EditorGUI.MixedValueScope(m_Profile.hasMultipleDifferentValues);
+                    EditorGUI.PrefixLabel(labelRect, Styles.profileInstance);
+                    editedProfile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, actualTarget.profile, typeof(VolumeProfile), false);
+                }
+                else
+                {
+                    fieldRect = new Rect(labelRect.x, labelRect.y, labelRect.width + fieldRect.width, fieldRect.height);
+                    EditorGUI.ObjectField(fieldRect, m_Profile, Styles.profile);
+                    editedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
+                }
 
-                VolumeProfile editedProfile =
-                    (VolumeProfile)EditorGUI.ObjectField(fieldRect, profile, typeof(VolumeProfile), false);
                 if (scope.changed)
                 {
                     assetHasChanged = true;
-                    m_Profile.objectReferenceValue = editedProfile;
-
-                    if (actualTarget.HasInstantiatedProfile()) // Clear the instantiated profile, from now on we're using shared again
+                    if (isProfileInstance)
+                        // Clear the instantiated profile, from now on we're using shared again
                         actualTarget.profile = null;
+                    else
+                        m_Profile.objectReferenceValue = editedProfile;
                 }
             }
 
@@ -205,7 +210,7 @@ namespace UnityEditor.Rendering
                     assetHasChanged = true;
                 }
 
-                guiContent = actualTarget.HasInstantiatedProfile() ? Styles.saveLabel : Styles.cloneLabel;
+                GUIContent guiContent = actualTarget.HasInstantiatedProfile() ? Styles.saveLabel : Styles.cloneLabel;
                 if (showCopy && GUI.Button(buttonCopyRect, guiContent, EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
@@ -266,9 +271,17 @@ namespace UnityEditor.Rendering
                 }
             }
 
+            if (actualTarget.sharedProfile == null && m_Profile.objectReferenceValue != null)
+            {
+                actualTarget.sharedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
+                RefreshEffectListEditor(actualTarget.sharedProfile);
+                if(actualTarget.HasInstantiatedProfile())
+                    actualTarget.profile = null;
+            }
+
             serializedObject.ApplyModifiedProperties();
 
-            if (m_Profile.objectReferenceValue == null)
+            if (m_Profile.objectReferenceValue == null && actualTarget.HasInstantiatedProfile())
                 EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);
         }
     }
