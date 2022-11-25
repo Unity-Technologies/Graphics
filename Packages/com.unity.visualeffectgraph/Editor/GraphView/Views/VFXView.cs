@@ -405,6 +405,11 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
+            if (d.category == "System")
+            {
+                VFXAnalytics.GetInstance().OnSystemTemplateCreated(d.name);
+            }
+
             UpdateSelectionWithNewNode();
             var groupNode = GetPickedGroupNode(mPos);
 
@@ -1707,6 +1712,9 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
+            // Only for testing purpose
+            //VFXAnalytics.GetInstance().OnSaveVFXAsset(this);
         }
 
         internal void SaveAs(string newPath)

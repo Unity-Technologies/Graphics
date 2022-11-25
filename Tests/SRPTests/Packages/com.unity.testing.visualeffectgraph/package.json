@@ -9,6 +9,7 @@
     "com.unity.visualeffectgraph": "15.0.2",
     "com.unity.testframework.graphics": "7.8.23-exp.2",
     "com.unity.testing.graphics-performance": "8.0.0",
-    "com.unity.test-framework": "1.1.30"
+    "com.unity.test-framework": "1.1.30",
+    "nuget.moq": "2.0.0-exp.2"
   }
 }

@@ -4,11 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.VFX.UI;
+
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityObject = UnityEngine.Object;
 
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -240,6 +243,14 @@ namespace UnityEditor.VFX
             }
 
             return support;
+        }
+
+        public override void OnSettingModified(VFXSetting setting)
+        {
+            if (setting.name == nameof(shaderGraph))
+            {
+                VFXAnalytics.GetInstance().OnSpecificSettingChanged($"{GetType().Name}.{setting.name}");
+            }
         }
 
         public BlendMode GetMaterialBlendMode()

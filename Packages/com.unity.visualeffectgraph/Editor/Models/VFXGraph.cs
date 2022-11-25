@@ -965,7 +965,7 @@ namespace UnityEditor.VFX
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
 
-                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation, VFXAnalytics.GetInstance());
             }
             m_ExpressionGraphDirty = false;
             m_ExpressionValuesDirty = false;
@@ -985,7 +985,7 @@ namespace UnityEditor.VFX
                     BuildSubgraphDependencies();
                     PrepareSubgraphs();
 
-                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation, VFXAnalytics.GetInstance());
                 }
                 else
                 {
