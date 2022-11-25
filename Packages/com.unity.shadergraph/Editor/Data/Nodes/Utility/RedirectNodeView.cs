@@ -66,6 +66,9 @@ namespace UnityEditor.ShaderGraph
         {
             node = null;
             userData = null;
+            m_ConnectorListener = null;
+            inputContainer.Clear();
+            outputContainer.Clear();
         }
 
         public void UpdatePortInputTypes()

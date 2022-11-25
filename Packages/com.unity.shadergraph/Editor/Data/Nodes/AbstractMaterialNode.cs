@@ -45,6 +45,8 @@ namespace UnityEditor.ShaderGraph
 
         OnNodeModified m_OnModified;
 
+        Action m_UnregisterAll;
+
         public GroupData group
         {
             get => m_Group;
@@ -61,6 +63,9 @@ namespace UnityEditor.ShaderGraph
         public void RegisterCallback(OnNodeModified callback)
         {
             m_OnModified += callback;
+
+            // Setup so we can unregister this callback later at teardown time
+            m_UnregisterAll += () => m_OnModified -= callback;
         }
 
         public void UnregisterCallback(OnNodeModified callback)
@@ -986,6 +991,15 @@ namespace UnityEditor.ShaderGraph
             {
                 slot.OnBeforeSerialize();
             }
+        }
+
+        public virtual void Dispose()
+        {
+            foreach (var slot in m_Slots)
+                slot.value.Dispose();
+
+            m_UnregisterAll?.Invoke();
+            m_UnregisterAll = null;
         }
     }
 }
