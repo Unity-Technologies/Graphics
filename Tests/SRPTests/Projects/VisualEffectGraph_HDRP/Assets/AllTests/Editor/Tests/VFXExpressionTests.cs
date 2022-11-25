@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.VFX;
+using UnityEngine.Rendering;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
@@ -249,6 +250,78 @@ namespace UnityEditor.VFX.Test
             var reduced = context.Compile(expressionOutput);
 
             Assert.IsTrue(expressionOutput.Is(VFXExpression.Flags.InvalidConstant));
+        }
+
+        [Test]
+        public void OuptutExpression_TextureFormat_Should_Be_Invalid_Constant()
+        {
+            //We aren't suppose to support constant folding on this VFXExpressionTextureFormat (can change in runtime)
+            var expressionTexture = VFXValue.Constant(Texture2D.grayTexture);
+            var expressionFormat = new VFXExpressionTextureFormat(expressionTexture);
+            Assert.IsTrue(expressionFormat.Is(VFXExpression.Flags.InvalidConstant));
+        }
+
+        public struct TextureFormatCase
+        {
+            public string name;
+            public TextureFormat format;
+            public TextureDimension dimension;
+
+            public override string ToString()
+            {
+                return name;
+            }
+        }
+
+        public static TextureFormatCase[] kFormatCase = new[]
+        {
+            new TextureFormatCase()
+            {
+                name = "color",
+                format = TextureFormat.RGBA32,
+                dimension = TextureDimension.Tex2D,
+            },
+            new TextureFormatCase()
+            {
+                name = "null",
+                format = (TextureFormat)~0,
+                dimension = TextureDimension.None,
+            },
+            new TextureFormatCase()
+            {
+                name = "alpha8_3D",
+                format = TextureFormat.Alpha8,
+                dimension = TextureDimension.Tex3D,
+            },
+            new TextureFormatCase()
+            {
+                name = "compressed",
+                format = TextureFormat.DXT5,
+                dimension = TextureDimension.Tex2D,
+            }
+        };
+
+        [Test]
+        public void OuptutExpression_TextureFormat_Evaluation([ValueSource(nameof(kFormatCase))] TextureFormatCase testCase)
+        {
+            var texture = testCase.dimension switch
+            {
+                TextureDimension.Tex2D => (Texture)new Texture2D(4, 4, testCase.format, false),
+                TextureDimension.Tex2DArray => new Texture2DArray(4, 4, 2, testCase.format, false),
+                TextureDimension.Tex3D => new Texture3D(4, 4, 4, testCase.format, false),
+                _ => null
+            };
+
+            var expressionTexture = VFXValue.Constant(texture);
+            var expressionFormat = new VFXExpressionTextureFormat(expressionTexture);
+            var expressionCondition = new VFXExpressionCondition(VFXValueType.Uint32, VFXCondition.Equal, expressionFormat, VFXValue.Constant((uint)testCase.format));
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var reduced = context.Compile(expressionCondition);
+
+            Assert.AreEqual(reduced.Get<bool>(), true);
+
+            UnityEngine.Object.DestroyImmediate(texture);
         }
 
         [Test]

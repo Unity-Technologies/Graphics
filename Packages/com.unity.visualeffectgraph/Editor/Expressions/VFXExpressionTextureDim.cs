@@ -76,4 +76,23 @@ namespace UnityEditor.VFX
             return VFXValue.Constant<uint>(depth);
         }
     }
+
+    class VFXExpressionTextureFormat : VFXExpression
+    {
+        public VFXExpressionTextureFormat() : this(VFXTexture2DValue.Default)
+        { }
+
+        public VFXExpressionTextureFormat(VFXExpression texture)
+            : base(Flags.InvalidOnGPU, new [] { texture })
+        { }
+
+        public sealed override VFXExpressionOperation operation { get { return VFXExpressionOperation.TextureFormat; } }
+        public sealed override VFXValueType valueType { get { return VFXValueType.Uint32; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var texture = constParents[0].Get<Texture>();
+            return VFXValue.Constant((uint)VFXExpressionTexture.GetTextureFormat(texture));
+        }
+    }
 }
