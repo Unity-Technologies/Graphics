@@ -1,4 +1,5 @@
 {
+  "enableLockFile": false,
   "dependencies": {
     "com.unity.ide.visualstudio": "2.0.0",
     "com.unity.ide.vscode": "1.2.0",
