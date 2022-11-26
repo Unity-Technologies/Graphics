@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX
 {
@@ -53,8 +54,7 @@ namespace UnityEditor.VFX
                 RecreateCopy();
         }
 
-        public const int s_MaxInputFlow = 5;
-        protected override int inputFlowCount { get { return m_InputFlowNames.Count > s_MaxInputFlow ? s_MaxInputFlow : m_InputFlowNames.Count; } }
+        protected override int inputFlowCount { get { return m_InputFlowNames.Count; } }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Subgraph"; } }
 
@@ -69,6 +69,16 @@ namespace UnityEditor.VFX
                 {
                     m_Subgraph = newSubgraph;
                 }
+            }
+        }
+
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            if (inputFlowCount > VFXContext.kMaxFlowCount)
+            {
+                var message = $@"This subgraph handle too many flow anchor to be fully displayed. Maximum: {VFXContext.kMaxFlowCount}, Actual: {inputFlowCount}";
+                manager.RegisterError("MaxContextFlowCount", VFXErrorType.Error, message);
             }
         }
 
