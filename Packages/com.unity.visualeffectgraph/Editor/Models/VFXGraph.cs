@@ -371,7 +371,8 @@ namespace UnityEditor.VFX
         // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
         // 11: Instancing
         // 12: Change space value of VFXSpace.None from 'int.MaxValue' to '-1'
-        public static readonly int CurrentVersion = 12;
+        // 13: Unexpected incorrect synchronization of output with ShaderGraph
+        public static readonly int CurrentVersion = 13;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;
