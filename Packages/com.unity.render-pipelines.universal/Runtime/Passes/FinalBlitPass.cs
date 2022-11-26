@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Source = colorHandle;
         }
 
-        void SetupHDROutput(Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters)
+        static void SetupHDROutput(Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters)
         {
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputParameters);
             HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, hdrOperation);
@@ -210,6 +210,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     data.blitMaterial.SetTexture(data.sourceID, data.source);
 
+                    // TODO RENDERGRAPH: this should ideally be shared in ExecutePass to avoid code duplication
                     if (data.hdrOutputLuminanceParams.w >= 0)
                     {
                         // Color conversion may have happened in the Uber post process through color grading, so we don't want to reapply it
