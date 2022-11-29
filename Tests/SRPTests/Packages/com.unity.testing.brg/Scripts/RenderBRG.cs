@@ -665,8 +665,8 @@ public unsafe class RenderBRG : MonoBehaviour
         uint kBRGBufferAlignment = 16;
         if (UseConstantBuffer)
         {
-            kBRGBufferMaxWindowSize = (uint)(SystemInfo.maxConstantBufferSize);
-            kBRGBufferAlignment = math.max(16, (uint)SystemInfo.constantBufferOffsetAlignment);
+            kBRGBufferMaxWindowSize = (uint)(BatchRendererGroup.GetConstantBufferMaxWindowSize());
+            kBRGBufferAlignment = (uint)(BatchRendererGroup.GetConstantBufferOffsetAlignment());
         }
 
 #if ENABLE_PICKING
