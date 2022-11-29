@@ -324,11 +324,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-#if UNITY_EDITOR
-            m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
-#else
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
-#endif
+
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 

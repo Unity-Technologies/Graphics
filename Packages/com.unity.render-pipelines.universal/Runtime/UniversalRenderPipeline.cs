@@ -190,11 +190,9 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             pipelineAsset = asset;
-#if UNITY_EDITOR
-            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-#else
+
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
-#endif
+
             SetSupportedRenderingFeatures(pipelineAsset);
 
             // Initial state of the RTHandle system.

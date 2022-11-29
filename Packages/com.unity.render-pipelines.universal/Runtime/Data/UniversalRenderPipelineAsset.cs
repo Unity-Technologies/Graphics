@@ -722,6 +722,18 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Ensures Global Settings are ready and registered into GraphicsSettings
+        /// </summary>
+        protected override void EnsureGlobalSettings()
+        {
+            base.EnsureGlobalSettings();
+
+#if UNITY_EDITOR
+            UniversalRenderPipelineGlobalSettings.Ensure();
+#endif
+        }
+
+        /// <summary>
         /// Creates a <c>UniversalRenderPipeline</c> from the <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         /// <returns>Returns a <c>UniversalRenderPipeline</c> created from this UniversalRenderPipelineAsset.</returns>
