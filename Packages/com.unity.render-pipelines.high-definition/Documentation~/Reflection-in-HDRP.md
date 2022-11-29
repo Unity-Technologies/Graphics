@@ -25,43 +25,7 @@ To produce the highest quality reflections, HDRP uses the reflection technique t
 - Reflection Probes have a **Weight** property which you can edit manually. This allows you set weights for overlapping Reflection Probes to blend them properly.
 - Sky reflection has a fixed weight of 1.
 
-To select the best reflection technique for a given pixel, HDRP checks the available techniques in a specific order, called the Reflection Hierarchy. The order of the Reflection Hierarchy is:
-
-1. [Screen space reflection](#ScreenSpaceReflection).
-2. Realtime and baked [Reflection Probe](#ReflectionProbes) sampling.
-3. Sky reflection.
-
-If screen space reflection has a weight of 1, then HDRP uses that information and does not evaluate any other technique. If screen space reflection does not have a weight of 1, HDRP falls back to the next technique in the hierarchy. HDRP continues this pattern until it either reaches a weight of 1 or it reaches the lowest level of the hierarchy, which uses sky reflection. This means that screen space reflection falls back to a Reflection Probe if there are any, or falls back to sky reflection if not. A Reflection Probe can fallback to other Reflection Probes with a lower priority. Currently, HDRP calculates the priority of a Reflection Probe based on the size of its **Influence Volume**. The smaller the **Influence Volume**, the higher the priority.
-
-<a name="ScreenSpaceReflection"></a>
-
-### Screen space reflection
-
-The first level of the reflection hierarchy is a screen space solution with a high resource intensity that captures everything rendered in the Scene. HDRP uses the [Volume](Volumes.md) framework to handle screen space reflection. The [Screen Space Reflection](Override-Screen-Space-Reflection.md) Volume [override](Volume-Components.md) contains the properties and controls the screen space reflection effect. To calculate screen space reflection, the algorithm traces a ray in screen space until it finds an intersection with the depth buffer. It then looks up the color of the pixel from the previous frame, and uses that to compute the reflected lighting.
-
-This screen-space technique limits the reflective effect because it can only reflect GameObjects that are visible on screen. Also, because this technique only uses a single layer of the depth buffer, tracing rays behind GameObjects is difficult for it to handle. If this technique does not find an intersection, HDRP falls back to the next technique in the [reflection hierarchy](#ReflectionHierarchy).
-
-**Note**: Screen space reflection only works for opaque Materials and, because it is a screen space effect, it only reflects GameObjects that are visible on the screen.
-
-For information on how to use screen space reflection in your Unity Project, see the [Screen Space Reflection](Override-Screen-Space-Reflection.md) documentation.
-
-<a name="ReflectionProbes"></a>
-
-### Reflection Probes
-
-The second level of the reflection hierarchy uses [Reflection Probes](Reflection-Probes-Intro.md). When screen space reflection does not manage to produce useful reflection data for a pixel, possibly because the area it reflects is off screen, HDRP uses Reflection Probes. These Reflection Probes capture the Scene from their point of view and store the result as a Texture. Reflective Materials in range of a Probe can query that Probe’s Texture and then use it to produce accurate reflections. Be aware that metallic Materials that use **baked** Reflection Probes do not show specular lighting. Instead, HDRP uses the ambient color to approximates the specular color.
-
-Unlike screen space reflection, you must set up Reflection Probes manually.
-
-For more information on Reflection Probes, see:
-
-- [Reflection Probes introduction](Reflection-Probes-Intro.md)
-- [Reflection Probe component documentation](Reflection-Probe.md)
-- [Planar Reflection Probe component documentation](Planar-Reflection-Probe.md) documentation
-
-### Sky reflection
-
-For the final level of the reflection hierarchy, HDRP falls back to sky reflections if screen space reflection and Reflection Probes provide no useful reflective information for a pixel. If a pixel uses this technique to calculate reflections, it queries the sky to produce a reflection of the sky at that point.
+To select the best reflection technique for a given pixel, HDRP checks the available techniques in a specific order, called the [reflection hierarchy](reflection-refraction-hierarchy.md).
 
 ## Reflection Proxy Volumes and reprojection
 
