@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
         public TextureParameter texture = new TextureParameter(null);
 
         [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]
-        public ClampedFloatParameter contribution = new ClampedFloatParameter(1f, 0f, 1f);
+        public ClampedFloatParameter contribution = new ClampedFloatParameter(0f, 0f, 1f);
 
         public bool IsActive() => contribution.value > 0f && ValidateLUT();
 
