@@ -17,7 +17,7 @@ MonoBehaviour:
   m_LookDevVolumeProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 140649441525597
+      data1: 1266549348368221
       data2: 4539628434053070872
     lodBias: 1
     lodBiasMode: 0
@@ -28,6 +28,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
@@ -43,6 +44,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
@@ -58,6 +60,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
@@ -65,8 +68,27 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
+  afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
+  defaultRenderingLayerMask: 257
+  renderingLayerNames:
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   lightLayerName0: 
   lightLayerName1: 
   lightLayerName2: 
@@ -83,15 +105,23 @@ MonoBehaviour:
   decalLayerName5: 
   decalLayerName6: 
   decalLayerName7: 
-  shaderVariantLogLevel: 0
   lensAttenuationMode: 0
+  colorGradingSpace: 0
   m_ObsoleteDiffusionProfileSettingsList: []
+  specularFade: 0
+  rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
-  supportRuntimeDebugDisplay: 1
   autoRegisterDiffusionProfiles: 0
-  apvScenesBounds:
+  apvScenesData:
+    m_ObsoleteSerializedBakingSets: []
     serializedBounds: []
     serializedHasVolumes: []
-  m_Version: 5
+    bakingSets: []
+    m_LightingScenario: Default
+  m_Version: 7
+  m_ShaderVariantLogLevel: 0
+  m_SupportRuntimeDebugDisplay: 1
+  m_ExportShaderVariants: 1
+  m_StripDebugVariants: 0
