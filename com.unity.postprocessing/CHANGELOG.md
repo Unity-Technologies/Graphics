@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed FXAA artefact when trying to preserve alpha channel output.
+- Fixed MSVO aliasing artifact by using a z-Bias parameter. (case 1375337)
 
 ## [3.2.1] - 2022-01-12
 

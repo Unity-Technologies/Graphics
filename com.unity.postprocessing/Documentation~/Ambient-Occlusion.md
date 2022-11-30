@@ -63,5 +63,6 @@ This mode is optimized for consoles and desktop platforms. It has better graphic
 | Mode               | Select the type of **Ambient Occlusion** to use. |
 | Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces. |
 | Thickness Modifier | Modify the thickness of occluders. This increases dark areas but can introduce dark halos around objects. |
+| Z Bias             | Modifies the z-bias to the depth buffer. This eliminates the banding aliasing artifact for MSVO. |
 | Color              | Set the tint color of the ambient occlusion. |
 | Ambient Only       | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |
