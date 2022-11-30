@@ -1,4 +1,4 @@
-# Clamp Node
+# Billboard Node
 
 ## Description
 
