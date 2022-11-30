@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         }
 
-        public override bool UpdateDisplayedValue()
+        public override void UpdateDisplayedValue()
         {
             throw new System.NotImplementedException();
         }

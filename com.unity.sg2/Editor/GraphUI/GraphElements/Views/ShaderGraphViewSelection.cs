@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
 
@@ -98,7 +99,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        protected override void CopySelection()
+        protected override IEnumerable<GraphElementModel> CopySelection()
         {
             AddInputEdgesToSelection();
             base.CopySelection();

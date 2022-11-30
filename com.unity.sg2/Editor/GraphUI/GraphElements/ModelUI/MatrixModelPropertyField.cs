@@ -35,14 +35,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Add(m_Field);
         }
 
-        public override bool UpdateDisplayedValue()
+        public override void UpdateDisplayedValue()
         {
             var value = (Matrix4x4)m_ConstantModel.ObjectValue;
-
-            if (value == m_Field.value) return false;
-
-            m_Field.SetValueWithoutNotify(value);
-            return true;
+            if (value != m_Field.value)
+                m_Field.SetValueWithoutNotify(value);
         }
     }
 }
