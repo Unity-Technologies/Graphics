@@ -1,7 +1,15 @@
 ## Description
-Rotates the vertex posiiton to align all three axes with the camera or only the x and z axes.
+Rotates the vertex posiiton, normal, and tangent to align all three axes with the camera or only the x and z axes.
 
+## Inputs
+**Position** - The input vertex postion.
+**Normal** - The input vertex normal.
+**Tangent** - The input vertex tangent.
 
 ## Output
-**Spherical** - The vertex postion with all axes align with the camera.
-**Cylindrical** - The vertex postion with only x and z axes align with the camera.
+**Billboard Position** - The billboard vertex postion.
+**Billboard Normal** - The billboard vertex Normal.
+**Billboard Tangent** - The billboard vertex Tangent.
+
+## Controls
+**Mode** - Select whether to align all three axes or only x and z axes.
