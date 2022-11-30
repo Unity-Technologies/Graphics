@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [Test]
         public void CreateGraphAssetTest()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<AssetUtils.CreateAssetGraphAction>();
             var assetPath = $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
             newGraphAction.Action(0, assetPath, "");
             var newAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [Test]
         public void GraphSubAssetAssociationTest()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<AssetUtils.CreateAssetGraphAction>();
             var assetPath = $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
             newGraphAction.Action(0, assetPath, "");
             var materialAsset = AssetDatabase.LoadAssetAtPath<Material>(assetPath);

@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (option == 0) // save
                     {
-                        GraphAssetUtils.SaveOpenGraphAsset(GraphTool);
+                        AssetUtils.SaveOpenGraphAsset(GraphTool);
                         return true;
                     }
                     else if (option == 1) // cancel (or escape/close dialog)
@@ -169,7 +169,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (option == 0)
             {
-                var savedPath = GraphAssetUtils.SaveOpenGraphAssetAs(GraphTool);
+                var savedPath = AssetUtils.SaveOpenGraphAssetAs(GraphTool);
                 if (savedPath != null)
                 {
                     saved = true;

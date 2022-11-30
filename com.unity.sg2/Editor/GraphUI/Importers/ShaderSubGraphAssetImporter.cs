@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
             {
-                ShaderGraphAssetUtils.HandleImport(ctx);
+                ShaderGraphAssetUtils.HandleImportSubGraph(ctx);
             }
         }
     }

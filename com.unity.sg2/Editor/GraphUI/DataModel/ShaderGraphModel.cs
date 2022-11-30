@@ -112,15 +112,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
     class ShaderGraphModel : GraphModel
     {
         [SerializeField]
-        private SerializableGraphHandler graphHandlerBox = new();
-        [SerializeField]
-        private SerializableTargetSettings targetSettingsBox = new();
+        private ShaderGraphAssetUtils.SerializableTargetSettings targetSettingsBox = new();
         [SerializeField]
         private MainPreviewData mainPreviewData;
         [SerializeField]
         private bool isSubGraph = false;
 
-        internal GraphHandler GraphHandler => graphHandlerBox.Graph;
+        [NonSerialized]
+        GraphHandler m_GraphHandler;
+        internal GraphHandler GraphHandler => ((ShaderGraphAsset)Asset).CLDSModel;
         internal ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
         internal Target ActiveTarget => Targets.FirstOrDefault();
@@ -152,9 +152,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string m_ShaderCategory = "Shader Graphs (SG2)";
         public string ShaderName => string.IsNullOrEmpty(m_ShaderCategory) ? Name : m_ShaderCategory + "/" + Name;
 
-        internal void Init(GraphHandler graph, bool isSubGraph, Target target)
+        internal void Init(bool isSubGraph, Target target)
         {
-            graphHandlerBox.Init(graph);
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
             {
@@ -166,25 +165,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 //vertNode.Position = new Vector2(0, -180);
 
             }
-            var outputNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
-            outputNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
-        }
 
+            foreach (var addedTarget in Targets)
+            {
+                // at most there is only one target right now, so this solution is not robust.
+                InitializeContextFromTarget(addedTarget.value);
+            }
+
+            GraphHandler.ReconcretizeAll();
+
+            m_DefaultContextNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
+            m_DefaultContextNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
+        }
 
         public override void OnEnable()
         {
-            graphHandlerBox.OnEnable(false);
-
             targetSettingsBox.OnEnable();
-            foreach (var target in Targets)
-            {
-                // at most there is only one target right now, so this solution is not robust.
-                InitializeContextFromTarget(target.value);
-            }
-            GraphHandler.ReconcretizeAll();
             base.OnEnable();
             mainPreviewData = new(Guid.ToString());
-            m_DefaultContextNode = GetMainContextNode();
         }
 
         /// <summary>
@@ -252,17 +250,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 contextNode.DefineNode();
             }
-        }
-
-        GraphDataContextNodeModel GetMainContextNode()
-        {
-            foreach (var node in NodeModels)
-            {
-                if (node is GraphDataContextNodeModel graphDataContextNodeModel && graphDataContextNodeModel.IsMainContextNode())
-                    return graphDataContextNodeModel;
-            }
-
-            return null;
         }
 
         public override bool CanBeSubgraph() => isSubGraph;
