@@ -479,8 +479,6 @@ namespace UnityEditor.ShaderFoundry
                     builder.Append($"_{keywordDesc.Scope}");
                 if (!string.IsNullOrEmpty(keywordDesc.Stage))
                     builder.Append($"_{keywordDesc.Stage}");
-                if (!string.IsNullOrEmpty(keywordDesc.Name))
-                    builder.Append($" {keywordDesc.Name}");
                 foreach (var op in keywordDesc.Ops)
                     builder.Append($" {op}");
                 builder.AppendNewLine();

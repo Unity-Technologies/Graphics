@@ -198,8 +198,6 @@ namespace UnityEditor.ShaderFoundry
             passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
             passBuilder.DisplayName = legacyPassDescriptor.displayName;
 
-            passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
-
             BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, fragmentCustomizationPoint);
             return passBuilder.Build();
         }

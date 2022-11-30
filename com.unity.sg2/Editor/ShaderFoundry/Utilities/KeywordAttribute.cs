@@ -49,8 +49,8 @@ namespace UnityEditor.ShaderFoundry
         {
             var definition = KeywordMode.ToShaderLabString();
             var stage = Stage == "all" ? null : Stage;
-            var ops = new string[] { GetKeywordName(uniformName) };
-            var builder = new KeywordDescriptor.Builder(container, "_", definition, Scope, stage, ops);
+            var ops = new string[] { "_", GetKeywordName(uniformName) };
+            var builder = new KeywordDescriptor.Builder(container, definition, Scope, stage, ops);
             return builder.Build();
         }
 
@@ -152,8 +152,7 @@ namespace UnityEditor.ShaderFoundry
                 keywordOps.Add("_");
             foreach (var pair in enumPairs)
                 keywordOps.Add(GetKeywordName(uniformName, pair.Name));
-
-            var keywordDescriptorBuilder = new ShaderFoundry.KeywordDescriptor.Builder(container, null, definition, Scope, stage, keywordOps);
+            var keywordDescriptorBuilder = new ShaderFoundry.KeywordDescriptor.Builder(container, definition, Scope, stage, keywordOps);
             return keywordDescriptorBuilder.Build();
         }
 
