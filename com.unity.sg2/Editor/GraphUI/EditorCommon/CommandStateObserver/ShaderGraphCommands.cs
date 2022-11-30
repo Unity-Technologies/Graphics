@@ -50,6 +50,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent,
                 previewUpdateDispatcher);
 
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetCoordinateSpaceCommand>(
+                SetCoordinateSpaceCommand.DefaultCommandHandler,
+                undoStateComponent,
+                graphModelStateComponent,
+                previewUpdateDispatcher);
+
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddRedirectNodeCommand>(
                 AddRedirectNodeCommand.DefaultHandler,
                 undoStateComponent,

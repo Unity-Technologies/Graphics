@@ -37,9 +37,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         const string kWorldPosition = "WorldPosition";
 
         // Fields
-        const string kSourceSpace = "Source";
-        const string kDestinationSpace = "Destination";
-        const string kConversionType = "ConversionType";
+        public const string kSourceSpace = "Source";
+        public const string kDestinationSpace = "Destination";
+        public const string kConversionType = "ConversionType";
 
         public RegistryKey GetRegistryKey() => new() {Name = "Transform", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
