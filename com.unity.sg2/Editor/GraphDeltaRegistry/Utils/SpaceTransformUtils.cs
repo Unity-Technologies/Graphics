@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         AbsoluteWorld
     }
 
-    enum ConversionType
+    internal enum ConversionType
     {
         Position,
         Direction,
