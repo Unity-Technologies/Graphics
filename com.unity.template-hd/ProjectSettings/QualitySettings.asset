@@ -248,5 +248,9 @@ QualitySettings:
     excludedTargetPlatforms: []
   m_TextureMipmapLimitGroupNames: []
   m_PerPlatformDefaultQuality:
+    GameCoreScarlett: 2
+    GameCoreXboxOne: 3
+    PS4: 3
+    PS5: 2
     Server: 3
     Standalone: 3
