@@ -62,6 +62,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         [SerializeField]
         bool m_AssetMaybeDeleted;
 
+        internal bool WereWindowResourcesDisposed { get; private set; }
+
         MessageManager m_MessageManager;
         MessageManager messageManager
         {
@@ -412,8 +414,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDisable()
         {
-            graphEditorView = null;
+            m_GraphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            m_GraphEditorView?.Dispose();
             messageManager.ClearAll();
+
+            m_GraphEditorView = null;
+            m_GraphObject = null;
+            m_MessageManager = null;
+            m_RenderPipelineAsset = null;
+
+            Resources.UnloadUnusedAssets();
+
+            WereWindowResourcesDisposed = true;
         }
 
         // returns true only when the file on disk doesn't match the graph we last loaded or saved to disk (i.e. someone else changed it)

@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
     sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
     {
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
+        public static StyleSheet styleSheet;
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
@@ -25,7 +26,10 @@ namespace UnityEditor.ShaderGraph
         public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
             : base(null, ShaderPort.Create(node.GetOutputSlots<MaterialSlot>().First(), edgeConnectorListener))
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
+            if (styleSheet == null)
+                styleSheet = Resources.Load<StyleSheet>("Styles/PropertyNodeView");
+            styleSheets.Add(styleSheet);
+
             this.node = node;
             viewDataKey = node.objectId.ToString();
             userData = node;
@@ -444,6 +448,11 @@ namespace UnityEditor.ShaderGraph
             {
                 propRow.RemoveFromClassList("hovered");
             }
+            styleSheets.Clear();
+            m_propertyViewUpdateTrigger = null;
+            m_ResetReferenceNameAction = null;
+            UnregisterCallback<MouseEnterEvent>(OnMouseHover);
+            UnregisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
     }
 }

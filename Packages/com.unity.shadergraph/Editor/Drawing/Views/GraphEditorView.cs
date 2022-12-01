@@ -1367,16 +1367,39 @@ namespace UnityEditor.ShaderGraph.Drawing
                 showInProjectRequested = null;
                 isCheckedOut = null;
                 checkOut = null;
-                foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())
-                    node.Dispose();
+                foreach (var materialNodeView in m_GraphView.Query<MaterialNodeView>().ToList())
+                    materialNodeView.Dispose();
+                foreach (var propertyNodeView in m_GraphView.Query<PropertyNodeView>().ToList())
+                    propertyNodeView.Dispose();
+                foreach (var redirectNodeView in m_GraphView.Query<RedirectNodeView>().ToList())
+                    redirectNodeView.Dispose();
+                foreach (var contextView in m_GraphView.Query<ContextView>().ToList())
+                    contextView.Dispose();
+                foreach (var edge in m_GraphView.Query<Edge>().ToList())
+                {
+                    edge.output = null;
+                    edge.input = null;
+                }
+
                 m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
+
+            m_BlackboardController?.Dispose();
+            m_BlackboardController = null;
+
+            m_InspectorView?.Dispose();
+            m_InspectorView = null;
+
             if (previewManager != null)
             {
                 previewManager.Dispose();
                 previewManager = null;
             }
+
+            // Unload any static resources here
+            Resources.UnloadAsset(ShaderPort.styleSheet);
+
             if (m_SearchWindowProvider != null)
             {
                 Object.DestroyImmediate(m_SearchWindowProvider);
