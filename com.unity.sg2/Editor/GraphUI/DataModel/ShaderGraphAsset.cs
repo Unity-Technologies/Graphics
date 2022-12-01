@@ -76,6 +76,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         SerializableGraphHandler graphHandlerBox;
 
+        [SerializeField]
+        LegacyTargetType m_TargetType;
+
+        public LegacyTargetType TargetType => m_TargetType;
+
         ShaderGraphType m_ShaderGraphType;
 
         string m_AssetPath;
@@ -85,6 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         ShaderGraphAsset()
         {
             graphHandlerBox = new();
+            m_AssetPath = String.Empty;
         }
 
         protected override void OnEnable()
@@ -94,12 +100,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
         }
 
-        public void InitializeGraphData(LegacyTargetType legacyTargetType)
+        public void InitializeNewAsset(LegacyTargetType legacyTargetType)
         {
+            m_TargetType = legacyTargetType;
             var defaultRegistry = ShaderGraphRegistry.Instance.Registry;
             GraphHandler graphHandler = new(defaultRegistry);
             graphHandler.AddContextNode(kBlackboardContextName);
-            if (legacyTargetType == LegacyTargetType.Blank) // blank shadergraph gets the fallback context node for output.
+            if (m_TargetType == LegacyTargetType.Blank) // blank shadergraph gets the fallback context node for output.
             {
                 graphHandler.AddContextNode(Registry.ResolveKey<Defs.ShaderGraphContext>());
             }
@@ -143,15 +150,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override GraphAsset Import()
         {
-            //AssetDatabase.ImportAsset(FilePath); // Is this necessary?
-
+            m_AssetPath = m_AssetPath == string.Empty ? FilePath : m_AssetPath;
+            AssetDatabase.ImportAsset(m_AssetPath);
             return this;
         }
 
         public override void Save()
         {
+            m_AssetPath = m_AssetPath == string.Empty ? FilePath : m_AssetPath;
             var json = EditorJsonUtility.ToJson(this, true);
             File.WriteAllText(m_AssetPath, json);
+            EditorUtility.ClearDirty(this);
         }
     }
 }

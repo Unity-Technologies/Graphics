@@ -45,9 +45,10 @@ namespace UnityEditor.ShaderGraph
 
         public static ShaderGraphAsset HandleLoad(string path)
         {
-            AssetDatabase.ImportAsset(path);
-            var asset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            return asset;
+            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
+            graphAsset.ShaderGraphModel.OnEnable();
+            graphAsset.ShaderGraphModel.Init(false);
+            return graphAsset;
         }
 
         public static void HandleImportAssetGraph(AssetImportContext ctx)

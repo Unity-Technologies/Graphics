@@ -152,8 +152,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         string m_ShaderCategory = "Shader Graphs (SG2)";
         public string ShaderName => string.IsNullOrEmpty(m_ShaderCategory) ? Name : m_ShaderCategory + "/" + Name;
 
-        internal void Init(bool isSubGraph, Target target)
+        // TODO: Not initialize this way, need to provide a more generic model context object with all necessary info.
+        internal void InitModelForNewAsset(bool isSubGraph, LegacyTargetType targetType = LegacyTargetType.Blank)
         {
+            var target = targetType switch
+            {
+                LegacyTargetType.Blank => null,
+                LegacyTargetType.URPLit => URPTargetUtils.ConfigureURPLit(GraphHandler),
+                LegacyTargetType.URPUnlit => URPTargetUtils.ConfigureURPUnlit(GraphHandler),
+                _ => throw new ArgumentOutOfRangeException("ShaderGraphTemplate.m_TargetType")
+            };
+
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
             {
@@ -166,6 +175,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             }
 
+            m_DefaultContextNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
+            Init(isSubGraph);
+        }
+
+        public void Init(bool isSubGraph)
+        {
             foreach (var addedTarget in Targets)
             {
                 // at most there is only one target right now, so this solution is not robust.
@@ -174,7 +189,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             GraphHandler.ReconcretizeAll();
 
-            m_DefaultContextNode = this.CreateGraphDataContextNode(ShaderGraphAssetUtils.kMainEntryContextName);
+            m_DefaultContextNode ??= GetMainContextNode();
             m_DefaultContextNode.Title = isSubGraph ? "Subgraph Outputs" : "Fragment Stage";
         }
 
@@ -183,6 +198,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             targetSettingsBox.OnEnable();
             base.OnEnable();
             mainPreviewData = new(Guid.ToString());
+        }
+
+        GraphDataContextNodeModel GetMainContextNode()
+        {
+            foreach (var node in NodeModels)
+            {
+                if (node is GraphDataContextNodeModel graphDataContextNodeModel && graphDataContextNodeModel.IsMainContextNode())
+                    return graphDataContextNodeModel;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -201,7 +227,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         public void CreateUIData()
         {
-            if (Stencil is ShaderGraphStencil stencil)
+            if (Stencil is ShaderGraphStencil stencil && m_NodeUIData == null)
             {
                 foreach (var registryKey in RegistryInstance.Registry.BrowseRegistryKeys())
                 {

@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using Unity.CommandStateObserver;
 using Unity.GraphToolsFoundation;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {

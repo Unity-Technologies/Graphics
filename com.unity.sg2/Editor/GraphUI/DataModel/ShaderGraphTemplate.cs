@@ -1,10 +1,10 @@
 ﻿using System;
 using Unity.GraphToolsFoundation.Editor;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    [Serializable]
     enum LegacyTargetType
     {
         Blank,
@@ -25,8 +25,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override string GraphTypeName { get; }
 
-        Target m_Target;
-
         public Action GraphHandlerInitializationCallback;
 
         public override void InitBasicGraph(GraphModel graphModel)
@@ -34,20 +32,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.InitBasicGraph(graphModel);
 
             if (graphModel.Asset is ShaderGraphAsset shaderGraphAsset)
-                shaderGraphAsset.InitializeGraphData(m_TargetType);
+                shaderGraphAsset.InitializeNewAsset(m_TargetType);
 
             if (graphModel is ShaderGraphModel shaderGraphModel)
-            {
-                m_Target = m_TargetType switch
-                {
-                    LegacyTargetType.Blank => null,
-                    LegacyTargetType.URPLit => URPTargetUtils.ConfigureURPLit(shaderGraphModel.GraphHandler),
-                    LegacyTargetType.URPUnlit => URPTargetUtils.ConfigureURPUnlit(shaderGraphModel.GraphHandler),
-                    _ => throw new ArgumentOutOfRangeException("ShaderGraphTemplate.m_TargetType")
-                };
-
-                shaderGraphModel.Init(m_IsSubgraph, m_Target);
-            }
+                shaderGraphModel.InitModelForNewAsset(m_IsSubgraph, m_TargetType);
         }
 
         public static ShaderGraphAsset CreateInMemoryGraphFromTemplate(ShaderGraphTemplate graphTemplate)

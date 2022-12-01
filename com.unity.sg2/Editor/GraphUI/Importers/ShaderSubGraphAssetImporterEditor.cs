@@ -12,13 +12,15 @@ namespace UnityEditor.ShaderGraph
         [OnOpenAsset(0)]
         public static bool OnOpenShaderSubGraph(int instanceID, int line)
         {
-            string path = AssetDatabase.GetAssetPath(instanceID);
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            if (!graphAsset)
-            {
-                return false;
-            }
-            return ShowWindow(path, graphAsset);
+            //string path = AssetDatabase.GetAssetPath(instanceID);
+            //var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
+            //if (!graphAsset)
+            //{
+            //    return false;
+            //}
+            //return ShowWindow(path, graphAsset);
+
+            return false;
         }
 
         private static bool ShowWindow(string path, ShaderGraphAsset model)

@@ -76,15 +76,11 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            if (!graphAsset)
-            {
-                return false;
-            }
-            return ShowWindow(path, graphAsset);
+            var graphAsset = ShaderGraphAssetUtils.HandleLoad(path);;
+            return graphAsset && ShowWindow(graphAsset);
         }
 
-        private static bool ShowWindow(string path, ShaderGraphAsset model)
+        static bool ShowWindow(ShaderGraphAsset asset)
         {
             ShaderGraphEditorWindow shaderGraphEditorWindow = null;
 
@@ -92,7 +88,7 @@ namespace UnityEditor.ShaderGraph
             var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
             foreach (var existingEditorWindow in existingEditorWindows)
             {
-                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), model))
+                if (ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), asset))
                 {
                     shaderGraphEditorWindow = existingEditorWindow;
                     break;
@@ -106,12 +102,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     return false;
                 }
-                AssetDatabase.ImportAsset(path);
             }
 
             shaderGraphEditorWindow.Show();
             shaderGraphEditorWindow.Focus();
-            shaderGraphEditorWindow.SetCurrentSelection(model, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            shaderGraphEditorWindow.SetCurrentSelection(asset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
             return true;
         }
     }
