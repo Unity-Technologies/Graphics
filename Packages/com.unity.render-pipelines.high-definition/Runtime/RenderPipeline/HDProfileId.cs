@@ -180,6 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SortVisibleLights,
         BuildVisibleLightEntities,
         ProcessShadows,
+        ComputeShadowCullingSplits,
         CalculateLightDataTextureInfo,
         CalculateShadowIndices,
         UpdateDirectionalShadowData,

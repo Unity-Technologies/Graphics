@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
+        internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
+        internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
         internal CommandBuffer commandBuffer;
 
         /// <summary>
@@ -693,6 +695,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
+        internal int mainLightShadowResolution;
+        internal int mainLightRenderTargetWidth;
+        internal int mainLightRenderTargetHeight;
     }
 
     /// <summary>

@@ -538,5 +538,41 @@ namespace UnityEngine.Rendering.Universal
 
             return softShadows;
         }
+
+        internal static bool IsValidShadowCastingLight(ref LightData lightData, int i)
+        {
+            if (i == lightData.mainLightIndex)
+                return false;
+
+            ref VisibleLight shadowLight = ref lightData.visibleLights.UnsafeElementAt(i);
+
+            // Directional and light shadows are not supported in the shadow map atlas
+            if (shadowLight.lightType == LightType.Directional)
+                return false;
+
+            Light light = shadowLight.light;
+            return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
+        }
+
+        internal static int GetPunctualLightShadowSlicesCount(in LightType lightType)
+        {
+            switch (lightType)
+            {
+                case LightType.Spot:
+                    return 1;
+                case LightType.Point:
+                    return 6;
+                default:
+                    return 0;
+            }
+        }
+
+        internal const int kMinimumPunctualLightHardShadowResolution = 8;
+        internal const int kMinimumPunctualLightSoftShadowResolution = 16;
+        // Minimal shadow map resolution required to have meaningful shadows visible during lighting
+        internal static int MinimalPunctualLightShadowResolution(bool softShadow)
+        {
+            return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
+        }
     }
 }

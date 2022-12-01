@@ -2367,6 +2367,28 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool HasShadowAtlasPlacement()
+        {
+            // If we force evicted the light, it will have lightIdxForCachedShadows == -1
+            return !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(lightIdxForCachedShadows, shadowMapType) && (lightIdxForCachedShadows != -1);
+        }
+
+        internal void OverrideShadowResolutionRequestsWithShadowCache(HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDLightType lightType)
+        {
+            int shadowRequestCount = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
+            
+            for (int i = 0; i < shadowRequestCount; i++)
+            {
+                int shadowRequestIndex = shadowRequestIndices[i];
+                if (shadowRequestIndex < 0 || shadowRequestIndex >= shadowManager.shadowResolutionRequestStorage.Length)
+                    continue;
+
+                ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
+                int cachedShadowID = lightIdxForCachedShadows + i;
+                HDShadowManager.cachedShadowManager.OverrideShadowResolutionRequestWithCachedData(ref resolutionRequest, cachedShadowID, shadowMapType);
+            }
+        }
+
         // This offset shift the position of the spotlight used to approximate the area light shadows. The offset is the minimum such that the full
         // area light shape is included in the cone spanned by the spot light.
         internal static float GetAreaLightOffsetForShadows(Vector2 shapeSize, float coneAngle)

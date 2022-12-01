@@ -92,7 +92,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
 
-            if (!renderingData.shadowData.supportsMainLightShadows)
+            ref ShadowData shadowData = ref renderingData.shadowData;
+            if (!shadowData.supportsMainLightShadows)
                 return SetupForEmptyRendering(ref renderingData);
 
             Clear();
@@ -114,22 +115,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!renderingData.cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
                 return SetupForEmptyRendering(ref renderingData);
 
-            m_ShadowCasterCascadesCount = renderingData.shadowData.mainLightShadowCascadesCount;
+            m_ShadowCasterCascadesCount = shadowData.mainLightShadowCascadesCount;
+            renderTargetWidth = shadowData.mainLightRenderTargetWidth;
+            renderTargetHeight = shadowData.mainLightRenderTargetHeight;
 
-            int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(renderingData.shadowData.mainLightShadowmapWidth,
-                renderingData.shadowData.mainLightShadowmapHeight, m_ShadowCasterCascadesCount);
-            renderTargetWidth = renderingData.shadowData.mainLightShadowmapWidth;
-            renderTargetHeight = (m_ShadowCasterCascadesCount == 2) ?
-                renderingData.shadowData.mainLightShadowmapHeight >> 1 :
-                renderingData.shadowData.mainLightShadowmapHeight;
+            ref readonly URPLightShadowCullingInfos shadowCullingInfos = ref renderingData.visibleLightsShadowCullingInfos.UnsafeElementAt(shadowLightIndex);
 
             for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
             {
-                bool success = ShadowUtils.ExtractDirectionalLightMatrix(ref renderingData.cullResults, ref renderingData.shadowData,
-                    shadowLightIndex, cascadeIndex, renderTargetWidth, renderTargetHeight, shadowResolution, light.shadowNearPlane,
-                    out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex]);
+                ref readonly ShadowSliceData sliceData = ref shadowCullingInfos.slices.UnsafeElementAt(cascadeIndex);
+                m_CascadeSplitDistances[cascadeIndex] = sliceData.splitData.cullingSphere;
+                m_CascadeSlices[cascadeIndex] = sliceData;
 
-                if (!success)
+                if (!shadowCullingInfos.IsSliceValid(cascadeIndex))
                     return SetupForEmptyRendering(ref renderingData);
             }
 
@@ -219,13 +217,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MainLightShadow)))
             {
-                var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex, BatchCullingProjectionType.Orthographic);
+                var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
                 settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
-                    settings.splitData = m_CascadeSlices[cascadeIndex].splitData;
-
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, ref shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.CastingPunctualLightShadow, false);

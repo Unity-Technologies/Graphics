@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Also, we assign the resolutions here since we didn't know about HDShadowInitParameters during OnEnable of the light.
         internal void AssignOffsetsInAtlas(HDShadowInitParameters initParameters)
         {
-            if (m_RegisteredLightDataPendingPlacement.Count() > 0 && m_CanTryPlacement)
+            if (!m_RegisteredLightDataPendingPlacement.IsEmpty && m_CanTryPlacement)
             {
                 m_TempListForPlacement.Clear();
 
@@ -568,6 +568,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // ------------------------------------------------------------------------------------------
         //                           Functions to query and change state of a shadow
         // ------------------------------------------------------------------------------------------
+        internal bool LightIsPendingPlacement(int lightIdxForCachedShadows)
+        {
+            return m_RegisteredLightDataPendingPlacement.ContainsKey(lightIdxForCachedShadows) || m_RecordsPendingPlacement.ContainsKey(lightIdxForCachedShadows);
+        }
 
         internal bool ShadowHasRenderedAtLeastOnce(int shadowIdx)
         {
@@ -645,6 +649,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Put the record up for rendering
             m_ShadowsPendingRendering.Add(shadowIdx, shadowRecord);
+        }
+
+        internal void OverrideShadowResolutionRequestWithCachedData(ref HDShadowResolutionRequest request, int shadowIdx)
+        {
+            CachedShadowRecord record;
+            bool valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out record);
+
+            if (!valueFound)
+            {
+                Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
+            }
+
+            request.cachedAtlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
+            request.resolution = new Vector2(record.viewportSize, record.viewportSize);
         }
 
         internal override void DisposeNativeCollections()

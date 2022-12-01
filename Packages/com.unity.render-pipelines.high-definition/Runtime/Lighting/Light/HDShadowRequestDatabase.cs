@@ -84,6 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return s_Instance;
             }
         }
+
+        public bool IsCreated => m_HDShadowRequestsCreated;
+
         public void EnsureNativeListsAreCreated()
         {
             if (!m_HDShadowRequestsCreated)

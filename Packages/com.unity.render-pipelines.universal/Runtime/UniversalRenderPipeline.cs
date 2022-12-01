@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.Universal
                 public static readonly ProfilingSampler initializeRenderingData = new ProfilingSampler($"{k_Name}.{nameof(InitializeRenderingData)}");
                 public static readonly ProfilingSampler initializeShadowData = new ProfilingSampler($"{k_Name}.{nameof(InitializeShadowData)}");
                 public static readonly ProfilingSampler initializeLightData = new ProfilingSampler($"{k_Name}.{nameof(InitializeLightData)}");
+                public static readonly ProfilingSampler buildAdditionalLightsShadowAtlasLayout = new ProfilingSampler($"{k_Name}.{nameof(BuildAdditionalLightsShadowAtlasLayout)}");
                 public static readonly ProfilingSampler getPerObjectLightFlags = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
                 public static readonly ProfilingSampler getMainLightIndex = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
                 public static readonly ProfilingSampler setupPerFrameShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
@@ -268,6 +269,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
 
             DisposeAdditionalCameraData();
+            AdditionalLightsShadowAtlasLayout.ClearStaticCaches();
         }
 
         // If the URP gets destroyed, we must clean up all the added URP specific camera data and
@@ -615,7 +617,7 @@ namespace UnityEngine.Rendering.Universal
                 // Called and updated only once, as the same camera can be rendered multiple times.
                 // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
                 // NOTE: Shared between both Execute and Render (RG) paths.
-                if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
                     additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
 
                 // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
@@ -634,6 +636,10 @@ namespace UnityEngine.Rendering.Universal
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
+
+                InitializeMainLightShadowResolution(ref renderingData.shadowData);
+                renderingData.shadowAtlasLayout = BuildAdditionalLightsShadowAtlasLayout(ref renderingData.lightData, ref renderingData.shadowData, ref renderingData.cameraData);
+                renderingData.visibleLightsShadowCullingInfos = ShadowCulling.CullShadowCasters(ref context, ref renderingData.shadowData, ref renderingData.shadowAtlasLayout, ref cullResults);
 
                 renderer.AddRenderPasses(ref renderingData);
 
@@ -1323,6 +1329,11 @@ namespace UnityEngine.Rendering.Universal
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
             renderingData.commandBuffer = cmd;
 
+            // Those two fields must be initialized using ShadowData, which can be modified right after this function (InitializeRenderingData) by ApplyAdaptivePerformance.
+            // Their initializations is thus deferred to a later point when ShadowData is fully initialized.
+            renderingData.shadowAtlasLayout = default;
+            renderingData.visibleLightsShadowCullingInfos = default;
+
             CheckAndApplyDebugSettings(ref renderingData);
         }
 
@@ -1406,6 +1417,20 @@ namespace UnityEngine.Rendering.Universal
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
             shadowData.isKeywordSoftShadowsEnabled = false;
+
+            // Those fields must be setup after ApplyAdaptivePerformance is called on RenderingData.
+            // This is because this function can currently modify mainLightShadowmapWidth, mainLightShadowmapHeight and mainLightShadowCascadesCount.
+            // All three parameters are needed to compute those fields, so their initialization is deferred to InitializeMainLightShadowResolution.
+            shadowData.mainLightShadowResolution = 0;
+            shadowData.mainLightRenderTargetWidth = 0;
+            shadowData.mainLightRenderTargetHeight = 0;
+        }
+
+        static void InitializeMainLightShadowResolution(ref ShadowData shadowData)
+        {
+            shadowData.mainLightShadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(shadowData.mainLightShadowmapWidth, shadowData.mainLightShadowmapHeight, shadowData.mainLightShadowCascadesCount);
+            shadowData.mainLightRenderTargetWidth = shadowData.mainLightShadowmapWidth;
+            shadowData.mainLightRenderTargetHeight = (shadowData.mainLightShadowCascadesCount == 2) ? shadowData.mainLightShadowmapHeight >> 1 : shadowData.mainLightShadowmapHeight;
         }
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
@@ -1926,6 +1951,12 @@ namespace UnityEngine.Rendering.Universal
             /// Target texture slice
             /// </summary>
             public int slice = 0;
+        }
+
+        static AdditionalLightsShadowAtlasLayout BuildAdditionalLightsShadowAtlasLayout(ref LightData lightData, ref ShadowData shadowData, ref CameraData cameraData)
+        {
+            using var profScope = new ProfilingScope(null, Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
+            return new AdditionalLightsShadowAtlasLayout(ref lightData, ref shadowData, ref cameraData);
         }
     }
 }
