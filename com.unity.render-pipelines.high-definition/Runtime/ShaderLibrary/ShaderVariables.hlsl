@@ -52,6 +52,8 @@
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 #endif
 
+#define COMPUTE_THICKNESS_MAX_LAYER_COUNT 32
+
 // ----------------------------------------------------------------------------
 
 #ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
@@ -159,6 +161,11 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 // Exposure texture - 1x1 RG16F (r: exposure mult, g: exposure EV100)
 TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
+
+TEXTURE2D_X(_RenderingLayerMaskTexture);
+
+TEXTURE2D_ARRAY(_ThicknessTexture);
+StructuredBuffer<uint> _ThicknessReindexMap;
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
@@ -284,6 +291,38 @@ float LoadCustomDepth(uint2 pixelCoords)
     return LOAD_TEXTURE2D_X_LOD(_CustomDepthTexture, pixelCoords, 0).r;
 }
 
+float2 LoadThickness(uint2 pixelCoords, int renderLayerIdx)
+{
+    if (_EnableComputeThickness)
+    {
+        uint remapedIdx = INDEX_TEXTURE2D_ARRAY_X(_ThicknessReindexMap[renderLayerIdx]);
+        if (remapedIdx == COMPUTE_THICKNESS_MAX_LAYER_COUNT)
+            return -1.0f;
+        else
+            return LOAD_TEXTURE2D_ARRAY_LOD(_ThicknessTexture, pixelCoords, remapedIdx, 0).xy;
+    }
+    else
+    {
+        return 1.0f;
+    }
+}
+
+float2 SampleThickness(float2 uv, int renderLayerIdx)
+{
+    if (_EnableComputeThickness)
+    {
+        uint remapedIdx = INDEX_TEXTURE2D_ARRAY_X(_ThicknessReindexMap[renderLayerIdx]);
+        if (remapedIdx == COMPUTE_THICKNESS_MAX_LAYER_COUNT)
+            return -1.0f;
+        else
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_ThicknessTexture, s_linear_clamp_sampler, uv * _RTHandleScale.xy, remapedIdx, 0).xy;
+    }
+    else
+    {
+        return 1.0f;
+    }
+}
+
 float SampleCustomDepth(float2 uv)
 {
     return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
@@ -344,6 +383,18 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
     return inverseModelMatrix;
 #endif
 }
+
+float4x4 RevertCameraTranslationFromInverseMatrix(float4x4 inverseModelMatrix)
+{
+    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    // To handle camera relative rendering we need to apply translation before converting to object space
+    float4x4 translationMatrix = { { 1.0, 0.0, 0.0, -_WorldSpaceCameraPos.x },{ 0.0, 1.0, 0.0, -_WorldSpaceCameraPos.y },{ 0.0, 0.0, 1.0, -_WorldSpaceCameraPos.z },{ 0.0, 0.0, 0.0, 1.0 } };
+    return mul(inverseModelMatrix, translationMatrix);
+    #else
+    return inverseModelMatrix;
+    #endif
+}
+
 
 void ApplyCameraRelativeXR(inout float3 positionWS)
 {
@@ -483,6 +534,30 @@ void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
     maxBounds = unity_RendererBounds_Max.xyz;
 }
 
+// Define Model Matrix Macro
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
+// We need to declare inline function. Using uniform directly mean they are expand with the macro
+float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
+
+#define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+#define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
+#define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
+
+#else
+
+// Not yet supported by BRG
+void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    minBounds = 0;
+    maxBounds = 0;
+}
+
+#endif
+
 void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
 {
     GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
@@ -500,20 +575,52 @@ float3 GetRendererExtents()
     return (maxBounds - minBounds) * 0.5;
 }
 
-// Define Model Matrix Macro
-// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
-// We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
-float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
-float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
+// This utility function is currently used to support an alpha blending friendly format
+// for virtual texturing + transparency support.
+float2 ConvertRGBA8UnormToRG16Unorm(float4 inputRGBA8Unorm)
+{
+    uint4 uintValues = (uint4)(inputRGBA8Unorm * 255.0f) & 0xFF;
+    float scale = 1.0 / (float)(0xFFFF);
+    float2 packedRG16UnormVal = float2(
+        (float)(uintValues.x | (uintValues.y << 8)),
+        (float)(uintValues.z | (uintValues.w << 8))) * scale;
+    return packedRG16UnormVal;
+}
 
-#define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
-#define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
-#define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
-#define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
+// This utility function is currently used to support an alpha blending friendly format
+// for virtual texturing + transparency support.
+float4 ConvertRG16UnormToRGBA8Unorm(float2 compressedFeedback)
+{
+    float scale = (float)(0xFFFF);
+    uint2 packedUintValues = (uint2)(compressedFeedback * scale);
+    uint4 uintValues = uint4(packedUintValues.x, packedUintValues.x >> 8, packedUintValues.y, packedUintValues.y >> 8) & 0xFF;
+    return (float4)uintValues / 255.0f;
+}
 
-#endif
+float4 PackVTFeedbackWithAlpha(float4 feedback, float2 pixelCoord, float alpha)
+{
+    float2 vtFeedbackCompressed = ConvertRGBA8UnormToRG16Unorm(feedback);
+    if (alpha == 1.0 || alpha == 0.0)
+        return float4(vtFeedbackCompressed.x, vtFeedbackCompressed.y, 0.0, alpha);
+
+    float2 pixelLocationAlpha = frac(pixelCoord * 0.25f); // We don't scale after the frac so this will give coords 0, 0.25, 0.5, 0.75
+    int pixelId = (int)(pixelLocationAlpha.y * 16 + pixelLocationAlpha.x * 4) & 0xF;
+
+    // Modern hardware supports array indexing with per pixel varying indexes
+    // on old hardware this will be expanded to a conditional tree by the compiler
+    const float thresholdMaxtrix[16] = {1.0f / 17.0f, 9.0f / 17.0f, 3.0f / 17.0f, 11.0f / 17.0f,
+                                        13.0f / 17.0f,  5.0f / 17.0f, 15.0f / 17.0f, 7.0f / 17.0f,
+                                        4.0f / 17.0f, 12.0f / 17.0f, 2.0f / 17.0f, 10.0f / 17.0f,
+                                        16.0f / 17.0f, 8.0f / 17.0f, 14.0f / 17.0f, 6.0f / 17.0f};
+
+    float threshold = thresholdMaxtrix[pixelId];
+    return float4(vtFeedbackCompressed.x, vtFeedbackCompressed.y, 0.0, alpha < threshold ? 0.0f : 1.0);
+}
+
+float4 UnpackVTFeedbackWithAlpha(float4 feedbackWithAlpha)
+{
+    return ConvertRG16UnormToRGBA8Unorm(feedbackWithAlpha.xy);
+}
 
 // To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
@@ -540,31 +647,25 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(SH,       unity_SHCoefficients)
+    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()
+#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(float4, unity_ProbesOcclusion, unity_DOTS_ProbesOcclusion)
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
-#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
-#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
-#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
-#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
-#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
-#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
-#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
-#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
-
+#define unity_SHAr                  LoadDOTSInstancedData_SHAr()
+#define unity_SHAg                  LoadDOTSInstancedData_SHAg()
+#define unity_SHAb                  LoadDOTSInstancedData_SHAb()
+#define unity_SHBr                  LoadDOTSInstancedData_SHBr()
+#define unity_SHBg                  LoadDOTSInstancedData_SHBg()
+#define unity_SHBb                  LoadDOTSInstancedData_SHBb()
+#define unity_SHC                   LoadDOTSInstancedData_SHC()
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
@@ -575,6 +676,16 @@ static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
 static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
 static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
+
+// Set up by BRG picking/selection code
+int unity_SubmeshIndex;
+#define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
+#define UNITY_SETUP_DOTS_SH_COEFFS  SetupDOTSSHCoeffs(UNITY_DOTS_INSTANCED_METADATA_NAME(SH, unity_SHCoefficients))
+
+#else
+
+#define unity_SelectionID _SelectionID
+#define UNITY_SETUP_DOTS_SH_COEFFS
 
 #endif
 

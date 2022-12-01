@@ -4,8 +4,20 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
-
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
+
+// Depending if we are in ray tracing or not we need to use a different set of environement data
+#if defined(RAY_TRACING_ENVIRONMENT_DATA) || defined(SHADER_STAGE_RAY_TRACING)
+#define PLANAR_CAPTURE_VP _PlanarCaptureVPRT
+#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForwardRT
+#define PLANAR_SCALE_OFFSET _PlanarScaleOffsetRT
+#define CUBE_SCALE_OFFSET _CubeScaleOffsetRT
+#else
+#define PLANAR_CAPTURE_VP _PlanarCaptureVP
+#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForward
+#define PLANAR_SCALE_OFFSET _PlanarScaleOffset
+#define CUBE_SCALE_OFFSET _CubeScaleOffset
+#endif
 
 // Some file may not required HD shadow context at all. In this case provide an empty one
 // Note: if a double defintion error occur it is likely have include HDShadow.hlsl (and so HDShadowContext.hlsl) after lightloopdef.hlsl
@@ -18,6 +30,9 @@ struct HDShadowContext { float unused; };
 struct LightLoopContext
 {
     int sampleReflection;
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+    float3 positionWS; // For sky reflection, we need position to evalute height base fog
+#endif
 
     HDShadowContext shadowContext;
 
@@ -42,8 +57,32 @@ struct LightLoopOutput
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
 
-#define PLANAR_ATLAS_SIZE _PlanarAtlasData.x
-#define PLANAR_ATLAS_RCP_MIP_PADDING _PlanarAtlasData.y
+#define REFL_ATLAS_CUBE_PADDING _ReflectionAtlasCubeData.xy
+#define REFL_ATLAS_CUBE_MIP_PADDING _ReflectionAtlasCubeData.z
+#define REFL_ATLAS_PLANAR_PADDING _ReflectionAtlasPlanarData.xy
+#define REFL_ATLAS_TEXEL_SIZE _ReflectionAtlasPlanarData.zw
+
+float2 GetReflectionAtlasCoordsCube(float4 scaleOffset, float3 dir, float lod)
+{
+    float2 uv = saturate(PackNormalOctQuadEncode(dir) * 0.5 + 0.5);
+    float2 padding = REFL_ATLAS_CUBE_PADDING;
+    // Every octahedral mip has at least one texel padding. This improves octahedral mapping as it always should have border for every mip.
+    padding *= pow(2.0, max(lod - REFL_ATLAS_CUBE_MIP_PADDING, 0.0));
+    float2 size = scaleOffset.xy - padding;
+    float2 offset = scaleOffset.zw + 0.5 * padding;
+    return uv * size + offset;
+}
+
+float2 GetReflectionAtlasCoordsPlanar(float4 scaleOffset, float2 uv, float lod)
+{
+    float2 padding = REFL_ATLAS_PLANAR_PADDING;
+    float2 size = scaleOffset.xy - padding;
+    float2 offset = scaleOffset.zw + 0.5 * padding;
+    float2 paddingClamp = REFL_ATLAS_TEXEL_SIZE * pow(2.0, ceil(lod)) * 0.5;
+    float2 minClamp = scaleOffset.zw + paddingClamp;
+    float2 maxClamp = scaleOffset.zw + scaleOffset.xy - paddingClamp;
+    return clamp(uv * size + offset, minClamp, maxClamp);
+}
 
 // The EnvLightData of the sky light contains a bunch of compile-time constants.
 // This function sets them directly to allow the compiler to propagate them and optimize the code.
@@ -92,17 +131,6 @@ EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
 bool IsEnvIndexCubemap(int index)   { return index >= 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
-// Clamp the UVs to avoid edge beelding caused by bilinear filtering on the edge of the atlas.
-float2 RemapUVForPlanarAtlas(float2 coord, float2 size, float lod)
-{
-    float2 scale = rcp(size + PLANAR_ATLAS_RCP_MIP_PADDING) * size;
-    float2 offset = 0.5 * (1.0 - scale);
-
-    // Avoid edge bleeding for texture when sampling with lod by clamping uvs:
-    float2 mipClamp = pow(2, lod) / (size * PLANAR_ATLAS_SIZE * 2);
-    return clamp(coord * scale + offset, mipClamp, 1 - mipClamp);
-}
-
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
@@ -121,16 +149,11 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     {
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
-            //_Env2DCaptureVP is in capture space
-            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
+            //_ReflAtlasPlanarCaptureVP is in capture space
+            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, PLANAR_CAPTURE_VP[index]);
+            float2 atlasCoords = GetReflectionAtlasCoordsPlanar(PLANAR_SCALE_OFFSET[index], ndc.xy, lod);
 
-            // Apply atlas scale and offset
-            float2 scale = _Env2DAtlasScaleOffset[index].xy;
-            float2 offset = _Env2DAtlasScaleOffset[index].zw;
-            float2 atlasCoords = RemapUVForPlanarAtlas(ndc.xy, scale, lod);
-            atlasCoords = atlasCoords * scale + offset;
-
-            color.rgb = SAMPLE_TEXTURE2D_LOD(_Env2DTextures, s_trilinear_clamp_sampler, atlasCoords, lod).rgb;
+            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
 #if UNITY_REVERSED_Z
             // We check that the sample was capture by the probe according to its frustum planes, except the far plane.
             //   When using oblique projection, the far plane is so distorded that it is not reliable for this check.
@@ -139,7 +162,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 #else
             color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
 #endif
-            float3 capturedForwardWS = _Env2DCaptureForward[index].xyz;
+            float3 capturedForwardWS = PLANAR_CAPTURE_FORWARD[index].xyz;
             if (dot(capturedForwardWS, texCoord) < 0.0)
                 color.a = 0.0;
             else
@@ -165,7 +188,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-            color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
+            float2 atlasCoords = GetReflectionAtlasCoordsCube(CUBE_SCALE_OFFSET[index], texCoord, lod);
+
+            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
         }
 
         // Planar and Reflection Probes aren't pre-expose, so best to clamp to max16 here in case of inf
@@ -178,8 +203,15 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
         // Sky isn't pre-expose, so best to clamp to max16 here in case of inf
         color.rgb = ClampToFloat16Max(color.rgb);
-    }
 
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+        if (_FogEnabled)
+        {
+            float4 fogAttenuation = EvaluateFogForSkyReflections(lightLoopContext.positionWS, texCoord);
+            color.rgb = color.rgb * fogAttenuation.a + fogAttenuation.rgb;
+        }
+#endif
+    }
 
     return color;
 }

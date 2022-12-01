@@ -1,0 +1,88 @@
+#pragma kernel WorkQueueBuildArgs
+#pragma kernel WorkQueueBuild
+#pragma kernel WorkQueueActiveBins
+#pragma kernel WorkQueueActiveClusters
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+
+// Inputs
+StructuredBuffer<ClusterRecord> _ClusterRecordBuffer;
+ByteAddressBuffer               _BinOffsetsBuffer;
+ByteAddressBuffer               _ClusterCountersBuffer;
+
+// Outputs
+RWBuffer<uint>      _OutputWorkQueueArgsBuffer;
+RWBuffer<uint>      _OutputActiveBinArgsBuffer;
+RWByteAddressBuffer _WorkQueueBuffer;
+RWByteAddressBuffer _WorkQueueBinListBuffer;
+RWByteAddressBuffer _CounterBuffer;
+RWByteAddressBuffer _BinActiveBuffer;
+RWByteAddressBuffer _ActiveClusterIndices;
+RWByteAddressBuffer _BinCountersBuffer;
+
+[numthreads(1, 1, 1)]
+void WorkQueueBuildArgs()
+{
+    const uint buildWorkQueueDispatchSize = (_CounterBuffer.Load(COUNTER_BIN_RECORD) + 1024 - 1) / 1024;
+
+    _OutputWorkQueueArgsBuffer[0] = buildWorkQueueDispatchSize;
+    _OutputWorkQueueArgsBuffer[1] = 1;
+    _OutputWorkQueueArgsBuffer[2] = 1;
+}
+
+groupshared uint g_RecordCount;
+
+// Transform the random list of bin records into an ordered work queue, organized by bin.
+
+[numthreads(1024, 1, 1)]
+void WorkQueueBuild(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+{
+    // Pre-load the total record count into LDS.
+    if (groupIndex == 0)
+        g_RecordCount = _CounterBuffer.Load(COUNTER_BIN_RECORD);
+    GroupMemoryBarrierWithGroupSync();
+
+    const uint i = dispatchThreadID.x;
+
+    if (i >= g_RecordCount)
+        return;
+
+    // Load the record for this index.
+    const ClusterRecord record = _ClusterRecordBuffer[i];
+
+    // Compute the new index into the work queue.
+    uint workQueueIndex = _BinOffsetsBuffer.Load(record.clusterIndex << 2) + record.clusterOffset;
+
+    // Write the bin segment into the work queue at this index.
+    _WorkQueueBuffer.Store(workQueueIndex << 2, record.segmentIndex);
+}
+
+#define THREADING_BLOCK_SIZE 1024
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+typedef Threading::Wave  Wave;
+typedef Threading::Group Group;
+
+[numthreads(1024, 1, 1)]
+void WorkQueueActiveClusters(Group group)
+{
+    int clusterSegmentCount = _ClusterCountersBuffer.Load(group.dispatchID.x << 2u);
+
+    // Additionally, "flatten" the cluster counts into the tile, which we will later sort to prioritize work.
+    // WARNING: MUST explicitly case to uint here for non-DXC compiled path to work correctly.
+    const uint tileIndex = group.dispatchID.x % (uint)(_DimBin.x * _DimBin.y);
+
+    _BinCountersBuffer.InterlockedAdd(tileIndex << 2, clusterSegmentCount);
+}
+
+[numthreads(1024, 1, 1)]
+void WorkQueueActiveBins(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint numActiveBin = wave.CountBits(_BinCountersBuffer.Load(group.dispatchID.x << 2) > 0);
+
+    if(wave.IsFirstLane())
+        _CounterBuffer.InterlockedAdd(COUNTER_BIN_QUEUE_SIZE, numActiveBin);
+}

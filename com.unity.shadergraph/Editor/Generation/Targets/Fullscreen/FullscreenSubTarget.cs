@@ -314,7 +314,6 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 { kColor, IncludeLocation.Pregraph },
                 { kTexture, IncludeLocation.Pregraph },
                 { kTextureStack, IncludeLocation.Pregraph },
-                { kInstancing, IncludeLocation.Pregraph }, // For VR
                 { kFullscreenShaderPass, IncludeLocation.Pregraph }, // For VR
                 { pregraphIncludes },
                 { kSpaceTransforms, IncludeLocation.Pregraph },
@@ -362,6 +361,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.texCoord1,
                 StructFields.Varyings.instanceID,
+                StructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                StructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
             }
         };
 

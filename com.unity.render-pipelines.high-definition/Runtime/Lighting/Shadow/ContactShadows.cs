@@ -6,14 +6,15 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Contact Shadows effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Contact Shadows", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Contact-Shadows")]
+    [Serializable, VolumeComponentMenu("Shadowing/Contact Shadows")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Contact-Shadows")]
     public class ContactShadows : VolumeComponentWithQuality
     {
         /// <summary>
         /// When enabled, HDRP processes Contact Shadows for this Volume.
         /// </summary>
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
         /// <summary>
         /// Controls the length of the rays HDRP uses to calculate Contact Shadows. It is in meters, but it gets scaled by a factor depending on Distance Scale Factor
         /// and the depth of the point from where the contact shadow ray is traced.

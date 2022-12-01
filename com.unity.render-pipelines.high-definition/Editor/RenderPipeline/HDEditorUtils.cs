@@ -204,57 +204,34 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// This is to convert any int into LightLayer which is useful for the version in shadow of lights.
-        /// LightLayer have a CustomPropertyDrawer so for SerializedProperty on LightLayer type,
-        /// prefer using EditorGUILayout.PropertyField.
-        /// </summary>
-        internal static void DrawLightLayerMaskFromInt(GUIContent label, SerializedProperty property)
-        {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            DrawLightLayerMask_Internal(lineRect, label, property);
-        }
-
-        internal static void DrawLightLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
-        {
-            EditorGUI.BeginProperty(rect, label, property);
-
-            EditorGUI.BeginChangeCheck();
-            int changedValue = DrawLightLayerMask(rect, property.intValue, label);
-            if (EditorGUI.EndChangeCheck())
-                property.intValue = changedValue;
-
-            EditorGUI.EndProperty();
-        }
-
-        internal static void DrawDecalLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
-        {
-            if (HDRenderPipelineGlobalSettings.instance == null)
-                return;
-
-            EditorGUI.BeginProperty(rect, label, property);
-
-            EditorGUI.BeginChangeCheck();
-            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.prefixedDecalLayerNames);
-            if (EditorGUI.EndChangeCheck())
-                property.intValue = changedValue;
-
-            EditorGUI.EndProperty();
-        }
-
-        /// <summary>
         /// Should be placed between BeginProperty / EndProperty
         /// </summary>
-        internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
+        internal static int DrawRenderingLayerMask(Rect rect, int renderingLayer, GUIContent label = null)
         {
-            int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
-            if (HDRenderPipelineGlobalSettings.instance == null)
-                return lightLayer;
+            string[] renderingLayerMaskNames = HDRenderPipelineGlobalSettings.instance.renderingLayerNames;
+            int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
+            if (renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
+                EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
+
+            return EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
+        }
+
+        internal static void DrawRenderingLayerMask(Rect rect, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
+            int renderingLayer = DrawRenderingLayerMask(rect, property.intValue, label);
             if (EditorGUI.EndChangeCheck())
-                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
-            return lightLayer;
+                property.intValue = renderingLayer;
+
+            EditorGUI.EndProperty();
+        }
+
+        internal static void DrawRenderingLayerMask(SerializedProperty property, GUIContent style)
+        {
+            Rect rect = EditorGUILayout.GetControlRect(true);
+            DrawRenderingLayerMask(rect, property, style);
         }
 
         /// <summary>
@@ -303,6 +280,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorUtils.Highlight("Project Settings", propertyPath);
                 GUIUtility.ExitGUI();
             });
+        }
+    }
+
+    // Due to a UI bug/limitation, we have to do it this way to support bold labels
+    internal class BoldLabelScope : GUI.Scope
+    {
+        FontStyle origFontStyle;
+        public BoldLabelScope()
+        {
+            origFontStyle = EditorStyles.label.fontStyle;
+            EditorStyles.label.fontStyle = FontStyle.Bold;
+        }
+
+        protected override void CloseScope()
+        {
+            EditorStyles.label.fontStyle = origFontStyle;
         }
     }
 }

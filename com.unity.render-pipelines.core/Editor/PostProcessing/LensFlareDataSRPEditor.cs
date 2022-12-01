@@ -8,7 +8,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    [CustomEditorForRenderPipeline(typeof(LensFlareDataSRP), typeof(RenderPipelineAsset))]
+    [CustomEditor(typeof(LensFlareDataSRP))]
+    [SupportedOnRenderPipeline]
     class LensFlareDataSRPEditor : Editor
     {
         static class Styles

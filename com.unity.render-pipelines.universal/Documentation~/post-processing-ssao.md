@@ -1,64 +1,90 @@
 # Ambient Occlusion
 
-The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other. In the real world, such areas tend to block out or occlude ambient light, so they appear darker.
+The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other in real-time. In the real world, such areas tend to block out or occlude ambient light, so they appear darker.
 
-URP implements real-time ambient occlusion as a screen-space effect using a [Renderer Feature](urp-renderer-feature). It works with every shader that the Universal Render Pipeline (URP) provides as well as any custom opaque Shader Graphs you create.
+URP implements the Screen Space Ambient Occlusion (SSAO) effect as a [Renderer Feature](urp-renderer-feature.md). It works with every shader that the Universal Render Pipeline (URP) provides as well as any custom opaque Shader Graphs you create.
 
 > **Note**: The SSAO effect is a Renderer Feature and works independently from the post-processing effects in URP. This effect does not depend on or interact with Volumes.
 
 The following images show a scene with the Ambient Occlusion effect turned off, on, and only the Ambient Occlusion texture.
 
 ![Scene with Ambient Occlusion effect turned off.](Images/post-proc/ssao/scene-ssao-off.png)
-<br/>_Scene with Ambient Occlusion effect turned off._
+<br/>*Scene with Ambient Occlusion effect turned off.*
 
 ![Scene with Ambient Occlusion effect turned on.](Images/post-proc/ssao/scene-ssao-on.png)
-<br/>_Scene with Ambient Occlusion effect turned on._
+<br/>*Scene with Ambient Occlusion effect turned on.*
 
 ![Scene with only the Ambient Occlusion texture.](Images/post-proc/ssao/scene-ssao-only-ao.png)
-<br/>_Scene with only the Ambient Occlusion texture._
+<br/>*Scene with only the Ambient Occlusion texture.*
 
-## Adding the SSAO Renderer Feature to a Renderer
+## Add the SSAO Renderer Feature to a Renderer
 
 URP implements the Ambient Occlusion effect as a Renderer Feature.
 
-To use the Ambient Occlusion effect in your project:
+To use the SSAO effect in your project follow the instructions on [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md) and add the Screen Space Ambient Occlusion Renderer Feature.
 
-1. In the __Project__ window, select the Renderer that the URP asset is using.
-
-    ![Select the Renderer.](Images/post-proc/ssao/ssao-select-renderer.png)
-
-    The Inspector window shows the the Renderer properties.
-
-    ![Inspector window shows the Renderer properties.](Images\post-proc\ssao\ssao-inspector-no-rend-features.png)
-
-2. In the Inspector window, select __Add Renderer Feature__. In the list, select __Screen Space Ambient Occlusion__.
-
-    ![Select __Add Renderer Feature__, then select __Screen Space Ambient Occlusion__](Images/post-proc/ssao/ssao-select-renderer-feature.png)
-
-    Unity adds the SSAO Renderer Feature to the Renderer.
-
-    ![SSAO Renderer Feature.](Images/post-proc/ssao/ssao-renderer-feature-created.png)
-
-Now Cameras that use the Renderer with the SSAO Renderer Feature have the Ambient Occlusion effect.
+This causes any Cameras that use the Renderer with the SSAO Renderer Feature to have the SSAO effect.
 
 ## Properties
 
 This section describes the properties of the SSAO Renderer Feature.
 
-![SSAO Renderer Feature properties.](Images/post-proc/ssao/ssao-renderer-feature-created.png)
-<br/>_SSAO Renderer Feature properties._
+### Method
 
-### Name
+This property defines the type of noise the SSAO effect uses.
 
-The name of the Renderer Feature.
+Available Options:
 
-### Downsample
+- **Interleaved Gradient Noise**: Uses interleaved gradient noise to generate static SSAO.
+- **Blue Noise**: Uses a selection of blue noise textures to generate dynamic SSAO. This creates an animated effect as the texture changes with every frame, as a result the SSAO effect is more subtle when the camera is in motion.
 
-Selecting this check box reduces the resolution of the Pass that calculates the Ambient Occlusion effect by a factor of two.
+**Performance impact**: Insignificant.
 
-**Performance impact**: very high.
+### Intensity
 
-Reducing the resolution of the Ambient Occlusion Pass by a factor of two reduces the pixel count to process by a factor of four. This reduces the load on the GPU significantly, but makes the effect less detailed.
+This property defines the intensity of the darkening effect.
+
+**Performance impact**: Insignificant.
+
+### Radius
+
+When Unity calculates the Ambient Occlusion value, the SSAO effect takes samples of the normal texture within this radius from the current pixel.
+
+**Performance impact**: High.
+
+A lower **Radius** value improves performance, because the SSAO Renderer Feature samples pixels closer to the source pixel. This makes caching more efficient.
+
+Calculating the Ambient Occlusion Pass on objects closer to the Camera takes longer than on objects further from the Camera. This is because the **Radius** property scales with the object.
+
+### Falloff Distance
+
+SSAO does not apply to objects farther than this distance from the Camera.
+
+A lower value increases performance in scenes that contain many distant objects. The performance improvement is smaller in smaller scenes with fewer objects.
+
+![Scene with only Ambient Occlusion texture demonstrating a varying fall-off distance.](Images/post-proc/ssao/ssao-falloff-distance.gif)
+
+**Performance impact**: Depends on the application.
+
+### Direct Lighting Strength
+
+This property defines how visible the effect is in areas exposed to direct lighting.
+
+These images show how the **Direct Lighting Strength** value changes the SSAO effect depending on whether they are in the shadow or not.
+
+![Direct Lighting Strength: 0.2.](Images/post-proc/ssao/ssao-direct-lighting-strength-weak.png)
+<br>*Direct Lighting Strength: 0.2.*
+
+![Direct Lighting Strength: 0.9.](Images/post-proc/ssao/ssao-direct-lighting-strength-strong.png)
+<br>*Direct Lighting Strength: 0.9.*
+
+**A**. Shows the effect of **Direct Lighting Strength** on the SSAO effect in lit areas.
+
+**B**. Shows the effect of **Direct Lighting Strength** on the SSAO effect in areas one or more shadows cover.
+
+**Performance impact**: Insignificant.
+
+## Quality
 
 ### Source
 
@@ -66,12 +92,12 @@ Select the source of the normal vector values. The SSAO Renderer Feature uses no
 
 Available options:
 
-* **Depth Normals**: SSAO uses the normal texture generated by the `DepthNormals` Pass. This option lets Unity make use of a more accurate normal texture.
-* **Depth**: SSAO does not use the `DepthNormals` Pass to generate the normal texture. SSAO reconstructs the normal vectors using the depth texture instead. Use this option only if you want to avoid using the `DepthNormals` Pass block in your custom shaders. Selecting this option enables the **Normal Quality** property.
+- **Depth Normals**: SSAO uses the normal texture generated by the `DepthNormals` Pass. This option lets Unity make use of a more accurate normal texture.
+- **Depth**: SSAO does not use the `DepthNormals` Pass to generate the normal texture. SSAO reconstructs the normal vectors using the depth texture instead. Use this option only if you want to avoid using the `DepthNormals` Pass block in your custom shaders. Selecting this option enables the **Normal Quality** property.
 
-**Performance impact**: depends on the application.
+**Performance impact**: Depends on the application.
 
-When switching between the options **Depth Normals** and **Depth**, there might be a variation in performance, which depends on the target platform and the application. In a wide range of applications the difference in performance is small. In most cases, **Depth Normals** produces better visual look.
+When you switch between the options **Depth Normals** and **Depth**, there might be a variation in performance, which depends on the target platform and the application. In a wide range of applications the difference in performance is small. In most cases, **Depth Normals** produce a better visual look.
 
 For more information on the Source property, see the section [Implementation details](#implementation-details).
 
@@ -83,65 +109,69 @@ Higher quality of the normal vectors produces smoother SSAO effect.
 
 Available options:
 
-* **Low**
-* **Medium**
-* **High**
+- **Low**
+- **Medium**
+- **High**
 
-**Performance impact**: medium.
+**Performance impact**: Medium.
 
 In some scenarios, the **Depth** option produces results comparable with the **Depth Normals** option. But in certain cases, the **Depth Normals** option provides a significant increase in quality. The following images show an example of such case.
 
 ![Source: Depth. Normal Quality: Low.](Images/post-proc/ssao/ssao-depth-q-low.png)
-<br>_Source: Depth. Normal Quality: Low._
+<br>*Source: Depth. Normal Quality: Low.*
 
 ![Source: Depth. Normal Quality: Medium.](Images/post-proc/ssao/ssao-depth-q-medium.png)
-<br>_Source: Depth. Normal Quality: Medium._
+<br>*Source: Depth. Normal Quality: Medium.*
 
 ![Source: Depth. Normal Quality: High.](Images/post-proc/ssao/ssao-depth-q-high.png)
-<br>_Source: Depth. Normal Quality: High._
+<br>*Source: Depth. Normal Quality: High.*
 
 ![Source: Depth Normals.](Images/post-proc/ssao/ssao-depth-normals.png)
-<br>_Source: Depth Normals._
+<br>*Source: Depth Normals.*
 
 For more information, see the section [Implementation details](#implementation-details).
 
-### Intensity
+### Downsample
 
-This property defines the intensity of the darkening effect.
+Selecting this check box reduces the resolution of the Pass that calculates the Ambient Occlusion effect by a factor of two.
 
-**Performance impact**: insignificant.
+The reduction in resolution of the Ambient Occlusion Pass by a factor of two reduces the pixel count to process by a factor of four. This reduces the load on the GPU significantly, but makes the effect less detailed.
 
-### Direct Lighting Strength
+**Performance impact**: Very high.
 
-This property defines how visible the effect is in areas exposed to direct lighting.
+### After Opaque
 
-**Performance impact**: insignificant.
+When you enable **After Opaque**, Unity calculates and applies the SSAO effect after the opaque render pass. This can increase performance when used with **Depth** as the **Source** for normal vector values as Unity does not perform the skips depth prepass to calculate SSAO and instead uses the existing depth values.
 
-The following images show how the **Direct Lighting Strength** value affects different areas depending on whether they are in the shadow or not.
+**After Opaque** can also increase performance on mobile devices that use tile-based rendering.
 
-![Direct Lighting Strength: 0.2.](Images/post-proc/ssao/ssao-direct-light-02.png)
-<br>_Direct Lighting Strength: 0.2._
+**Performance impact**: Medium.
 
-![Direct Lighting Strength: 0.9.](Images/post-proc/ssao/ssao-direct-light-09.png)
-<br>_Direct Lighting Strength: 0.9._
+### Blur Quality
 
-### Radius
+This property defines the quality of blur that Unity applies to the SSAO effect. Higher quality blur creates a smoother, higher fidelity effect but requires more processing power.
 
-When calculating the the Ambient Occlusion value, the SSAO effect takes samples of the normal texture within this radius from the current pixel.
+Available options:
 
-**Performance impact**: high.
+- **High** (Bilateral): Bilateral blur, takes three passes to process.
+- **Medium** (Gaussian): Gaussian blur, takes two passes to process.
+- **Low** (Kawase): Kawase blur, takes a single pass to process.
 
-Lowering the **Radius** setting improves performance, because the SSAO Renderer Feature samples pixels closer to the source pixel. This makes caching more efficient.
+**Performance impact**: Very high.
 
-Calculating the Ambient Occlusion Pass on objects closer to the Camera takes longer than on objects further from the Camera. This is because the **Radius** property is scaled with the object.
+### Samples
 
-### Sample Count
+For each pixel, the SSAO Render Feature takes the selected number of samples within the specified radius to calculate the Ambient Occlusion value. A higher value makes the effect smoother and more detailed, but also reduces performance.
 
-For each pixel, the SSAO Render Feature takes this number of samples within the specified radius to calculate the Ambient Occlusion value. Increasing this value makes the effect smoother and more detailed, but reduces the performance.
+Available options:
 
-**Performance impact**: high.
+- **High**: 12 Samples
+- **Medium**: 8 Samples
+- **Low**: 4 Samples
 
-Increasing the **Sample Count** value from 4 to 8 doubles the computational load on the GPU.
+**Performance impact**: High.
+
+An increase in the **Sample Count** value from 4 to 8 doubles the computational load on the GPU.
 
 <a name="#implementation-details"></a>
 

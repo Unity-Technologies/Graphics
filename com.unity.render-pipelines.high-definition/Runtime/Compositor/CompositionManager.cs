@@ -33,6 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             RenderingAndPostProcessing
         }
 
+        [SerializeField]
+        bool m_Enable = true;
+
+        public bool enableInternal { get { return m_Enable; } set { m_Enable = value; } }
+
         [SerializeField] Material m_Material;
 
         [SerializeField] OutputDisplay m_OutputDisplay = OutputDisplay.Display1;
@@ -331,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             else
             {
                 Debug.LogError("The compositor was disabled due to a validation error in the configuration.");
-                enabled = false;
+                enableInternal = false;
             }
         }
 
@@ -460,21 +465,16 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             enableOutput = false;
         }
 
+        static string s_CompositorGlobalVolumeName = "__Internal_Global_Composition_Volume";
+
         // Setup a global volume used for chroma keying, alpha injection etc
         void SetupGlobalCompositorVolume()
         {
             var compositorVolumes = Resources.FindObjectsOfTypeAll(typeof(CustomPassVolume));
-            foreach (CustomPassVolume volume in compositorVolumes)
-            {
-                if (volume.isGlobal && volume.injectionPoint == CustomPassInjectionPoint.BeforeRendering)
-                {
-                    Debug.LogWarning($"A custom volume pass with name ${volume.name} was already registered on the BeforeRendering injection point.");
-                }
-            }
 
             // Instead of using one volume per layer/camera, we setup one global volume and we store the data in the camera
             // This way the compositor has to use only one layer/volume for N cameras (instead of N).
-            m_CompositorGameObject = new GameObject("Global Composition Volume") { hideFlags = HideFlags.HideAndDontSave };
+            m_CompositorGameObject = new GameObject(s_CompositorGlobalVolumeName) { hideFlags = HideFlags.HideAndDontSave };
             Volume globalPPVolume = m_CompositorGameObject.AddComponent<Volume>();
             globalPPVolume.gameObject.layer = 31;
             AlphaInjection injectAlphaNode = globalPPVolume.profile.Add<AlphaInjection>();
@@ -972,7 +972,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
 
         static public CompositionManager GetInstance() =>
-            s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
+            s_CompositorInstance ?? (s_CompositorInstance = FindFirstObjectByType<CompositionManager>(FindObjectsInactive.Include));
 
         static public Vector4 GetAlphaScaleAndBiasForCamera(HDCamera hdCamera)
         {

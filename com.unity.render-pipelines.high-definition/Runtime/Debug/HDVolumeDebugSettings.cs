@@ -1,5 +1,8 @@
 using System;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -22,9 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cam == null)
                     return null;
                 var stack = HDCamera.GetOrCreate(cam).volumeStack;
-                if (stack != null)
-                    return stack;
-                return VolumeManager.instance.stack;
+                return stack ?? VolumeManager.instance.stack;
             }
         }
 
@@ -33,21 +34,24 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (selectedCamera == null)
-                    return (LayerMask)0;
-
-#if UNITY_EDITOR
-                // For scene view, use main camera volume layer mask. See HDCamera.cs
-                if (selectedCamera == SceneView.lastActiveSceneView.camera)
+                if (selectedCamera != null)
                 {
-                    var mainCamera = Camera.main;
-                    if (mainCamera != null && mainCamera.TryGetComponent<HDAdditionalCameraData>(out var mainCamAdditionalData))
-                        return mainCamAdditionalData.volumeLayerMask;
-                    return HDCamera.GetSceneViewLayerMaskFallback();
-                }
+#if UNITY_EDITOR
+                    // For scene view, use main camera volume layer mask. See HDCamera.cs
+                    if (selectedCamera == SceneView.lastActiveSceneView.camera)
+                    {
+                        var mainCamera = Camera.main;
+                        if (mainCamera != null &&
+                            mainCamera.TryGetComponent<HDAdditionalCameraData>(out var sceneCameraAdditionalCameraData))
+                            return sceneCameraAdditionalCameraData.volumeLayerMask;
+                        return HDCamera.GetSceneViewLayerMaskFallback();
+                    }
 #endif
+                    if (selectedCamera.TryGetComponent<HDAdditionalCameraData>(out var selectedCameraAdditionalData))
+                        return selectedCameraAdditionalData.volumeLayerMask;
+                }
 
-                return selectedCamera.GetComponent<HDAdditionalCameraData>().volumeLayerMask;
+                return (LayerMask)0;
             }
         }
 

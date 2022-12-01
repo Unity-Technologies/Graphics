@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected ProbeSettings.Mode m_ObsoleteMode = ProbeSettings.Mode.Baked;
 
         [SerializeField, FormerlySerializedAs("lightLayers"), Obsolete("For Data Migration")]
-        LightLayerEnum m_ObsoleteLightLayers = LightLayerEnum.LightLayerDefault;
+        RenderingLayerMask m_ObsoleteLightLayers = RenderingLayerMask.LightLayerDefault;
 
         /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_CaptureSettings"), Obsolete("For Data Migration")]

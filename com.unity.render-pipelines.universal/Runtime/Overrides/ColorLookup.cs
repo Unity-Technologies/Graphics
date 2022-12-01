@@ -6,7 +6,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the color lookup effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Color Lookup")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -19,12 +20,13 @@ namespace UnityEngine.Rendering.Universal
         /// Controls how much of the lookup texture will contribute to the color grading effect.
         /// </summary>
         [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]
-        public ClampedFloatParameter contribution = new ClampedFloatParameter(1f, 0f, 1f);
+        public ClampedFloatParameter contribution = new ClampedFloatParameter(0f, 0f, 1f);
 
         /// <inheritdoc/>
         public bool IsActive() => contribution.value > 0f && ValidateLUT();
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
 
         /// <summary>

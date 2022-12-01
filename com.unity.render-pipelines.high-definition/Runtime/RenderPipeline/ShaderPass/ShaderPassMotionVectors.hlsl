@@ -64,7 +64,7 @@ void Frag(  PackedVaryingsToPS packedInput
                 #endif
             #endif
 
-            // Decal buffer must be last as it is bind but we can optionally write into it (based on _DISABLE_DECALS)
+            // Normal buffer must be last as it is bind but we can optionally write into it
             #ifdef WRITE_NORMAL_BUFFER
             , out float4 outNormalBuffer : SV_TARGET_NORMAL
             #endif
@@ -133,7 +133,7 @@ void Frag(  PackedVaryingsToPS packedInput
 
 #if defined(WRITE_DECAL_BUFFER)
     DecalPrepassData decalPrepassData;
-    // Force a write in decal buffer even if decal is disab. This is a neutral value which have no impact for later pass
+    // Force a write in decal buffer even if decals are disabled. This is a neutral value which have no impact for later pass
     #ifdef _DISABLE_DECALS
     ZERO_INITIALIZE(DecalPrepassData, decalPrepassData);
     #else
@@ -141,8 +141,8 @@ void Frag(  PackedVaryingsToPS packedInput
     // However it would be painful to have to add a function like ConvertSurfaceDataToDecalPrepassData() to every Material to return geomNormalWS anyway
     // Here we will put the constrain that any Material requiring to support Decal, will need to have geomNormalWS as member of surfaceData (and we already require normalWS anyway)
     decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-    decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
     #endif
+    decalPrepassData.renderingLayerMask = GetMeshRenderingLayerMask();
     EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
 #endif
 

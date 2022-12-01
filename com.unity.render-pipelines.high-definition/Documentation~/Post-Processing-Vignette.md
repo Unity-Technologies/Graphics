@@ -1,13 +1,13 @@
 # Vignette
 
-In Photography, vignetting is the term for the darkening and/or desaturating towards the edges of an image compared to the center. In real life, thick or stacked filters, secondary lenses, and improper lens hoods are usually the cause of this effect. You can use vignetting to draw focus to the center of an image.
+In Photography, vignetting is the term for the darkening or desaturating towards the edges of an image compared to the center. In real life, thick or stacked filters, secondary lenses, and improper lens hoods are usually the cause of this effect. You can use vignetting to draw focus to the center of an image.
 
 ## Using Vignette
 
 **Vignette** uses the [Volume](Volumes.md) framework, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.md) in your Scene. To add **Vignette** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Vignette**. HDRP now applies **Vignette** to any Camera this Volume affects.
+2. In the Inspector, go to **Add Override** > **Post-processing** and select **Vignette**. HDRP now applies **Vignette** to any Camera this Volume affects.
 
 [!include[](snippets/volume-override-api.md)]
 

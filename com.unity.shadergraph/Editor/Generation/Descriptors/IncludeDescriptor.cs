@@ -7,12 +7,13 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     internal class IncludeDescriptor : IConditional
     {
-        public IncludeDescriptor(string guid, string path, IncludeLocation location, FieldCondition[] fieldConditions)
+        public IncludeDescriptor(string guid, string path, IncludeLocation location, FieldCondition[] fieldConditions, bool shouldIncludeWithPragmas = false)
         {
             _guid = guid;
             _path = path;
             _location = location;
             this.fieldConditions = fieldConditions;
+            _shouldIncludeWithPragmas = shouldIncludeWithPragmas;
         }
 
         [SerializeField]
@@ -29,6 +30,10 @@ namespace UnityEditor.ShaderGraph
         IncludeLocation _location;
         public IncludeLocation location => _location;
 
+        [SerializeField]
+        bool _shouldIncludeWithPragmas;
+        public bool shouldIncludeWithPragmas => _shouldIncludeWithPragmas;
+
         // NOTE: this is not serialized at the moment.. as it's not needed.
         // (serialization only used for subgraph includes, coming from nodes, which can't have conditions)
         public FieldCondition[] fieldConditions { get; }
@@ -41,6 +46,8 @@ namespace UnityEditor.ShaderGraph
                 var realPath = AssetDatabase.GUIDToAssetPath(guid);
                 if (string.IsNullOrEmpty(realPath))
                     return $"// missing include file: {path} ({guid})";
+                else if (_shouldIncludeWithPragmas)
+                    return $"#include_with_pragmas \"{realPath}\"";
                 else
                     return $"#include \"{realPath}\"";
             }

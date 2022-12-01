@@ -16,7 +16,7 @@ The following table shows the compatibility of the High Definition Render Pipeli
 
 ## Render pipeline compatibility
 
-Projects made using HDRP are not compatible with the Universal Render Pipeline (URP) or the Built-in Render Pipeline. Before you start development, you must decide which render pipeline to use in your Project. For information on choosing a render pipeline, see the [Render Pipelines](https://docs.unity3d.com/2019.3/Documentation/Manual/render-pipelines.html) section of the Unity Manual.
+Projects made using HDRP aren't compatible with the Universal Render Pipeline (URP) or the Built-in Render Pipeline. Before you start development, you must decide which render pipeline to use in your Project. For information on choosing a render pipeline, see the [Render Pipelines](https://docs.unity3d.com/2019.3/Documentation/Manual/render-pipelines.html) section of the Unity Manual.
 
 ## Unity Player system requirements
 
@@ -38,7 +38,7 @@ HRDP is only compatible with the following platforms:
 - MacOS (minimum version 10.13) using Metal graphics
 - Linux and Windows platforms with Vulkan
 
-**Note: HDRP only works on these platforms if the device used supports Compute Shaders. HDRP does not support OpenGL or OpenGL ES devices. On Linux, Vulkan may not be installed by default. In that case you need to install it manually to run HDRP.**
+**Note**: HDRP only works on these platforms if the device you use supports Compute Shaders. HDRP doesn't support OpenGL or OpenGL ES devices. On Linux, Vulkan might not be installed by default. In that case you need to install it manually to run HDRP.
 
 ### Ray tracing
 

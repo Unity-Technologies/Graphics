@@ -96,18 +96,22 @@ namespace UnityEditor.ShaderGraph
             if (anyRemovedShaders)
                 DisplayDeletionDialog(deletedAssets);
 
-            var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
-
             var changedGraphGuids = importedAssets
                 .Where(x => x.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
                 .Select(AssetDatabase.AssetPathToGUID)
                 .ToList();
-            foreach (var window in windows)
+
+            MaterialGraphEditWindow[] windows = null;
+            if (changedGraphGuids.Count > 0)
             {
-                if (changedGraphGuids.Contains(window.selectedGuid))
+                windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+                foreach (var window in windows)
                 {
-                    window.CheckForChanges();
+                    if (changedGraphGuids.Contains(window.selectedGuid))
+                    {
+                        window.CheckForChanges();
+                    }
                 }
             }
             // moved or imported subgraphs or HLSL files should notify open shadergraphs that they need to handle them
@@ -130,6 +134,10 @@ namespace UnityEditor.ShaderGraph
 
             if (changedFileGUIDs.Count > 0)
             {
+                if (windows == null)
+                {
+                    windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+                }
                 foreach (var window in windows)
                 {
                     window.ReloadSubGraphsOnNextUpdate(changedFileGUIDs);

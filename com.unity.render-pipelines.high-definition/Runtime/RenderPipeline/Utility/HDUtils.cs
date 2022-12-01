@@ -772,6 +772,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 buildTarget == UnityEditor.BuildTarget.PS5 ||
                 // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
                 // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                buildTarget == UnityEditor.BuildTarget.LinuxHeadlessSimulation ||
                 buildTarget == UnityEditor.BuildTarget.LinuxHeadlessSimulation);
         }
 
@@ -819,7 +820,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool IsSupportedBuildTargetAndDevice(UnityEditor.BuildTarget activeBuildTarget, out GraphicsDeviceType unsupportedGraphicDevice)
         {
-            unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
+            GraphicsDeviceType systemGraphicsDeviceType = SystemInfo.graphicsDeviceType;
+            unsupportedGraphicDevice = systemGraphicsDeviceType;
 
             // If the build target matches the operating system of the editor
             // and if the graphic api is chosen automatically, then only the system's graphic device type matters
@@ -827,9 +829,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // if the build target does not match the editor OS, then we have to check using the graphic api list
             bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
 
-            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
-                && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
-                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+            // If the editor's graphics device type is null though, we still have to iterate the target's graphic api list.
+            bool skipCheckingAPIList = autoAPI && systemGraphicsDeviceType != GraphicsDeviceType.Null;
+
+            if (skipCheckingAPIList ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+                    && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                    && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
                 return true;
 
             return false;
@@ -935,12 +940,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        internal static bool PostProcessIsFinalPass(HDCamera hdCamera)
+        internal static bool PostProcessIsFinalPass(HDCamera hdCamera, AOVRequestData aovRequest)
         {
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
-            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess) && !hdCamera.hasCaptureActions;
+            return !aovRequest.isValid && !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess) && !hdCamera.hasCaptureActions;
         }
 
         // These two convertion functions are used to store GUID assets inside materials,
@@ -1166,9 +1171,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
             var osFamily = BuildTargetToOperatingSystemFamily(buildTarget);
+            bool isSupportedBuildTarget = IsSupportedBuildTarget(buildTarget);
 #else
             string currentPlatform = SystemInfo.operatingSystem;
             var osFamily = SystemInfo.operatingSystemFamily;
+            bool isSupportedBuildTarget = true;
 #endif
 
             string os = null;
@@ -1185,7 +1192,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            string msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
+            string msg;
+
+            if (isSupportedBuildTarget)
+                msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
+            else
+                msg = "Platform " + currentPlatform + " is not supported with HDRP";
 
             // Display more information to the users when it should have use Metal instead of OpenGL
             if (graphicAPI.StartsWith("OpenGL"))
@@ -1258,6 +1270,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return outputValue;
+        }
+
+        internal static void ConvertHDRColorToLDR(Color hdr, out Color ldr, out float intensity)
+        {
+            // specifies the max byte value to use when decomposing a float color into bytes with exposure
+            // this is the value used by Photoshop
+            const float k_MaxByteForOverexposedColor = 191;
+
+            hdr.a = 1.0f;
+            ldr = hdr;
+            intensity = 1.0f;
+
+            var maxColorComponent = hdr.maxColorComponent;
+            if (maxColorComponent != 0f)
+            {
+                // calibrate exposure to the max float color component
+                var scaleFactor = k_MaxByteForOverexposedColor / maxColorComponent;
+
+                ldr.r = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.r) / 255f;
+                ldr.g = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.g) / 255f;
+                ldr.b = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.b) / 255f;
+
+                intensity = 255f / scaleFactor;
+            }
         }
     }
 }

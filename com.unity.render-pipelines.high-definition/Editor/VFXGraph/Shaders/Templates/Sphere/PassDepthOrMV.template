@@ -1,7 +1,7 @@
-#pragma target 4.5	
+#pragma target 4.5
 #define UNITY_MATERIAL_LIT
-#pragma multi_compile _ WRITE_NORMAL_BUFFER		
-	
+#pragma multi_compile _ WRITE_NORMAL_BUFFER
+
 struct ps_input
 {
 	linear noperspective centroid float4 pos : SV_POSITION;
@@ -10,12 +10,14 @@ struct ps_input
 	float4 sphereInfo : TEXCOORD3;
 
 	UNITY_VERTEX_OUTPUT_STEREO
+
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 };
-	
+
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
-#define VFX_VARYING_POSWS posWS.xyz	
+#define VFX_VARYING_POSWS posWS.xyz
 #define VFX_VARYING_SPHERECENTER sphereInfo.xyz
 #define VFX_VARYING_SPHERERADIUS sphereInfo.w
 
@@ -27,7 +29,7 @@ ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
-${VFXInclude("Shaders/ParticleSpheres/Pass.template")}	
+${VFXInclude("Shaders/ParticleSpheres/Pass.template")}
 #define SHADERPASS SHADERPASS_DEPTH_ONLY
 ${VFXIncludeRP("VFXLit.template")}
 
@@ -50,7 +52,7 @@ void frag(ps_input i
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
 	float3 normalWS;
-	VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);		
+	VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 	outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);

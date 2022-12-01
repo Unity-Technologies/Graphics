@@ -1,0 +1,41 @@
+//--------------------------------------------------------------------------------------------------
+// Definitions
+//--------------------------------------------------------------------------------------------------
+
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel Downsample
+
+//--------------------------------------------------------------------------------------------------
+// Included headers
+//--------------------------------------------------------------------------------------------------
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+//--------------------------------------------------------------------------------------------------
+// Inputs & outputs
+//--------------------------------------------------------------------------------------------------
+TEXTURE2D_X(_SourceTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+int _SssDownsampleSteps;
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void Downsample(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 positionSS = dispatchThreadId.xy;
+    uint scale1d = 1u << _SssDownsampleSteps;
+
+    // Downsample will just randomly select one of the source samples
+    float rand = InterleavedGradientNoise(positionSS, _FrameCount);
+    uint index = uint(rand * scale1d * scale1d);
+
+    uint2 inputSS = (positionSS * scale1d) + uint2(index / scale1d, index % scale1d);
+
+    float4 value = LOAD_TEXTURE2D_X(_SourceTexture, inputSS);
+    _OutputTexture[COORD_TEXTURE2D_X(positionSS)] = value;
+}

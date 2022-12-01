@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -19,6 +21,27 @@ namespace UnityEngine.Rendering.Universal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             context.InvokeOnRenderObjectCallback();
+        }
+
+        private class PassData
+        {
+            internal TextureHandle colorTarget;
+            internal TextureHandle depthTarget;
+        }
+
+        internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("OnRenderObject Callback Pass", out var passData,
+                base.profilingSampler))
+            {
+                passData.colorTarget = builder.UseColorBuffer(colorTarget, 0);
+                passData.depthTarget = builder.UseDepthBuffer(depthTarget, DepthAccess.ReadWrite);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    context.renderContext.InvokeOnRenderObjectCallback();
+                });
+            }
         }
     }
 }

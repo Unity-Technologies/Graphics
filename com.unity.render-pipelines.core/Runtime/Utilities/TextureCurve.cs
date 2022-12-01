@@ -35,6 +35,9 @@ namespace UnityEngine.Rendering
         [SerializeField]
         float m_Range;
 
+        /// <summary>
+        /// Internal curve used to generate the Texture
+        /// </summary>
         [SerializeField]
         AnimationCurve m_Curve;
 
@@ -132,6 +135,7 @@ namespace UnityEngine.Rendering
                 m_Texture.hideFlags = HideFlags.HideAndDontSave;
                 m_Texture.filterMode = FilterMode.Bilinear;
                 m_Texture.wrapMode = TextureWrapMode.Clamp;
+                m_Texture.anisoLevel = 0;
                 m_IsTextureDirty = true;
             }
 

@@ -1,0 +1,575 @@
+#pragma kernel Main      SEGMENTS_PER_CLUSTER=256   LDS_STRIDE=2
+#pragma kernel Main      SEGMENTS_PER_CLUSTER=512   LDS_STRIDE=3
+#pragma kernel Main      SEGMENTS_PER_CLUSTER=1024  LDS_STRIDE=4
+#pragma kernel Main      SEGMENTS_PER_CLUSTER=2048  LDS_STRIDE=5
+#pragma kernel Main      SEGMENTS_PER_CLUSTER=2048  LDS_STRIDE=5 DEBUG
+#pragma kernel Main      SEGMENTS_PER_CLUSTER=256   LDS_STRIDE=2 COMPILING_SHADER
+
+int _HairDebugMode;
+
+// #ifdef DEBUG_DISPLAY
+// Don't care about this warning in debug (still, it doesn't make sense why it's being raised, barely any registers used..)
+#pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
+//#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Coverage.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+
+// TODO: Unfortunately have to include these random files just to be able to call ComputeMotionVector.
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
+
+#define THREADING_BLOCK_SIZE 64
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+typedef Threading::Wave  Wave;
+typedef Threading::Group Group;
+
+// Required for calling CalculateMotionVector.
+#define _WRITE_TRANSPARENT_MOTION_VECTOR
+
+// Inputs
+ByteAddressBuffer _Vertex0RecordBuffer;
+ByteAddressBuffer _Vertex1RecordBuffer;
+ByteAddressBuffer _SegmentRecordBuffer;
+
+ByteAddressBuffer _WorkQueueBinListBuffer;
+ByteAddressBuffer _BinOffsetsBuffer;
+ByteAddressBuffer _BinCountersBuffer;
+ByteAddressBuffer _WorkQueueBuffer;
+ByteAddressBuffer _ClusterCountersBuffer;
+ByteAddressBuffer _ClusterRangesBuffer;
+ByteAddressBuffer _TileSegmentIndices;
+
+Texture2D<float4> _ShadingSamplesTexture;
+
+// Outputs
+RW_TEXTURE2D_X(float4, _OutputTargetColor);
+RW_TEXTURE2D_X(float4, _OutputTargetMV);
+RW_TEXTURE2D_X(float,  _OutputTargetDepth);
+
+RWByteAddressBuffer _CounterBuffer;
+
+struct Bin
+{
+    uint  index;
+    uint2 coord;
+    ClippingParams clippingWindow;
+};
+
+struct Cluster
+{
+    uint  offset;
+    uint  segmentCount;
+};
+
+struct Segment
+{
+    uint2  coverageMask;
+    float3 positionSS0;
+    float3 positionSS1;
+    float2 coveragePositionSS0;
+    float2 coveragePositionSS1;
+    float  widthSamples[2];
+    float4 shadingSamples[2];
+    float2 motionSamples[2];
+};
+
+struct Fragment
+{
+    float4 colorAndAlpha;
+    float  coverage;
+    float  depth;
+    float2 motionVector;
+};
+
+// Local (TODO: Count up # KB we are taking in LDS).
+groupshared bool    gs_OpaqueTile;
+groupshared uint    gs_QueuePosition;
+groupshared uint    gs_QueueEnd;
+groupshared Bin     gs_CurrentBin;
+groupshared Cluster gs_CurrentCluster;
+groupshared uint2   gs_CoverageMask[32];
+groupshared Segment gs_SegmentBatch[32];
+groupshared uint    gs_SegmentIndices[SEGMENTS_PER_CLUSTER];
+
+float3 ColorCycle(uint index, uint count)
+{
+    float t = frac(index / (float)count);
+
+    // source: https://www.shadertoy.com/view/4ttfRn
+    float3 c = 3.0 * float3(abs(t - 0.5), t.xx) - float3(1.5, 1.0, 2.0);
+    return 1.0 - c * c;
+}
+
+uint2 VertexIndexToShadingAtlasCoord(uint vertexIndex)
+{
+    const uint shadingAtlasSize = 4096;
+    uint sampleIndex = vertexIndex;
+    return uint2(sampleIndex % shadingAtlasSize, sampleIndex / shadingAtlasSize);
+}
+
+uint2 GetCoordinateLane(uint groupIndex)
+{
+    uint2 coord = gs_CurrentBin.coord + uint2(groupIndex % 8u, groupIndex / 8u);
+    return coord;
+}
+
+float2 GetCoordinateNDC(uint2 laneIndex)
+{
+    const float2 uv = ((float2)laneIndex + 0.5) * rcp(_SizeScreen.xy);
+    return -1 + 2 * uv;
+}
+
+float2 GetCoordinateSS(float2 positionNDC)
+{
+    const float2 test = 0.5 * positionNDC + 0.5;
+    return (test * _SizeScreen.xy);
+}
+
+Bin GetBin(uint binQueueIndex)
+{
+    const uint index = _WorkQueueBinListBuffer.Load(binQueueIndex << 2);
+
+    Bin bin;
+    {
+        bin.index = index;
+        bin.coord = _SizeBin.x * uint2(index % (uint)_DimBin.x, index / (uint)_DimBin.x);
+
+        const float2 tileMinNDC = GetCoordinateNDC(bin.coord + 0u);
+        const float2 tileMaxNDC = GetCoordinateNDC(bin.coord + 8u);
+
+        ClippingParams clippingWindow;
+        {
+            clippingWindow.minX = tileMinNDC.x;
+            clippingWindow.maxX = tileMaxNDC.x;
+            clippingWindow.minY = tileMinNDC.y;
+            clippingWindow.maxY = tileMaxNDC.y;
+        }
+        bin.clippingWindow = clippingWindow;
+    }
+    return bin;
+}
+
+Cluster GetCluster(uint clusterDepth)
+{
+    const uint index = gs_CurrentBin.index + ((uint)_DimBin.x * (uint)_DimBin.y * clusterDepth);
+
+    Cluster cluster;
+    {
+        cluster.offset = _BinOffsetsBuffer.Load(index << 2);
+        cluster.segmentCount = _ClusterCountersBuffer.Load(index << 2);
+    }
+    return cluster;
+}
+
+Segment GetSegment(uint workQueueIndex)
+{
+    // Mask out the top 8 bits which contain the encoded depth
+    const uint segmentIndex = gs_SegmentIndices[workQueueIndex] & 0xFFFFFF;
+
+    const SegmentRecord segmentRecord = LoadSegmentRecord(_SegmentRecordBuffer, segmentIndex);
+
+    const float4 positionCS0  = asfloat(_Vertex0RecordBuffer.Load4(segmentRecord.vertexIndex0 << 4));
+    const float4 positionCS1  = asfloat(_Vertex0RecordBuffer.Load4(segmentRecord.vertexIndex1 << 4));
+    const float4 ppositionCS0 = asfloat(_Vertex1RecordBuffer.Load4(segmentRecord.vertexIndex0 << 4));
+    const float4 ppositionCS1 = asfloat(_Vertex1RecordBuffer.Load4(segmentRecord.vertexIndex1 << 4));
+
+    Segment segment;
+    {
+        // We want the barycentric between the original segment vertices, not the clipped vertices.
+        segment.positionSS0 = positionCS0.xyz * rcp(positionCS0.w);
+        segment.positionSS1 = positionCS1.xyz * rcp(positionCS1.w);
+
+        // Need to generate coverage positions in the coordinate system expected by Coverage.hlsl.
+        segment.coveragePositionSS0 = (GetCoordinateSS(segmentRecord.positionSS0) - (float2)gs_CurrentBin.coord) / 8.0f;
+        segment.coveragePositionSS1 = (GetCoordinateSS(segmentRecord.positionSS1) - (float2)gs_CurrentBin.coord) / 8.0f;
+
+        const float2 v0 = segment.coveragePositionSS0;
+        const float2 v1 = segment.coveragePositionSS1;
+        segment.coverageMask = Coverage::LineCoverageMask(v0, v1, 0.15, 0.0f);
+
+        // Collect the shading samples from the segment vertices.
+        uint2 shadingOffset1 = VertexIndexToShadingAtlasCoord(_GroupShadingSampleOffset + segmentRecord.vertexIndex0);
+        uint2 shadingOffset2 = VertexIndexToShadingAtlasCoord(_GroupShadingSampleOffset + segmentRecord.vertexIndex1);
+        segment.shadingSamples[0] = _ShadingSamplesTexture[shadingOffset1];
+        segment.shadingSamples[1] = _ShadingSamplesTexture[shadingOffset2];
+
+        // Decode the strand width from the shading sample alpha.
+        float a0, w0, a1, w1;
+        DecodeLineWidth(segment.shadingSamples[0].a, a0, w0);
+        DecodeLineWidth(segment.shadingSamples[1].a, a1, w1);
+
+        {
+            segment.shadingSamples[0].a = a0;
+            segment.shadingSamples[1].a = a1;
+            segment.widthSamples[0]     = w0;
+            segment.widthSamples[1]     = w1;
+        }
+
+        // And the motion vector samples.
+        segment.motionSamples[0] = CalculateMotionVector(positionCS0, ppositionCS0);
+        segment.motionSamples[1] = CalculateMotionVector(positionCS1, ppositionCS1);
+    }
+    return segment;
+}
+
+Fragment GetFragment(Segment segment, float2 coord)
+{
+    // Compute the segment coverage and 'barycentric' coord.
+    float t;
+    float distance = DistanceToSegmentAndTValue(coord, segment.positionSS0.xy, segment.positionSS1.xy, t);
+
+    const float segmentWidth = lerp(segment.widthSamples[0], segment.widthSamples[1], t) / min(_SizeScreen.x, _SizeScreen.y);
+
+    Fragment fragment;
+    {
+        fragment.depth         = lerp(segment.positionSS0.z,     segment.positionSS1.z,     t);
+        fragment.colorAndAlpha = lerp(segment.shadingSamples[0], segment.shadingSamples[1], t);
+        fragment.motionVector  = lerp(segment.motionSamples[0],  segment.motionSamples[1],  t);
+        fragment.coverage      = fragment.colorAndAlpha.a * (1 - smoothstep(0, segmentWidth, distance));
+
+        // Unfortunately need a NaN guard here.
+        fragment.colorAndAlpha = max(fragment.colorAndAlpha, 0);
+
+        fragment.colorAndAlpha.a = fragment.coverage;
+    }
+
+    #if COMPILING_SHADER
+    {
+        fragment.colorAndAlpha = float4(0, 1, 1, 0.5 * (1 - smoothstep(0, segmentWidth, distance)));
+    }
+    #endif
+
+    return fragment;
+}
+
+uint TransformNDCToLDS(float2 positionSS)
+{
+    // Remap 0..1
+    positionSS = 0.5 * positionSS + 0.5;
+
+    // Transform from NDS to Raster Space.
+    uint2 positionRS = uint2(positionSS * _SizeScreen.xy) + 0.5;
+
+    // Offset by the bin coordinate.
+    positionRS -= gs_CurrentBin.coord;
+
+    // Flatten the index and clamp within the LDS tile space.
+    return clamp((positionRS.y << 3) + positionRS.x, 0, 63);
+}
+
+void InitializeFragment(inout Fragment fragment)
+{
+    ZERO_INITIALIZE(Fragment, fragment);
+    fragment.colorAndAlpha = float4(0, 0, 0, 1);
+}
+
+void ResolveFragment(Fragment fragmentSRC, inout Fragment fragmentDST)
+{
+   fragmentDST.colorAndAlpha.rgb = fragmentDST.colorAndAlpha.a * (fragmentSRC.colorAndAlpha.a * fragmentSRC.colorAndAlpha.rgb) + fragmentDST.colorAndAlpha.rgb;
+   fragmentDST.colorAndAlpha.a = (1 - fragmentSRC.colorAndAlpha.a) * fragmentDST.colorAndAlpha.a;
+
+   if (any(fragmentSRC.coverage))
+   {
+       // Update the maximum depth and dominant motion vector for this pixel lane.
+       if (fragmentDST.depth < fragmentSRC.depth)
+       {
+           fragmentDST.depth = fragmentSRC.depth;
+           fragmentDST.motionVector = fragmentSRC.motionVector;
+       }
+   }
+}
+
+void LoadSegmentIndices(uint groupIndex)
+{
+    // TODO: Make sure compiler will cull unneeded global memory loads if the variant does not need it...
+    const uint4 laneIndices0 = _WorkQueueBuffer.Load4(0u  + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices1 = _WorkQueueBuffer.Load4(4u  + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices2 = _WorkQueueBuffer.Load4(8u  + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices3 = _WorkQueueBuffer.Load4(12u + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices4 = _WorkQueueBuffer.Load4(16u + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices5 = _WorkQueueBuffer.Load4(20u + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices6 = _WorkQueueBuffer.Load4(24u + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+    const uint4 laneIndices7 = _WorkQueueBuffer.Load4(28u + gs_CurrentCluster.offset + (groupIndex << LDS_STRIDE) << 2);
+
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  0u] = laneIndices0.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  1u] = laneIndices0.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  2u] = laneIndices0.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  3u] = laneIndices0.w;
+
+#if SEGMENTS_PER_CLUSTER > 256u
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  4u] = laneIndices1.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  5u] = laneIndices1.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  6u] = laneIndices1.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  7u] = laneIndices1.w;
+#endif
+
+#if SEGMENTS_PER_CLUSTER > 512u
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  8u] = laneIndices2.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) +  9u] = laneIndices2.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 10u] = laneIndices2.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 11u] = laneIndices2.w;
+
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 12u] = laneIndices3.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 13u] = laneIndices3.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 14u] = laneIndices3.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 15u] = laneIndices3.w;
+#endif
+
+#if SEGMENTS_PER_CLUSTER > 1024u
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 16u] = laneIndices4.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 17u] = laneIndices4.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 18u] = laneIndices4.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 19u] = laneIndices4.w;
+
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 20u] = laneIndices5.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 21u] = laneIndices5.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 22u] = laneIndices5.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 23u] = laneIndices5.w;
+
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 24u] = laneIndices6.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 25u] = laneIndices6.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 26u] = laneIndices6.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 27u] = laneIndices6.w;
+
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 28u] = laneIndices7.x;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 29u] = laneIndices7.y;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 30u] = laneIndices7.z;
+    gs_SegmentIndices[(groupIndex << LDS_STRIDE) + 31u] = laneIndices7.w;
+#endif
+}
+
+void OutputFragment(uint2 dispatchThreadID, Fragment fragment)
+{
+    float outputPixelDepth = _OutputTargetDepth[COORD_TEXTURE2D_X(dispatchThreadID)];
+
+    // TODO: Coarsely sort hair instances in back to front order and blend them.
+    if (fragment.depth > outputPixelDepth)
+    {
+        _OutputTargetColor[COORD_TEXTURE2D_X(dispatchThreadID)] = fragment.colorAndAlpha;
+        _OutputTargetDepth[COORD_TEXTURE2D_X(dispatchThreadID)] = fragment.depth;
+
+        float4 encodedPixelMotionVector;
+        EncodeMotionVector(fragment.motionVector * 0.5, encodedPixelMotionVector);
+        encodedPixelMotionVector.zw = 1.0;
+
+        _OutputTargetMV   [COORD_TEXTURE2D_X(dispatchThreadID)] = encodedPixelMotionVector;
+    }
+    else if (fragment.colorAndAlpha.a < 1)
+    {
+        float4 mergedPixel = _OutputTargetColor[COORD_TEXTURE2D_X(dispatchThreadID)];
+        {
+            mergedPixel.rgb += fragment.colorAndAlpha.rgb * mergedPixel.a;
+            mergedPixel.a   *= fragment.colorAndAlpha.a;
+        }
+        _OutputTargetColor[COORD_TEXTURE2D_X(dispatchThreadID)] = mergedPixel;
+    }
+}
+
+bool IsTileOpaque(Group group, float laneOpacity)
+{
+    return group.Min(1 - laneOpacity) >= _TileOpacityThreshold;
+}
+
+groupshared uint gs_SegmentBatchSize;
+
+#if DEBUG
+groupshared uint gs_HairDebugMode;
+#endif
+
+void RasterizeSegmentList(uint perLaneMask, float2 positionNDC, float laneMinDepth, uint clusterDepthIndex, inout Fragment resolvedFragment)
+{
+    while (perLaneMask != 0)
+    {
+        const uint segmentIndex = firstbitlow(perLaneMask);
+
+        // NOTE: The bottleneck here seems to be bank conflicts on the LDS access into the segment batch. Any way to improve it?
+        Fragment fragment = GetFragment(gs_SegmentBatch[segmentIndex], positionNDC);
+
+        if (fragment.depth < laneMinDepth)
+            break;
+
+        #if DEBUG
+        if (gs_HairDebugMode == DEBUGMODE_CLUSTER_DEPTH)
+        {
+            fragment.colorAndAlpha.rgb = ColorCycle(clusterDepthIndex, _ClusterDepth);
+        }
+        #endif
+
+        // Blend the new fragment with the pixel fragment.
+        ResolveFragment(fragment, resolvedFragment);
+
+        // Clear this bit to begin the next iteration.
+        perLaneMask ^= 1 << segmentIndex;
+    }
+}
+
+void GetLaneMaskOffset(uint groupIndex, uint i, out uint laneMask, out uint laneOffset)
+{
+    const uint2 segmentMask = gs_SegmentBatch[i].coverageMask;
+
+    if (groupIndex < 32u)
+    {
+        laneMask   = segmentMask.x;
+        laneOffset = groupIndex;
+    }
+    else
+    {
+        laneMask   = segmentMask.y;
+        laneOffset = groupIndex - 32u;
+    }
+}
+
+[numthreads(64, 1, 1)]
+void Main(Group group)
+{
+    const uint groupIndex = group.groupIndex;
+
+    // Generate the coverage mask look-up table.
+    Coverage::GenLUT(groupIndex);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Read the queue size into LDS.
+    if (groupIndex == 0u)
+    {
+        gs_QueueEnd = _CounterBuffer.Load(COUNTER_BIN_QUEUE_SIZE);
+
+#if DEBUG
+        // We have to propogate the debug mode into LDS due to prevent compiler issues.
+        gs_HairDebugMode = _HairDebugMode;
+#endif
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // Persistent thread.
+    for (;;)
+    {
+        // Pop the next bin from the queue.
+        if (groupIndex == 0u)
+        {
+            _CounterBuffer.InterlockedAdd(COUNTER_BIN_QUEUE_INDEX, 1, gs_QueuePosition);
+        }
+        GroupMemoryBarrierWithGroupSync();
+
+        // There is no work left in the queue.
+        if (gs_QueuePosition >= gs_QueueEnd)
+            break;
+
+        if (groupIndex == 0u)
+        {
+            gs_CurrentBin = GetBin(gs_QueuePosition);
+
+            // Flag for "solidifying" a tile that is considered "opaque".
+            gs_OpaqueTile = false;
+        }
+        GroupMemoryBarrierWithGroupSync();
+
+        // Get the coordinates for this screen tile.
+        const uint2  dispatchThreadID = GetCoordinateLane(groupIndex);
+        const float2 positionNDC      = GetCoordinateNDC(dispatchThreadID);
+
+        Fragment resolvedFragment;
+        InitializeFragment(resolvedFragment);
+
+        // Load this lane's minimum opaque depth (some fragments may not be culled from segment setup).
+        // Need an epsilon to fight some artifacts.
+#if !UNITY_UV_STARTS_AT_TOP
+        const float laneMinDepth = -1e-4 + LoadCameraDepth(dispatchThreadID);
+#else
+        const float laneMinDepth = -1e-4 + LoadCameraDepth(uint2(dispatchThreadID.x, _ScreenParams.y - dispatchThreadID.y - 0.5));
+#endif
+
+#if DEBUG
+        if (gs_HairDebugMode == DEBUGMODE_SEGMENTS_PER_TILE)
+        {
+            resolvedFragment.depth = 1;
+            uint tileValue = _BinCountersBuffer.Load(gs_CurrentBin.index << 2);
+            resolvedFragment.colorAndAlpha = OverlayHeatMapNoNumber(dispatchThreadID, uint2(8, 8), tileValue, 2000, 1.0);
+        }
+        else if (gs_HairDebugMode == DEBUGMODE_TILE_PROCESSOR_UV)
+        {
+            resolvedFragment.depth = 1;
+            resolvedFragment.colorAndAlpha = float4(float2(groupIndex / 8, groupIndex % 8) / (float)8, 0, 1);
+        }
+        else
+#endif
+        UNITY_LOOP
+        for (uint clusterDepthIndex = 0; clusterDepthIndex < (uint)_ClusterDepth; ++clusterDepthIndex)
+        {
+            GroupMemoryBarrierWithGroupSync();
+
+            if (groupIndex == 0u)
+            {
+                gs_CurrentCluster = GetCluster(clusterDepthIndex);
+            }
+            GroupMemoryBarrierWithGroupSync();
+
+            // Early out if this cluster is empty, nothing to contribute to the pixel.
+            if (gs_CurrentCluster.segmentCount == 0u)
+               continue;
+
+            // Sort the segments in this cluster.
+            {
+                // 1) Load the unsorted keys into LDS.
+                LoadSegmentIndices(groupIndex);
+                GroupMemoryBarrierWithGroupSync();
+
+                // 2) Sort the cluster segments front to back. Config: { MSB 10-bit Z LSB 22-bit Segment Index }
+                SORTLIST(gs_SegmentIndices, gs_CurrentCluster.segmentCount, SEGMENTS_PER_CLUSTER, groupIndex, 64u);
+            }
+
+            // Raster the cluster segments in batches of 64.
+            for (uint segmentBatchOffset = 0; segmentBatchOffset < gs_CurrentCluster.segmentCount; segmentBatchOffset += 32u)
+            {
+                gs_OpaqueTile = IsTileOpaque(group, resolvedFragment.colorAndAlpha.a);
+
+                if (gs_OpaqueTile)
+                    break;
+
+                // TODO: Should do this in batches of 64 segments so the whole block is busy.
+                if (groupIndex < 32u)
+                {
+                    // Note: Not all of these segments are guaranteed to exist in memory if greater than cluster segment count.
+                    gs_SegmentBatch[groupIndex] = GetSegment(segmentBatchOffset + groupIndex);
+                }
+                GroupMemoryBarrierWithGroupSync();
+
+                // Composite the masks. Is there a better way to do this?
+                uint laneCoverageMask = 0u;
+
+                for (uint segmentIndex = 0; segmentIndex < min(32u, gs_CurrentCluster.segmentCount - segmentBatchOffset); segmentIndex++)
+                {
+                    uint laneMask, laneOffset;
+                    GetLaneMaskOffset(groupIndex, segmentIndex, laneMask, laneOffset);
+
+                    laneCoverageMask |= IsBitSet(laneMask, laneOffset) << segmentIndex;
+                }
+
+                RasterizeSegmentList(laneCoverageMask, positionNDC, laneMinDepth, clusterDepthIndex, resolvedFragment);
+            }
+
+            if (gs_OpaqueTile)
+                break;
+        }
+
+        if (_TileOpacityThreshold < 64.0 && gs_OpaqueTile)
+        {
+            Fragment tileFragment = resolvedFragment;
+            {
+                // [NOTE-HAIR-OPACITY]
+                // We are aggressive with what qualifies as an opaque tile. Technically it will be opaque if the tile opacity is around ~64.
+                // However, by reducing that threshold to something lower, we can save some performance by doing less work for
+                // almost opaque tiles. However, if we do that, we also have to force the pixel to be completely opaque here.
+                tileFragment.colorAndAlpha.a = 1;
+            }
+
+            ResolveFragment(tileFragment, resolvedFragment);
+        }
+
+        OutputFragment(dispatchThreadID, resolvedFragment);
+    }
+}

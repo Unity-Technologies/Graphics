@@ -49,14 +49,15 @@ float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(InvFieldTransform, float4(nextPos,1.0f)).xyz;
 float3 coord = saturate(tPos + 0.5f);
 float dist = SampleSDF(DistanceField, coord) * scalingFactor - colliderSign * radius;
+float3 absPos = abs(tPos);
+float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
 
-
-if (colliderSign * dist <= 0.0f) // collision
+if (colliderSign * dist <= 0.0f && (outsideDist < 0.5f || colliderSign < 0.0f)) // collision
 {
     float3 n = SampleSDFDerivatives(DistanceField, coord);
+    n = colliderSign * VFXSafeNormalize(mul(float4(n ,0), InvFieldTransform).xyz);
     // back in system space
-    float3 delta = colliderSign * abs(dist) * VFXSafeNormalize(mul(float4(n ,0), InvFieldTransform).xyz)  ;
-    n = normalize(delta);
+    float3 delta = abs(dist) * n;
 ";
 
                 Source += collisionResponseSource;
@@ -64,12 +65,9 @@ if (colliderSign * dist <= 0.0f) // collision
                 if (mode == Mode.Inverted)
                 {
                     Source += @"
-    float3 absPos = abs(tPos);
-    float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
+
     if (outsideDist > 0.5f) // Check whether point is outside the box
         position = mul(FieldTransform,float4(coord - 0.5f,1)).xyz;
-
-
 ";
                 }
 

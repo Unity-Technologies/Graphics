@@ -336,7 +336,89 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static readonly TransformFunction[,] k_TransformFunctions = new TransformFunction[5, 5]   // [from, to]
+        public static void ObjectToHScreen(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    using (sb.BlockScope())
+                    {
+                        sb.AddLine("$precision4 ", outputVariable, "_value = TransformObjectToHClip(", inputValue, ");");
+                        sb.AddLine("$precision3 ", outputVariable, "_uv = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                        sb.AddLine("#if UNITY_UV_STARTS_AT_TOP");
+                        sb.AddLine(outputVariable, "_uv.y = -", outputVariable, "_uv.y;");
+                        sb.AddLine("#endif");
+                        sb.AddLine(outputVariable, "_uv.xy = ", outputVariable, "_uv.xy * 0.5 + 0.5;");
+                        sb.AddLine(outputVariable, " = ", outputVariable, "_uv;");
+                    }
+                    break;
+                case ConversionType.Direction:
+                case ConversionType.Normal:
+                    ViaWorld(xform, inputValue, outputVariable, sb);
+                    break;
+            }
+        }
+
+        public static void ViewToHScreen(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWViewToHClip(", inputValue, ");");
+                    sb.AddLine("$precision3 ", outputVariable, "_uv = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+                    sb.AddLine("#if UNITY_UV_STARTS_AT_TOP");
+                    sb.AddLine(outputVariable, "_uv.y = -", outputVariable, "_uv.y;");
+                    sb.AddLine("#endif");
+                    sb.AddLine(outputVariable, "_uv.xy = ", outputVariable, "_uv.xy * 0.5 + 0.5;");
+                    sb.AddLine(outputVariable, " = ", outputVariable, "_uv;");
+                    break;
+                case ConversionType.Direction:
+                case ConversionType.Normal:
+                    ViaWorld(xform, inputValue, outputVariable, sb);
+                    break;
+            }
+        }
+
+        public static void WorldToHScreen(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    sb.AddLine("$precision4 ", outputVariable, "_value = TransformWorldToHClip(", inputValue, ");");
+                    break;
+                case ConversionType.Direction:
+                    if (xform.version <= 1)
+                        xform.normalize = true;
+                    sb.AddLine("$precision4 ", outputVariable, "_value = $precision4(TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), "), 1.0f);");
+                    break;
+                case ConversionType.Normal:
+                    sb.AddLine("$precision4 ", outputVariable, "_value = $precision4(TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), "), 1.0f);");
+                    break;
+            }
+            sb.AddLine("$precision3 ", outputVariable, "_uv = ", outputVariable, "_value.xyz / ", outputVariable, "_value.w;");
+            sb.AddLine("#if UNITY_UV_STARTS_AT_TOP");
+            sb.AddLine(outputVariable, "_uv.y = -", outputVariable, "_uv.y;");
+            sb.AddLine("#endif");
+            sb.AddLine(outputVariable, "_uv.xy = ", outputVariable, "_uv.xy * 0.5 + 0.5;");
+            sb.AddLine(outputVariable, " = ", outputVariable, "_uv;");
+        }
+
+        public static void HScreenToWorld(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    sb.AddLine(outputVariable, " = ComputeWorldSpacePosition(", inputValue, ".xy, ", inputValue, ".z, UNITY_MATRIX_I_VP);");
+                    break;
+                case ConversionType.Direction:
+                case ConversionType.Normal:
+                    sb.AddLine("$precision4 ", outputVariable, "_CS = ComputeClipSpacePosition(", inputValue, ".xy, ", inputValue, ".z);");
+                    sb.AddLine(outputVariable, " = mul(UNITY_MATRIX_I_VP, $precision4(", outputVariable, "_CS.xyz, 0.0f)).xyz;");
+                    break;
+            }
+        }
+
+        static readonly TransformFunction[,] k_TransformFunctions = new TransformFunction[6, 6]   // [from, to]
         {
             {   // from CoordinateSpace.Object
                 Identity,               // to CoordinateSpace.Object
@@ -344,6 +426,7 @@ namespace UnityEditor.ShaderGraph
                 ObjectToWorld,          // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ObjectToAbsoluteWorld,  // to CoordinateSpace.AbsoluteWorld
+                ObjectToHScreen         // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.View
                 ViaWorld,               // to CoordinateSpace.Object
@@ -351,6 +434,7 @@ namespace UnityEditor.ShaderGraph
                 ViewToWorld,            // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
+                ViewToHScreen           // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.World
                 WorldToObject,          // to CoordinateSpace.Object
@@ -358,6 +442,7 @@ namespace UnityEditor.ShaderGraph
                 Identity,               // to CoordinateSpace.World
                 WorldToTangent,         // to CoordinateSpace.Tangent
                 WorldToAbsoluteWorld,   // to CoordinateSpace.AbsoluteWorld
+                WorldToHScreen          // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.Object
@@ -365,6 +450,7 @@ namespace UnityEditor.ShaderGraph
                 TangentToWorld,         // to CoordinateSpace.World
                 Identity,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
+                ViaWorld                // to CoordinateSpace.Screen
             },
             {   // from CoordinateSpace.AbsoluteWorld
                 ViaWorld,               // to CoordinateSpace.Object
@@ -372,6 +458,15 @@ namespace UnityEditor.ShaderGraph
                 AbsoluteWorldToWorld,   // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 Identity,               // to CoordinateSpace.AbsoluteWorld
+                ViaWorld                // to CoordinateSpace.Screen
+            },
+            {   // from CoordinateSpace.Screen
+                ViaWorld,               // to CoordinateSpace.Object
+                ViaWorld,               // to CoordinateSpace.View
+                HScreenToWorld,         // to CoordinateSpace.World
+                ViaWorld,               // to CoordinateSpace.Tangent
+                ViaWorld,               // to CoordinateSpace.AbsoluteWorld
+                Identity,               // to CoordinateSpace.Screen
             }
         };
 

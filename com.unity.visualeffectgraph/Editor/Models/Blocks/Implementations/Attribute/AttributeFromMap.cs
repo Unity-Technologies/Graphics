@@ -60,9 +60,15 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Specifies the mode by which to sample the attribute map. This can be done via an index, sequentially, by sampling a 2D/3D texture, or randomly.")]
         public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomConstantPerParticle;
 
+        [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the index is out of the point cache bounds.")]
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+
         [VFXSetting, Tooltip("Specifies which channels to use in this block. This is useful for only affecting the relevant data if not all channels are used.")]
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
+
+        [VFXSetting, SerializeField, Tooltip("When enabled, you can specify the number of points contained in the attribute map. This is useful when the number of points is smaller than the texture size.")]
+        private bool usePointCount = false;
 
         public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)} from Map ({ObjectNames.NicifyVariableName(SampleMode.ToString())})";
 
@@ -121,6 +127,9 @@ namespace UnityEditor.VFX.Block
                 var attrib = VFXAttribute.Find(attribute);
                 if (attrib.variadic == VFXVariadic.False)
                     yield return "channels";
+                if (SampleMode == AttributeMapSampleMode.Sample2DLOD ||
+                    SampleMode == AttributeMapSampleMode.Sample3DLOD)
+                    yield return "usePointCount";
             }
         }
 
@@ -135,6 +144,8 @@ namespace UnityEditor.VFX.Block
                     textureInputPropertiesType = "InputProperties3DTexture";
 
                 var properties = PropertiesFromType(textureInputPropertiesType);
+                if(usePointCount && SampleMode != AttributeMapSampleMode.Sample2DLOD && SampleMode != AttributeMapSampleMode.Sample3DLOD)
+                    properties = properties.Concat(PropertiesFromType("InputPropertiesPointCount"));
 
                 // Sample Mode
                 switch (SampleMode)
@@ -213,23 +224,32 @@ namespace UnityEditor.VFX.Block
                     var attribMapExpr = GetExpressionsFromSlots(this).First(o => o.name == "attributeMap").exp;
                     var height = new VFXExpressionTextureHeight(attribMapExpr);
                     var width = new VFXExpressionTextureWidth(attribMapExpr);
-                    var countExpr = height * width;
+                    var texSizeExpr = height * width;
+                    var countExpr = texSizeExpr;
+                    if (usePointCount)
+                    {
+                        var pointCountExpr = GetExpressionsFromSlots(this).First(o => o.name == "pointCount").exp;
+                        countExpr = new VFXExpressionMin(pointCountExpr, texSizeExpr);
+                    }
+
+
                     VFXExpression samplePos = VFXValue.Constant(0);
 
                     switch (SampleMode)
                     {
                         case AttributeMapSampleMode.IndexRelative:
                             var relativePosExpr = GetExpressionsFromSlots(this).First(o => o.name == "relativePos").exp;
-                            samplePos = VFXOperatorUtility.Clamp(new VFXExpressionCastFloatToUint(relativePosExpr) * countExpr,
-                                VFXOperatorUtility.ZeroExpression[VFXValueType.Uint32],
-                                countExpr - VFXOperatorUtility.OneExpression[VFXValueType.Uint32], false);
+                            samplePos = VFXOperatorUtility.ApplyAddressingMode(
+                                new VFXExpressionCastFloatToUint(relativePosExpr * new VFXExpressionCastUintToFloat(countExpr)),
+                                countExpr,
+                                mode);
                             break;
                         case AttributeMapSampleMode.Index:
                             var indexExpr = GetExpressionsFromSlots(this).First(o => o.name == "index").exp;
-                            samplePos = VFXOperatorUtility.Modulo(indexExpr, countExpr);
+                            samplePos = VFXOperatorUtility.ApplyAddressingMode(indexExpr, countExpr, mode);
                             break;
                         case AttributeMapSampleMode.Sequential:
-                            samplePos = VFXOperatorUtility.Modulo(particleIdExpr, countExpr);
+                            samplePos = VFXOperatorUtility.ApplyAddressingMode(particleIdExpr, countExpr, mode);
                             break;
                         case AttributeMapSampleMode.Random:
                             var randExpr = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this));
@@ -386,6 +406,12 @@ namespace UnityEditor.VFX.Block
             public Vector4 valueBias = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
             [Tooltip("Scale Applied to the read Vector4 value")]
             public Vector4 valueScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
+        public class InputPropertiesPointCount
+        {
+            [Tooltip("Sets the number of elements in the attribute map.")]
+            public uint pointCount = 0u;
         }
 
         private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute); } }

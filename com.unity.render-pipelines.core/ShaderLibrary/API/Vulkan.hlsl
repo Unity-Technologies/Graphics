@@ -44,17 +44,17 @@
 #define TEXTURECUBE_ARRAY(textureName)        TextureCubeArray textureName
 #define TEXTURE3D(textureName)                Texture3D textureName
 
-#define TEXTURE2D_FLOAT(textureName)          Texture2D_float textureName
-#define TEXTURE2D_ARRAY_FLOAT(textureName)    Texture2DArray_float textureName
-#define TEXTURECUBE_FLOAT(textureName)        TextureCube_float textureName
-#define TEXTURECUBE_ARRAY_FLOAT(textureName)  TextureCubeArray_float textureName
-#define TEXTURE3D_FLOAT(textureName)          Texture3D_float textureName
+#define TEXTURE2D_FLOAT(textureName)          Texture2D<float4> textureName
+#define TEXTURE2D_ARRAY_FLOAT(textureName)    Texture2DArray<float4> textureName
+#define TEXTURECUBE_FLOAT(textureName)        TextureCube<float4> textureName
+#define TEXTURECUBE_ARRAY_FLOAT(textureName)  TextureCubeArray<float4> textureName
+#define TEXTURE3D_FLOAT(textureName)          Texture3D<float4> textureName
 
-#define TEXTURE2D_HALF(textureName)           Texture2D_half textureName
-#define TEXTURE2D_ARRAY_HALF(textureName)     Texture2DArray_half textureName
-#define TEXTURECUBE_HALF(textureName)         TextureCube_half textureName
-#define TEXTURECUBE_ARRAY_HALF(textureName)   TextureCubeArray_half textureName
-#define TEXTURE3D_HALF(textureName)           Texture3D_half textureName
+#define TEXTURE2D_HALF(textureName)           Texture2D<half4> textureName
+#define TEXTURE2D_ARRAY_HALF(textureName)     Texture2DArray<half4> textureName
+#define TEXTURECUBE_HALF(textureName)         TextureCube<half4> textureName
+#define TEXTURECUBE_ARRAY_HALF(textureName)   TextureCubeArray<half4> textureName
+#define TEXTURE3D_HALF(textureName)           Texture3D<half4> textureName
 
 #define TEXTURE2D_SHADOW(textureName)         TEXTURE2D(textureName)
 #define TEXTURE2D_ARRAY_SHADOW(textureName)   TEXTURE2D_ARRAY(textureName)
@@ -153,3 +153,29 @@
 #define GATHER_ALPHA_TEXTURE2D(textureName, samplerName, coord2)          textureName.GatherAlpha(samplerName, coord2)
 
 #define PLATFORM_SUPPORTS_NATIVE_RENDERPASS
+
+// Vulkan SwapChain pre-transform
+#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+#   ifdef UNITY_COMPILER_DXC
+        [[vk::constant_id(1)]] const int UnityDisplayOrientationPreTransform = 0;
+#   else
+        cbuffer UnityDisplayOrientationPreTransformData { int UnityDisplayOrientationPreTransform; };
+#   endif
+#   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM UnityDisplayOrientationPreTransform
+#   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0   0
+#   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90  1
+#   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180 2
+#   define UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270 3
+float4 ApplyPretransformRotation(float4 v)
+{
+    switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
+    {
+    default:
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0: break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90: v.xy = float2(v.y, -v.x); break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180: v.xy = -v.xy; break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270: v.xy = float2(-v.y, v.x); break;
+    }
+    return v;
+}
+#endif

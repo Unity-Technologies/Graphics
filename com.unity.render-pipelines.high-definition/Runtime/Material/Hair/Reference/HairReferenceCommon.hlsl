@@ -183,6 +183,9 @@ ReferenceBSDFData GetReferenceBSDFData(BSDFData bsdfData)
     data.alpha  = bsdfData.cuticleAngle;
     data.s      = LogisticScaleFromBeta(data.betaN);
 
+    // Clamp the absorption coefficient to prevent against some NaNs.
+    data.sigmaA = max(data.sigmaA, 1e-5);
+
     // Fill the list of variances from beta
     LongitudinalVarianceFromBeta(data.betaM, data.v);
 

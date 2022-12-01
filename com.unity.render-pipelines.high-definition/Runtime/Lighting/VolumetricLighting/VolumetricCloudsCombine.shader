@@ -16,7 +16,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsDef.cs.hlsl"
 
         TEXTURE2D_X(_CameraColorTexture);
-        TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW);
+        TEXTURE2D_X(_VolumetricCloudsLightingTexture);
         TEXTURECUBE(_VolumetricCloudsTexture);
         float4x4 _PixelCoordToViewDirWS;
         int _Mipmap;
@@ -62,9 +62,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Composite the result via hardware blending.
-                // If MSAA is enabled on the camera, due to internal limitations, a different blending profile is used that may result in darker cloud edges.
-                float4 cloudData = LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
-                return float4(cloudData.xyz, _CubicTransmittance ? cloudData.w * cloudData.w : cloudData.w);
+                return LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
             }
             ENDHLSL
         }
@@ -82,7 +80,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Composite the result via hardware blending.
-                float4 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                float4 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
                 clouds.rgb *= GetInverseCurrentExposureMultiplier();
                 float4 color = LOAD_TEXTURE2D_X(_CameraColorTexture, input.positionCS.xy);
                 return float4(clouds.xyz + color.xyz * clouds.w, 1.0);
@@ -105,7 +103,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Composite the result via hardware blending.
-                float4 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                float4 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
                 clouds.rgb *= GetInverseCurrentExposureMultiplier();
                 return clouds;
             }
@@ -122,7 +120,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             HLSLPROGRAM
             float4 Frag(Varyings input) : SV_Target
             {
-                return LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                return LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
             }
             ENDHLSL
         }

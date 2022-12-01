@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Inject the ray generation data
                             data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
                             data.shaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIndex;
+                            data.shaderVariablesRayTracingCB._RayTracingAmbientProbeDimmer = 1.0f;
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                             // Bind the input textures for ray generation

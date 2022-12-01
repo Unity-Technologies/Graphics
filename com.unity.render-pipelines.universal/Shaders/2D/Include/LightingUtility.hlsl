@@ -51,27 +51,22 @@
 #define SHADOW_VARIABLES\
     float  _ShadowIntensity;\
     float  _ShadowVolumeIntensity;\
-    half4  _ShadowColorMask = 1;\
+    half4  _ShadowColor = 1;\
+    half4  _UnshadowColor = 1;\
     TEXTURE2D(_ShadowTex);\
     SAMPLER(sampler_ShadowTex);
-
-//#define APPLY_SHADOWS(input, color, intensity)\
-//    if(intensity < 1)\
-//    {\
-//        half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV)); \
-//        half  shadowIntensity = 1 - (shadow.r * saturate(2 * (shadow.g - 0.5f * shadow.b))); \
-//        color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
-//    }
-
-//half  shadowIntensity = 1-dot(_ShadowColorMask, shadow); \
-//color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
 
 // Need to look at shadow caster to remove issue with shadows
 #define APPLY_SHADOWS(input, color, intensity)\
     if(intensity < 1)\
     {\
-        half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV)); \
-        half  shadowIntensity = 1-dot(_ShadowColorMask, shadow.rgba) ; \
+        half4 shadowTex = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV); \
+        half  shadowFinalValue   = dot(half4(1,0,0,0), shadowTex.rgba);\
+        half  unshadowValue = dot(half4(0,1,0,0), shadowTex.rgba);\
+        half  unshadowGTEOne = unshadowValue > 1;\
+        half  spriteAlpha   = dot(half4(0,0,1,0), shadowTex.rgba);\
+        half  unshadowFinalValue = unshadowGTEOne * (unshadowValue - (1-spriteAlpha)) + (1-unshadowGTEOne) * (unshadowValue * spriteAlpha);\
+        half  shadowIntensity = 1-saturate(shadowFinalValue - unshadowFinalValue); \
         color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
      }
 
@@ -84,3 +79,32 @@
     half2 _ShapeLightBlendFactors##index;\
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
+
+struct FragmentOutput
+{
+    half4 GLightBuffer0 : SV_Target0;
+    half4 GLightBuffer1 : SV_Target1;
+    half4 GLightBuffer2 : SV_Target2;
+    half4 GLightBuffer3 : SV_Target3;
+};
+
+FragmentOutput ToFragmentOutput(half4 finalColor)
+{
+    FragmentOutput output;
+    #if USE_SHAPE_LIGHT_TYPE_0
+    output.GLightBuffer0 = finalColor;
+    #endif
+    #if USE_SHAPE_LIGHT_TYPE_1
+    output.GLightBuffer1 = finalColor;
+    #endif
+    #if USE_SHAPE_LIGHT_TYPE_2
+    output.GLightBuffer2 = finalColor;
+    #endif
+    #if USE_SHAPE_LIGHT_TYPE_3
+    output.GLightBuffer3 = finalColor;
+    #endif
+    #if !defined(USE_SHAPE_LIGHT_TYPE_0) && !defined(USE_SHAPE_LIGHT_TYPE_1) && !defined(USE_SHAPE_LIGHT_TYPE_2) && !defined(USE_SHAPE_LIGHT_TYPE_3)
+    output.GLightBuffer0 = finalColor;
+    #endif
+    return output;
+}

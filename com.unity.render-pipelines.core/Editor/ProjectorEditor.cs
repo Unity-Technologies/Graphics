@@ -3,7 +3,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    [CustomEditorForRenderPipeline(typeof(Projector), typeof(RenderPipelineAsset))]
+    [CustomEditor(typeof(Projector))]
+    [SupportedOnRenderPipeline]
     [CanEditMultipleObjects]
     class ProjectorEditor : Editor
     {

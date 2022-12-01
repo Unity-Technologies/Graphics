@@ -313,7 +313,7 @@ namespace UnityEditor.Rendering
         /// Checking if the passed in value is a path to a Material.
         /// </summary>
         /// <param name="path">Path to test.</param>
-        /// <return>Returns true if the passed in value is a path to a material.</return>
+        /// <returns>Returns true if the passed in value is a path to a material.</returns>
         static bool IsMaterialPath(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -352,7 +352,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="material">Material to check.</param>
         /// <param name="shaderNamesToIgnore">HashSet of strings to ignore.</param>
-        /// <return>Returns true if the passed in material's shader is not in the passed in ignore list.</return>
+        /// <returns>Returns true if the passed in material's shader is not in the passed in ignore list.</returns>
         static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
         {
             if (material == null)

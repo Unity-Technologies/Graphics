@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering
 {
@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering
     /// Generic growable array.
     /// </summary>
     /// <typeparam name="T">Type of the array.</typeparam>
+    [DebuggerDisplay("Size = {size} Capacity = {capacity}")]
     public class DynamicArray<T> where T : new()
     {
         T[] m_Array = null;
@@ -21,6 +22,13 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int capacity { get { return m_Array.Length; } }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        /// <summary>
+        ///  This keeps track of structural modifications to this array and allows us to raise exceptions when modifying during enumeration
+        /// </summary>
+        internal int version { get; private set; }
+#endif
+
         /// <summary>
         /// Constructor.
         /// Defaults to a size of 32 elements.
@@ -29,6 +37,9 @@ namespace UnityEngine.Rendering
         {
             m_Array = new T[32];
             size = 0;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            version = 0;
+#endif
         }
 
         /// <summary>
@@ -39,6 +50,9 @@ namespace UnityEngine.Rendering
         {
             m_Array = new T[size];
             this.size = size;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            version = 0;
+#endif
         }
 
         /// <summary>
@@ -78,6 +92,7 @@ namespace UnityEngine.Rendering
 
             m_Array[index] = value;
             size++;
+            BumpVersion();
             return index;
         }
 
@@ -90,6 +105,7 @@ namespace UnityEngine.Rendering
             Reserve(size + array.size, true);
             for (int i = 0; i < array.size; ++i)
                 m_Array[size++] = array[i];
+            BumpVersion();
         }
 
         /// <summary>
@@ -122,6 +138,7 @@ namespace UnityEngine.Rendering
                 Array.Copy(m_Array, index + 1, m_Array, index, size - index - 1);
 
             size--;
+            BumpVersion();
         }
 
         /// <summary>
@@ -139,6 +156,7 @@ namespace UnityEngine.Rendering
 
             Array.Copy(m_Array, index + count, m_Array, index, size - index - count);
             size -= count;
+            BumpVersion();
         }
 
         /// <summary>
@@ -217,6 +235,7 @@ namespace UnityEngine.Rendering
         {
             Reserve(newSize, keepContent);
             size = newSize;
+            BumpVersion();
         }
 
         /// <summary>
@@ -264,6 +283,248 @@ namespace UnityEngine.Rendering
         /// <param name="array">Input DynamicArray.</param>
         /// <returns>The internal array.</returns>
         public static implicit operator T[](DynamicArray<T> array) => array.m_Array;
+
+
+        /// <summary>
+        /// IEnumerator-like struct used to loop over this entire array. See the IEnumerator docs for more info:
+        /// <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerator" langword="IEnumerator" />
+        /// </summary>
+        /// <remarks>
+        /// This struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
+        /// the same function signatures. This means the duck typing used by <c>foreach</c> on the compiler level will
+        /// pick it up as IEnumerable but at the same time avoids generating Garbage.
+        /// For more info, see the C# language specification of the <c>foreach</c> statement.
+        /// </remarks>
+        /// <seealso cref="RangeIterator"/>
+        public struct Iterator
+        {
+            private readonly DynamicArray<T> owner;
+            private int index;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            private int localVersion;
+#endif
+
+            /// <summary>
+            /// Creates an iterator to iterate over an array.
+            /// </summary>
+            /// <param name="setOwner">The array to iterate over.</param>
+            /// <exception cref="ArgumentNullException">Thrown if the array is null.</exception>
+            public Iterator(DynamicArray<T> setOwner)
+            {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                if (setOwner == null)
+                    throw new ArgumentNullException();
+#endif
+                owner = setOwner;
+                index = -1;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                localVersion = owner.version;
+#endif
+            }
+
+            /// <summary>
+            /// Gets the element in the DynamicArray at the current position of the iterator.
+            /// </summary>
+            public ref T Current
+            {
+                get
+                {
+                    return ref owner[index];
+                }
+            }
+
+            /// <summary>
+            /// Advances the iterator to the next element of the DynamicArray.
+            /// </summary>
+            /// <returns>Returns <c>true</c> if the iterator has successfully advanced to the next element; <c>false</c> if the iterator has passed the end of the DynamicArray.</returns>
+            /// <exception cref="InvalidOperationException">An operation changed the DynamicArray after the creation of this iterator.</exception>
+            public bool MoveNext()
+            {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                if (owner.version != localVersion)
+                {
+                    throw  new InvalidOperationException("DynamicArray was modified during enumeration");
+                }
+#endif
+                index++;
+                return index < owner.size;
+            }
+
+            /// <summary>
+            /// Sets the iterator to its initial position, which is before the first element in the DynamicArray.
+            /// </summary>
+            public void Reset()
+            {
+                index = -1;
+            }
+        }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through of this array.
+        /// See the IEnumerable docs for more info: <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerable" langword="IEnumarable" />
+        /// </summary>
+        /// <remarks>
+        /// The returned struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
+        /// the same function signatures. This means the duck typing used by <c>foreach</c> on the compiler level will
+        /// pick it up as IEnumerable but at the same time avoids generating Garbage.
+        /// For more info, see the C# language specification of the <c>foreach</c> statement.
+        /// </remarks>
+        /// <returns>Iterator pointing before the first element in the array.</returns>
+        public Iterator GetEnumerator()
+        {
+            return new Iterator(this);
+        }
+
+        /// <summary>
+        /// IEnumerable-like struct used to iterate through a subsection of this array.
+        /// See the IEnumerable docs for more info: <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerable" langword="IEnumarable" />
+        /// </summary>
+        /// <remarks>
+        /// This struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
+        /// the same function signatures. This means the duck typing used by <c>foreach</c> on the compiler level will
+        /// pick it up as IEnumerable but at the same time avoids generating Garbage.
+        /// For more info, see the C# language specification of the <c>foreach</c> statement.
+        /// </remarks>
+        /// <seealso cref="SubRange"/>
+        public struct RangeEnumerable
+        {
+            /// <summary>
+            /// IEnumerator-like struct used to iterate through a subsection of this array.
+            /// See the IEnumerator docs for more info: <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerator" langword="IEnumerator" />
+            /// </summary>
+            /// <remarks>
+            /// This struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
+            /// the same function signatures. This means the duck typing used by <c>foreach</c> on the compiler level will
+            /// pick it up as <c>IEnumarable</c> but at the same time avoids generating Garbage.
+            /// For more info, see the C# language specification of the <c>foreach</c> statement.
+            /// </remarks>
+            /// <seealso cref="SubRange"/>
+            public struct RangeIterator
+            {
+                private readonly DynamicArray<T> owner;
+                private int index;
+                private int first;
+                private int last;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                private int localVersion;
+#endif
+
+
+                /// <summary>
+                /// Create an iterator to iterate over the given range in the array.
+                /// </summary>
+                /// <param name="setOwner">The array to iterate over.</param>
+                /// <param name="first">The index of the first item in the array.</param>
+                /// <param name="numItems">The number of array members to iterate through.</param>
+                /// <exception cref="ArgumentNullException">Thrown if the array is null.</exception>
+                public RangeIterator(DynamicArray<T> setOwner, int first, int numItems)
+                {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    if (setOwner == null)
+                        throw new ArgumentNullException();
+                    if (first < 0 || first > setOwner.size || (first + numItems) > setOwner.size)
+                        throw new IndexOutOfRangeException();
+#endif
+                    owner = setOwner;
+                    this.first = first;
+                    index = first-1;
+                    last = first + numItems;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    localVersion = owner.version;
+#endif
+                }
+
+                /// <summary>
+                /// Gets the element in the DynamicArray at the current position of the iterator.
+                /// </summary>
+                public ref T Current
+                {
+                    get
+                    {
+                        return ref owner[index];
+                    }
+                }
+
+                /// <summary>
+                /// Advances the iterator to the next element of the DynamicArray.
+                /// </summary>
+                /// <returns>Returs <c>true</c> if the iterator successfully advanced to the next element; returns <c>false</c> if the iterator has passed the end of the range.</returns>
+                /// <exception cref="InvalidOperationException">The DynamicArray was modified after the iterator was created.</exception>
+                public bool MoveNext()
+                {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    if (owner.version != localVersion)
+                    {
+                        throw  new InvalidOperationException("DynamicArray was modified during enumeration");
+                    }
+#endif
+                    index++;
+                    return index < last;
+                }
+
+                /// <summary>
+                /// Sets the iterator to its initial position, which is before the first element in the range.
+                /// </summary>
+                public void Reset()
+                {
+                    index = first-1;
+                }
+            }
+
+            /// <summary>
+            /// The iterator associated with this Enumerable.
+            /// </summary>
+            public RangeIterator iterator;
+
+            /// <summary>
+            /// Returns an enumerator that iterates through this array.
+            /// </summary>
+            /// <remarks>
+            /// The returned struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
+            /// the same function signatures. This means the duck typing used by <c>foreach</c> on the compiler level will
+            /// pick it up as IEnumerable but at the same time avoids generating Garbage.
+            /// For more info, see the C# language specification of the <c>foreach</c> statement.
+            /// </remarks>
+            /// <returns>Iterator pointing before the first element in the range.</returns>
+            public RangeIterator GetEnumerator()
+            {
+                return iterator;
+            }
+        }
+
+        /// <summary>
+        /// Returns an IEnumeralbe-Like object that iterates through a subsection of this array.
+        /// </summary>
+        /// <remarks>
+        /// The returned struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
+        /// the same function signatures. This means the duck typing used by <c>foreach</c> on the compiler level will
+        /// pick it up as IEnumerable but at the same time avoids generating Garbage.
+        /// For more info, see the C# language specification of the <c>foreach</c> statement.
+        /// </remarks>
+        /// <param name="first">The index of the first item</param>
+        /// <param name="numItems">The number of items to iterate</param>
+        /// <returns><c>RangeEnumerable</c> that can be used to enumerate the given range.</returns>
+        /// <seealso cref="RangeIterator"/>
+        public RangeEnumerable SubRange(int first, int numItems)
+        {
+            RangeEnumerable r = new RangeEnumerable { iterator = new RangeEnumerable.RangeIterator(this, first, numItems) };
+            return r;
+        }
+
+        internal void BumpVersion()
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            version++;
+#endif
+        }
+
+        /// <summary>
+        /// Delegate for custom sorting comparison.
+        /// </summary>
+        /// <param name="x">First object.</param>
+        /// <param name="y">Second object.</param>
+        /// <returns>-1 if x smaller than y, 1 if x bigger than y and 0 otherwise.</returns>
+        public delegate int SortComparer(T x, T y);
     }
 
     /// <summary>
@@ -324,6 +585,62 @@ namespace UnityEngine.Rendering
             }
         }
 
+        // C# SUCKS
+        // Had to copy paste because it's apparently impossible to pass a sort delegate where T is Comparable<T>, otherwise some boxing happens and allocates...
+        // So two identical versions of the function, one with delegate but no Comparable and the other with just the comparable.
+        static int Partition<T>(T[] data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
+        {
+            var pivot = data[left];
+
+            --left;
+            ++right;
+            while (true)
+            {
+                var c = 0;
+                var lvalue = default(T);
+                do
+                {
+                    ++left;
+                    lvalue = data[left];
+                    c = comparer(lvalue, pivot);
+                }
+                while (c < 0);
+
+                var rvalue = default(T);
+                do
+                {
+                    --right;
+                    rvalue = data[right];
+                    c = comparer(rvalue, pivot);
+                }
+                while (c > 0);
+
+                if (left < right)
+                {
+                    data[right] = lvalue;
+                    data[left] = rvalue;
+                }
+                else
+                {
+                    return right;
+                }
+            }
+        }
+
+        static void QuickSort<T>(T[] data, int left, int right, DynamicArray<T>.SortComparer comparer) where T : new()
+        {
+            if (left < right)
+            {
+                int pivot = Partition(data, left, right, comparer);
+
+                if (pivot >= 1)
+                    QuickSort(data, left, pivot, comparer);
+
+                if (pivot + 1 < right)
+                    QuickSort(data, pivot + 1, right, comparer);
+            }
+        }
+
         /// <summary>
         /// Perform a quick sort on the DynamicArray
         /// </summary>
@@ -332,6 +649,19 @@ namespace UnityEngine.Rendering
         public static void QuickSort<T>(this DynamicArray<T> array) where T : IComparable<T>, new()
         {
             QuickSort<T>(array, 0, array.size - 1);
+            array.BumpVersion();
+        }
+
+        /// <summary>
+        /// Perform a quick sort on the DynamicArray
+        /// </summary>
+        /// <typeparam name="T">Type of the array.</typeparam>
+        /// <param name="array">Array on which to perform the quick sort.</param>
+        /// <param name="comparer">Comparer used for sorting.</param>
+        public static void QuickSort<T>(this DynamicArray<T> array, DynamicArray<T>.SortComparer comparer) where T : new()
+        {
+            QuickSort<T>(array, 0, array.size - 1, comparer);
+            array.BumpVersion();
         }
     }
 }

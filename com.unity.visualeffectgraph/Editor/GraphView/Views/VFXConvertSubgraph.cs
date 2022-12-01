@@ -25,10 +25,10 @@ namespace UnityEditor.VFX.UI
             ctx.ConvertToSubgraphOperator(sourceView, controllers, rect, path);
         }
 
-        public static void ConvertToSubgraphBlock(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+        public static void ConvertToSubgraphBlock(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path = null)
         {
             var ctx = new Context();
-            ctx.ConvertToSubgraphBlock(sourceView, controllers, rect);
+            ctx.ConvertToSubgraphBlock(sourceView, controllers, rect, path);
         }
 
         enum Type
@@ -195,7 +195,6 @@ namespace UnityEditor.VFX.UI
                 object result = VFXCopy.Copy(m_SourceControllers, m_Rect);
 
                 VFXPaste.Paste(m_TargetController, m_Rect.center, result, null, null, m_TargetControllers);
-                List<VFXParameterController> targetParameters = new List<VFXParameterController>();
             }
 
             List<VFXNodeController> m_SourceOperatorAndParameters;
@@ -286,12 +285,23 @@ namespace UnityEditor.VFX.UI
             List<VFXBlockController> m_SourceBlockControllers;
             List<VFXBlockController> m_TargetBlocks = null;
 
-            public void ConvertToSubgraphBlock(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+            public void ConvertToSubgraphBlock(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                if (!CreateUniqueSubgraph("SubgraphBlock", VisualEffectSubgraphBlock.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>))
-                    return;
+                if (string.IsNullOrEmpty(path))
+                {
+                    if (!CreateUniqueSubgraph("SubgraphBlock", VisualEffectSubgraphBlock.Extension,
+                            VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>))
+                        return;
+                }
+                else
+                {
+                    m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>(path);
+                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                    m_TargetController.useCount++;
+                    m_TargetControllers = new List<VFXNodeController>();
+                }
 
                 m_SourceControllers.RemoveAll(t => t is VFXContextController); // Don't copy contexts
 
@@ -299,7 +309,7 @@ namespace UnityEditor.VFX.UI
 
                 VFXContextController sourceContextController = m_SourceBlockControllers.First().contextController;
 
-                object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers);
+                object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers, m_SourceControllers);
 
                 var targetContext = m_TargetController.graph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
                 if (targetContext == null)
@@ -313,7 +323,7 @@ namespace UnityEditor.VFX.UI
                 m_TargetBlocks = new List<VFXBlockController>();
 
                 VFXPaste.PasteBlocks(m_TargetController, copyData, targetContext, 0, m_TargetBlocks);
-
+                VFXPaste.PasteStickyNotes(m_TargetController, copyData);
 
                 Dictionary<VFXNodeController, VFXNodeController> targetControllers = new Dictionary<VFXNodeController, VFXNodeController>();
                 CopyPasteOperators(targetControllers);
@@ -383,8 +393,9 @@ namespace UnityEditor.VFX.UI
                 }
 
 
-                string fileName = $"{graphName}_{typeName}";
-                string targetSubgraphPath = string.Format("{0}/{1}{2}", graphDirPath, fileName, extension);
+               string fileName = $"{graphName}_{typeName}";
+               var targetSubgraphPath = string.Format("{0}/{1}{2}", graphDirPath, fileName, extension);
+
                 int cpt = 1;
 
                 while (File.Exists(targetSubgraphPath))
@@ -392,6 +403,7 @@ namespace UnityEditor.VFX.UI
                     fileName = $"{graphName}_{typeName}_{cpt++}";
                     targetSubgraphPath = string.Format("{0}/{1}{2}", graphDirPath, fileName, extension);
                 }
+
                 targetSubgraphPath = EditorUtility.SaveFilePanelInProject("Create Subgraph", fileName, extension.Substring(1), "Select where you want to save your subgraph.");
 
                 if (string.IsNullOrEmpty(targetSubgraphPath))

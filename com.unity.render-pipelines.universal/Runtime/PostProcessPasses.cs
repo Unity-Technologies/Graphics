@@ -121,5 +121,13 @@ namespace UnityEngine.Rendering.Universal
             m_AfterPostProcessColor?.Release();
             m_ColorGradingLut?.Release();
         }
+
+        internal void ReleaseRenderTargets()
+        {
+            m_AfterPostProcessColor?.Release();
+            m_PostProcessPass?.Dispose();
+            m_FinalPostProcessPass?.Dispose();
+            m_ColorGradingLut?.Release();
+        }
     }
 }

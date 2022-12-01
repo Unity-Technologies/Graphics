@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Initial,                // 16 profiles per asset
             DiffusionProfileRework, // one profile per asset
+            SplitScatteringDistance,// scattering color + mean free path
         }
 
         [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
@@ -104,6 +105,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 #endif
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.SplitScatteringDistance, (DiffusionProfileSettings d) =>
+            {
+                // The setter will split value in ldr color + multiplier
+                d.scatteringDistance = d.profile.scatteringDistance;
             })
         );
 

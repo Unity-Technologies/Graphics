@@ -9,6 +9,8 @@ using RuntimeSRPPreferences = UnityEngine.Rendering.CoreRenderPipelinePreference
 
 namespace UnityEditor.Rendering
 {
+    using CED = CoreEditorDrawer<SerializedProbeTouchupVolume>;
+
     internal class ProbeTouchupColorPreferences
     {
         internal static Func<Color> GetColorPrefProbeVolumeGizmoColor;
@@ -16,7 +18,7 @@ namespace UnityEditor.Rendering
 
         static ProbeTouchupColorPreferences()
         {
-            GetColorPrefProbeVolumeGizmoColor = RuntimeSRPPreferences.RegisterPreferenceColor("Scene/Probe Touchup Volume Gizmo", s_ProbeTouchupVolumeGizmoColorDefault);
+            GetColorPrefProbeVolumeGizmoColor = RuntimeSRPPreferences.RegisterPreferenceColor("Adaptive Probe Volumes/Probe Adjustment Volume Gizmo", s_ProbeTouchupVolumeGizmoColorDefault);
         }
 
     }
@@ -27,11 +29,11 @@ namespace UnityEditor.Rendering
     {
         internal static class Styles
         {
-            internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
-            internal static readonly GUIContent s_IntensityScale = new GUIContent("Probe Intensity Scale", "A scale to be applied to all probes that fall within this probe touchup volume.");
-            internal static readonly GUIContent s_InvalidateProbes = new GUIContent("Invalidate Probes", "Set all probes falling within this probe touchup volume to invalid.");
-            internal static readonly GUIContent s_OverrideDilationThreshold = new GUIContent("Override Dilation Threshold", "Whether to override the dilation threshold used for probes falling within this probe touch-up volume.");
-            internal static readonly GUIContent s_OverriddenDilationThreshold = new GUIContent("Dilation Threshold", "The dilation threshold to use for this probe volume.");
+            internal static readonly GUIContent s_RotateToolIcon = EditorGUIUtility.TrIconContent("RotateTool", "The virtual offset direction for probes falling in this volume.");
+            internal static readonly GUIContent s_VolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");
+            internal static readonly GUIContent s_TouchupHeader = EditorGUIUtility.TrTextContent("Probe Volume Overrides");
+
+            internal static readonly EditMode.SceneViewEditMode VirtualOffsetEditMode = (EditMode.SceneViewEditMode)110;
 
             internal static readonly Color k_GizmoColorBase = ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault;
 
@@ -44,8 +46,139 @@ namespace UnityEditor.Rendering
                 ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
                 ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault
             };
+        }
+
+        static class ProbeTouchupVolumeUI
+        {
+            public static readonly CED.IDrawer Inspector = null;
+
+            enum AdditionalProperties
+            {
+                Touchup = 1 << 0,
+            }
+            enum Expandable
+            {
+                Volume = 1 << 0,
+                Touchup = 1 << 1,
+            }
+
+            readonly static ExpandedState<Expandable, ProbeTouchupVolume> k_ExpandedState = new ExpandedState<Expandable, ProbeTouchupVolume>(Expandable.Volume | Expandable.Touchup);
+            readonly static AdditionalPropertiesState<AdditionalProperties, ProbeTouchupVolume> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, ProbeTouchupVolume>(0);
+
+            public static void RegisterEditor(ProbeTouchupVolumeEditor editor)
+            {
+                k_AdditionalPropertiesState.RegisterEditor(editor);
+            }
+
+            public static void UnregisterEditor(ProbeTouchupVolumeEditor editor)
+            {
+                k_AdditionalPropertiesState.UnregisterEditor(editor);
+            }
+
+            [SetAdditionalPropertiesVisibility]
+            public static void SetAdditionalPropertiesVisibility(bool value)
+            {
+                if (value)
+                    k_AdditionalPropertiesState.ShowAll();
+                else
+                    k_AdditionalPropertiesState.HideAll();
+            }
+
+            public static void DrawVolumeContent(SerializedProbeTouchupVolume serialized, Editor owner)
+            {
+                EditorGUILayout.PropertyField(serialized.shape);
+                EditorGUILayout.PropertyField(serialized.shape.intValue == 0 ? serialized.size : serialized.radius);
+
+            }
+
+            public static void DrawTouchupContent(SerializedProbeTouchupVolume serialized, Editor owner)
+            {
+                ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
+
+                var bakeSettings = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene).settings;
+
+                EditorGUILayout.PropertyField(serialized.mode);
+
+                if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideValidityThreshold)
+                {
+                    EditorGUILayout.PropertyField(serialized.overriddenDilationThreshold);
+                }
+                else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.ApplyVirtualOffset)
+                {
+                    EditorGUI.BeginDisabledGroup(!bakeSettings.virtualOffsetSettings.useVirtualOffset);
+                    EditorGUILayout.BeginHorizontal();
+
+                    EditorGUILayout.PropertyField(serialized.virtualOffsetRotation);
+
+                    var editMode = Styles.VirtualOffsetEditMode;
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.Toggle(editMode == EditMode.editMode, Styles.s_RotateToolIcon, EditorStyles.miniButton, GUILayout.Width(28f));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        EditMode.SceneViewEditMode targetMode = EditMode.editMode == editMode ? EditMode.SceneViewEditMode.None : editMode;
+                        EditMode.ChangeEditMode(targetMode, GetBounds(serialized, owner), owner);
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.PropertyField(serialized.virtualOffsetDistance);
+                    EditorGUI.EndDisabledGroup();
+
+                    if (!bakeSettings.virtualOffsetSettings.useVirtualOffset)
+                    {
+                        EditorGUILayout.HelpBox("Apply Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning);
+                    }
+                }
+                else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings)
+                {
+                    EditorGUI.BeginDisabledGroup(!bakeSettings.virtualOffsetSettings.useVirtualOffset);
+                    EditorGUILayout.PropertyField(serialized.geometryBias);
+                    EditorGUILayout.PropertyField(serialized.rayOriginBias);
+                    EditorGUI.EndDisabledGroup();
+
+                    if (!bakeSettings.virtualOffsetSettings.useVirtualOffset)
+                    {
+                        EditorGUILayout.HelpBox("Override Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning);
+                    }
+
+                }
+                else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.InvalidateProbes)
+                {
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Update Probe Validity", "Update the validity of probes falling within probe adjustment volumes."), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RecomputeValidityAfterBake();
+                    }
+                }
+            }
+
+            internal static Bounds GetBounds(SerializedProbeTouchupVolume serialized, Editor owner)
+            {
+                var position = ((Component)owner.target).transform.position;
+                if (serialized.shape.intValue == (int)ProbeTouchupVolume.Shape.Box)
+                    return new Bounds(position, serialized.size.vector3Value);
+                if (serialized.shape.intValue == (int)ProbeTouchupVolume.Shape.Box)
+                    return new Bounds(position, serialized.radius.floatValue * Vector3.up);
+                return default;
+            }
+
+            public static void DrawTouchupAdditionalContent(SerializedProbeTouchupVolume serialized, Editor owner)
+            {
+                if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.InvalidateProbes)
+                {
+                    EditorGUILayout.HelpBox("Changing the intensity of probe data is a delicate operation that can lead to inconsistencies in the lighting, hence the feature is to be used sparingly.", MessageType.Info, wide: true);
+                    EditorGUILayout.PropertyField(serialized.intensityScale);
+                }
+            }
 
 
+            static ProbeTouchupVolumeUI()
+            {
+                Inspector = CED.Group(
+                    CED.FoldoutGroup(Styles.s_VolumeHeader, Expandable.Volume, k_ExpandedState,
+                        (serialized, owner) => DrawVolumeContent(serialized, owner)),
+                    CED.AdditionalPropertiesFoldoutGroup(Styles.s_TouchupHeader, Expandable.Touchup, k_ExpandedState, AdditionalProperties.Touchup, k_AdditionalPropertiesState,
+                        CED.Group((serialized, owner) => DrawTouchupContent(serialized, owner)), DrawTouchupAdditionalContent)
+                );
+            }
         }
 
 
@@ -63,6 +196,17 @@ namespace UnityEditor.Rendering
             }
         }
 
+        static HierarchicalSphere _ShapeSphere;
+        static HierarchicalSphere s_ShapeSphere
+        {
+            get
+            {
+                if (_ShapeSphere == null)
+                    _ShapeSphere = new HierarchicalSphere(Styles.k_GizmoColorBase);
+                return _ShapeSphere;
+            }
+        }
+
         protected void OnEnable()
         {
             m_SerializedTouchupVolume = new SerializedProbeTouchupVolume(serializedObject);
@@ -70,41 +214,18 @@ namespace UnityEditor.Rendering
 
         public override void OnInspectorGUI()
         {
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
             {
                 serializedObject.Update();
 
                 if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
                 {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled on the used HDRP asset.", MessageType.Warning, wide: true);
                     return;
                 }
 
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_SerializedTouchupVolume.size, Styles.s_Size);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Vector3 tmpClamp = m_SerializedTouchupVolume.size.vector3Value;
-                    tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-                    tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-                    tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-                    m_SerializedTouchupVolume.size.vector3Value = tmpClamp;
-                }
-
-
-                EditorGUILayout.PropertyField(m_SerializedTouchupVolume.invalidateProbes, Styles.s_InvalidateProbes);
-
-                using (new EditorGUI.DisabledScope(m_SerializedTouchupVolume.invalidateProbes.boolValue))
-                {
-                    EditorGUILayout.PropertyField(m_SerializedTouchupVolume.overrideDilationThreshold, Styles.s_OverrideDilationThreshold);
-                    using (new EditorGUI.DisabledScope(!m_SerializedTouchupVolume.overrideDilationThreshold.boolValue))
-                        EditorGUILayout.PropertyField(m_SerializedTouchupVolume.overriddenDilationThreshold, Styles.s_OverriddenDilationThreshold);
-                }
-                // TODO: This is a very dangerous thing to expose, so for now we don't show. Keeping here in case we find it necessary.
-                //EditorGUI.BeginDisabledGroup(m_SerializedTouchupVolume.invalidateProbes.boolValue);
-                //EditorGUILayout.PropertyField(m_SerializedTouchupVolume.intensityScale, Styles.s_IntensityScale);
-                //EditorGUI.EndDisabledGroup();
+                ProbeTouchupVolumeUI.Inspector.Draw(m_SerializedTouchupVolume, this);
             }
             else
             {
@@ -119,36 +240,98 @@ namespace UnityEditor.Rendering
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(touchupVolume.transform.position, touchupVolume.transform.rotation, Vector3.one)))
             {
-                // Bounding box.
-                s_ShapeBox.center = Vector3.zero;
-                s_ShapeBox.size = touchupVolume.size;
-                s_ShapeBox.SetBaseColor(ProbeTouchupColorPreferences.GetColorPrefProbeVolumeGizmoColor());
-                s_ShapeBox.DrawHull(true);
+                if (touchupVolume.shape == ProbeTouchupVolume.Shape.Box)
+                {
+                    s_ShapeBox.center = Vector3.zero;
+                    s_ShapeBox.size = touchupVolume.size;
+                    s_ShapeBox.SetBaseColor(ProbeTouchupColorPreferences.GetColorPrefProbeVolumeGizmoColor());
+                    s_ShapeBox.DrawHull(true);
+                }
+                else if (touchupVolume.shape == ProbeTouchupVolume.Shape.Sphere)
+                {
+                    s_ShapeSphere.center = Vector3.zero;
+                    s_ShapeSphere.radius = touchupVolume.radius;
+                    s_ShapeSphere.DrawHull(true);
+                }
+
+                if (touchupVolume.mode == ProbeTouchupVolume.Mode.ApplyVirtualOffset)
+                {
+                    ArrowHandle(0, Quaternion.Euler(touchupVolume.virtualOffsetRotation), touchupVolume.virtualOffsetDistance);
+                }
             }
+        }
+
+        static void ArrowHandle(int controlID, Quaternion rotation, float distance)
+        {
+            Handles.matrix *= Matrix4x4.Rotate(rotation);
+
+            float thickness = Handles.lineThickness;
+            float coneSize = .05f;
+
+            var linePos = (distance - coneSize) * Vector3.forward;
+            var conePos = (distance - coneSize * 0.5f) * Vector3.forward;
+
+            if (distance < coneSize)
+            {
+                conePos = coneSize * 0.5f * Vector3.forward;
+                Handles.matrix *= Matrix4x4.Scale(new Vector3(1, 1, distance / coneSize));
+            }
+
+            Handles.DrawLine(Vector3.zero, linePos, thickness);
+            Handles.ConeHandleCap(controlID, conePos, Quaternion.identity, coneSize, EventType.Repaint);
         }
 
         protected void OnSceneGUI()
         {
             ProbeTouchupVolume touchupVolume = target as ProbeTouchupVolume;
 
+            var position = Quaternion.Inverse(touchupVolume.transform.rotation) * touchupVolume.transform.position;
+
             //important: if the origin of the handle's space move along the handle,
             //handles displacement will appears as moving two time faster.
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, touchupVolume.transform.rotation, Vector3.one)))
             {
-                //contained must be initialized in all case
-                s_ShapeBox.center = Quaternion.Inverse(touchupVolume.transform.rotation) * touchupVolume.transform.position;
-                s_ShapeBox.size = touchupVolume.size;
-
-                s_ShapeBox.monoHandle = false;
-                EditorGUI.BeginChangeCheck();
-                s_ShapeBox.DrawHandle();
-                if (EditorGUI.EndChangeCheck())
+                if (touchupVolume.shape == ProbeTouchupVolume.Shape.Box)
                 {
-                    Undo.RecordObjects(new UnityEngine.Object[] { touchupVolume, touchupVolume.transform }, "Change Probe Touchup Volume Bounding Box");
+                    //contained must be initialized in all case
+                    s_ShapeBox.center = position;
+                    s_ShapeBox.size = touchupVolume.size;
 
-                    touchupVolume.size = s_ShapeBox.size;
-                    Vector3 delta = touchupVolume.transform.rotation * s_ShapeBox.center - touchupVolume.transform.position;
-                    touchupVolume.transform.position += delta; ;
+                    s_ShapeBox.monoHandle = false;
+                    EditorGUI.BeginChangeCheck();
+                    s_ShapeBox.DrawHandle();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObjects(new UnityEngine.Object[] { touchupVolume, touchupVolume.transform }, "Change Adjustment Volume Bounding Box");
+
+                        touchupVolume.size = s_ShapeBox.size;
+                        Vector3 delta = touchupVolume.transform.rotation * s_ShapeBox.center - touchupVolume.transform.position;
+                        touchupVolume.transform.position += delta; ;
+                    }
+                }
+                else if (touchupVolume.shape == ProbeTouchupVolume.Shape.Sphere)
+                {
+                    s_ShapeSphere.center = position;
+                    s_ShapeSphere.radius = touchupVolume.radius;
+
+                    EditorGUI.BeginChangeCheck();
+                    s_ShapeSphere.DrawHandle();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(touchupVolume, "Change Adjustment Volume Radius");
+                        touchupVolume.radius = s_ShapeSphere.radius;
+                    }
+                }
+
+                if (touchupVolume.mode == ProbeTouchupVolume.Mode.ApplyVirtualOffset && EditMode.editMode == Styles.VirtualOffsetEditMode)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    Quaternion rotation = Handles.RotationHandle(Quaternion.Euler(touchupVolume.virtualOffsetRotation), position);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(touchupVolume, "Change Virtual Offset Direction");
+                        touchupVolume.virtualOffsetRotation = rotation.eulerAngles;
+                    }
                 }
             }
         }

@@ -76,8 +76,8 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
 
 
-                m_Fields[i].onValueDragFinished = t => ValueDragFinished();
-                m_Fields[i].onValueDragStarted = t => ValueDragStarted();
+                m_Fields[i].SetOnValueDragFinished(t => ValueDragFinished());
+                m_Fields[i].SetOnValueDragStarted(t => ValueDragStarted());
 
                 m_FieldParents[i] = new VisualElement { name = "FieldParent" };
                 m_FieldParents[i].Add(m_Fields[i]);

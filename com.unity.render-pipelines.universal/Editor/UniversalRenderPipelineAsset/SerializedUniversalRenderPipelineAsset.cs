@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty requireOpaqueTextureProp { get; }
         public SerializedProperty opaqueDownsamplingProp { get; }
         public SerializedProperty supportsTerrainHolesProp { get; }
+        public SerializedProperty enableLODCrossFadeProp { get; }
+        public SerializedProperty lodCrossFadeDitheringTypeProp { get; }
         public SerializedProperty storeActionsOptimizationProperty { get; }
 
         public SerializedProperty hdr { get; }
@@ -50,13 +52,16 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty shadowDepthBiasProp { get; }
         public SerializedProperty shadowNormalBiasProp { get; }
         public SerializedProperty softShadowsSupportedProp { get; }
+        public SerializedProperty softShadowQualityProp { get; }
         public SerializedProperty conservativeEnclosingSphereProp { get; }
 
         public SerializedProperty srpBatcher { get; }
         public SerializedProperty supportsDynamicBatching { get; }
         public SerializedProperty mixedLightingSupportedProp { get; }
-        public SerializedProperty supportsLightLayers { get; }
+        public SerializedProperty useRenderingLayers { get; }
+        public SerializedProperty supportsLightCookies { get; }
         public SerializedProperty debugLevelProp { get; }
+        public SerializedProperty enableRenderGraph { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
 
@@ -81,6 +86,8 @@ namespace UnityEditor.Rendering.Universal
             requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             opaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
+            enableLODCrossFadeProp = serializedObject.FindProperty("m_EnableLODCrossFade");
+            lodCrossFadeDitheringTypeProp = serializedObject.FindProperty("m_LODCrossFadeDitheringType");
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             hdrColorBufferPrecisionProp = serializedObject.FindProperty("m_HDRColorBufferPrecision");
@@ -119,13 +126,16 @@ namespace UnityEditor.Rendering.Universal
             shadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             shadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             softShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
+            softShadowQualityProp = serializedObject.FindProperty("m_SoftShadowQuality");
             conservativeEnclosingSphereProp = serializedObject.FindProperty("m_ConservativeEnclosingSphere");
 
             srpBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             supportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
-            supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
+            useRenderingLayers = serializedObject.FindProperty("m_SupportsLightLayers");
+            supportsLightCookies = serializedObject.FindProperty("m_SupportsLightCookies");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
+            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 

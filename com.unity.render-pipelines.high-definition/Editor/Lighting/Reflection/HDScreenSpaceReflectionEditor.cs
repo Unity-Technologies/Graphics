@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
+using RayTracingMode = UnityEngine.Rendering.HighDefinition.RayTracingMode;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
@@ -33,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Ray Tracing
         SerializedDataParameter m_RayMiss;
         SerializedDataParameter m_LastBounce;
+        SerializedDataParameter m_AmbientProbeDimmer;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_TextureLodBias;
         SerializedDataParameter m_RayLength;
@@ -82,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Generic ray tracing
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));
             m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
@@ -104,8 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
         }
 
-        static public readonly GUIContent k_EnabledOpaque = EditorGUIUtility.TrTextContent("Enabled (Opaque)", "Enable Screen Space Reflections.");
-        static public readonly GUIContent k_EnabledTransparent = EditorGUIUtility.TrTextContent("Enabled (Transparent)", "Enable Transparent Screen Space Reflections");
+        static public readonly GUIContent k_EnabledOpaque = EditorGUIUtility.TrTextContent("State (Opaque)", "Enable Screen Space Reflections.");
+        static public readonly GUIContent k_EnabledTransparent = EditorGUIUtility.TrTextContent("State (Transparent)", "Enable Transparent Screen Space Reflections");
         static public readonly GUIContent k_Algo = EditorGUIUtility.TrTextContent("Algorithm", "The screen space reflection algorithm used.");
         static public readonly GUIContent k_TracingText = EditorGUIUtility.TrTextContent("Tracing", "Controls the technique used to compute the reflection.Controls the technique used to compute the reflections. Ray marching uses a ray-marched screen-space solution, Ray tracing uses a hardware accelerated world-space solution. Mixed uses first Ray marching, then Ray tracing if it fails to intersect on-screen geometry.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection for opaque objects (not supported for SSR on transparent).");
@@ -127,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for ray marching. Affects both correctness and performance.");
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of reflection rays in meters. The higher this value is, the more expensive ray traced reflections are.");
-        static public readonly GUIContent k_ClampValueText = EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity.");
+        static public readonly GUIContent k_ClampValueText = EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity, this only affects reflections on opaque objects.");
         static public readonly GUIContent k_SampleCountText = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections.");
         static public readonly GUIContent k_BounceCountText = EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays.");
         static public readonly GUIContent k_ModeText = EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used.");
@@ -184,12 +188,21 @@ namespace UnityEditor.Rendering.HighDefinition
         void RayTracedReflectionGUI(RayCastingMode tracingMode)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            using (new IndentLevelScope())
+
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
+            if (showAdditionalProperties)
             {
-                EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
-                PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                using (new IndentLevelScope())
+                {
+                    EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                    PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                    PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                    PropertyField(m_AmbientProbeDimmer);
+                }
             }
+
             PropertyField(m_LayerMask, k_LayerMaskText);
             PropertyField(m_TextureLodBias, k_TextureLodBiasText);
 

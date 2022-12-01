@@ -22,7 +22,7 @@ Before you can start using URP, you need to configure it. To do this, you need t
 
 ### Creating the Universal Render Pipeline Asset
 
-The [Universal Render Pipeline Asset](universalrp-asset.md) controls the global rendering and quality settings of your Project, and creates the rendering pipeline instance. The rendering pipeline instance contains intermediate resources and the render pipeline implementation.
+The [Universal Render Pipeline Asset](universalrp-asset.md) (URP Asset) contains the global rendering and quality settings of your project, and creates the rendering pipeline instance. The rendering pipeline instance contains intermediate resources and the render pipeline implementation.
 
 To create a Universal Render Pipeline Asset:
 
@@ -31,16 +31,23 @@ To create a Universal Render Pipeline Asset:
 
 You can either leave the default name for the new Universal Render Pipeline Asset, or type a new one.
 
+### <a name="set-urp-active"></a>Set URP as the active render pipeline
 
-### Adding the Asset to your Graphics settings
+To set URP as the active render pipeline:
 
-To use URP, you need to add the newly created Universal Render Pipeline Asset to your Graphics settings in Unity. If you don't, Unity still tries to use the Built-in render pipeline.
+1. In your project, locate the Render Pipeline Asset that you want to use.<br/>**Tip**: to find all URP Assets in a project, use the following query in the search field: `t:universalrenderpipelineasset`.
 
-To add the Universal Render Pipeline Asset to your Graphics settings:
+1. Select **Edit** > **Project Settings** > **Graphics**.
 
+2. In the **Scriptable Render Pipeline Settings** field, select the URP Asset. When you select the URP Asset, the available Graphics settings change immediately.
 
-1. Navigate to __Edit > Project Settings... > Graphics__.
-2. In the __Scriptable Render Pipeline Settings__ field, add the Universal Render Pipeline Asset you created earlier. When you add the Universal Render Pipeline Asset, the available Graphics settings immediately change. Your Project is now using URP.
+**Optional**:
+
+Set an override URP Assets for different quality levels:
+
+1. Select **Edit** > **Project Settings** > **Quality**.
+
+2. Select a quality level. In the **Render Pipeline Asset** field, select the Render Pipeline Asset.
 
 ## Upgrading your shaders
 

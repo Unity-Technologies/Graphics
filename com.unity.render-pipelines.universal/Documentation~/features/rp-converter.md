@@ -26,35 +26,79 @@ To convert project assets:
 
     ![Initialize converters](../Images/rp-converter/initialize.png)
 
+    The following illustration shows initialized converters.
+
+    ![Initialized converters](../Images/rp-converter/after-initialize.png)
+
+    Click a converter to see the list of items that a converter is about to convert.
+
+    ![Converter detailed view](../Images/rp-converter/converter-detailed-view.png)
+
     **Yellow icon**: a yellow icon next to an element indicates that a user action might be required to run the conversion. Hover the mouse pointer over the icon to see the description of the issue.
 
 5. Click **Convert Assets** to start the conversion process.
 
     > **NOTE:** The conversion process makes irreversible changes to the project. Back up your project before the conversion.
 
-    When the converter finishes processing all the selected elements, it shows the status of each element in the window.
+    When the conversion process finishes, the window shows the status of each converter.
 
     ![Conversion finished](../Images/rp-converter/conversion-finished.png)
 
     **Green check mark**: the conversion went without issues.
 
+    **Yellow icon**: the conversion finished with warnings and might require user action.
+
     **Red icon**: the conversion failed.
 
-6. With the converter window open, inspect the elements with the warnings. After reviewing the converted project, close the Render Pipeline Converter window.
+6. Click a converter to see the list of processed items in that converter.
+
+    ![Conversion finished. Detailed view of a converter](../Images/rp-converter/conversion-finished-details.png)
+
+    After reviewing the converted project, close the Render Pipeline Converter window.
 
 ## <a name="converters"></a>Conversion types and converters
 
 The Render Pipeline Converter let's you select one of the following conversion types:
 
+* Built-in Render Pipeline to URP
+
 * Built-in Render Pipeline 2D to URP 2D
 
 * Upgrade 2D URP Assets
 
-* Built-in Render Pipeline to URP
-
 When you select on of the conversion types, the tool shows you the available converters.
 
 The following sections describe the converters available for each conversion type.
+
+### Built-in Render Pipeline to URP
+
+This conversion type converts project elements from the Built-in Render Pipeline to URP.
+
+Available converters:
+
+* **Rendering Settings**
+
+    This converter creates the URP Asset and Renderer assets. Then the converter evaluates the settings in the Built-in Render Pipeline project and converts them into equivalent properties in the URP assets.
+
+* **Material Upgrade**
+
+    This converter converts the Materials. The converter works on pre-built Materials that are supplied by Unity, it does not support Materials with custom shaders.
+
+* **Animation Clip Converter**
+
+    This converter converts the animation clips. It runs after the **Material Upgrade** converter finishes.
+
+    > **NOTE:** This converter is available only if the project contains animations that affect the properties of Materials, or Post-processing Stack v2 properties.
+
+* **Read-only Material Converter**
+
+    This converter converts the pre-built read-only Materials, where the **Material Upgrade** converter cannot replace the shader. This converter indexes the project and creates a temporary `.index` file, which might take a significant time.
+
+    Examples of read-only Materials: `Default-Diffuse`, `Default-Line`, `Dafault-Terrain-Diffuse`, etc.
+
+* **Post-Processing Stack v2 Converter**
+
+    This converter converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras. This converter indexes the project and creates a temporary `.index` file, which might take a significant time.
 
 ### Built-in Render Pipeline 2D to URP 2D
 
@@ -76,24 +120,40 @@ Available converters:
 
     This converter converts all parametric lights to freeform lights.
 
-### Built-in Render Pipeline to URP
+# Run conversion using API or CLI
 
-This conversion type converts project elements from the Built-in Render Pipeline to URP.
+The Render Pipeline Converter implements the [Converters](xref:UnityEditor.Rendering.Universal.Converters) class with [RunInBatchMode](xref:UnityEditor.Rendering.Universal.Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)) methods that let you run the conversion process from a command line.
 
-Available converters:
+For example, the following script initializes and executes the converters **Material Upgrade**, and **Read-only Material Converter**.
 
-* **Rendering Settings**
+```C#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.Rendering.Universal;
+using UnityEngine;
 
-    This converter creates the URP Asset and Renderer assets. Then the converter evaluates the settings in the Built-in Render Pipeline project and converts them into equivalent properties in the URP assets.
+public class MyUpgradeScript : MonoBehaviour
+{
+    public static void ConvertBuiltinToURPMaterials()
+    {
+        Converters.RunInBatchMode(
+            ConverterContainerId.BuiltInToURP
+            , new List<ConverterId> {
+                ConverterId.Material,
+                ConverterId.ReadonlyMaterial
+            }
+            , ConverterFilter.Inclusive
+        );
+        EditorApplication.Exit(0);
+    }
+}
+```
 
-* **Material Upgrade**
+To run the example conversion from the command line, use the following command:
 
-    This converter converts the Materials.
+```
+"<path to Unity application> -projectPath <project path> -batchmode -executeMethod MyUpgradeScript.ConvertBuiltinToURPMaterials
+```
 
-* **Animation Clip Converter**
-
-    This converter converts the animation clips. It runs after the **Material Upgrade** converter finishes.
-
-* **Read-only Material Converter**
-
-    This converter converts the pre-built read-only Materials that come with a Unity project. This converter indexes the project and creates the temporary `.index` file. This might take a significant time.
+See also: [Unity Editor command line arguments](https://docs.unity3d.com/Manual/EditorCommandLineArguments.html).

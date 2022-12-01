@@ -12,7 +12,7 @@ The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a 
 
 ## Using Bloom
 
-**Bloom** uses the [Volume](Volumes.md) system, so to enable and modify **Bloom** properties, you must add a **Bloom** override to a [Volume](Volume.md) in your Scene.
+**Bloom** uses the [Volume](Volumes.md) system, so to enable and modify **Bloom** properties, you must add a **Bloom** override to a [Volume](VolumeOverrides.md) in your Scene.
 
 To add **Bloom** to a Volume:
 
@@ -33,8 +33,8 @@ To add **Bloom** to a Volume:
 | **Tint**                   | Use the color picker to select a color for the Bloom effect to tint to. |
 | **Clamp**                  | Set the maximum intensity that Unity uses to calculate Bloom. If pixels in your Scene are more intense than this, URP renders them at their current intensity, but uses this intensity value for the purposes of Bloom calculations. The default value is 65472. |
 | **High Quality Filtering** | Enable this to use high quality sampling. This reduces flickering and improves the overall smoothness, but is more resource-intensive and can affect performance. |
-| **Downscale**              | Set the initial resolution scale for the effect. Using a greater reduction reduces the cost of the initial blur by only starting from a lower resolution.
-| **Max Iterations**         | The amount of iterations is based upon the size of hte rendered image. In this setting you define the maximum number of iterations. Decreasing this value reduces processing load and increases performance, especially on mobile devices with high DPI screens. The default value is 6. |
+| **Downscale**              | Set the initial resolution scale for the effect. The lower this value is, the fewer system resources the initial blur effect consumes.
+| **Max Iterations**         | The size of the rendered image determines the number of iterations. Use this setting to define the maximum number of iterations. Decreasing this value reduces processing load and increases performance, especially on mobile devices with high DPI screens. The default value is 6. |
 
 ### Lens Dirt
 

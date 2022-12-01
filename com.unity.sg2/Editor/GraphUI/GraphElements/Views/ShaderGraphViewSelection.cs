@@ -76,10 +76,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.CutSelection();
         }
 
-        void AddInputEdgesToSelection()
+        List<GraphElementModel> AddInputEdgesToSelection()
         {
             using (var updater = m_SelectionState.UpdateScope)
             {
+                var selectedInputEdges = new List<GraphElementModel>();
                 var selection = GetSelection();
                 for(var index = 0; index < selection.Count; index++)
                 {
@@ -90,19 +91,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         foreach(var edge in edges)
                         {
                             // Skip output edges
-                            if(edge.FromPort.NodeModel == nodeModel)
-                                continue;
-                            updater.SelectElement(edge, true);
+                            if(edge.FromPort.NodeModel != nodeModel)
+                                selectedInputEdges.Add(edge);
                         }
                     }
                 }
+                return selectedInputEdges;
             }
         }
 
         protected override IEnumerable<GraphElementModel> CopySelection()
         {
-            AddInputEdgesToSelection();
-            base.CopySelection();
+            var copySelection = base.CopySelection().ToList();
+            copySelection.AddRange(AddInputEdgesToSelection());
+            return copySelection;
         }
 
         protected override void DuplicateSelection()

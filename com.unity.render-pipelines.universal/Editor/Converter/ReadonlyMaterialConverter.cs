@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
+            var context = Search.SearchService.CreateContext("asset", "urp=convert-readonly a=URPConverterIndex");
 
             Search.SearchService.Request(context, (c, items) =>
             {

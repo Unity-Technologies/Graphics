@@ -23,12 +23,9 @@
 // We should expose shader quality tiers in the pipeline asset.
 // Meanwhile, it's forced to be:
 // High Quality: Non-mobile platforms or shader explicit defined SHADER_HINT_NICE_QUALITY
-// Medium: Mobile aside from GLES2
-// Low: GLES2
+// Medium: Mobile
 #if SHADER_HINT_NICE_QUALITY
     #define SHADER_QUALITY_HIGH
-#elif defined(SHADER_API_GLES)
-    #define SHADER_QUALITY_LOW
 #else
     #define SHADER_QUALITY_MEDIUM
 #endif
@@ -40,7 +37,7 @@
 
 #if UNITY_REVERSED_Z
     // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
-    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3)
         //GL with reversed z => z clip range is [near, -far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
         #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(-(coord), 0)
     #else

@@ -1,0 +1,167 @@
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#define THREADING_BLOCK_SIZE NUM_LANE_SEGMENT_SETUP
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+typedef Threading::Wave  Wave;
+typedef Threading::Group Group;
+
+// Merge group offsets
+int _VertexOffset;
+int _SegmentOffset;
+
+// LOD Data
+int               _SegmentsPerLine;
+int               _LineCount;
+float             _LOD;
+ByteAddressBuffer _LODBuffer;
+
+// Inputs
+ByteAddressBuffer _IndexBuffer;
+ByteAddressBuffer _Vertex0RecordBuffer;
+
+// Outputs
+RWByteAddressBuffer _SegmentRecordBuffer;
+RWByteAddressBuffer _ViewSpaceDepthRangeBuffer;
+RWByteAddressBuffer _CounterBuffer;
+RWByteAddressBuffer _ShadingSampleVisibilityBuffer;
+
+// Utility
+void UpdateDepthRange(Wave wave, SegmentRecord segment)
+{
+    const float depthVS  = (segment.depthVS0 + segment.depthVS1) * 0.5;
+
+    const uint waveNear = wave.Min(asuint(depthVS));
+
+    // We mysteriously need to clamp here for it to work...
+    const uint waveFar  = wave.Max(asuint(max(depthVS, 0)));
+
+    if (wave.IsFirstLane())
+    {
+        _ViewSpaceDepthRangeBuffer.InterlockedMin(0 << 2, waveNear);
+        _ViewSpaceDepthRangeBuffer.InterlockedMax(1 << 2, waveFar);
+    }
+}
+
+groupshared uint gs_SegmentOffset;
+
+uint ComputeOutputIndex(Wave wave, bool segmentActive)
+{
+    const uint waveOffset = wave.PrefixCountBits(segmentActive);
+
+#if _THREADING_ENABLE_WAVE_EMULATION
+    // Seems this sync is required for emulated path.
+    GroupMemoryBarrierWithGroupSync();
+#endif
+
+    const uint waveCount  = wave.CountBits(segmentActive);
+
+    uint globalOffset = 0u;
+    if (wave.IsFirstLane())
+    {
+        _CounterBuffer.InterlockedAdd(COUNTER_ACTIVE_SEGMENTS, waveCount, globalOffset);
+    }
+
+    // Broadcast the offset to the rest of the lanes.
+    globalOffset = wave.ReadLaneFirst(globalOffset);
+
+    return globalOffset + waveOffset;
+}
+
+bool CulledLineLOD(uint segmentIndex)
+{
+    const uint lineIndex = floor(segmentIndex / _SegmentsPerLine);
+    return (int)_LODBuffer.Load(lineIndex << 2) >= _LineCount * _LOD;
+}
+
+// Kernel
+[numthreads(NUM_LANE_SEGMENT_SETUP, 1, 1)]
+void Main(Group group)
+{
+    if (group.groupIndex == 0u)
+    {
+        gs_SegmentOffset = _CounterBuffer.Load(COUNTER_GROUP_SEG_OFFSET);
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    const uint segmentIndex = group.dispatchID.x;
+
+    bool culled = segmentIndex >= (uint)_SegmentCount;
+
+    if (segmentIndex >= (uint)_SegmentOffset)
+        culled = true;
+
+    if (CulledLineLOD(segmentIndex))
+        culled = true;
+
+    // Load Indices
+    const uint2 segmentIndices = _VertexOffset + _IndexBuffer.Load2(segmentIndex << 3);
+
+    // Load Vertices
+    const float4 positionCS0 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.x << 4));
+    const float4 positionCS1 = asfloat(_Vertex0RecordBuffer.Load4(segmentIndices.y << 4));
+
+    // Cull segments with degenerate vertices (could be produced by vertex shader).
+    if (AnyIsNaN(positionCS0) || AnyIsNaN(positionCS1))
+    {
+        culled = true;
+    }
+
+    // Fast rejection for segments behind the near clipping plane.
+    if (positionCS0.w < 0 || positionCS1.w < 0)
+    {
+        culled = true;
+    }
+
+    // Perspective divide. Homogenous -> NDC.
+    float3 positionSS0 = positionCS0.xyz * rcp(positionCS0.w);
+    float3 positionSS1 = positionCS1.xyz * rcp(positionCS1.w);
+
+    // Cohen-Sutherland algorithm to perform line segment clipping in NDC space. TODO: Do it in clip space.
+    if(!ClipSegmentCohenSutherland(positionSS0.x, positionSS0.y, positionSS1.x, positionSS1.y))
+    {
+        culled = true;
+    }
+
+    // Naive temporary depth test.
+    {
+        uint2 viewportPos = _SizeScreen.xy * (positionSS1.xy * 0.5 + 0.5);
+        viewportPos.y = _SizeScreen.y - viewportPos.y;
+        float cameraDepth = LoadCameraDepth(viewportPos);
+
+        if (positionSS1.z < cameraDepth)
+        {
+            culled = true;
+        }
+    }
+
+    SegmentRecord record;
+    {
+        record.positionSS0  = positionSS0.xy;
+        record.positionSS1  = positionSS1.xy;
+        record.depthVS0     = LinearEyeDepth(positionSS0.z, _ZBufferParams);
+        record.depthVS1     = LinearEyeDepth(positionSS1.z, _ZBufferParams);
+        record.vertexIndex0 = segmentIndices.x;
+        record.vertexIndex1 = segmentIndices.y;
+    }
+
+    Wave wave = group.GetWave();
+
+    // Compute the minimum and maximum view space depths (needed for clustering).
+    UpdateDepthRange(wave, record);
+
+    const uint segmentOutputIndex = ComputeOutputIndex(wave, !culled);
+
+    if (!culled)
+    {
+        // Don't let culled segments interfere with the write.
+        StoreSegmentRecord(_SegmentRecordBuffer, record, gs_SegmentOffset + segmentOutputIndex);
+
+        //mark vertices visible
+        _ShadingSampleVisibilityBuffer.Store((record.vertexIndex0 - _VertexOffset) << 2, 1u);
+        _ShadingSampleVisibilityBuffer.Store((record.vertexIndex1 - _VertexOffset) << 2, 1u);
+    }
+}

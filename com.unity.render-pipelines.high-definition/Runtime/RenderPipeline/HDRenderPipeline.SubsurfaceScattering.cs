@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Disney SSS Model
         ComputeShader m_SubsurfaceScatteringCS;
+        ComputeShader m_SubsurfaceScatteringDownsampleCS;
         int m_SubsurfaceScatteringKernel;
         int m_SubsurfaceScatteringKernelMSAA;
+        int m_SubsurfaceScatteringDownsampleKernel;
         Material m_CombineLightingPass;
         // End Disney SSS Model
 
@@ -20,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[] m_SSSTransmissionTintsAndFresnel0;
         Vector4[] m_SSSDisabledTransmissionTintsAndFresnel0;
         Vector4[] m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
+        Vector4[] m_SSSDualLobeAndDiffusePower;
         uint[] m_SSSDiffusionProfileHashes;
         int[] m_SSSDiffusionProfileUpdate;
         DiffusionProfileSettings[] m_SSSSetDiffusionProfiles;
@@ -28,12 +31,17 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
         uint m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
 
+        internal DiffusionProfileSettings defaultDiffusionProfile => m_SSSDefaultDiffusionProfile;
+
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
             string kernelName = "SubsurfaceScattering";
             m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
+
+            m_SubsurfaceScatteringDownsampleCS = defaultResources.shaders.subsurfaceScatteringDownsampleCS;
+            m_SubsurfaceScatteringDownsampleKernel = m_SubsurfaceScatteringDownsampleCS.FindKernel("Downsample");
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.combineLightingPS);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
@@ -50,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSDualLobeAndDiffusePower = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileHashes = new uint[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileUpdate = new int[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
@@ -70,29 +79,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
-            var currentDiffusionProfiles = m_GlobalSettings.diffusionProfileSettingsList;
-            var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
-
-            // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
-            if (diffusionProfileOverride.active && diffusionProfileOverride.diffusionProfiles.value != null)
-            {
-                currentDiffusionProfiles = diffusionProfileOverride.diffusionProfiles.value;
-            }
-
             // The first profile of the list is the default diffusion profile, used either when the diffusion profile
             // on the material isn't assigned or when the diffusion profile can't be displayed (too many on the frame)
             SetDiffusionProfileAtIndex(m_SSSDefaultDiffusionProfile, 0);
             m_SSSDiffusionProfileHashes[0] = DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID;
 
-            int i = 1;
-            foreach (var v in currentDiffusionProfiles)
+            int profileCount = 1;
+            var diffusionProfiles = hdCamera.volumeStack.GetComponent<DiffusionProfileList>().diffusionProfiles;
+            if (diffusionProfiles.value != null)
             {
-                if (v == null)
-                    continue;
-                SetDiffusionProfileAtIndex(v, i++);
+                profileCount = diffusionProfiles.accumulatedCount;
+                for (int i = 1; i < diffusionProfiles.accumulatedCount; i++)
+                    SetDiffusionProfileAtIndex(diffusionProfiles.value[i], i);
             }
 
-            m_SSSActiveDiffusionProfileCount = i;
+            m_SSSActiveDiffusionProfileCount = profileCount;
         }
 
         void SetDiffusionProfileAtIndex(DiffusionProfileSettings settings, int index)
@@ -109,6 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSTransmissionTintsAndFresnel0[index] = settings.transmissionTintAndFresnel0;
             m_SSSDisabledTransmissionTintsAndFresnel0[index] = settings.disabledTransmissionTintAndFresnel0;
             m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps[index] = settings.worldScaleAndFilterRadiusAndThicknessRemap;
+            m_SSSDualLobeAndDiffusePower[index] = settings.dualLobeAndDiffusePower;
             m_SSSDiffusionProfileHashes[index] = settings.profile.hash;
 
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
@@ -140,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // To disable transmission, we simply nullify the transmissionTint
                     cb._TransmissionTintsAndFresnel0[i * 4 + c] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0[i][c] : m_SSSDisabledTransmissionTintsAndFresnel0[i][c];
                     cb._WorldScalesAndFilterRadiiAndThicknessRemaps[i * 4 + c] = m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps[i][c];
+                    cb._DualLobeAndDiffusePower[i * 4 + c] = m_SSSDualLobeAndDiffusePower[i][c];
                 }
 
                 cb._DiffusionProfileHashTable[i * 4] = m_SSSDiffusionProfileHashes[i];
@@ -191,8 +194,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class SubsurfaceScaterringPassData
         {
             public ComputeShader subsurfaceScatteringCS;
+            public ComputeShader subsurfaceScatteringDownsampleCS;
             public int subsurfaceScatteringCSKernel;
+            public int subsurfaceScatteringDownsampleCSKernel;
             public int sampleBudget;
+            public int downsampleSteps;
             public bool needTemporaryBuffer;
             public Material copyStencilForSplitLighting;
             public Material combineLighting;
@@ -205,8 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthStencilBuffer;
             public TextureHandle depthTexture;
             public TextureHandle cameraFilteringBuffer;
+            public TextureHandle downsampleBuffer;
             public TextureHandle sssBuffer;
-            public ComputeBufferHandle coarseStencilBuffer;
+            public BufferHandle  coarseStencilBuffer;
         }
 
         TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
@@ -222,6 +229,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
                 passData.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
+                passData.subsurfaceScatteringDownsampleCS = m_SubsurfaceScatteringDownsampleCS;
+                passData.subsurfaceScatteringDownsampleCSKernel = m_SubsurfaceScatteringDownsampleKernel;
                 passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.msaaEnabled;
                 passData.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
                 passData.combineLighting = m_CombineLightingPass;
@@ -229,13 +238,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
                 passData.numTilesZ = hdCamera.viewCount;
                 passData.sampleBudget = hdCamera.frameSettings.sssResolvedSampleBudget;
+                passData.downsampleSteps = hdCamera.frameSettings.sssResolvedDownsampleSteps;
 
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 passData.diffuseBuffer = builder.ReadTexture(lightingBuffers.diffuseLightingBuffer);
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
-                passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
+                passData.coarseStencilBuffer = builder.ReadBuffer(prepassOutput.coarseStencilBuffer);
+
+                if (passData.downsampleSteps > 0)
+                {
+                    float scale = 1.0f / (1u << passData.downsampleSteps);
+                    passData.downsampleBuffer = builder.CreateTransientTexture(
+                        new TextureDesc(Vector2.one * scale, true, true)
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSDownsampled" });
+                }
+
+
                 if (passData.needTemporaryBuffer)
                 {
                     passData.cameraFilteringBuffer = builder.CreateTransientTexture(
@@ -253,13 +273,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (SubsurfaceScaterringPassData data, RenderGraphContext ctx) =>
                     {
+                        CoreUtils.SetKeyword(ctx.cmd, "USE_DOWNSAMPLE", data.downsampleSteps > 0);
+
+                        if (data.downsampleSteps > 0)
+                        {
+                            // The downsample workgroup size is half of the subsurface scattering main pass
+                            int shift = data.downsampleSteps - 1;
+
+                            ctx.cmd.SetComputeIntParam(data.subsurfaceScatteringDownsampleCS, HDShaderIDs._SssDownsampleSteps, data.downsampleSteps);
+                            ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringDownsampleCS, data.subsurfaceScatteringDownsampleCSKernel, HDShaderIDs._SourceTexture, data.diffuseBuffer);
+                            ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringDownsampleCS, data.subsurfaceScatteringDownsampleCSKernel, HDShaderIDs._OutputTexture, data.downsampleBuffer);
+                            ctx.cmd.DispatchCompute(data.subsurfaceScatteringDownsampleCS, data.subsurfaceScatteringDownsampleCSKernel, data.numTilesX >> shift, data.numTilesY >> shift, data.numTilesZ);
+                        }
+
                         // Combines specular lighting and diffuse lighting with subsurface scattering.
                         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA
                         // However, the compute can't output and MSAA target so we blend the non-MSAA target into the MSAA one.
                         ctx.cmd.SetComputeIntParam(data.subsurfaceScatteringCS, HDShaderIDs._SssSampleBudget, data.sampleBudget);
+                        ctx.cmd.SetComputeIntParam(data.subsurfaceScatteringCS, HDShaderIDs._SssDownsampleSteps, data.downsampleSteps);
 
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, data.depthTexture);
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, data.diffuseBuffer);
+                        if (data.downsampleSteps > 0)
+                            ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSourceDownsampled, data.downsampleBuffer);
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._SSSBufferTexture, data.sssBuffer);
 
                         ctx.cmd.SetComputeBufferParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);

@@ -67,7 +67,13 @@ VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
     return o;
 }
 
-half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
+void DepthNormalOnlyFragment(
+    VaryingsDepthNormal IN
+    , out half4 outNormalWS : SV_Target0
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
+#endif
+    )
 {
     #ifdef _ALPHATEST_ON
         ClipHoles(IN.uvMainAndLM.xy);
@@ -93,7 +99,12 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
 
     normalWS = NormalizeNormalPerPixel(normalWS);
 
-    return half4(normalWS, 0.0);
+    outNormalWS = half4(normalWS, 0.0);
+
+    #ifdef _WRITE_RENDERING_LAYERS
+        uint renderingLayers = GetMeshRenderingLayer();
+        outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+    #endif
 }
 
 #endif

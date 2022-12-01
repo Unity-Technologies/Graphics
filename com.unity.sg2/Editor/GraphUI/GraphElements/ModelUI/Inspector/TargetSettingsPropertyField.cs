@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (foldout.value)
             {
                 // Get settings for Target
-                var context = new TargetPropertyGUIContext();
+                var context = new TargetPropertyGUIContext(null);
                 // Indent the content of the foldout
                 context.globalIndentLevel++;
                 targetObject.GetPropertiesGUI(ref context, onTargetSettingsChanged, registerActionToUndo);

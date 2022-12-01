@@ -132,12 +132,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render Transparent GameObjects.</summary>
         [FrameSettingsField(0, autoName: TransparentObjects, customOrderInGroup: 5, tooltip: "When enabled, Cameras using these Frame Settings render Transparent GameObjects.")]
         TransparentObjects = 3,
+        /// <summary>When enabled, Cameras using these Frame Settings allow generation of Texture of Thickness per GameObject.layer.</summary>
+        [FrameSettingsField(0, displayedName: "Compute Thickness", customOrderInGroup: 5, tooltip: "When enabled, Cameras using these Frame Settings compute Texture of thickness per Layer.")]
+        ComputeThickness = 119,
         /// <summary>When enabled, HDRP processes a decal render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: Decals, customOrderInGroup: 6, tooltip: "When enabled, HDRP processes a decal render pass for Cameras using these Frame Settings.")]
         Decals = 12,
         /// <summary>When enabled, Cameras that use these Frame Settings make use of DecalLayers.</summary>
         [FrameSettingsField(0, autoName: DecalLayers, customOrderInGroup: 6, positiveDependencies: new[] { Decals }, tooltip: "When enabled, Cameras that use these Frame Settings make use of DecalLayers (Depends on \"Decal Layers\" in current HDRP Asset).")]
         DecalLayers = 96,
+        /// <summary>When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.</summary>
+        [FrameSettingsField(0, autoName: RenderingLayerMaskBuffer, customOrderInGroup: 5, tooltip: "When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.")]
+        RenderingLayerMaskBuffer = 50,
         /// <summary>When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: TransparentPrepass, customOrderInGroup: 7, tooltip: "When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.")]
         TransparentPrepass = 8,
@@ -150,6 +156,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP updates ray tracing for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 10, tooltip: "When enabled, HDRP updates ray tracing for Cameras using these Frame Settings (Depends on \"Realtime RayTracing\" in current HDRP Asset).")]
         RayTracing = 92,
+        /// <summary>When enabled, HDRP will include visual effects in the ray tracing acceleration structure.</summary>
+        [FrameSettingsField(0, displayedName: "RaytracingVFX", positiveDependencies: new[] { RayTracing }, customOrderInGroup: 10, tooltip: "When enabled, HDRP will include visual effects in the ray tracing acceleration structure.")]
+        RaytracingVFX = 100,
         /// <summary>When enabled, HDRP renders custom passes contained in CustomPassVolume components.</summary>
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
@@ -159,6 +168,23 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
         [FrameSettingsField(0, autoName: Water, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
         Water = 99,
+
+
+        /// <summary>When enabled, .</summary>
+        [FrameSettingsField(0, autoName: WaterDeformation, positiveDependencies: new[] { Water }, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings will support water deformers.")]
+        WaterDeformation = 102,
+        /// <summary>When enabled, .</summary>
+        [FrameSettingsField(0, autoName: WaterExclusion, positiveDependencies: new[] { Water }, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings will support water excluders.")]
+        WaterExclusion = 101,
+        /// <summary>When enabled, HDRP renders line topology with high quality anti-aliasing and transparency.</summary>
+        [FrameSettingsField(0, autoName: HighQualityLineRendering, customOrderInGroup: 109, tooltip: "When enabled, HDRP ")]
+        HighQualityLineRendering = 103,
+        /// <summary>When enabled, HDRP accounts for asymmetry in the projection matrix when evaluating the view direction based on pixel coordinates.</summary>
+        [FrameSettingsField(0, displayedName: "Asymmetric Projection", customOrderInGroup: 107, tooltip: "When enabled HDRP will account for asymmetric projection when evaluating the view direction based on pixel coordinates.")]
+        AsymmetricProjection = 78,
+        /// <summary>When enabled, HDRP evaluates post effects using transformed screen space coordinates, this allows post effects to be compatible with Cluster Display for example.</summary>
+        [FrameSettingsField(0, displayedName: "Screen Coordinates Override", customOrderInGroup: 108, tooltip: "When enabled HDRP will use Screen Coordinates Override for post processing and custom passes. This allows post effects to be compatible with Cluster Display for example.")]
+        ScreenCoordOverride = 77,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings (Depends on \"Motion Vectors\" in current HDRP Asset).")]
@@ -186,8 +212,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Post-process", customOrderInGroup: 18, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
-        /// <summary>When enabled, HDRP renders user written post processes.</summary>
-        [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled on a Camera, HDRP render user written post processes.")]
+        /// <summary>When enabled on a Camera, HDRP renders user-written post processes.</summary>
+        [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled on a Camera, HDRP renders user-written post processes.")]
         CustomPostProcess = 39,
         /// <summary>When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Stop NaN", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.")]
@@ -204,9 +230,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP adds bloom to Cameras affected by a Volume containing the Bloom override.</summary>
         [FrameSettingsField(0, autoName: Bloom, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds bloom to Cameras affected by a Volume containing the Bloom override.")]
         Bloom = 84,
-        /// <summary>When enabled, HDRP adds lens flare to Cameras affected by a Volume containing the lens flare override.</summary>
-        [FrameSettingsField(0, autoName: LensFlareDataDriven, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens flare to Cameras affected by a Volume containing the lens flare override.")]
+        /// <summary>When enabled, HDRP adds lens flare to Cameras.</summary>
+        [FrameSettingsField(0, autoName: LensFlareDataDriven, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens flare to Cameras.")]
         LensFlareDataDriven = 97,
+        /// <summary>When enabled, HDRP adds Screen Space lens flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.</summary>
+        [FrameSettingsField(0, autoName: LensFlareScreenSpace, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds Screen Space Lens Flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.")]
+        LensFlareScreenSpace = 104,
         /// <summary>When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.</summary>
         [FrameSettingsField(0, autoName: LensDistortion, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.")]
         LensDistortion = 85,
@@ -303,6 +332,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, customOrderInGroup: 49, displayedName: "Custom Sample Budget", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
             tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
         SssCustomSampleBudget = 49,
+        /// <summary>Sets the custom number of downsample steps used by the Subsurface Scattering algorithm.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 50, displayedName: "Custom Downsample Level", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
+            tooltip: "Sets the custom number of downsample steps done to the source irradance textrure before it is used by the Subsurface Scattering algorithm. Higher value will improve performance, but might lower quality.")]
+        SssCustomDownsampleSteps = 51,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.</summary>
         [FrameSettingsField(1, autoName: VolumetricClouds, customOrderInGroup: 50, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
         VolumetricClouds = 79,
@@ -343,9 +376,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.</summary>
         [FrameSettingsField(1, autoName: DirectSpecularLighting, tooltip: "When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.")]
         DirectSpecularLighting = 38,
-
         /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
-        [FrameSettingsField(1, customOrderInGroup: 3, autoName: ProbeVolume, tooltip: "Enable to debug and make HDRP process Probe Volumes. Enabling this feature causes HDRP to process Probe Volumes for this Camera/Reflection Probe.")]
+        [FrameSettingsField(1, customOrderInGroup: 3, displayedName: "Probe Volumes", tooltip: "Enable Probe Volumes for rendering and debug visualisations. Enabling this feature causes HDRP to process Probe Volumes for this Camera/Reflection Probe.")]
         ProbeVolume = 127,
         /// <summary>When enabled, HDRP uses probe volumes to normalize the data sampled from reflection probes so they better match the lighting at the sampling location.</summary>
         [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Normalize Reflection Probes", positiveDependencies: new[] { ProbeVolume })]
@@ -353,7 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //async settings (group 2)
         /// <summary>When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.</summary>
-        [FrameSettingsField(2, displayedName: "Asynchronous Execution", tooltip: "When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.")]
+        [FrameSettingsField(2, displayedName: "Asynchronous Execution", tooltip: "When enabled, HDRP executes certain Compute Shader commands in parallel. This is only supported on DX12 and Vulkan. If Asynchronous execution is disabled or not supported the effects will fallback on a synchronous version.")]
         AsyncCompute = 40,
         /// <summary>When enabled, HDRP builds the Light List asynchronously.</summary>
         [FrameSettingsField(2, displayedName: "Light List", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP builds the Light List asynchronously.")]
@@ -437,6 +469,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.VirtualTexturing,
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
+                (uint)FrameSettingsField.RenderingLayerMaskBuffer,
                 (uint)FrameSettingsField.Decals,
                 (uint)FrameSettingsField.DecalLayers,
                 (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
@@ -451,6 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.Bloom,
                 (uint)FrameSettingsField.LensFlareDataDriven,
                 (uint)FrameSettingsField.LensDistortion,
+                (uint)FrameSettingsField.LensFlareScreenSpace,
                 (uint)FrameSettingsField.ChromaticAberration,
                 (uint)FrameSettingsField.Vignette,
                 (uint)FrameSettingsField.ColorGrading,
@@ -482,15 +516,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
+                (uint)FrameSettingsField.RaytracingVFX,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
+
+                (uint)FrameSettingsField.WaterDeformation,
+                (uint)FrameSettingsField.WaterExclusion,
+                (uint)FrameSettingsField.ComputeThickness
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
             sssQualityMode = SssQualityMode.FromQualitySettings,
             sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            sssCustomDownsampleSteps = (int)DefaultSssDownsampleSteps.Low,
             msaaMode = MSAAMode.None,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
@@ -542,17 +582,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
+                (uint)FrameSettingsField.RaytracingVFX,
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 // (uint)FrameSettingsField.VolumetricClouds,
                 // (uint)FrameSettingsField.Water,
+                // (uint)FrameSettingsField.WaterExclusion,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
             sssQualityMode = SssQualityMode.FromQualitySettings,
             sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            sssCustomDownsampleSteps = (int)DefaultSssDownsampleSteps.Low,
             msaaMode = MSAAMode.None,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
@@ -606,12 +649,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
+
+                (uint)FrameSettingsField.WaterDeformation,
+                (uint)FrameSettingsField.WaterExclusion,
+                (uint)FrameSettingsField.ProbeVolume,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
             sssQualityMode = SssQualityMode.FromQualitySettings,
             sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            sssCustomDownsampleSteps = (int)DefaultSssDownsampleSteps.Low,
             msaaMode = MSAAMode.None,
         };
 
@@ -656,6 +704,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Stores SssCustomSampleBudget on disk.</summary>
         [SerializeField]
         public int sssCustomSampleBudget;
+        /// <summary>Stores SssCustomDownsampleSteps on disk.</summary>
+        [SerializeField]
+        public int sssCustomDownsampleSteps;
 
         /// <summary>Stores MSAA Mode on disk.</summary>
         [SerializeField]
@@ -663,6 +714,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>The actual value used by the Subsurface Scattering algorithm. Updated every frame.</summary>
         internal int sssResolvedSampleBudget;
+        internal int sssResolvedDownsampleSteps;
 
         /// <summary>
         /// The material quality level this rendering component uses.
@@ -737,6 +789,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Returns the number downsample steps that will be performed on the source
+        /// irradiance texture before the main Subsurface algorithm executes.
+        /// </summary>
+        /// <param name="hdrp">The HDRP Asset to use.</param>
+        /// <returns>The number downsample steps.</returns>
+        public int GetResolvedSssDownsampleSteps(HDRenderPipelineAsset hdrp)
+        {
+            var source = hdrp.currentPlatformRenderPipelineSettings.sssDownsampleSteps;
+            switch (sssQualityMode)
+            {
+                case SssQualityMode.FromQualitySettings: return source[sssQualityLevel];
+                case SssQualityMode.OverrideQualitySettings: return sssCustomDownsampleSteps;
+                default: throw new ArgumentOutOfRangeException(nameof(sssCustomDownsampleSteps));
+            }
+        }
+
+        /// <summary>
         /// Calculates the Maximum LOD level to use.
         /// </summary>
         /// <param name="hdrp">The HDRP Asset to use</param>
@@ -775,6 +844,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.sssQualityLevel = overridingFrameSettings.sssQualityLevel;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.SssCustomSampleBudget])
                 overriddenFrameSettings.sssCustomSampleBudget = overridingFrameSettings.sssCustomSampleBudget;
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.SssCustomDownsampleSteps])
+                overriddenFrameSettings.sssCustomDownsampleSteps = overridingFrameSettings.sssCustomDownsampleSteps;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBias])
                 overriddenFrameSettings.lodBias = overridingFrameSettings.lodBias;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBiasMode])
@@ -826,9 +897,10 @@ namespace UnityEngine.Rendering.HighDefinition
             bool pipelineSupportsRayTracing = HDRenderPipeline.PipelineSupportsRayTracing(renderPipelineSettings);
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
             bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RaytracingVFX] &= rayTracingActive;
 
-            //MSAA only supported in forward and when not using ray tracing.
-            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
+            //MSAA only supported in forward and when not using ray tracing or water.
+            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing || renderPipelineSettings.supportWater)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
             bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
 
@@ -846,6 +918,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= renderPipelineSettings.supportWater && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterExclusion] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterExclusion;
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
@@ -854,6 +927,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview && temporalAccumulationAllowed;
 
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RenderingLayerMaskBuffer] &= renderPipelineSettings.renderingLayerMaskBuffer && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
             // We allow the user to enable exposure control on planar reflections, but not on reflection probes.
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= (!reflection || (reflectionPlanar && reflection)) && !preview;
@@ -895,7 +969,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
 
             // We disable reflection probes and planar reflections in regular preview rendering for two reasons.
@@ -952,6 +1026,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && a.sssQualityMode == b.sssQualityMode
             && a.sssQualityLevel == b.sssQualityLevel
             && a.sssCustomSampleBudget == b.sssCustomSampleBudget
+            && a.sssCustomDownsampleSteps == b.sssCustomDownsampleSteps
             && a.lodBias == b.lodBias
             && a.lodBiasMode == b.lodBiasMode
             && a.lodBiasQualityLevel == b.lodBiasQualityLevel
@@ -980,6 +1055,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && sssQualityMode.Equals(((FrameSettings)obj).sssQualityMode)
             && sssQualityLevel.Equals(((FrameSettings)obj).sssQualityLevel)
             && sssCustomSampleBudget.Equals(((FrameSettings)obj).sssCustomSampleBudget)
+            && sssCustomDownsampleSteps.Equals(((FrameSettings)obj).sssCustomDownsampleSteps)
             && lodBias.Equals(((FrameSettings)obj).lodBias)
             && lodBiasMode.Equals(((FrameSettings)obj).lodBiasMode)
             && lodBiasQualityLevel.Equals(((FrameSettings)obj).lodBiasQualityLevel)
@@ -1002,6 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + sssQualityMode.GetHashCode();
             hashCode = hashCode * -1521134295 + sssQualityLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + sssCustomSampleBudget.GetHashCode();
+            hashCode = hashCode * -1521134295 + sssCustomDownsampleSteps.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBias.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBiasMode.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBiasQualityLevel.GetHashCode();
@@ -1089,6 +1166,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebuggerEntry("sssQualityMode", m_FrameSettings.sssQualityMode),
                         new DebuggerEntry("sssQualityLevel", m_FrameSettings.sssQualityLevel),
                         new DebuggerEntry("sssCustomSampleBudget", m_FrameSettings.sssCustomSampleBudget),
+                        new DebuggerEntry("sssCustomDownSampleSteps", m_FrameSettings.sssCustomDownsampleSteps),
                         new DebuggerEntry("lodBias", m_FrameSettings.lodBias),
                         new DebuggerEntry("lodBiasMode", m_FrameSettings.lodBiasMode),
                         new DebuggerEntry("lodBiasQualityLevel", m_FrameSettings.lodBiasQualityLevel),

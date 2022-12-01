@@ -14,22 +14,22 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
         public SerializedProperty pointCookieSize;
 #endif
-        public SerializedProperty reflectionProbeCacheSize;
-        public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
         public SerializedProperty reflectionProbeFormat;
-        public SerializedProperty planarReflectionAtlasSize;
+        public SerializedProperty reflectionProbeTexCacheSize;
+        public SerializedProperty reflectionProbeTexLastValidCubeMip;
+        public SerializedProperty reflectionProbeTexLastValidPlanarMip;
+        public SerializedProperty reflectionProbeDecreaseResToFit;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
         public SerializedProperty supportFabricConvolution;
         public SerializedProperty maxDirectionalLightsOnScreen;
         public SerializedProperty maxPunctualLightsOnScreen;
         public SerializedProperty maxAreaLightsOnScreen;
-        public SerializedProperty maxEnvLightsOnScreen;
+        public SerializedProperty maxCubeReflectionsOnScreen;
+        public SerializedProperty maxPlanarReflectionsOnScreen;
         public SerializedProperty maxDecalsOnScreen;
-        public SerializedProperty maxPlanarReflectionOnScreen;
         public SerializedProperty maxLightsPerClusterCell;
-        public SerializedProperty maxLocalVolumetricFogSize;
         public SerializedProperty maxLocalVolumetricFogOnScreen;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
@@ -43,13 +43,12 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
             pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
 #endif
-
-            reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
-            reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
             reflectionProbeFormat = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeFormat);
-
-            planarReflectionAtlasSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionAtlasSize);
+            reflectionProbeTexCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeTexCacheSize);
+            reflectionProbeTexLastValidCubeMip = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeTexLastValidCubeMip);
+            reflectionProbeTexLastValidPlanarMip = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeTexLastValidPlanarMip);
+            reflectionProbeDecreaseResToFit = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeDecreaseResToFit);
 
             skyReflectionSize = root.Find((GlobalLightLoopSettings s) => s.skyReflectionSize);
             skyLightingOverrideLayerMask = root.Find((GlobalLightLoopSettings s) => s.skyLightingOverrideLayerMask);
@@ -58,12 +57,11 @@ namespace UnityEditor.Rendering.HighDefinition
             maxDirectionalLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDirectionalLightsOnScreen);
             maxPunctualLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPunctualLightsOnScreen);
             maxAreaLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxAreaLightsOnScreen);
-            maxEnvLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxEnvLightsOnScreen);
+            maxCubeReflectionsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxCubeReflectionOnScreen);
+            maxPlanarReflectionsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
-            maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
             maxLightsPerClusterCell = root.Find((GlobalLightLoopSettings s) => s.maxLightsPerClusterCell);
 
-            maxLocalVolumetricFogSize = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogSize);
             maxLocalVolumetricFogOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogOnScreen);
         }
     }

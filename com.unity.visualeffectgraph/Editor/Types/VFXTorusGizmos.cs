@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
                             Vector3 sliderPos = capCenter + distRotated * torus.minorRadius;
 
                             EditorGUI.BeginChangeCheck();
-                            var result = Handles.Slider(composedName, sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0, CustomCubeHandleCap, 0);
+                            var result = Handles.Slider(gizmo.GetCombinedHashCode(composedName), sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0, CustomCubeHandleCap, 0);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 var newRadius = (result - capCenter).magnitude;
@@ -98,7 +98,7 @@ namespace UnityEditor.VFX
                         Vector3 sliderPos = distRotated * torus.majorRadius;
 
                         EditorGUI.BeginChangeCheck();
-                        Vector3 result = Handles.Slider(composedName, sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0);
+                        Vector3 result = Handles.Slider(gizmo.GetCombinedHashCode(composedName), sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
                         {
                             float newRadius = (result).magnitude;

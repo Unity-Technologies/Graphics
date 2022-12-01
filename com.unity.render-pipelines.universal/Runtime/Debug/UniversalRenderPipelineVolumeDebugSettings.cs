@@ -1,4 +1,7 @@
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -34,7 +37,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>Selected camera volume layer mask.</summary>
-        public override LayerMask selectedCameraLayerMask => selectedCamera != null ? selectedCamera.GetComponent<UniversalAdditionalCameraData>().volumeLayerMask : (LayerMask)0;
+        public override LayerMask selectedCameraLayerMask
+        {
+            get
+            {
+                if (selectedCamera != null && selectedCamera.TryGetComponent<UniversalAdditionalCameraData>(out var selectedAdditionalCameraData))
+                    return selectedAdditionalCameraData.volumeLayerMask;
+
+                return (LayerMask)0;
+            }
+        }
 
         /// <summary>Selected camera volume position.</summary>
         public override Vector3 selectedCameraPosition => selectedCamera != null ? selectedCamera.transform.position : Vector3.zero;

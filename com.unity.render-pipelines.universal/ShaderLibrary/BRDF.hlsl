@@ -27,11 +27,7 @@ struct BRDFData
 
 half ReflectivitySpecular(half3 specular)
 {
-#if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monochrome or with redish/yellowish tint
-#else
     return Max3(specular.r, specular.g, specular.b);
-#endif
 }
 
 half OneMinusReflectivityMetallic(half metallic)
@@ -108,7 +104,6 @@ inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfD
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
     return ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(f0);
-    //return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
 }
 
 inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
@@ -200,10 +195,9 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     // We further optimize a few light invariant terms
     // brdfData.normalizationTerm = (roughness + 0.5) * 4.0 rewritten as roughness * 4.0 + 2.0 to a fit a MAD.
     float d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001f;
-    half d2 = half(d * d);
 
     half LoH2 = LoH * LoH;
-    half specularTerm = brdfData.roughness2 / (d2 * max(half(0.1), LoH2) * brdfData.normalizationTerm);
+    half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.normalizationTerm);
 
     // On platforms where half actually means something, the denominator has a risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)

@@ -16,12 +16,18 @@ TEXTURE2D_X(_TileList);
 
 // A set of Defines to fine-tune the algorithm
 #define ADAPTIVE_SAMPLING
-#define STRATIFY
+#define NON_UNIFORM_DENSITY
 #define RING_OCCLUSION
-#define PER_TILE_BG_FG_CLASSIFICATION
+//#define PER_TILE_BG_FG_CLASSIFICATION     // Disabled because of artifacts (case 1413534)
 #define PHYSICAL_WEIGHTS
 #define FORCE_POINT_SAMPLING
-//#define USE_BLUE_NOISE
+//#define USE_BLUE_NOISE                    // Increase quality at the cost of performance
+
+#ifndef NON_UNIFORM_DENSITY
+#define AlphaScale 1
+#else
+#define AlphaScale 2
+#endif
 
 // ============== RNG Utils ==================== //
 
@@ -118,7 +124,8 @@ void LoadTileData(float2 sampleTC, SampleData centerSample, float rings, inout D
 
     // Note: for the far-field, we don't need to search further than than the central CoC.
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
-    tileData.maxRadius = max(2 * abs(centerSample.CoC), -cocRanges.w) * OneOverResScale;
+    float limit = min(cocRanges.y, 2 * abs(centerSample.CoC));
+    tileData.maxRadius = max(limit, -cocRanges.w) * OneOverResScale;
 
     // Detect tiles than need more samples
     tileData.numSamples = rings;
@@ -163,18 +170,31 @@ void AccumulateSample(SampleData sampleData, float weight, inout AccumData accum
 #endif
 }
 
-void AccumulateCenterSample(SampleData centerSample, inout AccumData accumData)
+CTYPE ResolveBackGroundEstimate(SampleData centerSample, float fgAlpha, float4 bgEstimate, float bgEstimateAlpha)
+{
+    CTYPE result;
+    result.xyz = bgEstimate.w > 0 ? bgEstimate.xyz / bgEstimate.w : centerSample.color.xyz;
+    result.xyz = lerp(centerSample.color.xyz, result.xyz, sqrt(fgAlpha));
+
+#ifdef ENABLE_ALPHA
+    result.w = bgEstimate.w > 0 ? bgEstimateAlpha / bgEstimate.w : centerSample.color.w;
+    result.w = lerp(centerSample.color.w, result.w, sqrt(fgAlpha));
+#endif
+
+    return result;
+}
+
+void AccumulateCenterSample(SampleData centerSample, inout AccumData bgAccumData)
 {
     float centerAlpha = GetSampleWeight(centerSample.CoC);
-
-    accumData.color.xyz = accumData.color.xyz * (1 - centerAlpha) + centerAlpha * centerSample.color.xyz;
-    accumData.color.w = accumData.color.w * (1 - centerAlpha) + centerAlpha;
+    bgAccumData.color.xyz = bgAccumData.color.xyz * (1 - centerAlpha) + centerAlpha * centerSample.color.xyz;
 #ifdef ENABLE_ALPHA
-    accumData.alpha = accumData.alpha * (1 - centerAlpha) + centerAlpha * centerSample.color.w;
+    bgAccumData.alpha = bgAccumData.alpha * (1 - centerAlpha) + centerAlpha * centerSample.color.w;
 #endif
 }
 
-void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, float borderRadius, float layerBorder, const bool isForeground, inout AccumData ringAccum, inout AccumData accumData)
+
+void AccumulateSampleData(SampleData sampleData[2], float sampleRadius, float borderRadius, float layerBorder, float densityBias, const bool isForeground, inout AccumData ringAccum, inout AccumData accumData)
 {
     UNITY_UNROLL
         for (int k = 0; k < 2; k++)
@@ -185,7 +205,7 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
 
             float CoC = abs(sampleData[k].CoC);
 
-            float sampleWeight = GetSampleWeight(CoC);
+            float sampleWeight = densityBias * GetSampleWeight(CoC);
             //float visibility = saturate(CoC - sampleRadius);
             float visibility = step(0.0, CoC - sampleRadius);
 
@@ -198,19 +218,6 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
             float weight = layerWeight * visibility * sampleWeight;
             AccumulateSample(sampleData[k], borderWeight * weight, accumData);
             AccumulateSample(sampleData[k], (1.0 - borderWeight) * weight, ringAccum);
-
-#if 0
-            // Disabled for now due to artifacts
-            // Mirroring improves the near blur, but since the background reconstruction is not perfect, we limit the radius it is applied
-            const float mirrorLimit = 2;
-            const float radius = sampleRadius - CoC;
-            if (ringData.isForeground && visibility == 0 && radius < mirrorLimit)
-            {
-                int pairIndex = k == 0 ? 1 : 0;
-                float mirrorWeight = 1;
-                //AccumulateSample(sampleData[pairIndex], mirrorWeight * sampleWeight, ringAccum);
-            }
-#endif
         }
 }
 
@@ -228,7 +235,7 @@ void AccumulateRingData(float numSamples, const bool isNearField, AccumData ring
     float ringOcclusion = saturate(accumAvgCoC - ringAvgCoC);
     //float ringOpacity = 1.0 - saturate(ringData.coverage * rcp(numSamples));
     float normCoC = ringData.CoC * rcp(ringData.color.w);
-    float ringOpacity = saturate(ringData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(numSamples));
+    float ringOpacity = saturate(AlphaScale * ringData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(numSamples));
 
     // Near-field is the region where CoC > 0. In this case sorting is reversed.
     if (isNearField)
@@ -282,6 +289,8 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
     float lod = min(MaxColorMip, log2(2 * PI * tileData.maxRadius * rcp(tileData.numSamples)));
 
     RngStateType rngState = InitRNG(posInputs.positionSS.xy, noiseOffset, 0, tileData.numSamples);
+    float4 bgEstimate = 0;
+    float  bgEstimateAlpha = 0;
 
     // Gather the DoF samples
     for (int ring = tileData.numSamples - 1; ring >= 0; ring--)
@@ -300,12 +309,15 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
             float r2 = RandomFloat01(rngState, ring * tileData.numSamples * 2 + 2 * i + 1);
 #endif
 
-#ifdef STRATIFY
+#ifndef NON_UNIFORM_DENSITY
+            float densityBias = 1;
             float sampleRadius = sqrt((ring + r1) * dR) * tileData.maxRadius;
-#else
-            float sampleRadius = sqrt(r2) * tileData.maxRadius;
-#endif
             float borderRadius = sqrt((ring + 1.5) * dR) * tileData.maxRadius;
+#else
+            float densityBias = ((ring + r1) * dR);
+            float sampleRadius = ((ring + r1) * dR) * tileData.maxRadius;
+            float borderRadius = ((ring + 1.5) * dR) * tileData.maxRadius;
+#endif
 
             SampleData sampleData[2];
             const float offset[2] = { 0, PI };
@@ -313,38 +325,40 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
             UNITY_UNROLL
                 for (int j = 0; j < 2; j++)
                 {
-#ifdef STRATIFY
                     float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + (i + r2) * dAng);
-#else
-                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + r2 * PI);
-#endif
                     sampleData[j].color = GetColorSample(sampleTC, lod);
                     sampleData[j].CoC = GetCoCRadius(sampleTC);
+                    bgEstimate += float4(sampleData[j].color.xyz, 1);
+#ifdef ENABLE_ALPHA
+                    bgEstimateAlpha += sampleData[j].color.w;
+#endif
                 }
 
-            const float borderFudgingFactor = 9;
-            float layerBorder = min(0, tileData.layerBorder - borderFudgingFactor * r2);
-            AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, false, bgRingData, bgAccumData);
-            AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, true, fgRingData, fgAccumData);
+            float layerBorder = tileData.layerBorder;
+            AccumulateSampleData(sampleData, sampleRadius, borderRadius, layerBorder, densityBias, false, bgRingData, bgAccumData);
+            AccumulateSampleData(sampleData, sampleRadius, borderRadius, layerBorder, densityBias, true, fgRingData, fgAccumData);
         }
 
         AccumulateRingData(tileData.numSamples, isBgLayerInNearField, bgRingData, bgAccumData);
         AccumulateRingData(tileData.numSamples, true, fgRingData, fgAccumData);
     }
 
-    ResolveColorAndAlpha(bgAccumData.color, bgAccumData.alpha, centerSample.color);
-    ResolveColorAndAlpha(fgAccumData.color, fgAccumData.alpha, centerSample.color);
-
-    // Accumulate center sample in bg
-    AccumulateCenterSample(centerSample, bgAccumData);
-
     // Compute the fg alpha. Needs to be normalized based on search radius.
     float normCoC = fgAccumData.CoC / fgAccumData.color.w;
     float scaleFactor = (normCoC * normCoC) / (tileData.maxRadius * tileData.maxRadius);
     float correctSamples = scaleFactor * (tileData.numSamples * tileData.numSamples);
+    float fgAlpha = saturate(2 * AlphaScale * fgAccumData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(correctSamples));
 
-    // Now blend the bg and fg layes
-    float fgAlpha = saturate(2 * fgAccumData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(correctSamples));
+    // Approximate the missing background
+    CTYPE bgColor = ResolveBackGroundEstimate(centerSample, fgAlpha, bgEstimate, bgEstimateAlpha);
+
+    ResolveColorAndAlpha(bgAccumData.color, bgAccumData.alpha, bgColor);
+    ResolveColorAndAlpha(fgAccumData.color, fgAccumData.alpha, bgColor);
+
+    // Note: this extra step is used to hide some artifacts, generally it should not be needed
+    AccumulateCenterSample(centerSample, bgAccumData);
+
+    // Now blend the bg and fg layers
     color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
     alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
 }

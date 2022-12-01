@@ -17,6 +17,7 @@
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
+    * [Material Variants](materialvariant-SG)
 * Upgrade Guides
   * [Upgrade to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
 * Inside Shader Graph
@@ -66,7 +67,6 @@
         * [Flip](Flip-Node)
         * [Split](Split-Node)
         * [Swizzle](Swizzle-Node)
-        * [Branch On Input Connection](Branch-On-Input-Connection-Node)
     * [Input](Input-Nodes)
         * Basic
             * [Boolean](Boolean-Node)

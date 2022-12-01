@@ -8,6 +8,9 @@ using UnityEditor.Rendering.Universal.ShaderGUI;
 
 namespace Unity.Rendering.Universal
 {
+    /// <summary>
+    /// Various utility functions for shaders in URP.
+    /// </summary>
     public static class ShaderUtils
     {
         internal enum ShaderID
@@ -63,6 +66,26 @@ namespace Unity.Rendering.Universal
             ChangedAssignedShader,
             ModifiedShader,
             ModifiedMaterial
+        }
+
+        //Helper used by VFX, allow retrieval of ShaderID on another object than material.shader
+        //In case of ShaderGraph integration, the material.shader is actually pointing to VisualEffectAsset
+        internal static void UpdateMaterial(Material material, MaterialUpdateType updateType, UnityEngine.Object assetWithURPMetaData)
+        {
+            var currentShaderId = ShaderUtils.ShaderID.Unknown;
+            if (assetWithURPMetaData != null)
+            {
+                var path = AssetDatabase.GetAssetPath(assetWithURPMetaData);
+                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                {
+                    if (asset is UniversalMetadata metadataAsset)
+                    {
+                        currentShaderId = metadataAsset.shaderID;
+                        break;
+                    }
+                }
+            }
+            UpdateMaterial(material, updateType, currentShaderId);
         }
 
         // this is used to update a material's keywords, applying any shader-associated logic to update dependent properties and keywords

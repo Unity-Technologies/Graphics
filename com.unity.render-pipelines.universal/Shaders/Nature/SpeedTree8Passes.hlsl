@@ -4,6 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "SpeedTreeUtility.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 struct SpeedTreeVertexInput
 {
@@ -101,7 +104,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
     #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
         if (_WindEnabled > 0)
         {
-            float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)unity_ObjectToWorld);
+            float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M);
             float windLength = length(rotatedWindVector);
             if (windLength < 1e-5)
             {
@@ -110,7 +113,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             }
             rotatedWindVector /= windLength;
 
-            float3 treePos = float3(unity_ObjectToWorld[0].w, unity_ObjectToWorld[1].w, unity_ObjectToWorld[2].w);
+            float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
             float3 windyPosition = input.vertex.xyz;
 
             #ifndef EFFECT_BILLBOARD
@@ -165,7 +168,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 
                 // branch wind (applies to all 3D geometry)
                 #if defined(_WINDQUALITY_BETTER) || defined(_WINDQUALITY_BEST) || defined(_WINDQUALITY_PALM)
-                    float3 rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)unity_ObjectToWorld)) * _ST_WindBranchAnchor.w;
+                    float3 rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)UNITY_MATRIX_M)) * _ST_WindBranchAnchor.w;
                     windyPosition = BranchWind(bPalmWind, windyPosition, treePos, float4(input.texcoord.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
                 #endif
 
@@ -361,20 +364,15 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
-    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BUMP
-            half3 viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
-        #else
-            half3 viewDirectionWS = input.interpolated.viewDirWS;
-        #endif
-        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.interpolated.clipPos.xy), unity_LODFade.x);
-    #endif
-
     half2 uv = input.interpolated.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
-    AlphaDiscard(alpha, 0.3333);
+    alpha = AlphaDiscard(alpha, 0.3333);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.interpolated.clipPos);
+    #endif
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;
@@ -492,15 +490,15 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(ComputeFadeMaskSeed(input.viewDirWS, input.clipPos.xy), unity_LODFade.x);
-    #endif
-
     half2 uv = input.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.color.a;
     AlphaDiscard(alpha, 0.3333);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.clipPos);
+    #endif
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -549,20 +547,15 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
-    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BUMP
-            half3 viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
-        #else
-            half3 viewDirectionWS = input.interpolated.viewDirWS;
-        #endif
-        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.interpolated.clipPos.xy), unity_LODFade.x);
-    #endif
-
     half2 uv = input.interpolated.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.interpolated.clipPos);
+    #endif
 
     // normal
     #if defined(EFFECT_BUMP)

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
+    [Obsolete("Properties have been migrated to Camera class", false)]
     public struct HDPhysicalCamera
     {
         /// <summary>
@@ -36,14 +37,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
+        [SerializeField] [Range(Camera.kMinAperture, Camera.kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
-#pragma warning disable 0414
-        [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
-#pragma warning restore 0414
 
         // Aperture shape
-        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] [Range(Camera.kMinBladeCount, Camera.kMaxBladeCount)] int m_BladeCount;
         [SerializeField] Vector2 m_Curvature;
         [SerializeField] [Range(0f, 1f)] float m_BarrelClipping;
         [SerializeField] [Range(-1f, 1f)] float m_Anamorphism;
@@ -81,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float aperture
         {
             get => m_Aperture;
-            set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
+            set => m_Aperture = Mathf.Clamp(value, Camera.kMinAperture, Camera.kMaxAperture);
         }
 
         /// <summary>
@@ -90,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int bladeCount
         {
             get => m_BladeCount;
-            set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
+            set => m_BladeCount = Mathf.Clamp(value, Camera.kMinBladeCount, Camera.kMaxBladeCount);
         }
 
         /// <summary>
@@ -101,8 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_Curvature;
             set
             {
-                m_Curvature.x = Mathf.Max(value.x, kMinAperture);
-                m_Curvature.y = Mathf.Min(value.y, kMaxAperture);
+                m_Curvature.x = Mathf.Max(value.x, Camera.kMinAperture);
+                m_Curvature.y = Mathf.Min(value.y, Camera.kMaxAperture);
             }
         }
 
@@ -149,8 +147,6 @@ namespace UnityEngine.Rendering.HighDefinition
             val.curvature = new Vector2(2f, 11f);
             val.barrelClipping = 0.25f;
             val.anamorphism = 0;
-            val.m_GateFit = Camera.GateFitMode.Vertical;
-
             return val;
         }
     }
@@ -282,6 +278,19 @@ namespace UnityEngine.Rendering.HighDefinition
             High
         }
 
+        /// <summary>
+        /// TAA Sharpen mode.
+        /// </summary>
+        public enum TAASharpenMode
+        {
+            /// <summary>Low quality.</summary>
+            LowQuality,
+            /// <summary>Sharpen with a separate pass after TAA.</summary>
+            PostSharpen,
+            /// <summary>Run a Contrast Adaptive Sharpening pass after TAA.</summary>
+            ContrastAdaptiveSharpening
+        }
+
         /// <summary>Clear mode for the camera background.</summary>
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         /// <summary>HDR color used for clearing the camera background.</summary>
@@ -313,6 +322,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Quality of the anti-aliasing when using TAA.</summary>
         public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
 
+        /// <summary>How is the sharpening run sharpening.</summary>
+        public TAASharpenMode taaSharpenMode = TAASharpenMode.LowQuality;
+
+        /// <summary>How much to reduce the ringing from the TAA post-process sharpening. Note that some ringing might be visually desirable and that any value different than 0 will incur into a small additional cost.</summary>
+        [Range(0, 1)]
+        public float taaRingingReduction = 0.0f;
+
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
         [Range(0, 1)]
         public float taaHistorySharpening = 0.35f;
@@ -333,9 +349,16 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(HDRenderPipeline.TAABaseBlendFactorMin, HDRenderPipeline.TAABaseBlendFactorMax)]
         public float taaBaseBlendFactor = 0.875f;
 
+        /// <summary> Scale to apply to the jittering applied when TAA is enabled. </summary>
+        [Range(0.1f, 1.0f)]
+        public float taaJitterScale = 1.0f;
+
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
+        [Obsolete("Physical camera properties have been migrated to Camera.", false)]
+#pragma warning disable CS0618
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
+#pragma warning restore CS0618
 
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
@@ -363,6 +386,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
+
+        /// <summary>Screen size used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenSizeOverride;
+
+        /// <summary>Transform used when Screen Coordinates Override is active.</summary>
+        public Vector4 screenCoordScaleBias;
 
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
@@ -604,11 +633,14 @@ namespace UnityEngine.Rendering.HighDefinition
             data.stopNaNs = stopNaNs;
             data.taaSharpenStrength = taaSharpenStrength;
             data.TAAQuality = TAAQuality;
+            data.taaSharpenMode = taaSharpenMode;
+            data.taaRingingReduction = taaRingingReduction;
             data.taaHistorySharpening = taaHistorySharpening;
             data.taaAntiFlicker = taaAntiFlicker;
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
             data.taaBaseBlendFactor = taaBaseBlendFactor;
+            data.taaJitterScale = taaJitterScale;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;
@@ -616,7 +648,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.probeLayerMask = probeLayerMask;
             data.hasPersistentHistory = hasPersistentHistory;
             data.exposureTarget = exposureTarget;
-            physicalParameters = data.physicalParameters;
+#pragma warning disable CS0618
+            data.physicalParameters = physicalParameters;
+#pragma warning restore CS0618
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
@@ -635,6 +669,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.fsrSharpness = fsrSharpness;
 
             data.materialMipBias = materialMipBias;
+
+            data.screenSizeOverride = screenSizeOverride;
+            data.screenCoordScaleBias = screenCoordScaleBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;

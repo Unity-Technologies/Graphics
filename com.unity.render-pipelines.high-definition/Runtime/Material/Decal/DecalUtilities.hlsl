@@ -34,17 +34,14 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
 
         // Angle fade is disabled if decal layers isn't enabled for consistency with DBuffer Decal
         // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
-        if (angleFade.y < 0.0f && _EnableDecalLayers) // if angle fade is enabled
+        if (angleFade.x > 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
             float3 decalNormal = float3(decalData.normalToWorld[0].z, decalData.normalToWorld[1].z, decalData.normalToWorld[2].z);
-            float dotAngle = dot(vtxNormal, decalNormal);
-            // See equation in DecalSystem.cs - simplified to a madd mul add here
-            float angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
-            fadeFactor *= angleFadeFactor;
+            fadeFactor *= DecodeAngleFade(dot(vtxNormal, decalNormal), angleFade);
         }
 
-        float albedoMapBlend = fadeFactor;
-        float maskMapBlend = fadeFactor;
+        float albedoMapBlend;
+        float maskMapBlend = fadeFactor * decalData.scalingBAndRemappingM.y; // Multiply by mask map blue scale
 
         // Albedo
         // We must always sample diffuse texture due to opacity that can affect everything)
@@ -108,7 +105,6 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 #endif
 
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
-                src.z *= decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
                 src.x = lerp(decalData.scalingBAndRemappingM.z, decalData.scalingBAndRemappingM.w, src.x); // Remap Metal
@@ -118,8 +114,6 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
             }
             else
             {
-                src.z = decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
-                maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
                 src.x = decalData.scalingBAndRemappingM.z; // Metal
                 src.y = decalData.remappingAOS.x; // AO
@@ -253,7 +247,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
             break;
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
-        bool isRejected = (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
+        bool isRejected = _EnableDecalLayers && (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
 
         // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -301,5 +295,5 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
 {
-    return GetDecalSurfaceData(posInput, input, GetMeshRenderingDecalLayer(), alpha);
+    return GetDecalSurfaceData(posInput, input, GetMeshRenderingLayerMask(), alpha);
 }

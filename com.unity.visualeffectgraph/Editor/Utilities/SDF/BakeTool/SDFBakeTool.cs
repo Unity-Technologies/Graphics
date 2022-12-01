@@ -173,7 +173,7 @@ namespace UnityEditor.VFX.SDF
                 EditorGUILayout.HelpBox("The volume of your bounding box is zero.", MessageType.Warning);
 
             int estimatedGridSize = EstimateGridSize();
-            if (estimatedGridSize > 1 << 21 || selectedMesh == null)
+            if (estimatedGridSize > 1 << 21 || mesh == null)
             {
                 GUI.enabled = false;
                 m_LiveUpdate = false;

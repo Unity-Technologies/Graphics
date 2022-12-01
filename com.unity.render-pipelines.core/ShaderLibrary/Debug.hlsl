@@ -172,6 +172,19 @@ float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float o
     return color;
 }
 
+// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// where values at or above maxN receive strong red background color.
+float4 OverlayHeatMapNoNumber(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+{
+    int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
+    colorIndex = clamp(colorIndex, 0, DEBUG_COLORS_COUNT-1);
+    float4 col = kDebugColorGradient[colorIndex];
+
+    int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
+
+    return float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+}
+
 float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
 {
     // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)
@@ -289,7 +302,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, uint mipCount
 
         // Mip count has been reduced but the texelSize was not updated to take that into account
         uint mipReductionLevel = originalTextureMipCount - mipCount;
-        uint mipReductionFactor = 1 << mipReductionLevel;
+        uint mipReductionFactor = 1U << mipReductionLevel;
         if (mipReductionFactor)
         {
             float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
@@ -390,7 +403,7 @@ real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
     return HsvToRgb(real3(hue, saturation, 1.0));
 }
 
-int OverdrawLegendBucketInterval(int maxOverdrawCount)
+uint OverdrawLegendBucketInterval(uint maxOverdrawCount)
 {
     if (maxOverdrawCount <= 10)
         return 1;
@@ -399,9 +412,9 @@ int OverdrawLegendBucketInterval(int maxOverdrawCount)
     if (maxOverdrawCount <= 100)
         return 10;
 
-    const int digitCount = floor(log10(maxOverdrawCount));
-    const int digitMultiplier = pow(10, digitCount);
-    const int biggestDigit = floor(maxOverdrawCount/digitMultiplier);
+    const uint digitCount = floor(log10(maxOverdrawCount));
+    const uint digitMultiplier = pow(10, digitCount);
+    const uint biggestDigit = floor(maxOverdrawCount/digitMultiplier);
     if (biggestDigit < 5)
         return pow(10, digitCount - 1) * 5;
 
@@ -456,8 +469,8 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     // Bucket label
     if (0 < bucket && bucket <= maxOverdrawCount)
     {
-        const int bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
-        const int bucketLabelIndex = (int(bucket) / bucketInterval) * bucketInterval;
+        const uint bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
+        const uint bucketLabelIndex = (uint(bucket) / bucketInterval) * bucketInterval;
         const real2 labelStartCoord = real2(
             bandLabelPositionUV.x + (bucketLabelIndex - 1) * (bandSizeUV.x / maxOverdrawCount),
             bandLabelPositionUV.y

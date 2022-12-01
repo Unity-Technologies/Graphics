@@ -175,9 +175,8 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     half4 diffuseAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
     half3 diffuse = diffuseAlpha.rgb * input.color.rgb;
 
-    half alpha = diffuseAlpha.a;
-    AlphaDiscard(alpha, _Cutoff);
-    alpha *= input.color.a;
+    half alpha = diffuseAlpha.a * input.color.a;
+    alpha = AlphaDiscard(alpha, _Cutoff);
 
     outSurfaceData = (SurfaceData)0;
     outSurfaceData.alpha = alpha;
@@ -213,7 +212,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    return half4(color.rgb, 1);
+    return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif
 };
 

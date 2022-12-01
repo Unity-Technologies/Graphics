@@ -2,4 +2,4 @@
 title: nodes-outputs
 ---
 
-The node has the following output ports:
+node has the following output ports:
