@@ -77,6 +77,8 @@ namespace UnityEditor.ShaderGraph
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
             var graphAsset = ShaderGraphAssetUtils.HandleLoad(path);;
+            if (graphAsset == null)
+                return false;
             return graphAsset && ShowWindow(graphAsset);
         }
 

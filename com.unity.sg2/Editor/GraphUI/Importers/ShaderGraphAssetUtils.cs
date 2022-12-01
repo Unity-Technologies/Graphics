@@ -46,6 +46,9 @@ namespace UnityEditor.ShaderGraph
         public static ShaderGraphAsset HandleLoad(string path)
         {
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
+            if (graphAsset == null)
+                return null;
+
             graphAsset.ShaderGraphModel.OnEnable();
             graphAsset.ShaderGraphModel.Init(false);
             return graphAsset;
