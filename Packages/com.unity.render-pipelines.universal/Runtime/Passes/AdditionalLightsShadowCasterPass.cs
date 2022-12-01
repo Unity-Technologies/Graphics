@@ -88,18 +88,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
 
-        int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-        {
-            get
-            {
-                if (UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
-                    // Reduce uniform block size on Mobile/GL to avoid shader performance or compilation issues - keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                    return UniversalRenderPipeline.maxVisibleAdditionalLights;
-                else
-                    return 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-            }
-        }
-
         /// <summary>
         /// Creates a new <c>AdditionalLightsShadowCasterPass</c> instance.
         /// </summary>
@@ -141,10 +129,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
-
-                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
-                m_UnusedAtlasSquareAreas.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
-                m_ShadowResolutionRequests.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
+                int capacity = UniversalRenderPipeline.maxVisibleAdditionalLights;
+                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[capacity];
+                m_UnusedAtlasSquareAreas.Capacity = capacity;
+                m_ShadowResolutionRequests.Capacity = capacity;
             }
         }
 
@@ -596,7 +584,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // To avoid visual artifacts when there is not enough place in the atlas, we remove shadow slices that would be allocated a too small resolution.
             // When not using structured buffers, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
             // In that case we have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
-            int totalShadowSlicesCount = m_UseStructuredBuffer ? totalShadowResolutionRequestsCount : Math.Min(totalShadowResolutionRequestsCount, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
+            int totalShadowSlicesCount = m_UseStructuredBuffer ? totalShadowResolutionRequestsCount : Math.Min(totalShadowResolutionRequestsCount, UniversalRenderPipeline.maxVisibleAdditionalLights);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
 
             // Find biggest end index in m_SortedShadowResolutionRequests array, under which all shadow requests can be allocated a big enough shadow atlas slot, to not cause rendering artifacts
             bool allShadowsAfterStartIndexHaveEnoughResolution = false;
