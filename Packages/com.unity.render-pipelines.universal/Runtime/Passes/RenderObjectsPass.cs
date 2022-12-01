@@ -140,13 +140,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <inheritdoc/>
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            ScriptableRenderer renderer = renderingData.cameraData.renderer;
-            ConfigureTarget(renderer.cameraColorTargetHandle, renderer.cameraDepthTargetHandle);
-        }
-
-        /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             InitPassData(ref m_PassData);

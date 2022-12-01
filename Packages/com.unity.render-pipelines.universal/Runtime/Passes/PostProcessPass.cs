@@ -613,7 +613,8 @@ namespace UnityEngine.Rendering.Universal
                         destination = renderer.GetCameraColorFrontBuffer(cmd);
                     }
                     Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                    renderer.SwapColorBuffer(cmd);
+                    renderer.ConfigureCameraColorTarget(destination);
+                    Swap(ref renderer);
                 }
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
                 // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
@@ -641,6 +642,7 @@ namespace UnityEngine.Rendering.Universal
                             m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
                         }
                         RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        renderer.ConfigureCameraColorTarget(m_CameraTargetHandle);
                     }
                 }
             }
