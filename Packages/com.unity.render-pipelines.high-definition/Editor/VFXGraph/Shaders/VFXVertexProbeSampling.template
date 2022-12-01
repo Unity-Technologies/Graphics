@@ -25,12 +25,20 @@ ${VFXBegin:VFXVertexProbeDeclareFunctions}
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
+float3x3 GetLocalTBN(VFX_VARYING_PS_INPUTS input)
+{
+    float3 zVec = -input.VFX_VARYING_NORMAL.xyz;
+    float3 xVec = input.VFX_VARYING_TANGENT.xyz;
+    float3 yVec = cross(zVec, xVec);
+    return float3x3(xVec, yVec, zVec);
+}
+
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 
 void SampleAPVSixWay(APVSample apvSample, inout VFX_VARYING_PS_INPUTS input)
 {
     float3 bakeDiffuseLighting, backBakeDiffuseLighting;
-    float3x3 tbn = GetLocalFrame(input.VFX_VARYING_NORMAL.xyz, input.VFX_VARYING_TANGENT.xyz);
+    float3x3 tbn = GetLocalTBN(input);
 
     for (int i = 0; i<3; i++)
     {
@@ -45,12 +53,12 @@ void EvaluateAmbientProbeSixWay(float weight, inout VFX_VARYING_PS_INPUTS input)
 {
     float3 bakeDiffuseLighting = 0;
     float3 backBakeDiffuseLighting = 0;
-    float3x3 tbn = GetLocalFrame(input.VFX_VARYING_NORMAL.xyz, input.VFX_VARYING_TANGENT.xyz);
+    float3x3 tbn = GetLocalTBN(input);
 
     for (int i = 0; i<3; i++)
     {
         bakeDiffuseLighting = lerp(EvaluateAmbientProbe(tbn[i]), bakeDiffuseLighting, weight);
-        backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(-tbn[i]), bakeDiffuseLighting, weight);
+        backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(-tbn[i]), backBakeDiffuseLighting, weight);
         input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[i] = bakeDiffuseLighting;
         input.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[i] = backBakeDiffuseLighting;
     }
@@ -96,7 +104,7 @@ void EvaluateAdaptiveProbeVolumeSixWay(inout VFX_VARYING_PS_INPUTS input)
 
 void EvaluateLightProbeBuiltInSixWay(inout VFX_VARYING_PS_INPUTS input)
 {
-    float3x3 tbn = GetLocalFrame(input.VFX_VARYING_NORMAL.xyz, input.VFX_VARYING_TANGENT.xyz);
+    float3x3 tbn = GetLocalTBN(input);
 
     for (int i = 0; i<3; i++)
     {

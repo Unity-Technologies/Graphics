@@ -105,8 +105,11 @@ void frag(ps_input i
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
 	#endif
     #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-        alpha *= SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).a;
-         #ifndef IS_OPAQUE_PARTICLE
+        #ifndef VFX_VARYING_NORMAL
+			const VFXUVData uvData = GetUVData(i);
+		#endif
+        alpha *= SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).a;
+         #if VFX_SIX_WAY_USE_ALPHA_REMAP
             alpha = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, alpha);
          #endif
     #endif

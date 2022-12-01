@@ -25,16 +25,18 @@ namespace UnityEditor.VFX.HDRP
             [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
+            public float absorptionRange;
+
             // Standard
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true, FieldPrecision.Real)]
-            public Vector3 baseColor;
+            public Vector4 baseColor;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal World Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
-            [SurfaceDataAttributes("", true)]
-            public Vector3 tangentWS;
+            [SurfaceDataAttributes(new string[] { "Tangent", "Tangent World Space" })]
+            public Vector4 tangentWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion", precision = FieldPrecision.Real)]
@@ -78,8 +80,10 @@ namespace UnityEditor.VFX.HDRP
         {
             public uint materialFeatures;
 
+            public float absorptionRange;
+
             [SurfaceDataAttributes("", false, true, FieldPrecision.Real)]
-            public Vector3 diffuseColor;
+            public Vector4 diffuseColor;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public Vector3 fresnel0;
 
@@ -88,8 +92,8 @@ namespace UnityEditor.VFX.HDRP
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
-            [SurfaceDataAttributes("", true)]
-            public Vector3 tangentWS;
+            [SurfaceDataAttributes(new string[] { "Tangent", "Tangent World Space" })]
+            public Vector4 tangentWS;
             // Forward property only
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
