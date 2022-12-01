@@ -56,7 +56,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
                     EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedLODCrossFadeVariants, Styles.stripUnusedLODCrossFadeVariantsLabel);
                     EditorGUILayout.PropertyField(serialized.stripScreenCoordOverrideVariants, Styles.stripScreenCoordOverrideVariants);
                 }
             }))),

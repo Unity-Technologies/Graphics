@@ -565,19 +565,8 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
 
-            var stripUnusedLODCrossFadeVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedLODCrossFadeVariants == true;
-            if (stripUnusedLODCrossFadeVariants &&
-                stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
-                return true;
-
             if (stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies))
                 return true;
-
-            string keywordNames = "";
-            foreach (var keyword in compilerData.shaderKeywordSet.GetShaderKeywords())
-            {
-                keywordNames += " " + keyword.name;
-            }
 
             // Write Rendering Layers
             if (IsGLDevice(compilerData))

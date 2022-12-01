@@ -453,9 +453,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
 #if UNITY_EDITOR // multi_compile_fragment _ LOD_FADE_CROSSFADE
-        // TODO: Add RenderPipelineGlobalSettings to filter data hierarchy and select both variants based on
-        // stripUnusedLODCrossFadeVariants. Then we can try removing here based on this setting.
-        // [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;

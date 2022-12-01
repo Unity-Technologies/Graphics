@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -15,14 +16,10 @@ namespace UnityEditor.Rendering.Universal
         #endregion
 
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
-
         public SerializedProperty renderingLayerNames;
-
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
-        public SerializedProperty stripUnusedLODCrossFadeVariants;
         public SerializedProperty stripScreenCoordOverrideVariants;
-
         public ReorderableList renderingLayerNameList;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
@@ -48,7 +45,6 @@ namespace UnityEditor.Rendering.Universal
             // URP
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
-            stripUnusedLODCrossFadeVariants = serializedObject.FindProperty("m_StripUnusedLODCrossFadeVariants");
             stripScreenCoordOverrideVariants = serializedObject.FindProperty("m_StripScreenCoordOverrideVariants");
 
             renderingLayerNameList = new ReorderableList(serializedObject, renderingLayerNames, false, false, true, true)
