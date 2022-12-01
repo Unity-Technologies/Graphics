@@ -1152,6 +1152,22 @@ namespace UnityEngine.Rendering.Universal
 
 #endregion
 
+static private void ScaleViewportAndBlit(CommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, ref CameraData cameraData, Material material)
+{
+    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+    var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(dest);
+    Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+    RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+    if (cameraData.xr.enabled)
+        cameraTarget = cameraData.xr.renderTarget;
+#endif
+    if (dest.nameID == cameraTarget || cameraData.targetTexture != null)
+        cmd.SetViewport(cameraData.pixelRect);
+
+    Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
+}
+
 #region FinalPass
         private class PostProcessingFinalSetupPassData
         {
@@ -1185,14 +1201,7 @@ namespace UnityEngine.Rendering.Universal
 
                     material.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.destinationTexture);
-                    Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                    RTHandle dest = data.destinationTexture;
-                    if (dest.nameID == BuiltinRenderTextureType.CameraTarget || cameraData.targetTexture != null)
-                        cmd.SetViewport(cameraData.pixelRect);
-
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
+                    ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, ref cameraData, material);
                 });
                 return;
             }
@@ -1485,14 +1494,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // Done with Uber, blit it
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.destinationTexture);
-                    Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                    RTHandle dest = data.destinationTexture;
-                    if (dest.nameID == BuiltinRenderTextureType.CameraTarget || cameraData.targetTexture != null)
-                        cmd.SetViewport(cameraData.pixelRect);
-
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
+                    ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, ref cameraData, material);
                 });
 
                 return;
