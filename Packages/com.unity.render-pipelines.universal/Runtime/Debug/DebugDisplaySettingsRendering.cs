@@ -129,6 +129,25 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool enableHDR { get; set; } = true;
 
+        /// <summary>
+        /// Current Temporal Anti-aliasing debug mode.
+        /// </summary>
+        public enum TaaDebugMode
+        {
+            /// <summary>The default non-debug TAA rendering.</summary>
+            None = 0,
+            /// <summary>Output the jittered raw frame render. TAA current frame influence 100%.</summary>
+            ShowRawFrame,
+            /// <summary>Output the raw frame render, but with jitter disabled. TAA current frame influence 100%.</summary>
+            ShowRawFrameNoJitter,
+            /// <summary>Output the clamped (rectified), reprojected TAA history. Current frame influence 0%.</summary>
+            ShowClampedHistory,
+        }
+        /// <summary>
+        /// Current TAA debug mode.
+        /// </summary>
+        public TaaDebugMode taaDebugMode { get; set; } = TaaDebugMode.None;
+
         #region Pixel validation
 
         /// <summary>
@@ -166,6 +185,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
             public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
             public static readonly NameAndTooltip HDR = new() { name = "HDR", tooltip = "Use the checkbox to disable High Dynamic Range in the scene." };
+            public static readonly NameAndTooltip TaaDebugMode = new() { name = "TAA Debug Mode", tooltip = "Choose whether to force TAA to output the raw jittered frame or clamped reprojected history." };
             public static readonly NameAndTooltip PixelValidationMode = new() { name = "Pixel Validation Mode", tooltip = "Choose between modes that validate pixel on screen." };
             public static readonly NameAndTooltip Channels = new() { name = "Channels", tooltip = "Choose the texture channel used to validate the scene." };
             public static readonly NameAndTooltip ValueRangeMin = new() { name = "Value Range Min", tooltip = "Any values set below this field will be considered invalid and will appear red on screen." };
@@ -286,6 +306,17 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => panel.data.enableHDR = value
             };
 
+            internal static DebugUI.Widget CreateTaaDebugMode(SettingsPanel panel) => new DebugUI.EnumField
+            {
+                nameAndTooltip = Strings.TaaDebugMode,
+                autoEnum = typeof(TaaDebugMode),
+                getter = () => (int)panel.data.taaDebugMode,
+                setter = (value) => panel.data.taaDebugMode = (TaaDebugMode)value,
+                getIndex = () => (int)panel.data.taaDebugMode,
+                setIndex = (value) => panel.data.taaDebugMode = (TaaDebugMode)value,
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
+            };
+
             internal static DebugUI.Widget CreatePixelValidationMode(SettingsPanel panel) => new DebugUI.EnumField
             {
                 nameAndTooltip = Strings.PixelValidationMode,
@@ -344,6 +375,7 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateMapOverlaySize(this),
                         WidgetFactory.CreateHDR(this),
                         WidgetFactory.CreateMSAA(this),
+                        WidgetFactory.CreateTaaDebugMode(this),
                         WidgetFactory.CreatePostProcessing(this),
                         WidgetFactory.CreateAdditionalWireframeShaderViews(this),
                         WidgetFactory.CreateWireframeNotSupportedWarning(this),
@@ -383,7 +415,8 @@ namespace UnityEngine.Rendering.Universal
         (mipInfoMode != DebugMipInfoMode.None) ||
         (validationMode != DebugValidationMode.None) ||
         !enableMsaa ||
-        !enableHDR;
+        !enableHDR ||
+        (taaDebugMode != TaaDebugMode.None);
 
         public bool IsPostProcessingAllowed => (postProcessingDebugMode != DebugPostProcessingMode.Disabled) &&
         (sceneOverrideMode == DebugSceneOverrideMode.None) &&

@@ -177,11 +177,20 @@ namespace UnityEngine.Rendering.Universal
         // We might change this API soon.
         Matrix4x4 m_ViewMatrix;
         Matrix4x4 m_ProjectionMatrix;
+        Matrix4x4 m_JitterMatrix;
 
         internal void SetViewAndProjectionMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
         {
             m_ViewMatrix = viewMatrix;
             m_ProjectionMatrix = projectionMatrix;
+            m_JitterMatrix = Matrix4x4.identity;
+        }
+
+        internal void SetViewProjectionAndJitterMatrix(Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, Matrix4x4 jitterMatrix)
+        {
+            m_ViewMatrix = viewMatrix;
+            m_ProjectionMatrix = projectionMatrix;
+            m_JitterMatrix = jitterMatrix;
         }
 
         // Helper function to populate builtin stereo matricies as well as URP stereo matricies
@@ -218,11 +227,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the camera projection matrix.
+        /// Returns the camera projection matrix. Might be jittered for temporal features.
         /// </summary>
         /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
         /// <returns> The camera projection matrix. </returns>
         public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                return m_JitterMatrix * xr.GetProjMatrix(viewIndex);
+#endif
+            return m_JitterMatrix * m_ProjectionMatrix;
+        }
+
+        internal Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
@@ -232,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z.
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
         /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
         /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
         /// </summary>
@@ -241,12 +259,27 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
+            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
+            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+        }
+
+        /// <summary>
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Does not include any camera jitter.
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
+        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+        /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
+        /// <returns></returns>
+        public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
+        {
+            // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
-            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
+            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
         }
 
         /// <summary>
@@ -395,6 +428,19 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
         }
 
+        internal bool IsTemporalAAEnabled()
+        {
+            UniversalAdditionalCameraData additionalCameraData;
+            camera.TryGetComponent(out additionalCameraData);
+
+            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
+                   && (taaPersistentData != null)                                                                                     // Initialized
+                   && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
+                   && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
+                   && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
+                   && postProcessEnabled;                                                                                             // No Postprocessing
+        }
+
         /// <summary>
         /// The sorting criteria used when drawing opaque objects by the internal URP render passes.
         /// When a GPU supports hidden surface removal, URP will rely on that information to avoid sorting opaque objects front to back and
@@ -403,7 +449,12 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="SortingCriteria"/>
         public SortingCriteria defaultOpaqueSortFlags;
 
-        internal XRPass xr;
+        /// <summary>
+        /// XRPass holds the render target information and a list of XRView.
+        /// XRView contains the parameters required to render (projection and view matrices, viewport, etc)
+        /// </summary>
+        public XRPass xr { get; internal set; }
+
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
         [Obsolete("Please use xr.enabled instead.", true)]
@@ -485,6 +536,22 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Color backgroundColor;
 
+        /// <summary>
+        /// Persistent TAA data, primarily for the accumulation texture.
+        /// </summary>
+        internal TaaPersistentData taaPersistentData;
+
+        // TAA settings.
+        internal TemporalAA.Settings taaSettings;
+
+        // Post-process history reset has been triggered for this camera.
+        internal bool resetHistory
+        {
+            get => taaSettings.resetHistoryFrames != 0;
+        }
+
+
+        /// <summary>
         /// Camera at the top of the overlay camera stack
         /// </summary>
         public Camera baseCamera;
@@ -1183,6 +1250,7 @@ namespace UnityEngine.Rendering.Universal
         SMAA,
         GaussianDepthOfField,
         BokehDepthOfField,
+        TemporalAA,
         MotionBlur,
         PaniniProjection,
         UberPostProcess,

@@ -210,6 +210,7 @@ namespace UnityEngine.Rendering.Universal
                 var colorDesc = cameraData.cameraTargetDescriptor;
                 colorDesc.graphicsFormat = GraphicsFormat.R16G16_SFloat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
+                colorDesc.msaaSamples = 1;
                 frameResources.motionVectorColor = CreateRenderGraphTexture(renderGraph, colorDesc, "_MotionVectorTexture", true);
 
                 var depthDescriptor = cameraData.cameraTargetDescriptor;
@@ -217,6 +218,7 @@ namespace UnityEngine.Rendering.Universal
                 //TODO RENDERGRAPH: in some cornercases (f.e. rendering to targetTexture) this is needed. maybe this will be unnece
                 depthDescriptor.depthBufferBits =
                     depthDescriptor.depthBufferBits != 0 ? depthDescriptor.depthBufferBits : 32;
+                depthDescriptor.msaaSamples = 1;
                 frameResources.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_MotionVectorDepthTexture", true);
             }
             #endregion
@@ -355,8 +357,7 @@ namespace UnityEngine.Rendering.Universal
 
             // if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
             {
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera, renderingData.cameraData);
-                m_MotionVectorPass.Render(renderGraph, in frameResources.motionVectorColor, in frameResources.motionVectorDepth, data, ref renderingData);
+                m_MotionVectorPass.Render(renderGraph, ref frameResources.cameraDepth, in frameResources.motionVectorColor, in frameResources.motionVectorDepth,  ref renderingData);
             }
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?

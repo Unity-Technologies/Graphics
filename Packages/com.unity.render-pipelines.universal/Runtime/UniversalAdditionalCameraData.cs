@@ -66,7 +66,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
-        //TemporalAntialiasing
+
+        /// <summary>
+        /// Use this to have a temporal anti-aliasing pass rendered when resolving camera to screen.
+        /// </summary>
+        [InspectorName("Temporal Anti-aliasing (TAA)")]
+        TemporalAntiAliasing,
     }
 
     /// <summary>
@@ -327,6 +332,11 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
+        // These persist over multiple frames
+        [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
+        [NonSerialized] TaaPersistentData m_TaaPersistentData = new TaaPersistentData();
+
+        [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
         public float version => m_Version;
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
@@ -597,6 +607,34 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_AntialiasingQuality;
             set => m_AntialiasingQuality = value;
+        }
+
+        internal ref TemporalAA.Settings taaSettings
+        {
+            get { return ref m_TaaSettings; }
+        }
+
+        /// <summary>
+        /// Temporal Anti-aliasing buffers and data that persists over a frame.
+        /// </summary>
+        internal TaaPersistentData taaPersistentData => m_TaaPersistentData;
+
+        /// <summary>
+        /// Motion data that persists over a frame.
+        /// </summary>
+        internal MotionVectorsPersistentData motionVectorsPersistentData => m_MotionVectorsPersistentData;
+
+        /// <summary>
+        /// Reset post-process history.
+        /// </summary>
+        public bool resetHistory
+        {
+            get => m_TaaSettings.resetHistoryFrames != 0;
+            set
+            {
+                m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
+                m_MotionVectorsPersistentData.Reset();
+            }
         }
 
         /// <summary>

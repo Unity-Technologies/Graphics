@@ -252,6 +252,21 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
+
+            DisposeAdditionalCameraData();
+        }
+
+        // If the URP gets destroyed, we must clean up all the added URP specific camera data and
+        // non-GC resources to avoid leaking them.
+        private void DisposeAdditionalCameraData()
+        {
+            foreach (var c in Camera.allCameras)
+            {
+                if (c.TryGetComponent<UniversalAdditionalCameraData>(out var acd))
+                {
+                    acd.taaPersistentData?.DeallocateTargets();
+                };
+            }
         }
 
 #if UNITY_2021_1_OR_NEWER
@@ -478,6 +493,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
+            InitializeAdditionalCameraData(camera, additionalCameraData, true, ref cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref cameraData);
@@ -560,14 +576,29 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 
+                // Update camera motion tracking (prev matrices) from cameraData.
+                // Called and updated only once, as the same camera can be rendered multiple times.
+                // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
+                // NOTE: Shared between both Execute and Render (RG) paths.
+                if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                    additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
+
+                // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
+                // NOTE: Persistent data is kept over multiple frames. Its life-time differs from typical resources.
+                // NOTE: Shared between both Execute and Render (RG) paths.
+                if (cameraData.taaPersistentData != null)
+                    UpdateTemporalAATargets(ref cameraData);
+
+                RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+
+                // Do NOT use cameraData after 'InitializeRenderingData'. CameraData state may diverge otherwise.
+                // RenderingData takes a copy of the CameraData.
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
-
-                RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
 
                 renderer.AddRenderPasses(ref renderingData);
 
@@ -732,6 +763,9 @@ namespace UnityEngine.Rendering.Universal
                     XRSystemUniversal.BeginLateLatching(baseCamera, baseCameraData.xrUniversal);
                 }
 #endif
+                // InitializeAdditionalCameraData needs to be initialized after the cameraTargetDescriptor is set because it needs to know the
+                // msaa level of cameraTargetDescriptor and XR modifications.
+                InitializeAdditionalCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, ref baseCameraData);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -762,15 +796,16 @@ namespace UnityEngine.Rendering.Universal
                         if (!currCamera.isActiveAndEnabled)
                             continue;
 
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
+                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currAdditionalCameraData);
                         // Camera is overlay and enabled
-                        if (currCameraData != null)
+                        if (currAdditionalCameraData != null)
                         {
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
-                            bool lastCamera = i == lastActiveOverlayCameraIndex;
+                            overlayCameraData.camera = currCamera;
+                            overlayCameraData.baseCamera = baseCamera;
 
-                            UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+                            UpdateCameraStereoMatrices(currAdditionalCameraData.camera, xrPass);
 
                             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                             {
@@ -780,9 +815,10 @@ namespace UnityEngine.Rendering.Universal
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                             VFX.VFXManager.PrepareCamera(currCamera);
 #endif
-                            UpdateVolumeFramework(currCamera, currCameraData);
-                            InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
-                            overlayCameraData.baseCamera = baseCamera;
+                            UpdateVolumeFramework(currCamera, currAdditionalCameraData);
+
+                            bool lastCamera = i == lastActiveOverlayCameraIndex;
+                            InitializeAdditionalCameraData(currCamera, currAdditionalCameraData, lastCamera, ref overlayCameraData);
 
                             xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
 
@@ -893,7 +929,8 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.postProcessEnabled)
                 return false;
 
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && cameraData.renderType == CameraRenderType.Base)
+            if ((cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing || cameraData.IsTemporalAAEnabled())
+                && cameraData.renderType == CameraRenderType.Base)
                 return true;
 
             return CheckPostProcessForDepth();
@@ -923,7 +960,7 @@ namespace UnityEngine.Rendering.Universal
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
                 lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 lightProbeProxyVolumes = false,
-                motionVectors = false,
+                motionVectors = true,
                 receiveShadows = false,
                 reflectionProbes = false,
                 reflectionProbesBlendDistance = true,
@@ -940,7 +977,8 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
-            InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+
+            cameraData.camera = camera;
 
             ///////////////////////////////////////////////////////////////////
             // Descriptor settings                                            /
@@ -1084,7 +1122,6 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeAdditionalCameraData);
 
             var settings = asset;
-            cameraData.camera = camera;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
@@ -1144,6 +1181,10 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = false;
             }
 
+            // NOTE: TAA depends on XR modifications of cameraTargetDescriptor.
+            if (additionalCameraData != null)
+                UpdateTemporalAAData(ref cameraData, additionalCameraData);
+
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 
             // Overlay cameras inherit viewport from base.
@@ -1159,7 +1200,13 @@ namespace UnityEngine.Rendering.Universal
                 projectionMatrix.m00 = newCotangent;
             }
 
-            cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
+            // TAA debug settings
+            // Affects the jitter set just below. Do not move.
+            ApplyTaaRenderingDebugOverrides(ref cameraData.taaSettings);
+
+            // Depends on the cameraTargetDesc, size and MSAA also XR modifications of those.
+            Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(ref cameraData);
+            cameraData.SetViewProjectionAndJitterMatrix(camera.worldToCameraMatrix, projectionMatrix, jitterMat);
 
             cameraData.worldSpaceCameraPos = camera.transform.position;
 
@@ -1347,6 +1394,61 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
+        }
+
+        private static void ApplyTaaRenderingDebugOverrides(ref TemporalAA.Settings taaSettings)
+        {
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
+            switch (renderingSettings.taaDebugMode)
+            {
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowClampedHistory:
+                    taaSettings.frameInfluence = 0;
+                    break;
+
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrame:
+                    taaSettings.frameInfluence = 1;
+                    break;
+
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrameNoJitter:
+                    taaSettings.frameInfluence = 1;
+                    taaSettings.jitterScale = 0;
+                    break;
+            }
+        }
+
+        private static void UpdateTemporalAAData(ref CameraData cameraData, UniversalAdditionalCameraData additionalCameraData)
+        {
+            // Initialize shared TAA target desc.
+            ref var desc = ref cameraData.cameraTargetDescriptor;
+            cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
+            cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
+
+            // Update TAA settings
+            ref var taaSettings = ref additionalCameraData.taaSettings;
+            cameraData.taaSettings = taaSettings;
+
+            // Decrease history clear counter. Typically clear is only 1 frame, but can be many for XR multipass eyes!
+            taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0;
+        }
+
+        private static void UpdateTemporalAATargets(ref CameraData cameraData)
+        {
+            if (cameraData.IsTemporalAAEnabled())
+            {
+                bool xrMultipassEnabled = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
+#endif
+                bool allocation = cameraData.taaPersistentData.AllocateTargets(xrMultipassEnabled);
+
+                // Fill new history with current frame
+                // XR Multipass renders a "frame" per eye
+                if(allocation)
+                    cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
+            }
+            else
+                cameraData.taaPersistentData.DeallocateTargets();
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
