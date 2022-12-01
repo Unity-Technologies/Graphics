@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
     rotationMatrix = UNITY_MATRIX_I_V;
     Scaled_Pos.xyz = Position * Scale;
     Scaled_Pos.w = 0;
-    BillboardPosition = TransformWorldToObject(SHADERGRAPH_OBJECT_POSITION + CenterOffset + mul(rotationMatrix, Scaled_Pos).xyz);
+    BillboardPosition = TransformWorldToObject(SHADERGRAPH_OBJECT_POSITION + PivotOffset + mul(rotationMatrix, Scaled_Pos).xyz);
     tempNormal.xyz = Normal;
     tempNormal.w = 0;
     tempTangent.xyz = Tangent;
@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 {
                     new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Local),
                     new ParameterDescriptor("temp", TYPE.Vec3, GraphType.Usage.Local, new float[] {1f, 1f, 1f }),
-                    new ParameterDescriptor("CenterOffset", TYPE.Vec3, GraphType.Usage.Local, new float[] {0f, .5f, 0f }),
                     new ParameterDescriptor("tempNormal", TYPE.Vec4, GraphType.Usage.Local),
                     new ParameterDescriptor("tempTangent", TYPE.Vec4, GraphType.Usage.Local),
                     new ParameterDescriptor("rotationMatrix", TYPE.Mat4, GraphType.Usage.Local),
@@ -36,6 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Position),
                     new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
                     new ParameterDescriptor("Tangent", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Tangent),
+                    new ParameterDescriptor("PivotOffset", TYPE.Vec3, GraphType.Usage.In, new float[] {0f, .5f, 0f }),
                     new ParameterDescriptor("BillboardPosition", TYPE.Vec3, GraphType.Usage.Out),
                     new ParameterDescriptor("BillboardNormal", TYPE.Vec3, GraphType.Usage.Out),
                     new ParameterDescriptor("BillboardTangent", TYPE.Vec3, GraphType.Usage.Out)
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Defs
     rotationMatrix[1] = UpDir;
     Scaled_Pos.xyz = Position * Scale;
     Scaled_Pos.w = 0;
-    BillboardPosition = TransformWorldToObject(SHADERGRAPH_OBJECT_POSITION + CenterOffset + mul(rotationMatrix, Scaled_Pos).xyz);
+    BillboardPosition = TransformWorldToObject(SHADERGRAPH_OBJECT_POSITION + PivotOffset + mul(rotationMatrix, Scaled_Pos).xyz);
     tempNormal.xyz = Normal;
     tempNormal.w = 0;
     tempTangent.xyz = Tangent;
@@ -60,7 +60,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Local),
                     new ParameterDescriptor("temp", TYPE.Vec3, GraphType.Usage.Local, new float[] {1f, 1f, 1f }),
                     new ParameterDescriptor("UpDir", TYPE.Vec4, GraphType.Usage.Local, new float[] {0f, 1f, 0f, 0f }),
-                    new ParameterDescriptor("CenterOffset", TYPE.Vec3, GraphType.Usage.Local, new float[] {0f, .5f, 0f }),
                     new ParameterDescriptor("tempNormal", TYPE.Vec4, GraphType.Usage.Local),
                     new ParameterDescriptor("tempTangent", TYPE.Vec4, GraphType.Usage.Local),
                     new ParameterDescriptor("rotationMatrix", TYPE.Mat4, GraphType.Usage.Local),
@@ -68,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Position),
                     new ParameterDescriptor("Normal", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Normal),
                     new ParameterDescriptor("Tangent", TYPE.Vec3, GraphType.Usage.In, REF.ObjectSpace_Tangent),
+                    new ParameterDescriptor("PivotOffset", TYPE.Vec3, GraphType.Usage.In, new float[] {0f, .5f, 0f }),
                     new ParameterDescriptor("BillboardPosition", TYPE.Vec3, GraphType.Usage.Out),
                     new ParameterDescriptor("BillboardNormal", TYPE.Vec3, GraphType.Usage.Out),
                     new ParameterDescriptor("BillboardTangent", TYPE.Vec3, GraphType.Usage.Out)
@@ -102,6 +102,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Tangent",
                     tooltip: "The input vertex Tangent"
+                ),
+                new ParameterUIDescriptor(
+                    name: "PivotOffset",
+                    displayName:"Pivot Offset",
+                    tooltip: "The value to offset the object piviot point"
                 ),
                 new ParameterUIDescriptor(
                     name: "BillboardPosition",
