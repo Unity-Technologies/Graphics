@@ -21,31 +21,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void BuildPartUI(VisualElement parent)
         {
+            if (m_Model is not GraphDataNodeModel sgNodeModel) return;
+
+            EventCallback<ChangeEvent<Enum>> SetCoordinateSpaceCallback(string fieldName)
+            {
+                return e =>
+                {
+                    m_OwnerElement.RootView.Dispatch(new SetCoordinateSpaceCommand(sgNodeModel, fieldName, (CoordinateSpace)e.newValue));
+                };
+            }
+
             m_Root = new VisualElement();
 
-            GraphElementHelper.LoadTemplateAndStylesheet(m_Root, "TransformDropdownsPart", "");
+            GraphElementHelper.LoadTemplateAndStylesheet(m_Root, "TransformDropdownsPart", "sg-transform-dropdowns");
 
             m_FromDropdown = m_Root.Q<EnumField>("from");
             m_FromDropdown.Init(default(CoordinateSpace));
+            m_FromDropdown.RegisterValueChangedCallback(SetCoordinateSpaceCallback(GraphDelta.TransformNode.kSourceSpace));
 
             m_ToDropdown = m_Root.Q<EnumField>("to");
             m_ToDropdown.Init(default(CoordinateSpace));
+            m_ToDropdown.RegisterValueChangedCallback(SetCoordinateSpaceCallback(GraphDelta.TransformNode.kDestinationSpace));
 
             m_ModeDropdown = m_Root.Q<EnumField>("type");
             m_ModeDropdown.Init(default(ConversionType));
-
-            m_FromDropdown.RegisterValueChangedCallback(MakeFieldCallback(GraphDelta.TransformNode.kSourceSpace));
-            m_ToDropdown.RegisterValueChangedCallback(MakeFieldCallback(GraphDelta.TransformNode.kDestinationSpace));
-            parent.Add(m_Root);
-        }
-
-        EventCallback<ChangeEvent<Enum>> MakeFieldCallback(string fieldName)
-        {
-            return e =>
+            m_ModeDropdown.RegisterValueChangedCallback(e =>
             {
-                if (m_Model is not GraphDataNodeModel sgNodeModel) return;
-                m_OwnerElement.RootView.Dispatch(new SetCoordinateSpaceCommand(sgNodeModel, fieldName, (CoordinateSpace)e.newValue));
-            };
+                m_OwnerElement.RootView.Dispatch(new SetConversionTypeCommand(sgNodeModel, GraphDelta.TransformNode.kConversionType, (ConversionType)e.newValue));
+            });
+
+            parent.Add(m_Root);
         }
 
         protected override void UpdatePartFromModel()

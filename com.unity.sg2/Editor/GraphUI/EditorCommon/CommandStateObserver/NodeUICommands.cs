@@ -154,4 +154,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SetCoordinateSpaceCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, CoordinateSpace value)
             : base(graphDataNodeModel, fieldName, value) { }
     }
+
+    class SetConversionTypeCommand : SetNodeFieldCommand<GraphDelta.ConversionType>
+    {
+        public SetConversionTypeCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, GraphDelta.ConversionType value)
+            : base(graphDataNodeModel, fieldName, value) { }
+    }
 }
