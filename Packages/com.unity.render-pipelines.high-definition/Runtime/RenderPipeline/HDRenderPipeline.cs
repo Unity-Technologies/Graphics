@@ -722,7 +722,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UnsetRenderingFeatures()
         {
-            Shader.globalRenderPipeline = "";
+            Shader.globalRenderPipeline = string.Empty;
 
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;

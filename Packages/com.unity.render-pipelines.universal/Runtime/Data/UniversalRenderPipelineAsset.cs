@@ -1705,6 +1705,9 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return editorResources?.shaders.defaultSpeedTree8PS; }
         }
+
+        /// <inheritdoc/>
+        public override string renderPipelineShaderTag => UniversalRenderPipeline.k_ShaderTagName;
 #endif
 
         /// <summary>Names used for display of rendering layer masks.</summary>
