@@ -469,11 +469,18 @@ float SnapToTexel(float f)
     return f - fmod(f, kInvTextureWidth) + 0.5f * kInvTextureWidth;
 }
 
-float4 SampleGradient(float2 gradientData, float u)
+float4 SampleGradient(float3 gradientData, float u)
 {
     float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
     if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
-    return SampleTexture(VFX_SAMPLER(bakedTexture), uv, 0);
+    float4 gradientResult = SampleTexture(VFX_SAMPLER(bakedTexture), uv, 0);
+    gradientResult.rgb *= gradientData.z;
+    return gradientResult;
+}
+
+float4 SampleGradient(float2 gradientData, float u)
+{
+    return SampleGradient(float3(gradientData, 1.0f), u);
 }
 
 float4 SampleGradient(float gradientData, float u)
@@ -483,7 +490,9 @@ float4 SampleGradient(float gradientData, float u)
 
 float SampleCurve(float4 curveData, float u)
 {
-    float uNorm = (u * curveData.x) + curveData.y;
+    float invScaleU = f16tof32(asuint(curveData.x));
+    float scaledStart = f16tof32(asuint(curveData.x) >> 16);
+    float uNorm = (u * invScaleU) + scaledStart;
 
 #if defined(SHADER_API_METAL)
     // Workaround metal compiler crash that is caused by switch statement uint byte shift
@@ -496,7 +505,7 @@ float SampleCurve(float4 curveData, float u)
         case 2: uNorm = HalfTexelOffset(frac(max(0.0f, uNorm))); break; // clamp start
         case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
     }
-    return SampleTexture(VFX_SAMPLER(bakedTexture), float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
+    return curveData.y * SampleTexture(VFX_SAMPLER(bakedTexture), float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
 }
 
 ///////////
