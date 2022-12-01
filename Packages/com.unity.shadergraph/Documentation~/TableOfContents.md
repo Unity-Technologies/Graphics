@@ -99,6 +99,8 @@
             * [Diffusion Profile](Diffusion-Profile-Node.md)
             * [Exposure](Exposure-Node.md)
             * [HD Scene Color](HD-Scene-Color-Node.md)
+            * [HD Scene Depth](HD-Scene-Depth-Node.md)
+            * [HD Sample Buffer](HD-Sample-Buffer-Node.md)
         * Lighting
             * [Ambient](Ambient-Node)
             * [Baked GI](Baked-GI-Node)

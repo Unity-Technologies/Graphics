@@ -25,6 +25,8 @@
     * [Full Screen Pass](renderer-features/renderer-feature-full-screen-pass.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Render Pipeline Converter](features/rp-converter.md)
+  * [Upgrading to URP 14](upgrade-guide-2022-2.md)
+  * [Upgrading to URP 13](upgrade-guide-2022-1.md)
   * [Upgrading to URP 12.0.x](upgrade-guide-2021-2.md)
   * [Upgrading to URP 11.0.x](upgrade-guide-11-0-x.md)
   * [Upgrading to URP 10.1.x](upgrade-guide-10-1-x.md)
