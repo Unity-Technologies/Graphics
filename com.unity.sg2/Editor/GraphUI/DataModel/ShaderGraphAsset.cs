@@ -160,6 +160,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_AssetPath = m_AssetPath == string.Empty ? FilePath : m_AssetPath;
             var json = EditorJsonUtility.ToJson(this, true);
             File.WriteAllText(m_AssetPath, json);
+            AssetDatabase.ImportAsset(m_AssetPath);
             EditorUtility.ClearDirty(this);
         }
     }
