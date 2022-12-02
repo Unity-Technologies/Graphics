@@ -2,7 +2,7 @@ using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    enum CoordinateSpace
+    internal enum CoordinateSpace
     {
         Object,
         View,
@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         AbsoluteWorld
     }
 
-    enum ConversionType
+    internal enum ConversionType
     {
         Position,
         Direction,

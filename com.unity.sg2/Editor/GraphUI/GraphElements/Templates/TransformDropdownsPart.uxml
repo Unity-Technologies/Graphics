@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <!-- TODO (Joe): sg-conversion-dropdowns could be reused for the colorspace conversion node. -->
+    <ui:VisualElement class="sg-conversion-dropdowns">
+        <ui:EnumField name="from" class="sg-conversion-dropdown"/>
+        <ui:Label text="➔" class="sg-conversion-label"/>
+        <ui:EnumField name="to" class="sg-conversion-dropdown"/>
+    </ui:VisualElement>
+    <ui:EnumField name="type" label="Type"/>
+</ui:UXML>

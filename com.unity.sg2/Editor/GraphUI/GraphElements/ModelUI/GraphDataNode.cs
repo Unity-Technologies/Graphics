@@ -3,6 +3,7 @@ using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Defs;
+using CoordinateSpace = UnityEditor.ShaderGraph.Internal.CoordinateSpace;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -105,9 +106,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // TODO: There should probably be a better way to assign "special" node parts like this.
             // Possibly using the UI data classes once the refactor branch is merged.
-            if (nodeReader.GetRegistryKey().Name == "Swizzle")
+            var nodeName = nodeReader.GetRegistryKey().Name;
+            if (nodeName == "Swizzle")
             {
                 PartList.InsertPartAfter(portContainerPartName, new SwizzleMaskPart("sg-swizzle-mask", GraphElementModel, this, ussClassName));
+            }
+
+            if (nodeName == "Transform")
+            {
+                PartList.InsertPartAfter(portContainerPartName,
+                    new TransformDropdownsPart("sg-transform-dropdowns",
+                        GraphElementModel,
+                        this,
+                        ussClassName));
             }
 
             // By default we assume all nodes should display previews, unless there
