@@ -1,7 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 //#pragma enable_d3d11_debug_symbols
 
-#pragma kernel BlendStates
+#pragma kernel BlendScenarios
 
 #pragma multi_compile _ PROBE_VOLUMES_L2
 
@@ -36,20 +36,11 @@ RWTexture3D<float4> _Out_L2_2;
 RWTexture3D<float4> _Out_L2_3;
 #endif
 
-StructuredBuffer<uint> _ChunkMapping;
+float4 _ChunkList[1000];
 
-float4 _ChunkDim_LerpFactor;
-#define _ChunkDim _ChunkDim_LerpFactor.xyz
-#define _LerpFactor _ChunkDim_LerpFactor.w
-
-float4 _PoolDims;
-#define _SrcPoolChunkCount _PoolDims.xy
-#define _DstPoolDim _PoolDims.zw
-
-uint ChunkToIndex(uint3 chunk, float2 poolSize)
-{
-    return chunk.z * (poolSize.x*poolSize.y) + chunk.y * poolSize.x + chunk.x;
-}
+float4 _PoolDim_LerpFactor;
+#define _DstPoolDim _PoolDim_LerpFactor.xy
+#define _LerpFactor _PoolDim_LerpFactor.z
 
 uint3 IndexToChunk(uint index, float2 poolSize)
 {
@@ -58,34 +49,20 @@ uint3 IndexToChunk(uint index, float2 poolSize)
     return uint3(offsetXY % poolSize.x, offsetXY / poolSize.x, coordZ);
 }
 
-uint3 LocationToChunk(uint3 loc)
-{
-    return loc / _ChunkDim;
-}
-
-uint3 ChunkToLocation(uint3 chunk)
-{
-    return chunk * _ChunkDim;
-}
-
 [numthreads(4, 4, 4)]
-void BlendStates(uint3 loc : SV_DispatchThreadID)
+void BlendScenarios(uint3 probe : SV_DispatchThreadID, uint3 chunk : SV_GroupID)
 {
-    uint3 srcChunk = LocationToChunk(loc);
-    uint srcChunkIdx = ChunkToIndex(srcChunk, _SrcPoolChunkCount);
-    uint dstChunkIdx = _ChunkMapping[srcChunkIdx];
-    if (dstChunkIdx == 0xFFFFFFFF) // Chunk not uploaded
-        return;
-
-    uint3 dstLoc = IndexToChunk(dstChunkIdx, _DstPoolDim) + (loc - ChunkToLocation(srcChunk));
+    uint cellIndex = chunk.z;
+    probe.z -= 4 * cellIndex;
 
     // Load
     APVResources resources0, resources1;
     LOAD_APV_RES(resources0, _State0);
     LOAD_APV_RES(resources1, _State1);
 
-    APVSample state0 = LoadAndDecodeAPV(resources0, loc);
-    APVSample state1 = LoadAndDecodeAPV(resources1, loc);
+    uint3 srcChunk = _ChunkList[cellIndex].xyz;
+    APVSample state0 = LoadAndDecodeAPV(resources0, probe + srcChunk);
+    APVSample state1 = LoadAndDecodeAPV(resources1, probe + srcChunk);
 
     // Blend
     state0 = BlendAPVSamples(state0, state1, _LerpFactor);
@@ -94,5 +71,6 @@ void BlendStates(uint3 loc : SV_DispatchThreadID)
     APVResourcesRW output;
     LOAD_APV_RES(output, _Out);
 
-    EncodeAndStoreAPV(output, state0, dstLoc);
+    uint3 dstChunk = IndexToChunk(_ChunkList[cellIndex].w, _DstPoolDim);
+    EncodeAndStoreAPV(output, state0, probe + dstChunk);
 }

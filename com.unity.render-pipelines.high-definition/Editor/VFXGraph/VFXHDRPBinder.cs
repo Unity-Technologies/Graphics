@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
 
@@ -115,6 +116,13 @@ namespace UnityEditor.VFX.HDRP
             return false;
         }
 
+        public override bool GetSupportsRayTracing()
+        {
+            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing &&
+                   HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportVFXRayTracing;
+        }
+
+
         public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
         {
             // Recover the HDRP Shader ids from the VFX Shader Graph.
@@ -222,7 +230,12 @@ namespace UnityEditor.VFX.HDRP
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      HDStructFields.FragInputs.worldToElement),
 
             new FieldDependency(Fields.WorldToObject, HDStructFields.FragInputs.worldToElement),
-            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld)
+            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld),
+
+            // Normal in object space requires worldToElement (see GetNormalWS_SrcOS calling TransformObjectToWorldNormal which uses world inverse transpose)
+            new FieldDependency(HDBlockFields.SurfaceDescription.IrisNormalOS, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(HDBlockFields.SurfaceDescription.CoatNormalOS, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(BlockFields.SurfaceDescription.NormalOS, HDStructFields.FragInputs.worldToElement),
         };
 
 
@@ -238,9 +251,28 @@ namespace UnityEditor.VFX.HDRP
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
                 },
 
+                pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
+                {
+                    //Irrelevant general multicompile instancing (VFX will append them when needed)
+                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
+                },
+
                 fieldDependencies = ElementSpaceDependencies,
                 useFragInputs = true
             };
+        }
+
+        public override IEnumerable<GraphicsDeviceType> GetSupportedGraphicDevices()
+        {
+            foreach (var device in base.GetSupportedGraphicDevices())
+            {
+                if (HDUtils.IsSupportedGraphicDevice(device))
+                    yield return device;
+            }
         }
     }
 }

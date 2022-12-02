@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using UnityEditorInternal;
 using System.Linq;
+using System.Reflection;
+using UnityEditorInternal;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
+        [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
         class QualitySettingsPanelIMGUI
         {
             public class Styles
@@ -55,6 +56,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Editor m_Cached;
             int m_SelectedHDRPAssetIndex = -1;
 
+            SupportedOnRenderPipelineAttribute m_SupportedOnRenderPipeline;
+
             public QualitySettingsPanelIMGUI()
             {
                 m_HDRPAssetsUIList = new ReorderableList(m_HDRPAssets, typeof(HDRPAssetLocations), false, false, false, false)
@@ -62,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     drawElementCallback = DrawHDRPAssetItem,
                     onSelectCallback = OnHDRPAssetSelected,
                 };
+                m_SupportedOnRenderPipeline = GetType().GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
             }
 
             /// <summary>
@@ -83,6 +87,12 @@ namespace UnityEditor.Rendering.HighDefinition
             /// </summary>
             public void OnGUI(string searchContext)
             {
+                if (!m_SupportedOnRenderPipeline.isSupportedOnCurrentPipeline)
+                {
+                    EditorGUILayout.HelpBox("These settings are currently not available due to the active Render Pipeline.", MessageType.Warning);
+                    return;
+                }
+
                 // Draw HDRP asset list
                 EditorGUILayout.LabelField(Styles.hdrpSubtitleHelp, EditorStyles.largeLabel, GUILayout.Height(22));
                 m_HDRPAssetListScrollView = EditorGUILayout.BeginScrollView(

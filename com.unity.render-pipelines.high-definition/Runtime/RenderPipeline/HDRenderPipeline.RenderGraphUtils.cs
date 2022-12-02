@@ -57,10 +57,10 @@ namespace UnityEngine.Rendering.HighDefinition
         class SetGlobalBufferPassData
         {
             public int shaderID;
-            public ComputeBuffer buffer;
+            public GraphicsBuffer buffer;
         }
 
-        internal static void SetGlobalBuffer(RenderGraph renderGraph, int shaderID, ComputeBuffer buffer)
+        internal static void SetGlobalBuffer(RenderGraph renderGraph, int shaderID, GraphicsBuffer buffer)
         {
             using (var builder = renderGraph.AddRenderPass<SetGlobalBufferPassData>("SetGlobalBuffer", out var passData))
             {
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
 
-            if (CoreUtils.IsSceneFilteringEnabled())
+            if (hdCamera.CameraIsSceneFiltering())
                 clearColor.a = 0.0f;
 
             // Get the background color from preferences if preview camera

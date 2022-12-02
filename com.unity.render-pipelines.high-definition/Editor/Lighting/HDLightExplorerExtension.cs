@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [LightingExplorerExtensionAttribute(typeof(HDRenderPipelineAsset))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class HDLightExplorerExtension : DefaultLightingExplorerExtension
     {
         struct LightData
@@ -118,7 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTab("Reflection Probes", GetHDReflectionProbes, GetHDReflectionProbeColumns, true),
                 new LightingExplorerTab("Planar Reflection Probes", GetPlanarReflections, GetPlanarReflectionColumns, true),
                 new LightingExplorerTab("Light Probes", GetLightProbes, GetLightProbeColumns, true),
-                new LightingExplorerTab("Probe Volumes", GetProbeVolumes, GetProbeVolumeColumns, true),
                 new LightingExplorerTab("Emissive Materials", GetEmissives, GetEmissivesColumns, false)
             };
         }
@@ -187,11 +186,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return volumes;
         }
 
-        protected internal virtual UnityEngine.Object[] GetProbeVolumes()
-        {
-            return Resources.FindObjectsOfTypeAll<ProbeVolume>();
-        }
-
         protected virtual LightingExplorerTableColumn[] GetHDLightColumns()
         {
             return new[]
@@ -244,7 +238,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Sometimes during scene transition, the target object can be null, causing exceptions.
                     using (new EditorGUI.DisabledScope(prop.serializedObject.targetObject == null || !prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue))
                     {
+                        EditorGUI.BeginChangeCheck();
                         EditorGUI.PropertyField(r, prop, GUIContent.none);
+                        if (EditorGUI.EndChangeCheck())
+                            TemperatureSliderUIDrawer.ClampValue(prop);
                     }
                 }, (lprop, rprop) =>
                     {
@@ -297,10 +294,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         return;
                     }
 
-                    LightUnit unit = lightData.lightUnit;
-
                     EditorGUI.BeginChangeCheck();
-                    unit = (LightUnit)EditorGUI.EnumPopup(r, unit);
+
+                    LightUnit unit = lightData.lightUnit;
+                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.type, lightData.spotLightShape);
+
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(lightData, "Changed light unit");
@@ -785,11 +783,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         int lightlayersMask = (int)lightData.lightlayersMask;
 
                         EditorGUI.BeginChangeCheck();
-                        lightlayersMask = HDEditorUtils.DrawLightLayerMask(r, lightlayersMask);
+                        lightlayersMask = HDEditorUtils.DrawRenderingLayerMask(r, lightlayersMask);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(lightData, "Changed light layer");
-                            lightData.lightlayersMask = (LightLayerEnum)lightlayersMask;
+                            lightData.lightlayersMask = (RenderingLayerMask)lightlayersMask;
                         }
                     }
                 }, (lprop, rprop) =>
@@ -1137,117 +1135,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Enabled, "m_Enabled", 60),                      // 0: Enabled
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                   // 1: Name
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Weight, "m_ProbeSettings.lighting.weight", 60),    // 2: Weight
-            };
-        }
-
-        protected internal virtual LightingExplorerTableColumn[] GetProbeVolumeColumns()
-        {
-            return new[]
-            {
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                       // 0: Name
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.DrawProbes, "parameters", 35, (r, prop, dep) =>       // 1: Draw Probes
-                {
-                    SerializedProperty drawProbes = prop.FindPropertyRelative("drawProbes");
-                    EditorGUI.PropertyField(r, drawProbes, GUIContent.none);
-                }, (lhs, rhs) =>
-                    {
-                        return lhs.FindPropertyRelative("drawProbes").boolValue.CompareTo(rhs.FindPropertyRelative("drawProbes").boolValue);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("drawProbes").boolValue = source.FindPropertyRelative("drawProbes").boolValue;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Color, HDStyles.DebugColor, "parameters", 75, (r, prop, dep) =>       // 2: Debug Color
-                {
-                    SerializedProperty debugColor = prop.FindPropertyRelative("debugColor");
-                    EditorGUI.PropertyField(r, debugColor, GUIContent.none);
-                }, (lhs, rhs) =>
-                    {
-                        float lh, ls, lv, rh, rs, rv;
-                        Color.RGBToHSV(lhs.FindPropertyRelative("debugColor").colorValue, out lh, out ls, out lv);
-                        Color.RGBToHSV(rhs.FindPropertyRelative("debugColor").colorValue, out rh, out rs, out rv);
-                        return lh.CompareTo(rh);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("debugColor").colorValue = source.FindPropertyRelative("debugColor").colorValue;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionX, "parameters", 75, (r, prop, dep) =>      // 3: Resolution X
-                {
-                    SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
-
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUI.PropertyField(r, resolutionX, GUIContent.none);
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        resolutionX.intValue = Mathf.Max(1, resolutionX.intValue);
-                    }
-                }, (lhs, rhs) =>
-                    {
-                        return lhs.FindPropertyRelative("resolutionX").intValue.CompareTo(rhs.FindPropertyRelative("resolutionX").intValue);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("resolutionX").intValue = source.FindPropertyRelative("resolutionX").intValue;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionY, "parameters", 75, (r, prop, dep) =>      // 4: Resolution Y
-                {
-                    SerializedProperty resolutionY = prop.FindPropertyRelative("resolutionY");
-
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUI.PropertyField(r, resolutionY, GUIContent.none);
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
-                        resolutionY.intValue = Mathf.Max(1, resolutionY.intValue);
-                    }
-                }, (lhs, rhs) =>
-                    {
-                        return lhs.FindPropertyRelative("resolutionY").intValue.CompareTo(rhs.FindPropertyRelative("resolutionY").intValue);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("resolutionY").intValue = source.FindPropertyRelative("resolutionY").intValue;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
-                {
-                    SerializedProperty resolutionZ = prop.FindPropertyRelative("resolutionZ");
-
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUI.PropertyField(r, resolutionZ, GUIContent.none);
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
-                        resolutionZ.intValue = Mathf.Max(1, resolutionZ.intValue);
-                    }
-                }, (lhs, rhs) =>
-                    {
-                        return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("resolutionZ").intValue = source.FindPropertyRelative("resolutionZ").intValue;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeStart, "parameters", 65, (r, prop, dep) =>        // 6: Distance Fade Start
-                {
-                    SerializedProperty distanceFadeStart = prop.FindPropertyRelative("distanceFadeStart");
-                    EditorGUI.PropertyField(r, distanceFadeStart, GUIContent.none);
-                }, (lhs, rhs) =>
-                    {
-                        return lhs.FindPropertyRelative("distanceFadeStart").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeStart").floatValue);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("distanceFadeStart").floatValue = source.FindPropertyRelative("distanceFadeStart").floatValue;
-                    }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeEnd, "parameters", 65, (r, prop, dep) =>          // 7: Distance Fade End
-                {
-                    SerializedProperty distanceFadeEnd = prop.FindPropertyRelative("distanceFadeEnd");
-                    EditorGUI.PropertyField(r, distanceFadeEnd, GUIContent.none);
-                }, (lhs, rhs) =>
-                    {
-                        return lhs.FindPropertyRelative("distanceFadeEnd").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeEnd").floatValue);
-                    }, (target, source) =>
-                    {
-                        target.FindPropertyRelative("distanceFadeEnd").floatValue = source.FindPropertyRelative("distanceFadeEnd").floatValue;
-                    })
             };
         }
 

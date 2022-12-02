@@ -1,40 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Jobs;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>Decal Layers.</summary>
-    [Flags]
-    public enum DecalLayerEnum
-    {
-        /// <summary>The light will no affect any object.</summary>
-        Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Decal Layer 0.</summary>
-        DecalLayerDefault = 1 << 0,
-        /// <summary>Decal Layer 1.</summary>
-        DecalLayer1 = 1 << 1,
-        /// <summary>Decal Layer 2.</summary>
-        DecalLayer2 = 1 << 2,
-        /// <summary>Decal Layer 3.</summary>
-        DecalLayer3 = 1 << 3,
-        /// <summary>Decal Layer 4.</summary>
-        DecalLayer4 = 1 << 4,
-        /// <summary>Decal Layer 5.</summary>
-        DecalLayer5 = 1 << 5,
-        /// <summary>Decal Layer 6.</summary>
-        DecalLayer6 = 1 << 6,
-        /// <summary>Decal Layer 7.</summary>
-        DecalLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
-        Everything = 0xFF, // Custom name for "Everything" option
-    }
-
     partial class DecalSystem
     {
         // Relies on the order shader passes are declared in Decal.shader and DecalSubTarget.cs
@@ -466,12 +437,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? data.drawDistance
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
-                // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
-                // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
-                // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2
-                // Do a remap in the shader. 1.0 - saturate((x - start) / (end - start))
-                // After simplification => saturate(a + b * dot() * (dot() - 2.0))
-                // a = 1.0 - (0.25 - start) / (end - start), y = - 0.25 / (end - start)
+                // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 = 0 degree and 1 = 180 degree)
+                // Approximate acos with polynom: (-0.69 * x^2 - 0.87) * x + HALF_PI;
+                // Remap result to angle fade range => 1 - saturate((acos/PI - start)/(end - start))
+                // Merging both equations above give:
+                // saturate((a * x^2 + b) * x + c)
+                // a = 0.69 / (PI * (end - start))
+                // b = 0.87 / (PI * (end - start))
+                // c = 1 + (start - 0.5) / (end - start) = (end - 0.5) / (end - start)
+                // Note that b = 1.25 * a
+                // Final result: saturate((x * x + 1.25) * x * a + c) -> madd mul madd
+                // WARNING: this code is duplicate in VFXDecalHDRPOutput.cs and in URP
                 if (data.startAngleFade == 180.0f) // angle fade is disabled
                 {
                     m_CachedAngleFade[index].x = 0.0f;
@@ -481,9 +457,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float angleStart = data.startAngleFade / 180.0f;
                     float angleEnd = data.endAngleFade / 180.0f;
-                    var range = Mathf.Max(0.0001f, angleEnd - angleStart);
-                    m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
-                    m_CachedAngleFade[index].y = -0.25f / range;
+                    float range = Mathf.Max(0.0001f, angleEnd - angleStart);
+                    m_CachedAngleFade[index].x = 0.222222222f / range;
+                    m_CachedAngleFade[index].y = (angleEnd - 0.5f) / range;
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
@@ -499,7 +475,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateCachedDrawOrder()
             {
-                if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
+                // Material can be null here if it was destroyed.
+                if (m_Material != null && this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                 {
                     m_CachedDrawOrder = this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                 }
@@ -835,6 +812,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            public bool HasEmissivePass
+            {
+                get
+                {
+                    return m_cachedProjectorEmissivePassValue != -1;
+                }
+            }
+
             public int DrawOrder => m_CachedDrawOrder;
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
@@ -852,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private bool[] m_CachedAffectsTransparency = new bool[kDecalBlockSize];
             private int[] m_CachedLayerMask = new int[kDecalBlockSize];
-            private DecalLayerEnum[] m_CachedDecalLayerMask = new DecalLayerEnum[kDecalBlockSize];
+            private RenderingLayerMask[] m_CachedDecalLayerMask = new RenderingLayerMask[kDecalBlockSize];
             private ulong[] m_CachedSceneLayerMask = new ulong[kDecalBlockSize];
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
             private Material m_Material;
@@ -860,7 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector4 m_ScalingBAndRemappingM; // mask map blue, metal remap
+            private Vector4 m_ScalingBAndRemappingM; // unused, mask map blue, metal remap min, metal remap max
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;
@@ -985,6 +970,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DecalsVisibleThisFrame = QueryCullResults(cullRequest, cullResults);
             foreach (var pair in m_DecalSets)
                 pair.Value.EndCull(cullRequest[pair.Key]);
+        }
+
+        public bool HasAnyForwardEmissive()
+        {
+            foreach (var decalSet in m_DecalSetsRenderList)
+            {
+                if (decalSet.HasEmissivePass)
+                    return true;
+            }
+            return false;
         }
 
         public void RenderIntoDBuffer(CommandBuffer cmd)
@@ -1129,11 +1124,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas = null;
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, DebugOverlay debugOverlay)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, Rendering.DebugOverlay debugOverlay)
         {
-            debugOverlay.SetViewport(cmd);
+            cmd.SetViewport(debugOverlay.Next());
             HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
-            debugOverlay.Next();
         }
 
         public void LoadCullResults(CullResult cullResult)

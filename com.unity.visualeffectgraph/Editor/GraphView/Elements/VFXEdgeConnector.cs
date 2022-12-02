@@ -21,6 +21,12 @@ namespace UnityEditor.VFX.UI
             m_Anchor = anchor;
         }
 
+        protected override void RegisterCallbacksOnTarget()
+        {
+            if (!m_Anchor.controller.isSubgraphActivation)
+                base.RegisterCallbacksOnTarget();
+        }
+
         protected override void OnMouseMove(MouseMoveEvent e)
         {
             base.OnMouseMove(e);

@@ -1,6 +1,6 @@
-namespace UnityEditor.ShaderGraph.Configuration
+namespace UnityEditor.ShaderGraph
 {
-    public interface ITargetProvider
+    internal interface ITargetProvider
     {
     }
 }

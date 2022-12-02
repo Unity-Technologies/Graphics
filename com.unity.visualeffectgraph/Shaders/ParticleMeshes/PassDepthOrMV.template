@@ -17,7 +17,7 @@ struct ps_input
 	#if USE_FLIPBOOK_ARRAY_LAYOUT
 	float3 uv : TEXCOORD0;
 	#else
-	float2 uv : TEXCOORD0;	
+	float2 uv : TEXCOORD0;
 	#endif
 	#endif
     #if VFX_SHADERGRAPH_HAS_UV1
@@ -38,17 +38,17 @@ struct ps_input
 	// z: alpha
 	nointerpolation float3 builtInInterpolants : TEXCOORD4;
 	#endif
-	
+
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vectors scale X
 	// y: motion vectors scale Y
 	nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 	#endif
-    
+
     #if VFX_NEEDS_POSWS_INTERPOLATOR
 	float3 posWS : TEXCOORD6;
     #endif
-	
+
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(7,8)
 	#endif
@@ -61,8 +61,10 @@ struct ps_input
     #if NEEDS_TANGENT
     float4 tangent : TEXCOORD10;
     #endif
-	
+
 	UNITY_VERTEX_OUTPUT_STEREO
+
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 };
 
 #define VFX_VARYING_PS_INPUTS ps_input

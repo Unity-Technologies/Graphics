@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering
 {
@@ -35,6 +36,11 @@ namespace UnityEditor.Rendering
         {
             const string relativePath = "New Lens Flare (SRP).asset";
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<LensFlareDataSRPCreator>(), relativePath, Icons.generic, null);
+        }
+
+        internal static LensFlareDataSRP CreateLensFlareDataSRPAsset(Scene scene, string targetName)
+        {
+            return CoreEditorUtils.CreateAssetAt<LensFlareDataSRP>(scene, targetName);
         }
 
         #endregion

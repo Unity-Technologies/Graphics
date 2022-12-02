@@ -57,5 +57,46 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="props">The list of properties in the inspected material(s).</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
+
+        /// <summary>
+        /// Override the material preview GUI.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="r">Preview rect.</param>
+        /// <param name="background">Style for the background.</param>
+        public override void OnMaterialPreviewGUI(MaterialEditor materialEditor, Rect r, GUIStyle background)
+        {
+            List<DiffusionProfileSettings> overrides = new();
+            Material material = materialEditor.target as Material;
+            foreach (var nameID in HDMaterial.GetShaderDiffusionProfileProperties(material.shader))
+            {
+                if (!material.HasProperty(nameID))
+                    continue;
+
+                var diffusionProfile = HDMaterial.GetDiffusionProfileAsset(material, nameID);
+                if (diffusionProfile != null)
+                    overrides.Add(diffusionProfile);
+                if (overrides.Count >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
+                    break;
+            }
+
+            var profiles = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList;
+            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = overrides.ToArray();
+
+            materialEditor.DefaultPreviewGUI(r, background);
+
+            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = profiles;
+        }
+
+        /// <summary>
+        /// Override the material interactive preview GUI.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="r">Preview rect.</param>
+        /// <param name="background">Style for the background.</param>
+        public override void OnMaterialInteractivePreviewGUI(MaterialEditor materialEditor, Rect r, GUIStyle background)
+        {
+            OnMaterialPreviewGUI(materialEditor, r, background);
+        }
     }
 }

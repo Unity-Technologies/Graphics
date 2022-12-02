@@ -24,6 +24,8 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    #define FORCE_VIRTUAL_TEXTURING_OFF 1
+
     // For custom interpolators to inject a substruct definition before FragInputs definition,
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
@@ -32,6 +34,7 @@ Pass
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Decals do not support VT but we need to include it to avoid compilation error
 
     // Defines
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL

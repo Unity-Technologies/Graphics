@@ -1,9 +1,12 @@
 #pragma kernel RaytracingAreaShadowPrepass
 #pragma kernel RaytracingAreaShadowNewSample
 #pragma kernel RaytracingDirectionalShadowSample
-#pragma kernel RaytracingPointShadowSample
-#pragma kernel RaytracingSpotShadowSample
+
+#pragma kernel RaytracingPointShadowSample SEGMENT_SHADOW_SAMPLE=RaytracingPointShadowSample POINT_LIGHT
+#pragma kernel RaytracingSpotShadowSample SEGMENT_SHADOW_SAMPLE=RaytracingSpotShadowSample SPOT_LIGHT
+
 #pragma kernel ClearShadowTexture
+
 #pragma kernel OutputShadowTexture OUTPUT_SHADOW_TEXTURE=OutputShadowTexture
 #pragma kernel OutputColorShadowTexture OUTPUT_SHADOW_TEXTURE=OutputColorShadowTexture COLOR_SHADOW
 #pragma kernel OutputSpecularShadowTexture OUTPUT_SHADOW_TEXTURE=OutputSpecularShadowTexture SPECULAR_SHADOW
@@ -20,8 +23,6 @@
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_RAYTRACING
-
-#pragma only_renderers d3d11 ps5
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -40,8 +41,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalSphere.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalCone.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RayTracingShadowUtilities.hlsl"
 
-#pragma only_renderers d3d11 ps5
+#pragma only_renderers d3d11 xboxseries ps5
+
 // #pragma enable_d3d11_debug_symbols
 
 // Tile size of this compute
@@ -50,9 +53,6 @@
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
-
-// The target area light to raytrace
-uint _RaytracingTargetAreaLight;
 
 // Flag value that defines if a given pixel is deferred or not
 TEXTURE2D_X_UINT2(_StencilTexture);
@@ -84,7 +84,8 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || (stencilValue & STENCILUSAGE_IS_UNLIT) != 0)
         return;
 
     // Compute the position input structure
@@ -94,8 +95,8 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     // Compute the view vector on the surface
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-    // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    // Fetch the data of the light
+    LightData lightData = _LightDatas[_RaytracingTargetLight];
 
     // Compute the current sample index
     uint globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples;
@@ -109,9 +110,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 outputPosition = float3(0.0, 0.0, 0.0);
 
     // Does this pixel have SSS?
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
     bool pixelIsDeferred = (stencilValue & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) != 0;
-
     if (pixelIsDeferred)
     {
         // Let's now decode the BSDF data from the  gbuffer
@@ -168,9 +167,8 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
         // Compute the non-occluded analytic luminance value
         float U = clamp(Luminance(lighting.diffuse + lighting.specular) * GetCurrentExposureMultiplier(), 0.0, AREA_SHADOW_CLAMP_VALUE);
 
-
         // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
-        lightData = _LightDatas[_RaytracingTargetAreaLight];
+        lightData = _LightDatas[_RaytracingTargetLight];
 
         // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
         if (U < ANALYTIC_RADIANCE_THRESHOLD || !EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
@@ -297,7 +295,8 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].x < 0.0)
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || (stencilValue & STENCILUSAGE_IS_UNLIT) != 0 || _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].x < 0.0)
     {
         _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
         return;
@@ -311,8 +310,8 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Compute the view vector on the surface
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
-    // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    // Fetch the data of the light
+    LightData lightData = _LightDatas[_RaytracingTargetLight];
 
     // Compute the current sample index
     uint globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
@@ -326,9 +325,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 outputPosition = float3(0.0, 0.0, 0.0);
 
     // Does this pixel have SSS?
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
     bool pixelIsDeferred = (stencilValue & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) != 0;
-
     if (pixelIsDeferred)
     {
         // Let's now decode the BSDF data from the  gbuffer
@@ -481,8 +478,12 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || (stencilValue & STENCILUSAGE_IS_UNLIT) != 0)
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0);
         return;
+    }
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
@@ -494,7 +495,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // Convert this to a world space position
     float3 positionWS = posInput.positionWS;
 
-    // Fetch the data of the area light
+    // Fetch the data of the light
     DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
 
     // Compute the current sample index
@@ -517,21 +518,29 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
 }
 
-// Radius of the sphere used to case a soft shadow
-float _RaytracingLightRadius;
-
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void SEGMENT_SHADOW_SAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
 
-    // Read the depth value
+    // Read the depth value and if this is a background pixel, early exit
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_BLACK_PDF);
         return;
+    }
+
+    // Read the stencil value, and if this is unlit, early exit.
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & STENCILUSAGE_IS_UNLIT) != 0)
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_WHITE_PDF);
+        return;
+    }
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
@@ -541,16 +550,34 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _LightDatas[_RaytracingTargetLight];
 
-    // If the point is inside the sphere, it will be visible
-    float3 dir = (lightData.positionRWS - posInput.positionWS);
-    float dist2 = dot(dir, dir);
+    // Evaluate the distance of the point to the light
+    float dist2 = DistSqrToLight(lightData, posInput.positionWS);
+
+    // If the point is inside the volume of the light, we will consider it as a non occlusion.
     if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
     {
-        _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_WHITE_PDF);
         return;
     }
+
+    // If the point is inside the culling region of the light, we need to skip
+    #if POINT_LIGHT
+    if (!PositionInPointRange(lightData, dist2))
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_WHITE_PDF);
+        return;
+    }
+    #endif
+
+    #if SPOT_LIGHT
+    if (!PositionInSpotRange(lightData, _RaytracingLightAngle, posInput.positionWS, dist2))
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_BLACK_PDF);
+        return;
+    }
+    #endif
 
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
@@ -560,11 +587,16 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
     noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
+    // Generate the sample
     float3 lightPosition = float3(0.0, 0.0, 0.0);
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
+        #if POINT_LIGHT
         SampleSphericalSphere(lightData.positionRWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y, posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
+        #elif SPOT_LIGHT
+        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, _RaytracingLightAngle, noiseValue.x, noiseValue.y, posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
+        #endif
     }
     else
     {
@@ -577,89 +609,10 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     rayDirection = rayDirection / rayLength;
 
     // If the normal of this pixel cannot face the light, we invalidate it
-    samplePDF = dot(normalData.normalWS, rayDirection) > 0.0 ? samplePDF : -1.0;
-
-    // If this pixel is beyond the range of the light, we invalidate it
-    samplePDF = dist2 < (lightData.range * lightData.range) ? samplePDF : -2.0;
+    float finalPDF = dot(normalData.normalWS, rayDirection) > 0.0 ? samplePDF : POINT_BACK_FACE_PDF;
 
     // Output the direction to the target uav
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
-    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
-}
-
-float _RaytracingSpotAngle;
-
-[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Compute the pixel position to process
-    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
-
-    // Read the depth value
-    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
-        return;
-
-    // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-
-    // Decode the world space normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(currentCoord, normalData);
-
-    // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
-
-    // If the point is inside the sphere, it will be visible
-    float3 dir = (lightData.positionRWS - posInput.positionWS);
-    float dist2 = dot(dir, dir);
-    if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
-    {
-        _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
-        return;
-    }
-
-    // Compute the current sample index
-    int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
-
-    // Generate the new sample (follwing values of the sequence)
-    float2 noiseValue;
-    noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
-    noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
-
-    // If the radius is big enough, generate a new sample
-    float3 lightPosition = float3(0.0, 0.0, 0.0);
-    float samplePDF = 1.0;
-    if (_RaytracingLightRadius > 0.001)
-    {
-        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward,
-            _RaytracingSpotAngle,
-            noiseValue.x, noiseValue.y,
-            posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
-    }
-    else
-    {
-        lightPosition = lightData.positionRWS;
-    }
-
-    // Compute the ray length and ray direction
-    float3 rayDirection = lightPosition - posInput.positionWS;
-    float rayLength = length(rayDirection);
-    rayDirection = rayDirection / rayLength;
-
-    // If the direction is going out of the cone, we invalidate this ray (to avoid casting useless rays)
-    samplePDF = dot(-rayDirection, lightData.forward) > cos(_RaytracingSpotAngle * 0.5f) ? samplePDF : -2.0;
-
-    // If the normal of this pixel cannot face the light, we invalidate it
-    samplePDF = dot(normalData.normalWS, rayDirection) > 0.0 ? samplePDF : -1.0;
-
-    // If this pixel is beyond the range of the light, we invalidate it
-    samplePDF = dist2 < (lightData.range * lightData.range) ? samplePDF : -2.0;
-
-    // Output the direction to the target uav
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, finalPDF);
     _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
 }
 
@@ -676,10 +629,6 @@ void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 }
 
 // Slot in which a shadow texture should be copied
-int _RaytracingShadowSlot;
-float4 _RaytracingChannelMask;
-float4 _RaytracingChannelMask0;
-float4 _RaytracingChannelMask1;
 RWTexture2DArray<float4>     _ScreenSpaceShadowsTextureRW;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]

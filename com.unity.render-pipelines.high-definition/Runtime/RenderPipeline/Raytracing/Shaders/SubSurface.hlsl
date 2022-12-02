@@ -105,7 +105,7 @@ void ScatteringWalk(float3 normalWS, float3 diffuseColor, float3 subSurfaceColor
         {
             // If we just started the walk, the surface is considered back-Lambertian
             internalRayDesc.Direction = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -normalWS));
-            internalRayDesc.Origin = positionWS - normalWS * _RaytracingRayBias;
+            internalRayDesc.Origin = positionWS - normalWS * _RayTracingRayBias;
         }
 
         // Initialize the intersection data

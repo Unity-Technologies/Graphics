@@ -10,5 +10,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         NeverMigrated = 0,
         FirstTimeMigration,
+        MaterialType,
     }
 }

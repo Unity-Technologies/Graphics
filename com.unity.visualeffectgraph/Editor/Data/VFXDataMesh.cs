@@ -33,8 +33,7 @@ namespace UnityEditor.VFX
             {
                 m_Shader = value;
                 DestroyCachedMaterial();
-                if (m_Shader != null)
-                    m_ShaderName = m_Shader.name;
+                m_ShaderName = m_Shader != null ? m_Shader.name : null;
             }
         }
 
@@ -173,6 +172,16 @@ namespace UnityEditor.VFX
                 type = VFXSystemType.Mesh,
                 layer = uint.MaxValue,
             });
+        }
+        public override void Sanitize(int version)
+        {
+            if (shader == null && m_ShaderName == "Hidden/Default StaticMeshOutput")
+            {
+                shader = VFXResources.defaultResources.shader;
+                owners.OfType<VFXStaticMeshOutput>().First().Invalidate(InvalidationCause.kSettingChanged);
+            }
+
+            base.Sanitize(version);
         }
 
         public override void GenerateAttributeLayout(Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)

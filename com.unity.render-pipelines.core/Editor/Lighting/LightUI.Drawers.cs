@@ -19,9 +19,16 @@ namespace UnityEditor.Rendering
             if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
             {
                 // Use the color temperature bool to create a popup dropdown to choose between the two modes.
-                var colorTemperaturePopupValue = Convert.ToInt32(serialized.settings.useColorTemperature.boolValue);
-                colorTemperaturePopupValue = EditorGUILayout.Popup(Styles.lightAppearance, colorTemperaturePopupValue, Styles.lightAppearanceOptions);
-                serialized.settings.useColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
+
+                var serializedUseColorTemperature = serialized.settings.useColorTemperature;
+                using (var check = new EditorGUI.ChangeCheckScope())
+                using (new EditorGUI.MixedValueScope(serializedUseColorTemperature.hasMultipleDifferentValues))
+                {
+                    var colorTemperaturePopupValue = Convert.ToInt32(serializedUseColorTemperature.boolValue);
+                    colorTemperaturePopupValue = EditorGUILayout.Popup(Styles.lightAppearance, colorTemperaturePopupValue, Styles.lightAppearanceOptions);
+                    if(check.changed)
+                        serializedUseColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
+                }
 
                 if (serialized.settings.useColorTemperature.boolValue)
                 {

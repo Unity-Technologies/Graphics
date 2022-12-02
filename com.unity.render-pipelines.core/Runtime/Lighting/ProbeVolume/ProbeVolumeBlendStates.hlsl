@@ -1,16 +1,7 @@
 #ifndef BLEND_STATES
-# define BLEND_STATES
+#define BLEND_STATES
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-
-#ifndef __BUILTINGIUTILITIES_HLSL__
-// We don't need this.
-real3 EvaluateAmbientProbe(real3 normalWS)
-{
-    return 0;
-}
-#endif
-
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 struct APVResourcesRW

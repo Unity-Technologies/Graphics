@@ -1,22 +1,20 @@
 Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers gles
         #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
+        #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
-
-        TEXTURE2D_X(_SourceTex);
 
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
@@ -27,7 +25,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         float4 _Dithering_Params;
 
         #if SHADER_TARGET >= 45
-            #define FSR_INPUT_TEXTURE _SourceTex
+            #define FSR_INPUT_TEXTURE _BlitTexture
             #define FSR_INPUT_SAMPLER sampler_LinearClamp
 
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
@@ -41,16 +39,16 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #define DitheringScale          _Dithering_Params.xy
         #define DitheringOffset         _Dithering_Params.zw
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragFinalPost(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
             float2 positionNDC = uv;
             int2   positionSS  = uv * _SourceSize.xy;
 
             #if _POINT_SAMPLING
-            half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv).xyz;
             #elif _RCAS && SHADER_TARGET >= 45
             half3 color = ApplyRCAS(positionSS);
             // When Unity is configured to use gamma color encoding, we must convert back from linear after RCAS is performed.
@@ -59,18 +57,18 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             color = GetLinearToSRGB(color);
             #endif
             #else
-            half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv).xyz;
             #endif
 
             #if _FXAA
             {
-                color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _SourceTex);
+                color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _BlitTexture);
             }
             #endif
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, positionNDC, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+                color = ApplyGrain(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
             #endif
 
@@ -82,7 +80,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, positionNDC, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
             }
             #endif
 
@@ -115,8 +113,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             Name "FinalPost"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
-                #pragma fragment Frag
+                #pragma vertex Vert
+                #pragma fragment FragFinalPost
                 #pragma target 4.5
             ENDHLSL
         }
@@ -134,8 +132,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             Name "FinalPost"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
-                #pragma fragment Frag
+                #pragma vertex Vert
+                #pragma fragment FragFinalPost
             ENDHLSL
         }
     }

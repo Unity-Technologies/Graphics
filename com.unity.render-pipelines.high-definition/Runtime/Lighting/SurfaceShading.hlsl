@@ -20,7 +20,7 @@ bool ShouldEvaluateThickObjectTransmission(float3 V, float3 L, PreLightData preL
     // However, this will take a lot more CPU time than doing the same thing using
     // the preprocessor.
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT) &&
-           (shadowIndex >= 0.0) && (NdotL < 0.0);
+           (shadowIndex >= 0) && (NdotL < 0.0);
 #else
     return false;
 #endif
@@ -83,7 +83,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         lightColor.rgb *= lightColor.a; // Composite
 
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
-        if (ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
+        if (ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, 0))
         {
             // Transmission through thick objects does not support shadowing
             // from directional lights. It will use the 'baked' transmittance value.
@@ -136,7 +136,7 @@ float3 EvaluateTransmittance_Punctual(LightLoopContext lightLoopContext,
     // TODO: SHADOW BIAS.
     float distBackFaceToLight = GetPunctualShadowClosestDistance(lightLoopContext.shadowContext, s_linear_clamp_sampler,
                                                                  posInput.positionWS, light.shadowIndex, L, light.positionRWS,
-                                                                 light.lightType == GPULIGHTTYPE_POINT);
+                                                                 light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
 
     // Our subsurface scattering models use the semi-infinite planar slab assumption.
     // Therefore, we need to find the thickness along the normal.

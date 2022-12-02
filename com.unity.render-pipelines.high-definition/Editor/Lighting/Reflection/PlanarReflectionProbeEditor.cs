@@ -8,7 +8,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditorForRenderPipeline(typeof(PlanarReflectionProbe), typeof(HDRenderPipelineAsset))]
+    [CustomEditor(typeof(PlanarReflectionProbe))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
@@ -64,11 +65,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
             var size = r.size / rowSize - space * (rowSize - 1);
 
-            previewMaterial.SetFloat("_ExposureBias", previewExposure);
-            previewMaterial.SetFloat("_MipLevel", mipLevelPreview);
-            // We don't have the Exposure texture in the inspector so we bind white instead.
-            previewMaterial.SetTexture("_Exposure", Texture2D.whiteTexture);
-
             for (var i = 0; i < m_PreviewedTextures.Count; i++)
             {
                 var row = i / rowSize;
@@ -80,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     size.y);
 
                 if (m_PreviewedTextures[i] != null)
-                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], previewMaterial, ScaleMode.ScaleToFit, 0, 1);
+                    EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], previewMaterial, ScaleMode.ScaleToFit, 0, mipLevelPreview, ColorWriteMask.All, previewExposure);
                 else
                     EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
             }

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -16,6 +17,9 @@ namespace UnityEditor.Rendering
         private const float kSliderbarMargin = 2.0f;
         private const float kSliderbarHeight = 28.0f;
 
+        //Value that used in LODSliderRange in normal background texture
+        private const float kLODSliderRangeModifier = 0.78824f;
+
         // Keep in sync with the ones in Debug.hlsl
         private static readonly Color[] kCascadeColors =
         {
@@ -32,7 +36,6 @@ namespace UnityEditor.Rendering
         private static GUIStyle s_HorizontalGradient = null; // Lazy init
         private static GUIStyle s_UpSnatch = null; // Lazy init
         private static GUIStyle s_DownSnatch = null; // Lazy init
-        private static GUIStyle s_QuickSearchItemBackground = null; // Lazy init
         private static readonly GUIStyle s_CascadeSliderBG = "LODSliderRange"; // Using a LODGroup skin
         private static readonly GUIStyle s_TextCenteredStyle = new GUIStyle(EditorStyles.whiteMiniLabel)
         {
@@ -323,7 +326,9 @@ namespace UnityEditor.Rendering
             GUI.Box(rect, GUIContent.none, s_CascadeSliderBG);
 
             // Draw left color as gradient overlay
-            GUI.backgroundColor = leftColor;
+            // Tune the color of overlay gradient to reflect color darkening from s_CascadeSliderBG (LODSliderRange) style which use AnimationRowOdd (LightSkin) texture for that
+            GUI.backgroundColor = RGBMultiplied(kLODSliderRangeModifier, leftColor);
+
             GUI.Box(rect, GUIContent.none, s_HorizontalGradient);
 
             GUI.backgroundColor = cachedColor;
@@ -376,9 +381,6 @@ namespace UnityEditor.Rendering
                 snatch.Draw(rect, false, false, false, false);
 
                 GUI.backgroundColor = cachedColor;
-
-                // Marks rect as hot region, this will enable hover events
-                MarkHotRegion(rect, sliderControlId);
             }
 
             float delta = 0;
@@ -446,32 +448,6 @@ namespace UnityEditor.Rendering
             return delta;
         }
 
-        private static void MarkHotRegion(Rect rect, int controlId)
-        {
-            // This code enables repaint events to be called on hover.
-            // There is a lot of tribal knowledge behind it, so I will try to explain it here.
-            //
-            // Currently IMGUI has two modes of rendering.
-            //
-            // Old one that is identified if any backgroundTexture is set not to null (for example GUIStyle.normal.backgroundTexture).
-            // Old system does not handle hover event and it must be implemented differently.
-            //
-            // New one is somewhat transition from IMGUI to UIElements that supports subset of its functionality part of it is hovering.
-            // When GUIStyle has no textures set it assumes new system should be used.
-            // The reason it works like that to make our internal styles to use new system and keep old IMGUI code working like it was before.
-            //
-            // Hover functionality can be achieved with method UnityEditor.GUIView.MarkHotRegion.
-            // However it is currently internal, so we workaround this behavior by creating new system IMGUI element quick search that has no visuals.
-
-            if (s_QuickSearchItemBackground == null)
-            {
-                // We use quick search style which has no actual rendering, but provides us hovering
-                s_QuickSearchItemBackground = new GUIStyle();
-                s_QuickSearchItemBackground.name = "quick-search-item-background1";
-            }
-            s_QuickSearchItemBackground.Draw(rect, GUIContent.none, controlId, false, false);
-        }
-
         private static GUIStyle GetDownSnatchStyle()
         {
             if (s_DownSnatch == null)
@@ -509,6 +485,12 @@ namespace UnityEditor.Rendering
             }
 
             return s_UpSnatch;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static Color RGBMultiplied(float multiplier, Color color)
+        {
+            return new Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, color.a);
         }
     }
 }

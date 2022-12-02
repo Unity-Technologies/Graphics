@@ -8,7 +8,7 @@ In the Universal Render Pipeline (URP), Camera clearing behavior depends on the 
 
 #### Color buffer
 
-At the start of its render loop, a [Base Camera](camera-types-and-render-type.md#base-camera) can clear its color buffer to a Skybox, clear its color buffer to a solid color, or use an uninitialized color buffer. You can choose this behavior using the __Background Type__ property in the [Base Camera Inspector](camera-component-reference.md#base-camera).
+At the start of its render loop, a Camera with the [Base Render Type](camera-types-and-render-type.md) can clear its color buffer to a Skybox, clear its color buffer to a solid color, or use an uninitialized color buffer. You can define this behavior using the __Background Type__ property in the [Camera Inspector](camera-component-reference.md) when **Render Type** is set to **Base**.
 
 Note that the contents of the uninitialized color buffer vary by platform. On some platforms, the unitialized color buffer will contain data from the previous frame. On other platforms, the unitialized color buffer will contain unintialized memory. You should choose to use an unitialized color buffer only if your Camera draws to every pixel in the color buffer, and you do not wish to incur the cost of an unnecessary clear operation.
 
@@ -24,7 +24,7 @@ At the start of its render loop, an [Overlay Camera](camera-types-and-render-typ
 
 #### Depth buffer
 
-At the start of its render loop, an Overlay Camera receives a depth buffer containing depth data from the previous Cameras in the Camera Stack. You can choose this behavior using the __Clear Depth__ property in the [Overlay Camera Inspector](camera-component-reference.md#overlay-camera).
+At the start of its render loop, an Overlay Camera receives a depth buffer containing depth data from the previous Cameras in the Camera Stack. You can define this behavior using the __Clear Depth__ property in the [Camera Inspector](camera-component-reference.md) when **Render Type** is set to **Overlay**.
 
 When __Clear Depth__ is set to true, the Overlay Camera clears the depth buffer and draws its view to the color buffer on top of any existing color data. When __Clear Depth__ is set to false, the Overlay Camera tests against the depth buffer before drawing its view to the color buffer.
 

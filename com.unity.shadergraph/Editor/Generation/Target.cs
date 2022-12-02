@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEditor.ShaderGraph.Configuration;
 
 namespace UnityEditor.ShaderGraph
 {

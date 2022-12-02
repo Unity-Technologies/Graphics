@@ -41,9 +41,14 @@ namespace UnityEngine.Rendering
             Action<IDebugDisplaySettingsData> onExecute = (data) =>
             {
                 IDebugDisplaySettingsPanelDisposable disposableSettingsPanel = data.CreatePanel();
+
                 DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
-                string panelId = disposableSettingsPanel.PanelName;
-                DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
+
+                DebugUI.Panel panel = debugManager.GetPanel(
+                    displayName: disposableSettingsPanel.PanelName,
+                    createIfNull: true,
+                    groupIndex: (disposableSettingsPanel is DebugDisplaySettingsPanel debugDisplaySettingsPanel) ? debugDisplaySettingsPanel.Order : 0);
+
                 ObservableList<DebugUI.Widget> panelChildren = panel.children;
 
                 panel.flags = disposableSettingsPanel.Flags;

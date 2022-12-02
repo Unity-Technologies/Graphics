@@ -38,11 +38,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    class CoordinateSpaceInfo
-    {
-        public static readonly int SpaceCount = Enum.GetValues(typeof(VFXCoordinateSpace)).Length;
-    }
-
     [VFXType(VFXTypeAttribute.Usage.Default, "Circle"), Serializable]
     struct TCircle
     {
@@ -101,7 +96,7 @@ namespace UnityEditor.VFX
         public static TSphere defaultValue = new TSphere { transform = Transform.defaultValue, radius = 1.0f };
     }
 
-    [VFXType(VFXTypeAttribute.Usage.Default), Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Arc Sphere"), Serializable]
     struct TArcSphere
     {
         public TSphere sphere;

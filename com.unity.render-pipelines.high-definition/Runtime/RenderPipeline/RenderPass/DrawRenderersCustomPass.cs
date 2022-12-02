@@ -41,6 +41,24 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public SortingCriteria sortingCriteria = SortingCriteria.CommonOpaque;
 
+        /// <summary>
+        /// Select which type of override to apply on the DrawRenderers pass.
+        /// </summary>
+        public enum OverrideMaterialMode
+        {
+            /// <summary> Disable the material override </summary>
+            None,
+            /// <summary> Override the material for all renderers </summary>
+            Material,
+            /// <summary> Override the shader for all renderers. This option keeps the material properties of the renderer and can be used like a replacement shader. </summary>
+            Shader
+        };
+
+        /// <summary>
+        /// Controls how the material on each renderer will be replaced. Material mode uses overrideMaterial. Shader mode uses overrideShader.
+        /// </summary>
+        public OverrideMaterialMode overrideMode = OverrideMaterialMode.Material; //default to Material as this was previously the only option
+
         // Override material
         /// <summary>
         /// Replaces the material of selected renders by this one, be sure to also set overrideMaterialPassName to a good value when using this property.
@@ -52,6 +70,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Select which pass will be used to render objects when using an override material.
         /// </summary>
         public string overrideMaterialPassName = "Forward";
+
+        // Override shader
+        /// <summary>
+        /// Replaces the shader of selected renderers while using the current material properties.
+        /// </summary>
+        public Shader overrideShader = null;
+        [SerializeField]
+        int overrideShaderPassIndex = 0;
+        ///<summary>
+        /// Select whih pass will be used to render objects when using an override material.
+        /// </summary>
+        public string overrideShaderPassName = "Forward";
 
         /// <summary>
         /// When true, overrides the depth state of the objects.
@@ -132,6 +162,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // In case there was a pass index assigned, we retrieve the name of this pass
             if (String.IsNullOrEmpty(overrideMaterialPassName) && overrideMaterial != null)
                 overrideMaterialPassName = overrideMaterial.GetPassName(overrideMaterialPassIndex);
+            if (String.IsNullOrEmpty(overrideShaderPassName) && overrideShader != null)
+                overrideShaderPassName = new Material(overrideShader).GetPassName(overrideShaderPassIndex);
 
             forwardShaderTags = new ShaderTagId[]
             {
@@ -189,6 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var mask = overrideDepthState ? RenderStateMask.Depth : 0;
             mask |= overrideDepthState && !depthWrite ? RenderStateMask.Stencil : 0;
+            if (overrideStencil)
+                mask |= RenderStateMask.Stencil;
             var stateBlock = new RenderStateBlock(mask)
             {
                 depthState = new DepthState(depthWrite, depthCompareFunction),
@@ -198,6 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.GetBakedLightingWithShadowMaskRenderConfig() : HDUtils.GetBakedLightingRenderConfig();
+            var overrideShaderMaterial = (overrideShader != null) ? new Material(overrideShader) : null;
 
             var result = new RendererUtils.RendererListDesc(shaderPasses, ctx.cullingResults, ctx.hdCamera.camera)
             {
@@ -205,12 +240,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
                 sortingCriteria = sortingCriteria,
                 excludeObjectMotionVectors = false,
-                overrideMaterial = overrideMaterial,
+                overrideShader = overrideMode == OverrideMaterialMode.Shader ? overrideShader : null,
+                overrideMaterial = overrideMode == OverrideMaterialMode.Material ? overrideMaterial : null,
                 overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterial.FindPass(overrideMaterialPassName) : 0,
+                overrideShaderPassIndex = (overrideShader != null) ? overrideShaderMaterial.FindPass(overrideShaderPassName) : 0,
                 stateBlock = stateBlock,
                 layerMask = layerMask,
             };
 
+            Object.DestroyImmediate(overrideShaderMaterial);
             var renderCtx = ctx.renderContext;
             CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, renderCtx.CreateRendererList(result));
         }

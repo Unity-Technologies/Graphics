@@ -76,7 +76,11 @@ namespace UnityEditor.VFX.UI
             var newAnchors = new List<VFXDataAnchorController>();
 
             m_SyncingSlots = true;
-            bool changed = UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+            m_HasActivationAnchor = slotContainer.activationSlot != null;
+            bool changed = false;
+            if (m_HasActivationAnchor)
+                changed = UpdateSlots(newAnchors, new[] { slotContainer.activationSlot }, true, true);
+            changed |= UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
             NewInputSet(newAnchors);
 
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
@@ -144,6 +148,9 @@ namespace UnityEditor.VFX.UI
             get { return 0; }
         }
 
+        private bool m_HasActivationAnchor = false;
+        public bool HasActivationAnchor => m_HasActivationAnchor;
+
         bool m_SyncingSlots;
         public void DataEdgesMightHaveChanged()
         {
@@ -178,7 +185,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput, bool revertTypeConstraint = false)
         {
         }
 
@@ -281,24 +288,11 @@ namespace UnityEditor.VFX.UI
             return new Bounds();
         }
 
-        public virtual bool gizmoNeedsComponent
+        public virtual GizmoError GetGizmoError(VisualEffect component)
         {
-            get
-            {
-                if (m_GizmoedAnchor == null)
-                    return false;
-                return ((VFXDataAnchorController)m_GizmoedAnchor).gizmoNeedsComponent;
-            }
-        }
-
-        public virtual bool gizmoIndeterminate
-        {
-            get
-            {
-                if (m_GizmoedAnchor == null)
-                    return true;
-                return ((VFXDataAnchorController)m_GizmoedAnchor).gizmoIndeterminate;
-            }
+            return m_GizmoedAnchor is IGizmoError gizmoController
+                ? gizmoController.GetGizmoError(component)
+                : GizmoError.NotAvailable;
         }
 
         IGizmoable m_GizmoedAnchor;

@@ -106,8 +106,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public TextureHandle rayCountTexture;
 
-            public ComputeBufferHandle reducedRayCountBuffer0;
-            public ComputeBufferHandle reducedRayCountBuffer1;
+            public BufferHandle reducedRayCountBuffer0;
+            public BufferHandle reducedRayCountBuffer1;
 
             public ComputeBuffer reducedRayCountBufferOutput;
 
@@ -126,8 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
             data.rayCountTexture = builder.ReadTexture(rayCountTexture);
 
-            data.reducedRayCountBuffer0 = builder.CreateTransientComputeBuffer(new ComputeBufferDesc((int)RayCountValues.Count * 256 * 256, sizeof(uint)));
-            data.reducedRayCountBuffer1 = builder.CreateTransientComputeBuffer(new ComputeBufferDesc((int)RayCountValues.Count * 32 * 32, sizeof(uint)));
+            data.reducedRayCountBuffer0 = builder.CreateTransientBuffer(new BufferDesc((int)RayCountValues.Count * 256 * 256, sizeof(uint)));
+            data.reducedRayCountBuffer1 = builder.CreateTransientBuffer(new BufferDesc((int)RayCountValues.Count * 32 * 32, sizeof(uint)));
             data.reducedRayCountBufferOutput = m_ReducedRayCountBufferOutput;
 
             data.rayCountCS = m_RayCountCS;

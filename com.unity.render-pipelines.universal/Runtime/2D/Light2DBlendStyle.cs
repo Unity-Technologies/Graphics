@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// Controls how the light texture is used when rendering Sprites and other 2D renderers.
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
     public struct Light2DBlendStyle
     {
         internal enum TextureChannel

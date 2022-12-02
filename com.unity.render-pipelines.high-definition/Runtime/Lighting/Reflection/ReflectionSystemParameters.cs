@@ -10,8 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxPlanarReflectionProbePerCamera = 128,
             maxActivePlanarReflectionProbe = 512,
             planarReflectionProbeSize = 128,
-            maxActiveReflectionProbe = 512,
-            reflectionProbeSize = 128
+            maxActiveEnvReflectionProbe = 512
         };
 
         /// <summary>
@@ -32,11 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Maximum number of active non planar reflection in the world.
         /// </summary>
-        public int maxActiveReflectionProbe;
-
-        /// <summary>
-        /// Size of the non planar probe textures.
-        /// </summary>
-        public int reflectionProbeSize;
+        public int maxActiveEnvReflectionProbe;
     }
 }

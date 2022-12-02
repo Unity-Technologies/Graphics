@@ -8,7 +8,7 @@ namespace UnityEngine.VFX.Utility
 {
     [AddComponentMenu("VFX/Property Binders/Plane Binder")]
     [VFXBinder("Utility/Plane")]
-    class VFXPlaneBinder : VFXBinderBase
+    class VFXPlaneBinder : VFXSpaceableBinder
     {
         public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
 
@@ -43,8 +43,10 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3(Position, Target.transform.position);
-            component.SetVector3(Normal, Target.transform.up);
+            ApplySpacePositionNormal(component, Position, Target.transform, out var position, out var normal);
+
+            component.SetVector3(Position, position);
+            component.SetVector3(Normal, normal);
         }
 
         public override string ToString()

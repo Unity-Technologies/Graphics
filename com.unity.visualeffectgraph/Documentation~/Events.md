@@ -33,6 +33,8 @@ If you do not want to use the default Events, you can use an Event Context to cr
 
 To do this, first [create an Event Context](#creating-events), then type the name of your custom Event in the **Event Name** property.
 
+<a name="event-attribute-payloads"></a>
+
 ## Event Attribute Payloads
 
 Event Attribute payloads are attributes that you can attach to an Event. To set these attributes in a Visual Effect Graph, you can use the **Set [Attribute]** Blocks in Spawn Contexts, but you can also attach them to Events you send from C# scripts. For information on how to do that latter, see [Component API](ComponentAPI.md#event-attributes) .

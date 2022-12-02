@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.UI
 {
+    [CoreRPHelpURL("Rendering-Debugger")]
     class DebugUIHandlerPersistentCanvas : MonoBehaviour
     {
         public RectTransform panel;

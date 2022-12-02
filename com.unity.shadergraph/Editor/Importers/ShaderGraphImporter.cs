@@ -15,7 +15,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(129, Extension, -902)]
+    [ScriptedImporter(130, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -156,6 +156,17 @@ Shader ""Hidden/GraphErrorShader2""
                         importContext.AddObjectToAsset($"Shader-{generatedShader.shaderName}", shader);
                     }
                 }
+
+                foreach (var generatedComputeShader in generator.allGeneratedComputeShaders)
+                {
+                    // Create the compute asset.
+                    var computeShader = ShaderUtil.CreateComputeShaderAsset(importContext, generatedComputeShader.codeString);
+
+                    // TODO: ReportErrors for Compute Shader. Will require ShaderUtil.GetComputeShaderMessages.
+
+                    computeShader.name = $"ComputeShader-{generatedComputeShader.shaderName}";
+                    importContext.AddObjectToAsset(computeShader.name, computeShader);
+                }
             }
             catch (Exception e)
             {
@@ -228,6 +239,11 @@ Shader ""Hidden/GraphErrorShader2""
                     ctx.AddObjectToAsset($"{iHasMetadata.identifier}:Metadata", metadata);
                 }
             }
+
+
+            // In case a target couldn't be imported properly, we register a dependency to reimport this ShaderGraph when the current render pipeline type changes
+            if (graph.allPotentialTargets.Any(t => t is MultiJsonInternal.UnknownTargetType))
+                ctx.DependsOnCustomDependency(RenderPipelineChangedCallback.k_CustomDependencyKey);
 
             var sgMetadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
             sgMetadata.hideFlags = HideFlags.HideInHierarchy;

@@ -9,17 +9,14 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     // TODO Move this
-    // Must match enum in C++
-    enum VFXCoordinateSpace
-    {
-        Local = 0,
-        World = 1,
-    }
-
-    // TODO Move this
     interface ISpaceable
     {
-        VFXCoordinateSpace space { get; set; }
+        VFXSpace space { get; set; }
+    }
+
+    interface IVFXDataGetter
+    {
+        VFXData GetData();
     }
 
     abstract class VFXData : VFXModel
@@ -311,10 +308,7 @@ namespace UnityEditor.VFX
                 {
                     processedExp.Clear();
 
-                    var attributes = Enumerable.Empty<VFXAttributeInfo>();
-                    attributes = attributes.Concat(context.attributes);
-                    foreach (var block in context.activeFlattenedChildrenWithImplicit)
-                        attributes = attributes.Concat(block.attributes);
+                    var attributes = context.GetAttributesInfos();
 
                     var mapper = context.GetExpressionMapper(GetCompilationTarget(context));
                     if (mapper != null)

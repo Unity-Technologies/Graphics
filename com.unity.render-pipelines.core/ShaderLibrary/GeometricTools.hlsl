@@ -133,6 +133,19 @@ bool IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planePositi
     return res;
 }
 
+bool RayPlaneSegmentIntersect(in float3 rayOrigin, in float3 rayDirection, float3 planeNormal, float planeDistance, inout float3 intersectionPoint)
+{
+    float denom = dot(rayDirection, planeNormal);
+    float lambda = (denom != 0.0) ? (planeDistance - dot(rayOrigin, planeNormal)) / denom : -1.0;
+    if ((lambda >= 0.0) && (lambda <= 1.0))
+    {
+        intersectionPoint = rayOrigin + lambda * rayDirection;
+        return true;
+    }
+    else
+        return false;
+}
+
 // Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
 // Returns parametric distances 'tEntr' and 'tExit' along the ray,
 // subject to constraints 'tMin' and 'tMax'.

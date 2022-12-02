@@ -1,5 +1,7 @@
-TEXTURECUBE_ARRAY(_SkyTexture);
-StructuredBuffer<float4>    _AmbientProbeData;
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+
+GLOBAL_TEXTURECUBE_ARRAY(_SkyTexture, RAY_TRACING_SKY_TEXTURE_REGISTER);
+GLOBAL_RESOURCE(StructuredBuffer<float4>, _AmbientProbeData, RAY_TRACING_AMBIENT_PROBE_DATA_REGISTER);
 
 #define _MipFogNear         _MipFogParameters.x
 #define _MipFogFar          _MipFogParameters.y

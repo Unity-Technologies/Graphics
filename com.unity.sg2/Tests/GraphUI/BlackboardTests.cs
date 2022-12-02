@@ -42,11 +42,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             secondGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(secondGraphPath);
 
             // Create second window
-            secondEditorWindow = EditorWindow.CreateWindow<TestEditorWindow>(typeof(TestEditorWindow), typeof(TestEditorWindow));
+            secondEditorWindow =
+                GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<TestEditorWindow>(secondGraphAsset);
             secondEditorWindow.shouldCloseWindowNoPrompt = true;
 
             // Load second graph
-            secondEditorWindow.SetCurrentSelection(secondGraphAsset, GraphViewEditorWindow.OpenMode.Open);
             secondWindowTestHelper = new TestEventHelpers(secondEditorWindow);
             return secondGraphPath;
         }

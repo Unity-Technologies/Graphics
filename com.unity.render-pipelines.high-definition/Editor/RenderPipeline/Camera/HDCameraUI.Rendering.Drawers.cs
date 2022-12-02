@@ -44,7 +44,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 )
             );
 
-            public static readonly CED.IDrawer Drawer = CED.AdditionalPropertiesFoldoutGroup(CameraUI.Rendering.Styles.header, Expandable.Rendering, k_ExpandedState, AdditionalProperties.Rendering, k_AdditionalPropertiesState, RenderingDrawer, Draw_Rendering_Advanced);
+            public static readonly CED.IDrawer Drawer;
+
+            static Rendering()
+            {
+                Drawer = CED.AdditionalPropertiesFoldoutGroup(
+                    CameraUI.Rendering.Styles.header,
+                    Expandable.Rendering, k_ExpandedState,
+                    AdditionalProperties.Rendering, k_AdditionalPropertiesState,
+                    RenderingDrawer, Draw_Rendering_Advanced);
+            }
 
             internal static void RegisterEditor(HDCameraEditor editor)
             {
@@ -79,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
-                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
 
                 var dynamicResSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 s_IsRunningTAAU = p.allowDynamicResolution.boolValue && dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.TAAU && dynamicResSettings.enabled;
@@ -220,6 +229,10 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Draw_Rendering_Antialiasing_TAA_Advanced(SerializedHDCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.taaBaseBlendFactor, Styles.TAABaseBlendFactor);
+                using (new EditorGUI.DisabledScope(s_IsRunningTAAU))
+                {
+                    EditorGUILayout.PropertyField(p.taaJitterScale, Styles.TAAJitterScale);
+                }
             }
 
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)
@@ -231,7 +244,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (s_IsRunningTAAU)
                     p.taaQualityLevel.intValue = (int)HDAdditionalCameraData.TAAQualityLevel.High;
 
-                EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
+
+                EditorGUILayout.PropertyField(p.taaSharpenMode, Styles.TAASharpeningMode);
+                EditorGUI.indentLevel++;
+                if (p.taaSharpenMode.intValue != (int)HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening)
+                {
+                    EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
+                    if (p.taaSharpenMode.intValue == (int)HDAdditionalCameraData.TAASharpenMode.PostSharpen)
+                    {
+                        EditorGUILayout.PropertyField(p.taaRingingReduction, Styles.TAARingingReduction);
+                    }
+                }
+                EditorGUI.indentLevel--;
 
                 if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
                 {

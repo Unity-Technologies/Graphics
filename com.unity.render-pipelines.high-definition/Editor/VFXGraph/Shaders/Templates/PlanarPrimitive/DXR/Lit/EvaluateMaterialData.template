@@ -1,0 +1,78 @@
+float4 GetScreenSpacePos(float3 posWS)
+{
+    float4 posSS = VFXTransformPositionWorldToClip(posWS);
+    posSS.xyz /= posSS.w;
+    posSS.xy = 0.5f * posSS.xy + 0.5;
+    #if UNITY_UV_STARTS_AT_TOP
+        posSS.y = 1.0 - posSS.y;
+    #endif
+    posSS.xy *= _ScreenSize.xy;
+    return posSS;
+}
+
+void EvaluateLitMaterialData(in PositionInputs posInput, in AttributeData attributeData,
+                            out SurfaceData surfaceData, out BuiltinData builtinData,
+                            out BSDFData bsdfData, out PreLightData preLightData,
+                            out float velocity)
+{
+    // Index needs to be available in the context for the attribute load to work
+    ${VFXGetIndexFromRTPrimitiveIndex}
+    ${VFXLoadGraphValues}
+
+    // Attributes of the paticle
+    VFXAttributes attributes;
+    ZERO_INITIALIZE(VFXAttributes, attributes);
+
+    // Load the VFX attributes that we need for this
+    ${VFXLoadAttributes}
+    ${VFXProcessBlocks}
+    ${VFXLoadSize}
+
+    // Build the "varying" input
+    rt_input o;
+    ZERO_INITIALIZE(rt_input, o);
+    {
+        // Fill the attributes
+        ${VFXVertexCommonProcess}
+        ${VFXHDRPLitFillVaryings}
+
+        o.VFX_VARYING_UV.xy = attributeData.barycentrics;
+        o.VFX_VARYING_POSCS = GetScreenSpacePos(posInput.positionWS);
+        VFXTransformPSInputs(o);
+
+        #ifdef VFX_VARYING_BENTFACTORS
+            ${VFXLoadParameter:{normalBendingFactor}}
+            #define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f
+            o.VFX_VARYING_BENTFACTORS = (o.VFX_VARYING_UV.xy - 0.5f) * normalBendingFactor * BENT_FACTOR_MULTIPLIER;
+        #endif
+
+        ${VFXVertexSetFlipbooksInterpolants}
+    }
+
+    rt_input i = o;
+    i.VFX_VARYING_NORMAL = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
+    #ifdef VFX_VARYING_TANGENT
+        i.VFX_VARYING_TANGENT = normalize(WorldToPrimitive(attributes, size3)[0].xyz);
+    #endif
+
+    bool frontFace = dot(WorldRayDirection(), i.VFX_VARYING_NORMAL) < 0;
+    ${VFXComputeNormalWS}
+
+    // Intialize the output values to zero
+    surfaceData = (SurfaceData)0;
+    builtinData = (BuiltinData)0;
+    bsdfData = (BSDFData)0;
+    preLightData = (PreLightData)0;
+
+    // Evaluate the input data
+    VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, frontFace, 0);
+
+    // Grab the current particle's AABB
+    AABB particleAABB = FetchPrimitiveAABB(PrimitiveIndex(), VFX_AABB_COUNT, instanceIndex);
+    float3 inputVertexPosition = 0.0;
+    float3 currentOS = (particleAABB.maxPosOS + particleAABB.minPosOS) * 0.5;
+    float3 currentWS = TransformObjectToWorld(currentOS);
+
+    ${VFXVertexComputeDisplacement}
+    velocity = displacement;
+}

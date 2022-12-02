@@ -14,10 +14,10 @@ You can also watch the presentation from Unite Copenhagen (October 2019) to lear
 
 ## Supported Platforms and Devices
 
-* **PC with DX11**:
-  * Oculus Rift & Rift S (Oculus XR Plugin, Windows 10, DirectX 11)
-  * Windows Mixed Reality (Windows XR Plugin, Windows 10, DirectX 11)
-* **PS4**:
+* **PC with DX11/DX12/Vulkan**:
+  * Oculus Rift & Rift S (Oculus XR Plugin, Windows 10 and 11, DirectX 11, DirectX 12, Vulkan)
+  * Windows Mixed Reality (Windows XR Plugin, Windows 10 and 11, DirectX 11, DirectX 12, Vulkan)
+* **PS4** and **PS5**:
   * PlayStationVR
   * Open VR*
 

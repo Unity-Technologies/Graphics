@@ -178,16 +178,16 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
             switch (m_BuiltInParameters)
             {
                 case BuiltInFlag.LocalToWorld:
-                    return VFXCoordinateSpace.Local;
+                    return VFXSpace.Local;
                 case BuiltInFlag.WorldToLocal:
-                    return VFXCoordinateSpace.World;
+                    return VFXSpace.World;
                 default:
-                    return (VFXCoordinateSpace)int.MaxValue;
+                    return VFXSpace.None;
             }
         }
 

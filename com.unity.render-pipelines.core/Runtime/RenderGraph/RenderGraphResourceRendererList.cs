@@ -40,10 +40,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     internal struct RendererListResource
     {
-        public CoreRendererListDesc desc;
+        public RendererListParams desc;
         public CoreRendererList rendererList;
 
-        internal RendererListResource(in CoreRendererListDesc desc)
+        internal RendererListResource(in RendererListParams desc)
         {
             this.desc = desc;
             this.rendererList = new CoreRendererList(); // Invalid by default

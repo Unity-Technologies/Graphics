@@ -9,6 +9,8 @@ Ray-traced shadows are shadows that HDRP generates by tracing rays of light from
 
 When you enable ray-traced shadows in your HDRP Project, they replace shadow maps for opaque GameObjects.
 
+To troubleshoot this effect, HDRP provides a Shadows [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Using ray-traced shadows
 
 All ray-traced shadows are screen space shadows. This means that HDRP stores them in a screen space buffer which holds the information for every pixel on the screen that is in the depth buffer (which only stores opaque GameObjects).
@@ -21,9 +23,9 @@ To use ray-traced shadows, enable screen space shadows in your HDRP Project. To 
 
 Then make sure you enable Screen Space Shadows for your Cameras. To do this:
 
-1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
-2. Select Camera from the Default Frame Settings For drop-down.
-3. In the Lighting section, enable Screen Space Shadows.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the **Graphics > HDRP Global Settings** tab.
+2. Scroll down to **Frame Settings (Default Values)**.
+3. In the **Camera** section, open the **Lighting** foldout and enable Screen Space Shadows.
 
 Finally, to make HDRP process ray-traced shadows for your Directional, Point, or Rectangle Light:
 

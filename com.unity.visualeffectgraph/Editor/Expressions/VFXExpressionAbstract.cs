@@ -142,23 +142,6 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
-        // As certain type of uniforms are not handled in material, we need to use floats instead
-        public static string TypeToUniformCode(VFXValueType type)
-        {
-            switch (type)
-            {
-                case VFXValueType.Float: return "float";
-                case VFXValueType.Float2: return "float2";
-                case VFXValueType.Float3: return "float3";
-                case VFXValueType.Float4: return "float4";
-                case VFXValueType.Int32: return "float";
-                case VFXValueType.Uint32: return "float";
-                case VFXValueType.Matrix4x4: return "float4x4";
-                case VFXValueType.Boolean: return "float";
-            }
-            throw new NotImplementedException(type.ToString());
-        }
-
         public static Type TypeToType(VFXValueType type)
         {
             switch (type)
@@ -611,9 +594,11 @@ namespace UnityEditor.VFX
         public VFXExpression y { get { return new VFXExpressionExtractComponent(this, 1); } }
         public VFXExpression z { get { return new VFXExpressionExtractComponent(this, 2); } }
         public VFXExpression w { get { return new VFXExpressionExtractComponent(this, 3); } }
+        public VFXExpression xyz { get { return new VFXExpressionCombine(x, y, z); } }
         public VFXExpression xxx { get { return new VFXExpressionCombine(x, x, x); } }
         public VFXExpression yyy { get { return new VFXExpressionCombine(y, y, y); } }
         public VFXExpression zzz { get { return new VFXExpressionCombine(z, z, z); } }
+        public VFXExpression www { get { return new VFXExpressionCombine(w, w, w); } }
 
         private Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;

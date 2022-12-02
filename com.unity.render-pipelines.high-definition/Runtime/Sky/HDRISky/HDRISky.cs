@@ -6,9 +6,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDRI Sky Volume Component.
     /// This component setups HDRI sky for rendering.
     /// </summary>
-    [VolumeComponentMenuForRenderPipeline("Sky/HDRI Sky", typeof(HDRenderPipeline))]
+    [VolumeComponentMenu("Sky/HDRI Sky")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.HDRI)]
-    [HDRPHelpURLAttribute("Override-HDRI-Sky")]
+    [HDRPHelpURL("Override-HDRI-Sky")]
     public partial class HDRISky : SkySettings
     {
         /// <summary>
@@ -94,6 +95,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         [Tooltip("Allow backplate to receive shadow from Area light.")]
         public BoolParameter rectLightShadow = new BoolParameter(false);
+
+        /// <summary>
+        /// Unity calls this method when it loads the class.
+        /// </summary>
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            // This is kind of a migration step, as on previous HDRP versions, HDRI sky editor
+            // didn't correctly set these values
+            upperHemisphereLuxValue.overrideState = hdriSky.overrideState;
+            upperHemisphereLuxColor.overrideState = hdriSky.overrideState;
+        }
 
         /// <summary>
         /// Returns the hash code of the HDRI sky parameters.

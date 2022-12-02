@@ -128,6 +128,14 @@ namespace UnityEditor.VFX
             return new VFXExpressionPow(BaseToConstant(_base, input.valueType), input);
         }
 
+        static public VFXExpression SnapToClosestPowerOfBase(VFXExpression input, VFXExpression _base)
+        {
+            var exactPower = Log(input, _base);
+            var nextPower = Round(exactPower);
+            return new VFXExpressionPow(_base, nextPower);
+        }
+
+
         static public VFXExpression Atanh(VFXExpression input)
         {
             //0.5*Log((1+x)/(1-x), e)
@@ -589,6 +597,7 @@ namespace UnityEditor.VFX
         static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
+            count = new VFXExpressionMax(count, OneExpression[VFXValueType.Uint32]);
 
             if (mode == SequentialAddressingMode.Wrap)
             {

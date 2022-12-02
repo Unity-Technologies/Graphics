@@ -17,10 +17,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             this.AddStylesheet("InspectorLabel.uss");
         }
 
-        // We don't ever need to update this label
-        public override bool UpdateDisplayedValue()
+        public override void UpdateDisplayedValue()
         {
-            return false;
+            // We don't ever need to update this label
         }
     }
 }

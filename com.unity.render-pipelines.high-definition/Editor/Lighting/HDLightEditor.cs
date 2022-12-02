@@ -8,7 +8,8 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
+    [CustomEditor(typeof(Light))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
         public SerializedHDLight m_SerializedHDLight;

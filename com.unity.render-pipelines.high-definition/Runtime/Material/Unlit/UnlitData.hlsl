@@ -43,7 +43,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Light Layers are currently not used for the Unlit shader (because it is not lit)
     // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
     // display in the light layers visualization mode, therefore we need the renderingLayers
-    builtinData.renderingLayers = GetMeshRenderingLightLayer();
+    builtinData.renderingLayers = GetMeshRenderingLayerMask();
 #endif
 
 #ifdef _EMISSIVE_COLOR_MAP

@@ -13,6 +13,9 @@ struct ps_input
 	#endif
 
 	UNITY_VERTEX_OUTPUT_STEREO
+
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+
 };
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -24,14 +27,12 @@ struct ps_input
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
 #endif
 
-#undef VFX_USE_RIM_LIGHT
-
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 ${VFXPassVelocityDefine}
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL || VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 ${VFXPassDepthDefine}
 #endif
 
-${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 #define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 0
 ${VFXPassDepthCommonFragmentUnlit}

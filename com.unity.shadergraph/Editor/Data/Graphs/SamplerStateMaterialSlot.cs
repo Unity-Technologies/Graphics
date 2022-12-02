@@ -38,9 +38,9 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_BareResource)
             {
-                // we have to use our modified macro declaration here, to ensure that something is declared for GLES2 platforms
+                // we have to use our modified macro declaration here
                 // (the standard SAMPLER macro doesn't declare anything, so the commas will be messed up in the parameter list)
-                sb.Append("UNITY_BARE_SAMPLER(");
+                sb.Append("SAMPLER(");
                 sb.Append(paramName);
                 sb.Append(")");
             }

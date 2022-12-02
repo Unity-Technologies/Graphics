@@ -380,7 +380,7 @@ namespace UnityEditor.VFX
             return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
 
@@ -730,6 +730,7 @@ namespace UnityEditor.VFX
                 for (int i = 0; i < m_ExprSlots.Length; ++i)
                 {
                     m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                    m_ExprSlots[i].Invalidate(InvalidationCause.kExpressionValueInvalidated);
                 }
             }
         }

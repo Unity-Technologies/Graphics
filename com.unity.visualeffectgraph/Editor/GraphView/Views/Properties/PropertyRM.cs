@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         bool expandableIfShowsEverything { get; }
         object value { get; set; }
         bool spaceableAndMasterOfSpace { get; }
-        VFXCoordinateSpace space { get; set; }
+        VFXSpace space { get; set; }
         bool IsSpaceInherited();
         string name { get; }
         VFXPropertyAttributes attributes { get; }
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
             m_Name = name;
         }
 
-        VFXCoordinateSpace IPropertyRMProvider.space { get { return VFXCoordinateSpace.Local; } set { } }
+        VFXSpace IPropertyRMProvider.space { get { return VFXSpace.Local; } set { } }
 
         bool IPropertyRMProvider.IsSpaceInherited() { return false; }
 

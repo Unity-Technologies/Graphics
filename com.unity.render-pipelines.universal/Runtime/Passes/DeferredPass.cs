@@ -1,6 +1,7 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 // cleanup code
 // listMinDepth and maxDepth should be stored in a different uniform block?
@@ -41,6 +42,39 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DeferredLights.ExecuteDeferredPass(context, ref renderingData);
         }
 
+        private class PassData
+        {
+            internal TextureHandle color;
+            internal TextureHandle depth;
+
+            internal RenderingData renderingData;
+            internal DeferredLights deferredLights;
+        }
+
+        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("Deferred Lighting Pass", out var passData,
+                base.profilingSampler))
+            {
+                passData.color = builder.UseColorBuffer(color, 0);
+                passData.depth = builder.UseDepthBuffer(depth, DepthAccess.ReadWrite);
+                passData.deferredLights = m_DeferredLights;
+                passData.renderingData = renderingData;
+
+                for (int i = 0; i < gbuffer.Length; ++i)
+                {
+                    if (i != m_DeferredLights.GBufferLightingIndex)
+                        builder.ReadTexture(gbuffer[i]);
+                }
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    data.deferredLights.ExecuteDeferredPass(context.renderContext, ref data.renderingData);
+                });
+            }
+        }
         // ScriptableRenderPass
         public override void OnCameraCleanup(CommandBuffer cmd)
         {

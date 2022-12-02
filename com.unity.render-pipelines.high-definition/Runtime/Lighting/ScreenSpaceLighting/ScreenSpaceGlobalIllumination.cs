@@ -3,11 +3,12 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
-    // Define if we use SSGI, RTGI or none
+    // Define if we use SSGI, RTGI, Mixed or none
     enum IndirectDiffuseMode
     {
         Off,
         ScreenSpace,
-        Raytrace
+        RayTraced,
+        Mixed
     }
 }

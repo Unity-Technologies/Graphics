@@ -1,0 +1,30 @@
+﻿
+${VFXBegin:VFXGetColorRT}
+    #if USE_FLIPBOOK
+        ${VFXLoadParameter:{invFlipBookSize}}
+        ${VFXLoadParameter:{flipBookSize}}
+        VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, attributeData.barycentrics, attributes.texIndex);
+    #else
+        VFXUVData uvData = GetUVData(attributeData.barycentrics);
+    #endif
+
+    float4 color = float4(attributes.color, attributes.alpha);
+    #if VFX_COLORMAPPING_DEFAULT
+	    color = color * SampleTexture(VFX_SAMPLER(mainTexture), uvData);
+    #endif
+
+    #if VFX_COLORMAPPING_GRADIENTMAPPED
+	    ${VFXLoadParameter:{gradient}}
+	    color = SampleGradient(gradient, SampleTexture(VFX_SAMPLER(mainTexture),uvData).a * color.a) * float4(color.rgb, 1.0);
+    #endif
+
+    #ifdef VFX_VARYING_EXPOSUREWEIGHT
+        ${VFXLoadParameter:{exposureWeight}}
+        color = VFXApplyPreExposure(color, exposureWeight);
+    #elif VFX_BYPASS_EXPOSURE
+        color = VFXApplyPreExposure(color, 0.0f);
+    #else
+        color = VFXApplyPreExposure(color, 1.0f);
+    #endif
+
+${VFXEnd}

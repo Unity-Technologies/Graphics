@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] DynamicDimensionVector Center,
             [Slot(2, Binding.None, 0.1f, 0.1f, 0.1f, 0.1f)] Vector1 Radius,
             [Slot(3, Binding.None, 0.8f, 0.8f, 0.8f, 0.8f)] Vector1 Hardness,
-            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(4, Binding.None)] out Vector1 Out)
         {
             return
 @"

@@ -1,0 +1,29 @@
+default:
+  area: RP Foundation
+
+rpw:
+  when:
+    path:
+      - ^.*CameraCaptureBridge?.*$
+      - ^.*CoreUtils?.*$
+      - ^.*DelegateUtility?.*$
+      - ^.*MeshGizmo?.*$
+      - ^.*ResourceReloader?.*$
+      - ^.*SceneRenderPipeline?.*$
+      - ^.*TextureCurve?.*$ 
+  area: RP Workflows
+
+xr:
+  when:
+    path:
+      - ^.*XRUtils?.*$
+  area: XR SRP
+
+hdrp:
+  when:
+    path:
+      - ^.*FSRUtils?.*$
+      - ^.*HableCurve?.*$
+      - ^.*HaltonSequence?.*$
+      - ^.*MaterialQuality?.*$
+  area: HD RP

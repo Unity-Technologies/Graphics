@@ -53,10 +53,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Add(listView);
         }
 
-        public override bool UpdateDisplayedValue()
+        public override void UpdateDisplayedValue()
         {
             listView.RefreshItems();
-            return true;
         }
     }
 }

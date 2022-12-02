@@ -6,7 +6,7 @@
 - [Spot](LightTypes.md#spot) (**Note:** The **Point** Light Type has been renamed to the **Spot** Light Type from URP 11 onwards.)
 - [Global](LightTypes.md#global)
 
-**Important:** The [Parametric Light Type](LightTypes.md#parametric) is deprecated from URP 11 onwards. To convert existing Parametric lights to Freeform lights, go to **Edit > Render Pipeline > Universal Render Pipeline > Upgrade Project/Scene Parametric Lights to Freeform**
+**Important:** The [Parametric Light Type](LightTypes.md#parametric) is deprecated from URP 11 onwards. To convert existing Parametric lights to Freeform lights, go to **Window > Rendering > Render Pipeline Converter**, change tab to __Upgrade 2D (URP) Assets__ and enable the converter __Parametric To Freeform Light Upgrade__.
 
 ![](Images/2D/2d-lights-gameobject-menu.png)
 

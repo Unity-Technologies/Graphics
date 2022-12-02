@@ -27,8 +27,6 @@
 #define MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
 // Maximal size of a light step
 #define LIGHT_STEP_MAXIMAL_SIZE 1000.0f
-// Threshold at which the clouds are considered inexistant (Found experimentally)
-#define TRANSMITTANCE_DISCARD_THRESHOLD 0.992
 
 // Just define a flag when the other is not defined as it is easier for the logic
 #if !defined(LOCAL_VOLUMETRIC_CLOUDS)
@@ -43,8 +41,33 @@ Texture2D<float3> _CloudLutTexture;
 Texture3D<float> _Worley128RGBA;
 Texture3D<float> _ErosionNoise;
 
-// Ambient probe
+// Ambient probe. Contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 StructuredBuffer<float4> _VolumetricCloudsAmbientProbeBuffer;
+
+#define CLOUD_MAP_LUT_PRESET_SIZE 64
+groupshared float gs_cloudLutDensity[CLOUD_MAP_LUT_PRESET_SIZE];
+groupshared float gs_cloudLutErosion[CLOUD_MAP_LUT_PRESET_SIZE];
+groupshared float gs_cloudLutAO[CLOUD_MAP_LUT_PRESET_SIZE];
+
+void LoadCloudLutToLDS(uint groupThreadId)
+{
+    float3 densityErosionAO = LOAD_TEXTURE2D_LOD(_CloudLutTexture, int2(0, groupThreadId), 0);
+    gs_cloudLutDensity[groupThreadId] = densityErosionAO.x;
+    gs_cloudLutErosion[groupThreadId] = densityErosionAO.y;
+    gs_cloudLutAO[groupThreadId] = densityErosionAO.z;
+    GroupMemoryBarrierWithGroupSync();
+}
+
+float3 SampleCloudSliceLDS(float height)
+{
+    float tapCoord = clamp(height * CLOUD_MAP_LUT_PRESET_SIZE, 0, CLOUD_MAP_LUT_PRESET_SIZE - 1);
+    float floorTap = floor(tapCoord);
+    float ceilTap = ceil(tapCoord);
+    float interp = tapCoord - floorTap;
+    float3 floorData = float3(gs_cloudLutDensity[floorTap], gs_cloudLutErosion[floorTap], gs_cloudLutAO[floorTap]);
+    float3 ceilData = float3(gs_cloudLutDensity[ceilTap], gs_cloudLutErosion[ceilTap], gs_cloudLutAO[ceilTap]);
+    return lerp(floorData, ceilData, interp);
+}
 
 // Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 float3 EvaluateVolumetricAmbientProbe(float3 normalWS)
@@ -57,7 +80,6 @@ float3 EvaluateVolumetricAmbientProbe(float3 normalWS)
     SHCoefficients[4] = _VolumetricCloudsAmbientProbeBuffer[4];
     SHCoefficients[5] = _VolumetricCloudsAmbientProbeBuffer[5];
     SHCoefficients[6] = _VolumetricCloudsAmbientProbeBuffer[6];
-
     return SampleSH9(SHCoefficients, normalWS);
 }
 
@@ -216,8 +238,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     lighting.sunDirection = _SunDirection.xyz;
     lighting.sunColor0 = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     lighting.sunColor1 = lighting.sunColor0;
-    lighting.ambientTermTop = EvaluateVolumetricAmbientProbe(float3(0, -1, 0)) * GetCurrentExposureMultiplier();
-    lighting.ambientTermBottom = EvaluateVolumetricAmbientProbe(float3(0, 1, 0)) * GetCurrentExposureMultiplier();
+    lighting.ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0)) * GetCurrentExposureMultiplier();
+    lighting.ambientTermBottom = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0)) * GetCurrentExposureMultiplier();
 
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
     EvaluateSunColorAttenuation(entryEvaluationPointWS, lighting.sunDirection, lighting.sunColor0);
@@ -392,7 +414,7 @@ bool GetCloudVolumeIntersection(float3 originWS, float3 dir, float insideClouds,
 struct CloudCoverageData
 {
     // From a top down view, in what proportions this pixel has clouds
-    float2 coverage;
+    float coverage;
     // From a top down view, in what proportions this pixel has clouds
     float rainClouds;
     // Value that allows us to request the cloudtype using the density
@@ -421,7 +443,7 @@ float3 AnimateCloudMapPosition(float3 positionPS)
 }
 
 // Animation of the cloud shape position
-float3 AnimateBaseNoisePosition(float3 positionPS)
+float3 AnimateShapeNoisePosition(float3 positionPS)
 {
     // We reduce the top-view repetition of the pattern
     positionPS.y += (positionPS.x / 3.0f + positionPS.z / 7.0f);
@@ -430,7 +452,7 @@ float3 AnimateBaseNoisePosition(float3 positionPS)
 }
 
 // Animation of the cloud erosion position
-float3 AnimateFineNoisePosition(float3 positionPS)
+float3 AnimateErosionNoisePosition(float3 positionPS)
 {
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed + float3(0.0, _VerticalErosionWindDisplacement, 0.0);
 }
@@ -452,9 +474,12 @@ void GetCloudCoverageData(float3 positionPS, out CloudCoverageData data)
 {
     // Convert the position into dome space and center the texture is centered above (0, 0, 0)
     float2 normalizedPosition = AnimateCloudMapPosition(positionPS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw - 0.5;
-    // Read the data from the texture
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    float4 cloudMapData =  float4(0.9f, 0.0f, 0.25f, 1.0f);
+    #else
     float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition), 0);
-    data.coverage = float2(cloudMapData.x, cloudMapData.x * cloudMapData.x);
+    #endif
+    data.coverage = cloudMapData.x;
     data.rainClouds = cloudMapData.y;
     data.cloudType = cloudMapData.z;
     data.maxCloudHeight = cloudMapData.w;
@@ -484,17 +509,13 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.height = EvaluateNormalizedCloudHeight(positionPS);
 
     // Evaluate the generic sampling coordinates
-    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionPS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, _VerticalShapeNoiseOffset);
+    float3 baseNoiseSamplingCoordinates = float3(AnimateShapeNoisePosition(positionPS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, _VerticalShapeNoiseOffset);
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
     baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, _WindDirection.y, 0.0f) * _AltitudeDistortion;
 
     // Read the low frequency Perlin-Worley and Worley noises
     float lowFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, baseNoiseSamplingCoordinates.xyz, noiseMipOffset);
-
-    // Initiliaze the erosion and shape factors (that will be overriden)
-    float shapeFactor = lerp(0.1, 1.0, _ShapeFactor);
-    float erosionFactor = _ErosionFactor;
 
     // Evaluate the cloud coverage data for this position
     CloudCoverageData cloudCoverageData;
@@ -505,16 +526,23 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
         return;
 
     // Read from the LUT
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    float3 densityErosionAO = SampleCloudSliceLDS(properties.height);
+    #else
     float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
+    #endif
 
     // Adjust the shape and erosion factor based on the LUT and the coverage
-    shapeFactor = shapeFactor * densityErosionAO.y;
-    erosionFactor = erosionFactor * densityErosionAO.y;
+    float shapeFactor = lerp(0.1, 1.0, _ShapeFactor) * densityErosionAO.y;
+    float erosionFactor = _ErosionFactor * densityErosionAO.y;
+    #if defined(CLOUDS_MICRO_EROSION)
+    float microDetailFactor = _MicroErosionFactor * densityErosionAO.y;
+    #endif
 
     // Combine with the low frequency noise, we want less shaping for large clouds
     lowFrequencyNoise = lerp(1.0, lowFrequencyNoise, shapeFactor);
     float base_cloud = 1.0 - densityErosionAO.x * cloudCoverageData.coverage.x * (1.0 - shapeFactor);
-    base_cloud = saturate(DensityRemap(lowFrequencyNoise, base_cloud, 1.0, 0.0, 1.0)) * cloudCoverageData.coverage.y;
+    base_cloud = saturate(DensityRemap(lowFrequencyNoise, base_cloud, 1.0, 0.0, 1.0)) * cloudCoverageData.coverage.x * cloudCoverageData.coverage.x;
 
     // Weight the ambient occlusion's contribution
     properties.ambientOcclusion = densityErosionAO.z;
@@ -529,17 +557,28 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     // Apply the erosion for nifer details
     if (!cheapVersion)
     {
-        float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionPS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
-        float highFrequencyNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
-        // Compute the weight of the low frequency noise
-        highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
-        base_cloud = DensityRemap(base_cloud, highFrequencyNoise, 1.0, 0.0, 1.0);
-        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(highFrequencyNoise * _ErosionOcclusion));
+        float3 erosionCoords = AnimateErosionNoisePosition(positionPS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
+        float erosionNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, erosionCoords, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
+        erosionNoise = lerp(0.0, erosionNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
+        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(erosionNoise * _ErosionOcclusion));
+        base_cloud = DensityRemap(base_cloud, erosionNoise, 1.0, 0.0, 1.0);
+
+        #if defined(CLOUDS_MICRO_EROSION)
+        float3 fineCoords = AnimateErosionNoisePosition(positionPS) / (NOISE_TEXTURE_NORMALIZATION_FACTOR) * _MicroErosionScale;
+        float fineNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, fineCoords, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
+        fineNoise = lerp(0.0, fineNoise, microDetailFactor * 0.5f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
+        base_cloud = DensityRemap(base_cloud, fineNoise, 1.0, 0.0, 1.0);
+        #endif
     }
 
     // Given that we are not sampling the erosion texture, we compensate by substracting an erosion value
     if (lightSampling)
+    {
         base_cloud -= erosionFactor * 0.1;
+        #if defined(CLOUDS_MICRO_EROSION)
+        base_cloud -= microDetailFactor * 0.15;
+        #endif
+    }
 
     // Make sure we do not send any negative values
     base_cloud = max(0, base_cloud);
@@ -837,7 +876,7 @@ float EvaluateFinalTransmittance(float3 color, float transmittance)
     resultLuminance = resultLuminance / (1.0 - resultLuminance);
 
     // This approach only makes sense if the color is not black
-    return (luminance > 0.0 && _ImprovedTransmittanceBlend == 1) ? resultLuminance / luminance : transmittance;
+    return luminance > 0.0 ? lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend) : transmittance;
 }
 
 float3 ApplyFastTonemapping(float3 input)

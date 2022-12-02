@@ -13,23 +13,33 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public int callbackOrder => 0;
 
+        private bool m_StripDebugVariants = false;
+
+        public ProbeVolumeDebugStripper()
+        {
+            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
+
+            if (globalSettings == null)
+            {
+                Debug.LogWarning($"Probe Volume data will not be stripped because {nameof(HDRenderPipelineGlobalSettings)} are missing");
+                return;
+            }
+
+            m_StripDebugVariants = globalSettings.stripDebugVariants;
+        }
+
         public void OnProcessScene(Scene scene, BuildReport report)
         {
-            if (report == null)
+            if (report == null || !m_StripDebugVariants)
             {
-                // Don't want to strip anything when entering editor playmode.
+                // Don't want to strip anything when entering editor playmode or if stripping is disabled
                 return;
             }
 
-            var settings = HDRenderPipelineGlobalSettings.instance;
+            Debug.Log($"Stripping debug data from Probe Volume in scene '{scene.name}' because Strip Debug Variants is enabled in the Global Settings");
 
-            if (settings == null)
-            {
-                Debug.LogWarning($"Unable to strip Probe Volume data because global render pipeline settings were not found.");
-                return;
-            }
-
-            var probeVolumePerSceneDatas = scene.GetRootGameObjects()
+            var probeVolumePerSceneDatas = scene
+                .GetRootGameObjects()
                 .Select(go => go.GetComponent<ProbeVolumePerSceneData>())
                 .Where(c => c);
 
@@ -46,11 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
 #endif
-                if (!settings.supportRuntimeDebugDisplay)
-                {
-                    Debug.Log($"Stripping debug data from Probe Volume in scene '{scene.name}'.");
-                    probeVolumePerSceneData.StripSupportData();
-                }
+                probeVolumePerSceneData.StripSupportData();
             }
         }
     }

@@ -56,7 +56,6 @@ float4x4 inverse(float4x4 m) {
 void BuildVaryingsWithoutInverseProjection(Attributes input, inout Varyings output)
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
@@ -78,7 +77,6 @@ void BuildVaryingsWithoutInverseProjection(Attributes input, inout Varyings outp
 void BuildVaryings(Attributes input, inout Varyings output)
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.texCoord0 = output.positionCS * 0.5 + 0.5;

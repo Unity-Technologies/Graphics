@@ -1,5 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -42,13 +45,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Create UIElement from type:
             BaseField<Data> elem = null;
             BaseField<Enum> elemEnum = null;
+            BaseMaskField<Enum> elemMask = null;
 
             switch (getter())
             {
                 case bool b: elem = new Toggle { value = b } as BaseField<Data>; break;
                 case int i: elem = new IntegerField { value = i, isDelayed = true } as BaseField<Data>; break;
                 case float f: elem = new FloatField { value = f, isDelayed = true } as BaseField<Data>; break;
-                case Enum e: elemEnum = new EnumField(e) { value = e }; break;
+                case Enum e:
+                    // Enum marked with the flags attribute are represented as popups
+                    var enumType = e.GetType();
+                    if (enumType.GetCustomAttribute<FlagsAttribute>() != null)
+                        elemMask = new EnumFlagsField(e) { value = e};
+                    else
+                        elemEnum = new EnumField(e) { value = e };
+                    break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
@@ -61,6 +72,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                     registerUndo(displayName.text);
                     setter(evt.newValue);
+                    onChange();
+                });
+            }
+            else if (elemMask != null)
+            {
+                context.AddProperty<Enum>(displayName.text, displayName.tooltip, indentLevel, elemMask, (evt) =>
+                {
+                    if (Equals(getter(), evt.newValue))
+                        return;
+
+                    registerUndo(displayName.text);
+                    setter((Data)(object)evt.newValue);
+                    // Because the UI is rebuilt every time a change occure in the property values, we need
+                    // to close the popup every time to avoid using the wrong property callbacks
+                    PopupWindow.focusedWindow.Close();
                     onChange();
                 });
             }

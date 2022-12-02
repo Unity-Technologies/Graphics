@@ -1,4 +1,11 @@
-.convertersListView {
-    --unity-item-height: 16;
-    height: 120px;
+.iconButton {
+    background-color: rgba(0,0,0,0);
+}
+
+.light :hover {
+    background-color: #B2B2B2;
+}
+
+.dark :hover {
+    background-color: #303030;
 }

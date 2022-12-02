@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 #define BARY_EPS 1e-5
+#define CONSERVATIVE_RASTER_EPS 1e-6
 #define INTERSECT_EPS 0
 
 float dot2(float3 v)
@@ -88,7 +89,7 @@ int3 GenerateNeighborOffset(int iNeighbour, float maxSize, float distToSurface)
 {
     float u = 2.0f * GenerateHashedRandomFloat(iNeighbour) - 1;
     float phi = 2.0f * PI * GenerateHashedRandomFloat(iNeighbour + 1);
-    float r = pow(GenerateHashedRandomFloat(iNeighbour + 2), 1.0f / 3.0f) * max(distToSurface, 0.05f) * float(maxSize);
+    float r = pow(GenerateHashedRandomFloat(iNeighbour + 2), 1.0f / 3.0f) * max(1.0f , distToSurface * float(maxSize));
 
     float C = sqrt(1 - u * u);
     float s, c;

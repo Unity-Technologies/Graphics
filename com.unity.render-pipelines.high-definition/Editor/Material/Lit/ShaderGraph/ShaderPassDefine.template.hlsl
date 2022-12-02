@@ -21,3 +21,10 @@ $RefractionThin:                    #define _REFRACTION_THIN 1
 
 // This shader support recursive rendering for raytracing
 #define HAVE_RECURSIVE_RENDERING
+
+// In Path Tracing, For all single-sided, refractive materials, we want to force a thin refraction model
+#if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+    #undef  _REFRACTION_PLANE
+    #undef  _REFRACTION_SPHERE
+    #define _REFRACTION_THIN
+#endif

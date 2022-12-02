@@ -79,8 +79,10 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-            if (customBehavior != null && customBehavior != null)
+            if (customBehavior != null)
+            {
                 dependencies.Add(customBehavior.GetInstanceID());
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -93,8 +95,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
+            base.GenerateErrors(manager);
+
             //Type isn't reachable ... but we already stored a type, log an error.
             if (m_customType == null
                 && !object.ReferenceEquals(m_customType, null)
