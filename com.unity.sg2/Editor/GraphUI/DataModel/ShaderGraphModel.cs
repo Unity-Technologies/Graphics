@@ -237,8 +237,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                             functionDictionary,
                                             portInfoList.ToArray(),
                                             nodeUIInfo.FunctionSelectorLabel);
-
-                    m_NodeUIData.Add(registryKey, nodeUIData);
+                    if(!m_NodeUIData.TryAdd(registryKey, nodeUIData))
+                        Debug.LogWarning("Tried to add duplicate to Node UI Data with value: " + registryKey);
                 }
             }
         }
