@@ -80,6 +80,8 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _LayerIdx: 16
+    - _MaterialID: 1
+    - _MaterialTypeMask: 2
     - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
@@ -100,6 +102,7 @@ Material:
     - _StencilWriteMaskMV: 41
     - _SupportDecals: 1
     - _SurfaceType: 1
+    - _TransmissionEnable: 1
     - _Transmittance_Distance: 1
     - _TransparentBackfaceEnable: 1
     - _TransparentCullMode: 2
