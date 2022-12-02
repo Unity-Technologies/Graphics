@@ -501,6 +501,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.flareSize.floatValue = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
                 serialized.flareFalloff.floatValue = Mathf.Max(serialized.flareFalloff.floatValue, 0);
                 serialized.distance.floatValue = Mathf.Max(serialized.distance.floatValue, 0);
+
+                if (serialized.surfaceTexture.objectReferenceValue is Texture surfaceTexture && surfaceTexture != null)
+                {
+                    if (surfaceTexture.dimension != TextureDimension.Tex2D)
+                    {
+                        Debug.LogError($"The texture '{surfaceTexture.name}' isn't compatible with the Celestial Body Surface Texture property. Only 2D textures are supported.");
+                        serialized.surfaceTexture.objectReferenceValue = null;
+                    }
+                }
             }
         }
 

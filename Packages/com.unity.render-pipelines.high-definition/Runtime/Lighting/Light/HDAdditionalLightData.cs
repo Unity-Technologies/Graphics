@@ -889,11 +889,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("surfaceTexture")]
-        Texture2D m_SurfaceTexture = null;
+        Texture m_SurfaceTexture = null;
         /// <summary>
-        /// 2D (disk) texture of the surface of the celestial body. Acts like a multiplier.
+        /// Texture of the surface of the celestial body. Acts like a multiplier.
         /// </summary>
-        public Texture2D surfaceTexture
+        public Texture surfaceTexture
         {
             get => m_SurfaceTexture;
             set
