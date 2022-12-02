@@ -80,8 +80,10 @@ namespace UnityEngine.Rendering
                             path = attrMenu.menu;
                             if(supportedOnRenderPipelines != null && supportedOnRenderPipelines.GetSupportedMode(currentPipelineAsset) == SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported)
                                 skipComponent = true;
+#pragma warning disable CS0618
                             else if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
                                 skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+#pragma warning restore CS0618
                             break;
                         }
                         case HideInInspector attrHide:
