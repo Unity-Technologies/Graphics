@@ -2,7 +2,7 @@
 
 ## Description
 
-The Billboard node rotates the vertex position, normal, and tangent to align with all axes or x and z axes of the camera.
+The Billboard node rotates the vertex position, normal, and tangent to align with all axes or x and z axes of the camera. It can only be used in a quad.
 ## Ports
 
 | Name        | Direction           | Type  | Description |
@@ -10,6 +10,7 @@ The Billboard node rotates the vertex position, normal, and tangent to align wit
 | Position | Input      |    Vector3 | The input vertex postion |
 | Normal | Input      |    Vector3 | The input vertex Normal |
 | Tangent | Input      |    Vector3 | The input vertex Tangent |
+| Pivot offset | Input      |    Vector3 | The value to offset the object piviot point. |
 | Billboard Position | Output      |    Vector3 | The billboard vertex position |
 | Billboard Normal | Output      |    Vector3 | The billboard vertex normal |
 | Billboard Tangent | Output      |    Vector3 | The billboard vertex tangent |

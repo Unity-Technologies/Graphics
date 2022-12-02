@@ -5,6 +5,7 @@ Rotates the vertex posiiton, normal, and tangent to align all three axes with th
 **Position** - The input vertex postion.
 **Normal** - The input vertex normal.
 **Tangent** - The input vertex tangent.
+**Pivot Offset** - The value to offset the object piviot point.
 
 ## Output
 **Billboard Position** - The billboard vertex postion.
